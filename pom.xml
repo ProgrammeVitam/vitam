@@ -198,17 +198,33 @@
 					<groupId>org.jacoco</groupId>
 					<artifactId>jacoco-maven-plugin</artifactId>
 					<version>${jacoco-maven-plugin.version}</version>
-					<!--<executions> <execution> <id>jacoco-prepare-agent</id> <phase>process-test-classes</phase> 
-						<goals> <goal>prepare-agent</goal> </goals> <configuration> <propertyName>coverageAgent</propertyName> 
-						</configuration> </execution> <execution> <id>report</id> <phase>prepare-package</phase> 
-						<goals> <goal>report</goal> </goals> </execution> </executions> -->
+					<executions>
+						<execution>
+							<id>jacoco-prepare-agent</id>
+							<goals>
+								<goal>prepare-agent</goal>
+							</goals>
+							<configuration>
+                                <propertyName>coverageAgent</propertyName>
+                            </configuration>
+						</execution>
+						<execution>
+							<id>report</id>
+							<phase>prepare-package</phase>
+							<goals>
+								<goal>report</goal>
+							</goals>
+						</execution>
+					</executions>
 				</plugin>
 				<plugin>
 					<!-- Run the Junit unit tests in an isolated classloader. -->
 					<artifactId>maven-surefire-plugin</artifactId>
 					<version>2.19.1</version>
-					<!--<configuration> <forkMode>always</forkMode> <argLine>-XX:MaxPermSize=256m 
-						-Xmx1024m ${coverageAgent}</argLine> </configuration> -->
+					<configuration>
+                        <forkMode>always</forkMode>
+                        <argLine>-Xmx2048m ${coverageAgent}</argLine>
+                    </configuration>
 				</plugin>
 				<plugin>
 					<!-- Useful for integration tests - verifies the existence of certain 
