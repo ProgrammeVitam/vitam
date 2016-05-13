@@ -27,55 +27,44 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.processing.core.handler;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import fr.gouv.vitam.processing.api.model.ProcessResponse;
-import fr.gouv.vitam.processing.api.model.Response;
-import fr.gouv.vitam.processing.api.model.StatusCode;
-import fr.gouv.vitam.processing.api.worker.Action;
+package fr.gouv.vitam.processing.api.model;
 
 /**
+ * Enum StatusCode
  * 
- * 
+ * different constants status code for workflow , action handler and process
  *
  */
-public abstract class ActionHandler implements Action {
-
-	protected static final Logger LOGGER = LoggerFactory.getLogger(ActionHandler.class);
+public enum StatusCode {
+	/**
+	 * OK : indicates the successful without warning
+	 */
+	OK("OK"),
 
 	/**
-	 * functional error status
-	 * 
-	 * @param message
-	 * @return response with KO status Code and functional messages
+	 * indicates the failed execution of the action
 	 */
-	protected Response messageKo(String message) {
-		Response response = new ProcessResponse();
-		List<String> messages = new ArrayList<>();
-		response.setStatus(StatusCode.KO);
-		response.setMessages(messages);
-		return response;
+	KO("KO"),
+	/**
+	 * Indicates a critical error such as technical Exception ( runtime
+	 * exception, illegal argument exception, null pointer exception ...)
+	 * 
+	 */
+	FATAL("FATAL"),
+	/**
+	 * indicates successful with a general warning. Warning are often useful in
+	 * preventing future Action problems
+	 */
+	WARNING("WARNING");
+
+	private String value;
+
+	private StatusCode(String value) {
+		this.value = value;
 	}
 
-	/**
-	 * fatal error status : Indicates a critical error such as technical ,
-	 * runtime Exception
-	 * 
-	 * @param message
-	 * @return response with FATAL status Code and technical error message
-	 */
-	protected Response messageFatal(String message) {
-		Response response = new ProcessResponse();
-		List<String> messages = new ArrayList<>();
-		response.setStatus(StatusCode.FATAL);
-		response.setMessages(messages);
-		return response;
+	public String value() {
+		return value;
 	}
 
 }

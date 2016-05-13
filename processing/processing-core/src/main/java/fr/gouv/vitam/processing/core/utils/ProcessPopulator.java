@@ -27,55 +27,54 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.processing.core.handler;
+package fr.gouv.vitam.processing.core.utils;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.File;
+import java.io.IOException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import fr.gouv.vitam.processing.api.model.ProcessResponse;
-import fr.gouv.vitam.processing.api.model.Response;
-import fr.gouv.vitam.processing.api.model.StatusCode;
-import fr.gouv.vitam.processing.api.worker.Action;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import fr.gouv.vitam.processing.api.model.WorkFlow;
 
 /**
+ * Temporary process populator
  * 
- * 
+ * populates workflow java object
  *
  */
-public abstract class ActionHandler implements Action {
+public class ProcessPopulator {
 
-	protected static final Logger LOGGER = LoggerFactory.getLogger(ActionHandler.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ProcessPopulator.class);
 
 	/**
-	 * functional error status
+	 * create workflow object :parse JSON file
 	 * 
-	 * @param message
-	 * @return response with KO status Code and functional messages
+	 * @param workflowId
+	 * @return workflow 's object
 	 */
-	protected Response messageKo(String message) {
-		Response response = new ProcessResponse();
-		List<String> messages = new ArrayList<>();
-		response.setStatus(StatusCode.KO);
-		response.setMessages(messages);
-		return response;
+	public static WorkFlow populate(String workflowId) {
+
+		ObjectMapper objectMapper = new ObjectMapper();
+		WorkFlow process = null;
+
+		try {
+			File FILE_JSON = getFileByName(workflowId + ".json");
+			process = objectMapper.readValue(FILE_JSON, WorkFlow.class);
+
+		} catch (IOException e) {
+			LOGGER.error("IOException thrown by populator", e);
+		} catch (Exception e) {
+			LOGGER.error("Exception thrown by populator", e);
+		}
+		return process;
 	}
 
-	/**
-	 * fatal error status : Indicates a critical error such as technical ,
-	 * runtime Exception
-	 * 
-	 * @param message
-	 * @return response with FATAL status Code and technical error message
-	 */
-	protected Response messageFatal(String message) {
-		Response response = new ProcessResponse();
-		List<String> messages = new ArrayList<>();
-		response.setStatus(StatusCode.FATAL);
-		response.setMessages(messages);
-		return response;
+	private static File getFileByName(String workflowName) throws Exception {
+
+		return new File(Thread.currentThread().getContextClassLoader().getResource(workflowName).getFile());
 	}
 
 }

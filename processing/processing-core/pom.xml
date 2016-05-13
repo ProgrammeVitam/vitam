@@ -19,14 +19,39 @@
 
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>workspace-core</artifactId>
+			<artifactId>workspace-client</artifactId>
+			<version>${project.version}</version>
+<!-- 			<exclusions> -->
+<!-- 				<exclusion> -->
+<!-- 					<groupId>javax.ws.rs</groupId> -->
+<!-- 					<artifactId>jsr311-api</artifactId> -->
+<!-- 				</exclusion> -->
+<!-- 			</exclusions> -->
+		</dependency>
+
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>common</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+
 
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>metadata-core</artifactId>
 			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>metadata-client</artifactId>
+			<version>${project.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>javax.ws.rs</groupId>
+					<artifactId>jsr311-api</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>

@@ -27,55 +27,34 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.processing.core.handler;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import fr.gouv.vitam.processing.api.model.ProcessResponse;
-import fr.gouv.vitam.processing.api.model.Response;
-import fr.gouv.vitam.processing.api.model.StatusCode;
-import fr.gouv.vitam.processing.api.worker.Action;
+package fr.gouv.vitam.processing.api.exception;
 
 /**
- * 
- * 
+ * Workflow not found exception throws by engine
  *
  */
-public abstract class ActionHandler implements Action {
-
-	protected static final Logger LOGGER = LoggerFactory.getLogger(ActionHandler.class);
+public class WorkflowNotFoundException extends EngineException {
 
 	/**
-	 * functional error status
+	 * 
+	 */
+	private static final long serialVersionUID = 2008622374138271571L;
+
+	/**
 	 * 
 	 * @param message
-	 * @return response with KO status Code and functional messages
+	 * @param cause
 	 */
-	protected Response messageKo(String message) {
-		Response response = new ProcessResponse();
-		List<String> messages = new ArrayList<>();
-		response.setStatus(StatusCode.KO);
-		response.setMessages(messages);
-		return response;
+	public WorkflowNotFoundException(String message, Throwable cause) {
+		super(message, cause);
 	}
 
 	/**
-	 * fatal error status : Indicates a critical error such as technical ,
-	 * runtime Exception
 	 * 
 	 * @param message
-	 * @return response with FATAL status Code and technical error message
 	 */
-	protected Response messageFatal(String message) {
-		Response response = new ProcessResponse();
-		List<String> messages = new ArrayList<>();
-		response.setStatus(StatusCode.FATAL);
-		response.setMessages(messages);
-		return response;
+	public WorkflowNotFoundException(String message) {
+		super(message);
 	}
 
 }

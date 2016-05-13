@@ -4,11 +4,6 @@
 	"steps":
 	[
 	{
-	"workerGroupId" :"worker1",
-		"stepName":"analyse_archives",
-		"actions":[{"action":"analyseAction"}]
-	},
-	{
 	"workerGroupId" :"worker2",
 		"stepName":"Traiter_archives",
 		"actions":[{"action":"extractContentAction"},{"action":"storeAction"},{"action":"saveInDataBaseAction"}]

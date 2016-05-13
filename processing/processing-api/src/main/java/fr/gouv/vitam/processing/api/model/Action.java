@@ -27,55 +27,37 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.processing.core.handler;
+package fr.gouv.vitam.processing.api.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import fr.gouv.vitam.processing.api.model.ProcessResponse;
-import fr.gouv.vitam.processing.api.model.Response;
-import fr.gouv.vitam.processing.api.model.StatusCode;
-import fr.gouv.vitam.processing.api.worker.Action;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * 
- * 
+ * step class is a collection of actions event
  *
  */
-public abstract class ActionHandler implements Action {
+@JsonIgnoreProperties(ignoreUnknown = false)
+public class Action {
 
-	protected static final Logger LOGGER = LoggerFactory.getLogger(ActionHandler.class);
+	@JsonProperty("action")
+	private String actionKey;
 
 	/**
-	 * functional error status
 	 * 
-	 * @param message
-	 * @return response with KO status Code and functional messages
+	 * @return ({String}) ID of action object or bean
 	 */
-	protected Response messageKo(String message) {
-		Response response = new ProcessResponse();
-		List<String> messages = new ArrayList<>();
-		response.setStatus(StatusCode.KO);
-		response.setMessages(messages);
-		return response;
+	public String getActionKey() {
+		return actionKey;
 	}
 
 	/**
-	 * fatal error status : Indicates a critical error such as technical ,
-	 * runtime Exception
+	 * set action key
 	 * 
-	 * @param message
-	 * @return response with FATAL status Code and technical error message
+	 * @param actionKey
 	 */
-	protected Response messageFatal(String message) {
-		Response response = new ProcessResponse();
-		List<String> messages = new ArrayList<>();
-		response.setStatus(StatusCode.FATAL);
-		response.setMessages(messages);
-		return response;
+	public void setActionKey(String actionKey) {
+		this.actionKey = actionKey;
 	}
 
 }
