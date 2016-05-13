@@ -8,6 +8,11 @@
 	</parent>
 	<artifactId>workspace-core</artifactId>
 	<dependencies>
+	<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>workspace-common</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>workspace-api</artifactId>
@@ -21,7 +26,7 @@
 			<groupId>org.apache.jclouds.api</groupId>
 			<artifactId>filesystem</artifactId>
 		</dependency>
-
+		
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>log4j-over-slf4j</artifactId>

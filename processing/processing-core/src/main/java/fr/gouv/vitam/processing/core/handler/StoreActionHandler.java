@@ -13,7 +13,7 @@ import fr.gouv.vitam.utils.ContainerUtils;
 import fr.gouv.vitam.workspace.api.ContentAddressableStorage;
 import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
-import fr.gouv.vitam.workspace.core.FileSystemMock;
+import fr.gouv.vitam.workspace.core.FileSystem;
 
 /**
  * 
@@ -54,7 +54,7 @@ public class StoreActionHandler extends ActionHandler {
 			if (storageService.containerExists(params.getContainerName())) {
 				LOGGER.info("adding num object in container name :" + params.getContainerName());
 				storageService.putObject(params.getContainerName(), params.getObjectName(),
-						ContainerUtils.getTestBytes(params.getObjectName()));
+						ContainerUtils.getTestStream(params.getObjectName()));
 				if (storageService.objectExists(params.getContainerName(), params.getObjectName())) {
 					response.setStatus(StatusCode.OK);
 				} else {
@@ -86,11 +86,11 @@ public class StoreActionHandler extends ActionHandler {
 
 		File tempDir = Files.createTempDir();
 		try {
-			configuration.storagePath = tempDir.getCanonicalPath();
+			configuration.setStoragePath(tempDir.getCanonicalPath());
 		} catch (IOException e) {
 			LOGGER.error("IOException ..", e);
 		}
-		storageService = new FileSystemMock(configuration);
+		storageService = new FileSystem(configuration);
 
 	}
 

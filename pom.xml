@@ -92,6 +92,10 @@
 		<java.version>1.8</java.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
+		<!-- Build environment Properties -->
+		<vitam.docker.registry.pull>vitam-prod-app-6.internet.agri:8084</vitam.docker.registry.pull>
+		<vitam.docker.registry.push>vitam-prod-app-6.internet.agri:8082</vitam.docker.registry.push>
+
 		<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
 		<!-- Sonar properties -->
 		<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
@@ -129,7 +133,7 @@
 		<assertj.version>2.4.0</assertj.version>
 		<rest-assured.version>2.9.0</rest-assured.version>
 		<junit.version>4.12</junit.version>
-		<mockito.version>2.0.1</mockito.version>
+		<mockito.version>1.10.19</mockito.version>
 	</properties>
 
 	<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
@@ -205,8 +209,8 @@
 								<goal>prepare-agent</goal>
 							</goals>
 							<configuration>
-                                <propertyName>coverageAgent</propertyName>
-                            </configuration>
+								<propertyName>coverageAgent</propertyName>
+							</configuration>
 						</execution>
 						<execution>
 							<id>report</id>
@@ -222,9 +226,9 @@
 					<artifactId>maven-surefire-plugin</artifactId>
 					<version>2.19.1</version>
 					<configuration>
-                        <forkMode>always</forkMode>
-                        <argLine>-Xmx2048m ${coverageAgent}</argLine>
-                    </configuration>
+						<forkMode>always</forkMode>
+						<argLine>-Xmx2048m ${coverageAgent}</argLine>
+					</configuration>
 				</plugin>
 				<plugin>
 					<!-- Useful for integration tests - verifies the existence of certain 
@@ -254,6 +258,22 @@
 					</configuration>
 				</plugin>
 
+				<plugin>
+					<!-- Build Docker Container from Project -->
+					<groupId>com.spotify</groupId>
+					<artifactId>docker-maven-plugin</artifactId>
+					<version>0.4.5</version>
+					<configuration>
+						<skipDockerBuild>true</skipDockerBuild> <!-- Skip build by default -->
+						<skipDockerTag>true</skipDockerTag> <!-- Skip tag by default -->
+						<imageTags>
+				           <imageTag>${project.version}</imageTag>
+				           <imageTag>latest</imageTag>
+				        </imageTags>
+				        <forceTags>true</forceTags> <!-- Allow to build the same docker name twice on the build machine -->
+				        <useConfigFile>true</useConfigFile> <!-- Use credentials of ~/.docker/config.json -->
+					</configuration>
+				</plugin>
 				<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
 				<!-- Reporting plugins : Plugins which generate reports, are configured 
 					as reports in the POM and run under the site generation lifecycle. -->
@@ -412,6 +432,11 @@
 			</dependency>
 
 			<dependency>
+				<groupId>org.glassfish.jersey.core</groupId>
+				<artifactId>jersey-client</artifactId>
+				<version>${jersey.version}</version>
+			</dependency>
+			<dependency>
 				<groupId>org.glassfish.jersey.containers</groupId>
 				<artifactId>jersey-container-servlet-core</artifactId>
 				<version>${jersey.version}</version>
@@ -433,11 +458,10 @@
 				<artifactId>jersey-media-multipart</artifactId>
 				<version>${jersey.version}</version>
 			</dependency>
-
 			<dependency>
-				<groupId>com.esotericsoftware.yamlbeans</groupId>
-				<artifactId>yamlbeans</artifactId>
-				<version>${yamlbeans.version}</version>
+				<groupId>com.fasterxml.jackson.dataformat</groupId>
+				<artifactId>jackson-dataformat-yaml</artifactId>
+				<version>${jackson.version}</version>
 			</dependency>
 
 			<dependency>
@@ -580,6 +604,16 @@
 				<groupId>org.testcontainers</groupId>
 				<artifactId>testcontainers</artifactId>
 				<version>${testcontainers.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.glassfish.jersey.test-framework.providers</groupId>
+				<artifactId>jersey-test-framework-provider-grizzly2</artifactId>
+				<version>${jersey.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.glassfish.jersey.test-framework.providers</groupId>
+				<artifactId>jersey-test-framework-provider-jetty</artifactId>
+				<version>${jersey.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

@@ -11,7 +11,8 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 
-import com.esotericsoftware.yamlbeans.YamlReader;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import fr.gouv.vitam.api.config.MetaDataConfiguration;
 
@@ -43,8 +44,9 @@ public class MetaDataApplication {
 		if (args.length >= 1) {
 			try {
 				FileReader yamlFile = new FileReader(new File(args[0]));
-				YamlReader reader = new YamlReader(yamlFile);
-				configuration = reader.read(MetaDataConfiguration.class);
+				ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+				configuration = mapper.readValue(yamlFile, MetaDataConfiguration.class);
+				
 				new MetaDataApplication(serverPort, configuration);
 
 			} catch (Exception e) {
