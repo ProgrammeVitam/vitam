@@ -29,66 +29,61 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.core.handler;
 
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 import fr.gouv.vitam.processing.api.model.ProcessResponse;
 import fr.gouv.vitam.processing.api.model.Response;
 import fr.gouv.vitam.processing.api.model.StatusCode;
 import fr.gouv.vitam.processing.api.model.WorkParams;
-import fr.gouv.vitam.processing.core.utils.FileVitamUtils;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 
 /**
+ * StoreInWorkspaceActionHandler Handler used to put object in workspace
  * 
- * ExtractContentActionHandler handler class used to extract metaData .Create
- * and put a new file (matadata extracted) json.json into container GUID
- *
+ * 
  */
-public class ExtractContentActionHandler extends ActionHandler {
+public class StoreInWorkspaceActionHandler extends ActionHandler {
 
-	public static final String HANDLER_ID = "extractContentAction";
+	public static final String HANDLER_ID = "storeAction";
+
+	public static final String CONTAINER_NOT_EXIST = "Container file does not exist";
 
 	private WorkspaceClient workspaceClient;
 
 	@Override
 	public Response execute(WorkParams params) {
-		LOGGER.info("ExtractContentActionHandler running ...");
+		LOGGER.info("StoreActionHandler running ...");
 		Response response = new ProcessResponse();
-		/**
-		 * 
-		 */
-		if (params != null && params.getServerConfiguration() != null) {
-			LOGGER.info("instantiate WorkspaceClient and metaDataClient ...");
-			this.workspaceClient = new WorkspaceClient(params.getServerConfiguration().getUrlWorkspace());
+		if (params.getServerConfiguration() != null) {
 
-		}
-		try {
-			/**
-			 * Retrieves an object representing the data at location (GUUID)
-			 * containerName/objectName
-			 **/
-			InputStream inputStream = workspaceClient.getObject(params.getGuuid(), "seda.xml");
-			/**
-			 * //TODO extract metatData
-			 */
+			LOGGER.info("ServerConfiguration : URL :" + params.getServerConfiguration().getUrlWorkspace());
 
-			// convert xml to JSON file
-			String jsonData = FileVitamUtils.convertInputStreamXMLToString(inputStream);
-
-			// convert String into InputStream
-			InputStream json = new ByteArrayInputStream(jsonData.getBytes());
-			// put json file to workspace
-			workspaceClient.putObject(params.getGuuid(), "json.json", json);
-			/**
-			 * 
-			 */
-		} catch (Exception e) {
-			LOGGER.info("An exception thrown when adding file to workspace");
-			messageFatal(e.getMessage());
+			workspaceClient = new WorkspaceClient(params.getServerConfiguration().getUrlWorkspace());
 		}
 
-		response.setStatus(StatusCode.OK);
+		if (workspaceClient.containerExists(params.getGuuid())) {
+			try {
+
+				/**
+				 * Retrieves an object representing the data at location (GUUID)
+				 * containerName/objectName
+				 **/
+				InputStream sip = workspaceClient.getObject(params.getGuuid(), "seda.xml");
+				/** Put object into workspace **/
+				workspaceClient.putObject(params.getGuuid(), "step1.xml", sip);
+
+				response.setStatus(StatusCode.OK);
+
+			} catch (Exception e) {
+
+				LOGGER.error(e.getMessage());
+				messageFatal(e.getMessage());
+			}
+
+		} else {
+			messageKo(CONTAINER_NOT_EXIST);
+
+		}
 
 		return response;
 	}

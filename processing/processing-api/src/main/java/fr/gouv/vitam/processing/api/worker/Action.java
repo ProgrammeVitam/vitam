@@ -27,55 +27,28 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.processing.core.handler;
+package fr.gouv.vitam.processing.api.worker;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import fr.gouv.vitam.processing.api.model.ProcessResponse;
 import fr.gouv.vitam.processing.api.model.Response;
-import fr.gouv.vitam.processing.api.model.StatusCode;
-import fr.gouv.vitam.processing.api.worker.Action;
+import fr.gouv.vitam.processing.api.model.WorkParams;
 
 /**
  * 
  * 
+ * Action interface: is a contract for different action Handler event
+ * 
+ * action handler class must be implement this interface
  *
  */
-public abstract class ActionHandler implements Action {
-
-	protected static final Logger LOGGER = LoggerFactory.getLogger(ActionHandler.class);
+public interface Action {
 
 	/**
-	 * functional error status
 	 * 
-	 * @param message
-	 * @return response with KO status Code and functional messages
+	 * @param params
+	 *            {@link WorkParams}
+	 * @return Response:response contains a list of functional message and
+	 *         status code
 	 */
-	protected Response messageKo(String message) {
-		Response response = new ProcessResponse();
-		List<String> messages = new ArrayList<>();
-		response.setStatus(StatusCode.KO);
-		response.setMessages(messages);
-		return response;
-	}
-
-	/**
-	 * fatal error status : Indicates a critical error such as technical ,
-	 * runtime Exception
-	 * 
-	 * @param message
-	 * @return response with FATAL status Code and technical error message
-	 */
-	protected Response messageFatal(String message) {
-		Response response = new ProcessResponse();
-		List<String> messages = new ArrayList<>();
-		response.setStatus(StatusCode.FATAL);
-		response.setMessages(messages);
-		return response;
-	}
+	Response execute(WorkParams params);
 
 }

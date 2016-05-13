@@ -27,55 +27,70 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.processing.core.handler;
+package fr.gouv.vitam.processing.api.model;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import fr.gouv.vitam.processing.api.model.ProcessResponse;
-import fr.gouv.vitam.processing.api.model.Response;
-import fr.gouv.vitam.processing.api.model.StatusCode;
-import fr.gouv.vitam.processing.api.worker.Action;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * 
  * 
+ * workflow class used for deserialize JSON file (root element)
  *
  */
-public abstract class ActionHandler implements Action {
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class WorkFlow {
 
-	protected static final Logger LOGGER = LoggerFactory.getLogger(ActionHandler.class);
+	private String id;
+	private String comment;
 
 	/**
-	 * functional error status
-	 * 
-	 * @param message
-	 * @return response with KO status Code and functional messages
+	 * steps properties, must be defined in JSON file(required)
 	 */
-	protected Response messageKo(String message) {
-		Response response = new ProcessResponse();
-		List<String> messages = new ArrayList<>();
-		response.setStatus(StatusCode.KO);
-		response.setMessages(messages);
-		return response;
+	@JsonProperty("steps")
+	protected List<Step> steps;
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
 	}
 
 	/**
-	 * fatal error status : Indicates a critical error such as technical ,
-	 * runtime Exception
 	 * 
-	 * @param message
-	 * @return response with FATAL status Code and technical error message
+	 * @return comments
 	 */
-	protected Response messageFatal(String message) {
-		Response response = new ProcessResponse();
-		List<String> messages = new ArrayList<>();
-		response.setStatus(StatusCode.FATAL);
-		response.setMessages(messages);
-		return response;
+	public String getComment() {
+		return comment;
+	}
+
+	public List<Step> getSteps() {
+		return steps;
+	}
+
+	public void setSteps(List<Step> steps) {
+		this.steps = steps;
+	}
+
+	/**
+	 * 
+	 * @param comments
+	 */
+	public void setComment(String comments) {
+		this.comment = comments;
+	}
+
+	@Override
+	public String toString() {
+
+		StringBuilder sb = new StringBuilder();
+		sb.append("ID=" + getId() + "\n");
+		sb.append("comments=" + getComment() + "\n");
+		return sb.toString();
 	}
 
 }

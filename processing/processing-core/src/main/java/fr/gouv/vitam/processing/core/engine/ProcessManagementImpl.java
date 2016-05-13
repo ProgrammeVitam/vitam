@@ -27,70 +27,51 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.processing.core.handler;
+package fr.gouv.vitam.processing.core.engine;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
+import java.io.File;
+import java.io.FileReader;
 
-import fr.gouv.vitam.processing.api.model.ProcessResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+
+import fr.gouv.vitam.processing.api.config.ServerConfiguration;
+import fr.gouv.vitam.processing.api.engine.ProcessEngine;
+import fr.gouv.vitam.processing.api.engine.ProcessManagement;
 import fr.gouv.vitam.processing.api.model.Response;
-import fr.gouv.vitam.processing.api.model.StatusCode;
 import fr.gouv.vitam.processing.api.model.WorkParams;
-import fr.gouv.vitam.processing.core.utils.FileVitamUtils;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
 
 /**
+ * ProcessManagementImpl
  * 
- * ExtractContentActionHandler handler class used to extract metaData .Create
- * and put a new file (matadata extracted) json.json into container GUID
- *
+ * 
+ * 
  */
-public class ExtractContentActionHandler extends ActionHandler {
+public class ProcessManagementImpl implements ProcessManagement {
 
-	public static final String HANDLER_ID = "extractContentAction";
+	private ProcessEngine processEngine;
 
-	private WorkspaceClient workspaceClient;
+	public ProcessManagementImpl() {
+		/**
+		 * inject process engine
+		 */
+		processEngine = new ProcessEngineImpl();
+	}
 
 	@Override
-	public Response execute(WorkParams params) {
-		LOGGER.info("ExtractContentActionHandler running ...");
-		Response response = new ProcessResponse();
-		/**
-		 * 
-		 */
-		if (params != null && params.getServerConfiguration() != null) {
-			LOGGER.info("instantiate WorkspaceClient and metaDataClient ...");
-			this.workspaceClient = new WorkspaceClient(params.getServerConfiguration().getUrlWorkspace());
-
-		}
+	public Response executeVitamProcess(WorkParams workParams, String workflowId) {
+		FileReader yamlFile;
 		try {
-			/**
-			 * Retrieves an object representing the data at location (GUUID)
-			 * containerName/objectName
-			 **/
-			InputStream inputStream = workspaceClient.getObject(params.getGuuid(), "seda.xml");
-			/**
-			 * //TODO extract metatData
-			 */
-
-			// convert xml to JSON file
-			String jsonData = FileVitamUtils.convertInputStreamXMLToString(inputStream);
-
-			// convert String into InputStream
-			InputStream json = new ByteArrayInputStream(jsonData.getBytes());
-			// put json file to workspace
-			workspaceClient.putObject(params.getGuuid(), "json.json", json);
-			/**
-			 * 
-			 */
+			yamlFile = new FileReader(new File(
+					Thread.currentThread().getContextClassLoader().getSystemResource("processing.conf").getFile()));
+			ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+			ServerConfiguration configuration = new ServerConfiguration();
+			configuration = mapper.readValue(yamlFile, ServerConfiguration.class);
+			workParams.setServerConfiguration(configuration);
 		} catch (Exception e) {
-			LOGGER.info("An exception thrown when adding file to workspace");
-			messageFatal(e.getMessage());
+
 		}
-
-		response.setStatus(StatusCode.OK);
-
-		return response;
+		return processEngine.startProcessByWorkFlowId(workParams, workflowId);
 	}
 
 }

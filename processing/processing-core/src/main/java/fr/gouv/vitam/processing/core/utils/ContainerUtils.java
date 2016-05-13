@@ -27,55 +27,19 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.processing.core.handler;
+package fr.gouv.vitam.processing.core.utils;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;
+import java.io.InputStream;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+public class ContainerUtils {
 
-import fr.gouv.vitam.processing.api.model.ProcessResponse;
-import fr.gouv.vitam.processing.api.model.Response;
-import fr.gouv.vitam.processing.api.model.StatusCode;
-import fr.gouv.vitam.processing.api.worker.Action;
-
-/**
- * 
- * 
- *
- */
-public abstract class ActionHandler implements Action {
-
-	protected static final Logger LOGGER = LoggerFactory.getLogger(ActionHandler.class);
-
-	/**
-	 * functional error status
-	 * 
-	 * @param message
-	 * @return response with KO status Code and functional messages
-	 */
-	protected Response messageKo(String message) {
-		Response response = new ProcessResponse();
-		List<String> messages = new ArrayList<>();
-		response.setStatus(StatusCode.KO);
-		response.setMessages(messages);
-		return response;
+	public static String generateContainerName() {
+		return "container";
 	}
 
-	/**
-	 * fatal error status : Indicates a critical error such as technical ,
-	 * runtime Exception
-	 * 
-	 * @param message
-	 * @return response with FATAL status Code and technical error message
-	 */
-	protected Response messageFatal(String message) {
-		Response response = new ProcessResponse();
-		List<String> messages = new ArrayList<>();
-		response.setStatus(StatusCode.FATAL);
-		response.setMessages(messages);
-		return response;
+	public static InputStream getTestStream(String file) throws IOException {
+		return Thread.currentThread().getContextClassLoader().getResourceAsStream(file);
 	}
 
 }
