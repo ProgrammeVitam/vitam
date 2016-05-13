@@ -1,0 +1,27 @@
+---
+# Root prerequesites on all hosts
+- hosts: hosts
+  roles:
+    - host-base
+
+
+# Vitam solution deployment
+- hosts: hosts-storage
+  roles:
+  - storage
+
+- hosts: hosts-workspace
+  roles:
+    - workspace
+
+- hosts: hosts-metadata
+  roles:
+    - metadata
+
+- hosts: hosts-ingest
+  roles:
+    - ingest
+
+- hosts: hosts-metadata-mongodb
+  roles:
+  - metadata-mongodb

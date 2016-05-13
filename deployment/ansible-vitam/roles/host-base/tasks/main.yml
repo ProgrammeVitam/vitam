@@ -1,0 +1,22 @@
+---
+# create VITAM user & group
+- name: Create Vitam group
+  group:
+    name: vitam
+    gid: 2000
+- name: Create Vitam user (for mapping)
+  user:
+    name: vitam
+    uid: 2000
+    shell: /bin/false
+    group: vitam
+    home: "{{vitam_folder_root}}"
+
+# tasks file for base_host_vitam
+- name: create VITAM base directory
+  file:
+    name: "{{vitam_folder_root}}"
+    state: directory
+    owner: vitam
+    group: vitam
+    mode: 0700

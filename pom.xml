@@ -93,7 +93,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<!-- Build environment Properties -->
-		<vitam.docker.registry.pull>vitam-prod-app-6.internet.agri:8084</vitam.docker.registry.pull>
+		<vitam.docker.registry.pull>docker.programmevitam.fr</vitam.docker.registry.pull>
 		<vitam.docker.registry.push>vitam-prod-app-6.internet.agri:8082</vitam.docker.registry.push>
 
 		<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
@@ -263,7 +263,7 @@
 					<!-- Build Docker Container from Project -->
 					<groupId>com.spotify</groupId>
 					<artifactId>docker-maven-plugin</artifactId>
-					<version>0.4.5</version>
+					<version>0.4.9</version>
 					<configuration>
 						<skipDockerBuild>true</skipDockerBuild> <!-- Skip build by default -->
 						<skipDockerTag>true</skipDockerTag> <!-- Skip tag by default -->

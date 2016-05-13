@@ -1,0 +1,37 @@
+---
+#(user vitam / groupe vitam)
+- name: Ensure VITAM directories exist to persist VITAM data, configuration and logs
+  file: 
+    name={{item}} 
+    state=directory
+    owner=vitam
+    group=vitam
+    mode=0755
+  with_items:
+  - "{{vitam_folder_conf}}"
+  - "{{vitam_folder_log}}"
+  - "{{vitam_folder_data}}"
+
+- name: Deploy configuration files
+  template:
+    src="{{item}}.j2"
+    dest="{{vitam_folder_conf}}/{{item}}"
+    owner=vitam
+    group=vitam mode=0500
+  notify: restart container
+  with_items:
+  - "workspace.conf"
+  - "setenv.sh"
+
+- name: Deploy VITAM docker file
+  docker:
+    name: "{{vitam_docker_name}}"
+    image: "{{docker_registry_hostname}}/vitam/workspace:{{vitam_docker_tag}}"
+    state: started
+    restart_policy: always
+    ports:
+      - "{{vitam_docker_port_http}}:8082"
+    volumes: 
+      - "{{vitam_folder_conf}}:/vitam/conf"
+      - "{{vitam_folder_log}}:/vitam/log"
+      - "{{vitam_folder_data}}:/vitam/data"
