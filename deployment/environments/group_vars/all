@@ -1,0 +1,5 @@
+---
+vitam_folder_root: /opt/vitam
+docker_registry_httponly: yes
+docker_registry_hostname: vitam-prod-app-6.internet.agri:8084
+vitam_mongodb_host: vitam-prod-app-11.internet.agri

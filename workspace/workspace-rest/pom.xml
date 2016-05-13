@@ -124,10 +124,10 @@
 			          <goal>copy-resources</goal>
 			        </goals>
 			        <configuration>
-			          <outputDirectory>${project.build.directory}/config</outputDirectory>
+			          <outputDirectory>${project.build.directory}/bin</outputDirectory>
 			          <resources>
 			            <resource>
-			                <directory>src/main/config</directory>
+			                <directory>src/main/bin</directory>
 			                <filtering>true</filtering>
 			            </resource>
 			          </resources>
@@ -169,7 +169,11 @@
 						</resource>
 						<resource>
 							<targetPath>/vitam/conf</targetPath>
-							<directory>${project.build.directory}/config</directory>
+							<directory>${basedir}/src/main/config</directory>
+						</resource>
+						<resource>
+							<targetPath>/vitam/bin</targetPath>
+							<directory>${project.build.directory}/bin</directory>
 						</resource>
 						<resource>
 							<targetPath>/vitam/lib</targetPath>

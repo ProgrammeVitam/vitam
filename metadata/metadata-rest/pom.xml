@@ -112,10 +112,10 @@
 			          <goal>copy-resources</goal>
 			        </goals>
 			        <configuration>
-			          <outputDirectory>${project.build.directory}/config</outputDirectory>
+			          <outputDirectory>${project.build.directory}/bin</outputDirectory>
 			          <resources>
 			            <resource>
-			                <directory>src/main/config</directory>
+			                <directory>src/main/bin</directory>
 			                <filtering>true</filtering>
 			            </resource>
 			          </resources>
@@ -146,7 +146,7 @@
 					<skipDockerTag>false</skipDockerTag>
 				    <!-- Images specification -->
 					<baseImage>${vitam.docker.registry.pull}/vitam/java</baseImage>
-					<imageName>${vitam.docker.registry.push}/vitam/workspace</imageName>
+					<imageName>${vitam.docker.registry.push}/vitam/metadata</imageName>
 					<!-- copy the service's jar file from target into the root directory 
 						of the image -->
 					<resources>
@@ -157,8 +157,11 @@
 						</resource>
 						<resource>
 							<targetPath>/vitam/conf</targetPath>
-							<directory>${project.build.directory}/config</directory>
-							<!--<include>*</include> -->
+							<directory>${basedir}/src/main/config</directory>
+						</resource>
+						<resource>
+							<targetPath>/vitam/bin</targetPath>
+							<directory>${project.build.directory}/bin</directory>
 						</resource>
 						<resource>
 							<targetPath>/vitam/lib</targetPath>
