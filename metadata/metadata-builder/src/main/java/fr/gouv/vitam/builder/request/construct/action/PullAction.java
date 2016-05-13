@@ -57,7 +57,7 @@ public class PullAction extends Action {
     public PullAction(final String variableName, final String... value)
             throws InvalidCreateOperationException {
         super();
-        createActionVariableEach(UPDATEACTION.pull, variableName);
+        createActionVariableEach(UPDATEACTION.PULL, variableName);
         for (final String val : value) {
             if (val != null && !val.trim().isEmpty()) {
                 try {
@@ -68,7 +68,7 @@ public class PullAction extends Action {
                 ((ArrayNode) currentObject).add(val.trim());
             }
         }
-        currentUPDATEACTION = UPDATEACTION.pull;
+        currentUPDATEACTION = UPDATEACTION.PULL;
         setReady(true);
     }
 
@@ -82,11 +82,11 @@ public class PullAction extends Action {
     public PullAction(final String variableName, final long... value)
             throws InvalidCreateOperationException {
         super();
-        createActionVariableEach(UPDATEACTION.pull, variableName);
+        createActionVariableEach(UPDATEACTION.PULL, variableName);
         for (final long val : value) {
             ((ArrayNode) currentObject).add(val);
         }
-        currentUPDATEACTION = UPDATEACTION.pull;
+        currentUPDATEACTION = UPDATEACTION.PULL;
         setReady(true);
     }
 
@@ -100,11 +100,11 @@ public class PullAction extends Action {
     public PullAction(final String variableName, final boolean... value)
             throws InvalidCreateOperationException {
         super();
-        createActionVariableEach(UPDATEACTION.pull, variableName);
+        createActionVariableEach(UPDATEACTION.PULL, variableName);
         for (final boolean val : value) {
             ((ArrayNode) currentObject).add(val);
         }
-        currentUPDATEACTION = UPDATEACTION.pull;
+        currentUPDATEACTION = UPDATEACTION.PULL;
         setReady(true);
     }
 
@@ -118,11 +118,11 @@ public class PullAction extends Action {
     public PullAction(final String variableName, final double... value)
             throws InvalidCreateOperationException {
         super();
-        createActionVariableEach(UPDATEACTION.pull, variableName);
+        createActionVariableEach(UPDATEACTION.PULL, variableName);
         for (final double val : value) {
             ((ArrayNode) currentObject).add(val);
         }
-        currentUPDATEACTION = UPDATEACTION.pull;
+        currentUPDATEACTION = UPDATEACTION.PULL;
         setReady(true);
     }
 
@@ -136,11 +136,11 @@ public class PullAction extends Action {
     public PullAction(final String variableName, final Date... value)
             throws InvalidCreateOperationException {
         super();
-        createActionVariableEach(UPDATEACTION.pull, variableName);
+        createActionVariableEach(UPDATEACTION.PULL, variableName);
         for (final Date val : value) {
             ((ArrayNode) currentObject).add(GlobalDatas.getDate(val));
         }
-        currentUPDATEACTION = UPDATEACTION.pull;
+        currentUPDATEACTION = UPDATEACTION.PULL;
         setReady(true);
     }
 
@@ -153,7 +153,7 @@ public class PullAction extends Action {
      */
     public final PullAction add(final String... value)
             throws InvalidCreateOperationException {
-        if (currentUPDATEACTION != UPDATEACTION.pull) {
+        if (currentUPDATEACTION != UPDATEACTION.PULL) {
             throw new InvalidCreateOperationException(
                     "Cannot add a set element since this is not a Pull Action: "
                             + currentUPDATEACTION);
@@ -180,7 +180,7 @@ public class PullAction extends Action {
      */
     public final PullAction add(final boolean... value)
             throws InvalidCreateOperationException {
-        if (currentUPDATEACTION != UPDATEACTION.pull) {
+        if (currentUPDATEACTION != UPDATEACTION.PULL) {
             throw new InvalidCreateOperationException(
                     "Cannot add a set element since this is not a Pull Action: "
                             + currentUPDATEACTION);
@@ -200,7 +200,7 @@ public class PullAction extends Action {
      */
     public final PullAction add(final long... value)
             throws InvalidCreateOperationException {
-        if (currentUPDATEACTION != UPDATEACTION.pull) {
+        if (currentUPDATEACTION != UPDATEACTION.PULL) {
             throw new InvalidCreateOperationException(
                     "Cannot add a set element since this is not a Pull Action: "
                             + currentUPDATEACTION);
@@ -220,7 +220,7 @@ public class PullAction extends Action {
      */
     public final PullAction add(final double... value)
             throws InvalidCreateOperationException {
-        if (currentUPDATEACTION != UPDATEACTION.pull) {
+        if (currentUPDATEACTION != UPDATEACTION.PULL) {
             throw new InvalidCreateOperationException(
                     "Cannot add a set element since this is not a Pull Action: "
                             + currentUPDATEACTION);
@@ -240,7 +240,7 @@ public class PullAction extends Action {
      */
     public final PullAction add(final Date... value)
             throws InvalidCreateOperationException {
-        if (currentUPDATEACTION != UPDATEACTION.pull) {
+        if (currentUPDATEACTION != UPDATEACTION.PULL) {
             throw new InvalidCreateOperationException(
                     "Cannot add a set element since this is not a Pull Action: "
                             + currentUPDATEACTION);

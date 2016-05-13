@@ -60,8 +60,8 @@ public class RenameAction extends Action {
         } catch (InvalidParseOperationException e) {
             throw new InvalidCreateOperationException(e);
         }
-        createActionVariableValue(UPDATEACTION.rename, variableName, newName);
-        currentUPDATEACTION = UPDATEACTION.rename;
+        createActionVariableValue(UPDATEACTION.RENAME, variableName, newName);
+        currentUPDATEACTION = UPDATEACTION.RENAME;
         setReady(true);
     }
 }

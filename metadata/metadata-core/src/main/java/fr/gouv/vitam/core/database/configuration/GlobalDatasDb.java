@@ -93,8 +93,4 @@ public class GlobalDatasDb extends GlobalDatasParser {
      */
     public static final boolean USEREDIS = false;
 
-    protected GlobalDatasDb() {
-        // empty
-    }
-
 }

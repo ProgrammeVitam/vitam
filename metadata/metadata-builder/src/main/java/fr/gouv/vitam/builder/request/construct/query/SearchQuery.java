@@ -55,8 +55,8 @@ public class SearchQuery extends Query {
             throws InvalidCreateOperationException {
         super();
         switch (searchQuery) {
-            case regex:
-            case search: {
+            case REGEX:
+            case SEARCH: {
                 createQueryVariableValue(searchQuery, variableName, value);
                 currentQUERY = searchQuery;
                 setReady(true);

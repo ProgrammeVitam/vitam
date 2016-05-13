@@ -1,6 +1,11 @@
 package fr.gouv.vitam.core.database.collections.translator.mongodb;
 
-import static org.junit.Assert.*;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.mlt;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.prefix;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.search;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 import java.util.List;
 
@@ -10,9 +15,14 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import fr.gouv.vitam.builder.request.construct.Select;
+import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.QUERY;
+import fr.gouv.vitam.builder.request.construct.query.MatchQuery;
+import fr.gouv.vitam.builder.request.construct.query.MltQuery;
 import fr.gouv.vitam.builder.request.construct.query.Query;
+import fr.gouv.vitam.builder.request.construct.query.SearchQuery;
+import fr.gouv.vitam.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.core.database.collections.MongoDbHelper;
-import fr.gouv.vitam.core.database.collections.translator.mongodb.QueryToMongodb;
 import fr.gouv.vitam.parser.request.parser.SelectParser;
 
 @SuppressWarnings("javadoc")
@@ -33,6 +43,7 @@ public class QueryToMongodbTest {
             + "{ $not : [ "
             + "{ $eq : { 'mavar8' : 5 } }, "
             + "{ $ne : { 'mavar9' : 'ab' } }, "
+            + "{ $wildcard : { 'mavar9' : 'ab' } }, "
             + "{ $range : { 'mavar10' : { $gte : 12, $lte : 20} } } ], $depth : 1}, "
             + "{ $and : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] }, "
             + "{ $regex : { 'mavar14' : '^start?aa.*' }, $depth : -1 } "
@@ -40,7 +51,7 @@ public class QueryToMongodbTest {
             + "$filter : {$offset : 100, $limit : 1000, $hint : ['cache'], "
             + "$orderby : { maclef1 : 1 , maclef2 : -1,  maclef3 : 1 } },"
             + "$projection : {$fields : {#dua : 1, #all : 1}, $usage : 'abcdef1234' } }";
-
+    
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
     }
@@ -78,6 +89,60 @@ public class QueryToMongodbTest {
             e.printStackTrace();
             fail(e.getMessage());
         }
+    }
+    
+    @Test
+    public void testGetMultiRoots() throws InvalidParseOperationException {
+    	String s = "{ $roots: ['id0', 'id1'], $query : [], $filter : [], $projection : [] }";
+    	final SelectParser request = new SelectParser();
+        request.parse(s);
+        Select select = request.getRequest();
+        Bson bsonRoot = QueryToMongodb.getRoots("_up", select.getRoots());
+        assertEquals("{ \"_up\" : { \"$in\" : [\"id0\", \"id1\"] } }", MongoDbHelper.bsonToString(bsonRoot, false));      
+    }
+    
+    @Test (expected = InvalidParseOperationException.class)
+    public void shouldRaiseException_whenMltIsNotAllowed() throws InvalidParseOperationException, InvalidCreateOperationException{
+    	Query query = new MltQuery(QUERY.MLT, "var", "val");
+    	QueryToMongodb.getCommand(query);
+    }
+    
+    @Test (expected = InvalidParseOperationException.class)
+    public void shouldRaiseException_whenPrefixIsNotAllowed() throws InvalidParseOperationException, InvalidCreateOperationException{
+    	Query query = new MatchQuery(QUERY.PREFIX, "var", "val");
+    	QueryToMongodb.getCommand(query);
+    }
+    
+    @Test (expected = InvalidParseOperationException.class)
+    public void shouldRaiseException_whenSearchIsNotAllowed() throws InvalidParseOperationException, InvalidCreateOperationException{
+    	Query query = new SearchQuery(QUERY.SEARCH, "var", "val");
+    	QueryToMongodb.getCommand(query);
+    }
+    
+    @Test
+    public void testWildcardCase() throws InvalidParseOperationException{
+    	String s = "{ $roots: [], $query : [{ $wildcard : { 'mavar14' : 'motMajuscule'}}], $filter : [], $projection : [] }";
+    	final SelectParser request = new SelectParser();
+        request.parse(s);
+        Select select = request.getRequest();
+        List<Query> list = select.getQueries();
+        Bson bsonQuery = QueryToMongodb.getCommand(list.get(0));
+        assertEquals("{ \"mavar14\" : { \"$regex\" : \"motMajuscule\", \"$options\" : \"\" } }", MongoDbHelper.bsonToString(bsonQuery, false));
+    }
+
+    @Test(expected=InvalidParseOperationException.class)
+    public void testGetCommandsThrowInvalidParseOperationExceptionWithMLT() throws InvalidCreateOperationException, InvalidParseOperationException {
+    	QueryToMongodb.getCommand(mlt("value", "var1", "var2"));
+    }
+    
+    @Test(expected=InvalidParseOperationException.class)
+    public void testGetCommandsThrowInvalidParseOperationExceptionWithPREFIX() throws InvalidCreateOperationException, InvalidParseOperationException {
+    	QueryToMongodb.getCommand(prefix("var1", "var2"));
+    }
+    
+    @Test(expected=InvalidParseOperationException.class)
+    public void testGetCommandsThrowInvalidParseOperationExceptionWithSEARCH() throws InvalidCreateOperationException, InvalidParseOperationException {
+    	QueryToMongodb.getCommand(search("var1", "var2"));
     }
 
 }

@@ -1,5 +1,8 @@
 package fr.gouv.vitam.api.exception;
 
+/**
+ * MetaDataAlreadyExistException duplicate error
+ */
 public class MetaDataAlreadyExistException extends MetaDataException{
 
 	/**

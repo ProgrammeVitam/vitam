@@ -3,9 +3,13 @@
  */
 package fr.gouv.vitam.parser.request.parser;
 
+import java.util.Iterator;
+
 import org.joda.time.DateTime;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.builder.request.construct.configuration.GlobalDatas;
 import fr.gouv.vitam.builder.request.construct.query.Query;
@@ -20,7 +24,7 @@ public class GlobalDatasParser extends GlobalDatas {
     /**
      * Default limit for Request (sanity check)
      */
-    public static final int limitRequest = 100000000;
+    public static int limitRequest = 100000000;
 
     /**
      * Default limit for number of projections
@@ -43,6 +47,37 @@ public class GlobalDatasParser extends GlobalDatas {
             throws InvalidParseOperationException {
         GlobalDatas.sanityCheck(arg, GlobalDatasParser.limitRequest);
     }
+    
+    /**
+     * calculate JsonNode depth or number of child
+     * 
+     * @param JsonNode
+     * @return number of child of JsonNode
+     */
+    public static final int getJsonNodedepth(JsonNode jsonNode) {
+		int depth = 0;
+		boolean hasArrayNode = false;
+		Iterator<JsonNode> iterator = jsonNode.iterator();
+		while (iterator.hasNext()) {
+			JsonNode node = iterator.next();
+			if (node instanceof ObjectNode || node instanceof ArrayNode) {
+				int tempDepth = getJsonNodedepth(node);
+				if (tempDepth > depth) {
+					depth = tempDepth;
+				}
+			}
+			if (node instanceof ArrayNode) {
+				hasArrayNode = true;
+			}
+		}
+
+		if (hasArrayNode) {
+			return depth;
+		} else {
+			return 1 + depth;
+		}
+	}
+    
     /**
      * 
      * @param value

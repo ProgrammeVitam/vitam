@@ -1,6 +1,9 @@
 package fr.gouv.vitam.api.exception;
 
-public class MetaDataException extends Exception{
+/**
+ * MetaDataException metadata error
+ */
+public class MetaDataException extends RuntimeException{
 	
 	 /**
 	 * 

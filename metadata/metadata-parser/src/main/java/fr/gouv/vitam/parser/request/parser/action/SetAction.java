@@ -53,7 +53,7 @@ public class SetAction extends fr.gouv.vitam.builder.request.construct.action.Se
         super();
         this.currentUPDATEACTION = action;
         currentObject =
-                ((ObjectNode) currentObject).putObject(UPDATEACTION.set.exactToken());
+                ((ObjectNode) currentObject).putObject(UPDATEACTION.SET.exactToken());
         adapter.setVarsValue((ObjectNode) currentObject, request);
         setReady(true);
     }

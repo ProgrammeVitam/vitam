@@ -86,7 +86,8 @@ public abstract class Result {
      */
     public Result(FILTERARGS type, Collection<String> collection) {
         this.type = type;
-		currentIds.addAll(collection);
+        currentIds.addAll(collection);  
+        currentIds.remove("");
 		nbResult = currentIds.size();
 	}
 
@@ -190,13 +191,13 @@ public abstract class Result {
      */
     public void setFinal(Bson projection) {
     	List<Document> list = new ArrayList<Document>(currentIds.size());
-    	if (type == FILTERARGS.units) {
+    	if (type == FILTERARGS.UNITS) {
 	    	for (String id: currentIds) {
 	    		Unit unit = (Unit) VitamCollections.Cunit.getCollection().find(new Document(Unit.ID, id))
 	    				.projection(projection).first();
 	    		list.add(unit);
 	    	}
-    	} else if (type == FILTERARGS.objectgroups) {
+    	} else if (type == FILTERARGS.OBJECTGROUPS) {
 	    	for (String id: currentIds) {
 	    		ObjectGroup og = (ObjectGroup) VitamCollections.Cobjectgroup.getCollection().find(new Document(ObjectGroup.ID, id))
 	    				.projection(projection).first();

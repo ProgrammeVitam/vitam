@@ -52,7 +52,7 @@ public class Delete extends Request {
         if (filter == null) {
             filter = JsonHandler.createObjectNode();
         }
-        filter.put(MULTIFILTER.mult.exactToken(), mult);
+        filter.put(MULTIFILTER.MULT.exactToken(), mult);
         return this;
     }
 
@@ -64,7 +64,7 @@ public class Delete extends Request {
         if (filter == null) {
             filter = JsonHandler.createObjectNode();
         }
-        if (filterContent.has(MULTIFILTER.mult.exactToken())) {
+        if (filterContent.has(MULTIFILTER.MULT.exactToken())) {
             filter.setAll((ObjectNode) filterContent);
         }
         return this;

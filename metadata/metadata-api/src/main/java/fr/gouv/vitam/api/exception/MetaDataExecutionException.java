@@ -1,5 +1,8 @@
 package fr.gouv.vitam.api.exception;
 
+/**
+ * MetaDataExecutionException database access error
+ */
 public class MetaDataExecutionException  extends MetaDataException{
 
 	/**

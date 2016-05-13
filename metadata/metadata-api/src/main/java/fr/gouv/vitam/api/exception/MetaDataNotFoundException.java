@@ -1,5 +1,8 @@
 package fr.gouv.vitam.api.exception;
 
+/**
+ * MetaDataNotFoundException document parent not found error
+ */
 public class MetaDataNotFoundException extends MetaDataException{
 
 	/**

@@ -59,8 +59,8 @@ public class TermQuery extends Query {
     public TermQuery(final String variableName, final String value)
             throws InvalidCreateOperationException {
         super();
-        createQueryVariableValue(QUERY.term, variableName, value);
-        currentQUERY = QUERY.term;
+        createQueryVariableValue(QUERY.TERM, variableName, value);
+        currentQUERY = QUERY.TERM;
         setReady(true);
     }
 
@@ -74,8 +74,8 @@ public class TermQuery extends Query {
     public TermQuery(final String variableName, final long value)
             throws InvalidCreateOperationException {
         super();
-        createQueryVariableValue(QUERY.term, variableName, value);
-        currentQUERY = QUERY.term;
+        createQueryVariableValue(QUERY.TERM, variableName, value);
+        currentQUERY = QUERY.TERM;
         setReady(true);
     }
 
@@ -89,8 +89,8 @@ public class TermQuery extends Query {
     public TermQuery(final String variableName, final double value)
             throws InvalidCreateOperationException {
         super();
-        createQueryVariableValue(QUERY.term, variableName, value);
-        currentQUERY = QUERY.term;
+        createQueryVariableValue(QUERY.TERM, variableName, value);
+        currentQUERY = QUERY.TERM;
         setReady(true);
     }
 
@@ -104,8 +104,8 @@ public class TermQuery extends Query {
     public TermQuery(final String variableName, final boolean value)
             throws InvalidCreateOperationException {
         super();
-        createQueryVariableValue(QUERY.term, variableName, value);
-        currentQUERY = QUERY.term;
+        createQueryVariableValue(QUERY.TERM, variableName, value);
+        currentQUERY = QUERY.TERM;
         setReady(true);
     }
 
@@ -119,8 +119,8 @@ public class TermQuery extends Query {
     public TermQuery(final String variableName, final Date value)
             throws InvalidCreateOperationException {
         super();
-        createQueryVariableValue(QUERY.term, variableName, value);
-        currentQUERY = QUERY.term;
+        createQueryVariableValue(QUERY.TERM, variableName, value);
+        currentQUERY = QUERY.TERM;
         setReady(true);
     }
 
@@ -133,7 +133,7 @@ public class TermQuery extends Query {
     public TermQuery(final Map<String, Object> variableNameValue)
             throws InvalidCreateOperationException {
         super();
-        currentObject = ((ObjectNode) currentObject).putObject(QUERY.term.exactToken());
+        currentObject = ((ObjectNode) currentObject).putObject(QUERY.TERM.exactToken());
         final ObjectNode node = (ObjectNode) currentObject;
         for (final Entry<String, Object> entry : variableNameValue.entrySet()) {
             final String name = entry.getKey();
@@ -148,7 +148,7 @@ public class TermQuery extends Query {
             Object val = entry.getValue();
             node.set(name.trim(), GlobalDatas.getValueJsonNode(val));
         }
-        currentQUERY = QUERY.term;
+        currentQUERY = QUERY.TERM;
         setReady(true);
     }
 
@@ -162,7 +162,7 @@ public class TermQuery extends Query {
      */
     public final TermQuery add(final String variableName, final String value)
             throws InvalidCreateOperationException {
-        if (currentQUERY != QUERY.term) {
+        if (currentQUERY != QUERY.TERM) {
             throw new InvalidCreateOperationException(
                     "Cannot add a term element since this is not a Term Query: "
                             + currentQUERY);
@@ -191,7 +191,7 @@ public class TermQuery extends Query {
      */
     public final TermQuery add(final String variableName, final long value)
             throws InvalidCreateOperationException {
-        if (currentQUERY != QUERY.term) {
+        if (currentQUERY != QUERY.TERM) {
             throw new InvalidCreateOperationException(
                     "Cannot add a term element since this is not a Term Query: "
                             + currentQUERY);
@@ -219,7 +219,7 @@ public class TermQuery extends Query {
      */
     public final TermQuery add(final String variableName, final double value)
             throws InvalidCreateOperationException {
-        if (currentQUERY != QUERY.term) {
+        if (currentQUERY != QUERY.TERM) {
             throw new InvalidCreateOperationException(
                     "Cannot add a term element since this is not a Term Query: "
                             + currentQUERY);
@@ -247,7 +247,7 @@ public class TermQuery extends Query {
      */
     public final TermQuery add(final String variableName, final boolean value)
             throws InvalidCreateOperationException {
-        if (currentQUERY != QUERY.term) {
+        if (currentQUERY != QUERY.TERM) {
             throw new InvalidCreateOperationException(
                     "Cannot add a term element since this is not a Term Query: "
                             + currentQUERY);
@@ -275,7 +275,7 @@ public class TermQuery extends Query {
      */
     public final TermQuery add(final String variableName, final Date value)
             throws InvalidCreateOperationException {
-        if (currentQUERY != QUERY.term) {
+        if (currentQUERY != QUERY.TERM) {
             throw new InvalidCreateOperationException(
                     "Cannot add a term element since this is not a Term Query: "
                             + currentQUERY);

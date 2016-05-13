@@ -29,7 +29,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.core.database.collections;
 
-import java.util.Collection;
+import java.util.Set;
 
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.FILTERARGS;
 
@@ -49,7 +49,7 @@ public class ResultError extends Result {
      * @param type
      * @param collection
      */
-    public ResultError(FILTERARGS type, final Collection<String> collection) {
+    public ResultError(FILTERARGS type, final Set<String> collection) {
         super(type, collection);
     }
     

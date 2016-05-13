@@ -64,7 +64,7 @@ public class SelectToMongodb extends RequestToMongodb {
      */
     public Bson getFinalOrderBy() {
         JsonNode orderby = requestParser.getRequest().getFilter()
-                .get(SELECTFILTER.orderby.exactToken());
+                .get(SELECTFILTER.ORDERBY.exactToken());
         if (orderby == null) {
             return null;
         }
@@ -108,7 +108,7 @@ public class SelectToMongodb extends RequestToMongodb {
     		return null;
     	}
         JsonNode node = ((SelectParser) requestParser).getRequest().getProjection()
-                .get(PROJECTION.fields.exactToken());
+                .get(PROJECTION.FIELDS.exactToken());
         final List<String> incl = new ArrayList<String>();
         final List<String> excl = new ArrayList<String>();
         final Iterator<Entry<String, JsonNode>> iterator = node.fields();

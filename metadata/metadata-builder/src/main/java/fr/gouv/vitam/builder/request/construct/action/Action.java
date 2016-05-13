@@ -70,7 +70,7 @@ public class Action {
         }
         currentObject = ((ObjectNode) currentObject).putObject(action.exactToken())
                 .putObject(variableName.trim())
-                .putArray(UPDATEACTIONARGS.each.exactToken());
+                .putArray(UPDATEACTIONARGS.EACH.exactToken());
     }
 
     protected final void createActionVariable(final UPDATEACTION action,

@@ -53,8 +53,8 @@ public class MinAction extends Action {
     public MinAction(final String variableName, final long value)
             throws InvalidCreateOperationException {
         super();
-        createActionVariableValue(UPDATEACTION.min, variableName, value);
-        currentUPDATEACTION = UPDATEACTION.min;
+        createActionVariableValue(UPDATEACTION.MIN, variableName, value);
+        currentUPDATEACTION = UPDATEACTION.MIN;
         setReady(true);
     }
 
@@ -68,8 +68,8 @@ public class MinAction extends Action {
     public MinAction(final String variableName, final double value)
             throws InvalidCreateOperationException {
         super();
-        createActionVariableValue(UPDATEACTION.min, variableName, value);
-        currentUPDATEACTION = UPDATEACTION.min;
+        createActionVariableValue(UPDATEACTION.MIN, variableName, value);
+        currentUPDATEACTION = UPDATEACTION.MIN;
         setReady(true);
     }
 
@@ -83,8 +83,8 @@ public class MinAction extends Action {
     public MinAction(final String variableName, final Date value)
             throws InvalidCreateOperationException {
         super();
-        createActionVariableValue(UPDATEACTION.min, variableName, value);
-        currentUPDATEACTION = UPDATEACTION.min;
+        createActionVariableValue(UPDATEACTION.MIN, variableName, value);
+        currentUPDATEACTION = UPDATEACTION.MIN;
         setReady(true);
     }
 
@@ -98,8 +98,8 @@ public class MinAction extends Action {
     public MinAction(final String variableName, final boolean value)
             throws InvalidCreateOperationException {
         super();
-        createActionVariableValue(UPDATEACTION.min, variableName, value);
-        currentUPDATEACTION = UPDATEACTION.min;
+        createActionVariableValue(UPDATEACTION.MIN, variableName, value);
+        currentUPDATEACTION = UPDATEACTION.MIN;
         setReady(true);
     }
 
@@ -113,8 +113,8 @@ public class MinAction extends Action {
     public MinAction(final String variableName, final String value)
             throws InvalidCreateOperationException {
         super();
-        createActionVariableValue(UPDATEACTION.min, variableName, value);
-        currentUPDATEACTION = UPDATEACTION.min;
+        createActionVariableValue(UPDATEACTION.MIN, variableName, value);
+        currentUPDATEACTION = UPDATEACTION.MIN;
         setReady(true);
     }
 

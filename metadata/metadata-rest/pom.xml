@@ -21,7 +21,7 @@
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-server</artifactId>
-			 <optional>true</optional>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
@@ -36,7 +36,6 @@
 			<groupId>org.glassfish.jersey.media</groupId>
 			<artifactId>jersey-media-json-jackson</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>com.fasterxml.jackson.dataformat</groupId>
 			<artifactId>jackson-dataformat-yaml</artifactId>
@@ -69,33 +68,106 @@
 			<groupId>org.testcontainers</groupId>
 			<artifactId>testcontainers</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>de.flapdoodle.embed</groupId>
+			<artifactId>de.flapdoodle.embed.mongo</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.easymock</groupId>
+			<artifactId>easymock</artifactId>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
-
 
 	<build>
 
 		<plugins>
 			<plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
+				<!-- Dependency manipulation (copy, unpack) and analysis. -->
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy-dependencies</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/dependencies</outputDirectory>
+							<overWriteReleases>false</overWriteReleases>
+							<overWriteSnapshots>false</overWriteSnapshots>
+							<overWriteIfNewer>true</overWriteIfNewer>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			
+			<plugin>
+			    <artifactId>maven-resources-plugin</artifactId>
+			    <executions>
+			      <execution>
+			        <id>copy-resources</id>
+			        <phase>validate</phase>
+			        <goals>
+			          <goal>copy-resources</goal>
+			        </goals>
+			        <configuration>
+			          <outputDirectory>${project.build.directory}/config</outputDirectory>
+			          <resources>
+			            <resource>
+			                <directory>src/main/config</directory>
+			                <filtering>true</filtering>
+			            </resource>
+			          </resources>
+			        </configuration>
+			      </execution>
+			    </executions>
+			  </plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
 				<configuration>
 					<archive>
 						<manifest>
+							<addClasspath>true</addClasspath>
 							<mainClass>fr.gouv.vitam.metadata.rest.MetaDataApplication</mainClass>
 						</manifest>
 					</archive>
-					<descriptorRefs>
-						<descriptorRef>jar-with-dependencies</descriptorRef>
-					</descriptorRefs>
-					<appendAssemblyId>false</appendAssemblyId>
 				</configuration>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-					</execution>
-				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>com.spotify</groupId>
+				<artifactId>docker-maven-plugin</artifactId>
+				<configuration>
+					<!-- Activate docker build -->
+					<skipDockerBuild>false</skipDockerBuild> 
+					<skipDockerTag>false</skipDockerTag>
+				    <!-- Images specification -->
+					<baseImage>${vitam.docker.registry.pull}/vitam/java</baseImage>
+					<imageName>${vitam.docker.registry.push}/vitam/workspace</imageName>
+					<!-- copy the service's jar file from target into the root directory 
+						of the image -->
+					<resources>
+						<resource>
+							<targetPath>/vitam/lib</targetPath>
+							<directory>${project.build.directory}</directory>
+							<include>${project.build.finalName}.jar</include>
+						</resource>
+						<resource>
+							<targetPath>/vitam/conf</targetPath>
+							<directory>${project.build.directory}/config</directory>
+							<!--<include>*</include> -->
+						</resource>
+						<resource>
+							<targetPath>/vitam/lib</targetPath>
+							<directory>${project.build.directory}/dependencies</directory>
+							<!--<include>*</include> -->
+						</resource>
+						<!-- KWA : add external dependencies integration heer -->
+					</resources>
+				</configuration>
 			</plugin>
 
 			<plugin>

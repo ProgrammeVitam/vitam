@@ -1,6 +1,8 @@
 package fr.gouv.vitam.api.exception;
 
-
+/**
+ * MetaDataMaxDepthException json depth limit exceeded error
+ */
 public class MetaDataMaxDepthException extends MetaDataException{
 
 	/**

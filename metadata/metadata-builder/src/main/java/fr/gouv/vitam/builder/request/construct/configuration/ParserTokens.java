@@ -35,6 +35,8 @@ package fr.gouv.vitam.builder.request.construct.configuration;
  *
  */
 public class ParserTokens {
+
+	private static final String DEFAULT_PREFIX = "$";
     /**
      * @formatter:off
      * For a Select :<br>
@@ -55,42 +57,50 @@ public class ParserTokens {
      * @formatter:on
      */
     public static enum GLOBAL {
+    	
         /**
          * Roots part (departure of the request)
          */
-        roots,
+        ROOTS("roots"),
         /**
          * Query part (where condition)
          */
-        query,
+        QUERY("query"),
         /**
          * Filter part (limit, order by, ... for Query, or isMulti for others)
          */
-        filter,
+        FILTER("filter"),
         /**
          * Projection part (returned fields for Query)
          */
-        projection,
+        PROJECTION("projection"),
         /**
          * Action part (in case of update)
          */
-        action,
+        ACTION("action"),
         /**
          * Data part (in case of insert)
          */
-        data;
+        DATA("data");
 
+    	private final String exactToken;
+    	
+    	/** Constructor
+    	 * Add DEFAULT_PREFIX before the exactToken ($+exactToken)
+    	 */
+        private GLOBAL(String realName) {
+        	this.exactToken = DEFAULT_PREFIX + realName.toLowerCase();
+        }
         /**
-         * @return the exact token to be used in Mongo ($+code)
+         * @return the exact token 
          */
         public final String exactToken() {
-            if (GlobalDatas.COMMAND_DOLLAR) {
-                return "$" + name();
-            }
-            return name();
+            return exactToken;
         }
+
     }
 
+    
     /**
      * Query model
      *
@@ -100,129 +110,129 @@ public class ParserTokens {
          * All expressions are grouped by an AND operator (all shall be true)<br>
          * $and : [ expression1, expression2, ... ]
          */
-        and,
+        AND("and"),
         /**
          * All expressions are grouped by an NOT operator (all shall be false)<br>
          *  $not : [ expression1, expression2, ... ]
          */
-        not,
+        NOT("not"),
         /**
          * All expressions are grouped by an OR operator (at least one shall be true) <br>
          * $or : [ expression1, expression2, ... ]
          */
-        or,
+        OR("or"),
         /**
          * Field named 'name' shall exist <br>
          * $exists : name
          */
-        exists,
+        EXISTS("exists"),
         /**
          * Field named 'name' shall not exist (faster than $not : [ $exists : name ] ) <br>
          * $missing : name
          */
-        missing,
+        MISSING("missing"),
         /**
          * Field named 'name' shall be empty or set to null <br>
          * $isNull : name
          */
-        isNull,
+        ISNULL("isNull"),
         /**
          * field named 'name' contains at least one of the values 'value1', 'value2', ... <br>
          * $in : { name : [ value1, value2, ... ] }
          */
-        in,
+        IN("in"),
         /**
          * field named 'name' does not contain any of the values 'value1', 'value2', ... <br>
          * $nin : { name : [ value1, value2, ... ] }
          */
-        nin,
+        NIN("nin"),
         /**
          * Size of an array named 'name' equals to specified length<br>
          *  $size : { name : length }
          */
-        size,
+        SIZE("size"),
         /**
          * Comparison operator <br>
          * $gt : { name : value }
          */
-        gt,
+        GT("gt"),
         /**
          * Comparison operator <br>
          * $lt : { name : value }
          */
-        lt,
+        LT("lt"),
         /**
          * Comparison operator $gte <br>
          * : { name : value }
          */
-        gte,
+        GTE("gte"),
         /**
          * Comparison operator <br>
          * $lte : { name : value }
          */
-        lte,
+        LTE("lte"),
         /**
          * Comparison operator <br>
          * $ne : { name : value }
          */
-        ne,
+        NE("ne"),
         /**
          * Comparison operator <br>
          * $eq : { name : value }
          */
-        eq,
+        EQ("eq"),
         /**
          * Optimization of comparison operator in a range <br>
          * $range : { name : { $gte : value, $lte : value } }
          */
-        range,
+        RANGE("range"),
         /**
          * type might be Point (simple lng, lta), Box, Polygon <br>
          * $geometry : { $type : "type", $coordinates : [ [ lng1, lta1 ], [ lng2, lta2 ], ... ] }
          */
-        geometry,
+        GEOMETRY("geometry"),
         /**
          * $box : [ [ lng1, lta1 ], [ lng2, lta2 ] ]
          */
-        box,
+        BOX("box"),
         /**
          * $polygon : [ [ lng1, lta1 ], [ lng2, lta2 ], ... ]
          */
-        polygon,
+        POLYGON("polygon"),
         /**
          * $center : [ [ lng1, lta1 ], radius ]
          */
-        center,
+        CENTER("center"),
         /**
          * Selects geometries within a bounding geometry <br>
          * $geoWithin : { name : { geometry|box|polygon|center } }
          */
-        geoWithin,
+        GEOWITHIN("geoWithin"),
         /**
          * Selects geometries that intersect with a geometry <br>
          * $geoIntersects : { name : { geometry|box|polygon|center } }
          */
-        geoIntersects,
+        GEOINTERSECTS("geoIntersects"),
         /**
          * Selects geometries in proximity to a point <br>
          * $near : { name : { geometry_point|[ lng1, lta1], $maxDistance : distance } }
          */
-        near,
+        NEAR("near"),
         /**
          * Selects where field named 'name' matches some words <br>
          * $match : { name : words, $max_expansions : n }
          */
-        match,
+        MATCH("match"),
         /**
          * Selects where field named 'name' matches a phrase (somewhere)<br>
          * $match_phrase : { name : phrase, $max_expansions : n }
          */
-        match_phrase,
+        MATCH_PHRASE("match_phrase"),
         /**
          * Selects where field named 'name' matches a phrase as a prefix of the field <br>
          * $match_phrase_prefix : { name : phrase, $max_expansions : n }
          */
-        match_phrase_prefix,
+        MATCH_PHRASE_PREFIX("match_phrase_prefix"),
         /**
          * Selects where field named 'name' matches a phrase as a prefix of the field <br>
          * $prefix : { name : phrase } <br>
@@ -230,18 +240,18 @@ public class ParserTokens {
          * possible) but in replacement of match_phrase_prefix if parameter not
          * analyzed
          */
-        prefix,
+        PREFIX("prefix"),
         /**
          * Selects where fields named 'name' are like the one provided,
          * introducing some "fuzzy", which tends to be slower than mlt<br> 
          * $flt : { $fields : [ name1, name2 ], $like : like_text }
          */
-        flt,
+        FLT("flt"),
         /**
          * Selects where fields named 'name' are like the one provided <br>
          * $mlt : { $fields : [ name1, name2 ], $like : like_text }
          */
-        mlt,
+        MLT("mlt"),
         /**
          * Selects where field named 'name' contains something relevant to the
          * search parameter. This search parameter can contain wildcards (* ?),
@@ -251,39 +261,49 @@ public class ParserTokens {
          * +x -y meaning x must be present, y must be absent<br>
          * $search : { name : searchParameter }
          */
-        search,
+        SEARCH("search"),
         /**
          * Selects where field named 'name' contains a value valid with the
          * corresponding regular expression. <br>
          * $regex : { name : regex }
          */
-        regex,
+        REGEX("regex"),
         /**
          * Selects where field named 'name' contains exactly this term
          * (lowercase only, no blank). Useful in simple value field to find one
          * specific item, or for multiple tests at once (AND implicit). <br>
          * $term : { name : term, name : term }
          */
-        term,
+        TERM("term"),
         /**
          * Selects where field named 'name' contains exactly this term
          * (lowercase only, no blank) with optional wildcard character (* and
          * ?). Useful in simple value field to find one specific item.<br> 
          * $wildcard : { name : term }
          */
-        wildcard,
+        WILDCARD("wildcard"),
         /**
          * Selects a node by its exact path (succession of ids) <br>
          * $path : [ id1, id2, ... ]
          */
-        path;
+        PATH("path");
 
+
+    	private final String exactToken;
+    	
+    	/** Constructor
+    	 * Add DEFAULT_PREFIX before the exactToken ($+exactToken)
+    	 */
+        private QUERY(String realName) {
+        	this.exactToken = DEFAULT_PREFIX + realName.toLowerCase();
+        }
         /**
-         * @return the exact token to be used in Mongo ($+code)
+         * @return the exact token 
          */
         public final String exactToken() {
-            return "$" + name();
+            return exactToken;
         }
+        
     }
 
     /**
@@ -294,33 +314,38 @@ public class ParserTokens {
         /**
          * Limit the elements returned to the nth first elements $limit : n
          */
-        limit,
+        LIMIT("limit"),
         /**
          * According to an orderby, start to return the elements from rank start<br>
          * $offset : start
          */
-        offset,
+        OFFSET("offset"),
         /**
          * Specify an orderby to respect in the return of the elements according
          * to one field named 'name' and an orderby ascendant (+1) or descendant
          * (-1) <br>
          * $orderby : [ { key : +/-1 } ]
          */
-        orderby,
+        ORDERBY("orderby"),
         /**
          * Allows to specify some hints to the request server: cache/nocache<br>
          * $hint : [ cache/nocache, ... ]
          */
-        hint;
+        HINT("hint");
 
+    	private final String exactToken;
+    	
+    	/** Constructor
+    	 * Add DEFAULT_PREFIX before the exactToken ($+exactToken)
+    	 */
+        private SELECTFILTER(String realName) {
+        	this.exactToken = DEFAULT_PREFIX + realName.toLowerCase();
+        }
         /**
-         * @return the exact token to be used in Mongo ($+code)
+         * @return the exact token 
          */
         public final String exactToken() {
-            if (GlobalDatas.COMMAND_DOLLAR) {
-                return "$" + name();
-            }
-            return name();
+            return exactToken;
         }
     }
 
@@ -333,21 +358,26 @@ public class ParserTokens {
          * Specify the fields to return $fields : {name1 : 0/1, name2 : 0/1,
          * ...}
          */
-        fields,
+        FIELDS("fields"),
         /**
          * UsageContract reference that will be used to select the binary object
          * version to return $usage : contractId
          */
-        usage;
+        USAGE("usage");
 
+    	private final String exactToken;
+    	
+    	/** Constructor
+    	 * Add DEFAULT_PREFIX before the exactToken ($+exactToken)
+    	 */
+        private PROJECTION(String realName) {
+        	this.exactToken = DEFAULT_PREFIX + realName.toLowerCase();
+        }
         /**
-         * @return the exact token to be used in Mongo ($+code)
+         * @return the exact token 
          */
         public final String exactToken() {
-            if (GlobalDatas.COMMAND_DOLLAR) {
-                return "$" + name();
-            }
-            return name();
+            return exactToken;
         }
     }
 
@@ -359,45 +389,53 @@ public class ParserTokens {
         /**
          * Used in geometric queries
          */
-        type,
+        TYPE("type"),
         /**
          * Used in geometric queries
          */
-        coordinates,
+        COORDINATES("coordinates"),
         /**
          * Used in geometric queries
          */
-        maxDistance,
+        MAXDISTANCE("maxDistance"),
         /**
          * Used in MLT queries
          */
-        like,
+        LIKE("like"),
         /**
          * Used in MLT queries
          */
-        fields,
+        FIELDS("fields"),
         /**
          * Used in Match request
          */
-        max_expansions,
+        MAX_EXPANSIONS("max_expansions"),
         /**
          * Used in Set Depth (exact) part of each request
          */
-        exactdepth,
+        EXACTDEPTH("exactdepth"),
         /**
          * Used in Set Depth (relative) part of each request
          */
-        depth,
+        DEPTH("depth"),
         /**
          * Used to specify that argument is a date
          */
-        date;
+        DATE("date");
 
+    	private final String exactToken;
+    	
+    	/** Constructor
+    	 * Add DEFAULT_PREFIX before the exactToken ($+exactToken)
+    	 */
+        private QUERYARGS(String realName) {
+        	this.exactToken = DEFAULT_PREFIX + realName.toLowerCase();
+        }
         /**
-         * @return the exact token to be used in Mongo ($+code)
+         * @return the exact token 
          */
         public final String exactToken() {
-            return "$" + name();
+            return exactToken;
         }
     }
 
@@ -410,25 +448,33 @@ public class ParserTokens {
         /**
          * Comparison operator $gt : value
          */
-        gt,
+        GT("gt"),
         /**
          * Comparison operator $lt : value
          */
-        lt,
+        LT("lt"),
         /**
          * Comparison operator $gte : value
          */
-        gte,
+        GTE("gte"),
         /**
          * Comparison operator $lte : value
          */
-        lte;
+        LTE("lte");
 
+    	private final String exactToken;
+    	
+    	/** Constructor
+    	 * Add DEFAULT_PREFIX before the exactToken ($+exactToken)
+    	 */
+        private RANGEARGS(String realName) {
+        	this.exactToken = DEFAULT_PREFIX + realName.toLowerCase();
+        }
         /**
-         * @return the exact token to be used in Mongo ($+code)
+         * @return the exact token 
          */
         public final String exactToken() {
-            return "$" + name();
+            return exactToken;
         }
     }
 
@@ -442,37 +488,45 @@ public class ParserTokens {
         /**
          * Id of the item
          */
-        id,
+        ID("id"),
         /**
          * Number of units from each result (Unit = subUnit, ObjectGroup = objects)
          */
-        nbunits,
+        NBUNITS("nbunits"),
         /**
          * All Dua for the result
          */
-        dua,
+        DUA("dua"),
         /**
          * All fields for the result or None except Id
          */
-        all,
+        ALL("all"),
         /**
          * Object size
          */
-        size,
+        SIZE("size"),
         /**
          * Object format
          */
-        format,
+        FORMAT("format"),
         /**
          * Unit/ObjectGroup type
          */
-        type;
+        TYPE("type");
 
+    	private final String exactToken;
+    	
+    	/** Constructor
+    	 * Add DEFAULT_PREFIX before the exactToken ($+exactToken)
+    	 */
+        private PROJECTIONARGS(String realName) {
+        	this.exactToken = "#" + realName.toLowerCase();
+        }
         /**
-         * @return the exact token to be used in Mongo ($+code)
+         * @return the exact token 
          */
         public final String exactToken() {
-            return "#" + name();
+            return exactToken;
         }
         /**
          * 
@@ -484,11 +538,11 @@ public class ParserTokens {
                 try {
                     PROJECTIONARGS proj = PROJECTIONARGS.valueOf(name.substring(1));
                     switch (proj) {
-                        case all:
-                        case format:
-                        case id:
-                        case nbunits:
-                        case size:
+                        case ALL:
+                        case FORMAT:
+                        case ID:
+                        case NBUNITS:
+                        case SIZE:
                             return true;
                         default:
                     }
@@ -508,33 +562,41 @@ public class ParserTokens {
         /**
          * Cache could be used for this request
          */
-        cache,
+        CACHE("cache"),
         /**
          * Cache should not be used for this request
          */
-        nocache,
+        NOCACHE("nocache"),
         /**
          * Query should not have a timeout (scrolling)
          */
-        notimeout,
+        NOTIMEOUT("notimeout"),
         /**
          * Query concerns Units
          */
-        units,
+        UNITS("units"),
         /**
          * Query concerns ObjectGroups
          */
-        objectgroups,
+        OBJECTGROUPS("objectgroups"),
         /**
          * Query concerns Objects
          */
-        objects;
+        OBJECTS("objects");
 
+    	private final String exactToken;
+    	
+    	/** Constructor
+    	 * Add DEFAULT_PREFIX before the exactToken ($+exactToken)
+    	 */
+        private FILTERARGS(String realName) {
+        	this.exactToken = realName.toLowerCase();
+        }
         /**
-         * @return the exact token to be used in Mongo ($+code)
+         * @return the exact token 
          */
         public final String exactToken() {
-            return name();
+            return exactToken;
         }
     }
 
@@ -569,65 +631,70 @@ public class ParserTokens {
         /**
          * $set : { name : value, name : value, ... }
          */
-        set,
+        SET("set"),
         /**
          * $unset : [ name, name, ... ]
          */
-        unset,
+        UNSET("unset"),
         /**
          * increment one field named 'name' with default 1 or value <br>
          * $inc : { name : value }
          */
-        inc,
+        INC("inc"),
         /**
          * set one field named 'name' with minimum value of current value and
          * given value <br>
          * $min : { name : value }
          */
-        min,
+        MIN("min"),
         /**
          * set one field named 'name' with maximum value of current value and
          * given value <br>
          * $max : { name : value }
          */
-        max,
+        MAX("max"),
         /**
          * rename one field named 'name' to 'newname' <br>
          * $rename : { name : newname }
          */
-        rename,
+        RENAME("rename"),
         /**
          * Add one element at the end of a list value, or each element of a list
          * if $each parameter is used <br>
          * $push : { name : { $each : [ value, value, ... ] } }
          */
-        push,
+        PUSH("push"),
         /**
          * Remove one specific element from a list or each element of a list if
          * $each parameter is used <br>
          * $pull : { name : { $each : [ value, value, ... ] } }
          */
-        pull,
+        PULL("pull"),
         /**
          * Add one element (or each element of a list) if not already in the
          * list <br>
          * $add : { name : { $each : [ value, value, ... ] } }
          */
-        add,
+        ADD("add"),
         /**
          * Remove n element from a list from the end (1) or the beginning (-1)<br>
          * $pop : { name : -1/1 }
          */
-        pop;
+        POP("pop");
 
+    	private final String exactToken;
+    	
+    	/** Constructor
+    	 * Add DEFAULT_PREFIX before the exactToken ($+exactToken)
+    	 */
+        private UPDATEACTION(String realName) {
+        	this.exactToken = DEFAULT_PREFIX + realName.toLowerCase();
+        }
         /**
-         * @return the exact token to be used in Mongo ($+code)
+         * @return the exact token 
          */
         public final String exactToken() {
-            if (GlobalDatas.COMMAND_DOLLAR) {
-                return "$" + name();
-            }
-            return name();
+            return exactToken;
         }
     }
 
@@ -639,12 +706,20 @@ public class ParserTokens {
         /**
          * Update argument
          */
-        each;
+        EACH("each");
+    	private final String exactToken;
+    	
+    	/** Constructor
+    	 * Add DEFAULT_PREFIX before the exactToken ($+exactToken)
+    	 */
+        private UPDATEACTIONARGS(String realName) {
+        	this.exactToken = DEFAULT_PREFIX + realName.toLowerCase();
+        }
         /**
-         * @return the exact token to be used in Mongo ($+code)
+         * @return the exact token 
          */
         public final String exactToken() {
-            return "$" + name();
+            return exactToken;
         }
     }
 
@@ -658,16 +733,21 @@ public class ParserTokens {
          * the QUERY, else False will return an error if multiple elements are
          * found. $mult : true/false
          */
-        mult;
+        MULT("mult");
 
+    	private final String exactToken;
+    	
+    	/** Constructor
+    	 * Add DEFAULT_PREFIX before the exactToken ($+exactToken)
+    	 */
+        private MULTIFILTER(String realName) {
+        	this.exactToken = DEFAULT_PREFIX + realName.toLowerCase();
+        }
         /**
-         * @return the exact token to be used in Mongo ($+code)
+         * @return the exact token 
          */
         public final String exactToken() {
-            if (GlobalDatas.COMMAND_DOLLAR) {
-                return "$" + name();
-            }
-            return name();
+            return exactToken;
         }
     }
 }

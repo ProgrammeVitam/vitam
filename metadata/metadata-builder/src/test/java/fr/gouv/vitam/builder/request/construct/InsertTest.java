@@ -36,15 +36,16 @@ import static org.junit.Assert.fail;
 
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import fr.gouv.vitam.builder.request.construct.Insert;
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.MULTIFILTER;
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.QUERY;
 import fr.gouv.vitam.builder.request.construct.query.BooleanQuery;
 import fr.gouv.vitam.builder.request.construct.query.ExistsQuery;
 import fr.gouv.vitam.builder.request.construct.query.PathQuery;
 import fr.gouv.vitam.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
 @SuppressWarnings("javadoc")
@@ -58,21 +59,21 @@ public class InsertTest {
         assertTrue(insert.getFilter().size() == 1);
         insert.setMult(false);
         assertTrue(insert.getFilter().size() == 1);
-        assertTrue(insert.filter.has(MULTIFILTER.mult.exactToken()));
+        assertTrue(insert.filter.has(MULTIFILTER.MULT.exactToken()));
         insert.resetFilter();
         assertTrue(insert.getFilter().size() == 0);
     }
 
-    @Test
-    public void testAddData() {
-        final Insert insert = new Insert();
-        assertNull(insert.data);
-        insert.addData(JsonHandler.createObjectNode().put("var1", 1));
-        insert.addData(JsonHandler.createObjectNode().put("var2", "val"));
-        assertEquals(2, insert.data.size());
-        insert.resetData();
-        assertEquals(0, insert.data.size());
-    }
+	@Test
+	public void testAddData() {
+		final Insert insert = new Insert();
+		assertNull(insert.data);
+		insert.addData(JsonHandler.createObjectNode().put("var1", 1));
+		insert.addData(JsonHandler.createObjectNode().put("var2", "val"));
+		assertEquals(2, insert.data.size());
+		insert.resetData();
+		assertEquals(0, insert.data.size());
+	}
 
     @Test
     public void testAddRequests() {
@@ -80,10 +81,10 @@ public class InsertTest {
         assertTrue(insert.queries.isEmpty());
         try {
             insert.addQueries(
-                    new BooleanQuery(QUERY.and).add(new ExistsQuery(QUERY.exists, "varA"))
+                    new BooleanQuery(QUERY.AND).add(new ExistsQuery(QUERY.EXISTS, "varA"))
                             .setRelativeDepthLimit(5));
             insert.addQueries(new PathQuery("path1", "path2"),
-                    new ExistsQuery(QUERY.exists, "varB").setExactDepthLimit(10));
+                    new ExistsQuery(QUERY.EXISTS, "varB").setExactDepthLimit(10));
             insert.addQueries(new PathQuery("path3"));
             assertEquals(4, insert.queries.size());
             insert.resetQueries();
@@ -94,21 +95,61 @@ public class InsertTest {
         }
     }
 
-    @Test
-    public void testGetFinalInsert() {
-        final Insert insert = new Insert();
-        assertTrue(insert.queries.isEmpty());
-        try {
-            insert.addQueries(new PathQuery("path3"));
-            assertEquals(1, insert.queries.size());
-            insert.setMult(true);
-            insert.addData(JsonHandler.createObjectNode().put("var1", 1));
-            final ObjectNode node = insert.getFinalInsert();
-            assertEquals(4, node.size());
-        } catch (final InvalidCreateOperationException e) {
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
-    }
+	@Test
+	public void testGetFinalInsert() {
+		final Insert insert = new Insert();
+		assertTrue(insert.queries.isEmpty());
+		try {
+			insert.addQueries(new PathQuery("path3"));
+			assertEquals(1, insert.queries.size());
+			insert.setMult(true);
+			insert.addData(JsonHandler.createObjectNode().put("var1", 1));
+			final ObjectNode node = insert.getFinalInsert();
+			assertEquals(4, node.size());
+		} catch (final InvalidCreateOperationException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testSetData() throws InvalidParseOperationException{
+		final Insert insert = new Insert();
+		assertNull(insert.data);
+		assertEquals((JsonNode) JsonHandler.createObjectNode(), insert.getData());
+		insert.resetData();
+		assertNull(insert.data);
+		insert.reset();
+		assertNull(insert.data);
+		JsonNode data1 = JsonHandler.createObjectNode().put("var1", 1);
+		JsonNode data2 = JsonHandler.createObjectNode().put("var2", 2);
+		insert.setData(data1);
+		assertEquals(1, insert.data.size());
+		assertEquals((JsonNode) JsonHandler.createObjectNode().put("var1", 1),insert.getData());
+		insert.setData(data2);
+		assertEquals(2, insert.data.size());
+		insert.reset();
+		assertEquals(0, insert.data.size());
+	}
+
+	@Test
+	public void testParseData() throws InvalidParseOperationException{
+		final Insert insert = new Insert();
+		insert.setMult(true);
+		insert.resetFilter();
+
+		final String data = "{'var1':1}";
+		insert.parseData(data);
+		String res = "INSERT: Requests: \n\tFilter: {}\n\tRoots: []\n\tData: {\"var1\":1}";
+		assertEquals(res, insert.toString());
+	}
+
+	@Test
+	public void testSetMult1() throws InvalidParseOperationException{
+		final Insert insert = new Insert();
+		JsonNode filt1 = JsonHandler.createObjectNode().put("$mult", "true");
+		insert.setFilter(filt1);
+		assertEquals("{\"$mult\":\"true\"}", insert.filter.toString());
+	}
 
 }

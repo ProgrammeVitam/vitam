@@ -67,9 +67,9 @@ public class BooleanQuery extends Query {
     public BooleanQuery(final QUERY booleanQuery) throws InvalidCreateOperationException {
         super();
         switch (booleanQuery) {
-            case and:
-            case not:
-            case or: {
+            case AND:
+            case NOT:
+            case OR: {
                 createQueryArray(booleanQuery);
                 currentQUERY = booleanQuery;
                 break;
@@ -91,9 +91,9 @@ public class BooleanQuery extends Query {
             throws InvalidCreateOperationException {
         if (currentQUERY != null) {
             switch (currentQUERY) {
-                case and:
-                case not:
-                case or:
+                case AND:
+                case NOT:
+                case OR:
                     break;
                 default:
                     throw new InvalidCreateOperationException(

@@ -55,9 +55,6 @@ import fr.gouv.vitam.common.json.JsonHandler;
  */
 public class UpdateActionToMongodb {
 
-    private UpdateActionToMongodb() {
-    }
-
     /**
      * 
      * @param action
@@ -69,12 +66,12 @@ public class UpdateActionToMongodb {
         UPDATEACTION req = action.getUPDATEACTION();
         JsonNode content = action.getCurrentAction().get(req.exactToken());
         switch (req) {
-            case add: {
+            case ADD: {
                 final Entry<String, JsonNode> element =
                         JsonHandler.checkUnicity(req.exactToken(), content);
                 String fieldName = element.getKey();
                 ArrayNode array = (ArrayNode) element.getValue()
-                        .get(UPDATEACTIONARGS.each.exactToken());
+                        .get(UPDATEACTIONARGS.EACH.exactToken());
                 List<Object> list = new ArrayList<>(array.size());
                 Iterator<JsonNode> iterator = array.elements();
                 while (iterator.hasNext()) {
@@ -82,24 +79,24 @@ public class UpdateActionToMongodb {
                 }
                 return addEachToSet(fieldName, list);
             }
-            case inc: {
+            case INC: {
                 final Entry<String, JsonNode> element =
                         JsonHandler.checkUnicity(req.exactToken(), content);
                 return inc(element.getKey(), element.getValue().asLong());
             }
-            case min: {
+            case MIN: {
                 final Entry<String, JsonNode> element =
                         JsonHandler.checkUnicity(req.exactToken(), content);
                 return min(element.getKey(),
                         GlobalDatasParser.getValue(element.getValue()));
             }
-            case max: {
+            case MAX: {
                 final Entry<String, JsonNode> element =
                         JsonHandler.checkUnicity(req.exactToken(), content);
                 return max(element.getKey(),
                         GlobalDatasParser.getValue(element.getValue()));
             }
-            case pop: {
+            case POP: {
                 final Entry<String, JsonNode> element =
                         JsonHandler.checkUnicity(req.exactToken(), content);
                 if (element.getValue().asInt() < 0) {
@@ -107,12 +104,12 @@ public class UpdateActionToMongodb {
                 }
                 return popLast(element.getKey());
             }
-            case pull: {
+            case PULL: {
                 final Entry<String, JsonNode> element =
                         JsonHandler.checkUnicity(req.exactToken(), content);
                 String fieldName = element.getKey();
                 ArrayNode array = (ArrayNode) element.getValue()
-                        .get(UPDATEACTIONARGS.each.exactToken());
+                        .get(UPDATEACTIONARGS.EACH.exactToken());
                 List<Object> list = new ArrayList<>(array.size());
                 Iterator<JsonNode> iterator = array.elements();
                 while (iterator.hasNext()) {
@@ -120,12 +117,12 @@ public class UpdateActionToMongodb {
                 }
                 return pullAll(fieldName, list);
             }
-            case push: {
+            case PUSH: {
                 final Entry<String, JsonNode> element =
                         JsonHandler.checkUnicity(req.exactToken(), content);
                 String fieldName = element.getKey();
                 ArrayNode array = (ArrayNode) element.getValue()
-                        .get(UPDATEACTIONARGS.each.exactToken());
+                        .get(UPDATEACTIONARGS.EACH.exactToken());
                 List<Object> list = new ArrayList<>(array.size());
                 Iterator<JsonNode> iterator = array.elements();
                 while (iterator.hasNext()) {
@@ -133,12 +130,12 @@ public class UpdateActionToMongodb {
                 }
                 return pushEach(fieldName, list);
             }
-            case rename: {
+            case RENAME: {
                 final Entry<String, JsonNode> element =
                         JsonHandler.checkUnicity(req.exactToken(), content);
                 return rename(element.getKey(), element.getValue().asText());
             }
-            case set: {
+            case SET: {
                 Iterator<Entry<String, JsonNode>> iterator = content.fields();
                 BasicDBObject doc = new BasicDBObject();
                 while (iterator.hasNext()) {
@@ -148,7 +145,7 @@ public class UpdateActionToMongodb {
                 }
                 return new BasicDBObject(req.exactToken(), doc);
             }
-            case unset: {
+            case UNSET: {
                 Iterator<JsonNode> iterator = content.elements();
                 BasicDBObject doc = new BasicDBObject();
                 while (iterator.hasNext()) {

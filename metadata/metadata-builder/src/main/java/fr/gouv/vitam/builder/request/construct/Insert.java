@@ -76,7 +76,7 @@ public class Insert extends Request {
         if (filter == null) {
             filter = JsonHandler.createObjectNode();
         }
-        filter.put(MULTIFILTER.mult.exactToken(), mult);
+        filter.put(MULTIFILTER.MULT.exactToken(), mult);
         return this;
     }
 
@@ -88,7 +88,7 @@ public class Insert extends Request {
         if (filter == null) {
             filter = JsonHandler.createObjectNode();
         }
-        if (filterContent.has(MULTIFILTER.mult.exactToken())) {
+        if (filterContent.has(MULTIFILTER.MULT.exactToken())) {
             filter.setAll((ObjectNode) filterContent);
         }
         return this;
@@ -161,9 +161,9 @@ public class Insert extends Request {
     public final ObjectNode getFinalInsert() {
         final ObjectNode node = getFinal();
         if (data != null && data.size() > 0) {
-            node.set(GLOBAL.data.exactToken(), data);
+            node.set(GLOBAL.DATA.exactToken(), data);
         } else {
-            node.putObject(GLOBAL.data.exactToken());
+            node.putObject(GLOBAL.DATA.exactToken());
         }
         return node;
     }

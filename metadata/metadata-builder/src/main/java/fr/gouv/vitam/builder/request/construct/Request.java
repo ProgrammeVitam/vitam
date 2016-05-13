@@ -63,7 +63,7 @@ public abstract class Request {
      */
     public final Request resetHintFilter() {
         if (filter != null) {
-            filter.remove(SELECTFILTER.hint.exactToken());
+            filter.remove(SELECTFILTER.HINT.exactToken());
         }
         return this;
     }
@@ -127,9 +127,9 @@ public abstract class Request {
         if (filter == null) {
             filter = JsonHandler.createObjectNode();
         }
-        ArrayNode array = (ArrayNode) filter.get(SELECTFILTER.hint.exactToken());
+        ArrayNode array = (ArrayNode) filter.get(SELECTFILTER.HINT.exactToken());
         if (array == null || array.isMissingNode()) {
-            array = filter.putArray(SELECTFILTER.hint.exactToken());
+            array = filter.putArray(SELECTFILTER.HINT.exactToken());
         }
         for (final String hint : hints) {
             GlobalDatas.sanityParameterCheck(hint);
@@ -150,12 +150,12 @@ public abstract class Request {
         if (filter == null) {
             filter = JsonHandler.createObjectNode();
         }
-        if (filterContent.has(SELECTFILTER.hint.exactToken())) {
-            final JsonNode node = filterContent.get(SELECTFILTER.hint.exactToken());
+        if (filterContent.has(SELECTFILTER.HINT.exactToken())) {
+            final JsonNode node = filterContent.get(SELECTFILTER.HINT.exactToken());
             if (node.isArray()) {
-                filter.putArray(SELECTFILTER.hint.exactToken()).addAll((ArrayNode) node);
+                filter.putArray(SELECTFILTER.HINT.exactToken()).addAll((ArrayNode) node);
             } else {
-                filter.putArray(SELECTFILTER.hint.exactToken()).add(node.asText());
+                filter.putArray(SELECTFILTER.HINT.exactToken()).add(node.asText());
             }
         }
         return this;
@@ -268,26 +268,26 @@ public abstract class Request {
     protected final ObjectNode getFinal() {
         final ObjectNode node = JsonHandler.createObjectNode();
         if (roots != null && roots.size() > 0) {
-            ArrayNode array = node.putArray(GLOBAL.roots.exactToken());
+            ArrayNode array = node.putArray(GLOBAL.ROOTS.exactToken());
             for (String val : roots) {
                 array.add(val);
             }
         } else {
-        	node.putArray(GLOBAL.roots.exactToken());
+        	node.putArray(GLOBAL.ROOTS.exactToken());
         }
         if (queries != null && queries.size() > 0) {
             ArrayNode array = JsonHandler.createArrayNode();
             for (Query query : queries) {
                 array.add(query.getCurrentQuery());
             }
-            node.set(GLOBAL.query.exactToken(), array);
+            node.set(GLOBAL.QUERY.exactToken(), array);
         } else {
-            node.putArray(GLOBAL.query.exactToken());
+            node.putArray(GLOBAL.QUERY.exactToken());
         }
         if (filter != null && filter.size() > 0) {
-            node.set(GLOBAL.filter.exactToken(), filter);
+            node.set(GLOBAL.FILTER.exactToken(), filter);
         } else {
-            node.putObject(GLOBAL.filter.exactToken());
+            node.putObject(GLOBAL.FILTER.exactToken());
         }
         return node;
     }

@@ -37,6 +37,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import fr.gouv.vitam.builder.request.construct.configuration.GlobalDatas;
@@ -52,6 +53,12 @@ public class QueryHelperTest {
             sb.append('a');
         }
         return sb.toString();
+    }
+
+    @Before
+    public void setupConfig() {
+        GlobalDatas.limitValue = 1000;
+        GlobalDatas.limitParameter = 100;
     }
 
     @Test

@@ -55,8 +55,8 @@ public class PullAction extends fr.gouv.vitam.builder.request.construct.action.P
         this.currentUPDATEACTION = action;
         ObjectNode node = ((ObjectNode) currentObject).putObject(action.exactToken());
         adapter.setVarsValue(node, request);
-        currentObject = currentObject.findParent(UPDATEACTIONARGS.each.exactToken())
-                .get(UPDATEACTIONARGS.each.exactToken());
+        currentObject = currentObject.findParent(UPDATEACTIONARGS.EACH.exactToken())
+                .get(UPDATEACTIONARGS.EACH.exactToken());
         setReady(true);
     }
 }

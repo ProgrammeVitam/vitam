@@ -1,6 +1,9 @@
 package fr.gouv.vitam.api.exception;
 
-public class MetaDataDocumentSizeException  extends MetaDataException{
+/**
+ * MetaDataDocumentSizeException max size exceeded error
+ */
+public class MetaDataDocumentSizeException extends MetaDataException{
 
 	/**
 	 * 

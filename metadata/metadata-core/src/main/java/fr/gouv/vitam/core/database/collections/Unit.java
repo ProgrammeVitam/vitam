@@ -401,7 +401,7 @@ public class Unit extends VitamDocument<Unit> {
             }
             if (! ups.isEmpty()) {
                 BasicDBObject vtDepthsBson = new BasicDBObject(UNITUPS, 
-                        new BasicDBObject(UPDATEACTIONARGS.each.exactToken(), ups));
+                        new BasicDBObject(UPDATEACTIONARGS.EACH.exactToken(), ups));
                 listAddToSet.add(vtDepthsBson);
             }
             try {
@@ -418,9 +418,9 @@ public class Unit extends VitamDocument<Unit> {
                     for (final BasicDBObject dbObject : listset) {
                         upd.putAll((BSONObject) dbObject);
                     }
-                    update = update.append(UPDATEACTION.set.exactToken(), upd);
+                    update = update.append(UPDATEACTION.SET.exactToken(), upd);
                 }
-                update = update.append(UPDATEACTION.inc.exactToken(),
+                update = update.append(UPDATEACTION.INC.exactToken(),
                         new BasicDBObject(NBCHILD, nb));
                 nb = 0;
                 update(update);
@@ -593,12 +593,12 @@ public class Unit extends VitamDocument<Unit> {
             	max += val;
             }
             update = combine(update, updateSubDepth, updateSubUnits);
-            if (min < unit.getInteger(MINDEPTH)) {
-                update = combine(update, set(MINDEPTH, min));
-            }
-            if (max > unit.getInteger(MAXDEPTH)) {
-                update = combine(update, set(MAXDEPTH, max));
-            }
+//            if (min < unit.getInteger(MINDEPTH)) {
+//                update = combine(update, set(MINDEPTH, min));
+//            }
+//            if (max > unit.getInteger(MAXDEPTH)) {
+//                update = combine(update, set(MAXDEPTH, max));
+//            }
             LOGGER.debug(this+"->"+unit+"\n"+
             		"\t"+MongoDbHelper.bsonToString(update, false)+"\n\t"+min+":"+max);
             try {

@@ -53,8 +53,8 @@ public class MaxAction extends Action {
     public MaxAction(final String variableName, final long value)
             throws InvalidCreateOperationException {
         super();
-        createActionVariableValue(UPDATEACTION.max, variableName, value);
-        currentUPDATEACTION = UPDATEACTION.max;
+        createActionVariableValue(UPDATEACTION.MAX, variableName, value);
+        currentUPDATEACTION = UPDATEACTION.MAX;
         setReady(true);
     }
 
@@ -68,8 +68,8 @@ public class MaxAction extends Action {
     public MaxAction(final String variableName, final double value)
             throws InvalidCreateOperationException {
         super();
-        createActionVariableValue(UPDATEACTION.max, variableName, value);
-        currentUPDATEACTION = UPDATEACTION.max;
+        createActionVariableValue(UPDATEACTION.MAX, variableName, value);
+        currentUPDATEACTION = UPDATEACTION.MAX;
         setReady(true);
     }
 
@@ -83,8 +83,8 @@ public class MaxAction extends Action {
     public MaxAction(final String variableName, final Date value)
             throws InvalidCreateOperationException {
         super();
-        createActionVariableValue(UPDATEACTION.max, variableName, value);
-        currentUPDATEACTION = UPDATEACTION.max;
+        createActionVariableValue(UPDATEACTION.MAX, variableName, value);
+        currentUPDATEACTION = UPDATEACTION.MAX;
         setReady(true);
     }
 
@@ -98,8 +98,8 @@ public class MaxAction extends Action {
     public MaxAction(final String variableName, final boolean value)
             throws InvalidCreateOperationException {
         super();
-        createActionVariableValue(UPDATEACTION.max, variableName, value);
-        currentUPDATEACTION = UPDATEACTION.max;
+        createActionVariableValue(UPDATEACTION.MAX, variableName, value);
+        currentUPDATEACTION = UPDATEACTION.MAX;
         setReady(true);
     }
 
@@ -113,8 +113,8 @@ public class MaxAction extends Action {
     public MaxAction(final String variableName, final String value)
             throws InvalidCreateOperationException {
         super();
-        createActionVariableValue(UPDATEACTION.max, variableName, value);
-        currentUPDATEACTION = UPDATEACTION.max;
+        createActionVariableValue(UPDATEACTION.MAX, variableName, value);
+        currentUPDATEACTION = UPDATEACTION.MAX;
         setReady(true);
     }
 

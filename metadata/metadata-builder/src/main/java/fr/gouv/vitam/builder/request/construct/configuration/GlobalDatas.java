@@ -56,23 +56,23 @@ public class GlobalDatas {
     /**
      * Default limit for Value (sanity check)
      */
-    public static final int limitValue = 10000000;
+    public static int limitValue = 10000000;
     /**
      * Default limit for small parameter (sanity check)
      */
-    public static final int limitParameter = 1000;
+    public static int limitParameter = 1000;
     /**
      * Default limit for number of roots
      */
-    public static final int nbRoots = 1000;
+    public static int nbRoots = 1000;
     /**
      * Default limit for number of filters
      */
-    public static final int nbFilters = 10;
+    public static int nbFilters = 10;
     /**
      * Default limit for number of projections
      */
-    public static final int nbProjections = 1000;
+    public static int nbProjections = 1000;
     /**
      * Default UUIDFactory (might need another specific one for parser)
      */

@@ -41,18 +41,4 @@ enum VitamLinks {
         this.field2to1 = field2to1;
     }
 
-    /**
-     * @param clasz1
-     * @param type
-     * @param field1to2
-     * @param clasz2
-     */
-    private VitamLinks(final VitamCollections col1, final LinkType type,
-            final String field1to2, final VitamCollections col2) {
-        this.col1 = col1;
-        this.type = type;
-        this.field1to2 = field1to2;
-        this.col2 = col2;
-    }
-
 }

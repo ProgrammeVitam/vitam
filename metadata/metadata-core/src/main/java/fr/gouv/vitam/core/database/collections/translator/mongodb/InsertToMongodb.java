@@ -33,9 +33,11 @@ import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import fr.gouv.vitam.parser.request.parser.InsertParser;
+import fr.gouv.vitam.api.exception.MetaDataMaxDepthException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.parser.request.parser.GlobalDatasParser;
+import fr.gouv.vitam.parser.request.parser.InsertParser;
 
 /**
  * Insert to MongoDb
@@ -55,9 +57,14 @@ public class InsertToMongodb extends RequestToMongodb {
      * 
      * @return the projection
      * @throws InvalidParseOperationException
+     * @throws MetaDataMaxDepthException 
      */
-    public Document getFinalData() throws InvalidParseOperationException {
+    public Document getFinalData() throws InvalidParseOperationException, MetaDataMaxDepthException {
         JsonNode node = ((InsertParser) requestParser).getRequest().getData();
+        int nodeDepth = GlobalDatasParser.getJsonNodedepth(node);
+        if (nodeDepth >= GlobalDatasParser.MAXDEPTH) {
+        	throw new MetaDataMaxDepthException("Node depth exception, value: " + nodeDepth);
+        }
         return Document.parse(JsonHandler.writeAsString(node));
     }
 }

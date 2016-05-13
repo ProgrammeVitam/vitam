@@ -104,7 +104,7 @@ public class SelectParser extends RequestParser implements internalParseSelect {
         } else {
             // not as array but composite as { $roots: root, $query : query,
             // $filter : filter, $projection : projection }
-            projectionParse(rootNode.get(GLOBAL.projection.exactToken()));
+            projectionParse(rootNode.get(GLOBAL.PROJECTION.exactToken()));
         }
 	}
 
@@ -135,9 +135,9 @@ public class SelectParser extends RequestParser implements internalParseSelect {
         try {
             ((Select) request).resetUsageProjection().resetUsedProjection();
             ObjectNode node = JsonHandler.createObjectNode();
-            if (rootNode.has(PROJECTION.fields.exactToken())) {
-                adapter.setVarsValue(node, rootNode.path(PROJECTION.fields.exactToken()));
-                ((ObjectNode) rootNode).set(PROJECTION.fields.exactToken(), node);
+            if (rootNode.has(PROJECTION.FIELDS.exactToken())) {
+                adapter.setVarsValue(node, rootNode.path(PROJECTION.FIELDS.exactToken()));
+                ((ObjectNode) rootNode).set(PROJECTION.FIELDS.exactToken(), node);
             }
             ((Select) request).setProjection(rootNode);
         } catch (final Exception e) {

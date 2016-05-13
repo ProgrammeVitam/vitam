@@ -51,8 +51,8 @@ public class IncAction extends Action {
     public IncAction(final String variableName, final long value)
             throws InvalidCreateOperationException {
         super();
-        createActionVariableValue(UPDATEACTION.inc, variableName, value);
-        currentUPDATEACTION = UPDATEACTION.inc;
+        createActionVariableValue(UPDATEACTION.INC, variableName, value);
+        currentUPDATEACTION = UPDATEACTION.INC;
         setReady(true);
     }
 

@@ -54,7 +54,7 @@ public class UpdateActionParserHelper extends UpdateActionHelper {
      * @throws InvalidParseOperationException 
      */
     public static final AddAction add(final JsonNode data, final VarNameAdapter adapter) throws InvalidParseOperationException {
-        return new AddAction(UPDATEACTION.add, data, adapter);
+        return new AddAction(UPDATEACTION.ADD, data, adapter);
     }
 
     /**
@@ -65,7 +65,7 @@ public class UpdateActionParserHelper extends UpdateActionHelper {
      * @throws InvalidParseOperationException 
      */
     public static final IncAction inc(final JsonNode data, final VarNameAdapter adapter) throws InvalidParseOperationException {
-        return new IncAction(UPDATEACTION.inc, data, adapter);
+        return new IncAction(UPDATEACTION.INC, data, adapter);
     }
 
     /**
@@ -76,7 +76,7 @@ public class UpdateActionParserHelper extends UpdateActionHelper {
      * @throws InvalidParseOperationException 
      */
     public static final MinAction min(final JsonNode data, final VarNameAdapter adapter) throws InvalidParseOperationException {
-        return new MinAction(UPDATEACTION.min, data, adapter);
+        return new MinAction(UPDATEACTION.MIN, data, adapter);
     }
 
     /**
@@ -87,7 +87,7 @@ public class UpdateActionParserHelper extends UpdateActionHelper {
      * @throws InvalidParseOperationException 
      */
     public static final MaxAction max(final JsonNode data, final VarNameAdapter adapter) throws InvalidParseOperationException {
-        return new MaxAction(UPDATEACTION.max, data, adapter);
+        return new MaxAction(UPDATEACTION.MAX, data, adapter);
     }
 
     /**
@@ -98,7 +98,7 @@ public class UpdateActionParserHelper extends UpdateActionHelper {
      * @throws InvalidParseOperationException 
      */
     public static final PopAction pop(final JsonNode data, final VarNameAdapter adapter) throws InvalidParseOperationException {
-        return new PopAction(UPDATEACTION.pop, data, adapter);
+        return new PopAction(UPDATEACTION.POP, data, adapter);
     }
 
     /**
@@ -109,7 +109,7 @@ public class UpdateActionParserHelper extends UpdateActionHelper {
      * @throws InvalidParseOperationException 
      */
     public static final PullAction pull(final JsonNode data, final VarNameAdapter adapter) throws InvalidParseOperationException {
-        return new PullAction(UPDATEACTION.pull, data, adapter);
+        return new PullAction(UPDATEACTION.PULL, data, adapter);
     }
 
     /**
@@ -120,7 +120,7 @@ public class UpdateActionParserHelper extends UpdateActionHelper {
      * @throws InvalidParseOperationException 
      */
     public static final PushAction push(final JsonNode data, final VarNameAdapter adapter) throws InvalidParseOperationException {
-        return new PushAction(UPDATEACTION.push, data, adapter);
+        return new PushAction(UPDATEACTION.PUSH, data, adapter);
     }
 
     /**
@@ -131,7 +131,7 @@ public class UpdateActionParserHelper extends UpdateActionHelper {
      * @throws InvalidParseOperationException 
      */
     public static final RenameAction rename(final JsonNode data, final VarNameAdapter adapter) throws InvalidParseOperationException {
-        return new RenameAction(UPDATEACTION.rename, data, adapter);
+        return new RenameAction(UPDATEACTION.RENAME, data, adapter);
     }
 
     /**
@@ -142,7 +142,7 @@ public class UpdateActionParserHelper extends UpdateActionHelper {
      * @throws InvalidParseOperationException 
      */
     public static final SetAction set(final JsonNode data, final VarNameAdapter adapter) throws InvalidParseOperationException {
-        return new SetAction(UPDATEACTION.set, data, adapter);
+        return new SetAction(UPDATEACTION.SET, data, adapter);
     }
 
     /**
@@ -155,7 +155,7 @@ public class UpdateActionParserHelper extends UpdateActionHelper {
     public static final UnsetAction unset(final JsonNode array, final VarNameAdapter adapter)
             throws InvalidParseOperationException {
         try {
-            return new UnsetAction(UPDATEACTION.unset, (ArrayNode) array, adapter);
+            return new UnsetAction(UPDATEACTION.UNSET, (ArrayNode) array, adapter);
         } catch (Exception e) {
             throw new InvalidParseOperationException("Parse error", e);
         }

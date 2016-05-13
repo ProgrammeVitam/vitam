@@ -39,6 +39,7 @@ import static org.junit.Assert.fail;
 
 import java.util.List;
 
+import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -49,6 +50,7 @@ import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.FILTER
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.MULTIFILTER;
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.SELECTFILTER;
 import fr.gouv.vitam.builder.request.construct.query.Query;
+import fr.gouv.vitam.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogLevel;
@@ -213,36 +215,36 @@ public class InsertParserTest {
             // empty
             request.filterParse(insert.getFilter());
             assertNull("Hint should be null",
-                    request.getRequest().getFilter().get(SELECTFILTER.hint.exactToken()));
+                    request.getRequest().getFilter().get(SELECTFILTER.HINT.exactToken()));
             assertNull("Limit should be null", request.getRequest().getFilter()
-                    .get(SELECTFILTER.limit.exactToken()));
+                    .get(SELECTFILTER.LIMIT.exactToken()));
             assertNull("Offset should be null", request.getRequest().getFilter()
-                    .get(SELECTFILTER.offset.exactToken()));
+                    .get(SELECTFILTER.OFFSET.exactToken()));
             assertNull("OrderBy should be null", request.getRequest().getFilter()
-                    .get(SELECTFILTER.orderby.exactToken()));
+                    .get(SELECTFILTER.ORDERBY.exactToken()));
             assertNull("Mult should be null",
-                    request.getRequest().getFilter().get(MULTIFILTER.mult.exactToken()));
+                    request.getRequest().getFilter().get(MULTIFILTER.MULT.exactToken()));
             // hint set
-            insert.addHintFilter(FILTERARGS.cache.exactToken());
+            insert.addHintFilter(FILTERARGS.CACHE.exactToken());
             request.filterParse(insert.getFilter());
-            assertEquals("Hint should be True", FILTERARGS.cache.exactToken(),
-                    request.getRequest().getFilter().get(SELECTFILTER.hint.exactToken())
+            assertEquals("Hint should be True", FILTERARGS.CACHE.exactToken(),
+                    request.getRequest().getFilter().get(SELECTFILTER.HINT.exactToken())
                             .get(0).asText());
             // hint reset
             insert.resetHintFilter();
             request.filterParse(insert.getFilter());
             assertNull("Hint should be null",
-                    request.getRequest().getFilter().get(SELECTFILTER.hint.exactToken()));
+                    request.getRequest().getFilter().get(SELECTFILTER.HINT.exactToken()));
             // multi set
             insert.setMult(false);
             request.filterParse(insert.getFilter());
             assertEquals(false,
-                    request.getRequest().getFilter().get(MULTIFILTER.mult.exactToken())
+                    request.getRequest().getFilter().get(MULTIFILTER.MULT.exactToken())
                             .asBoolean());
             insert.setMult(true);
             request.filterParse(insert.getFilter());
             assertEquals(true,
-                    request.getRequest().getFilter().get(MULTIFILTER.mult.exactToken())
+                    request.getRequest().getFilter().get(MULTIFILTER.MULT.exactToken())
                             .asBoolean());
         } catch (final InvalidParseOperationException e) {
             e.printStackTrace();
@@ -278,10 +280,204 @@ public class InsertParserTest {
         }
         try {
             request.dataParse(node);
-            fail("Should Failed");
         } catch (InvalidParseOperationException e) {
-            // Should failed
+            fail("Should Failed");
         }
         
     }
+
+	@Test
+	public void testInsertParser() throws InvalidParseOperationException{
+		final InsertParser request = new InsertParser();
+		JsonNode rootNode = null;
+		try{
+			request.dataParse(rootNode);
+		} catch(final InvalidParseOperationException e){
+			assertNotNull(e);
+		}
+		JsonNode req = JsonHandler.getFromString(exampleMd);
+		request.parse(req);
+		assertNotNull(request);
+
+		final InsertParser request2 = new InsertParser(new VarNameAdapter());
+		assertNotNull(request2);
+	}
+
+	@Test
+	public void testInternalParseInsert() throws InvalidParseOperationException{
+		final InsertParser request = new InsertParser();
+		final String s = "[ [ 'id0' ], { $path : [ 'id1', 'id2'] }, {$mult : false }, {} ]";
+		request.parse(s);
+		assertNotNull(request);
+	}
+
+	@Test
+	public void testInternalParseRequest() throws InvalidParseOperationException{
+		final InsertParser request = new InsertParser();
+		request.request = null;
+		final String s = "[ [ 'id0' ], { $path : [ 'id1', 'id2'] }, {$mult : false }, {} ]";
+		request.parse(s);
+		assertNotNull(request);    	
+	}
+
+	@Test
+	public void testParseQueryOnlyRequest() throws InvalidParseOperationException{
+		final InsertParser request = new InsertParser();
+		request.request = null;
+		final String s = "{}";
+		request.parseQueryOnly(s);
+		assertNotNull(request);
+	}
+
+	@Test
+	public void testRootParseRequest() throws InvalidParseOperationException{
+		final InsertParser request = new InsertParser();
+		JsonNode root = null;
+		request.rootParse(root);
+		assertNotNull(request);
+	}
+
+	@Test
+	public void testFilterParseRequest() throws InvalidParseOperationException{
+		final InsertParser request = new InsertParser();
+		JsonNode root = null;
+		request.filterParse(root);
+		assertNotNull(request);
+	}
+
+	@Test
+	public void testQueryParseRequest() throws InvalidParseOperationException{
+		final InsertParser request = new InsertParser();
+		JsonNode root = null;
+		request.queryParse(root);
+		assertNotNull(request);
+	}
+
+	@Test(expected=InvalidParseOperationException.class)
+	public void shouldRaiseException_whenRequestParseErrorQuery() throws InvalidParseOperationException{
+		final InsertParser request = new InsertParser();
+		JsonNode query = JsonHandler.getFromString("{$mult : false }");
+		request.queryParse(query);
+	}
+
+	@Test(expected=InvalidParseOperationException.class)
+	public void shouldRaiseException_whenRequestParseErrorRoot() throws InvalidParseOperationException{
+		final InsertParser request = new InsertParser();
+		JsonNode root = JsonHandler.getFromString("{$mult : false }");
+		request.rootParse(root);
+	}    
+
+	@Test(expected=InvalidParseOperationException.class)
+	public void shouldRaiseException_whenParseErrorForAnalyzeRootQuery() throws InvalidParseOperationException, InvalidCreateOperationException{
+		final InsertParser request = new InsertParser();
+		request.analyzeRootQuery(null);
+	}
+
+	@Test(expected=InvalidParseOperationException.class)
+	public void shouldRaiseException_whenRequestIdwithoutSymbolDollar() throws InvalidParseOperationException{
+		final String s = "{mult : false }";
+		RequestParser.getRequestId(s);
+	}
+
+	@Test
+	public void testHintCache(){
+		final InsertParser request = new InsertParser();
+		assertFalse(request.hintCache());
+	}
+
+	@Test
+	public void testHintNoTimeout(){
+		final InsertParser request = new InsertParser();
+		assertFalse(request.hintNoTimeout());
+	}
+
+	@Test
+	public void testModel() throws InvalidParseOperationException{
+		final InsertParser request = new InsertParser();
+		final String s = "[ [ 'id0' ], [{ $path : [ 'id1', 'id2'] }, {$exists : 'mavar1'}], {$hint : 'cache'}, {} ]";
+		request.parse(s);
+		assertEquals(FILTERARGS.UNITS, request.model());
+	}
+
+	@Test (expected=InvalidParseOperationException.class)
+	public void shouldRaiseException_whenPathNotFirstInQuery() throws InvalidParseOperationException{
+		final InsertParser request = new InsertParser();
+		final String s = "[ [ 'id0' ], [{$exists : 'mavar1'}, { $path : [ 'id1', 'id2'] }], {$mult : false }, {} ]";
+		request.parse(s);	
+	}
+
+	@Test
+	public void testHint() throws InvalidParseOperationException{
+		final InsertParser request = new InsertParser();
+		final String s = "[ [ 'id0' ], [{ $path : [ 'id1', 'id2'] }, {$exists : 'mavar1'}], {$hint : 'cache'}, {} ]";
+		request.parse(s);
+		assertEquals(true, request.hintCache());
+	}
+
+	@Test
+	public void testHintWithNoTimeOut() throws InvalidParseOperationException{
+		final InsertParser request = new InsertParser();
+		final String s = "[ [ 'id0' ], [{ $path : [ 'id1', 'id2'] }, {$exists : 'mavar1'}], {$hint : 'notimeout'}, {} ]";
+		request.parse(s);
+		assertEquals(true, request.hintNoTimeout());
+	}
+
+	@Test
+	public void testGlobalDatasParser_GetJsonNodedepth() throws InvalidParseOperationException{
+		final InsertParser request = new InsertParser();
+		final String s = "[ [ 'id0' ], [{ $path : [ 'id1', 'id2'] }, {$exists : 'mavar1'}], {$hint : 'notimeout'}, {} ]";
+		request.parse(s);
+		GlobalDatasParser.getJsonNodedepth(request.rootNode);
+	}
+
+	@Test
+	public void testGlobalDatasParser_GetValue() throws InvalidParseOperationException{
+		JsonNode value = JsonHandler.getFromString("true");
+		assertEquals(value.asBoolean(), GlobalDatasParser.getValue(value));
+		value = JsonHandler.getFromString("1.0");
+		assertEquals(value.asDouble(), GlobalDatasParser.getValue(value));
+		value = JsonHandler.getFromString("1");
+		assertEquals(value.asInt(), GlobalDatasParser.getValue(value));
+		value = JsonHandler.getFromString("{$date:'2016-05-09'}");
+		assertEquals(DateTime.parse(value.get(Query.DATE).asText()).toDate(), GlobalDatasParser.getValue(value));
+	}
+
+	@Test (expected=InvalidParseOperationException.class)
+	public void shouldRaiseException_GlobalDatasParserNull() throws InvalidParseOperationException{
+		final InsertParser request = new InsertParser();
+		final String s = "[ [ 'id0' ], [{ $path : [ 'id1', 'id2'] }, {$exists : 'mavar1'}], {$hint : 'notimeout'}, {} ]";
+		request.parse(s);
+		GlobalDatasParser.getValue(request.rootNode);
+	}
+
+	@Test (expected=InvalidParseOperationException.class)
+	public void shouldRaiseException_GlobalDatasParserArray() throws InvalidParseOperationException{
+		JsonNode value = null;
+		GlobalDatasParser.getValue(value);
+	}
+
+	@Test
+	public void testRequestParserHelper() throws InvalidParseOperationException{
+		String s_delete ="{ $roots: [], $query : [], $filter : [] }";
+		String s_insert ="{ $roots: [], $query : [], $filter : [], $data : [] }";
+		String s_update ="{ $roots: [], $query : [], $filter : [], $action : [] }";
+		String s_select ="{ $roots: [], $query : [], $filter : [], $projection : [] }";
+		VarNameAdapter varNameAdapter = new VarNameAdapter();
+
+		JsonNode JsonNode = JsonHandler.getFromString(s_delete);
+		assertNotNull(RequestParserHelper.getParser(JsonNode, varNameAdapter));
+
+		JsonNode = JsonHandler.getFromString(s_insert);
+		assertNotNull(RequestParserHelper.getParser(JsonNode, varNameAdapter));
+
+		JsonNode = JsonHandler.getFromString(s_update);
+		assertNotNull(RequestParserHelper.getParser(JsonNode, varNameAdapter));
+
+		JsonNode = JsonHandler.getFromString(s_select);
+		assertNotNull(RequestParserHelper.getParser(JsonNode, varNameAdapter));
+
+		assertNotNull(RequestParserHelper.getParser(JsonNode));
+		assertNotNull(RequestParserHelper.getParser(s_insert));
+		assertNotNull(RequestParserHelper.getParser(s_insert, varNameAdapter));
+	}
 }

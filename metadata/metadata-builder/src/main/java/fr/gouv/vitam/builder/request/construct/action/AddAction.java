@@ -57,7 +57,7 @@ public class AddAction extends Action {
     public AddAction(final String variableName, final String... value)
             throws InvalidCreateOperationException {
         super();
-        createActionVariableEach(UPDATEACTION.add, variableName);
+        createActionVariableEach(UPDATEACTION.ADD, variableName);
         for (final String val : value) {
             if (val != null && !val.trim().isEmpty()) {
                 try {
@@ -68,7 +68,7 @@ public class AddAction extends Action {
                 ((ArrayNode) currentObject).add(val.trim());
             }
         }
-        currentUPDATEACTION = UPDATEACTION.add;
+        currentUPDATEACTION = UPDATEACTION.ADD;
         setReady(true);
     }
 
@@ -82,11 +82,11 @@ public class AddAction extends Action {
     public AddAction(final String variableName, final long... value)
             throws InvalidCreateOperationException {
         super();
-        createActionVariableEach(UPDATEACTION.add, variableName);
+        createActionVariableEach(UPDATEACTION.ADD, variableName);
         for (final long val : value) {
             ((ArrayNode) currentObject).add(val);
         }
-        currentUPDATEACTION = UPDATEACTION.add;
+        currentUPDATEACTION = UPDATEACTION.ADD;
         setReady(true);
     }
 
@@ -100,11 +100,11 @@ public class AddAction extends Action {
     public AddAction(final String variableName, final boolean... value)
             throws InvalidCreateOperationException {
         super();
-        createActionVariableEach(UPDATEACTION.add, variableName);
+        createActionVariableEach(UPDATEACTION.ADD, variableName);
         for (final boolean val : value) {
             ((ArrayNode) currentObject).add(val);
         }
-        currentUPDATEACTION = UPDATEACTION.add;
+        currentUPDATEACTION = UPDATEACTION.ADD;
         setReady(true);
     }
 
@@ -118,11 +118,11 @@ public class AddAction extends Action {
     public AddAction(final String variableName, final double... value)
             throws InvalidCreateOperationException {
         super();
-        createActionVariableEach(UPDATEACTION.add, variableName);
+        createActionVariableEach(UPDATEACTION.ADD, variableName);
         for (final double val : value) {
             ((ArrayNode) currentObject).add(val);
         }
-        currentUPDATEACTION = UPDATEACTION.add;
+        currentUPDATEACTION = UPDATEACTION.ADD;
         setReady(true);
     }
 
@@ -136,11 +136,11 @@ public class AddAction extends Action {
     public AddAction(final String variableName, final Date... value)
             throws InvalidCreateOperationException {
         super();
-        createActionVariableEach(UPDATEACTION.add, variableName);
+        createActionVariableEach(UPDATEACTION.ADD, variableName);
         for (final Date val : value) {
             ((ArrayNode) currentObject).add(GlobalDatas.getDate(val));
         }
-        currentUPDATEACTION = UPDATEACTION.add;
+        currentUPDATEACTION = UPDATEACTION.ADD;
         setReady(true);
     }
 
@@ -153,7 +153,7 @@ public class AddAction extends Action {
      */
     public final AddAction add(final String... value)
             throws InvalidCreateOperationException {
-        if (currentUPDATEACTION != UPDATEACTION.add) {
+        if (currentUPDATEACTION != UPDATEACTION.ADD) {
             throw new InvalidCreateOperationException(
                     "Cannot add a set element since this is not a Add Action: "
                             + currentUPDATEACTION);
@@ -180,7 +180,7 @@ public class AddAction extends Action {
      */
     public final AddAction add(final boolean... value)
             throws InvalidCreateOperationException {
-        if (currentUPDATEACTION != UPDATEACTION.add) {
+        if (currentUPDATEACTION != UPDATEACTION.ADD) {
             throw new InvalidCreateOperationException(
                     "Cannot add a set element since this is not a Add Action: "
                             + currentUPDATEACTION);
@@ -200,7 +200,7 @@ public class AddAction extends Action {
      */
     public final AddAction add(final long... value)
             throws InvalidCreateOperationException {
-        if (currentUPDATEACTION != UPDATEACTION.add) {
+        if (currentUPDATEACTION != UPDATEACTION.ADD) {
             throw new InvalidCreateOperationException(
                     "Cannot add a set element since this is not a Add Action: "
                             + currentUPDATEACTION);
@@ -220,7 +220,7 @@ public class AddAction extends Action {
      */
     public final AddAction add(final double... value)
             throws InvalidCreateOperationException {
-        if (currentUPDATEACTION != UPDATEACTION.add) {
+        if (currentUPDATEACTION != UPDATEACTION.ADD) {
             throw new InvalidCreateOperationException(
                     "Cannot add a set element since this is not a Add Action: "
                             + currentUPDATEACTION);
@@ -240,7 +240,7 @@ public class AddAction extends Action {
      */
     public final AddAction add(final Date... value)
             throws InvalidCreateOperationException {
-        if (currentUPDATEACTION != UPDATEACTION.add) {
+        if (currentUPDATEACTION != UPDATEACTION.ADD) {
             throw new InvalidCreateOperationException(
                     "Cannot add a set element since this is not a Add Action: "
                             + currentUPDATEACTION);

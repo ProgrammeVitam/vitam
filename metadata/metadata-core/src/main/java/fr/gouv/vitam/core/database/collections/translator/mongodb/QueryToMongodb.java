@@ -61,9 +61,6 @@ public class QueryToMongodb {
     private static final VitamLogger LOGGER =
             VitamLoggerFactory.getInstance(QueryToMongodb.class);
 
-    private QueryToMongodb() {
-    }
-
     /**
      * @param field
      * @param roots
@@ -104,44 +101,44 @@ public class QueryToMongodb {
         QUERY req = query.getQUERY();
         JsonNode content = query.getNode(req.exactToken());
         switch (req) {
-            case and:
-            case not:
-            case or: {
+            case AND:
+            case NOT:
+            case OR: {
                 // using array of sub queries
                 BooleanQuery nthrequest = (BooleanQuery) query;
                 List<Query> sub = nthrequest.getQueries();
                 switch (req) {
-                    case and:
+                    case AND:
                         return and(getCommands(sub));
-                    case not:
+                    case NOT:
                         if (sub.size() == 1) {
                             return nor(getCommand(sub.get(0)));
                         }
                         return nor(and(getCommands(sub)));
-                    case or:
+                    case OR:
                         return or(getCommands(sub));
                     default:
                 }
                 break;
             }
-            case exists:
-            case missing: {
-                return exists(content.asText(), req == QUERY.exists);
+            case EXISTS:
+            case MISSING: {
+                return exists(content.asText(), req == QUERY.EXISTS);
             }
-            case flt:
-            case mlt: {
+            case FLT:
+            case MLT: {
                 throw new InvalidParseOperationException(
                         "Command not allowed with MongoDB: " + req.exactToken());
             }
-            case match:
-            case match_phrase:
-            case match_phrase_prefix:
-            case prefix: {
+            case MATCH:
+            case MATCH_PHRASE:
+            case MATCH_PHRASE_PREFIX:
+            case PREFIX: {
                 throw new InvalidParseOperationException(
                         "Command not allowed with MongoDB: " + req.exactToken());
             }
-            case nin:
-            case in: {
+            case NIN:
+            case IN: {
                 final Entry<String, JsonNode> element =
                         JsonHandler.checkUnicity(req.exactToken(), content);
                 ArrayNode array = (ArrayNode) element.getValue();
@@ -151,15 +148,15 @@ public class QueryToMongodb {
                     values[i++] = GlobalDatasParser.getValue(node);
                 }
                 switch (req) {
-                    case nin:
+                    case NIN:
                         return nin(element.getKey(), values);
-                    case in:
+                    case IN:
                         return in(element.getKey(), values);
                     default:
                 }
                 break;
             }
-            case range: {
+            case RANGE: {
                 final Entry<String, JsonNode> element =
                         JsonHandler.checkUnicity(req.exactToken(), content);
                 String var = element.getKey();
@@ -170,7 +167,7 @@ public class QueryToMongodb {
                     try {
                         final String key = requestItem.getKey();
                         if (key.startsWith("$")) {
-                            RANGEARGS.valueOf(key.substring(1));
+                            RANGEARGS.valueOf(key.substring(1).toUpperCase());
                             range.append(key,
                                     GlobalDatasParser.getValue(requestItem.getValue()));
                         } else {
@@ -184,12 +181,12 @@ public class QueryToMongodb {
                 }
                 return new BasicDBObject(var, range);
             }
-            case regex: {
+            case REGEX: {
                 final Entry<String, JsonNode> element =
                         JsonHandler.checkUnicity(req.exactToken(), content);
                 return regex(element.getKey(), element.getValue().asText());
             }
-            case term: {
+            case TERM: {
                 Iterator<Entry<String, JsonNode>> iterator = content.fields();
                 BasicDBObject bson = new BasicDBObject();
                 while (iterator.hasNext()) {
@@ -199,63 +196,59 @@ public class QueryToMongodb {
                 }
                 return bson;
             }
-            case wildcard: {
+            case WILDCARD: {
                 final Entry<String, JsonNode> element =
                         JsonHandler.checkUnicity(req.exactToken(), content);
                 String value = element.getValue().asText();
                 value = value.replace('?', '.').replace("*", ".*");
                 return regex(element.getKey(), value);
             }
-            case eq:
-            case gt:
-            case gte:
-            case lt:
-            case lte:
-            case ne: {
+            case EQ:
+            case GT:
+            case GTE:
+            case LT:
+            case LTE:
+            case NE: {
                 final Entry<String, JsonNode> element =
                         JsonHandler.checkUnicity(req.exactToken(), content);
                 final Object value = GlobalDatasParser.getValue(element.getValue());
                 switch (req) {
-                    case eq:
+                    case EQ:
                         return eq(element.getKey(), value);
-                    case gt:
+                    case GT:
                         return gt(element.getKey(), value);
-                    case gte:
+                    case GTE:
                         return gte(element.getKey(), value);
-                    case lt:
+                    case LT:
                         return lt(element.getKey(), value);
-                    case lte:
+                    case LTE:
                         return lte(element.getKey(), value);
-                    case ne:
+                    case NE:
                         return ne(element.getKey(), value);
                     default:
                 }
                 break;
             }
-            case search: {
+            case SEARCH: {
                 throw new InvalidParseOperationException(
                         "Command not allowed with MongoDB: " + req.exactToken());
             }
-            case isNull: {
+            case ISNULL: {
                 return new BasicDBObject().append(content.asText(),
                         new BasicDBObject("$type", BSON.NULL));
             }
-            case size: {
+            case SIZE: {
                 final Entry<String, JsonNode> element =
                         JsonHandler.checkUnicity(req.exactToken(), content);
                 return size(element.getKey(), element.getValue().asInt());
             }
-            case geometry:
-            case box:
-            case polygon:
-            case center:
-            case geoIntersects:
-            case geoWithin:
-            case near: {
-                throw new InvalidParseOperationException(
-                        "Unimplemented command: " + req.exactToken());
-            }
-            case path:  {
+            case GEOMETRY:
+            case BOX:
+            case POLYGON:
+            case CENTER:
+            case GEOINTERSECTS:
+            case GEOWITHIN:
+            case PATH:  {
                 ArrayNode array = (ArrayNode) content;
                 String[] values = new String[array.size()];
                 int i = 0;

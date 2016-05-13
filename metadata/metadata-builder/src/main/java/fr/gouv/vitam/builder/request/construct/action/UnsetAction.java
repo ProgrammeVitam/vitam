@@ -54,8 +54,8 @@ public class UnsetAction extends Action {
     public UnsetAction(final String... variableNames)
             throws InvalidCreateOperationException {
         super();
-        createActionVariables(UPDATEACTION.unset, variableNames);
-        currentUPDATEACTION = UPDATEACTION.unset;
+        createActionVariables(UPDATEACTION.UNSET, variableNames);
+        currentUPDATEACTION = UPDATEACTION.UNSET;
         setReady(true);
     }
 
@@ -68,7 +68,7 @@ public class UnsetAction extends Action {
      */
     public final UnsetAction add(final String... variableNames)
             throws InvalidCreateOperationException {
-        if (currentUPDATEACTION != UPDATEACTION.unset) {
+        if (currentUPDATEACTION != UPDATEACTION.UNSET) {
             throw new InvalidCreateOperationException(
                     "Cannot add an unset element since this is not a UnSet Action: "
                             + currentUPDATEACTION);

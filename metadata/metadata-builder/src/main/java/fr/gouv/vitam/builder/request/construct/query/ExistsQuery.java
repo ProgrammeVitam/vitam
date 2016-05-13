@@ -53,9 +53,9 @@ public class ExistsQuery extends Query {
             throws InvalidCreateOperationException {
         super();
         switch (existsQuery) {
-            case exists:
-            case isNull:
-            case missing:
+            case EXISTS:
+            case ISNULL:
+            case MISSING:
                 break;
             default:
                 throw new InvalidCreateOperationException("Query " + existsQuery

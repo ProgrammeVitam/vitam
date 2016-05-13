@@ -57,7 +57,7 @@ public class PushAction extends Action {
     public PushAction(final String variableName, final String... value)
             throws InvalidCreateOperationException {
         super();
-        createActionVariableEach(UPDATEACTION.push, variableName);
+        createActionVariableEach(UPDATEACTION.PUSH, variableName);
         for (final String val : value) {
             if (val != null && !val.trim().isEmpty()) {
                 try {
@@ -68,7 +68,7 @@ public class PushAction extends Action {
                 ((ArrayNode) currentObject).add(val.trim());
             }
         }
-        currentUPDATEACTION = UPDATEACTION.push;
+        currentUPDATEACTION = UPDATEACTION.PUSH;
         setReady(true);
     }
 
@@ -82,11 +82,11 @@ public class PushAction extends Action {
     public PushAction(final String variableName, final long... value)
             throws InvalidCreateOperationException {
         super();
-        createActionVariableEach(UPDATEACTION.push, variableName);
+        createActionVariableEach(UPDATEACTION.PUSH, variableName);
         for (final long val : value) {
             ((ArrayNode) currentObject).add(val);
         }
-        currentUPDATEACTION = UPDATEACTION.push;
+        currentUPDATEACTION = UPDATEACTION.PUSH;
         setReady(true);
     }
 
@@ -100,11 +100,11 @@ public class PushAction extends Action {
     public PushAction(final String variableName, final boolean... value)
             throws InvalidCreateOperationException {
         super();
-        createActionVariableEach(UPDATEACTION.push, variableName);
+        createActionVariableEach(UPDATEACTION.PUSH, variableName);
         for (final boolean val : value) {
             ((ArrayNode) currentObject).add(val);
         }
-        currentUPDATEACTION = UPDATEACTION.push;
+        currentUPDATEACTION = UPDATEACTION.PUSH;
         setReady(true);
     }
 
@@ -118,11 +118,11 @@ public class PushAction extends Action {
     public PushAction(final String variableName, final double... value)
             throws InvalidCreateOperationException {
         super();
-        createActionVariableEach(UPDATEACTION.push, variableName);
+        createActionVariableEach(UPDATEACTION.PUSH, variableName);
         for (final double val : value) {
             ((ArrayNode) currentObject).add(val);
         }
-        currentUPDATEACTION = UPDATEACTION.push;
+        currentUPDATEACTION = UPDATEACTION.PUSH;
         setReady(true);
     }
 
@@ -136,11 +136,11 @@ public class PushAction extends Action {
     public PushAction(final String variableName, final Date... value)
             throws InvalidCreateOperationException {
         super();
-        createActionVariableEach(UPDATEACTION.push, variableName);
+        createActionVariableEach(UPDATEACTION.PUSH, variableName);
         for (final Date val : value) {
             ((ArrayNode) currentObject).add(GlobalDatas.getDate(val));
         }
-        currentUPDATEACTION = UPDATEACTION.push;
+        currentUPDATEACTION = UPDATEACTION.PUSH;
         setReady(true);
     }
 
@@ -153,7 +153,7 @@ public class PushAction extends Action {
      */
     public final PushAction add(final String... value)
             throws InvalidCreateOperationException {
-        if (currentUPDATEACTION != UPDATEACTION.push) {
+        if (currentUPDATEACTION != UPDATEACTION.PUSH) {
             throw new InvalidCreateOperationException(
                     "Cannot add a set element since this is not a Push Action: "
                             + currentUPDATEACTION);
@@ -180,7 +180,7 @@ public class PushAction extends Action {
      */
     public final PushAction add(final boolean... value)
             throws InvalidCreateOperationException {
-        if (currentUPDATEACTION != UPDATEACTION.push) {
+        if (currentUPDATEACTION != UPDATEACTION.PUSH) {
             throw new InvalidCreateOperationException(
                     "Cannot add a set element since this is not a Push Action: "
                             + currentUPDATEACTION);
@@ -200,7 +200,7 @@ public class PushAction extends Action {
      */
     public final PushAction add(final long... value)
             throws InvalidCreateOperationException {
-        if (currentUPDATEACTION != UPDATEACTION.push) {
+        if (currentUPDATEACTION != UPDATEACTION.PUSH) {
             throw new InvalidCreateOperationException(
                     "Cannot add a set element since this is not a Push Action: "
                             + currentUPDATEACTION);
@@ -220,7 +220,7 @@ public class PushAction extends Action {
      */
     public final PushAction add(final double... value)
             throws InvalidCreateOperationException {
-        if (currentUPDATEACTION != UPDATEACTION.push) {
+        if (currentUPDATEACTION != UPDATEACTION.PUSH) {
             throw new InvalidCreateOperationException(
                     "Cannot add a set element since this is not a Push Action: "
                             + currentUPDATEACTION);
@@ -240,7 +240,7 @@ public class PushAction extends Action {
      */
     public final PushAction add(final Date... value)
             throws InvalidCreateOperationException {
-        if (currentUPDATEACTION != UPDATEACTION.push) {
+        if (currentUPDATEACTION != UPDATEACTION.PUSH) {
             throw new InvalidCreateOperationException(
                     "Cannot add a set element since this is not a Push Action: "
                             + currentUPDATEACTION);

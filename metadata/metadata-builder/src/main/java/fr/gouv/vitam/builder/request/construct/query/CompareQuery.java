@@ -57,13 +57,13 @@ public class CompareQuery extends Query {
             throws InvalidCreateOperationException {
         super();
         switch (compareQuery) {
-            case eq:
-            case gt:
-            case gte:
-            case lt:
-            case lte:
-            case ne:
-            case size: {
+            case EQ:
+            case GT:
+            case GTE:
+            case LT:
+            case LTE:
+            case NE:
+            case SIZE: {
                 createQueryVariableValue(compareQuery, variableName, value);
                 currentQUERY = compareQuery;
                 setReady(true);
@@ -89,12 +89,12 @@ public class CompareQuery extends Query {
             throws InvalidCreateOperationException {
         super();
         switch (compareQuery) {
-            case eq:
-            case gt:
-            case gte:
-            case lt:
-            case lte:
-            case ne: {
+            case EQ:
+            case GT:
+            case GTE:
+            case LT:
+            case LTE:
+            case NE: {
                 createQueryVariableValue(compareQuery, variableName, value);
                 currentQUERY = compareQuery;
                 setReady(true);
@@ -120,12 +120,12 @@ public class CompareQuery extends Query {
             throws InvalidCreateOperationException {
         super();
         switch (compareQuery) {
-            case eq:
-            case gt:
-            case gte:
-            case lt:
-            case lte:
-            case ne: {
+            case EQ:
+            case GT:
+            case GTE:
+            case LT:
+            case LTE:
+            case NE: {
                 createQueryVariableValue(compareQuery, variableName, value);
                 currentQUERY = compareQuery;
                 setReady(true);
@@ -151,12 +151,12 @@ public class CompareQuery extends Query {
             throws InvalidCreateOperationException {
         super();
         switch (compareQuery) {
-            case eq:
-            case gt:
-            case gte:
-            case lt:
-            case lte:
-            case ne: {
+            case EQ:
+            case GT:
+            case GTE:
+            case LT:
+            case LTE:
+            case NE: {
                 createQueryVariableValue(compareQuery, variableName, value);
                 currentQUERY = compareQuery;
                 setReady(true);
@@ -182,12 +182,12 @@ public class CompareQuery extends Query {
             throws InvalidCreateOperationException {
         super();
         switch (compareQuery) {
-            case eq:
-            case gt:
-            case gte:
-            case lt:
-            case lte:
-            case ne: {
+            case EQ:
+            case GT:
+            case GTE:
+            case LT:
+            case LTE:
+            case NE: {
                 createQueryVariableValue(compareQuery, variableName, value);
                 currentQUERY = compareQuery;
                 setReady(true);

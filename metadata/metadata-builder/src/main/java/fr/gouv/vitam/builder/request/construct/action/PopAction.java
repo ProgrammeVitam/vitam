@@ -52,8 +52,8 @@ public class PopAction extends Action {
     public PopAction(final String variableName, final int way)
             throws InvalidCreateOperationException {
         super();
-        createActionVariableValue(UPDATEACTION.pop, variableName, way);
-        currentUPDATEACTION = UPDATEACTION.pop;
+        createActionVariableValue(UPDATEACTION.POP, variableName, way);
+        currentUPDATEACTION = UPDATEACTION.POP;
         setReady(true);
     }
 
@@ -65,8 +65,8 @@ public class PopAction extends Action {
      */
     public PopAction(final String variableName) throws InvalidCreateOperationException {
         super();
-        createActionVariableValue(UPDATEACTION.pop, variableName, 1);
-        currentUPDATEACTION = UPDATEACTION.pop;
+        createActionVariableValue(UPDATEACTION.POP, variableName, 1);
+        currentUPDATEACTION = UPDATEACTION.POP;
         setReady(true);
     }
 }

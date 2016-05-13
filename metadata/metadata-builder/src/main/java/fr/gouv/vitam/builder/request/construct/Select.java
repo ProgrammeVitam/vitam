@@ -53,8 +53,8 @@ public class Select extends Request {
      */
     public final Select resetLimitFilter() {
         if (filter != null) {
-            filter.remove(SELECTFILTER.offset.exactToken());
-            filter.remove(SELECTFILTER.limit.exactToken());
+            filter.remove(SELECTFILTER.OFFSET.exactToken());
+            filter.remove(SELECTFILTER.LIMIT.exactToken());
         }
         return this;
     }
@@ -65,7 +65,7 @@ public class Select extends Request {
      */
     public final Select resetOrderByFilter() {
         if (filter != null) {
-            filter.remove(SELECTFILTER.orderby.exactToken());
+            filter.remove(SELECTFILTER.ORDERBY.exactToken());
         }
         return this;
     }
@@ -76,7 +76,7 @@ public class Select extends Request {
      */
     public final Select resetUsedProjection() {
         if (projection != null) {
-            projection.remove(PROJECTION.fields.exactToken());
+            projection.remove(PROJECTION.FIELDS.exactToken());
         }
         return this;
     }
@@ -87,7 +87,7 @@ public class Select extends Request {
      */
     public final Select resetUsageProjection() {
         if (projection != null) {
-            projection.remove(PROJECTION.usage.exactToken());
+            projection.remove(PROJECTION.USAGE.exactToken());
         }
         return this;
     }
@@ -115,10 +115,10 @@ public class Select extends Request {
         }
         resetLimitFilter();
         if (offset > 0) {
-            filter.put(SELECTFILTER.offset.exactToken(), offset);
+            filter.put(SELECTFILTER.OFFSET.exactToken(), offset);
         }
         if (limit > 0) {
-            filter.put(SELECTFILTER.limit.exactToken(), limit);
+            filter.put(SELECTFILTER.LIMIT.exactToken(), limit);
         }
         return this;
     }
@@ -131,19 +131,19 @@ public class Select extends Request {
     public final Select setLimitFilter(final JsonNode filterContent) {
         long offset = 0;
         long limit = GlobalDatas.limitLoad;
-        if (filterContent.has(SELECTFILTER.limit.exactToken())) {
+        if (filterContent.has(SELECTFILTER.LIMIT.exactToken())) {
             /*
              * $limit : n $maxScan: <number> / cursor.limit(n) "filter" : {
              * "limit" : {"value" : n} } ou "from" : start, "size" : n
              */
-            limit = filterContent.get(SELECTFILTER.limit.exactToken())
+            limit = filterContent.get(SELECTFILTER.LIMIT.exactToken())
                     .asLong(GlobalDatas.limitLoad);
         }
-        if (filterContent.has(SELECTFILTER.offset.exactToken())) {
+        if (filterContent.has(SELECTFILTER.OFFSET.exactToken())) {
             /*
              * $offset : start cursor.skip(start) "from" : start, "size" : n
              */
-            offset = filterContent.get(SELECTFILTER.offset.exactToken()).asLong(0);
+            offset = filterContent.get(SELECTFILTER.OFFSET.exactToken()).asLong(0);
         }
         return setLimitFilter(offset, limit);
     }
@@ -172,9 +172,9 @@ public class Select extends Request {
         if (filter == null) {
             filter = JsonHandler.createObjectNode();
         }
-        ObjectNode node = (ObjectNode) filter.get(SELECTFILTER.orderby.exactToken());
+        ObjectNode node = (ObjectNode) filter.get(SELECTFILTER.ORDERBY.exactToken());
         if (node == null || node.isMissingNode()) {
-            node = filter.putObject(SELECTFILTER.orderby.exactToken());
+            node = filter.putObject(SELECTFILTER.ORDERBY.exactToken());
         }
         for (final String var : variableNames) {
             if (var == null || var.trim().isEmpty()) {
@@ -197,9 +197,9 @@ public class Select extends Request {
         if (filter == null) {
             filter = JsonHandler.createObjectNode();
         }
-        ObjectNode node = (ObjectNode) filter.get(SELECTFILTER.orderby.exactToken());
+        ObjectNode node = (ObjectNode) filter.get(SELECTFILTER.ORDERBY.exactToken());
         if (node == null || node.isMissingNode()) {
-            node = filter.putObject(SELECTFILTER.orderby.exactToken());
+            node = filter.putObject(SELECTFILTER.ORDERBY.exactToken());
         }
         for (final String var : variableNames) {
             if (var == null || var.trim().isEmpty()) {
@@ -222,13 +222,13 @@ public class Select extends Request {
         if (filter == null) {
             filter = JsonHandler.createObjectNode();
         }
-        if (filterContent.has(SELECTFILTER.orderby.exactToken())) {
+        if (filterContent.has(SELECTFILTER.ORDERBY.exactToken())) {
             /*
              * $orderby : { key : +/-1, ... } $orderby: { key : +/-1, ... }
              * "sort" : [ { "key" : "asc/desc"}, ..., "_score" ]
              */
-            final JsonNode node = filterContent.get(SELECTFILTER.orderby.exactToken());
-            filter.putObject(SELECTFILTER.orderby.exactToken()).setAll((ObjectNode) node);
+            final JsonNode node = filterContent.get(SELECTFILTER.ORDERBY.exactToken());
+            filter.putObject(SELECTFILTER.ORDERBY.exactToken()).setAll((ObjectNode) node);
         }
         return this;
     }
@@ -269,9 +269,9 @@ public class Select extends Request {
         if (projection == null) {
             projection = JsonHandler.createObjectNode();
         }
-        ObjectNode node = (ObjectNode) projection.get(PROJECTION.fields.exactToken());
+        ObjectNode node = (ObjectNode) projection.get(PROJECTION.FIELDS.exactToken());
         if (node == null || node.isMissingNode()) {
-            node = projection.putObject(PROJECTION.fields.exactToken());
+            node = projection.putObject(PROJECTION.FIELDS.exactToken());
         }
         for (final String var : variableNames) {
             if (var == null || var.trim().isEmpty()) {
@@ -281,7 +281,7 @@ public class Select extends Request {
             node.put(var.trim(), 1);
         }
         if (node.size() == 0) {
-            projection.remove(PROJECTION.fields.exactToken());
+            projection.remove(PROJECTION.FIELDS.exactToken());
         }
         return this;
     }
@@ -297,9 +297,9 @@ public class Select extends Request {
         if (projection == null) {
             projection = JsonHandler.createObjectNode();
         }
-        ObjectNode node = (ObjectNode) projection.get(PROJECTION.fields.exactToken());
+        ObjectNode node = (ObjectNode) projection.get(PROJECTION.FIELDS.exactToken());
         if (node == null || node.isMissingNode()) {
-            node = projection.putObject(PROJECTION.fields.exactToken());
+            node = projection.putObject(PROJECTION.FIELDS.exactToken());
         }
         for (final String var : variableNames) {
             if (var == null || var.trim().isEmpty()) {
@@ -309,7 +309,7 @@ public class Select extends Request {
             node.put(var.trim(), 0);
         }
         if (node.size() == 0) {
-            projection.remove(PROJECTION.fields.exactToken());
+            projection.remove(PROJECTION.FIELDS.exactToken());
         }
         return this;
     }
@@ -323,11 +323,11 @@ public class Select extends Request {
         if (projection == null) {
             projection = JsonHandler.createObjectNode();
         }
-        if (projectionContent.has(PROJECTION.fields.exactToken())) {
+        if (projectionContent.has(PROJECTION.FIELDS.exactToken())) {
             ObjectNode node =
-                    (ObjectNode) projection.putObject(PROJECTION.fields.exactToken());
+                    (ObjectNode) projection.putObject(PROJECTION.FIELDS.exactToken());
             node.setAll(
-                    (ObjectNode) projectionContent.get(PROJECTION.fields.exactToken()));
+                    (ObjectNode) projectionContent.get(PROJECTION.FIELDS.exactToken()));
         }
         return this;
     }
@@ -360,7 +360,7 @@ public class Select extends Request {
         if (usage == null || usage.trim().isEmpty()) {
             return this;
         }
-        projection.put(PROJECTION.usage.exactToken(), usage.trim());
+        projection.put(PROJECTION.USAGE.exactToken(), usage.trim());
         return this;
     }
 
@@ -373,9 +373,9 @@ public class Select extends Request {
     public final Select setUsageProjection(final JsonNode projectionContent)
             throws InvalidParseOperationException {
         resetUsageProjection();
-        if (projectionContent.has(PROJECTION.usage.exactToken())) {
+        if (projectionContent.has(PROJECTION.USAGE.exactToken())) {
             setUsageProjection(
-                    projectionContent.get(PROJECTION.usage.exactToken()).asText());
+                    projectionContent.get(PROJECTION.USAGE.exactToken()).asText());
         }
         return this;
     }
@@ -400,9 +400,9 @@ public class Select extends Request {
     public final ObjectNode getFinalSelect() {
         final ObjectNode node = getFinal();
         if (projection != null && projection.size() > 0) {
-            node.set(GLOBAL.projection.exactToken(), projection);
+            node.set(GLOBAL.PROJECTION.exactToken(), projection);
         } else {
-            node.putObject(GLOBAL.projection.exactToken());
+            node.putObject(GLOBAL.PROJECTION.exactToken());
         }
         return node;
     }
@@ -413,7 +413,7 @@ public class Select extends Request {
      */
     public final boolean getAllProjection() {
         if (projection != null) {
-            ObjectNode node = (ObjectNode) projection.get(PROJECTION.fields.exactToken());
+            ObjectNode node = (ObjectNode) projection.get(PROJECTION.FIELDS.exactToken());
             if (node == null || node.isMissingNode()) {
                 return true;
             }

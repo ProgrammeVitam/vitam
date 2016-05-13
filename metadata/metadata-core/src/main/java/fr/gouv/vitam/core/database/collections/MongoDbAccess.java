@@ -29,7 +29,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.core.database.collections;
 
-import java.util.Collection;
+import static com.mongodb.client.model.Indexes.hashed;
+
+import java.util.Set;
 
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistries;
@@ -45,11 +47,9 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.MongoIterable;
 
-import static com.mongodb.client.model.Indexes.*;
-
+import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.FILTERARGS;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.FILTERARGS;
 
 /**
  * MongoDb Access base class
@@ -159,7 +159,7 @@ public class MongoDbAccess {
     /**
      * Close database access
      */
-    public final void close() {
+    public final void closeMongoDB() {
         mongoClient.close();
     }
 
@@ -167,7 +167,7 @@ public class MongoDbAccess {
      * To be called once only when closing the application
      */
     public final void closeFinal() {
-        mongoClient.close();
+    	closeMongoDB();
     }
 
     /**
@@ -175,7 +175,7 @@ public class MongoDbAccess {
      *
      * @param model
      */
-    public static void reset(final String model) {
+    public static void reset() {
         for (VitamCollections col : VitamCollections.values()) {
             if (col.collection != null) {
                 col.collection.drop();
@@ -277,7 +277,7 @@ public class MongoDbAccess {
      * @param collection
      * @return a new Result
      */
-    public static Result createOneResult(FILTERARGS type, Collection<String> collection) {
+    public static Result createOneResult(FILTERARGS type, Set<String> collection) {
         return new ResultDefault(type, collection);
     }
 

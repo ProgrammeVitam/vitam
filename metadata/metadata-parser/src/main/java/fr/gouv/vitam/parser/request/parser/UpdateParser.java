@@ -110,7 +110,7 @@ public class UpdateParser extends RequestParser {
         } else {
             // not as array but composite as { $roots: root, $query : query,
             // $filter : filter, $action : action }
-            actionParse(rootNode.get(GLOBAL.action.exactToken()));
+            actionParse(rootNode.get(GLOBAL.ACTION.exactToken()));
         }
 	}
 
@@ -156,7 +156,7 @@ public class UpdateParser extends RequestParser {
             throw new InvalidParseOperationException(
                     "Incorrect action $command: " + actionroot);
         }
-        final String command = actionroot.substring(1);
+        final String command = actionroot.substring(1).toUpperCase();
         UPDATEACTION action = null;
         try {
             action = UPDATEACTION.valueOf(command);
@@ -172,25 +172,25 @@ public class UpdateParser extends RequestParser {
         GlobalDatas.sanityValueCheck(command.toString());
         final UPDATEACTION action = getUpdateActionId(refCommand);
         switch (action) {
-            case add:
+            case ADD:
                 return add(command, updateAdapter);
-            case inc:
+            case INC:
                 return inc(command, updateAdapter);
-            case min:
+            case MIN:
                 return min(command, updateAdapter);
-            case max:
+            case MAX:
                 return max(command, updateAdapter);
-            case pop:
+            case POP:
                 return pop(command, updateAdapter);
-            case pull:
+            case PULL:
                 return pull(command, updateAdapter);
-            case push:
-                return pull(command, updateAdapter);
-            case rename:
+            case PUSH:
+                return push(command, updateAdapter);
+            case RENAME:
                 return rename(command, updateAdapter);
-            case set:
+            case SET:
                 return set(command, updateAdapter);
-            case unset:
+            case UNSET:
                 return unset(command, updateAdapter);
             default:
                 throw new InvalidParseOperationException(

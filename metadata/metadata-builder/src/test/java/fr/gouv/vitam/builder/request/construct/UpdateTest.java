@@ -37,7 +37,6 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import fr.gouv.vitam.builder.request.construct.Update;
 import fr.gouv.vitam.builder.request.construct.action.AddAction;
 import fr.gouv.vitam.builder.request.construct.action.IncAction;
 import fr.gouv.vitam.builder.request.construct.action.PopAction;
@@ -52,6 +51,8 @@ import fr.gouv.vitam.builder.request.construct.query.BooleanQuery;
 import fr.gouv.vitam.builder.request.construct.query.ExistsQuery;
 import fr.gouv.vitam.builder.request.construct.query.PathQuery;
 import fr.gouv.vitam.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 
 @SuppressWarnings("javadoc")
 public class UpdateTest {
@@ -64,32 +65,32 @@ public class UpdateTest {
         assertTrue(update.getFilter().size() == 1);
         update.setMult(false);
         assertTrue(update.getFilter().size() == 1);
-        assertTrue(update.filter.has(MULTIFILTER.mult.exactToken()));
+        assertTrue(update.filter.has(MULTIFILTER.MULT.exactToken()));
         update.resetFilter();
         assertTrue(update.getFilter().size() == 0);
     }
 
-    @Test
-    public void testAddActions() {
-        final Update update = new Update();
-        assertTrue(update.actions.isEmpty());
-        try {
-            update.addActions(new AddAction("varname", 1).add(true));
-            update.addActions(new IncAction("varname2", 2));
-            update.addActions(new PullAction("varname3", true).add("val"));
-            update.addActions(new PopAction("varname4"));
-            update.addActions(new PushAction("varname5", "val").add(1.0));
-            update.addActions(new RenameAction("varname6", "varname7"));
-            update.addActions(new SetAction("varname8", "val").add("varname9", 1));
-            update.addActions(new UnsetAction("varname10", "varname11").add("varname12"));
-            assertEquals(8, update.actions.size());
-            update.resetActions();
-            assertEquals(0, update.actions.size());
-        } catch (final InvalidCreateOperationException e) {
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
-    }
+	@Test
+	public void testAddActions() {
+		final Update update = new Update();
+		assertTrue(update.actions.isEmpty());
+		try {
+			update.addActions(new AddAction("varname", 1).add(true));
+			update.addActions(new IncAction("varname2", 2));
+			update.addActions(new PullAction("varname3", true).add("val"));
+			update.addActions(new PopAction("varname4"));
+			update.addActions(new PushAction("varname5", "val").add(1.0));
+			update.addActions(new RenameAction("varname6", "varname7"));
+			update.addActions(new SetAction("varname8", "val").add("varname9", 1));
+			update.addActions(new UnsetAction("varname10", "varname11").add("varname12"));
+			assertEquals(8, update.actions.size());
+			update.resetActions();
+			assertEquals(0, update.actions.size());
+		} catch (final InvalidCreateOperationException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
 
     @Test
     public void testAddRequests() {
@@ -97,10 +98,10 @@ public class UpdateTest {
         assertTrue(update.queries.isEmpty());
         try {
             update.addQueries(
-                    new BooleanQuery(QUERY.and).add(new ExistsQuery(QUERY.exists, "varA"))
+                    new BooleanQuery(QUERY.AND).add(new ExistsQuery(QUERY.EXISTS, "varA"))
                             .setRelativeDepthLimit(5));
             update.addQueries(new PathQuery("path1", "path2"),
-                    new ExistsQuery(QUERY.exists, "varB").setExactDepthLimit(10));
+                    new ExistsQuery(QUERY.EXISTS, "varB").setExactDepthLimit(10));
             update.addQueries(new PathQuery("path3"));
             assertEquals(4, update.queries.size());
             update.resetQueries();
@@ -111,21 +112,46 @@ public class UpdateTest {
         }
     }
 
-    @Test
-    public void testGetFinalUpdate() {
-        final Update update = new Update();
-        assertTrue(update.queries.isEmpty());
-        try {
-            update.addQueries(new PathQuery("path3"));
-            assertEquals(1, update.queries.size());
-            update.setMult(true);
-            update.addActions(new IncAction("mavar"));
-            final ObjectNode node = update.getFinalUpdate();
-            assertEquals(4, node.size());
-        } catch (final InvalidCreateOperationException e) {
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
-    }
+	@Test
+	public void testGetFinalUpdate() {
+		final Update update = new Update();
+		assertTrue(update.queries.isEmpty());
+		try {
+			update.addQueries(new PathQuery("path3"));
+			assertEquals(1, update.queries.size());
+			update.setMult(true);
+			update.addActions(new IncAction("mavar"));
+			final ObjectNode node = update.getFinalUpdate();
+			assertEquals(4, node.size());
+		} catch (final InvalidCreateOperationException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	@Test
+	public void testAllReset() throws InvalidCreateOperationException{
+		final Update update = new Update();
+		update.addActions(new AddAction("varname", 1));
+		assertEquals(1,update.actions.size());
+		update.reset();
+		assertEquals(0, update.actions.size());
+	}
+
+	@Test
+	public void testAllSet() throws InvalidParseOperationException, InvalidCreateOperationException{
+		final Update update = new Update();
+		update.setMult(JsonHandler.createObjectNode().put("$mult", "true"));
+		assertTrue(update.getFilter().size() == 1);
+		update.resetFilter();
+		assertTrue(update.getFilter().size() == 0);
+		update.setFilter(JsonHandler.createObjectNode().put("$mult", "true"));
+		assertTrue(update.getFilter().size() == 1);
+
+		String s= "UPDATEACTION: Requests: \n\tFilter: {\"$mult\":\"true\"}\n\tRoots: []\n\tActions: \n{\"$inc\":{\"var2\":2}}";
+		update.addActions(new IncAction("var2", 2));
+		assertEquals(s, update.toString());
+
+	}
 
 }

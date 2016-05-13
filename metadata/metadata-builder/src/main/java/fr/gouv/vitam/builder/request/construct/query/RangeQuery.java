@@ -74,26 +74,26 @@ public class RangeQuery extends Query {
             throw new InvalidCreateOperationException(e);
         }
         switch (from) {
-            case gt:
-            case gte:
+            case GT:
+            case GTE:
                 break;
             default:
                 throw new InvalidCreateOperationException(
                         "Query " + from + " is not a valid Compare Query");
         }
         switch (to) {
-            case lt:
-            case lte:
+            case LT:
+            case LTE:
                 break;
             default:
                 throw new InvalidCreateOperationException(
                         "Query " + to + " is not a valid Compare Query");
         }
         final ObjectNode sub = ((ObjectNode) currentObject)
-                .putObject(QUERY.range.exactToken()).putObject(variableName.trim());
+                .putObject(QUERY.RANGE.exactToken()).putObject(variableName.trim());
         sub.put(from.exactToken(), valueFrom);
         sub.put(to.exactToken(), valueTo);
-        currentQUERY = QUERY.range;
+        currentQUERY = QUERY.RANGE;
         setReady(true);
     }
 
@@ -123,26 +123,26 @@ public class RangeQuery extends Query {
             throw new InvalidCreateOperationException(e);
         }
         switch (from) {
-            case gt:
-            case gte:
+            case GT:
+            case GTE:
                 break;
             default:
                 throw new InvalidCreateOperationException(
                         "Query " + from + " is not a valid Compare Query");
         }
         switch (to) {
-            case lt:
-            case lte:
+            case LT:
+            case LTE:
                 break;
             default:
                 throw new InvalidCreateOperationException(
                         "Query " + to + " is not a valid Compare Query");
         }
         final ObjectNode sub = ((ObjectNode) currentObject)
-                .putObject(QUERY.range.exactToken()).putObject(variableName.trim());
+                .putObject(QUERY.RANGE.exactToken()).putObject(variableName.trim());
         sub.put(from.exactToken(), valueFrom);
         sub.put(to.exactToken(), valueTo);
-        currentQUERY = QUERY.range;
+        currentQUERY = QUERY.RANGE;
         setReady(true);
     }
 
@@ -174,26 +174,26 @@ public class RangeQuery extends Query {
             throw new InvalidCreateOperationException(e);
         }
         switch (from) {
-            case gt:
-            case gte:
+            case GT:
+            case GTE:
                 break;
             default:
                 throw new InvalidCreateOperationException(
                         "Query " + from + " is not a valid Compare Query");
         }
         switch (to) {
-            case lt:
-            case lte:
+            case LT:
+            case LTE:
                 break;
             default:
                 throw new InvalidCreateOperationException(
                         "Query " + to + " is not a valid Compare Query");
         }
         final ObjectNode sub = ((ObjectNode) currentObject)
-                .putObject(QUERY.range.exactToken()).putObject(variableName.trim());
+                .putObject(QUERY.RANGE.exactToken()).putObject(variableName.trim());
         sub.put(from.exactToken(), valueFrom);
         sub.put(to.exactToken(), valueTo);
-        currentQUERY = QUERY.range;
+        currentQUERY = QUERY.RANGE;
         setReady(true);
     }
 
@@ -223,26 +223,26 @@ public class RangeQuery extends Query {
             throw new InvalidCreateOperationException(e);
         }
         switch (from) {
-            case gt:
-            case gte:
+            case GT:
+            case GTE:
                 break;
             default:
                 throw new InvalidCreateOperationException(
                         "Query " + from + " is not a valid Compare Query");
         }
         switch (to) {
-            case lt:
-            case lte:
+            case LT:
+            case LTE:
                 break;
             default:
                 throw new InvalidCreateOperationException(
                         "Query " + to + " is not a valid Compare Query");
         }
         final ObjectNode sub = ((ObjectNode) currentObject)
-                .putObject(QUERY.range.exactToken()).putObject(variableName.trim());
+                .putObject(QUERY.RANGE.exactToken()).putObject(variableName.trim());
         sub.set(from.exactToken(), GlobalDatas.getDate(valueFrom));
         sub.set(to.exactToken(), GlobalDatas.getDate(valueTo));
-        currentQUERY = QUERY.range;
+        currentQUERY = QUERY.RANGE;
         setReady(true);
     }
 }

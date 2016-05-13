@@ -58,7 +58,7 @@ public class MltQuery extends fr.gouv.vitam.builder.request.construct.query.MltQ
         currentQUERY = req;
         final ObjectNode sub = ((ObjectNode) currentObject).putObject(req.exactToken());
         sub.setAll((ObjectNode) request);
-        ArrayNode array = (ArrayNode) sub.get(QUERYARGS.fields.exactToken());
+        ArrayNode array = (ArrayNode) sub.get(QUERYARGS.FIELDS.exactToken());
         adapter.setVarArray(array);
         stringVals = new HashSet<String>();
         for (JsonNode value : array) {

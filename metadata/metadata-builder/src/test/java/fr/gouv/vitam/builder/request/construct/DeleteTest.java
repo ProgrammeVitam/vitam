@@ -37,13 +37,14 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import fr.gouv.vitam.builder.request.construct.Delete;
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.MULTIFILTER;
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.QUERY;
 import fr.gouv.vitam.builder.request.construct.query.BooleanQuery;
 import fr.gouv.vitam.builder.request.construct.query.ExistsQuery;
 import fr.gouv.vitam.builder.request.construct.query.PathQuery;
 import fr.gouv.vitam.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 
 @SuppressWarnings("javadoc")
 public class DeleteTest {
@@ -56,7 +57,7 @@ public class DeleteTest {
         assertTrue(delete.getFilter().size() == 1);
         delete.setMult(false);
         assertTrue(delete.getFilter().size() == 1);
-        assertTrue(delete.filter.has(MULTIFILTER.mult.exactToken()));
+        assertTrue(delete.filter.has(MULTIFILTER.MULT.exactToken()));
         delete.resetFilter();
         assertTrue(delete.getFilter().size() == 0);
     }
@@ -67,10 +68,10 @@ public class DeleteTest {
         assertTrue(delete.queries.isEmpty());
         try {
             delete.addQueries(
-                    new BooleanQuery(QUERY.and).add(new ExistsQuery(QUERY.exists, "varA"))
+                    new BooleanQuery(QUERY.AND).add(new ExistsQuery(QUERY.EXISTS, "varA"))
                             .setRelativeDepthLimit(5));
             delete.addQueries(new PathQuery("path1", "path2"),
-                    new ExistsQuery(QUERY.exists, "varB").setExactDepthLimit(10));
+                    new ExistsQuery(QUERY.EXISTS, "varB").setExactDepthLimit(10));
             delete.addQueries(new PathQuery("path3"));
             assertEquals(4, delete.queries.size());
             delete.resetQueries();
@@ -96,5 +97,21 @@ public class DeleteTest {
             fail(e.getMessage());
         }
     }
-
+    
+    @Test
+    public void testAllSet() throws InvalidParseOperationException{
+    	final Delete delete = new Delete();
+    	delete.setFilter(JsonHandler.createObjectNode().put("$mult", "true"));
+    	assertEquals("{\"$mult\":\"true\"}", delete.filter.toString());
+    }
+    
+    @Test
+    public void testToString() throws InvalidCreateOperationException{
+    	final Delete delete = new Delete();
+    	delete.addQueries(new ExistsQuery(QUERY.EXISTS, "var1"));
+    	delete.setMult(true);
+    	delete.resetFilter();
+    	String s = "DELETE: Requests: \n{\"$exists\":\"var1\"}\n\tFilter: {}\n\tRoots: []";
+        assertEquals(s, delete.toString());
+    }
 }

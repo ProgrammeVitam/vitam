@@ -58,10 +58,10 @@ public class MatchQuery extends Query {
             throws InvalidCreateOperationException {
         super();
         switch (matchQuery) {
-            case match:
-            case match_phrase:
-            case match_phrase_prefix:
-            case prefix: {
+            case MATCH:
+            case MATCH_PHRASE:
+            case MATCH_PHRASE_PREFIX:
+            case PREFIX: {
                 createQueryVariableValue(matchQuery, variableName, value);
                 currentQUERY = matchQuery;
                 setReady(true);
@@ -83,11 +83,11 @@ public class MatchQuery extends Query {
     public final MatchQuery setMatchMaxExpansions(final int max)
             throws InvalidCreateOperationException {
         switch (currentQUERY) {
-            case match:
-            case match_phrase:
-            case match_phrase_prefix:
-            case prefix:
-                ((ObjectNode) currentObject).put(QUERYARGS.max_expansions.exactToken(),
+            case MATCH:
+            case MATCH_PHRASE:
+            case MATCH_PHRASE_PREFIX:
+            case PREFIX:
+                ((ObjectNode) currentObject).put(QUERYARGS.MAX_EXPANSIONS.exactToken(),
                         max);
                 break;
             default:

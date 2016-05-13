@@ -64,15 +64,15 @@ public class QueryTest {
     public void testRequestBoolean() {
         Query arg1, arg2, argIncomplete;
         try {
-            arg1 = new ExistsQuery(QUERY.exists, "var");
-            arg2 = new ExistsQuery(QUERY.isNull, "var");
-            argIncomplete = new BooleanQuery(QUERY.and);
+            arg1 = new ExistsQuery(QUERY.EXISTS, "var");
+            arg2 = new ExistsQuery(QUERY.ISNULL, "var");
+            argIncomplete = new BooleanQuery(QUERY.AND);
         } catch (final InvalidCreateOperationException e1) {
             e1.printStackTrace();
             fail(e1.getMessage());
             return;
         }
-        QUERY booleanRequest = QUERY.and;
+        QUERY booleanRequest = QUERY.AND;
         try {
             final BooleanQuery request = new BooleanQuery(booleanRequest);
             assertFalse(request.isReady());
@@ -83,7 +83,7 @@ public class QueryTest {
             e.printStackTrace();
             fail(e.getMessage());
         }
-        booleanRequest = QUERY.or;
+        booleanRequest = QUERY.OR;
         try {
             final BooleanQuery request = new BooleanQuery(booleanRequest);
             assertFalse(request.isReady());
@@ -97,7 +97,7 @@ public class QueryTest {
             e.printStackTrace();
             fail(e.getMessage());
         }
-        booleanRequest = QUERY.not;
+        booleanRequest = QUERY.NOT;
         try {
             final BooleanQuery request = new BooleanQuery(booleanRequest);
             assertFalse(request.isReady());
@@ -111,7 +111,7 @@ public class QueryTest {
             e.printStackTrace();
             fail(e.getMessage());
         }
-        booleanRequest = QUERY.not;
+        booleanRequest = QUERY.NOT;
         try {
             final BooleanQuery request = new BooleanQuery(booleanRequest);
             assertFalse(request.isReady());
@@ -127,7 +127,7 @@ public class QueryTest {
         }
 
         // Failed tests
-        booleanRequest = QUERY.and;
+        booleanRequest = QUERY.AND;
         BooleanQuery request = null;
         try {
             request = new BooleanQuery(booleanRequest);
@@ -147,43 +147,43 @@ public class QueryTest {
         }
         // last
         try {
-            request = new BooleanQuery(QUERY.eq);
+            request = new BooleanQuery(QUERY.EQ);
             fail("Should have raized an exception due to incorrect argument");
         } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
     }
 
-    @Test
-    public void testRequestPath() {
-        PathQuery request = null;
-        try {
-            request = new PathQuery("id1", "id2", "id3");
-            assertTrue(request.isReady());
-            assertEquals(3, request.getCurrentObject().size());
-            request.add("id4", "id5").add("id6");
-            assertEquals(6, request.getCurrentObject().size());
-        } catch (final InvalidCreateOperationException e) {
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
-        try {
-            request = new PathQuery("");
-            fail("Should have raized an exception due to incorrect argument");
-        } catch (final InvalidCreateOperationException e) {
-            assertNotNull(e);
-        }
-    }
+	@Test
+	public void testRequestPath() {
+		PathQuery request = null;
+		try {
+			request = new PathQuery("id1", "id2", "id3");
+			assertTrue(request.isReady());
+			assertEquals(3, request.getCurrentObject().size());
+			request.add("id4", "id5").add("id6");
+			assertEquals(6, request.getCurrentObject().size());
+		} catch (final InvalidCreateOperationException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+		try {
+			request = new PathQuery("");
+			fail("Should have raized an exception due to incorrect argument");
+		} catch (final InvalidCreateOperationException e) {
+			assertNotNull(e);
+		}
+	}
 
     @Test
     public void testRequestExists() {
         ExistsQuery request = null;
         try {
-            request = new ExistsQuery(QUERY.exists, "var");
+            request = new ExistsQuery(QUERY.EXISTS, "var");
             assertTrue(request.isReady());
-            request = new ExistsQuery(QUERY.missing, "var");
+            request = new ExistsQuery(QUERY.MISSING, "var");
             assertTrue(request.isReady());
-            request = new ExistsQuery(QUERY.isNull, "var");
+            request = new ExistsQuery(QUERY.ISNULL, "var");
             assertTrue(request.isReady());
         } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
@@ -191,13 +191,13 @@ public class QueryTest {
         }
         // last
         try {
-            request = new ExistsQuery(QUERY.and, "var");
+            request = new ExistsQuery(QUERY.AND, "var");
             fail("Should have raized an exception due to incorrect argument");
         } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
         try {
-            request = new ExistsQuery(QUERY.exists, "");
+            request = new ExistsQuery(QUERY.EXISTS, "");
             fail("Should have raized an exception due to incorrect argument");
         } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
@@ -208,19 +208,19 @@ public class QueryTest {
     public void testRequestCompareLong() {
         CompareQuery request = null;
         try {
-            request = new CompareQuery(QUERY.lt, "var", 1);
+            request = new CompareQuery(QUERY.LT, "var", 1);
             assertTrue(request.isReady());
-            request = new CompareQuery(QUERY.lte, "var", 1);
+            request = new CompareQuery(QUERY.LTE, "var", 1);
             assertTrue(request.isReady());
-            request = new CompareQuery(QUERY.gt, "var", 1);
+            request = new CompareQuery(QUERY.GT, "var", 1);
             assertTrue(request.isReady());
-            request = new CompareQuery(QUERY.gte, "var", 1);
+            request = new CompareQuery(QUERY.GTE, "var", 1);
             assertTrue(request.isReady());
-            request = new CompareQuery(QUERY.eq, "var", 1);
+            request = new CompareQuery(QUERY.EQ, "var", 1);
             assertTrue(request.isReady());
-            request = new CompareQuery(QUERY.ne, "var", 1);
+            request = new CompareQuery(QUERY.NE, "var", 1);
             assertTrue(request.isReady());
-            request = new CompareQuery(QUERY.size, "var", 1);
+            request = new CompareQuery(QUERY.SIZE, "var", 1);
             assertTrue(request.isReady());
         } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
@@ -228,13 +228,13 @@ public class QueryTest {
         }
         // last
         try {
-            request = new CompareQuery(QUERY.and, "var", 1);
+            request = new CompareQuery(QUERY.AND, "var", 1);
             fail("Should have raized an exception due to incorrect argument");
         } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
         try {
-            request = new CompareQuery(QUERY.lt, "", 1);
+            request = new CompareQuery(QUERY.LT, "", 1);
             fail("Should have raized an exception due to incorrect argument");
         } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
@@ -245,17 +245,17 @@ public class QueryTest {
     public void testRequestCompareDouble() {
         CompareQuery request = null;
         try {
-            request = new CompareQuery(QUERY.lt, "var", 1.0);
+            request = new CompareQuery(QUERY.LT, "var", 1.0);
             assertTrue(request.isReady());
-            request = new CompareQuery(QUERY.lte, "var", 1.0);
+            request = new CompareQuery(QUERY.LTE, "var", 1.0);
             assertTrue(request.isReady());
-            request = new CompareQuery(QUERY.gt, "var", 1.0);
+            request = new CompareQuery(QUERY.GT, "var", 1.0);
             assertTrue(request.isReady());
-            request = new CompareQuery(QUERY.gte, "var", 1.0);
+            request = new CompareQuery(QUERY.GTE, "var", 1.0);
             assertTrue(request.isReady());
-            request = new CompareQuery(QUERY.eq, "var", 1.0);
+            request = new CompareQuery(QUERY.EQ, "var", 1.0);
             assertTrue(request.isReady());
-            request = new CompareQuery(QUERY.ne, "var", 1.0);
+            request = new CompareQuery(QUERY.NE, "var", 1.0);
             assertTrue(request.isReady());
         } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
@@ -263,13 +263,13 @@ public class QueryTest {
         }
         // last
         try {
-            request = new CompareQuery(QUERY.size, "var", 1.0);
+            request = new CompareQuery(QUERY.SIZE, "var", 1.0);
             fail("Should have raized an exception due to incorrect argument");
         } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
         try {
-            request = new CompareQuery(QUERY.lt, "", 1.0);
+            request = new CompareQuery(QUERY.LT, "", 1.0);
             fail("Should have raized an exception due to incorrect argument");
         } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
@@ -280,17 +280,17 @@ public class QueryTest {
     public void testRequestCompareString() {
         CompareQuery request = null;
         try {
-            request = new CompareQuery(QUERY.lt, "var", "val");
+            request = new CompareQuery(QUERY.LT, "var", "val");
             assertTrue(request.isReady());
-            request = new CompareQuery(QUERY.lte, "var", "val");
+            request = new CompareQuery(QUERY.LTE, "var", "val");
             assertTrue(request.isReady());
-            request = new CompareQuery(QUERY.gt, "var", "val");
+            request = new CompareQuery(QUERY.GT, "var", "val");
             assertTrue(request.isReady());
-            request = new CompareQuery(QUERY.gte, "var", "val");
+            request = new CompareQuery(QUERY.GTE, "var", "val");
             assertTrue(request.isReady());
-            request = new CompareQuery(QUERY.eq, "var", "val");
+            request = new CompareQuery(QUERY.EQ, "var", "val");
             assertTrue(request.isReady());
-            request = new CompareQuery(QUERY.ne, "var", "val");
+            request = new CompareQuery(QUERY.NE, "var", "val");
             assertTrue(request.isReady());
         } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
@@ -298,13 +298,13 @@ public class QueryTest {
         }
         // last
         try {
-            request = new CompareQuery(QUERY.size, "var", "val");
+            request = new CompareQuery(QUERY.SIZE, "var", "val");
             fail("Should have raized an exception due to incorrect argument");
         } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
         try {
-            request = new CompareQuery(QUERY.lt, "", "val");
+            request = new CompareQuery(QUERY.LT, "", "val");
             fail("Should have raized an exception due to incorrect argument");
         } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
@@ -316,17 +316,17 @@ public class QueryTest {
         CompareQuery request = null;
         Date date = new Date(System.currentTimeMillis());
         try {
-            request = new CompareQuery(QUERY.lt, "var", date);
+            request = new CompareQuery(QUERY.LT, "var", date);
             assertTrue(request.isReady());
-            request = new CompareQuery(QUERY.lte, "var", date);
+            request = new CompareQuery(QUERY.LTE, "var", date);
             assertTrue(request.isReady());
-            request = new CompareQuery(QUERY.gt, "var", date);
+            request = new CompareQuery(QUERY.GT, "var", date);
             assertTrue(request.isReady());
-            request = new CompareQuery(QUERY.gte, "var", date);
+            request = new CompareQuery(QUERY.GTE, "var", date);
             assertTrue(request.isReady());
-            request = new CompareQuery(QUERY.eq, "var", date);
+            request = new CompareQuery(QUERY.EQ, "var", date);
             assertTrue(request.isReady());
-            request = new CompareQuery(QUERY.ne, "var", date);
+            request = new CompareQuery(QUERY.NE, "var", date);
             assertTrue(request.isReady());
         } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
@@ -334,13 +334,13 @@ public class QueryTest {
         }
         // last
         try {
-            request = new CompareQuery(QUERY.size, "var", date);
+            request = new CompareQuery(QUERY.SIZE, "var", date);
             fail("Should have raized an exception due to incorrect argument");
         } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
         try {
-            request = new CompareQuery(QUERY.lt, "", date);
+            request = new CompareQuery(QUERY.LT, "", date);
             fail("Should have raized an exception due to incorrect argument");
         } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
@@ -351,17 +351,17 @@ public class QueryTest {
     public void testRequestCompareBoolean() {
         CompareQuery request = null;
         try {
-            request = new CompareQuery(QUERY.lt, "var", true);
+            request = new CompareQuery(QUERY.LT, "var", true);
             assertTrue(request.isReady());
-            request = new CompareQuery(QUERY.lte, "var", true);
+            request = new CompareQuery(QUERY.LTE, "var", true);
             assertTrue(request.isReady());
-            request = new CompareQuery(QUERY.gt, "var", true);
+            request = new CompareQuery(QUERY.GT, "var", true);
             assertTrue(request.isReady());
-            request = new CompareQuery(QUERY.gte, "var", true);
+            request = new CompareQuery(QUERY.GTE, "var", true);
             assertTrue(request.isReady());
-            request = new CompareQuery(QUERY.eq, "var", true);
+            request = new CompareQuery(QUERY.EQ, "var", true);
             assertTrue(request.isReady());
-            request = new CompareQuery(QUERY.ne, "var", true);
+            request = new CompareQuery(QUERY.NE, "var", true);
             assertTrue(request.isReady());
         } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
@@ -369,13 +369,13 @@ public class QueryTest {
         }
         // last
         try {
-            request = new CompareQuery(QUERY.size, "var", true);
+            request = new CompareQuery(QUERY.SIZE, "var", true);
             fail("Should have raized an exception due to incorrect argument");
         } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
         try {
-            request = new CompareQuery(QUERY.lt, "", true);
+            request = new CompareQuery(QUERY.LT, "", true);
             fail("Should have raized an exception due to incorrect argument");
         } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
@@ -386,9 +386,9 @@ public class QueryTest {
     public void testRequestSearch() {
         SearchQuery request = null;
         try {
-            request = new SearchQuery(QUERY.regex, "var", "val");
+            request = new SearchQuery(QUERY.REGEX, "var", "val");
             assertTrue(request.isReady());
-            request = new SearchQuery(QUERY.search, "var", "val");
+            request = new SearchQuery(QUERY.SEARCH, "var", "val");
             assertTrue(request.isReady());
         } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
@@ -396,13 +396,13 @@ public class QueryTest {
         }
         // last
         try {
-            request = new SearchQuery(QUERY.size, "var", "val");
+            request = new SearchQuery(QUERY.SIZE, "var", "val");
             fail("Should have raized an exception due to incorrect argument");
         } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
         try {
-            request = new SearchQuery(QUERY.search, "", "val");
+            request = new SearchQuery(QUERY.SEARCH, "", "val");
             fail("Should have raized an exception due to incorrect argument");
         } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
@@ -413,39 +413,39 @@ public class QueryTest {
     public void testRequestMatch() {
         MatchQuery request = null;
         try {
-            request = new MatchQuery(QUERY.match, "var", "val");
+            request = new MatchQuery(QUERY.MATCH, "var", "val");
             assertTrue(request.isReady());
             request.setMatchMaxExpansions(10);
             assertTrue(request.getCurrentObject()
-                    .has(QUERYARGS.max_expansions.exactToken()));
-            request = new MatchQuery(QUERY.match_phrase, "var", "val");
+                    .has(QUERYARGS.MAX_EXPANSIONS.exactToken()));
+            request = new MatchQuery(QUERY.MATCH_PHRASE, "var", "val");
             assertTrue(request.isReady());
             request.setMatchMaxExpansions(10);
             assertTrue(request.getCurrentObject()
-                    .has(QUERYARGS.max_expansions.exactToken()));
-            request = new MatchQuery(QUERY.match_phrase_prefix, "var", "val");
+                    .has(QUERYARGS.MAX_EXPANSIONS.exactToken()));
+            request = new MatchQuery(QUERY.MATCH_PHRASE_PREFIX, "var", "val");
             assertTrue(request.isReady());
             request.setMatchMaxExpansions(10);
             assertTrue(request.getCurrentObject()
-                    .has(QUERYARGS.max_expansions.exactToken()));
-            request = new MatchQuery(QUERY.prefix, "var", "val");
+                    .has(QUERYARGS.MAX_EXPANSIONS.exactToken()));
+            request = new MatchQuery(QUERY.PREFIX, "var", "val");
             assertTrue(request.isReady());
             request.setMatchMaxExpansions(10);
             assertTrue(request.getCurrentObject()
-                    .has(QUERYARGS.max_expansions.exactToken()));
+                    .has(QUERYARGS.MAX_EXPANSIONS.exactToken()));
         } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
         // last
         try {
-            request = new MatchQuery(QUERY.size, "var", "val");
+            request = new MatchQuery(QUERY.SIZE, "var", "val");
             fail("Should have raized an exception due to incorrect argument");
         } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
         try {
-            request = new MatchQuery(QUERY.match, "", "val");
+            request = new MatchQuery(QUERY.MATCH, "", "val");
             fail("Should have raized an exception due to incorrect argument");
         } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
@@ -457,25 +457,25 @@ public class QueryTest {
         InQuery request = null;
         Date date = new Date(System.currentTimeMillis());
         try {
-            request = new InQuery(QUERY.in, "var", true);
+            request = new InQuery(QUERY.IN, "var", true);
             assertTrue(request.isReady());
-            request = new InQuery(QUERY.nin, "var", true);
+            request = new InQuery(QUERY.NIN, "var", true);
             assertTrue(request.isReady());
-            request = new InQuery(QUERY.in, "var", 1);
+            request = new InQuery(QUERY.IN, "var", 1);
             assertTrue(request.isReady());
-            request = new InQuery(QUERY.nin, "var", 1);
+            request = new InQuery(QUERY.NIN, "var", 1);
             assertTrue(request.isReady());
-            request = new InQuery(QUERY.in, "var", 1.0);
+            request = new InQuery(QUERY.IN, "var", 1.0);
             assertTrue(request.isReady());
-            request = new InQuery(QUERY.nin, "var", 1.0);
+            request = new InQuery(QUERY.NIN, "var", 1.0);
             assertTrue(request.isReady());
-            request = new InQuery(QUERY.in, "var", "val");
+            request = new InQuery(QUERY.IN, "var", "val");
             assertTrue(request.isReady());
-            request = new InQuery(QUERY.nin, "var", "val");
+            request = new InQuery(QUERY.NIN, "var", "val");
             assertTrue(request.isReady());
-            request = new InQuery(QUERY.in, "var", date);
+            request = new InQuery(QUERY.IN, "var", date);
             assertTrue(request.isReady());
-            request = new InQuery(QUERY.nin, "var", date);
+            request = new InQuery(QUERY.NIN, "var", date);
             assertTrue(request.isReady());
         } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
@@ -483,37 +483,37 @@ public class QueryTest {
         }
         // last
         try {
-            request = new InQuery(QUERY.size, "var", "val");
+            request = new InQuery(QUERY.SIZE, "var", "val");
             fail("Should have raized an exception due to incorrect argument");
         } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
         try {
-            request = new InQuery(QUERY.in, "", true);
+            request = new InQuery(QUERY.IN, "", true);
             fail("Should have raized an exception due to incorrect argument");
         } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
         try {
-            request = new InQuery(QUERY.in, "", 1);
+            request = new InQuery(QUERY.IN, "", 1);
             fail("Should have raized an exception due to incorrect argument");
         } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
         try {
-            request = new InQuery(QUERY.in, "", 1.0);
+            request = new InQuery(QUERY.IN, "", 1.0);
             fail("Should have raized an exception due to incorrect argument");
         } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
         try {
-            request = new InQuery(QUERY.in, "", "val");
+            request = new InQuery(QUERY.IN, "", "val");
             fail("Should have raized an exception due to incorrect argument");
         } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
         try {
-            request = new InQuery(QUERY.in, "", date);
+            request = new InQuery(QUERY.IN, "", date);
             fail("Should have raized an exception due to incorrect argument");
         } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
@@ -524,9 +524,9 @@ public class QueryTest {
     public void testRequestMlt() {
         MltQuery request = null;
         try {
-            request = new MltQuery(QUERY.mlt, "var", "val");
+            request = new MltQuery(QUERY.MLT, "var", "val");
             assertTrue(request.isReady());
-            request = new MltQuery(QUERY.flt, "var", "val");
+            request = new MltQuery(QUERY.FLT, "var", "val");
             assertTrue(request.isReady());
         } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
@@ -534,13 +534,13 @@ public class QueryTest {
         }
         // last
         try {
-            request = new MltQuery(QUERY.size, "var", "val");
+            request = new MltQuery(QUERY.SIZE, "var", "val");
             fail("Should have raized an exception due to incorrect argument");
         } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
         try {
-            request = new MltQuery(QUERY.mlt, "", "val");
+            request = new MltQuery(QUERY.MLT, "", "val");
             fail("Should have raized an exception due to incorrect argument");
         } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
@@ -550,10 +550,10 @@ public class QueryTest {
     @Test
     public void testRequestMltMultipleVar() {
         try {
-            MltQuery request = new MltQuery(QUERY.mlt, "value", "var1", "var2");
+            MltQuery request = new MltQuery(QUERY.MLT, "value", "var1", "var2");
             assertTrue(request.isReady());
             assertEquals(2, request.getCurrentObject().size());
-            request = new MltQuery(QUERY.flt, "value", "var1", "var2");
+            request = new MltQuery(QUERY.FLT, "value", "var1", "var2");
             assertTrue(request.isReady());
             assertEquals(2, request.getCurrentObject().size());
             request.add("var1", "var2").add("var3");
@@ -566,14 +566,14 @@ public class QueryTest {
         // last
         try {
             @SuppressWarnings("unused")
-            final MltQuery request = new MltQuery(QUERY.and, "var", "val1", "val2");
+            final MltQuery request = new MltQuery(QUERY.AND, "var", "val1", "val2");
             fail("Should have raized an exception due to incorrect argument");
         } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
         try {
             @SuppressWarnings("unused")
-            final MltQuery request = new MltQuery(QUERY.mlt, "", "val1", "val2");
+            final MltQuery request = new MltQuery(QUERY.MLT, "", "val1", "val2");
             fail("Should have raized an exception due to incorrect argument");
         } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
@@ -586,10 +586,10 @@ public class QueryTest {
         Date date2 = new Date(System.currentTimeMillis() + 1000);
         try {
             InQuery request = null;
-            request = new InQuery(QUERY.in, "var", "val1", "val2");
+            request = new InQuery(QUERY.IN, "var", "val1", "val2");
             assertTrue(request.isReady());
             assertEquals(2, request.getCurrentObject().size());
-            request = new InQuery(QUERY.nin, "var", "val1", "val2");
+            request = new InQuery(QUERY.NIN, "var", "val1", "val2");
             assertTrue(request.isReady());
             assertEquals(2, request.getCurrentObject().size());
             request.add("val1", "val2").add("val3");
@@ -598,10 +598,10 @@ public class QueryTest {
             request.add(1).add(1.0).add(date2);
             assertTrue(request.isReady());
             assertEquals(6, request.getCurrentObject().size());
-            request = new InQuery(QUERY.in, "var", 1, 2);
+            request = new InQuery(QUERY.IN, "var", 1, 2);
             assertTrue(request.isReady());
             assertEquals(2, request.getCurrentObject().size());
-            request = new InQuery(QUERY.nin, "var", 1, 2);
+            request = new InQuery(QUERY.NIN, "var", 1, 2);
             assertTrue(request.isReady());
             assertEquals(2, request.getCurrentObject().size());
             request.add("val1", "val2").add("val3");
@@ -610,10 +610,10 @@ public class QueryTest {
             request.add(1).add(1.0).add(date2);
             assertTrue(request.isReady());
             assertEquals(7, request.getCurrentObject().size());
-            request = new InQuery(QUERY.in, "var", 1.0, 2.0);
+            request = new InQuery(QUERY.IN, "var", 1.0, 2.0);
             assertTrue(request.isReady());
             assertEquals(2, request.getCurrentObject().size());
-            request = new InQuery(QUERY.nin, "var", 1.0, 2.0);
+            request = new InQuery(QUERY.NIN, "var", 1.0, 2.0);
             assertTrue(request.isReady());
             assertEquals(2, request.getCurrentObject().size());
             request.add("val1", "val2").add("val3").add(date2).add(1);
@@ -622,10 +622,10 @@ public class QueryTest {
             request.add(1).add(1.0).add(date2).add("val2");
             assertTrue(request.isReady());
             assertEquals(7, request.getCurrentObject().size());
-            request = new InQuery(QUERY.in, "var", true, false);
+            request = new InQuery(QUERY.IN, "var", true, false);
             assertTrue(request.isReady());
             assertEquals(2, request.getCurrentObject().size());
-            request = new InQuery(QUERY.nin, "var", true, false);
+            request = new InQuery(QUERY.NIN, "var", true, false);
             assertTrue(request.isReady());
             assertEquals(2, request.getCurrentObject().size());
             request.add("val1", "val2").add("val3").add(date2);
@@ -634,10 +634,10 @@ public class QueryTest {
             request.add(1).add(1.0);
             assertTrue(request.isReady());
             assertEquals(8, request.getCurrentObject().size());
-            request = new InQuery(QUERY.in, "var", date1, date2);
+            request = new InQuery(QUERY.IN, "var", date1, date2);
             assertTrue(request.isReady());
             assertEquals(2, request.getCurrentObject().size());
-            request = new InQuery(QUERY.nin, "var", date1, date2);
+            request = new InQuery(QUERY.NIN, "var", date1, date2);
             assertTrue(request.isReady());
             assertEquals(2, request.getCurrentObject().size());
             request.add("val1", "val2").add("val3").add(false);
@@ -653,69 +653,69 @@ public class QueryTest {
         // last
         try {
             @SuppressWarnings("unused")
-            final InQuery request = new InQuery(QUERY.and, "var", "val1", "val2");
+            final InQuery request = new InQuery(QUERY.AND, "var", "val1", "val2");
             fail("Should have raized an exception due to incorrect argument");
         } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
     }
 
-    @Test
-    public void testRequestTerm() {
-        final Map<String, Object> map = new HashMap<String, Object>();
-        Date date1 = new Date(System.currentTimeMillis());
-        map.put("var1", "val1");
-        map.put("var2", "val2");
-        map.put("var3", date1);
-        map.put("var4", 1);
-        map.put("var5", 2.0);
-        map.put("var6", true);
-        TermQuery request = null;
-        try {
-            request = new TermQuery("var", "val");
-            assertTrue(request.isReady());
-            request = new TermQuery(map);
-            assertEquals(6, request.getCurrentObject().size());
-            assertTrue(request.isReady());
-            request.add("var2", "val2bis");
-            assertTrue(request.isReady());
-            assertEquals(6, request.getCurrentObject().size());
-            request.add("var3", "val2");
-            assertTrue(request.isReady());
-            assertEquals(6, request.getCurrentObject().size());
-            request.add("var7", "val7");
-            assertTrue(request.isReady());
-            assertEquals(7, request.getCurrentObject().size());
-        } catch (final InvalidCreateOperationException e) {
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
-        try {
-            request = new TermQuery("", "val1");
-            fail("Should have raized an exception due to incorrect argument");
-        } catch (final InvalidCreateOperationException e) {
-            assertNotNull(e);
-        }
-    }
+	@Test
+	public void testRequestTerm() {
+		final Map<String, Object> map = new HashMap<String, Object>();
+		Date date1 = new Date(System.currentTimeMillis());
+		map.put("var1", "val1");
+		map.put("var2", "val2");
+		map.put("var3", date1);
+		map.put("var4", 1);
+		map.put("var5", 2.0);
+		map.put("var6", true);
+		TermQuery request = null;
+		try {
+			request = new TermQuery("var", "val");
+			assertTrue(request.isReady());
+			request = new TermQuery(map);
+			assertEquals(6, request.getCurrentObject().size());
+			assertTrue(request.isReady());
+			request.add("var2", "val2bis");
+			assertTrue(request.isReady());
+			assertEquals(6, request.getCurrentObject().size());
+			request.add("var3", "val2");
+			assertTrue(request.isReady());
+			assertEquals(6, request.getCurrentObject().size());
+			request.add("var7", "val7");
+			assertTrue(request.isReady());
+			assertEquals(7, request.getCurrentObject().size());
+		} catch (final InvalidCreateOperationException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+		try {
+			request = new TermQuery("", "val1");
+			fail("Should have raized an exception due to incorrect argument");
+		} catch (final InvalidCreateOperationException e) {
+			assertNotNull(e);
+		}
+	}
 
-    @Test
-    public void testRequestWildcard() {
-        WildcardQuery request = null;
-        try {
-            request = new WildcardQuery("var", "val");
-            assertTrue(request.isReady());
-            assertEquals(1, request.getCurrentObject().size());
-        } catch (final InvalidCreateOperationException e) {
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
-        try {
-            request = new WildcardQuery("", "val1");
-            fail("Should have raized an exception due to incorrect argument");
-        } catch (final InvalidCreateOperationException e) {
-            assertNotNull(e);
-        }
-    }
+	@Test
+	public void testRequestWildcard() {
+		WildcardQuery request = null;
+		try {
+			request = new WildcardQuery("var", "val");
+			assertTrue(request.isReady());
+			assertEquals(1, request.getCurrentObject().size());
+		} catch (final InvalidCreateOperationException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+		try {
+			request = new WildcardQuery("", "val1");
+			fail("Should have raized an exception due to incorrect argument");
+		} catch (final InvalidCreateOperationException e) {
+			assertNotNull(e);
+		}
+	}
 
     @Test
     public void testRequestRange() {
@@ -723,21 +723,21 @@ public class QueryTest {
         Date date1 = new Date(System.currentTimeMillis());
         Date date2 = new Date(System.currentTimeMillis() + 100);
         try {
-            request = new RangeQuery("var", QUERY.gt, 1, QUERY.lt, 2);
+            request = new RangeQuery("var", QUERY.GT, 1, QUERY.LT, 2);
             assertTrue(request.isReady());
-            request = new RangeQuery("var", QUERY.gte, 1, QUERY.lte, 2);
+            request = new RangeQuery("var", QUERY.GTE, 1, QUERY.LTE, 2);
             assertTrue(request.isReady());
-            request = new RangeQuery("var", QUERY.gt, 1.0, QUERY.lt, 2.0);
+            request = new RangeQuery("var", QUERY.GT, 1.0, QUERY.LT, 2.0);
             assertTrue(request.isReady());
-            request = new RangeQuery("var", QUERY.gte, 1.0, QUERY.lte, 2.0);
+            request = new RangeQuery("var", QUERY.GTE, 1.0, QUERY.LTE, 2.0);
             assertTrue(request.isReady());
-            request = new RangeQuery("var", QUERY.gt, "1", QUERY.lt, "2");
+            request = new RangeQuery("var", QUERY.GT, "1", QUERY.LT, "2");
             assertTrue(request.isReady());
-            request = new RangeQuery("var", QUERY.gte, "1", QUERY.lte, "2");
+            request = new RangeQuery("var", QUERY.GTE, "1", QUERY.LTE, "2");
             assertTrue(request.isReady());
-            request = new RangeQuery("var", QUERY.gt, date1, QUERY.lt, date2);
+            request = new RangeQuery("var", QUERY.GT, date1, QUERY.LT, date2);
             assertTrue(request.isReady());
-            request = new RangeQuery("var", QUERY.gte, date1, QUERY.lte, date2);
+            request = new RangeQuery("var", QUERY.GTE, date1, QUERY.LTE, date2);
             assertTrue(request.isReady());
         } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
@@ -745,31 +745,31 @@ public class QueryTest {
         }
         // last
         try {
-            request = new RangeQuery("var", QUERY.not, 1, QUERY.lt, 2);
+            request = new RangeQuery("var", QUERY.NOT, 1, QUERY.LT, 2);
             fail("Should have raized an exception due to incorrect argument");
         } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
         try {
-            request = new RangeQuery("var", QUERY.lt, 1, QUERY.lt, 2);
+            request = new RangeQuery("var", QUERY.LT, 1, QUERY.LT, 2);
             fail("Should have raized an exception due to incorrect argument");
         } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
         try {
-            request = new RangeQuery("var", QUERY.lt, 1, QUERY.gt, 2);
+            request = new RangeQuery("var", QUERY.LT, 1, QUERY.GT, 2);
             fail("Should have raized an exception due to incorrect argument");
         } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
         try {
-            request = new RangeQuery("var", QUERY.gt, 1, QUERY.not, 2);
+            request = new RangeQuery("var", QUERY.GT, 1, QUERY.NOT, 2);
             fail("Should have raized an exception due to incorrect argument");
         } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
         }
         try {
-            request = new RangeQuery("", QUERY.gt, 1, QUERY.lt, 2);
+            request = new RangeQuery("", QUERY.GT, 1, QUERY.LT, 2);
             fail("Should have raized an exception due to incorrect argument");
         } catch (final InvalidCreateOperationException e) {
             assertNotNull(e);
@@ -783,33 +783,300 @@ public class QueryTest {
             request = new TermQuery("var", "val");
             assertEquals(1, request.getCurrentQuery().size());
             assertTrue(request.isReady());
-            assertFalse(request.getCurrentQuery().has(QUERYARGS.exactdepth.exactToken()));
-            assertFalse(request.getCurrentQuery().has(QUERYARGS.depth.exactToken()));
+            assertFalse(request.getCurrentQuery().has(QUERYARGS.EXACTDEPTH.exactToken()));
+            assertFalse(request.getCurrentQuery().has(QUERYARGS.DEPTH.exactToken()));
             request.setExactDepthLimit(1);
-            assertTrue(request.getCurrentQuery().has(QUERYARGS.exactdepth.exactToken()));
-            assertFalse(request.getCurrentQuery().has(QUERYARGS.depth.exactToken()));
+            assertTrue(request.getCurrentQuery().has(QUERYARGS.EXACTDEPTH.exactToken()));
+            assertFalse(request.getCurrentQuery().has(QUERYARGS.DEPTH.exactToken()));
             request.setExactDepthLimit(0);
-            assertFalse(request.getCurrentQuery().has(QUERYARGS.exactdepth.exactToken()));
-            assertFalse(request.getCurrentQuery().has(QUERYARGS.depth.exactToken()));
+            assertFalse(request.getCurrentQuery().has(QUERYARGS.EXACTDEPTH.exactToken()));
+            assertFalse(request.getCurrentQuery().has(QUERYARGS.DEPTH.exactToken()));
             request.setExactDepthLimit(1);
-            assertTrue(request.getCurrentQuery().has(QUERYARGS.exactdepth.exactToken()));
-            assertFalse(request.getCurrentQuery().has(QUERYARGS.depth.exactToken()));
+            assertTrue(request.getCurrentQuery().has(QUERYARGS.EXACTDEPTH.exactToken()));
+            assertFalse(request.getCurrentQuery().has(QUERYARGS.DEPTH.exactToken()));
             request.setExactDepthLimit(0);
-            assertFalse(request.getCurrentQuery().has(QUERYARGS.exactdepth.exactToken()));
-            assertFalse(request.getCurrentQuery().has(QUERYARGS.depth.exactToken()));
+            assertFalse(request.getCurrentQuery().has(QUERYARGS.EXACTDEPTH.exactToken()));
+            assertFalse(request.getCurrentQuery().has(QUERYARGS.DEPTH.exactToken()));
             request.setRelativeDepthLimit(0);
-            assertFalse(request.getCurrentQuery().has(QUERYARGS.exactdepth.exactToken()));
-            assertTrue(request.getCurrentQuery().has(QUERYARGS.depth.exactToken()));
+            assertFalse(request.getCurrentQuery().has(QUERYARGS.EXACTDEPTH.exactToken()));
+            assertTrue(request.getCurrentQuery().has(QUERYARGS.DEPTH.exactToken()));
             request.setRelativeDepthLimit(1);
-            assertFalse(request.getCurrentQuery().has(QUERYARGS.exactdepth.exactToken()));
-            assertTrue(request.getCurrentQuery().has(QUERYARGS.depth.exactToken()));
+            assertFalse(request.getCurrentQuery().has(QUERYARGS.EXACTDEPTH.exactToken()));
+            assertTrue(request.getCurrentQuery().has(QUERYARGS.DEPTH.exactToken()));
             request.setRelativeDepthLimit(-1);
-            assertFalse(request.getCurrentQuery().has(QUERYARGS.exactdepth.exactToken()));
-            assertTrue(request.getCurrentQuery().has(QUERYARGS.depth.exactToken()));
+            assertFalse(request.getCurrentQuery().has(QUERYARGS.EXACTDEPTH.exactToken()));
+            assertTrue(request.getCurrentQuery().has(QUERYARGS.DEPTH.exactToken()));
         } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
     }
-
+    
+    protected String getStringWithLength() {
+    	//FIXME  Define the size using GlobalDatasXXX
+        char[] array = new char[10000001];
+        int pos = 0;
+        while (pos < 10000001) {
+            array[pos] = 'a';
+            pos++;
+        }
+        return new String(array);
+    }
+    
+    
+    @Test
+    public void createTermQuery() throws InvalidCreateOperationException {
+    	TermQuery request = new TermQuery("var", "val");
+        assertTrue(request.isReady());
+        TermQuery request2 = new TermQuery("var", new Date(System.currentTimeMillis()));
+        assertTrue(request2.isReady());
+        TermQuery request3 = new TermQuery("var", 1);
+        assertTrue(request3.isReady());
+        TermQuery request4 = new TermQuery("var", 2.0);
+        assertTrue(request4.isReady());
+        TermQuery request5 = new TermQuery("var", true);
+        assertTrue(request5.isReady());
+        
+        assertEquals(1, request.getCurrentObject().size());
+        request.add("var2", 2);
+        assertEquals(2, request.getCurrentObject().size());
+        request.add("var3", 3.0);
+        assertEquals(3, request.getCurrentObject().size());
+        request.add("var4", false);
+        assertEquals(4, request.getCurrentObject().size());
+        request.add("var5", new Date());
+        assertEquals(5, request.getCurrentObject().size());
+        request.add("var1", "var1");
+        assertEquals(6, request.getCurrentObject().size());
+      
+    }
+    
+    @Test(expected=InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenAddStringWithEmptyVaribaleName()
+    		throws InvalidCreateOperationException {
+    	TermQuery request = new TermQuery("var", 1);
+        request.add("", "var");
+    }
+    
+    @Test(expected=InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenAddIntWithEmptyVaribaleName()
+    		throws InvalidCreateOperationException {
+    	TermQuery request = new TermQuery("var", 1);
+        request.add("", 3);
+    }
+    
+    @Test(expected=InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenAddDoubleWithEmptyVaribaleName()
+    		throws InvalidCreateOperationException {
+    	TermQuery request = new TermQuery("var", 1);
+        request.add("", 3.0);
+    }
+    
+    @Test(expected=InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenAddBooleanWithEmptyVaribaleName()
+    		throws InvalidCreateOperationException {
+    	TermQuery request = new TermQuery("var", 1);
+        request.add("", true);
+    }
+    
+    @Test(expected=InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenAddDateWithEmptyVaribaleName()
+    		throws InvalidCreateOperationException {
+    	TermQuery request = new TermQuery("var", 1);
+        request.add("", new Date(System.currentTimeMillis()));
+    }
+    
+    @Test(expected=InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenAddStringWithTooLongVaribaleName()
+    		throws InvalidCreateOperationException {
+    	TermQuery request = new TermQuery("var", 1);
+    	String s = getStringWithLength();
+        request.add(s, "var");
+    }
+    
+    @Test(expected=InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenAddIntWithTooLongVaribaleName()
+    		throws InvalidCreateOperationException {
+    	TermQuery request = new TermQuery("var", 1);
+    	String s = getStringWithLength();
+        request.add(s, 3);
+    }
+    
+    @Test(expected=InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenAddDoubleWithTooLongVaribaleName()
+    		throws InvalidCreateOperationException {
+    	TermQuery request = new TermQuery("var", 1);
+    	String s = getStringWithLength();
+        request.add(s, 3.0);
+    }
+    
+    @Test(expected=InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenAddBooleanWithTooLongVaribaleName()
+    		throws InvalidCreateOperationException {
+    	TermQuery request = new TermQuery("var", 1);
+    	String s = getStringWithLength();
+        request.add(s, true);
+    }
+    
+    @Test(expected=InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenAddDateWithTooLongVaribaleName()
+    		throws InvalidCreateOperationException {
+        TermQuery request = new TermQuery("var", 1);
+        String s = getStringWithLength();
+        request.add(s, new Date(System.currentTimeMillis()));
+    }
+    
+    @Test (expected=InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenAddRangeIntWithEmptyVariableName() 
+    		throws InvalidCreateOperationException{
+        new RangeQuery("", QUERY.GT, 1, QUERY.LT, 2);
+    }
+    
+    @Test (expected=InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenAddRangeDoubleWithEmptyVariableName() 
+    		throws InvalidCreateOperationException{
+        new RangeQuery("", QUERY.GT, 1.0, QUERY.LT, 2.0);
+    }
+    
+    @Test (expected=InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenAddRangeStringWithEmptyVariableName() 
+    		throws InvalidCreateOperationException{
+        new RangeQuery("", QUERY.GT, "1", QUERY.LT, "2");
+    }
+    
+    @Test (expected=InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenAddRangeDateWithEmptyVariableName() 
+    		throws InvalidCreateOperationException{
+    	Date date1 = new Date(System.currentTimeMillis());
+        Date date2 = new Date(System.currentTimeMillis() + 100);
+        new RangeQuery("", QUERY.GT, date1, QUERY.LT, date2);
+    }
+    
+    @Test (expected=InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenAddRangeIntWithWrongFromWord() 
+    		throws InvalidCreateOperationException{
+        new RangeQuery("var", QUERY.NOT, 1, QUERY.LT, 2);
+    }
+    
+    @Test (expected=InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenAddRangeDoubleWithWrongFromWord() 
+    		throws InvalidCreateOperationException{
+        new RangeQuery("var", QUERY.NOT, 1.0, QUERY.LT, 2.0);
+    }
+    
+    @Test (expected=InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenAddRangeStringWithWrongFromWord() 
+    		throws InvalidCreateOperationException{
+        new RangeQuery("var", QUERY.NOT, "1", QUERY.LT, "2");
+    }
+    
+    @Test (expected=InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenAddRangeDateWithWrongFromWord() 
+    		throws InvalidCreateOperationException{
+    	Date date1 = new Date(System.currentTimeMillis());
+        Date date2 = new Date(System.currentTimeMillis() + 100);
+        new RangeQuery("var", QUERY.NOT, date1, QUERY.LT, date2);
+    }
+    
+    @Test (expected=InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenAddRangeIntWithWrongToWord() 
+    		throws InvalidCreateOperationException{
+        new RangeQuery("var", QUERY.GT, 1, QUERY.NOT, 2);
+    }
+    
+    @Test (expected=InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenAddRangeDoubleWithWrongToWord() 
+    		throws InvalidCreateOperationException{
+        new RangeQuery("var", QUERY.GT, 1.0, QUERY.NOT, 2.0);
+    }
+    
+    @Test (expected=InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenAddRangeStringWithWrongToWord() 
+    		throws InvalidCreateOperationException{
+        new RangeQuery("var", QUERY.GT, "1", QUERY.NOT, "2");
+    }
+    
+    @Test (expected=InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenAddRangeDateWithToFromWord() 
+    		throws InvalidCreateOperationException{
+    	Date date1 = new Date(System.currentTimeMillis());
+        Date date2 = new Date(System.currentTimeMillis() + 100);
+        new RangeQuery("var", QUERY.GT, date1, QUERY.NOT, date2);
+    }
+    
+    @Test
+    public void testClean() throws InvalidCreateOperationException{
+    	BooleanQuery bq = new BooleanQuery(QUERY.AND);
+    	MltQuery mq = new MltQuery(QUERY.MLT, "var", "val");
+    	InQuery iq = new InQuery(QUERY.IN, "var", true);
+    	bq.clean();
+    	assertEquals(0, bq.getCurrentObject().size());
+    	mq.clean();
+    	assertEquals(0, mq.getCurrentObject().size());
+    	iq.clean();
+    	assertEquals(0, iq.getCurrentObject().size());
+    }
+    
+    @Test(expected=InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenInRequestAddBooleanWithTooLongVariableName() 
+    		throws InvalidCreateOperationException{
+        new InQuery(QUERY.IN, getStringWithLength(), true);
+    }
+    
+    @Test(expected=InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenInRequestAddIntWithTooLongVariableName() 
+    		throws InvalidCreateOperationException{
+        new InQuery(QUERY.IN, getStringWithLength(), 1);
+    }
+    
+    @Test(expected=InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenInRequestAddDoubleWithTooLongVariableName() 
+    		throws InvalidCreateOperationException{
+        new InQuery(QUERY.IN, getStringWithLength(), 1.0);
+    }
+    
+    @Test(expected=InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenInRequestAddDateWithTooLongVariableName() 
+    		throws InvalidCreateOperationException{
+    	Date date = new Date(System.currentTimeMillis());
+    	new InQuery(QUERY.IN, getStringWithLength(), date);
+    }
+    
+    @Test(expected=InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenInRequestAddBooleanWithWrongQueryWord() 
+    		throws InvalidCreateOperationException{
+        new InQuery(QUERY.GT, getStringWithLength(), true);
+    }
+    
+    @Test(expected=InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenInRequestAddIntWithWrongQueryWord() 
+    		throws InvalidCreateOperationException{
+        new InQuery(QUERY.GT, getStringWithLength(), 1);
+    }
+    
+    @Test(expected=InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenInRequestAddDoubleWithWrongQueryWord() 
+    		throws InvalidCreateOperationException{
+        new InQuery(QUERY.GT, getStringWithLength(), 1.0);
+    }
+    
+    @Test(expected=InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenInRequestAddDateWithWrongQueryWord() 
+    		throws InvalidCreateOperationException{
+    	Date date = new Date(System.currentTimeMillis());
+    	String s = getStringWithLength();
+    	new InQuery(QUERY.GT, s, date);
+    }
+    
+    @Test(expected=InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenRequestMltWithTooLongValue() throws InvalidCreateOperationException {
+        String s = getStringWithLength();
+        new MltQuery(QUERY.MLT, s, "var");
+    }
+    
+    @Test(expected=InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenRequestMltWithTooLongVariableName() throws InvalidCreateOperationException {
+        String s = getStringWithLength();
+        new MltQuery(QUERY.MLT, "var", s);
+    }
 }

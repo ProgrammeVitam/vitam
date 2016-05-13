@@ -87,17 +87,17 @@ public class RequestParserHelper {
 	 * @throws InvalidParseOperationException 
 	 */
 	public static RequestParser getParser(JsonNode jsonRequest, VarNameAdapter varNameAdapter) throws InvalidParseOperationException {
-		if (jsonRequest.get(GLOBAL.projection.exactToken()) != null) {
+		if (jsonRequest.get(GLOBAL.PROJECTION.exactToken()) != null) {
 			LOGGER.debug("SELECT");
 			SelectParser selectParser = new SelectParser(varNameAdapter);
 			selectParser.parse(jsonRequest);
 			return selectParser;
-		} else if (jsonRequest.get(GLOBAL.data.exactToken()) != null) {
+		} else if (jsonRequest.get(GLOBAL.DATA.exactToken()) != null) {
 			LOGGER.debug("INSERT");
 			InsertParser insertParser = new InsertParser(varNameAdapter);
 			insertParser.parse(jsonRequest);
 			return insertParser;
-		} else if (jsonRequest.get(GLOBAL.action.exactToken()) != null) {
+		} else if (jsonRequest.get(GLOBAL.ACTION.exactToken()) != null) {
 			LOGGER.debug("UPDATE");
 			UpdateParser updateParser = new UpdateParser(varNameAdapter);
 			updateParser.parse(jsonRequest);

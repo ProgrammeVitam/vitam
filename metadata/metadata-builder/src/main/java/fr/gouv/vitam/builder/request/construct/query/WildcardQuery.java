@@ -51,8 +51,8 @@ public class WildcardQuery extends Query {
     public WildcardQuery(final String variableName, final String value)
             throws InvalidCreateOperationException {
         super();
-        createQueryVariableValue(QUERY.wildcard, variableName, value);
-        currentQUERY = QUERY.wildcard;
+        createQueryVariableValue(QUERY.WILDCARD, variableName, value);
+        currentQUERY = QUERY.WILDCARD;
         setReady(true);
     }
 }

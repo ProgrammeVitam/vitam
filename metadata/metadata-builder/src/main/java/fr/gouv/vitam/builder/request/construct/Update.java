@@ -88,7 +88,7 @@ public class Update extends Request {
         if (filter == null) {
             filter = JsonHandler.createObjectNode();
         }
-        filter.put(MULTIFILTER.mult.exactToken(), mult);
+        filter.put(MULTIFILTER.MULT.exactToken(), mult);
         return this;
     }
 
@@ -100,7 +100,7 @@ public class Update extends Request {
         if (filter == null) {
             filter = JsonHandler.createObjectNode();
         }
-        if (filterContent.has(MULTIFILTER.mult.exactToken())) {
+        if (filterContent.has(MULTIFILTER.MULT.exactToken())) {
             filter.setAll((ObjectNode) filterContent);
         }
         return this;
@@ -148,9 +148,9 @@ public class Update extends Request {
             for (Action action : actions) {
                 array.add(action.getCurrentAction());
             }
-            node.set(GLOBAL.action.exactToken(), array);
+            node.set(GLOBAL.ACTION.exactToken(), array);
         } else {
-            node.putArray(GLOBAL.action.exactToken());
+            node.putArray(GLOBAL.ACTION.exactToken());
         }
         return node;
     }

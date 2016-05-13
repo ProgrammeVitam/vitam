@@ -33,10 +33,6 @@ public class MongoDbHelper {
 	 */
 	public static final BasicDBObject ID_PROJECTION = new BasicDBObject(VitamDocument.ID, 1);
 
-	private MongoDbHelper() {
-		// empty
-	}
-
     protected static final String ADD_TO_SET = "$addToSet";
 
     /**
@@ -237,10 +233,13 @@ public class MongoDbHelper {
      * @return the Filter condition to find if ancestorIds are ancestors of targetIds or equals to targetIds
      */
     public static final Bson queryForAncestorsOrSame(Set<String> targetIds, Set<String> ancestorIds) {
-        return Filters.or(Filters.and(Filters.in(VitamDocument.ID, targetIds), 
-                    Filters.in(VitamDocument.ID, ancestorIds)),
-                Filters.and(Filters.in(VitamDocument.ID, targetIds), 
-                    Filters.in(VitamDocument.UP, ancestorIds)));
+        ancestorIds.addAll(targetIds);
+        ancestorIds.remove("");
+        int size = ancestorIds.size();
+        if (size > 0) {
+            return Filters.in(VitamDocument.ID, ancestorIds);
+        }
+        return new BasicDBObject();
     }
 
     /**
@@ -354,7 +353,7 @@ public class MongoDbHelper {
             if (targetList != null && !targetList.isEmpty()) {
                 // need to add $addToSet
                 return new BasicDBObject(fieldname,
-                        new BasicDBObject(UPDATEACTIONARGS.each.exactToken(), targetList));
+                        new BasicDBObject(UPDATEACTIONARGS.EACH.exactToken(), targetList));
             }
         } else {
             // nothing since save will be done just after, except checking array exists

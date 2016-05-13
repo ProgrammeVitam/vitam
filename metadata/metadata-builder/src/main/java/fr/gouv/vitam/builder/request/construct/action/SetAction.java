@@ -59,8 +59,8 @@ public class SetAction extends Action {
     public SetAction(final String variableName, final String value)
             throws InvalidCreateOperationException {
         super();
-        createActionVariableValue(UPDATEACTION.set, variableName, value);
-        currentUPDATEACTION = UPDATEACTION.set;
+        createActionVariableValue(UPDATEACTION.SET, variableName, value);
+        currentUPDATEACTION = UPDATEACTION.SET;
         setReady(true);
     }
 
@@ -74,7 +74,7 @@ public class SetAction extends Action {
             throws InvalidCreateOperationException {
         super();
         currentObject =
-                ((ObjectNode) currentObject).putObject(UPDATEACTION.set.exactToken());
+                ((ObjectNode) currentObject).putObject(UPDATEACTION.SET.exactToken());
         final ObjectNode node = (ObjectNode) currentObject;
         for (final Entry<String, ?> entry : variableNameValue.entrySet()) {
             final String name = entry.getKey();
@@ -89,7 +89,7 @@ public class SetAction extends Action {
             final Object val = entry.getValue();
             node.set(name.trim(), GlobalDatas.getValueJsonNode(val));
         }
-        currentUPDATEACTION = UPDATEACTION.set;
+        currentUPDATEACTION = UPDATEACTION.SET;
         setReady(true);
     }
 
@@ -103,8 +103,8 @@ public class SetAction extends Action {
     public SetAction(final String variableName, final long value)
             throws InvalidCreateOperationException {
         super();
-        createActionVariableValue(UPDATEACTION.set, variableName, value);
-        currentUPDATEACTION = UPDATEACTION.set;
+        createActionVariableValue(UPDATEACTION.SET, variableName, value);
+        currentUPDATEACTION = UPDATEACTION.SET;
         setReady(true);
     }
 
@@ -118,8 +118,8 @@ public class SetAction extends Action {
     public SetAction(final String variableName, final boolean value)
             throws InvalidCreateOperationException {
         super();
-        createActionVariableValue(UPDATEACTION.set, variableName, value);
-        currentUPDATEACTION = UPDATEACTION.set;
+        createActionVariableValue(UPDATEACTION.SET, variableName, value);
+        currentUPDATEACTION = UPDATEACTION.SET;
         setReady(true);
     }
 
@@ -133,8 +133,8 @@ public class SetAction extends Action {
     public SetAction(final String variableName, final double value)
             throws InvalidCreateOperationException {
         super();
-        createActionVariableValue(UPDATEACTION.set, variableName, value);
-        currentUPDATEACTION = UPDATEACTION.set;
+        createActionVariableValue(UPDATEACTION.SET, variableName, value);
+        currentUPDATEACTION = UPDATEACTION.SET;
         setReady(true);
     }
 
@@ -158,10 +158,10 @@ public class SetAction extends Action {
             throw new InvalidCreateOperationException(e);
         }
         currentObject =
-                ((ObjectNode) currentObject).putObject(UPDATEACTION.set.exactToken());
+                ((ObjectNode) currentObject).putObject(UPDATEACTION.SET.exactToken());
         final ObjectNode node = (ObjectNode) currentObject;
         node.set(variableName, GlobalDatas.getDate(value));
-        currentUPDATEACTION = UPDATEACTION.set;
+        currentUPDATEACTION = UPDATEACTION.SET;
         setReady(true);
     }
 
@@ -175,7 +175,7 @@ public class SetAction extends Action {
      */
     public final SetAction add(final String variableName, final String value)
             throws InvalidCreateOperationException {
-        if (currentUPDATEACTION != UPDATEACTION.set) {
+        if (currentUPDATEACTION != UPDATEACTION.SET) {
             throw new InvalidCreateOperationException(
                     "Cannot add a set element since this is not a Set Action: "
                             + currentUPDATEACTION);
@@ -204,7 +204,7 @@ public class SetAction extends Action {
      */
     public final SetAction add(final String variableName, final boolean value)
             throws InvalidCreateOperationException {
-        if (currentUPDATEACTION != UPDATEACTION.set) {
+        if (currentUPDATEACTION != UPDATEACTION.SET) {
             throw new InvalidCreateOperationException(
                     "Cannot add a set element since this is not a Set Action: "
                             + currentUPDATEACTION);
@@ -232,7 +232,7 @@ public class SetAction extends Action {
      */
     public final SetAction add(final String variableName, final long value)
             throws InvalidCreateOperationException {
-        if (currentUPDATEACTION != UPDATEACTION.set) {
+        if (currentUPDATEACTION != UPDATEACTION.SET) {
             throw new InvalidCreateOperationException(
                     "Cannot add a set element since this is not a Set Action: "
                             + currentUPDATEACTION);
@@ -260,7 +260,7 @@ public class SetAction extends Action {
      */
     public final SetAction add(final String variableName, final double value)
             throws InvalidCreateOperationException {
-        if (currentUPDATEACTION != UPDATEACTION.set) {
+        if (currentUPDATEACTION != UPDATEACTION.SET) {
             throw new InvalidCreateOperationException(
                     "Cannot add a set element since this is not a Set Action: "
                             + currentUPDATEACTION);
@@ -288,7 +288,7 @@ public class SetAction extends Action {
      */
     public final SetAction add(final String variableName, final Date value)
             throws InvalidCreateOperationException {
-        if (currentUPDATEACTION != UPDATEACTION.set) {
+        if (currentUPDATEACTION != UPDATEACTION.SET) {
             throw new InvalidCreateOperationException(
                     "Cannot add a set element since this is not a Set Action: "
                             + currentUPDATEACTION);

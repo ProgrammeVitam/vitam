@@ -93,7 +93,7 @@ public class RequestToAbstract {
      * @return True if this request is a "multiple" result request
      */
     public boolean isMultiple() {
-        return requestParser.getRequest().getFilter().get(MULTIFILTER.mult.exactToken()).asBoolean();
+        return requestParser.getRequest().getFilter().get(MULTIFILTER.MULT.exactToken()).asBoolean();
     }
 
     /**
@@ -103,7 +103,7 @@ public class RequestToAbstract {
      */
     public ArrayNode getHints() {
         return (ArrayNode) requestParser.getRequest().getFilter()
-                .get(SELECTFILTER.hint.exactToken());
+                .get(SELECTFILTER.HINT.exactToken());
     }
 
     /**
@@ -113,7 +113,7 @@ public class RequestToAbstract {
      */
     public int getFinalLimit() {
         JsonNode node = requestParser.getRequest().getFilter()
-                .get(SELECTFILTER.limit.exactToken());
+                .get(SELECTFILTER.LIMIT.exactToken());
         if (node != null) {
             return node.asInt();
         }
@@ -127,7 +127,7 @@ public class RequestToAbstract {
      */
     public int getFinalOffset() {
         JsonNode node = requestParser.getRequest().getFilter()
-                .get(SELECTFILTER.offset.exactToken());
+                .get(SELECTFILTER.OFFSET.exactToken());
         if (node != null) {
             return node.asInt();
         }
@@ -139,7 +139,7 @@ public class RequestToAbstract {
      */
     public String getUsage() {
         JsonNode node = ((SelectParser) requestParser).getRequest().getProjection()
-                .get(PROJECTION.usage.exactToken());
+                .get(PROJECTION.USAGE.exactToken());
         if (node != null) {
             return node.asText();
         }

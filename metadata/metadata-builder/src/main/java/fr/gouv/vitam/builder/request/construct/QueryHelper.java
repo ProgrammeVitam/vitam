@@ -73,7 +73,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final BooleanQuery and() throws InvalidCreateOperationException {
-        return new BooleanQuery(QUERY.and);
+        return new BooleanQuery(QUERY.AND);
     }
 
     /**
@@ -82,7 +82,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final BooleanQuery or() throws InvalidCreateOperationException {
-        return new BooleanQuery(QUERY.or);
+        return new BooleanQuery(QUERY.OR);
     }
 
     /**
@@ -91,7 +91,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final BooleanQuery not() throws InvalidCreateOperationException {
-        return new BooleanQuery(QUERY.not);
+        return new BooleanQuery(QUERY.NOT);
     }
 
     /**
@@ -103,7 +103,7 @@ public class QueryHelper {
      */
     public static final CompareQuery eq(final String variableName, final boolean value)
             throws InvalidCreateOperationException {
-        return new CompareQuery(QUERY.eq, variableName, value);
+        return new CompareQuery(QUERY.EQ, variableName, value);
     }
 
     /**
@@ -115,7 +115,7 @@ public class QueryHelper {
      */
     public static final CompareQuery eq(final String variableName, final long value)
             throws InvalidCreateOperationException {
-        return new CompareQuery(QUERY.eq, variableName, value);
+        return new CompareQuery(QUERY.EQ, variableName, value);
     }
 
     /**
@@ -127,7 +127,7 @@ public class QueryHelper {
      */
     public static final CompareQuery eq(final String variableName, final double value)
             throws InvalidCreateOperationException {
-        return new CompareQuery(QUERY.eq, variableName, value);
+        return new CompareQuery(QUERY.EQ, variableName, value);
     }
 
     /**
@@ -139,7 +139,7 @@ public class QueryHelper {
      */
     public static final CompareQuery eq(final String variableName, final String value)
             throws InvalidCreateOperationException {
-        return new CompareQuery(QUERY.eq, variableName, value);
+        return new CompareQuery(QUERY.EQ, variableName, value);
     }
 
     /**
@@ -151,7 +151,7 @@ public class QueryHelper {
      */
     public static final CompareQuery eq(final String variableName, final Date value)
             throws InvalidCreateOperationException {
-        return new CompareQuery(QUERY.eq, variableName, value);
+        return new CompareQuery(QUERY.EQ, variableName, value);
     }
 
     /**
@@ -163,7 +163,7 @@ public class QueryHelper {
      */
     public static final CompareQuery ne(final String variableName, final boolean value)
             throws InvalidCreateOperationException {
-        return new CompareQuery(QUERY.ne, variableName, value);
+        return new CompareQuery(QUERY.NE, variableName, value);
     }
 
     /**
@@ -175,7 +175,7 @@ public class QueryHelper {
      */
     public static final CompareQuery ne(final String variableName, final long value)
             throws InvalidCreateOperationException {
-        return new CompareQuery(QUERY.ne, variableName, value);
+        return new CompareQuery(QUERY.NE, variableName, value);
     }
 
     /**
@@ -187,7 +187,7 @@ public class QueryHelper {
      */
     public static final CompareQuery ne(final String variableName, final double value)
             throws InvalidCreateOperationException {
-        return new CompareQuery(QUERY.ne, variableName, value);
+        return new CompareQuery(QUERY.NE, variableName, value);
     }
 
     /**
@@ -199,7 +199,7 @@ public class QueryHelper {
      */
     public static final CompareQuery ne(final String variableName, final String value)
             throws InvalidCreateOperationException {
-        return new CompareQuery(QUERY.ne, variableName, value);
+        return new CompareQuery(QUERY.NE, variableName, value);
     }
 
     /**
@@ -211,7 +211,7 @@ public class QueryHelper {
      */
     public static final CompareQuery ne(final String variableName, final Date value)
             throws InvalidCreateOperationException {
-        return new CompareQuery(QUERY.ne, variableName, value);
+        return new CompareQuery(QUERY.NE, variableName, value);
     }
 
     /**
@@ -223,7 +223,7 @@ public class QueryHelper {
      */
     public static final CompareQuery lt(final String variableName, final boolean value)
             throws InvalidCreateOperationException {
-        return new CompareQuery(QUERY.lt, variableName, value);
+        return new CompareQuery(QUERY.LT, variableName, value);
     }
 
     /**
@@ -235,7 +235,7 @@ public class QueryHelper {
      */
     public static final CompareQuery lt(final String variableName, final long value)
             throws InvalidCreateOperationException {
-        return new CompareQuery(QUERY.lt, variableName, value);
+        return new CompareQuery(QUERY.LT, variableName, value);
     }
 
     /**
@@ -247,7 +247,7 @@ public class QueryHelper {
      */
     public static final CompareQuery lt(final String variableName, final double value)
             throws InvalidCreateOperationException {
-        return new CompareQuery(QUERY.lt, variableName, value);
+        return new CompareQuery(QUERY.LT, variableName, value);
     }
 
     /**
@@ -259,7 +259,7 @@ public class QueryHelper {
      */
     public static final CompareQuery lt(final String variableName, final String value)
             throws InvalidCreateOperationException {
-        return new CompareQuery(QUERY.lt, variableName, value);
+        return new CompareQuery(QUERY.LT, variableName, value);
     }
 
     /**
@@ -271,7 +271,7 @@ public class QueryHelper {
      */
     public static final CompareQuery lt(final String variableName, final Date value)
             throws InvalidCreateOperationException {
-        return new CompareQuery(QUERY.lt, variableName, value);
+        return new CompareQuery(QUERY.LT, variableName, value);
     }
 
     /**
@@ -283,7 +283,7 @@ public class QueryHelper {
      */
     public static final CompareQuery lte(final String variableName, final boolean value)
             throws InvalidCreateOperationException {
-        return new CompareQuery(QUERY.lte, variableName, value);
+        return new CompareQuery(QUERY.LTE, variableName, value);
     }
 
     /**
@@ -295,7 +295,7 @@ public class QueryHelper {
      */
     public static final CompareQuery lte(final String variableName, final long value)
             throws InvalidCreateOperationException {
-        return new CompareQuery(QUERY.lte, variableName, value);
+        return new CompareQuery(QUERY.LTE, variableName, value);
     }
 
     /**
@@ -307,7 +307,7 @@ public class QueryHelper {
      */
     public static final CompareQuery lte(final String variableName, final double value)
             throws InvalidCreateOperationException {
-        return new CompareQuery(QUERY.lte, variableName, value);
+        return new CompareQuery(QUERY.LTE, variableName, value);
     }
 
     /**
@@ -319,7 +319,7 @@ public class QueryHelper {
      */
     public static final CompareQuery lte(final String variableName, final String value)
             throws InvalidCreateOperationException {
-        return new CompareQuery(QUERY.lte, variableName, value);
+        return new CompareQuery(QUERY.LTE, variableName, value);
     }
 
     /**
@@ -331,7 +331,7 @@ public class QueryHelper {
      */
     public static final CompareQuery lte(final String variableName, final Date value)
             throws InvalidCreateOperationException {
-        return new CompareQuery(QUERY.lte, variableName, value);
+        return new CompareQuery(QUERY.LTE, variableName, value);
     }
 
     /**
@@ -343,7 +343,7 @@ public class QueryHelper {
      */
     public static final CompareQuery gt(final String variableName, final boolean value)
             throws InvalidCreateOperationException {
-        return new CompareQuery(QUERY.gt, variableName, value);
+        return new CompareQuery(QUERY.GT, variableName, value);
     }
 
     /**
@@ -355,7 +355,7 @@ public class QueryHelper {
      */
     public static final CompareQuery gt(final String variableName, final long value)
             throws InvalidCreateOperationException {
-        return new CompareQuery(QUERY.gt, variableName, value);
+        return new CompareQuery(QUERY.GT, variableName, value);
     }
 
     /**
@@ -367,7 +367,7 @@ public class QueryHelper {
      */
     public static final CompareQuery gt(final String variableName, final double value)
             throws InvalidCreateOperationException {
-        return new CompareQuery(QUERY.gt, variableName, value);
+        return new CompareQuery(QUERY.GT, variableName, value);
     }
 
     /**
@@ -379,7 +379,7 @@ public class QueryHelper {
      */
     public static final CompareQuery gt(final String variableName, final String value)
             throws InvalidCreateOperationException {
-        return new CompareQuery(QUERY.gt, variableName, value);
+        return new CompareQuery(QUERY.GT, variableName, value);
     }
 
     /**
@@ -391,7 +391,7 @@ public class QueryHelper {
      */
     public static final CompareQuery gt(final String variableName, final Date value)
             throws InvalidCreateOperationException {
-        return new CompareQuery(QUERY.gt, variableName, value);
+        return new CompareQuery(QUERY.GT, variableName, value);
     }
 
     /**
@@ -403,7 +403,7 @@ public class QueryHelper {
      */
     public static final CompareQuery gte(final String variableName, final boolean value)
             throws InvalidCreateOperationException {
-        return new CompareQuery(QUERY.gte, variableName, value);
+        return new CompareQuery(QUERY.GTE, variableName, value);
     }
 
     /**
@@ -415,7 +415,7 @@ public class QueryHelper {
      */
     public static final CompareQuery gte(final String variableName, final long value)
             throws InvalidCreateOperationException {
-        return new CompareQuery(QUERY.gte, variableName, value);
+        return new CompareQuery(QUERY.GTE, variableName, value);
     }
 
     /**
@@ -427,7 +427,7 @@ public class QueryHelper {
      */
     public static final CompareQuery gte(final String variableName, final double value)
             throws InvalidCreateOperationException {
-        return new CompareQuery(QUERY.gte, variableName, value);
+        return new CompareQuery(QUERY.GTE, variableName, value);
     }
 
     /**
@@ -439,7 +439,7 @@ public class QueryHelper {
      */
     public static final CompareQuery gte(final String variableName, final String value)
             throws InvalidCreateOperationException {
-        return new CompareQuery(QUERY.gte, variableName, value);
+        return new CompareQuery(QUERY.GTE, variableName, value);
     }
 
     /**
@@ -451,7 +451,7 @@ public class QueryHelper {
      */
     public static final CompareQuery gte(final String variableName, final Date value)
             throws InvalidCreateOperationException {
-        return new CompareQuery(QUERY.gte, variableName, value);
+        return new CompareQuery(QUERY.GTE, variableName, value);
     }
 
     /**
@@ -463,7 +463,7 @@ public class QueryHelper {
      */
     public static final CompareQuery size(final String variableName, final long value)
             throws InvalidCreateOperationException {
-        return new CompareQuery(QUERY.size, variableName, value);
+        return new CompareQuery(QUERY.SIZE, variableName, value);
     }
 
     /**
@@ -475,7 +475,7 @@ public class QueryHelper {
      */
     public static final ExistsQuery exists(final String variableName)
             throws InvalidCreateOperationException {
-        return new ExistsQuery(QUERY.exists, variableName);
+        return new ExistsQuery(QUERY.EXISTS, variableName);
     }
 
     /**
@@ -486,7 +486,7 @@ public class QueryHelper {
      */
     public static final ExistsQuery missing(final String variableName)
             throws InvalidCreateOperationException {
-        return new ExistsQuery(QUERY.missing, variableName);
+        return new ExistsQuery(QUERY.MISSING, variableName);
     }
 
     /**
@@ -497,7 +497,7 @@ public class QueryHelper {
      */
     public static final ExistsQuery isNull(final String variableName)
             throws InvalidCreateOperationException {
-        return new ExistsQuery(QUERY.isNull, variableName);
+        return new ExistsQuery(QUERY.ISNULL, variableName);
     }
 
     /**
@@ -509,7 +509,7 @@ public class QueryHelper {
      */
     public static final InQuery in(final String variableName, final boolean... value)
             throws InvalidCreateOperationException {
-        return new InQuery(QUERY.in, variableName, value);
+        return new InQuery(QUERY.IN, variableName, value);
     }
 
     /**
@@ -521,7 +521,7 @@ public class QueryHelper {
      */
     public static final InQuery in(final String variableName, final long... value)
             throws InvalidCreateOperationException {
-        return new InQuery(QUERY.in, variableName, value);
+        return new InQuery(QUERY.IN, variableName, value);
     }
 
     /**
@@ -533,7 +533,7 @@ public class QueryHelper {
      */
     public static final InQuery in(final String variableName, final double... value)
             throws InvalidCreateOperationException {
-        return new InQuery(QUERY.in, variableName, value);
+        return new InQuery(QUERY.IN, variableName, value);
     }
 
     /**
@@ -545,7 +545,7 @@ public class QueryHelper {
      */
     public static final InQuery in(final String variableName, final String... value)
             throws InvalidCreateOperationException {
-        return new InQuery(QUERY.in, variableName, value);
+        return new InQuery(QUERY.IN, variableName, value);
     }
 
     /**
@@ -557,7 +557,7 @@ public class QueryHelper {
      */
     public static final InQuery in(final String variableName, final Date... value)
             throws InvalidCreateOperationException {
-        return new InQuery(QUERY.in, variableName, value);
+        return new InQuery(QUERY.IN, variableName, value);
     }
 
     /**
@@ -569,7 +569,7 @@ public class QueryHelper {
      */
     public static final InQuery nin(final String variableName, final boolean... value)
             throws InvalidCreateOperationException {
-        return new InQuery(QUERY.nin, variableName, value);
+        return new InQuery(QUERY.NIN, variableName, value);
     }
 
     /**
@@ -581,7 +581,7 @@ public class QueryHelper {
      */
     public static final InQuery nin(final String variableName, final long... value)
             throws InvalidCreateOperationException {
-        return new InQuery(QUERY.nin, variableName, value);
+        return new InQuery(QUERY.NIN, variableName, value);
     }
 
     /**
@@ -593,7 +593,7 @@ public class QueryHelper {
      */
     public static final InQuery nin(final String variableName, final double... value)
             throws InvalidCreateOperationException {
-        return new InQuery(QUERY.nin, variableName, value);
+        return new InQuery(QUERY.NIN, variableName, value);
     }
 
     /**
@@ -605,7 +605,7 @@ public class QueryHelper {
      */
     public static final InQuery nin(final String variableName, final String... value)
             throws InvalidCreateOperationException {
-        return new InQuery(QUERY.nin, variableName, value);
+        return new InQuery(QUERY.NIN, variableName, value);
     }
 
     /**
@@ -617,7 +617,7 @@ public class QueryHelper {
      */
     public static final InQuery nin(final String variableName, final Date... value)
             throws InvalidCreateOperationException {
-        return new InQuery(QUERY.nin, variableName, value);
+        return new InQuery(QUERY.NIN, variableName, value);
     }
 
     /**
@@ -629,7 +629,7 @@ public class QueryHelper {
      */
     public static final MatchQuery match(final String variableName, final String value)
             throws InvalidCreateOperationException {
-        return new MatchQuery(QUERY.match, variableName, value);
+        return new MatchQuery(QUERY.MATCH, variableName, value);
     }
 
     /**
@@ -642,7 +642,7 @@ public class QueryHelper {
     public static final MatchQuery matchPhrase(final String variableName,
             final String value)
             throws InvalidCreateOperationException {
-        return new MatchQuery(QUERY.match_phrase, variableName, value);
+        return new MatchQuery(QUERY.MATCH_PHRASE, variableName, value);
     }
 
     /**
@@ -655,7 +655,7 @@ public class QueryHelper {
     public static final MatchQuery matchPhrasePrefix(final String variableName,
             final String value)
             throws InvalidCreateOperationException {
-        return new MatchQuery(QUERY.match_phrase_prefix, variableName, value);
+        return new MatchQuery(QUERY.MATCH_PHRASE_PREFIX, variableName, value);
     }
 
     /**
@@ -667,7 +667,7 @@ public class QueryHelper {
      */
     public static final MatchQuery prefix(final String variableName, final String value)
             throws InvalidCreateOperationException {
-        return new MatchQuery(QUERY.prefix, variableName, value);
+        return new MatchQuery(QUERY.PREFIX, variableName, value);
     }
 
     /**
@@ -679,7 +679,7 @@ public class QueryHelper {
      */
     public static final SearchQuery regex(final String variableName, final String value)
             throws InvalidCreateOperationException {
-        return new SearchQuery(QUERY.regex, variableName, value);
+        return new SearchQuery(QUERY.REGEX, variableName, value);
     }
 
     /**
@@ -691,7 +691,7 @@ public class QueryHelper {
      */
     public static final SearchQuery search(final String variableName, final String value)
             throws InvalidCreateOperationException {
-        return new SearchQuery(QUERY.search, variableName, value);
+        return new SearchQuery(QUERY.SEARCH, variableName, value);
     }
 
     /**
@@ -788,7 +788,7 @@ public class QueryHelper {
      */
     public static final MltQuery flt(final String value, final String... variableName)
             throws InvalidCreateOperationException {
-        return new MltQuery(QUERY.flt, value, variableName);
+        return new MltQuery(QUERY.FLT, value, variableName);
     }
 
     /**
@@ -800,7 +800,7 @@ public class QueryHelper {
      */
     public static final MltQuery mlt(final String value, final String... variableName)
             throws InvalidCreateOperationException {
-        return new MltQuery(QUERY.mlt, value, variableName);
+        return new MltQuery(QUERY.MLT, value, variableName);
     }
 
     /**
@@ -816,8 +816,8 @@ public class QueryHelper {
     public static final RangeQuery range(final String variableName, final long min,
             final boolean includeMin, final long max,
             final boolean includeMax) throws InvalidCreateOperationException {
-        final QUERY rmin = includeMin ? QUERY.gte : QUERY.gt;
-        final QUERY rmax = includeMax ? QUERY.lte : QUERY.lt;
+        final QUERY rmin = includeMin ? QUERY.GTE : QUERY.GT;
+        final QUERY rmax = includeMax ? QUERY.LTE : QUERY.LT;
         return new RangeQuery(variableName, rmin, min, rmax, max);
     }
 
@@ -835,8 +835,8 @@ public class QueryHelper {
             final boolean includeMin,
             final double max, final boolean includeMax)
             throws InvalidCreateOperationException {
-        final QUERY rmin = includeMin ? QUERY.gte : QUERY.gt;
-        final QUERY rmax = includeMax ? QUERY.lte : QUERY.lt;
+        final QUERY rmin = includeMin ? QUERY.GTE : QUERY.GT;
+        final QUERY rmax = includeMax ? QUERY.LTE : QUERY.LT;
         return new RangeQuery(variableName, rmin, min, rmax, max);
     }
 
@@ -854,8 +854,8 @@ public class QueryHelper {
             final boolean includeMin,
             final String max, final boolean includeMax)
             throws InvalidCreateOperationException {
-        final QUERY rmin = includeMin ? QUERY.gte : QUERY.gt;
-        final QUERY rmax = includeMax ? QUERY.lte : QUERY.lt;
+        final QUERY rmin = includeMin ? QUERY.GTE : QUERY.GT;
+        final QUERY rmax = includeMax ? QUERY.LTE : QUERY.LT;
         return new RangeQuery(variableName, rmin, min, rmax, max);
     }
 
@@ -872,8 +872,8 @@ public class QueryHelper {
     public static final RangeQuery range(final String variableName, final Date min,
             final boolean includeMin, final Date max,
             final boolean includeMax) throws InvalidCreateOperationException {
-        final QUERY rmin = includeMin ? QUERY.gte : QUERY.gt;
-        final QUERY rmax = includeMax ? QUERY.lte : QUERY.lt;
+        final QUERY rmin = includeMin ? QUERY.GTE : QUERY.GT;
+        final QUERY rmax = includeMax ? QUERY.LTE : QUERY.LT;
         return new RangeQuery(variableName, rmin, min, rmax, max);
     }
 }

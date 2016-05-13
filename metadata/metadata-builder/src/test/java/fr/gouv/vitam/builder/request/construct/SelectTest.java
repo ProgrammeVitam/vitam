@@ -58,20 +58,20 @@ public class SelectTest {
         final Select select = new Select();
         assertNull(select.filter);
         select.setLimitFilter(0, 0);
-        assertFalse(select.filter.has(SELECTFILTER.limit.exactToken()));
-        assertFalse(select.filter.has(SELECTFILTER.offset.exactToken()));
+        assertFalse(select.filter.has(SELECTFILTER.LIMIT.exactToken()));
+        assertFalse(select.filter.has(SELECTFILTER.OFFSET.exactToken()));
         select.setLimitFilter(1, 0);
-        assertFalse(select.filter.has(SELECTFILTER.limit.exactToken()));
-        assertTrue(select.filter.has(SELECTFILTER.offset.exactToken()));
+        assertFalse(select.filter.has(SELECTFILTER.LIMIT.exactToken()));
+        assertTrue(select.filter.has(SELECTFILTER.OFFSET.exactToken()));
         select.setLimitFilter(0, 1);
-        assertTrue(select.filter.has(SELECTFILTER.limit.exactToken()));
-        assertFalse(select.filter.has(SELECTFILTER.offset.exactToken()));
+        assertTrue(select.filter.has(SELECTFILTER.LIMIT.exactToken()));
+        assertFalse(select.filter.has(SELECTFILTER.OFFSET.exactToken()));
         select.setLimitFilter(1, 1);
-        assertTrue(select.filter.has(SELECTFILTER.limit.exactToken()));
-        assertTrue(select.filter.has(SELECTFILTER.offset.exactToken()));
+        assertTrue(select.filter.has(SELECTFILTER.LIMIT.exactToken()));
+        assertTrue(select.filter.has(SELECTFILTER.OFFSET.exactToken()));
         select.resetLimitFilter();
-        assertFalse(select.filter.has(SELECTFILTER.limit.exactToken()));
-        assertFalse(select.filter.has(SELECTFILTER.offset.exactToken()));
+        assertFalse(select.filter.has(SELECTFILTER.LIMIT.exactToken()));
+        assertFalse(select.filter.has(SELECTFILTER.OFFSET.exactToken()));
     }
 
     @Test
@@ -79,23 +79,23 @@ public class SelectTest {
         final Select select = new Select();
         assertNull(select.filter);
         try {
-            select.addHintFilter(FILTERARGS.cache.exactToken());
+            select.addHintFilter(FILTERARGS.CACHE.exactToken());
         } catch (InvalidParseOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
-        assertTrue(select.filter.has(SELECTFILTER.hint.exactToken()));
-        assertEquals(1, select.filter.get(SELECTFILTER.hint.exactToken()).size());
+        assertTrue(select.filter.has(SELECTFILTER.HINT.exactToken()));
+        assertEquals(1, select.filter.get(SELECTFILTER.HINT.exactToken()).size());
         try {
-            select.addHintFilter(FILTERARGS.nocache.exactToken());
+            select.addHintFilter(FILTERARGS.NOCACHE.exactToken());
         } catch (InvalidParseOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
-        assertTrue(select.filter.has(SELECTFILTER.hint.exactToken()));
-        assertEquals(2, select.filter.get(SELECTFILTER.hint.exactToken()).size());
+        assertTrue(select.filter.has(SELECTFILTER.HINT.exactToken()));
+        assertEquals(2, select.filter.get(SELECTFILTER.HINT.exactToken()).size());
         select.resetHintFilter();
-        assertFalse(select.filter.has(SELECTFILTER.hint.exactToken()));
+        assertFalse(select.filter.has(SELECTFILTER.HINT.exactToken()));
     }
 
     @Test
@@ -104,19 +104,19 @@ public class SelectTest {
         assertNull(select.filter);
         try {
             select.addOrderByAscFilter("var1", "var2");
-            assertEquals(2, select.filter.get(SELECTFILTER.orderby.exactToken()).size());
+            assertEquals(2, select.filter.get(SELECTFILTER.ORDERBY.exactToken()).size());
             select.addOrderByAscFilter("var3").addOrderByAscFilter("var4");
-            assertEquals(4, select.filter.get(SELECTFILTER.orderby.exactToken()).size());
+            assertEquals(4, select.filter.get(SELECTFILTER.ORDERBY.exactToken()).size());
             select.addOrderByDescFilter("var1", "var2");
-            assertEquals(4, select.filter.get(SELECTFILTER.orderby.exactToken()).size());
+            assertEquals(4, select.filter.get(SELECTFILTER.ORDERBY.exactToken()).size());
             select.addOrderByDescFilter("var3").addOrderByDescFilter("var4");
         } catch (InvalidParseOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
-        assertEquals(4, select.filter.get(SELECTFILTER.orderby.exactToken()).size());
+        assertEquals(4, select.filter.get(SELECTFILTER.ORDERBY.exactToken()).size());
         select.resetOrderByFilter();
-        assertFalse(select.filter.has(SELECTFILTER.orderby.exactToken()));
+        assertFalse(select.filter.has(SELECTFILTER.ORDERBY.exactToken()));
     }
 
     @Test
@@ -125,20 +125,20 @@ public class SelectTest {
         assertNull(select.projection);
         try {
             select.addUsedProjection("var1", "var2");
-            assertEquals(2, select.projection.get(PROJECTION.fields.exactToken()).size());
+            assertEquals(2, select.projection.get(PROJECTION.FIELDS.exactToken()).size());
             select.addUsedProjection("var3").addUsedProjection("var4");
-            assertEquals(4, select.projection.get(PROJECTION.fields.exactToken()).size());
+            assertEquals(4, select.projection.get(PROJECTION.FIELDS.exactToken()).size());
             select.addUnusedProjection("var1", "var2");
             // used/unused identical so don't change the number
-            assertEquals(4, select.projection.get(PROJECTION.fields.exactToken()).size());
+            assertEquals(4, select.projection.get(PROJECTION.FIELDS.exactToken()).size());
             select.addUnusedProjection("var3").addUnusedProjection("var4");
         } catch (InvalidParseOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
-        assertEquals(4, select.projection.get(PROJECTION.fields.exactToken()).size());
+        assertEquals(4, select.projection.get(PROJECTION.FIELDS.exactToken()).size());
         select.resetUsedProjection();
-        assertFalse(select.projection.has(PROJECTION.fields.exactToken()));
+        assertFalse(select.projection.has(PROJECTION.FIELDS.exactToken()));
     }
 
     @Test
@@ -151,9 +151,9 @@ public class SelectTest {
             e.printStackTrace();
             fail(e.getMessage());
         }
-        assertTrue(select.projection.has(PROJECTION.usage.exactToken()));
+        assertTrue(select.projection.has(PROJECTION.USAGE.exactToken()));
         select.resetUsageProjection();
-        assertFalse(select.projection.has(PROJECTION.usage.exactToken()));
+        assertFalse(select.projection.has(PROJECTION.USAGE.exactToken()));
     }
 
     @Test
@@ -162,15 +162,15 @@ public class SelectTest {
         assertTrue(select.queries.isEmpty());
         try {
             select.addQueries(
-                    new BooleanQuery(QUERY.and).add(new ExistsQuery(QUERY.exists, "varA"))
+                    new BooleanQuery(QUERY.AND).add(new ExistsQuery(QUERY.EXISTS, "varA"))
                             .setRelativeDepthLimit(5));
             select.addQueries(new PathQuery("path1", "path2"),
-                    new ExistsQuery(QUERY.exists, "varB").setExactDepthLimit(10));
+                    new ExistsQuery(QUERY.EXISTS, "varB").setExactDepthLimit(10));
             select.addQueries(new PathQuery("path3"));
             assertEquals(4, select.getQueries().size());
             select.setLimitFilter(10, 10);
             try {
-                select.addHintFilter(FILTERARGS.cache.exactToken());
+                select.addHintFilter(FILTERARGS.CACHE.exactToken());
                 select.addOrderByAscFilter("var1").addOrderByDescFilter("var2");
                 select.addUsedProjection("var3").addUnusedProjection("var4");
                 select.setUsageProjection("usageId");
@@ -181,7 +181,6 @@ public class SelectTest {
                 assertEquals(2, select.getRoots().size());
                 node = select.getFinalSelect();
                 assertEquals(4, node.size());
-                ;
                 select.resetQueries();
                 assertEquals(0, select.getQueries().size());
             } catch (InvalidParseOperationException e) {
@@ -192,6 +191,35 @@ public class SelectTest {
             e.printStackTrace();
             fail(e.getMessage());
         }
+    }
+    
+    @Test
+    public void testAllReset() throws InvalidParseOperationException{
+    	final Select select = new Select();
+        select.addUsedProjection("var1");
+        select.setUsageProjection("usageId1");
+        assertEquals(2, select.projection.size());
+        select.reset();
+        assertEquals(0, select.projection.size());
+    }
+    
+    @Test
+    public void testParser() throws InvalidParseOperationException{
+    	final Select select = new Select();
+    	select.parseOrderByFilter("{$orderby : { maclef1 : 1 , maclef2 : -1 }}");
+    	select.parseLimitFilter("{$limit : 5}");
+    	assertEquals("{\"maclef1\":1,\"maclef2\":-1}", select.filter.get(SELECTFILTER.ORDERBY.exactToken()).toString());
+    	assertEquals("5", select.filter.get(SELECTFILTER.LIMIT.exactToken()).toString());
+    	select.resetFilter();
+    	select.parseFilter("{$orderby : { maclef1 : 1 , maclef2 : -1 }, $limit : 5}");
+    	select.parseProjection("{$fields : {#dua : 1, #all : 1}, $usage : 'abcdef1234' }");
+    	assertTrue(select.getAllProjection());
+    	assertEquals("{\"$fields\":{\"#dua\":1,\"#all\":1},\"$usage\":\"abcdef1234\"}", select.getProjection().toString());
+    	String s= "QUERY: Requests: \n\tFilter: {\"$limit\":5,\"$orderby\":{\"maclef1\":1,\"maclef2\":-1}}"
+    			+"\n\tRoots: []\n\tProjection: {\"$fields\":{\"#dua\":1,\"#all\":1},\"$usage\":\"abcdef1234\"}";
+    	assertEquals(s, select.toString());
+    	select.parseRoots("[ 'id0' ]");
+    	assertEquals(1, select.roots.size());
     }
 
 }

@@ -7,6 +7,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.core.database.collections.MongoDbHelper;
 import fr.gouv.vitam.core.database.collections.translator.mongodb.DeleteToMongodb;
 import fr.gouv.vitam.core.database.collections.translator.mongodb.InsertToMongodb;
@@ -201,6 +202,57 @@ public class RequestToMongodbTest {
             e.printStackTrace();
             fail(e.getMessage());
         }
+    }
+    
+    @Test
+    public void testSelectGetFinalOrderby() throws InvalidParseOperationException{
+    	final String example1 = "{ $roots : [], $query : [], $filter : {$orderby : {}}, $projection : {} }";
+    	final SelectParser request1 = new SelectParser();
+        request1.parse(example1);
+        SelectToMongodb rtm1 = new SelectToMongodb(request1);
+        assertEquals("", MongoDbHelper.bsonToString(rtm1.getFinalOrderBy(), false));
+        
+    	final String example2 = "{ $roots : [], $query : [], $filter : {$orderby : {maclef : 1}}, $projection : {} }";
+    	final SelectParser request2 = new SelectParser();
+        request2.parse(example2);
+        SelectToMongodb rtm2 = new SelectToMongodb(request2);
+        assertEquals("{ \"maclef\" : 1 }", MongoDbHelper.bsonToString(rtm2.getFinalOrderBy(), false));
+        
+    	final String example3 = "{ $roots : [], $query : [], $filter : {$orderby : {maclef : -1}}, $projection : {} }";
+    	final SelectParser request3 = new SelectParser();
+        request3.parse(example3);
+        SelectToMongodb rtm3 = new SelectToMongodb(request3);
+        assertEquals("{ \"maclef\" : -1 }", MongoDbHelper.bsonToString(rtm3.getFinalOrderBy(), false));
+    }
+    
+    @Test
+    public void testSelectGetFianlProjection() throws InvalidParseOperationException{
+    	final String example1 = "{ $roots : [], $query : [], $filter : {}, $projection : {$fields : {#dua : 1, #all : -1}} }";
+    	final SelectParser request1 = new SelectParser();
+        request1.parse(example1);
+        SelectToMongodb rtm1 = new SelectToMongodb(request1);
+        assertEquals("{ \"#dua\" : 1, \"#all\" : 0 }", MongoDbHelper.bsonToString(rtm1.getFinalProjection(), false));
+        
+        final String example2 = "{ $roots : [], $query : [], $filter : {}, $projection : {$fields : {#dua : 1}} }";
+    	final SelectParser request2 = new SelectParser();
+        request2.parse(example2);
+        SelectToMongodb rtm2 = new SelectToMongodb(request2);
+        assertEquals("{ \"#dua\" : 1 }", MongoDbHelper.bsonToString(rtm2.getFinalProjection(), false));
+        
+        final String example3 = "{ $roots : [], $query : [], $filter : {}, $projection : {$fields : {#dua : -1}} }";
+    	final SelectParser request3 = new SelectParser();
+        request3.parse(example3);
+        SelectToMongodb rtm3 = new SelectToMongodb(request3);
+        assertEquals("{ \"#dua\" : 0 }", MongoDbHelper.bsonToString(rtm3.getFinalProjection(), false));
+    }
+    
+    @Test
+    public void testRequestToAbstract() throws Exception{
+    	InsertToMongodb rtm = createInsert();
+    	assertEquals(null, rtm.getHints());
+    	assertEquals(false, rtm.hasFullTextQuery());
+    	assertEquals(false, rtm.hintCache());
+    	assertEquals(false, rtm.hintNoTimeout());    	
     }
 
 }

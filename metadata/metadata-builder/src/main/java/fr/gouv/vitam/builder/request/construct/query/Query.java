@@ -183,8 +183,8 @@ public class Query {
      * Removing exact depth and depth
      */
     protected void cleanDepth() {
-        currentQuery.remove(QUERYARGS.exactdepth.exactToken());
-        currentQuery.remove(QUERYARGS.depth.exactToken());
+        currentQuery.remove(QUERYARGS.EXACTDEPTH.exactToken());
+        currentQuery.remove(QUERYARGS.DEPTH.exactToken());
         relativedepth = 1;
         exactdepth = 0;
     }
@@ -200,7 +200,7 @@ public class Query {
         cleanDepth();
         if (exactdepth != 0) {
             this.exactdepth = exactdepth;
-            currentQuery.put(QUERYARGS.exactdepth.exactToken(), exactdepth);
+            currentQuery.put(QUERYARGS.EXACTDEPTH.exactToken(), exactdepth);
         }
         return this;
     }
@@ -214,7 +214,7 @@ public class Query {
     public final Query setRelativeDepthLimit(final int relativedepth) {
         cleanDepth();
         this.relativedepth = relativedepth;
-        currentQuery.put(QUERYARGS.depth.exactToken(), relativedepth);
+        currentQuery.put(QUERYARGS.DEPTH.exactToken(), relativedepth);
         return this;
     }
 

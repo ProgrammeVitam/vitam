@@ -45,14 +45,18 @@
 			<artifactId>testcontainers</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.easymock</groupId>
-			<artifactId>easymock</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 		</dependency>
-		
+		<dependency>
+			<groupId>de.flapdoodle.embed</groupId>
+			<artifactId>de.flapdoodle.embed.mongo</artifactId>
+		</dependency>
+ 		<dependency>
+ 				<groupId>org.mockito</groupId>
+ 				<artifactId>mockito-all</artifactId>
+ 				<scope>test</scope>
+		</dependency>
+
 	</dependencies>
 </project>

@@ -54,7 +54,7 @@ public class QueryParserHelper extends QueryHelper {
      * @return a PathQuery
      */
     public static final PathQuery path(final JsonNode array, final VarNameAdapter adapter) {
-        return new PathQuery(QUERY.path, array, adapter);
+        return new PathQuery(QUERY.PATH, array, adapter);
     }
 
     /**
@@ -65,7 +65,7 @@ public class QueryParserHelper extends QueryHelper {
      * @throws InvalidParseOperationException 
      */
     public static final CompareQuery eq(final JsonNode command, final VarNameAdapter adapter) throws InvalidParseOperationException {
-        return new CompareQuery(QUERY.eq, command, adapter);
+        return new CompareQuery(QUERY.EQ, command, adapter);
     }
 
     /**
@@ -76,7 +76,7 @@ public class QueryParserHelper extends QueryHelper {
      * @throws InvalidParseOperationException 
      */
     public static final CompareQuery ne(final JsonNode command, final VarNameAdapter adapter) throws InvalidParseOperationException {
-        return new CompareQuery(QUERY.ne, command, adapter);
+        return new CompareQuery(QUERY.NE, command, adapter);
     }
 
     /**
@@ -87,7 +87,7 @@ public class QueryParserHelper extends QueryHelper {
      * @throws InvalidParseOperationException 
      */
     public static final CompareQuery lt(final JsonNode command, final VarNameAdapter adapter) throws InvalidParseOperationException {
-        return new CompareQuery(QUERY.lt, command, adapter);
+        return new CompareQuery(QUERY.LT, command, adapter);
     }
 
     /**
@@ -98,7 +98,7 @@ public class QueryParserHelper extends QueryHelper {
      * @throws InvalidParseOperationException 
      */
     public static final CompareQuery lte(final JsonNode command, final VarNameAdapter adapter) throws InvalidParseOperationException {
-        return new CompareQuery(QUERY.lte, command, adapter);
+        return new CompareQuery(QUERY.LTE, command, adapter);
     }
 
     /**
@@ -109,7 +109,7 @@ public class QueryParserHelper extends QueryHelper {
      * @throws InvalidParseOperationException 
      */
     public static final CompareQuery gt(final JsonNode command, final VarNameAdapter adapter) throws InvalidParseOperationException {
-        return new CompareQuery(QUERY.gt, command, adapter);
+        return new CompareQuery(QUERY.GT, command, adapter);
     }
 
     /**
@@ -120,7 +120,7 @@ public class QueryParserHelper extends QueryHelper {
      * @throws InvalidParseOperationException 
      */
     public static final CompareQuery gte(final JsonNode command, final VarNameAdapter adapter) throws InvalidParseOperationException {
-        return new CompareQuery(QUERY.gte, command, adapter);
+        return new CompareQuery(QUERY.GTE, command, adapter);
     }
 
     /**
@@ -131,7 +131,7 @@ public class QueryParserHelper extends QueryHelper {
      * @throws InvalidParseOperationException 
      */
     public static final CompareQuery size(final JsonNode command, final VarNameAdapter adapter) throws InvalidParseOperationException {
-        return new CompareQuery(QUERY.size, command, adapter);
+        return new CompareQuery(QUERY.SIZE, command, adapter);
     }
 
     /**
@@ -145,7 +145,7 @@ public class QueryParserHelper extends QueryHelper {
      */
     public static final ExistsQuery exists(final JsonNode command, final VarNameAdapter adapter)
             throws InvalidCreateOperationException, InvalidParseOperationException {
-        return new ExistsQuery(QUERY.exists, command, adapter);
+        return new ExistsQuery(QUERY.EXISTS, command, adapter);
     }
 
     /**
@@ -158,7 +158,7 @@ public class QueryParserHelper extends QueryHelper {
      */
     public static final ExistsQuery missing(final JsonNode command, final VarNameAdapter adapter)
             throws InvalidCreateOperationException, InvalidParseOperationException {
-        return new ExistsQuery(QUERY.missing, command, adapter);
+        return new ExistsQuery(QUERY.MISSING, command, adapter);
     }
 
     /**
@@ -171,7 +171,7 @@ public class QueryParserHelper extends QueryHelper {
      */
     public static final ExistsQuery isNull(final JsonNode command, final VarNameAdapter adapter)
             throws InvalidCreateOperationException, InvalidParseOperationException {
-        return new ExistsQuery(QUERY.isNull, command, adapter);
+        return new ExistsQuery(QUERY.ISNULL, command, adapter);
     }
 
     /**
@@ -183,7 +183,7 @@ public class QueryParserHelper extends QueryHelper {
      */
     public static final InQuery in(final JsonNode command, final VarNameAdapter adapter)
             throws InvalidParseOperationException {
-        return new InQuery(QUERY.in, command, adapter);
+        return new InQuery(QUERY.IN, command, adapter);
     }
 
     /**
@@ -195,7 +195,7 @@ public class QueryParserHelper extends QueryHelper {
      */
     public static final InQuery nin(final JsonNode command, final VarNameAdapter adapter)
             throws InvalidParseOperationException {
-        return new InQuery(QUERY.nin, command, adapter);
+        return new InQuery(QUERY.NIN, command, adapter);
     }
 
     /**
@@ -206,7 +206,7 @@ public class QueryParserHelper extends QueryHelper {
      * @throws InvalidParseOperationException 
      */
     public static final MatchQuery match(final JsonNode command, final VarNameAdapter adapter) throws InvalidParseOperationException {
-        return new MatchQuery(QUERY.match, command, adapter);
+        return new MatchQuery(QUERY.MATCH, command, adapter);
     }
 
     /**
@@ -217,7 +217,7 @@ public class QueryParserHelper extends QueryHelper {
      * @throws InvalidParseOperationException 
      */
     public static final MatchQuery matchPhrase(final JsonNode command, final VarNameAdapter adapter) throws InvalidParseOperationException {
-        return new MatchQuery(QUERY.match_phrase, command, adapter);
+        return new MatchQuery(QUERY.MATCH_PHRASE, command, adapter);
     }
 
     /**
@@ -228,7 +228,7 @@ public class QueryParserHelper extends QueryHelper {
      * @throws InvalidParseOperationException 
      */
     public static final MatchQuery matchPhrasePrefix(final JsonNode command, final VarNameAdapter adapter) throws InvalidParseOperationException {
-        return new MatchQuery(QUERY.match_phrase_prefix, command, adapter);
+        return new MatchQuery(QUERY.MATCH_PHRASE_PREFIX, command, adapter);
     }
 
     /**
@@ -239,7 +239,7 @@ public class QueryParserHelper extends QueryHelper {
      * @throws InvalidParseOperationException 
      */
     public static final MatchQuery prefix(final JsonNode command, final VarNameAdapter adapter) throws InvalidParseOperationException {
-        return new MatchQuery(QUERY.prefix, command, adapter);
+        return new MatchQuery(QUERY.PREFIX, command, adapter);
     }
 
     /**
@@ -250,7 +250,7 @@ public class QueryParserHelper extends QueryHelper {
      * @throws InvalidParseOperationException 
      */
     public static final SearchQuery regex(final JsonNode command, final VarNameAdapter adapter) throws InvalidParseOperationException {
-        return new SearchQuery(QUERY.regex, command, adapter);
+        return new SearchQuery(QUERY.REGEX, command, adapter);
     }
 
     /**
@@ -261,7 +261,7 @@ public class QueryParserHelper extends QueryHelper {
      * @throws InvalidParseOperationException 
      */
     public static final SearchQuery search(final JsonNode command, final VarNameAdapter adapter) throws InvalidParseOperationException {
-        return new SearchQuery(QUERY.search, command, adapter);
+        return new SearchQuery(QUERY.SEARCH, command, adapter);
     }
 
     /**
@@ -272,7 +272,7 @@ public class QueryParserHelper extends QueryHelper {
      * @throws InvalidParseOperationException 
      */
     public static final TermQuery term(final JsonNode command, final VarNameAdapter adapter) throws InvalidParseOperationException {
-        return new TermQuery(QUERY.term, command, adapter);
+        return new TermQuery(QUERY.TERM, command, adapter);
     }
 
     /**
@@ -283,7 +283,7 @@ public class QueryParserHelper extends QueryHelper {
      * @throws InvalidParseOperationException 
      */
     public static final WildcardQuery wildcard(final JsonNode command, final VarNameAdapter adapter) throws InvalidParseOperationException {
-        return new WildcardQuery(QUERY.wildcard, command, adapter);
+        return new WildcardQuery(QUERY.WILDCARD, command, adapter);
     }
 
     /**
@@ -294,7 +294,7 @@ public class QueryParserHelper extends QueryHelper {
      * @throws InvalidParseOperationException 
      */
     public static final MltQuery flt(final JsonNode command, final VarNameAdapter adapter) throws InvalidParseOperationException {
-        return new MltQuery(QUERY.flt, command, adapter);
+        return new MltQuery(QUERY.FLT, command, adapter);
     }
 
     /**
@@ -305,7 +305,7 @@ public class QueryParserHelper extends QueryHelper {
      * @throws InvalidParseOperationException 
      */
     public static final MltQuery mlt(final JsonNode command, final VarNameAdapter adapter) throws InvalidParseOperationException {
-        return new MltQuery(QUERY.mlt, command, adapter);
+        return new MltQuery(QUERY.MLT, command, adapter);
     }
 
     /**
@@ -316,6 +316,6 @@ public class QueryParserHelper extends QueryHelper {
      * @throws InvalidParseOperationException 
      */
     public static final RangeQuery range(final JsonNode command, final VarNameAdapter adapter) throws InvalidParseOperationException {
-        return new RangeQuery(QUERY.range, command, adapter);
+        return new RangeQuery(QUERY.RANGE, command, adapter);
     }
 }

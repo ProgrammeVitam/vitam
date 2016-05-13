@@ -19,72 +19,72 @@ public class VitamFieldsHelper {
 	 * @return #id
 	 */
 	public static final String id() {
-		return id.exactToken();
+		return ID.exactToken();
 	}
 	/**
 	 * @return #nbunits
 	 */
 	public static final String nbunits() {
-		return nbunits.exactToken();
+		return NBUNITS.exactToken();
 	}
 	/**
 	 * @return #all
 	 */
 	public static final String all() {
-		return all.exactToken();
+		return ALL.exactToken();
 	}
 	/**
 	 * @return #size
 	 */
 	public static final String size() {
-		return size.exactToken();
+		return SIZE.exactToken();
 	}
 	/**
 	 * @return #format
 	 */
 	public static final String format() {
-		return format.exactToken();
+		return FORMAT.exactToken();
 	}
 	/**
 	 * @return #type
 	 */
 	public static final String type() {
-		return type.exactToken();
+		return TYPE.exactToken();
 	}
 	/**
 	 * @return #dua
 	 */
 	public static final String dua() {
-		return dua.exactToken();
+		return DUA.exactToken();
 	}
 	/**
 	 * @return #units
 	 */
 	public static final String units() {
-		return units.exactToken();
+		return UNITS.exactToken();
 	}
 	/**
 	 * @return #objectgroups
 	 */
 	public static final String objectgroups() {
-		return objectgroups.exactToken();
+		return OBJECTGROUPS.exactToken();
 	}
 	/**
 	 * @return #objects
 	 */
 	public static final String objects() {
-		return objects.exactToken();
+		return OBJECTS.exactToken();
 	}
 	/**
 	 * @return #cache
 	 */
 	public static final String cache() {
-		return cache.exactToken();
+		return CACHE.exactToken();
 	}
 	/**
 	 * @return #nocache
 	 */
 	public static final String nocache() {
-		return nocache.exactToken();
+		return NOCACHE.exactToken();
 	}
 }

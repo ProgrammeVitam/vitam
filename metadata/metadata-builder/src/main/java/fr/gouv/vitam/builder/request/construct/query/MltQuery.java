@@ -84,11 +84,11 @@ public class MltQuery extends Query {
             throw new InvalidCreateOperationException(e);
         }
         switch (mltQuery) {
-            case flt:
-            case mlt: {
+            case FLT:
+            case MLT: {
                 final ObjectNode sub =
                         ((ObjectNode) currentObject).putObject(mltQuery.exactToken());
-                final ArrayNode array = sub.putArray(QUERYARGS.fields.exactToken());
+                final ArrayNode array = sub.putArray(QUERYARGS.FIELDS.exactToken());
                 stringVals = new HashSet<String>();
                 for (final String varName : variableNames) {
                     if (varName == null || varName.trim().isEmpty()) {
@@ -106,7 +106,7 @@ public class MltQuery extends Query {
                     }
                 }
                 currentObject = array;
-                sub.put(QUERYARGS.like.exactToken(), value);
+                sub.put(QUERYARGS.LIKE.exactToken(), value);
                 break;
             }
             default:
@@ -126,7 +126,7 @@ public class MltQuery extends Query {
      */
     public final MltQuery add(final String... variableName)
             throws InvalidCreateOperationException {
-        if (currentQUERY != QUERY.flt && currentQUERY != QUERY.mlt) {
+        if (currentQUERY != QUERY.FLT && currentQUERY != QUERY.MLT) {
             throw new InvalidCreateOperationException(
                     "Cannot add a variableName since this is not an Mlt Query: "
                             + currentQUERY);

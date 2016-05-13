@@ -128,9 +128,9 @@ public abstract class RequestParser {
             /*
              * not as array but composite as { $roots: root, $query : query, $filter : filter }
              */ 
-            rootParse(rootNode.get(GLOBAL.roots.exactToken()));
-            queryParse(rootNode.get(GLOBAL.query.exactToken()));
-            filterParse(rootNode.get(GLOBAL.filter.exactToken()));
+            rootParse(rootNode.get(GLOBAL.ROOTS.exactToken()));
+            queryParse(rootNode.get(GLOBAL.QUERY.exactToken()));
+            filterParse(rootNode.get(GLOBAL.FILTER.exactToken()));
         }
     }
 
@@ -262,7 +262,7 @@ public abstract class RequestParser {
                 for (final JsonNode level : rootNode) {
                     // now parse sub element as single command/value
                     analyzeRootQuery(level);
-                    if (i == 1 && request.getQueries().get(i).getQUERY() == QUERY.path) {
+                    if (i == 1 && request.getQueries().get(i).getQUERY() == QUERY.PATH) {
                         throw new InvalidParseOperationException(
                                 "Parse in error for Query since PATH is only allowed as first query: "
                                         + (i + 1));
@@ -299,9 +299,9 @@ public abstract class RequestParser {
                             // (implicit)
         boolean isDepth = false;
         // first verify if exactdepth is set
-        if (command.has(QUERYARGS.exactdepth.exactToken())) {
+        if (command.has(QUERYARGS.EXACTDEPTH.exactToken())) {
             final JsonNode jdepth =
-                    ((ObjectNode) command).remove(QUERYARGS.exactdepth.exactToken());
+                    ((ObjectNode) command).remove(QUERYARGS.EXACTDEPTH.exactToken());
             if (jdepth != null) {
                 exactdepth = jdepth.asInt();
                 if (exactdepth == -1) {
@@ -309,10 +309,10 @@ public abstract class RequestParser {
                 }
                 isDepth = true;
             }
-            ((ObjectNode) command).remove(QUERYARGS.depth.exactToken());
-        } else if (command.has(QUERYARGS.depth.exactToken())) {
+            ((ObjectNode) command).remove(QUERYARGS.DEPTH.exactToken());
+        } else if (command.has(QUERYARGS.DEPTH.exactToken())) {
             final JsonNode jdepth =
-                    ((ObjectNode) command).remove(QUERYARGS.depth.exactToken());
+                    ((ObjectNode) command).remove(QUERYARGS.DEPTH.exactToken());
             if (jdepth != null) {
                 relativedepth = jdepth.asInt();
                 isDepth = true;
@@ -326,7 +326,7 @@ public abstract class RequestParser {
         final Entry<String, JsonNode> queryItem =
                 JsonHandler.checkUnicity("RootRequest", command);
         Query query = null;
-        if (queryItem.getKey().equalsIgnoreCase(QUERY.path.exactToken())) {
+        if (queryItem.getKey().equalsIgnoreCase(QUERY.PATH.exactToken())) {
             if (isDepth) {
                 throw new InvalidParseOperationException(
                         "Invalid combined command Depth and Path: " + command);
@@ -366,7 +366,7 @@ public abstract class RequestParser {
             throw new InvalidParseOperationException(
                     "Incorrect request $command: " + queryroot);
         }
-        final String command = queryroot.substring(1);
+        final String command = queryroot.substring(1).toUpperCase();
         QUERY query = null;
         try {
             query = QUERY.valueOf(command);
@@ -400,7 +400,7 @@ public abstract class RequestParser {
             throw new InvalidParseOperationException(
                     "Boolean operator needs an array of expression: " + commands);
         }
-        if (query == QUERY.not) {
+        if (query == QUERY.NOT) {
             if (queries.length == 1) {
                 return queries;
             } else {
@@ -421,12 +421,12 @@ public abstract class RequestParser {
      */
     protected static boolean isCommandAsFullText(QUERY query) {
         switch (query) {
-            case flt:
-            case mlt:
-            case match:
-            case match_phrase:
-            case match_phrase_prefix:
-            case prefix:
+            case FLT:
+            case MLT:
+            case MATCH:
+            case MATCH_PHRASE:
+            case MATCH_PHRASE_PREFIX:
+            case PREFIX:
                 return true;
             default:
                 return false;
@@ -439,93 +439,93 @@ public abstract class RequestParser {
         final QUERY query = getRequestId(refCommand);
         isQueryFullText |= isCommandAsFullText(query);
         switch (query) {
-            case flt:
-            case mlt:
-            case match:
-            case match_phrase:
-            case match_phrase_prefix:
-            case prefix:
-            case nin:
-            case in:
-            case range:
-            case regex:
-            case term:
-            case wildcard:
-            case eq:
-            case ne:
-            case gt:
-            case gte:
-            case lt:
-            case lte:
-            case search:
-            case size:
+            case FLT:
+            case MLT:
+            case MATCH:
+            case MATCH_PHRASE:
+            case MATCH_PHRASE_PREFIX:
+            case PREFIX:
+            case NIN:
+            case IN:
+            case RANGE:
+            case REGEX:
+            case TERM:
+            case WILDCARD:
+            case EQ:
+            case NE:
+            case GT:
+            case GTE:
+            case LT:
+            case LTE:
+            case SEARCH:
+            case SIZE:
                 GlobalDatas.sanityValueCheck(command.toString());
             default:
         }
         switch (query) {
-            case and:
+            case AND:
                 return and().add(analyzeArrayCommand(query, command));
-            case not:
+            case NOT:
                 return not().add(analyzeArrayCommand(query, command));
-            case or:
+            case OR:
                 return or().add(analyzeArrayCommand(query, command));
-            case exists:
+            case EXISTS:
                 return exists(command, adapter);
-            case missing:
+            case MISSING:
                 return missing(command, adapter);
-            case isNull:
+            case ISNULL:
                 return isNull(command, adapter);
-            case flt:
+            case FLT:
                 return flt(command, adapter);
-            case mlt:
+            case MLT:
                 return mlt(command, adapter);
-            case match:
+            case MATCH:
                 return match(command, adapter);
-            case match_phrase:
+            case MATCH_PHRASE:
                 return matchPhrase(command, adapter);
-            case match_phrase_prefix:
+            case MATCH_PHRASE_PREFIX:
                 return matchPhrasePrefix(command, adapter);
-            case prefix:
+            case PREFIX:
                 return prefix(command, adapter);
-            case nin:
+            case NIN:
                 return nin(command, adapter);
-            case in:
+            case IN:
                 return in(command, adapter);
-            case range:
+            case RANGE:
                 return range(command, adapter);
-            case regex:
+            case REGEX:
                 return regex(command, adapter);
-            case term:
+            case TERM:
                 return term(command, adapter);
-            case wildcard:
+            case WILDCARD:
                 return wildcard(command, adapter);
-            case eq:
+            case EQ:
                 return eq(command, adapter);
-            case ne:
+            case NE:
                 return ne(command, adapter);
-            case gt:
+            case GT:
                 return gt(command, adapter);
-            case gte:
+            case GTE:
                 return gte(command, adapter);
-            case lt:
+            case LT:
                 return lt(command, adapter);
-            case lte:
+            case LTE:
                 return lte(command, adapter);
-            case search:
+            case SEARCH:
                 return search(command, adapter);
-            case size:
+            case SIZE:
                 return size(command, adapter);
-            case geometry:
-            case box:
-            case polygon:
-            case center:
-            case geoIntersects:
-            case geoWithin:
-            case near: {
+            case GEOMETRY:
+            case BOX:
+            case POLYGON:
+            case CENTER:
+            case GEOINTERSECTS:
+            case GEOWITHIN:
+            case NEAR: {
                 throw new InvalidParseOperationException(
                         "Unimplemented command: " + refCommand);
             }
-            case path: {
+            case PATH: {
                 throw new InvalidParseOperationException(
                         "Invalid position for command: " + refCommand);
             }
@@ -572,14 +572,14 @@ public abstract class RequestParser {
      * @return True if the hint contains cache
      */
     public boolean hintCache() {
-        JsonNode jsonNode = request.getFilter().get(SELECTFILTER.hint.exactToken());
+        JsonNode jsonNode = request.getFilter().get(SELECTFILTER.HINT.exactToken());
         if (jsonNode == null) {
         	// default
         	return false;
         }
         ArrayNode array = (ArrayNode) jsonNode;
         for (JsonNode node : array) {
-            if (ParserTokens.FILTERARGS.cache.exactToken().equals(node.asText())) {
+            if (ParserTokens.FILTERARGS.CACHE.exactToken().equals(node.asText())) {
                 return true;
             }
         }
@@ -589,11 +589,11 @@ public abstract class RequestParser {
      * @return True if the hint contains notimeout
      */
     public boolean hintNoTimeout() {
-        JsonNode jsonNode = request.getFilter().get(SELECTFILTER.hint.exactToken());
+        JsonNode jsonNode = request.getFilter().get(SELECTFILTER.HINT.exactToken());
         if (jsonNode != null) {
 	        ArrayNode array = (ArrayNode) jsonNode;
 	        for (JsonNode node : array) {
-	            if (ParserTokens.FILTERARGS.notimeout.exactToken().equals(node.asText())) {
+	            if (ParserTokens.FILTERARGS.NOTIMEOUT.exactToken().equals(node.asText())) {
 	                return true;
 	            }
 	        }
@@ -604,20 +604,20 @@ public abstract class RequestParser {
      * @return the model between Units/ObjectGroups/Objects (in that order)
      */
     public FILTERARGS model() {
-        JsonNode jsonNode = request.getFilter().get(SELECTFILTER.hint.exactToken());
+        JsonNode jsonNode = request.getFilter().get(SELECTFILTER.HINT.exactToken());
         if (jsonNode != null) {
 	        ArrayNode array = (ArrayNode) jsonNode;
 	        for (JsonNode node : array) {
-	            if (FILTERARGS.units.exactToken().equals(node.asText())) {
-	                return FILTERARGS.units;
-	            } else if (FILTERARGS.objectgroups.exactToken().equals(node.asText())) {
-	                return FILTERARGS.objectgroups;
-	            } else if (FILTERARGS.objects.exactToken().equals(node.asText())) {
-	                return FILTERARGS.objects;
+	            if (FILTERARGS.UNITS.exactToken().equals(node.asText())) {
+	                return FILTERARGS.UNITS;
+	            } else if (FILTERARGS.OBJECTGROUPS.exactToken().equals(node.asText())) {
+	                return FILTERARGS.OBJECTGROUPS;
+	            } else if (FILTERARGS.OBJECTS.exactToken().equals(node.asText())) {
+	                return FILTERARGS.OBJECTS;
 	            }
 	        }
         }
-        return FILTERARGS.units;
+        return FILTERARGS.UNITS;
     }
     
 }

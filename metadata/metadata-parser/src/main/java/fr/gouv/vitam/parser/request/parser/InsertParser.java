@@ -105,7 +105,7 @@ public class InsertParser extends RequestParser {
         } else {
             // not as array but composite as { $roots: root, $query : query,
             // $filter : filter, $data : data }
-            dataParse(rootNode.get(GLOBAL.data.exactToken()));
+            dataParse(rootNode.get(GLOBAL.DATA.exactToken()));
         }
 	}
 
