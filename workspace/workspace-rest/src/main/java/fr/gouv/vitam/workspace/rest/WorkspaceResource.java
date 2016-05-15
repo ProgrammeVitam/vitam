@@ -27,6 +27,8 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.core.ContentAddressableStorageImpl;
 import fr.gouv.vitam.workspace.core.FileSystem;
 
+// TODO REVIEW licence header is missing
+
 /**
  * The Workspace Resource.
  *
@@ -36,8 +38,10 @@ public class WorkspaceResource {
     private static final Logger LOGGER = Logger.getLogger(WorkspaceResource.class);
     private ContentAddressableStorageImpl workspace;
 
+    // TODO REVIEW comment
     public WorkspaceResource(StorageConfiguration configuration) {
         super();
+        // FIXME REVIEW this implements directly the Filesystem implementation while it should not! You should have a Factory/Helper to create the right one, ignoring here what is the chosen implementation.
         workspace = new FileSystem(configuration);
         LOGGER.info("init Workspace Resource server");
     }
@@ -45,6 +49,7 @@ public class WorkspaceResource {
     @Path("status")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    // FIXME REVIEW should returns 204
     public Response status() {
         return Response.status(Status.OK).build();
     }
@@ -70,6 +75,7 @@ public class WorkspaceResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteContainer(@PathParam("containerName") String containerName) {
+        // FIXME REVIEW true by default ? SHould not be!
 
         try {
             workspace.deleteContainer(containerName, true);

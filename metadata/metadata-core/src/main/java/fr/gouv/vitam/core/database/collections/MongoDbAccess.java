@@ -175,6 +175,7 @@ public class MongoDbAccess {
      *
      * @param model
      */
+    // TODO REVIEW since model param disappeared => remove it
     public static void reset() {
         for (VitamCollections col : VitamCollections.values()) {
             if (col.collection != null) {
@@ -277,6 +278,7 @@ public class MongoDbAccess {
      * @param collection
      * @return a new Result
      */
+    // TODO REVIEW rename argument as set
     public static Result createOneResult(FILTERARGS type, Set<String> collection) {
         return new ResultDefault(type, collection);
     }

@@ -58,6 +58,7 @@ public class MetaDataImplTest {
     private DbRequestFactory dbRequestFactory;
     private MongoDbAccessFactory mongoDbAccessFactory;
     
+    // TODO REVIEW UPPERCASE
     private static final String dataInsert = "{ \"data\": \"test\" }";
 
     private static final String buildQueryWithOptions(String query, String data) {
@@ -124,6 +125,7 @@ public class MetaDataImplTest {
         GlobalDatasParser.limitRequest = 1000;
         
         metaDataImpl.insertUnit(createLongString(1001));
+        // FIXME REVIEW should reset limitRequest to previous default value
     }
     
     @Test(expected = MetaDataNotFoundException.class)

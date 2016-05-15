@@ -40,12 +40,17 @@ import fr.gouv.vitam.processing.api.model.Response;
 import fr.gouv.vitam.processing.api.model.StatusCode;
 import fr.gouv.vitam.processing.api.worker.Action;
 
+
+// TODO REVIEW The name of the class could be clearer / Documentation of the class is missing
+
 /**
  * 
  * 
  *
  */
+// FIXME REVIEW missing package-info
 public abstract class ActionHandler implements Action {
+	// FIXME REVIEW should be private
 
 	protected static final Logger LOGGER = LoggerFactory.getLogger(ActionHandler.class);
 
@@ -56,6 +61,7 @@ public abstract class ActionHandler implements Action {
 	 * @return response with KO status Code and functional messages
 	 */
 	protected Response messageKo(String message) {
+		// FIXME REVIEW message is ignored
 		Response response = new ProcessResponse();
 		List<String> messages = new ArrayList<>();
 		response.setStatus(StatusCode.KO);
@@ -71,6 +77,7 @@ public abstract class ActionHandler implements Action {
 	 * @return response with FATAL status Code and technical error message
 	 */
 	protected Response messageFatal(String message) {
+		// FIXME REVIEW message is ignored
 		Response response = new ProcessResponse();
 		List<String> messages = new ArrayList<>();
 		response.setStatus(StatusCode.FATAL);

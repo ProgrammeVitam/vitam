@@ -1,5 +1,6 @@
 package fr.gouv.vitam.workspace.api.exception;
 
+// TODO REVIEW missing licence header
 /**
  * Thrown when a resource (Container, CasBlob, Folder) cannot be located.
  */
@@ -8,8 +9,10 @@ public class ContentAddressableStorageNotFoundException extends ContentAddressab
     /**
      * 
      */
+    // TODO REVIEW remove empty comment
     private static final long serialVersionUID = -8557401608602084895L;
 
+    // TODO REVIEW comment
     public ContentAddressableStorageNotFoundException(String message) {
         super(message);
     }

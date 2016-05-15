@@ -89,6 +89,7 @@ public class ParserTokens {
     	 * Add DEFAULT_PREFIX before the exactToken ($+exactToken)
     	 */
         private GLOBAL(String realName) {
+        	// FIXME REVIEW no toLowerCase() since already set through realName
         	this.exactToken = DEFAULT_PREFIX + realName.toLowerCase();
         }
         /**
@@ -295,6 +296,7 @@ public class ParserTokens {
     	 * Add DEFAULT_PREFIX before the exactToken ($+exactToken)
     	 */
         private QUERY(String realName) {
+        	// FIXME REVIEW no toLowerCase() since already set through realName
         	this.exactToken = DEFAULT_PREFIX + realName.toLowerCase();
         }
         /**
@@ -339,6 +341,7 @@ public class ParserTokens {
     	 * Add DEFAULT_PREFIX before the exactToken ($+exactToken)
     	 */
         private SELECTFILTER(String realName) {
+        	// FIXME REVIEW no toLowerCase() since already set through realName
         	this.exactToken = DEFAULT_PREFIX + realName.toLowerCase();
         }
         /**
@@ -371,6 +374,7 @@ public class ParserTokens {
     	 * Add DEFAULT_PREFIX before the exactToken ($+exactToken)
     	 */
         private PROJECTION(String realName) {
+        	// FIXME REVIEW no toLowerCase() since already set through realName
         	this.exactToken = DEFAULT_PREFIX + realName.toLowerCase();
         }
         /**
@@ -429,6 +433,7 @@ public class ParserTokens {
     	 * Add DEFAULT_PREFIX before the exactToken ($+exactToken)
     	 */
         private QUERYARGS(String realName) {
+        	// FIXME REVIEW no toLowerCase() since already set through realName
         	this.exactToken = DEFAULT_PREFIX + realName.toLowerCase();
         }
         /**
@@ -468,6 +473,7 @@ public class ParserTokens {
     	 * Add DEFAULT_PREFIX before the exactToken ($+exactToken)
     	 */
         private RANGEARGS(String realName) {
+        	// FIXME REVIEW no toLowerCase() since already set through realName
         	this.exactToken = DEFAULT_PREFIX + realName.toLowerCase();
         }
         /**
@@ -520,6 +526,7 @@ public class ParserTokens {
     	 * Add DEFAULT_PREFIX before the exactToken ($+exactToken)
     	 */
         private PROJECTIONARGS(String realName) {
+        	// FIXME REVIEW no toLowerCase() since already set through realName
         	this.exactToken = "#" + realName.toLowerCase();
         }
         /**
@@ -536,6 +543,7 @@ public class ParserTokens {
         public static boolean notAllowedOnSet(String name) {
             if (name.charAt(0) == '#') {
                 try {
+                	// FIXME REVIEW incorrect since tolowercase compared to real name
                     PROJECTIONARGS proj = PROJECTIONARGS.valueOf(name.substring(1));
                     switch (proj) {
                         case ALL:
@@ -590,6 +598,7 @@ public class ParserTokens {
     	 * Add DEFAULT_PREFIX before the exactToken ($+exactToken)
     	 */
         private FILTERARGS(String realName) {
+        	// FIXME REVIEW no toLowerCase() since already set through realName
         	this.exactToken = realName.toLowerCase();
         }
         /**
@@ -688,6 +697,7 @@ public class ParserTokens {
     	 * Add DEFAULT_PREFIX before the exactToken ($+exactToken)
     	 */
         private UPDATEACTION(String realName) {
+        	// FIXME REVIEW no toLowerCase() since already set through realName
         	this.exactToken = DEFAULT_PREFIX + realName.toLowerCase();
         }
         /**
@@ -713,6 +723,7 @@ public class ParserTokens {
     	 * Add DEFAULT_PREFIX before the exactToken ($+exactToken)
     	 */
         private UPDATEACTIONARGS(String realName) {
+        	// FIXME REVIEW no toLowerCase() since already set through realName
         	this.exactToken = DEFAULT_PREFIX + realName.toLowerCase();
         }
         /**
@@ -741,6 +752,7 @@ public class ParserTokens {
     	 * Add DEFAULT_PREFIX before the exactToken ($+exactToken)
     	 */
         private MULTIFILTER(String realName) {
+        	// FIXME REVIEW no toLowerCase() since already set through realName
         	this.exactToken = DEFAULT_PREFIX + realName.toLowerCase();
         }
         /**

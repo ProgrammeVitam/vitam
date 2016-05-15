@@ -56,6 +56,7 @@ import fr.gouv.vitam.processing.core.utils.ProcessPopulator;
  * 
  * 
  */
+// FIXME REVIEW missing package-info
 public class ProcessEngineImpl implements ProcessEngine {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ProcessEngineImpl.class);
@@ -70,6 +71,7 @@ public class ProcessEngineImpl implements ProcessEngine {
 
 	private ProcessDistributor processDistributor;
 
+	// FIXME REVIEW make it private and build a public static getInstance() / createInstance()
 	public ProcessEngineImpl() {
 		this.processDistributor = new ProcessDistributorImpl();
 		this.poolWorkflows = new HashMap<String, WorkFlow>();
@@ -85,15 +87,17 @@ public class ProcessEngineImpl implements ProcessEngine {
 			throws EngineIllegalArgumentException, WorkflowNotFoundException {
 		long time = System.currentTimeMillis();
 		LOGGER.info(START_MESSAGE);
-
+                // FIXME REVIEW Put a message in the Exception
 		if (workParams == null) {
 			throw new EngineIllegalArgumentException("");
 		}
 
+                // FIXME REVIEW Put a message in the Exception
 		if (StringUtils.isEmpty(workflowId)) {
 			throw new EngineIllegalArgumentException("");
 		}
 
+                // FIXME REVIEW Put a message in the Exception
 		if (!poolWorkflows.containsKey(workflowId)) {
 			throw new WorkflowNotFoundException("");
 		}
@@ -103,7 +107,8 @@ public class ProcessEngineImpl implements ProcessEngine {
 		try {
 
 			WorkFlow workFlow = poolWorkflows.get(workflowId);
-
+			// FIXME REVIEW no exception returned for not found ? ProcessResponse is empty then... ?
+			// TODO REVIEW Try to not call getSteps 2 times
 			if (workFlow != null && workFlow.getSteps() != null && !workFlow.getSteps().isEmpty()) {
 
 				/**

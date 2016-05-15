@@ -7,7 +7,6 @@ import fr.gouv.vitam.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.core.database.collections.MongoDbAccess;
 
 public class MongoDbAccessFactory {
-
     public MongoDbAccess create(MetaDataConfiguration configuration) {
         return new MongoDbAccess(
                 new MongoClient(new ServerAddress(

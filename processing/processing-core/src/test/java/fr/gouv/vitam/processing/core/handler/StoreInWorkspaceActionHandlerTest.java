@@ -8,6 +8,11 @@ import org.junit.Before;
 import fr.gouv.vitam.processing.api.model.WorkParams;
 import fr.gouv.vitam.processing.core.utils.ContainerUtils;
 
+// TODO REVIEW missing licence header
+// TODO REVIEW missing javadoc comment
+// TODO REVIEW factor the String elements via private static final variable
+
+
 /**
  * 
  *
@@ -26,6 +31,7 @@ public class StoreInWorkspaceActionHandlerTest {
 		params.setObjectName("workflowJSONv1.json");
 
 	}
+	// FIXME REVIEW Not a test
 
 	public void test1_shoutPutObjectInWorkspace() {
 

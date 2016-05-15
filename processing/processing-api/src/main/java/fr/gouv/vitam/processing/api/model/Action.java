@@ -38,6 +38,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  */
 @JsonIgnoreProperties(ignoreUnknown = false)
+// FIXME REVIEW missing package-info
 public class Action {
 
 	@JsonProperty("action")
@@ -47,6 +48,7 @@ public class Action {
 	 * 
 	 * @return ({String}) ID of action object or bean
 	 */
+	// FIXME REVIEW do not return null
 	public String getActionKey() {
 		return actionKey;
 	}
@@ -56,6 +58,7 @@ public class Action {
 	 * 
 	 * @param actionKey
 	 */
+	// TODO REVIEW use Object setArg(arg) signature, returning this; See Rule V4
 	public void setActionKey(String actionKey) {
 		this.actionKey = actionKey;
 	}

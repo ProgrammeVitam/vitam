@@ -265,6 +265,7 @@ public class DbRequest {
      */
     protected Set<String> checkUnitAgainstRoots(final Set<String> current, final Result defaultStartSet)
             throws InvalidParseOperationException {
+    	// FIXME: was: || defaultStartSet.getCurrentIds().isEmpty() in order to allow emptyStartSet => default roots
     	if (defaultStartSet == null) {
     		// no limitation: using roots
             return current;
@@ -311,6 +312,7 @@ public class DbRequest {
         QUERY type = realQuery.getQUERY();
         FILTERARGS collectionType = requestToMongodb.model();
         if (type == QUERY.PATH) {
+        	// TODO REVIEW why removing this?
             // Check if path is compatible with previous
 //        	if (previous.getCurrentIds().isEmpty()) {
 //                previous.clear();
@@ -418,6 +420,7 @@ public class DbRequest {
         Bson roots = null;
         boolean tocheck = false;
         if (previous.getCurrentIds().isEmpty()) {
+        	// TODO: why removing this
         	// Change to MAX DEPTH <= relativeDepth
         	//roots = lte(Unit.MAXDEPTH, relativeDepth);
         } else {
@@ -443,6 +446,7 @@ public class DbRequest {
         if (roots != null) {
             query = QueryToMongodb.getFullCommand(query, roots);
         }
+    	// FIXME REVIEW now query could be null! you need to not use query if null
         LOGGER.debug("query: "+MongoDbHelper.bsonToString(query, false));
         result = MongoDbAccess.createOneResult(FILTERARGS.UNITS);
         if (GlobalDatasDb.PRINT_REQUEST) {

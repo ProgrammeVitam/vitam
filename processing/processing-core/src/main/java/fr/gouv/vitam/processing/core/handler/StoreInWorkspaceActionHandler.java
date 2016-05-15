@@ -44,16 +44,20 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
  */
 public class StoreInWorkspaceActionHandler extends ActionHandler {
 
+	// FIXME REVIEW prefer a static method getId()
 	public static final String HANDLER_ID = "storeAction";
 
+	// FIXME REVIEW private
 	public static final String CONTAINER_NOT_EXIST = "Container file does not exist";
 
 	private WorkspaceClient workspaceClient;
 
 	@Override
 	public Response execute(WorkParams params) {
+		// FIXME REVIEW you should not depend on LOGGER from another class!
 		LOGGER.info("StoreActionHandler running ...");
 		Response response = new ProcessResponse();
+		// FIXME REVIEW check null
 		if (params.getServerConfiguration() != null) {
 
 			LOGGER.info("ServerConfiguration : URL :" + params.getServerConfiguration().getUrlWorkspace());
@@ -68,6 +72,7 @@ public class StoreInWorkspaceActionHandler extends ActionHandler {
 				 * Retrieves an object representing the data at location (GUUID)
 				 * containerName/objectName
 				 **/
+                                // FIXME REVIEW Normally, this type of call is more in the test classes than in "business" code
 				InputStream sip = workspaceClient.getObject(params.getGuuid(), "seda.xml");
 				/** Put object into workspace **/
 				workspaceClient.putObject(params.getGuuid(), "step1.xml", sip);

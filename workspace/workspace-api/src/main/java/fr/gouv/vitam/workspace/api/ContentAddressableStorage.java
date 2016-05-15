@@ -5,12 +5,13 @@ import java.io.InputStream;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-
+// TODO REVIEW missing licence header
 /**
  * The ContentAddressableStorage interface.
  *
  */
 public interface ContentAddressableStorage {
+    // FIXME REVIEW should see null checking variable as IllegalArgumentException explicitely
 
     // Container
     /**
@@ -72,12 +73,14 @@ public interface ContentAddressableStorage {
      * @param containerName
      *            name of container
      */
+    // FIXME REVIEW change name to isExistingContainer(String containeNname)
     public boolean containerExists(String containerName);
 
     // FIXME
     /**
      * Lists all objects available to the full path.
      */
+    // TODO REVIEW Might be interesting to not have only String but a way to know if it is a Folder or an Object: either create a structure (model) or a String with a convention (using first part as F# O# or whatever)
     // Set<? extends String> list(String fullPath)
 
     // folder (or directory)
@@ -116,6 +119,7 @@ public interface ContentAddressableStorage {
      * @param folderName
      *            full path to the folder
      */
+    // FIXME REVIEW change name to isExistingFolder(String containeNname, String folderName)
     boolean folderExists(String containerName, String folderName);
 
     // Object
@@ -181,6 +185,7 @@ public interface ContentAddressableStorage {
      * @param objectName
      *            fully qualified name relative to the container.
      */
+    // FIXME REVIEW change name to isExistingObject(String containeNname, String objectName)
 
     public boolean objectExists(String containerName, String objectName);
 

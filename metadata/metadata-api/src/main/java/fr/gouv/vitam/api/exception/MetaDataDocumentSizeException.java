@@ -9,6 +9,7 @@ public class MetaDataDocumentSizeException extends MetaDataException{
 	 * 
 	 */
 	private static final long serialVersionUID = 3476175676691016762L;
+	// TODO REVIEW remove empty comment, specially for private
 	
 	/**
      * @param message

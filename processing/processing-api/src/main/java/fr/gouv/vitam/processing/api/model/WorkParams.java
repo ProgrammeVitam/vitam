@@ -37,17 +37,20 @@ import fr.gouv.vitam.processing.api.config.ServerConfiguration;
  * Contains all useful parameters for the process engine and handler
  * 
  */
+// TODO REVIEW improve comment form
 public class WorkParams {
-
+        // FIXME REVIEW add the notion of tenantID
 	private String containerName;
 	private String objectName;
 	// object 's id {digital, metatdata,goupeobject, SIP etc...}
 
 	private ServerConfiguration serverConfiguration;
 	private String objectId;
+	// TODO REVIEW what is the difference between objectId and guuid ? Probably the guuid is the id of the workflow instance (not the class, the instance of the class)
 	private String guuid;
 	private String metaDataRequest;
 
+	// FIXME REVIEW do not return null
 	public String getContainerName() {
 		return containerName;
 	}
@@ -61,6 +64,7 @@ public class WorkParams {
 	/**
 	 * @return the objectId
 	 */
+	// FIXME REVIEW do not return null
 	public String getObjectId() {
 		return objectId;
 	}
@@ -79,6 +83,7 @@ public class WorkParams {
 	/**
 	 * @return the objectName
 	 */
+	// FIXME REVIEW do not return null
 	public String getObjectName() {
 		return objectName;
 	}
@@ -96,6 +101,7 @@ public class WorkParams {
 	/**
 	 * @return the metaDataRequest
 	 */
+	// FIXME REVIEW do not return null
 	public String getMetaDataRequest() {
 		return metaDataRequest;
 	}
@@ -113,6 +119,7 @@ public class WorkParams {
 	/**
 	 * @return the serverConfiguration
 	 */
+	// FIXME REVIEW do not return null
 	public ServerConfiguration getServerConfiguration() {
 		return serverConfiguration;
 	}
@@ -129,6 +136,7 @@ public class WorkParams {
 	/**
 	 * @return the guuid
 	 */
+	// FIXME REVIEW do not return null
 	public String getGuuid() {
 		return guuid;
 	}

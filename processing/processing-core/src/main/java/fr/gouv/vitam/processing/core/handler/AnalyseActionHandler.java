@@ -33,18 +33,21 @@ import fr.gouv.vitam.processing.api.model.ProcessResponse;
 import fr.gouv.vitam.processing.api.model.Response;
 import fr.gouv.vitam.processing.api.model.WorkParams;
 
+
 /**
  * 
- * //TODO javadoc
+ * // TODO REVIEW javadoc
  *
  * 
  */
 public class AnalyseActionHandler extends ActionHandler {
+	// FIXME REVIEW prefer a static method getId()
 
 	public static final String HANDLER_ID = "analyseAction";
 
 	@Override
 	public Response execute(WorkParams params) {
+		// FIXME REVIEW you should not depend on LOGGER from another class!
 
 		LOGGER.info("AnalyseActionHandler running ...");
 		Response response = new ProcessResponse();

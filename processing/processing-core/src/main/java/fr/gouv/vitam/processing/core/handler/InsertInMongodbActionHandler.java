@@ -46,7 +46,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
  *
  */
 public class InsertInMongodbActionHandler extends ActionHandler {
-
+	// FIXME REVIEW prefer a static method getId()
 	public static final String HANDLER_ID = "saveInDataBaseAction";
 
 	private MetaDataClient metaDataClient;
@@ -59,6 +59,7 @@ public class InsertInMongodbActionHandler extends ActionHandler {
 
 	@Override
 	public Response execute(WorkParams params) {
+		// FIXME REVIEW you should not depend on LOGGER from another class!
 		LOGGER.info("InsertInMongodbActionHandler running ...");
 		/**
 		 * 
@@ -71,8 +72,9 @@ public class InsertInMongodbActionHandler extends ActionHandler {
 		 * 
 		 */
 		Response response = new ProcessResponse();
-
+                // TODO REVIEW The metaDataRequest is not tested
 		if (params == null) {
+			// TODO REVIEW too late
 			LOGGER.info("parameters or metatDataRequest is null");
 			return messageKo("parameters or metatDataRequest is null");
 		}
@@ -83,6 +85,7 @@ public class InsertInMongodbActionHandler extends ActionHandler {
 			 * Retrieves an inputStream representing the data at location
 			 * (GUUID) containerName and objectName
 			 **/
+			// FIXME REVIEW do not use static file name!
 			InputStream inputStream = workspaceClient.getObject(params.getGuuid(), "json.json");
 			// convert InputStream To String
 			// populate Request Insert

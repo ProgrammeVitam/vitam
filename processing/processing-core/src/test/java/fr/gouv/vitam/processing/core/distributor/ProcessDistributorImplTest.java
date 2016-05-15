@@ -13,6 +13,10 @@ import fr.gouv.vitam.processing.api.model.WorkFlow;
 import fr.gouv.vitam.processing.api.model.WorkParams;
 import fr.gouv.vitam.processing.core.utils.ProcessPopulator;
 
+// TODO REVIEW missing licence header
+// TODO REVIEW missing javadoc comment
+// TODO REVIEW factor the String elements via private static final variable
+
 public class ProcessDistributorImplTest {
 
 	private ProcessDistributorImpl processDistributorImpl;
