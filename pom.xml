@@ -93,6 +93,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<!-- Build environment Properties -->
+		<project.scm.id>vitam-gitlab</project.scm.id>
 		<vitam.docker.registry.pull>docker.programmevitam.fr</vitam.docker.registry.pull>
 		<vitam.docker.registry.push>vitam-prod-app-6.internet.agri:8082</vitam.docker.registry.push>
 
