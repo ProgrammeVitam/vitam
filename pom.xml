@@ -323,8 +323,25 @@
 					<version>2.2</version>
 				</plugin>
 				<plugin>
-					<!-- Release the current project - updating the POM and tagging in the 
-						SCM. -->
+					<!-- SCM plugin ; set as using jgit for git (essentially for the release plugin) -->
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-scm-plugin</artifactId>
+					<version>1.9.4</version>
+					<configuration>
+						<providerImplementations>
+							<git>jgit</git>
+						</providerImplementations>
+					</configuration>
+					<dependencies>
+						<dependency>
+							<groupId>org.apache.maven.scm</groupId>
+							<artifactId>maven-scm-provider-jgit</artifactId>
+							<version>1.9.4</version>
+						</dependency>
+					</dependencies>
+				</plugin>
+				<plugin>
+					<!-- Release the current project - updating the POM and tagging in the SCM. -->
 					<artifactId>maven-release-plugin</artifactId>
 					<version>2.5.3</version>
 					<configuration>
@@ -336,7 +353,17 @@
 						<!-- Don't ask which dependencies to resolve ( 0:All 1:Project Dependencies 
 							2:Plugins 3:Reports 4:Extensions ) -->
 						<!--<alwaysResolveDependencyType>1</alwaysResolveDependencyType> -->
+						<providerImplementations>
+							<git>jgit</git>
+						</providerImplementations>
 					</configuration>
+					<dependencies>
+						<dependency>
+							<groupId>org.apache.maven.scm</groupId>
+							<artifactId>maven-scm-provider-jgit</artifactId>
+							<version>1.9.4</version>
+						</dependency>
+					</dependencies>
 				</plugin>
 				<plugin>
 					<!-- Build a JAR of sources for use in IDEs and distribution to the 
