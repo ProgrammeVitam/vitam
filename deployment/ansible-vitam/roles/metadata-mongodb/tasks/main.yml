@@ -28,6 +28,7 @@
     image: "{{docker_registry_hostname}}/mongo:{{vitam_docker_tag}}"
     state: started
     restart_policy: always
+    pull: always
     ports:
       - "{{vitam_docker_port_mongodb}}:27017"
     volumes: 

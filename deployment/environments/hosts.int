@@ -8,7 +8,7 @@ hosts-storage
 hosts-ingest
 
 [hosts-metadata]
-#vitam-prod-app-10.internet.agri
+vitam-prod-app-10.internet.agri
 
 [hosts-workspace]
 vitam-prod-app-10.internet.agri
