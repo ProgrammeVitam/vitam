@@ -36,7 +36,9 @@ public class UnitResource {
 	private static final Logger LOGGER = Logger.getLogger(UnitResource.class);
 	private MetaDataImpl metaDataImpl;
 
+    // TODO: comment
 	public UnitResource(MetaDataConfiguration configuration) {
+		// FIXME REVIEW should not create the implementation directly but using the method as constructor
 		metaDataImpl = new MetaDataImpl(configuration, new MongoDbAccessFactory(), DbRequest::new);
 		LOGGER.info("init MetaData Resource server");
 	}
@@ -47,6 +49,7 @@ public class UnitResource {
 	@Path("status")
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
+	// FIXME REVIEW should be 204
 	public Response status() {
 		return Response.status(Status.OK).build();
 	}
@@ -63,6 +66,7 @@ public class UnitResource {
 		JsonNode queryJson;
 		try {
 			metaDataImpl.insertUnit(insertRequest);
+			// FIXME REVIEW since you parse it, parse it first then pass it to insertUnit as a Json
 			queryJson = JsonHandler.getFromString(insertRequest);
 		} catch (InvalidParseOperationException e) {
 			LOGGER.error(e.getMessage());

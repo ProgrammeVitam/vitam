@@ -12,6 +12,10 @@ import fr.gouv.vitam.processing.api.model.Response;
 import fr.gouv.vitam.processing.api.model.WorkParams;
 import fr.gouv.vitam.processing.core.utils.ContainerUtils;
 
+// TODO REVIEW missing licence header
+// TODO REVIEW missing javadoc comment
+// TODO REVIEW factor the String elements via private static final variable
+
 public class ProcessEngineImplTest {
 
 	ProcessEngineImpl processEngine;
@@ -28,7 +32,7 @@ public class ProcessEngineImplTest {
 	}
 
 	// @Test
-	// TODO mock
+	// TODO REVIEW mock
 	public void processEngineTest() {
 
 		workParams.setContainerName(ContainerUtils.generateContainerName());
@@ -55,6 +59,7 @@ public class ProcessEngineImplTest {
 
 	}
 
+        // FIXME REVIEW Complete the tests
 	@Test
 	public void status_response_should_be_fatal() {
 

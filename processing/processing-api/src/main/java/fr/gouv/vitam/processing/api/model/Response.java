@@ -30,6 +30,8 @@
 package fr.gouv.vitam.processing.api.model;
 
 import java.util.List;
+// FIXME REVIEW Add a returnValue (in addition to the return Code)
+// TODO REVIEW comments
 
 public interface Response {
 
@@ -44,6 +46,7 @@ public interface Response {
 	 * @param status
 	 *            ENUM statusCode
 	 */
+	// TODO REVIEW use Object setArg(arg) signature, returning this; See Rule V4
 	public void setStatus(StatusCode status);
 
 	/**
@@ -57,5 +60,6 @@ public interface Response {
 	 * @param messages
 	 *            list of functional error message
 	 */
+	// TODO REVIEW use Object setArg(arg) signature, returning this;
 	public void setMessages(List<String> messages);
 }

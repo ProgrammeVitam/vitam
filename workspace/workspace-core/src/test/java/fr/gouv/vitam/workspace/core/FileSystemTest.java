@@ -16,7 +16,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.core.ContentAddressableStorageImpl;
 import fr.gouv.vitam.workspace.core.FileSystem;
-
+// TODO REVIEW Add licence header
 public class FileSystemTest {
 
     @Rule
@@ -24,7 +24,7 @@ public class FileSystemTest {
 
     private ContentAddressableStorageImpl workspace;
     private File tempDir;
-
+    // TODO REVIEW Add variable for file.pdf
     private static final String CONTAINER_NAME = "myContainer";
     private static final String FOLDER_NAME = "myFolder";
     private static final String OBJECT_NAME = "myObject";

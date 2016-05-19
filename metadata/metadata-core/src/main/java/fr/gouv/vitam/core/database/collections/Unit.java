@@ -593,6 +593,7 @@ public class Unit extends VitamDocument<Unit> {
             	max += val;
             }
             update = combine(update, updateSubDepth, updateSubUnits);
+            // FIXME REVIEW Why removing this computation without knowing why?
 //            if (min < unit.getInteger(MINDEPTH)) {
 //                update = combine(update, set(MINDEPTH, min));
 //            }

@@ -36,7 +36,9 @@ package fr.gouv.vitam.processing.api.config;
  *
  */
 public class ServerConfiguration {
-
+	// FIXME REVIEW missing package-info
+	// FIXME REVIEW no test! but this API contains also implementation
+	// TODO REVIEW Comment
 	public ServerConfiguration() {
 
 	}
@@ -48,6 +50,7 @@ public class ServerConfiguration {
 	/**
 	 * @return the urlMetada
 	 */
+	// FIXME REVIEW do not return null
 	public String getUrlMetada() {
 		return this.urlMetada;
 	}
@@ -56,6 +59,7 @@ public class ServerConfiguration {
 	 * @param urlMetada
 	 *            the urlMetada to set
 	 */
+	// TODO REVIEW use Object setArg(arg) signature, returning this; See Rule V4
 	public void setUrlMetada(String urlMetada) {
 		this.urlMetada = urlMetada;
 	}
@@ -63,6 +67,7 @@ public class ServerConfiguration {
 	/**
 	 * @return the urlWorkspace
 	 */
+	// FIXME REVIEW do not return null
 	public String getUrlWorkspace() {
 		return this.urlWorkspace;
 	}
@@ -71,6 +76,7 @@ public class ServerConfiguration {
 	 * @param urlWorkspace
 	 *            the urlWorkspace to set
 	 */
+	// TODO REVIEW use Object setArg(arg) signature, returning this;
 	public void setUrlWorkspace(String urlWorkspace) {
 		this.urlWorkspace = urlWorkspace;
 	}

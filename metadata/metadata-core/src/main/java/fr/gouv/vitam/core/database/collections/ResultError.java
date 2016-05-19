@@ -49,6 +49,7 @@ public class ResultError extends Result {
      * @param type
      * @param collection
      */
+    // TODO REVIEW rename argument as set
     public ResultError(FILTERARGS type, final Set<String> collection) {
         super(type, collection);
     }

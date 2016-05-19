@@ -51,6 +51,8 @@ import fr.gouv.vitam.processing.core.worker.WorkerImpl;
  * response for manage a post actions step
  * 
  */
+// FIXME REVIEW missing package-info
+// FIXME REVIEW src/main/resources should not contains test files
 public class ProcessDistributorImpl implements ProcessDistributor {
 
 	private static final String ELAPSED_TIME_MESSAGE = "Total elapsed time in execution of method distribute is :";

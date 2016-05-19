@@ -129,7 +129,7 @@ public abstract class VitamDocument<E> extends Document {
 	    	int domainId = GlobalDatasDb.UUID_FACTORY.getUuid(getId()).getDomainId();
 	        append(DOMID, domainId);
 		} catch (InvalidUuidOperationException e) {
-			// TODO Auto-generated catch block
+			// TODO REVIEW Auto-generated catch block
 			e.printStackTrace();
 		}
         return this;

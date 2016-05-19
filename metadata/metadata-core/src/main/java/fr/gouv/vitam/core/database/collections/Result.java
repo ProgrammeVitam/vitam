@@ -86,7 +86,8 @@ public abstract class Result {
      */
     public Result(FILTERARGS type, Collection<String> collection) {
         this.type = type;
-        currentIds.addAll(collection);  
+        currentIds.addAll(collection);
+        // TODO: I understand why but not the possible reason of such value?
         currentIds.remove("");
 		nbResult = currentIds.size();
 	}

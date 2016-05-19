@@ -9,6 +9,8 @@ import org.jclouds.filesystem.reference.FilesystemConstants;
 
 import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
 
+
+// TODO REVIEW Licence file
 /**
  * FileSystemMock implements a Content Addressable Storage that stores objects
  * on the file system.
@@ -17,6 +19,7 @@ public class FileSystem extends ContentAddressableStorageImpl {
 
     private static final Logger LOGGER = Logger.getLogger(FileSystem.class);
 
+    // TODO REVIEW comment
     public FileSystem(StorageConfiguration configuration) {
         super(configuration);
     }

@@ -57,6 +57,7 @@ public class QueryHelperTest {
 
     @Before
     public void setupConfig() {
+    	// FIXME REVIEW should backup pevious values and reset to previous ones @After
         GlobalDatas.limitValue = 1000;
         GlobalDatas.limitParameter = 100;
     }

@@ -72,6 +72,8 @@ public class ProcessPopulator {
 		return process;
 	}
 
+        // FIXME REVIEW Don't throw global Exception but specify the detailled Exception thrown by the method
+        // TODO REVIEW Normally, this method is more in the test classes
 	private static File getFileByName(String workflowName) throws Exception {
 
 		return new File(Thread.currentThread().getContextClassLoader().getResource(workflowName).getFile());

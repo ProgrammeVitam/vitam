@@ -40,6 +40,8 @@ import fr.gouv.vitam.processing.api.model.WorkParams;
  * action handler class must be implement this interface
  *
  */
+// TODO REVIEW improve comment form
+// FIXME REVIEW missing package-info
 public interface Action {
 
 	/**

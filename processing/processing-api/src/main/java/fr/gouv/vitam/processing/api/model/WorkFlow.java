@@ -52,10 +52,12 @@ public class WorkFlow {
 	@JsonProperty("steps")
 	protected List<Step> steps;
 
+	// FIXME REVIEW do not return null
 	public String getId() {
 		return id;
 	}
 
+	// TODO REVIEW use Object setArg(arg) signature, returning this; + comment
 	public void setId(String id) {
 		this.id = id;
 	}
@@ -64,14 +66,18 @@ public class WorkFlow {
 	 * 
 	 * @return comments
 	 */
+	// FIXME REVIEW do not return null
 	public String getComment() {
 		return comment;
 	}
 
+	// TODO REVIEW comment
+	// FIXME REVIEW do not return null
 	public List<Step> getSteps() {
 		return steps;
 	}
 
+	// TODO REVIEW use Object setArg(arg) signature, returning this; + comment
 	public void setSteps(List<Step> steps) {
 		this.steps = steps;
 	}
@@ -80,13 +86,15 @@ public class WorkFlow {
 	 * 
 	 * @param comments
 	 */
+	// TODO REVIEW use Object setArg(arg) signature, returning this; See Rule V4
 	public void setComment(String comments) {
 		this.comment = comments;
 	}
 
 	@Override
 	public String toString() {
-
+		// FIXME REVIEW see Rule N12
+		// FIXME REVIEW see Rule N13
 		StringBuilder sb = new StringBuilder();
 		sb.append("ID=" + getId() + "\n");
 		sb.append("comments=" + getComment() + "\n");

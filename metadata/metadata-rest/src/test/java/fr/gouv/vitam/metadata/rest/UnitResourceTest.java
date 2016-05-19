@@ -60,6 +60,7 @@ public class UnitResourceTest {
 
     private static final String SERVER_HOST = "localhost";
 
+    // TODO REVIEW Magic number ?
     private static final int SERVER_PORT = 56789;
 
     private static final String buildDSLWithOptions(String query, String data) {

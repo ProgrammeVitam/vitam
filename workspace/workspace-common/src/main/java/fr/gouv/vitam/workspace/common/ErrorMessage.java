@@ -1,5 +1,9 @@
 package fr.gouv.vitam.workspace.common;
 
+
+// TODO REVIEW missing Licence header
+// TODO REVIEW missing coments
+// TODO REVIEW missing i18n 
 public enum ErrorMessage {
 
     CONTAINER_ALREADY_EXIST("Container already exist "), 

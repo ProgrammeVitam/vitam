@@ -3,6 +3,8 @@ package fr.gouv.vitam.api.model;
 /** DatabaseCursor class
  *  	Show database position of request response
  */
+// TODO REVIEW Fix comment with a correct vision (either adding <br> either adding ':'
+// FIXME REVIEW should be final
 public class DatabaseCursor {
 	private int total;
 	private int offset;
@@ -18,6 +20,7 @@ public class DatabaseCursor {
 	 * 			number limit of unit per response
 	 */
 	public DatabaseCursor(int total, int offset, int limit) {
+		// TODO REVIEW is there any illegal values ?
 		this.total = total;
 		this.offset = offset;
 		this.limit = limit;

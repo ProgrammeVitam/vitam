@@ -41,16 +41,20 @@ import fr.gouv.vitam.processing.api.engine.ProcessManagement;
 import fr.gouv.vitam.processing.api.model.Response;
 import fr.gouv.vitam.processing.api.model.WorkParams;
 
+// TODO REVIEW Documentation is not sufficient
+
 /**
  * ProcessManagementImpl
  * 
  * 
  * 
  */
+// FIXME REVIEW separate package for Management and Engine
 public class ProcessManagementImpl implements ProcessManagement {
 
 	private ProcessEngine processEngine;
 
+	// FIXME REVIEW make it private and build a public static getInstance() / createInstance()
 	public ProcessManagementImpl() {
 		/**
 		 * inject process engine
@@ -62,12 +66,14 @@ public class ProcessManagementImpl implements ProcessManagement {
 	public Response executeVitamProcess(WorkParams workParams, String workflowId) {
 		FileReader yamlFile;
 		try {
+                        // FIXME REVIEW Normally, this type of call is more in the test classes than in "business" code
 			yamlFile = new FileReader(new File(
 					Thread.currentThread().getContextClassLoader().getSystemResource("processing.conf").getFile()));
 			ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
 			ServerConfiguration configuration = new ServerConfiguration();
 			configuration = mapper.readValue(yamlFile, ServerConfiguration.class);
 			workParams.setServerConfiguration(configuration);
+                // FIXME REVIEW Manage Exception
 		} catch (Exception e) {
 
 		}
