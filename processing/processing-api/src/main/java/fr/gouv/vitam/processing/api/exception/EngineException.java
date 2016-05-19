@@ -33,17 +33,23 @@ package fr.gouv.vitam.processing.api.exception;
  * 
  * Runtime exception that is the superclass of all VITAM engine exceptions. *
  */
+// FIXME REVIEW RuntimeException is a "not checked" exception, while it should be
+// TODO REVIEW improve comment form
+// FIXME REVIEW missing package-info
 public class EngineException extends RuntimeException {
 
 	/**
 	 * 
 	 */
+	// TODO: no empty comment
 	private static final long serialVersionUID = 3375441536550669880L;
 
+	// TODO REVIEW comment
 	public EngineException(String message, Throwable cause) {
 		super(message, cause);
 	}
 
+	// TODO REVIEW comment
 	public EngineException(String message) {
 		super(message);
 	}

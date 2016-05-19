@@ -19,6 +19,8 @@ import com.jayway.restassured.http.ContentType;
 import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
 import fr.gouv.vitam.workspace.common.Entry;
 
+// TODO REVIEW missing licence header
+
 public class WorkspaceResourceTest {
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();

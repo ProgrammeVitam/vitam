@@ -28,6 +28,7 @@ public class MetaDataApplication {
 
     private static final String CONFIG_FILE_IS_A_MANDATORY_ARGUMENT = "Config file is a mandatory argument";
 
+    // TODO: comment
     public static void main(String[] args) {
         try {
             new MetaDataApplication().configure(args);
@@ -38,9 +39,9 @@ public class MetaDataApplication {
         }
 
     }
-
+    // TODO: comment and probably protected
     public void configure(String... arguments) throws Exception {
-        // FIXME define a vitam config
+        // FIXME REVIEW define a real vitam config
 
         if (arguments.length >= 1) {
             try {
@@ -69,6 +70,7 @@ public class MetaDataApplication {
 
     }
 
+    // TODO: comment and probably protected
     public static void run(MetaDataConfiguration configuration, int serverPort) throws Exception {
         ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(JacksonFeature.class);

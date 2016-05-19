@@ -44,6 +44,7 @@ import fr.gouv.vitam.processing.api.model.WorkParams;
  * Various methods of Worker
  *
  */
+// TODO REVIEW improve comment form
 public interface Worker {
 	/**
 	 * 
@@ -57,7 +58,7 @@ public interface Worker {
 	 * @throws EngineIllegalArgumentException
 	 * @throws HandlerNotFoundException
 	 */
-
+	// FIXME REVIEW be consistent: choose either run ou execute, but not both and use it everywhere (think to the other developers)
 	List<Response> run(WorkParams workParams, Step step)
 			throws EngineIllegalArgumentException, HandlerNotFoundException;
 

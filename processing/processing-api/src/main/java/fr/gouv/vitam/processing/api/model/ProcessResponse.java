@@ -38,7 +38,10 @@ import java.util.Map;
  * 
  * contains global process status, messages and list of action results
  */
+// TODO REVIEW improve comment form
+// FIXME REVIEW should be protected and using Factory
 public class ProcessResponse implements Response {
+	// FIXME REVIEW separate interface from implementation (2 packages): you should choose either to have an interface or not, and to have factory or not; also be consistent, if interface, then no implementation
 	/**
 	 * Enum status code
 	 */
@@ -59,6 +62,7 @@ public class ProcessResponse implements Response {
 	private Map<String, List<Response>> stepResponses;
 
 	@Override
+	// FIXME REVIEW do not return null
 	public StatusCode getStatus() {
 		return status;
 	}
@@ -69,6 +73,7 @@ public class ProcessResponse implements Response {
 	}
 
 	@Override
+	// FIXME REVIEW do not return null
 	public List<String> getMessages() {
 		return messages;
 	}
@@ -81,6 +86,7 @@ public class ProcessResponse implements Response {
 	/**
 	 * @return the stepResponses
 	 */
+	// FIXME REVIEW do not return null
 	public Map<String, List<Response>> getStepResponses() {
 		return stepResponses;
 	}

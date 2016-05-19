@@ -61,8 +61,9 @@ public interface MetaData {
 	 * @throws MetaDataDocumentSizeException 
 	 * 			Throw if Unit size is too big
 	 */
+    // FIXME REVIEW shall add IllegalArgumentException for insertRequest null
     public void insertUnit(String insertRequest) throws InvalidParseOperationException, MetaDataNotFoundException,
     MetaDataAlreadyExistException, MetaDataExecutionException, MetaDataMaxDepthException, MetaDataDocumentSizeException;
-    // TODO Select, Update, Delete
-    
+    // TODO REVIEW Select, Update, Delete
+    // FIXME REVIEW Should allow parsed Json as alternative
 }

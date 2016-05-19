@@ -17,6 +17,10 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExi
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 
+
+// TODO REVIEW Add licence file
+// FIXME REVIEW In the interface, you have the throws exception in the prototype . Put it also in the Implementation Class
+// FIXME REVIEW The name is not clean . It has Impl suffix but is the abstract class . The real implementation is FileSystem (which don't have Impl suffix). This has to be XxxxAbstract and provide a Factory to create the right implmentation one.
 /**
  * ContentAddressableStorageImpl implements a Content Addressable Storage
  */
@@ -26,7 +30,9 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
 
     private BlobStoreContext context;
 
+    // TODO REVIEW comment
     public ContentAddressableStorageImpl(StorageConfiguration configuration) {
+        // TODO REVIEW super() Useless as it is implements an interface
         super();
         context = getContext(configuration);
     }
@@ -44,6 +50,7 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
             }
 
         } catch (ContentAddressableStorageAlreadyExistException e) {
+        // TODO REVIEW You already log the same message before throwing the exception
             LOGGER.error(e.getMessage());
             throw e;
         } finally {
@@ -57,7 +64,6 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
         ParametersChecker.checkParamater(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
         try {
             BlobStore blobStore = context.getBlobStore();
-
             if (!containerExists(containerName)) {
                 LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
                 throw new ContentAddressableStorageNotFoundException(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
@@ -66,6 +72,7 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
             }
 
         } catch (ContentAddressableStorageNotFoundException e) {
+        // TODO REVIEW You already log the same message before throwing the exception
             LOGGER.error(e.getMessage());
             throw e;
         } finally {
@@ -91,7 +98,6 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
                 LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
                 throw new ContentAddressableStorageNotFoundException(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
             }
-
             if (recursive) {
                 blobStore.deleteContainer(containerName);
             } else {
@@ -99,6 +105,7 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
             }
 
         } catch (ContentAddressableStorageNotFoundException e) {
+        // TODO REVIEW You already log the same message before throwing the exception
             LOGGER.error(e.getMessage());
             throw e;
         } finally {
@@ -136,6 +143,7 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
             blobStore.createDirectory(containerName, folderName);
 
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageAlreadyExistException e) {
+        // TODO REVIEW You already log the same message before throwing the exception
             LOGGER.error(e.getMessage());
             throw e;
         } finally {
@@ -154,10 +162,11 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
                 LOGGER.error(ErrorMessage.FOLDER_NOT_FOUND.getMessage() + folderName);
                 throw new ContentAddressableStorageNotFoundException(ErrorMessage.FOLDER_NOT_FOUND.getMessage() + folderName);
             }
-
+            // FIXME REVIEW should it be a check of emptyness?
             blobStore.deleteDirectory(containerName, folderName);
 
         } catch (ContentAddressableStorageNotFoundException e) {
+        // TODO REVIEW You already log the same message before throwing the exception
             LOGGER.error(e.getMessage());
             throw e;
         } finally {
@@ -216,6 +225,8 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
         } finally {
             context.close();
         }
+        // FIXME REVIEW in Commons create an utility methods (among others) that returns a static final true NullInputStream (static singleton), not a like you did
+        // FIXME REVIEW : The method return an empty InputStream if the object name doesn't exists or if the file is empty. If the file doesn't exist, it must have a different return value (notfound)
         return new ByteArrayInputStream(new byte[0]);
     }
 
@@ -232,6 +243,7 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
 
             blobStore.removeBlob(containerName, objectName);
         } catch (ContentAddressableStorageNotFoundException e) {
+        // TODO REVIEW You already log the same message before throwing the exception
             LOGGER.error(e.getMessage());
             throw e;
         } finally {

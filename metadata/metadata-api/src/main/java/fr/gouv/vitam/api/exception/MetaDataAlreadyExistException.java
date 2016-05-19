@@ -9,7 +9,8 @@ public class MetaDataAlreadyExistException extends MetaDataException{
 	 * 
 	 */
 	private static final long serialVersionUID = 130421172214167262L;
-
+	// TODO REVIEW remove empty comment, specially for private
+	
 	/**
      * @param message
      *            message to associate with the exception

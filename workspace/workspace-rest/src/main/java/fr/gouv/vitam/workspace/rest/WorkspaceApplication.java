@@ -17,7 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
-
+// TODO HEADER missing licence header 
 /**
  * The Workspace application.
  *
@@ -30,6 +30,7 @@ public class WorkspaceApplication {
 
     private static final String CONFIG_FILE_IS_A_MANDATORY_ARGUMENT = "Config file is a mandatory argument";
 
+    // TODO REVIEW comment
     public static void main(String[] args) {
         try {
             new WorkspaceApplication().configure(args);
@@ -51,7 +52,8 @@ public class WorkspaceApplication {
 
     public void configure(String... arguments) throws RuntimeException {
         // FIXME define a vitam config
-
+        // TODO REVIEW If you use a YAML file, why use a variable number of parameters 
+        // TODO REVIEW The host on which the server will listen must be specified (to prevent from listen on 0.0.0.0)
         if (arguments.length >= 1) {
             try {
                 FileReader yamlFile = new FileReader(new File(arguments[0]));
@@ -89,6 +91,7 @@ public class WorkspaceApplication {
      * @throws Exception
      *             Thrown if something goes wrong
      */
+    // FIXME REVIEW Don't throw Exception
     public void run(StorageConfiguration configuration, int serverPort) throws Exception {
 
         ResourceConfig resourceConfig = new ResourceConfig();
@@ -107,6 +110,7 @@ public class WorkspaceApplication {
 
     }
 
+    // FIXME REVIEW Don't throw Exception
     public void stop() throws Exception {
         server.stop();
     }

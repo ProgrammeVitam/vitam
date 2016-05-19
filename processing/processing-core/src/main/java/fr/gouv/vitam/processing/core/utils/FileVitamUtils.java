@@ -11,8 +11,12 @@ import org.apache.commons.io.FileUtils;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+// FIXME REVIEW Don't use the implementation but the fr.gouv.vitam.common.UUIDFactory
 import fr.gouv.vitam.common.UUID22;
+
+// TODO REVIEW missing licence header
+// TODO REVIEW missing javadoc comments
+// FIXME REVIEW if FileVitamUtils => Commons
 
 public class FileVitamUtils {
 
@@ -22,7 +26,7 @@ public class FileVitamUtils {
 	}
 
 	public static File convertInputStreamToFile(InputStream initialStream) {
-
+                // FIXME REVIEW Don't use absolute path for file 
 		File file = new File("/tmp/file1");
 
 		file.setReadable(true);
@@ -35,7 +39,7 @@ public class FileVitamUtils {
 
 		return file;
 	}
-
+        // FIXME REVIEW try to not put the json file in memory .
 	public static String convertInputStreamXMLToString(InputStream input) {
 
 		LOGGER.info("In FileVitamUtils.convertInputStreamXMLToString ...");
@@ -44,7 +48,9 @@ public class FileVitamUtils {
 		try {
 
 			String xml = read(input);
+                        // FIXME REVIEW Declare the correct import
 			JSONObject metadataObject = org.json.XML.toJSONObject(xml);
+			// FIXME REVIEW Use factory
 			metadataObject.put("_id", new UUID22().toString());
 			jsonString = metadataObject.toString();
 
@@ -76,7 +82,7 @@ public class FileVitamUtils {
 		}
 		return jsonString;
 	}
-
+        // FIXME REVIEW This implemnentation is not correct as it stores all the file in memory. Maybe pache Commons IO (IOUtils.toString(is))
 	public static String read(InputStream input) throws IOException {
 		try (BufferedReader buffer = new BufferedReader(new InputStreamReader(input))) {
 			return buffer.lines().collect(Collectors.joining("\n"));

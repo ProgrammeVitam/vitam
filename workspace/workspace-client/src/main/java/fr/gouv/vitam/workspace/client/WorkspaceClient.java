@@ -26,6 +26,10 @@ import fr.gouv.vitam.workspace.common.Entry;
 import fr.gouv.vitam.workspace.common.ErrorMessage;
 import fr.gouv.vitam.workspace.common.ParametersChecker;
 
+// TODO REVIEW missing licence header
+// TODO REVIEW missing comments
+// TODO REVIEW missing explicit exception throwing in signatures
+
 public class WorkspaceClient implements ContentAddressableStorage {
 
     private static final Logger LOGGER = Logger.getLogger(WorkspaceClient.class);
@@ -136,7 +140,7 @@ public class WorkspaceClient implements ContentAddressableStorage {
                 .request().head();
         return (Response.Status.OK.getStatusCode() == response.getStatus());
     }
-
+    // TODO REVIEW m=we might change the contract of the implementation later on (POST on /objects/name directly in order to prevent multipart) 
     @Override
     public void putObject(String containerName, String objectName, InputStream stream) {
         ParametersChecker.checkParamater(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(), containerName, objectName);

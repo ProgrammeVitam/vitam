@@ -75,18 +75,20 @@ public class WorkerImpl implements Worker {
 		 */
 		init();
 	}
-
+        // FIXME REVIEW Define the scope of the method
 	Map<String, ActionHandler> actions = new HashMap<>();
 
 	private void init() {
 		/**
 		 * Pool of action 's object
 		 */
+                // FIXME REVIEW Why protect the fourth call and not the 3 first ?
 		actions.put(AnalyseActionHandler.HANDLER_ID, new AnalyseActionHandler());
 		actions.put(ExtractContentActionHandler.HANDLER_ID, new ExtractContentActionHandler());
 		actions.put(StoreInWorkspaceActionHandler.HANDLER_ID, new StoreInWorkspaceActionHandler());
 		try {
 			actions.put(InsertInMongodbActionHandler.HANDLER_ID, new InsertInMongodbActionHandler());
+                // FIXME REVIEW Don't catch Exception but specific exception
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage());
 		}

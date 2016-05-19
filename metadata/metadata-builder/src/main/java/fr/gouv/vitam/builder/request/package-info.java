@@ -31,4 +31,5 @@
  * Main package for Query support in Vitam
  *
  */
+// FIXME REVIEW pom.xml : junit => test
 package fr.gouv.vitam.builder.request;

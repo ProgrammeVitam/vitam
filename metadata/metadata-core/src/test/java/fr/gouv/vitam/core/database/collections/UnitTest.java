@@ -47,7 +47,7 @@ public class UnitTest {
         List<Unit> units = new ArrayList<Unit>();
         units.add(subUnit1);
         units.add(subUnit2);
-        //TODO
+        // TODO REVIEW add multiple units at once seems in error
         //unit.addUnit(units);
     }
     

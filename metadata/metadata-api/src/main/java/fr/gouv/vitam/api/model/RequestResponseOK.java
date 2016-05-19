@@ -8,8 +8,11 @@ import java.util.List;
  * contains hits and result objects
  *
  */
+// TODO REVIEW Fix comment with a correct vision (either adding <br> either adding ':'
+// FIXME REVIEW should be final
 public class RequestResponseOK extends RequestResponse {
 	private DatabaseCursor hits;
+	// FIXME REVIEW should be List<String> as declaration side
 	private ArrayList<String> results;
 
 	/**
@@ -17,6 +20,7 @@ public class RequestResponseOK extends RequestResponse {
 	 *
 	 **/
 	public RequestResponseOK() {
+		// FIXME REVIEW choose either assigning an empty ArrayList (explicit empty static final List), either keeping this List (and therefore add "add" method and change "set" method to clean and addAll): my preference would go to fix static final empty list 
 		this.results = new ArrayList<>();
 	}
 
@@ -24,6 +28,7 @@ public class RequestResponseOK extends RequestResponse {
      * @return the hits of RequestResponseOK object
      */	
 	public DatabaseCursor getHits() {
+		// FIXME REVIEW do not return null but empty
 		return hits;
 	}
 
@@ -59,6 +64,7 @@ public class RequestResponseOK extends RequestResponse {
 	 * @return the RequestReponseOK with the result is setted
 	 */
 	public RequestResponseOK setResults(List<String> results) {
+		// FIXME REVIEW You cannot cast to ArrayList since argument is a List (could be whatever)
 		this.results = (ArrayList<String>) results;
 		return this;
 	}
@@ -66,6 +72,7 @@ public class RequestResponseOK extends RequestResponse {
 	/**
 	 * @return the RequestResponseOK object
 	 */
+	// TODO REVIEW what is the purpose?
 	public RequestResponseOK build() {
 		return this;
 	}

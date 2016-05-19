@@ -32,12 +32,16 @@ package fr.gouv.vitam.processing.core.utils;
 import java.io.IOException;
 import java.io.InputStream;
 
+// TODO REVIEW missing javadoc comment
+// FIXME REVIEW missing package-info
+
 public class ContainerUtils {
 
 	public static String generateContainerName() {
 		return "container";
 	}
 
+        // TODO REVIEW Normally, this method is more in the test classes
 	public static InputStream getTestStream(String file) throws IOException {
 		return Thread.currentThread().getContextClassLoader().getResourceAsStream(file);
 	}

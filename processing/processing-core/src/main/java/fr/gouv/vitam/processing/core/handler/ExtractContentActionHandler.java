@@ -46,6 +46,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
  *
  */
 public class ExtractContentActionHandler extends ActionHandler {
+	// FIXME REVIEW prefer a static method getId()
 
 	public static final String HANDLER_ID = "extractContentAction";
 
@@ -53,11 +54,13 @@ public class ExtractContentActionHandler extends ActionHandler {
 
 	@Override
 	public Response execute(WorkParams params) {
+		// FIXME REVIEW you should not depend on LOGGER from another class!
 		LOGGER.info("ExtractContentActionHandler running ...");
 		Response response = new ProcessResponse();
 		/**
 		 * 
 		 */
+                // FIXME REVIEW Throw an exception or send a messageFatal is the params is incorrect
 		if (params != null && params.getServerConfiguration() != null) {
 			LOGGER.info("instantiate WorkspaceClient and metaDataClient ...");
 			this.workspaceClient = new WorkspaceClient(params.getServerConfiguration().getUrlWorkspace());
@@ -68,11 +71,12 @@ public class ExtractContentActionHandler extends ActionHandler {
 			 * Retrieves an object representing the data at location (GUUID)
 			 * containerName/objectName
 			 **/
+			// FIXME REVIEW name should be a global parameter (as "manifest.xml") or even a parameter from WorkParams
 			InputStream inputStream = workspaceClient.getObject(params.getGuuid(), "seda.xml");
 			/**
-			 * //TODO extract metatData
+			 * // TODO extract metatData
 			 */
-
+                        // FIXME REVIEW do not put file in memory: keep a stream a stream or ensure you have small parts to get it into memory
 			// convert xml to JSON file
 			String jsonData = FileVitamUtils.convertInputStreamXMLToString(inputStream);
 

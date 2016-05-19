@@ -38,6 +38,8 @@ import fr.gouv.vitam.processing.api.model.WorkParams;
  * will be invoked by entry Module
  * 
  */
+// TODO REVIEW improve comment form + not restricted to entry Module
+// FIXME REVIEW Separate Engine from Management package
 public interface ProcessManagement {
 
 	/**
@@ -49,6 +51,8 @@ public interface ProcessManagement {
 	 *            null not allowed
 	 * @return Response :global process response such as OK, KO, FATAL,WARNING
 	 */
+	// FIXME REVIEW rename more accurately: submitWorkflow ?
+	// TODO REVIEW Probably add status as SUBMITTED (asynchronous)
 	Response executeVitamProcess(WorkParams workParams, String workflowId);
 
 }

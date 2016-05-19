@@ -35,6 +35,7 @@ package fr.gouv.vitam.processing.api.model;
  * different constants status code for workflow , action handler and process
  *
  */
+// TODO REVIEW improve comment form
 public enum StatusCode {
 	/**
 	 * OK : indicates the successful without warning
@@ -56,6 +57,7 @@ public enum StatusCode {
 	 * preventing future Action problems
 	 */
 	WARNING("WARNING");
+	// TODO REVIEW Add SUBMITTED
 
 	private String value;
 

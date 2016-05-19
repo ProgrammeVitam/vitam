@@ -36,7 +36,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * 
- * //TODO java doc
+ * // TODO REVIEW java doc
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -47,6 +47,7 @@ public class Step {
 	@JsonProperty("actions")
 	private List<Action> actions;
 
+	// FIXME REVIEW do not return null
 	public List<Action> getActions() {
 		return actions;
 	}
@@ -55,6 +56,7 @@ public class Step {
 	 * 
 	 * @param actions
 	 */
+	// TODO REVIEW use Object setArg(arg) signature, returning this; See Rule V4
 	public void setActions(List<Action> actions) {
 		this.actions = actions;
 	}
@@ -63,6 +65,7 @@ public class Step {
 	 * 
 	 * @return workerGroupId
 	 */
+	// FIXME REVIEW do not return null
 	public String getWorkerGroupId() {
 		return workerGroupId;
 	}
@@ -71,6 +74,7 @@ public class Step {
 	 * 
 	 * @param workerGroupId
 	 */
+	// TODO REVIEW use Object setArg(arg) signature, returning this;
 	public void setWorkerGroupId(String workerGroupId) {
 		this.workerGroupId = workerGroupId;
 	}
@@ -78,6 +82,7 @@ public class Step {
 	/**
 	 * @return the stepName
 	 */
+	// FIXME REVIEW do not return null
 	public String getStepName() {
 		return stepName;
 	}
@@ -86,6 +91,7 @@ public class Step {
 	 * @param stepName
 	 *            the stepName to set
 	 */
+	// TODO REVIEW use Object setArg(arg) signature, returning this;
 	public void setStepName(String stepName) {
 		this.stepName = stepName;
 	}

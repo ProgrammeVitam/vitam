@@ -3,6 +3,8 @@ package fr.gouv.vitam.workspace.rest;
 import org.junit.Before;
 import org.junit.Test;
 
+// TODO REVIEW missing licence header
+
 public class WorkspaceApplicationTest {
 
     private WorkspaceApplication application;

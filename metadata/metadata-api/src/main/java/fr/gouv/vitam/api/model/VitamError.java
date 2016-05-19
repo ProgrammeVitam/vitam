@@ -7,6 +7,7 @@ import java.util.List;
  * Meta-data RequestResponseError class
  *
  */
+// FIXME REVIEW should be final
 public class VitamError  {
 
 	private int code;
@@ -14,6 +15,7 @@ public class VitamError  {
 	private String state;
 	private String message;
 	private String description;
+	// FIXME REVIEW should be List<String> as declaration side
 	private ArrayList<VitamError> errors;
 
 	/**
@@ -23,6 +25,7 @@ public class VitamError  {
 	 **/
 	public VitamError(int code) {
 		this.code = code;
+		// FIXME REVIEW choose either assigning an empty ArrayList (explicit empty static final List), either keeping this List (and therefore add "add" method and change "set" method to clean and addAll): my preference would go to fix static final empty list 
 		this.errors = new ArrayList<>();
 	}
 
@@ -40,6 +43,7 @@ public class VitamError  {
      * @return the VitamError object with the context is setted 
      */	
 	public VitamError setContext(String context) {
+		// FIXME REVIEW check illegalValue
 		this.context = context;
 		return this;
 	}
@@ -48,6 +52,8 @@ public class VitamError  {
      * @param state of error as String
      * @return the VitamError object with the error state is setted 
      */	public VitamError setState(String state) {
+ 		// TODO REVIEW fix style
+ 		// FIXME REVIEW check illegalValue
 		this.state = state;
 		return this;
 	}
@@ -57,6 +63,7 @@ public class VitamError  {
       * @return the VitamError object with the error message is setted 
       */     
 	public VitamError setMessage(String message) {
+ 		// FIXME REVIEW check illegalValue
 		this.message = message;
 		return this;
 	}
@@ -66,6 +73,7 @@ public class VitamError  {
      * @return the VitamError object with the description error is setted 
      */	
 	public VitamError setDescription(String description) {
+ 		// FIXME REVIEW check illegalValue
 		this.description = description;
 		return this;
 	}
@@ -75,6 +83,7 @@ public class VitamError  {
      * @return the VitamError object with the list of errors is setted 
      */	
 	public VitamError setErrors(List<VitamError> errors) {
+		// FIXME REVIEW You cannot cast to ArrayList since argument is a List (could be whatever)
 		this.errors = (ArrayList<VitamError>) errors;
 		return this;
 	}
@@ -90,6 +99,7 @@ public class VitamError  {
      * @return the context of the VitamError object
      */	
 	public String getContext() {
+		// FIXME REVIEW do not return null but empty
 		return context;
 	}
 
@@ -97,6 +107,7 @@ public class VitamError  {
      * @return the state of the VitamError object
      */	
 	public String getState() {
+		// FIXME REVIEW do not return null but empty
 		return state;
 	}
 
@@ -104,6 +115,7 @@ public class VitamError  {
      * @return the message of the VitamError object
      */	
 	public String getMessage() {
+		// FIXME REVIEW do not return null but empty
 		return message;
 	}
 
@@ -111,6 +123,7 @@ public class VitamError  {
      * @return the description of the VitamError object
      */	
 	public String getDescription() {
+		// FIXME REVIEW do not return null but empty
 		return description;
 	}
 

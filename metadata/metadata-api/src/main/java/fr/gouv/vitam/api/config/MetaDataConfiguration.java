@@ -32,13 +32,14 @@ package fr.gouv.vitam.api.config;
 /**
  * MetaDataConfiguration contains database access informations 
  */
+// FIXME REVIEW should be final
 public class MetaDataConfiguration {
 
 	private String host;
 	private int port;
 	private String dbName;
+	// FIXME REVIEW this is incorrect since we will have multiple collection: this does not used the logic of collections managed by MongoDbAccess (checking index and correct CODECs)
 	private String collectionName;
-
 	/**
 	 * MetaDataConfiguration constructor
 	 * @param host
@@ -51,6 +52,7 @@ public class MetaDataConfiguration {
 	 * 			database collection name
 	 */
 	public MetaDataConfiguration(String host, int port, String dbName, String collectionName) {
+		// FIXME REVIEW do not allow null values and throw IllegalArgumentException
 		this.host = host;
 		this.port = port;
 		this.dbName = dbName;
@@ -60,8 +62,9 @@ public class MetaDataConfiguration {
 	/**
 	 * MetaDataConfiguration empty constructor for YAMLFactory
 	 */
+	// TODO: Could protected be working?
 	public MetaDataConfiguration() {}
-
+	
 	/**
 	 * @return the database address as String
 	 */
