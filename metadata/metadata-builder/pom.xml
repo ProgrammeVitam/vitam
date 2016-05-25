@@ -11,7 +11,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>common</artifactId>
+			<artifactId>common-private</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
@@ -21,6 +21,7 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 

@@ -8,10 +8,10 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import fr.gouv.vitam.common.UUID22;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 
 public class UnitLRUTest {
-	private static Unit testUnit = new Unit("{\"_id\": \""+ new UUID22() +"\"}");
+	private static Unit testUnit = new Unit("{\"_id\": \""+ GUIDFactory.newUnitGUID(0) +"\"}");
 	@Test
 	public void givenMongoDbAccessConstructorWhenPutAndRemoveKeyThenWorkCorrectly() {
 		UnitLRU unitLRU = new UnitLRU();

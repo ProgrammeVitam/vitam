@@ -45,15 +45,14 @@ import org.bson.codecs.DecoderContext;
 import org.bson.codecs.DocumentCodec;
 import org.bson.codecs.EncoderContext;
 
-import fr.gouv.vitam.common.UUID;
-import fr.gouv.vitam.common.UUIDFactory;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 
 /**
  * MongoDB Codec for VItamDocument
  *
  */
 public class VitamDocumentCodec<T extends Document> implements CollectibleCodec<T> {
-	private UUIDFactory uuidFactory = new UUIDFactory(0);
 	private DocumentCodec _documentCodec;
 	private Class<T> _class;
 	private Constructor<T> _constructor;
@@ -76,7 +75,7 @@ public class VitamDocumentCodec<T extends Document> implements CollectibleCodec<
 	@Override
 	public T generateIdIfAbsentFromDocument(T document) {
 		if (!documentHasId(document)) {
-	        UUID<?> uuid = uuidFactory.newUuid();
+	        GUID uuid = GUIDFactory.newGUID();
 	        document.put("_id", uuid.toString());
 	    }
 	    return document;

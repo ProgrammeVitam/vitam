@@ -1,0 +1,4 @@
+{
+  "@class" : "fr.gouv.vitam.common.json.AbstractJsonTypeTest$TestClass",
+  "A" : "val"
+}

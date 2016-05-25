@@ -57,6 +57,7 @@ import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.UPDATE
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.UPDATEACTIONARGS;
 import fr.gouv.vitam.core.database.collections.MongoDbAccess.VitamCollections;
 import fr.gouv.vitam.core.database.configuration.GlobalDatasDb;
+import fr.gouv.vitam.common.guid.GUIDObjectType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
@@ -285,6 +286,14 @@ public class Unit extends VitamDocument<Unit> {
      */
     public Unit(String content) {
         super(content);
+    }
+
+    /**
+     * 
+     * @return the associated GUIDObjectType
+     */
+    public static final int getGUIDObjectTypeId() {
+        return GUIDObjectType.UNIT_TYPE;
     }
 
     @SuppressWarnings("unchecked")

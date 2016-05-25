@@ -94,9 +94,9 @@ import fr.gouv.vitam.builder.request.construct.Select;
 import fr.gouv.vitam.builder.request.construct.Update;
 import fr.gouv.vitam.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.UUID;
-import fr.gouv.vitam.common.UUIDFactory;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -127,12 +127,11 @@ public class DbRequestTest {
 	private static final String ARRAY_VAR = "ArrayVar";
 	private static final String ARRAY2_VAR = "Array2Var";
 	private static final String EMPTY_VAR = "EmptyVar";
-	static final int domainId = 1;
+	static final int tenantId = 0;
 	static final int platformId = 10;
 	static MongoDbAccess mongoDbAccess;
 	static MongodExecutable mongodExecutable;
 	static MongoClient mongoClient;
-	static UUIDFactory uuidFactory;
 	static MongoDbVarNameAdapter mongoDbVarNameAdapter;
 	/**
 	 * @throws java.lang.Exception
@@ -152,7 +151,6 @@ public class DbRequestTest {
 		
 		mongoClient = new MongoClient(new ServerAddress(DATABASE_HOST, DATABASE_PORT), options);
 		mongoDbAccess = new MongoDbAccess(mongoClient, "vitam-test", CREATE);
-		uuidFactory = new UUIDFactory(domainId, platformId);
 		mongoDbVarNameAdapter = new MongoDbVarNameAdapter();
 	}
 
@@ -174,7 +172,7 @@ public class DbRequestTest {
 	@Test
 	public void testExecRequest() {
 		// input data
-		UUID<?> uuid = uuidFactory.newUnitUuid(domainId);
+		GUID uuid = GUIDFactory.newUnitGUID(tenantId);
 		try {
 			DbRequest dbRequest = new DbRequest();
 			// INSERT
@@ -257,7 +255,7 @@ public class DbRequestTest {
 	@Test
 	public void testExecRequestThroughRequestParserHelper() {
 		// input data
-		UUID<?> uuid = uuidFactory.newUnitUuid(domainId);
+		GUID uuid = GUIDFactory.newUnitGUID(tenantId);
 		try {
 			DbRequest dbRequest = new DbRequest();
 			RequestParser requestParser = null;
@@ -343,7 +341,7 @@ public class DbRequestTest {
 	@Test
 	public void testExecRequestThroughAllCommands() {
 		// input data
-		UUID<?> uuid = uuidFactory.newUnitUuid(domainId);
+	    GUID uuid = GUIDFactory.newUnitGUID(tenantId);
 		try {
 			DbRequest dbRequest = new DbRequest();
 			RequestParser requestParser = null;
@@ -443,8 +441,8 @@ public class DbRequestTest {
 	@Test
 	public void testExecRequestMultiple() throws Exception {
 		// input data
-		UUID<?> uuid = uuidFactory.newUnitUuid(domainId);
-		UUID<?> uuid2 = uuidFactory.newUnitUuid(domainId);
+		GUID uuid = GUIDFactory.newUnitGUID(tenantId);
+		GUID uuid2 = GUIDFactory.newUnitGUID(tenantId);
 		try {
 			DbRequest dbRequest = new DbRequest();
 			RequestParser requestParser = null;
@@ -568,8 +566,8 @@ public class DbRequestTest {
 	
 	@Test
 	public void testInsertUnitRequest() throws Exception {
-        UUID<?> uuid = uuidFactory.newUnitUuid(domainId);
-        UUID<?> uuid2 = uuidFactory.newUnitUuid(domainId);
+	    GUID uuid = GUIDFactory.newUnitGUID(tenantId);
+	    GUID uuid2 = GUIDFactory.newUnitGUID(tenantId);
         DbRequest dbRequest = new DbRequest();
         RequestParser requestParser = null;
         
@@ -603,7 +601,7 @@ public class DbRequestTest {
 	 * @param uuid
 	 * @return
 	 */
-	private String createDeleteRequestWithUUID(UUID<?> uuid) {
+	private String createDeleteRequestWithUUID(GUID uuid) {
 		Delete delete = new Delete();
 		try {
 			delete.addQueries(and().add(eq(id(), uuid.toString()), eq(TITLE, VALUE_MY_TITLE)));
@@ -620,7 +618,7 @@ public class DbRequestTest {
 	 * @param uuid
 	 * @return
 	 */
-	private String createSelectAllRequestWithUUID(UUID<?> uuid) {
+	private String createSelectAllRequestWithUUID(GUID uuid) {
 		String selectRequestString;
 		Select select = new Select();
 		try {
@@ -639,7 +637,7 @@ public class DbRequestTest {
 	 * @param uuid
 	 * @return
 	 */
-	private String createUpdateRequestWithUUID(UUID<?> uuid) {
+	private String createUpdateRequestWithUUID(GUID uuid) {
 		Update update = new Update();
 		try {
 			update.addActions(set("NewVar", false), inc(MY_INT, 2), set(DESCRIPTION, "New description"))
@@ -657,7 +655,7 @@ public class DbRequestTest {
 	 * @param uuid
 	 * @return
 	 */
-	private String createSelectRequestWithUUID(UUID<?> uuid) {
+	private String createSelectRequestWithUUID(GUID uuid) {
 		Select select = new Select();
 		try {
 			select.addUsedProjection(id(), TITLE, DESCRIPTION)
@@ -675,7 +673,7 @@ public class DbRequestTest {
 	 * @param uuid
 	 * @return
 	 */
-	private String createInsertRequestWithUUID(UUID<?> uuid) {
+	private String createInsertRequestWithUUID(GUID uuid) {
 		// INSERT
 		List<String> list = Arrays.asList("val1", "val2");
 		ObjectNode data = JsonHandler.createObjectNode().put(id(), uuid.toString())
@@ -707,7 +705,7 @@ public class DbRequestTest {
      * @param uuid2 parent
      * @return
      */
-    private String createInsertChild2ParentRequest(UUID<?> child, UUID<?> parent) throws Exception {
+    private String createInsertChild2ParentRequest(GUID child, GUID parent) throws Exception {
         ObjectNode data = JsonHandler.createObjectNode().put(id(), child.toString())
                 .put(TITLE, VALUE_MY_TITLE+"2").put(DESCRIPTION, "Ma description2")
                 .put(CREATED_DATE, ""+LocalDateUtil.now()).put(MY_INT, 10);
@@ -722,7 +720,7 @@ public class DbRequestTest {
 	 * @param uuid
 	 * @return
 	 */
-	private String clientRichSelectAllBuild(UUID<?> uuid) {
+	private String clientRichSelectAllBuild(GUID uuid) {
 		String selectRequestString;
 		Select select = new Select();
 		try {
@@ -746,7 +744,7 @@ public class DbRequestTest {
 	 * @param uuid
 	 * @return
 	 */
-	private String clientRichUpdateBuild(UUID<?> uuid) {
+	private String clientRichUpdateBuild(GUID uuid) {
 		Update update = new Update();
 		try {
 			update.addActions(set("NewVar", false), inc(MY_INT, 2), set(DESCRIPTION, "New description"),
@@ -766,7 +764,7 @@ public class DbRequestTest {
 	 * @param uuid
 	 * @return
 	 */
-	private String clientSelect2Build(UUID<?> uuid) {
+	private String clientSelect2Build(GUID uuid) {
 		Select select = new Select();
 		try {
 			select.addUsedProjection(id(), TITLE, DESCRIPTION)
@@ -785,7 +783,7 @@ public class DbRequestTest {
 	 * @param uuid2 son
 	 * @return
 	 */
-	private String clientSelectMultipleBuild(UUID<?> uuid, UUID<?> uuid2) {
+	private String clientSelectMultipleBuild(GUID uuid, GUID uuid2) {
 		Select select = new Select();
 		try {
 			select.addUsedProjection(id(), TITLE, DESCRIPTION)
@@ -804,7 +802,7 @@ public class DbRequestTest {
 	 * @param uuid
 	 * @return
 	 */
-	private String clientDelete2Build(UUID<?> uuid) {
+	private String clientDelete2Build(GUID uuid) {
 		Delete delete = new Delete();
 		try {
 			delete.addQueries(path(uuid.toString()));
@@ -828,7 +826,7 @@ public class DbRequestTest {
 	@Test
 	public void testResult() throws Exception{
 		DbRequest dbRequest = new DbRequest();
-		UUID<?> uuid = uuidFactory.newUnitUuid(domainId);
+		GUID uuid = GUIDFactory.newUnitGUID(tenantId);
 		String insertRequestString = createInsertRequestWithUUID(uuid);
 		InsertParser insertParser = new InsertParser(mongoDbVarNameAdapter);
 		insertParser.parse(insertRequestString);

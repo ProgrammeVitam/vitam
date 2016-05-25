@@ -6,12 +6,9 @@ import java.util.HashSet;
 
 import org.junit.Test;
 
-import fr.gouv.vitam.common.UUIDMultiple;
-
 public class GlobalDatasDbTest {
 	@Test
 	public void givenGlobalDatasDbWhenGetStaticValueThenReturnCorrectly() {
-		assertEquals(UUIDMultiple.class, GlobalDatasDb.UUID_MULTIPLE.getClass());
 		assertEquals(new HashSet<>(), GlobalDatasDb.ROOTS);
 		assertEquals(false, GlobalDatasDb.useNewNode);
 		assertEquals(true, GlobalDatasDb.useFilter);
