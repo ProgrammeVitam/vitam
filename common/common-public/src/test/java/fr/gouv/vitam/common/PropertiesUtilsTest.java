@@ -26,6 +26,8 @@
  */
 package fr.gouv.vitam.common;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
@@ -71,5 +73,17 @@ public class PropertiesUtilsTest {
     public void testGetResourcesFileNotFoundNull() throws FileNotFoundException {
         PropertiesUtils.getResourcesFile(null);
         fail(ResourcesPublicUtilTest.EXPECTING_EXCEPTION_FILE_NOT_FOUND_EXCEPTION);
+    }
+
+    @Test
+    public void testGetResourcesFile() throws FileNotFoundException {
+        assertTrue(PropertiesUtils.getResourcesFile(
+            ResourcesPublicUtilTest.GUID_TEST_PROPERTIES).exists());
+        try {
+            assertFalse(PropertiesUtils.readResourcesProperties(
+                ResourcesPublicUtilTest.GUID_TEST_PROPERTIES).isEmpty());
+        } catch (IOException e) { //NOSONAR
+            fail(ResourcesPublicUtilTest.SHOULD_NOT_HAVE_AN_EXCEPTION);
+        }
     }
 }

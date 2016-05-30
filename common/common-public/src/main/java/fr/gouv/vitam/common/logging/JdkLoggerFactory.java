@@ -46,32 +46,43 @@ public final class JdkLoggerFactory extends VitamLoggerFactory {
 
     @Override
     public VitamLogger newInstance(final String name) {
-        return new JdkLogger(Logger.getLogger(name));
+        Logger logger = Logger.getLogger(name); //NOSONAR keep it non static
+        // Note: JDK Logger does not allow level < INFO per global
+        if (currentLevel == VitamLogLevel.DEBUG || currentLevel == VitamLogLevel.TRACE) {
+            setLevelSpecificLogger(logger, currentLevel);
+        }
+        return new JdkLogger(logger);
+    }
+
+    private void setLevelSpecificLogger(final Logger logger, final VitamLogLevel level) {
+        Level jdklevel;
+        switch (level) {
+            case TRACE:
+                jdklevel = Level.FINEST;
+                break;
+            case DEBUG:
+                jdklevel = Level.FINE;
+                break;
+            case INFO:
+                jdklevel = Level.INFO;
+                break;
+            case WARN:
+                jdklevel = Level.WARNING;
+                break;
+            case ERROR:
+                jdklevel = Level.SEVERE;
+                break;
+            default:
+                jdklevel = Level.WARNING;
+                break;
+        }
+        logger.setLevel(jdklevel);
     }
 
     @Override
     protected void seLevelSpecific(final VitamLogLevel level) {
         final Logger logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME); //NOSONAR keep it non static
-        switch (level) {
-            case TRACE:
-                logger.setLevel(Level.FINEST);
-                break;
-            case DEBUG:
-                logger.setLevel(Level.FINE);
-                break;
-            case INFO:
-                logger.setLevel(Level.INFO);
-                break;
-            case WARN:
-                logger.setLevel(Level.WARNING);
-                break;
-            case ERROR:
-                logger.setLevel(Level.SEVERE);
-                break;
-            default:
-                logger.setLevel(Level.WARNING);
-                break;
-        }
+        setLevelSpecificLogger(logger, level);
     }
 
     @Override

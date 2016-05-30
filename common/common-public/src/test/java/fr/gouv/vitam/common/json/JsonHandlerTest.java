@@ -198,6 +198,32 @@ public class JsonHandlerTest {
             // Ignore
         }
         try {
+            JsonHandler.checkUnicity("title",
+                JsonHandler.getFromString("{ }"));
+            fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
+        } catch (final InvalidParseOperationException e) {// NOSONAR
+            // Ignore
+        }
+        try {
+            JsonHandler.checkLaxUnicity("title",
+                JsonHandler.getFromString("{  }"));
+            fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
+        } catch (final InvalidParseOperationException e) {// NOSONAR
+            // Ignore
+        }
+        JsonNode node = JsonHandler.createObjectNode().numberNode(2.0);
+        try {
+            JsonHandler.checkUnicity("title", node);
+            fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
+        } catch (final InvalidParseOperationException e) {// NOSONAR
+            // Ignore
+        }
+        try {
+            assertNotNull(JsonHandler.checkLaxUnicity("title", node));
+        } catch (final InvalidParseOperationException e) {// NOSONAR
+            fail(ResourcesPublicUtilTest.SHOULD_NOT_RAIZED_AN_EXCEPTION);
+        }
+        try {
             assertEquals(0, JsonHandler.getMapFromString(null).size());
         } catch (final InvalidParseOperationException e1) {// NOSONAR
             fail(ResourcesPublicUtilTest.SHOULD_NOT_RAIZED_AN_EXCEPTION);

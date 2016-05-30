@@ -31,6 +31,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Properties;
 
@@ -81,7 +82,12 @@ public final class PropertiesUtils {
         if (url == null) {
             throw new FileNotFoundException("File not found in Resources: " + resourcesFile);
         }
-        final File file = new File(url.getFile());
+        File file;
+        try {
+            file = new File(url.toURI());
+        } catch (URISyntaxException e) { //NOSONAR
+            file = new File(url.getFile().replaceAll("%20", " "));
+        }
         if (file.exists()) {
             return file;
         }

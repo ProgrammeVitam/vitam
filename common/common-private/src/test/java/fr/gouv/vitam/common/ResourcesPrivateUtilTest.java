@@ -27,12 +27,17 @@
 package fr.gouv.vitam.common;
 
 import java.io.File;
-import java.net.URL;
+import java.io.FileNotFoundException;
+
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * Utility class for Junit
  */
 public class ResourcesPrivateUtilTest {
+    private static final VitamLogger LOGGER =
+        VitamLoggerFactory.getInstance(ResourcesPrivateUtilTest.class);
 
     private static final String SERVER_IDENTITY_PROPERTIES_FILE = "ServerIdentity.properties";
 
@@ -66,14 +71,17 @@ public class ResourcesPrivateUtilTest {
     }
 
     private File getTestResourcesFile(String name) {
-        final ClassLoader classLoader = ResourcesPrivateUtilTest.class.getClassLoader();
-        final URL url = classLoader.getResource(name);
-        if (url != null) {
-            final File file = new File(url.getFile());
-            if (file.exists()) {
-                return file;
-            }
+        File file;
+        try {
+            file = PropertiesUtils.getResourcesFile(name);
+        } catch (FileNotFoundException e) { // NOSONAR
+            LOGGER.debug("Not able to load: " + name);
+            return null;
         }
+        if (file != null && file.exists()) {
+            return file;
+        }
+        
         return null;
     }
 
