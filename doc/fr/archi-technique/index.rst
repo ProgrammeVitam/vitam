@@ -12,19 +12,20 @@
       * les tables des matières dans un fichier _toc.rst à la racine du dossier correspondant
  
 
-####################################################
+########
 Sommaire
-####################################################
+########
 
 .. toctree::
    :maxdepth: 2
 
    introduction.rst
+   common/doc/fr/archi-technique/index.rst
 
 
-####################################################
+##############
 Index & Tables
-####################################################
+##############
 
 * :ref:`genindex`
 * :ref:`search`

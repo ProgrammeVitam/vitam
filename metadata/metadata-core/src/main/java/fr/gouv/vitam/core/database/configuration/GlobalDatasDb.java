@@ -7,7 +7,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import fr.gouv.vitam.parser.request.parser.GlobalDatasParser;
-import fr.gouv.vitam.common.UUIDMultiple;
 
 /**
  * Default configuration for DB support
@@ -15,10 +14,6 @@ import fr.gouv.vitam.common.UUIDMultiple;
  *
  */
 public class GlobalDatasDb extends GlobalDatasParser {
-    /**
-     * Default UUIDMultiple (For Request)
-     */
-    public static final UUIDMultiple UUID_MULTIPLE = new UUIDMultiple(UUID_FACTORY);
     /**
      * set of Roots Domain : must be updated each time a new Domain is created
      */

@@ -11,8 +11,8 @@ import org.apache.commons.io.FileUtils;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-// FIXME REVIEW Don't use the implementation but the fr.gouv.vitam.common.UUIDFactory
-import fr.gouv.vitam.common.UUID22;
+// FIXME REVIEW You must use the correct GUIDFactory method
+import fr.gouv.vitam.common.guid.GUIDFactory;
 
 // TODO REVIEW missing licence header
 // TODO REVIEW missing javadoc comments
@@ -42,7 +42,7 @@ public class FileVitamUtils {
         // FIXME REVIEW try to not put the json file in memory .
 	public static String convertInputStreamXMLToString(InputStream input) {
 
-		LOGGER.info("In FileVitamUtils.convertInputStreamXMLToString ...");
+		LOGGER.info("In FileVitamUtils.convertInputtreamXMLToString ...");
 
 		String jsonString = "";
 		try {
@@ -51,7 +51,7 @@ public class FileVitamUtils {
                         // FIXME REVIEW Declare the correct import
 			JSONObject metadataObject = org.json.XML.toJSONObject(xml);
 			// FIXME REVIEW Use factory
-			metadataObject.put("_id", new UUID22().toString());
+			metadataObject.put("_id", GUIDFactory.newUnitGUID(0).toString());
 			jsonString = metadataObject.toString();
 
 			LOGGER.info("jsonString :" + jsonString);

@@ -42,8 +42,8 @@ import com.mongodb.client.model.UpdateOptions;
 import static com.mongodb.client.model.Filters.*;
 
 import fr.gouv.vitam.core.database.collections.MongoDbAccess.VitamCollections;
-import fr.gouv.vitam.core.database.configuration.GlobalDatasDb;
-import fr.gouv.vitam.common.exception.InvalidUuidOperationException;
+import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
+import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
@@ -119,16 +119,24 @@ public abstract class VitamDocument<E> extends Document {
     }
 
     /**
+     * 
+     * @return the associated GUIDObjectType
+     */
+    public static int getGUIDObjectTypeId() {
+        throw new UnsupportedOperationException("Should override it on implementation class");
+    }
+
+    /**
      * Create a new ID
      * 
-     * @param domainId
+     * @param tenantId
      * @return this
      */
     public VitamDocument<E> checkId() {
 		try {
-	    	int domainId = GlobalDatasDb.UUID_FACTORY.getUuid(getId()).getDomainId();
+	    	int domainId = GUIDReader.getGUID(getId()).getTenantId();
 	        append(DOMID, domainId);
-		} catch (InvalidUuidOperationException e) {
+		} catch (InvalidGuidOperationException e) {
 			// TODO REVIEW Auto-generated catch block
 			e.printStackTrace();
 		}

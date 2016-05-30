@@ -7,8 +7,8 @@ import java.io.InputStream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-// FIXME REVIEW Don't use UUID implementation but fr.gouv.vitam.common.UUIDFactory
-import fr.gouv.vitam.common.UUID22;
+
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.processing.api.config.ServerConfiguration;
 import fr.gouv.vitam.processing.api.engine.ProcessManagement;
 import fr.gouv.vitam.processing.api.model.WorkParams;
@@ -47,7 +47,7 @@ public class ProcessHelper {
 		// FIXME REVIEW Use Factory
 		// FIXME REVIEW check null
 
-		String guiid = new UUID22().toString();
+		String guiid = GUIDFactory.newOperationIdGUID(0).toString();
 
 		if (!workspaceClient.containerExists(guiid)) {
 			workspaceClient.createContainer(guiid);

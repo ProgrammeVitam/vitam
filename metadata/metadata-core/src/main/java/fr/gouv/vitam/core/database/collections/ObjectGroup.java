@@ -45,8 +45,9 @@ import com.mongodb.MongoWriteException;
 import com.mongodb.client.MongoCollection;
 
 import fr.gouv.vitam.core.database.collections.MongoDbAccess.VitamCollections;
-import fr.gouv.vitam.core.database.configuration.GlobalDatasDb;
-import fr.gouv.vitam.common.DigestLight;
+import fr.gouv.vitam.common.digest.Digest;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.guid.GUIDObjectType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
@@ -171,7 +172,7 @@ public class ObjectGroup extends VitamDocument<ObjectGroup> {
     public static class ObjectItem {
         String _id;
         long size;
-        DigestLight digest;
+        Digest digest;
         int _version;
         Date _creadate;
         List<Copy> _copies;
@@ -230,6 +231,14 @@ public class ObjectGroup extends VitamDocument<ObjectGroup> {
         super(content);
     }
 
+    /**
+     * 
+     * @return the associated GUIDObjectType
+     */
+    public static final int getGUIDObjectTypeId() {
+        return GUIDObjectType.OBJECTGROUP_TYPE;
+    }
+
 	@Override
 	protected VitamCollections getVitamCollections() {
 		return MongoDbAccess.VitamCollections.Cobjectgroup;
@@ -243,10 +252,10 @@ public class ObjectGroup extends VitamDocument<ObjectGroup> {
 
     /**
      * 
-     * @return a new sub Object UUID
+     * @return a new sub Object GUID
      */
-    public String newObjectUuid() {
-        return GlobalDatasDb.UUID_FACTORY.newObjectUuid(getDomainId()).toString();
+    public String newObjectGuid() {
+        return GUIDFactory.newObjectGUID(getDomainId()).toString();
     }
 
     @Override

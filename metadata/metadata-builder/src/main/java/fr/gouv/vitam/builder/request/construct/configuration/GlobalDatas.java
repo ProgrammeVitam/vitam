@@ -38,7 +38,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.builder.request.construct.query.Query;
 import fr.gouv.vitam.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.UUIDFactory;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
@@ -73,10 +72,6 @@ public class GlobalDatas {
      * Default limit for number of projections
      */
     public static int nbProjections = 1000;
-    /**
-     * Default UUIDFactory (might need another specific one for parser)
-     */
-    public static final UUIDFactory UUID_FACTORY = new UUIDFactory();
     /**
      * True means commands are to be written using '$' as prefix
      */
