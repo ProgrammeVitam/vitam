@@ -30,6 +30,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import org.junit.Assume;
 import org.junit.Test;
@@ -74,6 +75,15 @@ public class AbstractJsonTypeTest {
         final TestClass tc2 = (TestClass) AbstractJsonType.readJsonFile(file);
         assertEquals(tc2.getA(), tc.getA());
         AbstractJsonType.readJsonString(tc.generateJsonString());
+        File file2;
+        try {
+            file2 = File.createTempFile("test", "test", file.getParentFile());
+            tc2.writeJsonToFile(file2);
+            final TestClass tc3 = (TestClass) TestClass.readJsonFile(file2);
+            assertEquals(tc2.getA(), tc3.getA());
+        } catch (IOException e) { //NOSONAR
+            // ignore: write right access
+        }
     }
 
 }

@@ -307,7 +307,6 @@ public abstract class AbstractVitamLogger implements VitamLogger, Serializable {
         return getMethodAndLine(elt);
     }
 
-    // TODO for JDK6 IBM add 1 (2->3 and 3->4)
     /**
      * To be used only by Logger (rank 5)
      *

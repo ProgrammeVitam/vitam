@@ -32,6 +32,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.management.RuntimeErrorException;
@@ -226,10 +227,13 @@ public class JdkLoggerTest {
         exception0.setStackTrace(new StackTraceElement[] {new StackTraceElement("n1", "n2", "n3", 4)});
         jdkLogger0.info("v>S.;58(1\"", exception0);
         assertEquals("java.lang.Exception", exception0.toString());
+    }
 
+    @Test
+    public void testIsTraceEnabled() {
         VitamLoggerFactory.setDefaultFactory(new JdkLoggerFactory(VitamLogLevel.TRACE));
         VitamLogger logger = VitamLoggerFactory.getInstance("foo");
-        logger.isTraceEnabled();
+        assertTrue(logger.isTraceEnabled());
         buf.setLength(0);
         logger.trace("a");
         buf.setLength(0);
@@ -239,10 +243,13 @@ public class JdkLoggerTest {
         logger.trace("", new Object(), new Object());
         logger.trace("", new Object(), new Object(), new Object());
         buf.setLength(0);
+    }
 
+    @Test
+    public void testIsDebugEnabled() {
         VitamLoggerFactory.setDefaultFactory(new JdkLoggerFactory(VitamLogLevel.DEBUG));
-        logger = VitamLoggerFactory.getInstance("foo");
-        logger.isDebugEnabled();
+        VitamLogger logger = VitamLoggerFactory.getInstance("foo");
+        assertTrue(logger.isDebugEnabled());
         buf.setLength(0);
         logger.debug("a");
         buf.setLength(0);
@@ -252,10 +259,13 @@ public class JdkLoggerTest {
         logger.debug("", new Object(), new Object());
         logger.debug("", new Object(), new Object(), new Object());
         buf.setLength(0);
+    }
 
+    @Test
+    public void testIsInfoEnabled() {
         VitamLoggerFactory.setDefaultFactory(new JdkLoggerFactory(VitamLogLevel.INFO));
-        logger = VitamLoggerFactory.getInstance("foo");
-        logger.isInfoEnabled();
+        VitamLogger logger = VitamLoggerFactory.getInstance("foo");
+        assertTrue(logger.isInfoEnabled());
         buf.setLength(0);
         logger.info("a");
         buf.setLength(0);
@@ -265,10 +275,12 @@ public class JdkLoggerTest {
         logger.info("", new Object(), new Object());
         logger.info("", new Object(), new Object(), new Object());
         buf.setLength(0);
+    }
 
+    @Test
+    public void testIsWarnEnabled() {
         VitamLoggerFactory.setDefaultFactory(new JdkLoggerFactory(VitamLogLevel.WARN));
-        logger = VitamLoggerFactory.getInstance("foo");
-        logger.isWarnEnabled();
+        VitamLogger logger = VitamLoggerFactory.getInstance("foo");
         assertTrue(logger.isWarnEnabled());
         buf.setLength(0);
         logger.warn("a");
@@ -279,10 +291,12 @@ public class JdkLoggerTest {
         logger.warn("", new Object(), new Object());
         logger.warn("", new Object(), new Object(), new Object());
         buf.setLength(0);
+    }
 
+    @Test
+    public void testIsErrorEnabled() {
         VitamLoggerFactory.setDefaultFactory(new JdkLoggerFactory(VitamLogLevel.ERROR));
-        logger = VitamLoggerFactory.getInstance("foo");
-        logger.isErrorEnabled();
+        VitamLogger logger = VitamLoggerFactory.getInstance("foo");
         assertTrue(logger.isErrorEnabled());
         buf.setLength(0);
         logger.error("a");
