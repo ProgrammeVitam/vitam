@@ -27,16 +27,25 @@
 package fr.gouv.vitam.common.logging;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
 public class VitamLoggerHelperTest {
 
+    private static final String MESSAGE = "message";
+
     @Test
     public final void testFormat() {
         final VitamLoggerHelper helper = VitamLoggerHelper.newInstance();
-        assertNotNull(helper.format("message"));
-        assertNotNull(helper.format(null));
+        String test = helper.format(MESSAGE);
+        assertNotNull(test);
+        assertTrue(test.endsWith(MESSAGE));
+        assertNotNull(helper.format((String) null));
+        StringBuilder builder = new StringBuilder(MESSAGE);
+        test = helper.format(builder);
+        assertNotNull(test);
+        assertTrue(test.endsWith(MESSAGE));
     }
 
 }

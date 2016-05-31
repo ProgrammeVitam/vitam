@@ -5,13 +5,15 @@ un ensemble d'informations sont conservées.
 
 Description des champs
 ======================
-Les noms des champs sont basés sur les distinctions faites par PREMIS_ entre :
+Les noms des champs sont basés sur les distinctions faites par PREMIS V3 entre :
 
 * objet / agent / évènement
 * type / identifiant
 
 Les champs seront tous au même niveau dans le journal ==> pas de notion de bloc comme dans PREMIS, même si
 on préserve la capacité à générer un schéma PREMIS (et les blocs qui le compose).
+
+Référence: http://www.loc/gov/standard/premis/v3/premis-3-0-final.pdf
 
 Ci-après la liste des champs stockés dans le journal des opérations associées à leur correspondance métier :
 

@@ -38,7 +38,8 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 
 /**
  * LogbookClient factory
- * <br /><br />Use to get a logbook client in function of its type.
+ * <br /><br />
+ * Use to get a logbook client in function of its type.
  */
 public class LogbookClientFactory {
 
@@ -57,13 +58,13 @@ public class LogbookClientFactory {
 
     /**
      * Get the logbook client
-     * Throw IllegalArgumentException if type is unknown
      *
      * @param type the type of the client
      * @return the logbook client instance for the type
+     * @throws IllegalArgumentException if type is unknown
      */
     public static LogbookClient getLogbookClient(String type) {
-        LogbookClient client = null;
+        LogbookClient client;
         switch (type) {
             case MOCK_OPERATIONS:
                 client = new LogbookOperationsClientMock();

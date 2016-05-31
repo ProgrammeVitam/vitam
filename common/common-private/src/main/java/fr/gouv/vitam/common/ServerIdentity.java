@@ -146,6 +146,7 @@ public final class ServerIdentity {
                 }
             }
         }
+        name = name.replaceAll("[\n\r]", "");
         role = UNKNOWN_ROLE;
         platformId = macAddress(macAddress());
     }

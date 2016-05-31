@@ -63,6 +63,16 @@ public class VitamLoggerHelper {
         preMessage.setLength(resetPosition);
         return result;
     }
+
+    /**
+     * Helper to format the Message for Internal Vitam LOG
+     *
+     * @param message
+     * @return
+     */
+    public String format(StringBuilder message) {
+        return message.insert(0, preMessage.toString()).toString();
+    }
     // TODO To compare to Logbook and improve message format and arguments
 
     /**

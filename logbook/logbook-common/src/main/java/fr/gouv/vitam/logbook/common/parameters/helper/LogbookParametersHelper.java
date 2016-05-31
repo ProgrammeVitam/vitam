@@ -39,8 +39,11 @@ import java.util.Set;
 
 import com.google.common.base.Strings;
 
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+
 /**
- * Logbook parameters helper use to check required paramaters
+ * Logbook parameters helper use to check required parameters
  */
 public class LogbookParametersHelper {
 
@@ -49,15 +52,31 @@ public class LogbookParametersHelper {
     }
 
     /**
-     * Check paramaters emptiness or nullity
+     * Check parameter emptiness or nullity
      *
-     * @param parameters  the map paramaters (key = attribute name, value = attribute value)
+     * @param key  the attribute name
+     * @param value the attribute value to check
      * @param mandatories the set of mandatories field
      */
-    public static void checkNullOrEmptyParameters(Map<String, String> parameters, Set<String> mandatories) {
-        for (String key : mandatories) {
+    public static void checkNullOrEmptyParameter(LogbookParameterName key, String value,
+        Set<LogbookParameterName> mandatories) {
+        ParametersChecker.checkParameter("Key parameter", key);
+        if (mandatories.contains(key)) {
+            ParametersChecker.checkParameter(key.name(), value);
+        }
+    }
+
+    /**
+     * Check parameters emptiness or nullity
+     *
+     * @param parameters  the map parameters (key = attribute name, value = attribute value)
+     * @param mandatories the set of mandatories field
+     */
+    public static void checkNullOrEmptyParameters(Map<LogbookParameterName, String> parameters,
+        Set<LogbookParameterName> mandatories) {
+        for (LogbookParameterName key : mandatories) {
             if (Strings.isNullOrEmpty(parameters.get(key))) {
-                throw new IllegalArgumentException(key + " paramater cannot be null or empty");
+                throw new IllegalArgumentException(key + " parameter cannot be null or empty");
             }
         }
     }

@@ -42,24 +42,22 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 public interface LogbookClient {
 
     /**
-     * Create loogbook entry
+     * Create logbook entry
      *
-     * Throw IllegalArgumentException if some mandatories paramaters are empty or null
-     *
-     * @param paramaters the entry paramaters
-     * @return the status of the action, actually OK if no problem, KO otherwise
+     * @param parameters the entry parameters
+     * @return the status of the action, actually True if no problem, False otherwise
+     * @throws IllegalArgumentException if some mandatories parameters are empty or null
      */
-    String create(LogbookParameters paramaters);
+    boolean create(LogbookParameters parameters);
 
     /**
      * Update logbook entry
      *
-     * Throw IllegalArgumentException if some mandatories paramaters are empty or null
-     *
-     * @param paramaters the entry parameters
-     * @return the status of the action, actually OK if no problem, KO otherwise
+     * @param parameters the entry parameters
+     * @return the status of the action, actually True if no problem, False otherwise
+     * @throws IllegalArgumentException if some mandatories parameters are empty or null
      */
-    String update(LogbookParameters paramaters);
+    boolean update(LogbookParameters parameters);
 
     /**
      * Not implemented yet

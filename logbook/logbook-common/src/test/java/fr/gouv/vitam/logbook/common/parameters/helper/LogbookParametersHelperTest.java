@@ -45,6 +45,8 @@ import org.junit.Test;
 
 import com.google.common.base.Strings;
 
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+
 /**
  * Logbook Paramaters Helper test
  */
@@ -52,17 +54,17 @@ public class LogbookParametersHelperTest {
 
     @Test
     public void checkNullOrEmptyParameters() {
-        Map<String, String> parameters = new HashMap<>();
-        parameters.put("field1", "field1Value");
-        parameters.put("field2", "");
+        Map<LogbookParameterName, String> parameters = new HashMap<>();
+        parameters.put(LogbookParameterName.outcomeDetail, "field1Value");
+        parameters.put(LogbookParameterName.outcomeDetailMessage, "");
 
         assertNotNull(parameters);
-        assertNotNull(parameters.get("field2"));
-        assertTrue(Strings.isNullOrEmpty(parameters.get("field2")));
+        assertNotNull(parameters.get(LogbookParameterName.outcomeDetail));
+        assertTrue(Strings.isNullOrEmpty(parameters.get(LogbookParameterName.outcomeDetailMessage)));
 
-        Set<String> mandatories = new HashSet<>();
-        mandatories.add("field1");
-        mandatories.add("field2");
+        Set<LogbookParameterName> mandatories = new HashSet<>();
+        mandatories.add(LogbookParameterName.outcomeDetail);
+        mandatories.add(LogbookParameterName.outcomeDetailMessage);
 
         boolean catchException = false;
         try {
@@ -72,7 +74,7 @@ public class LogbookParametersHelperTest {
         }
         assertTrue(catchException);
 
-        mandatories.remove("field2");
+        mandatories.remove(LogbookParameterName.outcomeDetailMessage);
         catchException = false;
         try {
             LogbookParametersHelper.checkNullOrEmptyParameters(parameters, mandatories);
@@ -81,8 +83,8 @@ public class LogbookParametersHelperTest {
         }
         assertFalse(catchException);
 
-        mandatories.add("field2");
-        parameters.put("field2", "field2");
+        mandatories.add(LogbookParameterName.outcomeDetailMessage);
+        parameters.put(LogbookParameterName.outcomeDetailMessage, "field2");
         catchException = false;
         try {
             LogbookParametersHelper.checkNullOrEmptyParameters(parameters, mandatories);
@@ -91,7 +93,7 @@ public class LogbookParametersHelperTest {
         }
         assertFalse(catchException);
 
-        parameters.put("field3", null);
+        parameters.put(LogbookParameterName.outcome, null);
         catchException = false;
         try {
             LogbookParametersHelper.checkNullOrEmptyParameters(parameters, mandatories);
@@ -100,7 +102,7 @@ public class LogbookParametersHelperTest {
         }
         assertFalse(catchException);
 
-        mandatories.add("field3");
+        mandatories.add(LogbookParameterName.outcome);
         catchException = false;
         try {
             LogbookParametersHelper.checkNullOrEmptyParameters(parameters, mandatories);
@@ -109,7 +111,7 @@ public class LogbookParametersHelperTest {
         }
         assertTrue(catchException);
 
-        parameters.remove("field3");
+        parameters.remove(LogbookParameterName.outcome);
         catchException = false;
         try {
             LogbookParametersHelper.checkNullOrEmptyParameters(parameters, mandatories);
