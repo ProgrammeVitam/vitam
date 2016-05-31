@@ -20,8 +20,6 @@ Sommaire
    :maxdepth: 2
 
    introduction.rst
-   common/doc/fr/manuel-dev/index.rst
-
 
 ##############
 Index & Tables

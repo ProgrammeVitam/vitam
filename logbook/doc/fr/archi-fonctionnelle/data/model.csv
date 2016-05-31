@@ -1,0 +1,18 @@
+"Champ","Description","Oblig.","Provenance","Exemple métier","Commentaire"
+"event Identifier","Identifiant de l’opération","**Oui**","interne (vitam)",,"Unique pour chaque ligne"
+"event DateTime","Date de l’opération","**Oui**","calculé par le journal",,
+"event Type","Type d’opération","**Oui**","interne","CheckSEDA_M anifestExists","Information identifiant l’étape/action concernée (format : etape_action)"
+"event Type Process","Type de processus","**Oui**","interne","Ingest",
+"event Identifier Process","Identifiant du processus","**Oui**","interne",,"GUID"
+"agent Identifier","Agent réalisant l’action","**Oui**","interne",,"Nom du serveur vitam exécutant l’action"
+"object Identifier","Identifiant Vitam du lot d’objets auquel s’applique l’opération (lot correspondant à une liste)","*Non*","interne",,"Dans le cas d’une opération ‘Ingest’, il s’agit du GUID de l’entrée. Dans le cas d’une opération ‘Audit’, il s’agit par exemple du nom d’un lot d’archives prédéfini"
+"object Identifier Request","Requête caractérisant un lot d’objets auquel s’applique l’opération","*Non*","externe (hors vitam)","Select * from ….","Ne concerne que les lots d’objets dynamique, c’est à dire obtenu par la présente requête. Ne concerne pas les lots ayant un identifiant défini."
+"object Identifier Income","Identifiant externe du lot d’objets auquel s’applique l’opération","*Non*","externe",,"Dans le cas d’une opération ‘Ingest’, il s’agit de la valeur du champ ‘MessageIdentifier’ du SEDA. A définir pour les autres types d’opération"
+"outcome","Résultat","**Oui**","interne","Started, OK, Fatal, Warning","Il s’agit du status de l’opération. Par exemple lorsqu’une opération est lancée, le status est ‘Started’."
+"outcome Detail","Code correspondant à l’erreur","*Non*","interne","404_XXX","Constitué d’un code d’erreur http et d’un sous code d’erreur vitam plus précis."
+"outcome Detail Message","Informations détaillant la nature de l’erreur","**Oui**","interne",,"2 fonctions : Contient le message d’erreur détaillant le problème OU contient le contenu du champ SEDA ‘comment’ extrait. Dans ce dernier cas, la valeur n’est renseignée qu’une seule fois pour ne pas dupliquer l’information sur les lignes correspondant aux sous-opérations associées au même lot."
+"agent Identifier Application","Nom de l’application s’authentifiant à Vitam pour lancer l’opération","**Oui**","externe",,"Identifiant de l’application externe qui appelle Vitam pour effectuer une opération"
+"agent Identifier Application Session","Identifiant donnée par l’application utilisatrice à la session utilisée  pour lancer l’opération","**Oui**","externe",,"X-ApplicationId. l’application externe est responsable de la gestion de cet identifiant. Il correspond à un identifiant pour une session donnée côté application externe."
+"event Identifier Request","Identifiant de la requête déclenchant l’opération","**Oui**","interne",,"X-RequestId généré par Vitam. 1 requestId est créé pour chaque nouvelle requête http venant de l’exterieur"
+"agent Identifier Submission","Identifiant du service versant","*Non*","externe",,"Correspond au SubmissionAgency du SEDA."
+"agent Identifier Originating","Identifiant du service producteur","*Non*","externe","123 789 456_CCAS","Correspond au OriginatingAgency du SEDA."

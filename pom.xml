@@ -20,7 +20,7 @@
 		<module>common</module>
 		<module>ingest</module>
 		<module>processing</module>
-		<module>journal</module>
+		<module>logbook</module>
 		<module>workspace</module>
 		<module>storage</module>
 		<module>metadata</module>
