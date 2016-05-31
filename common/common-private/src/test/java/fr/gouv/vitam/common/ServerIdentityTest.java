@@ -52,7 +52,7 @@ public class ServerIdentityTest {
 
     public static final void testGetInstance() {
         if (first) {
-            final ServerIdentity serverIdentity = ServerIdentity.getInstance();
+            final ServerIdentityInterface serverIdentity = ServerIdentity.getInstance();
             assertNotNull("Should not be null", serverIdentity);
             assertEquals("Role should be set to default", "UnknownRole", serverIdentity.getRole());
             assertNotEquals("Mac Address should not be 0", 0, serverIdentity.getPlatformId());

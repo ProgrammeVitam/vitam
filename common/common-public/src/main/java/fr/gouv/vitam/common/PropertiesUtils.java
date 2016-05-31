@@ -29,11 +29,16 @@ package fr.gouv.vitam.common;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.Properties;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 /**
  * Property Utility class
@@ -85,13 +90,24 @@ public final class PropertiesUtils {
         File file;
         try {
             file = new File(url.toURI());
-        } catch (URISyntaxException e) { //NOSONAR
+        } catch (final URISyntaxException e) { // NOSONAR
             file = new File(url.getFile().replaceAll("%20", " "));
         }
         if (file.exists()) {
             return file;
         }
         throw new FileNotFoundException("File not found in Resources: " + resourcesFile);
+    }
+
+    /**
+     * Get the Path representation from the local path to the Resources directory
+     *
+     * @param resourcesFile properties file from resources directory
+     * @return the associated Path
+     * @throws FileNotFoundException
+     */
+    public static final Path getResourcesPath(String resourcesFile) throws FileNotFoundException {
+        return getResourcesFile(resourcesFile).toPath();
     }
 
     /**
@@ -104,5 +120,39 @@ public final class PropertiesUtils {
     public static final Properties readResourcesProperties(String propertiesResourcesFile) throws IOException {
         final File propertiesFile = getResourcesFile(propertiesResourcesFile);
         return readProperties(propertiesFile);
+    }
+
+    /**
+     * Read the Yaml file and return the object read
+     * @param yamlResourcesPath
+     * @param clasz the class representing the target object
+     * @return the object read
+     * @throws IOException
+     */
+    public static final <C> C readResourcesYaml(Path yamlResourcesPath, Class<C> clasz) throws IOException {
+        if (yamlResourcesPath == null || clasz == null) {
+            throw new FileNotFoundException("Arguments must be non null");
+        }
+        File file = yamlResourcesPath.toFile();
+        final FileReader yamlFile = new FileReader(file);
+        final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+        return clasz.cast(mapper.readValue(yamlFile, clasz));
+    }
+
+    /**
+     * Read the Yaml file and return the object read
+     * @param yamlResourcesFile
+     * @param clasz the class representing the target object
+     * @return the object read
+     * @throws IOException
+     */
+    public static final <C> C readResourcesYaml(String yamlResourcesFile, Class<C> clasz) throws IOException {
+        if (yamlResourcesFile == null || clasz == null) {
+            throw new FileNotFoundException("Arguments must be non null");
+        }
+        File file = getResourcesFile(yamlResourcesFile);
+        final FileReader yamlFile = new FileReader(file);
+        final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+        return clasz.cast(mapper.readValue(yamlFile, clasz));
     }
 }

@@ -51,8 +51,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * JSON handler using Json format
@@ -61,9 +59,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  *
  */
 public final class JsonHandler {
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(JsonHandler.class);
-
     /**
      * Default JsonFactory
      */
@@ -240,7 +235,6 @@ public final class JsonHandler {
             return OBJECT_MAPPER.writerWithDefaultPrettyPrinter()
                 .writeValueAsString(object);
         } catch (final JsonProcessingException | IllegalArgumentException e) {// NOSONAR
-            LOGGER.warn("Cannot parser the Object" + object);
             return "{}";
         }
     }

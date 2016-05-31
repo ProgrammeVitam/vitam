@@ -39,7 +39,7 @@ final class LogbackLogger extends AbstractVitamLogger {
     /**
      * Internal logger
      */
-    private final transient Logger logger; //NOSONAR keep it non static
+    private final transient Logger logger; // NOSONAR keep it non static
 
     /**
      *
@@ -56,37 +56,44 @@ final class LogbackLogger extends AbstractVitamLogger {
     }
 
     @Override
+    public void trace(Throwable t) {
+        if (logger.isTraceEnabled()) {
+            logger.trace(getMessagePrepend(), t);
+        }
+    }
+
+    @Override
     public void trace(final String msg) {
         if (logger.isTraceEnabled()) {
-            logger.trace(getLoggerMethodAndLine() + msg);
+            logger.trace(getMessagePrepend() + msg);
         }
     }
 
     @Override
     public void trace(final String format, final Object arg) {
         if (logger.isTraceEnabled()) {
-            logger.trace(getLoggerMethodAndLine() + format, arg);
+            logger.trace(getMessagePrepend() + format, arg);
         }
     }
 
     @Override
     public void trace(final String format, final Object argA, final Object argB) {
         if (logger.isTraceEnabled()) {
-            logger.trace(getLoggerMethodAndLine() + format, argA, argB);
+            logger.trace(getMessagePrepend() + format, argA, argB);
         }
     }
 
     @Override
     public void trace(final String format, final Object... argArray) {
         if (logger.isTraceEnabled()) {
-            logger.trace(getLoggerMethodAndLine() + format, argArray);
+            logger.trace(getMessagePrepend() + format, argArray);
         }
     }
 
     @Override
     public void trace(final String msg, final Throwable t) {
         if (logger.isTraceEnabled()) {
-            logger.trace(getLoggerMethodAndLine() + msg, t);
+            logger.trace(getMessagePrepend() + msg, t);
         }
     }
 
@@ -96,37 +103,44 @@ final class LogbackLogger extends AbstractVitamLogger {
     }
 
     @Override
+    public void debug(Throwable t) {
+        if (logger.isDebugEnabled()) {
+            logger.debug(getMessagePrepend(), t);
+        }
+    }
+
+    @Override
     public void debug(final String msg) {
         if (logger.isDebugEnabled()) {
-            logger.debug(getLoggerMethodAndLine() + msg);
+            logger.debug(getMessagePrepend() + msg);
         }
     }
 
     @Override
     public void debug(final String format, final Object arg) {
         if (logger.isDebugEnabled()) {
-            logger.debug(getLoggerMethodAndLine() + format, arg);
+            logger.debug(getMessagePrepend() + format, arg);
         }
     }
 
     @Override
     public void debug(final String format, final Object argA, final Object argB) {
         if (logger.isDebugEnabled()) {
-            logger.debug(getLoggerMethodAndLine() + format, argA, argB);
+            logger.debug(getMessagePrepend() + format, argA, argB);
         }
     }
 
     @Override
     public void debug(final String format, final Object... argArray) {
         if (logger.isDebugEnabled()) {
-            logger.debug(getLoggerMethodAndLine() + format, argArray);
+            logger.debug(getMessagePrepend() + format, argArray);
         }
     }
 
     @Override
     public void debug(final String msg, final Throwable t) {
         if (logger.isDebugEnabled()) {
-            logger.debug(getLoggerMethodAndLine() + msg, t);
+            logger.debug(getMessagePrepend() + msg, t);
         }
     }
 
@@ -136,37 +150,44 @@ final class LogbackLogger extends AbstractVitamLogger {
     }
 
     @Override
+    public void info(Throwable t) {
+        if (logger.isInfoEnabled()) {
+            logger.info(getMessagePrepend(), t);
+        }
+    }
+
+    @Override
     public void info(final String msg) {
         if (logger.isInfoEnabled()) {
-            logger.info(getLoggerMethodAndLine() + msg);
+            logger.info(getMessagePrepend() + msg);
         }
     }
 
     @Override
     public void info(final String format, final Object arg) {
         if (logger.isInfoEnabled()) {
-            logger.info(getLoggerMethodAndLine() + format, arg);
+            logger.info(getMessagePrepend() + format, arg);
         }
     }
 
     @Override
     public void info(final String format, final Object argA, final Object argB) {
         if (logger.isInfoEnabled()) {
-            logger.info(getLoggerMethodAndLine() + format, argA, argB);
+            logger.info(getMessagePrepend() + format, argA, argB);
         }
     }
 
     @Override
     public void info(final String format, final Object... argArray) {
         if (logger.isInfoEnabled()) {
-            logger.info(getLoggerMethodAndLine() + format, argArray);
+            logger.info(getMessagePrepend() + format, argArray);
         }
     }
 
     @Override
     public void info(final String msg, final Throwable t) {
         if (logger.isInfoEnabled()) {
-            logger.info(getLoggerMethodAndLine() + msg, t);
+            logger.info(getMessagePrepend() + msg, t);
         }
     }
 
@@ -176,37 +197,44 @@ final class LogbackLogger extends AbstractVitamLogger {
     }
 
     @Override
+    public void warn(Throwable t) {
+        if (logger.isWarnEnabled()) {
+            logger.warn(getMessagePrepend(), t);
+        }
+    }
+
+    @Override
     public void warn(final String msg) {
         if (logger.isWarnEnabled()) {
-            logger.warn(getLoggerMethodAndLine() + msg);
+            logger.warn(getMessagePrepend() + msg);
         }
     }
 
     @Override
     public void warn(final String format, final Object arg) {
         if (logger.isWarnEnabled()) {
-            logger.warn(getLoggerMethodAndLine() + format, arg);
+            logger.warn(getMessagePrepend() + format, arg);
         }
     }
 
     @Override
     public void warn(final String format, final Object... argArray) {
         if (logger.isWarnEnabled()) {
-            logger.warn(getLoggerMethodAndLine() + format, argArray);
+            logger.warn(getMessagePrepend() + format, argArray);
         }
     }
 
     @Override
     public void warn(final String format, final Object argA, final Object argB) {
         if (logger.isWarnEnabled()) {
-            logger.warn(getLoggerMethodAndLine() + format, argA, argB);
+            logger.warn(getMessagePrepend() + format, argA, argB);
         }
     }
 
     @Override
     public void warn(final String msg, final Throwable t) {
         if (logger.isWarnEnabled()) {
-            logger.warn(getLoggerMethodAndLine() + msg, t);
+            logger.warn(getMessagePrepend() + msg, t);
         }
     }
 
@@ -216,27 +244,32 @@ final class LogbackLogger extends AbstractVitamLogger {
     }
 
     @Override
+    public void error(Throwable t) {
+        logger.error(getMessagePrepend(), t);
+    }
+
+    @Override
     public void error(final String msg) {
-        logger.error(getLoggerMethodAndLine() + msg);
+        logger.error(getMessagePrepend() + msg);
     }
 
     @Override
     public void error(final String format, final Object arg) {
-        logger.error(getLoggerMethodAndLine() + format, arg);
+        logger.error(getMessagePrepend() + format, arg);
     }
 
     @Override
     public void error(final String format, final Object argA, final Object argB) {
-        logger.error(getLoggerMethodAndLine() + format, argA, argB);
+        logger.error(getMessagePrepend() + format, argA, argB);
     }
 
     @Override
     public void error(final String format, final Object... argArray) {
-        logger.error(getLoggerMethodAndLine() + format, argArray);
+        logger.error(getMessagePrepend() + format, argArray);
     }
 
     @Override
     public void error(final String msg, final Throwable t) {
-        logger.error(getLoggerMethodAndLine() + msg, t);
+        logger.error(getMessagePrepend() + msg, t);
     }
 }

@@ -37,7 +37,7 @@ final class Log4JLogger extends AbstractVitamLogger {
     // Since Logger, most of the exception are catch silently
     private static final long serialVersionUID = 2851357342488183058L;
 
-    final transient Logger logger; //NOSONAR keep it non static
+    final transient Logger logger; // NOSONAR keep it non static
 
     /**
      * Following the pattern discussed in pages 162 through 168 of "The complete log4j manual".

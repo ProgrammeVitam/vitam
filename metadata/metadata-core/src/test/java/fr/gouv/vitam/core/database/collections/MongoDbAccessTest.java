@@ -13,6 +13,7 @@ import com.mongodb.MongoClientOptions;
 import com.mongodb.ServerAddress;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
+import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
 import de.flapdoodle.embed.mongo.config.IMongodConfig;
 import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
@@ -32,19 +33,18 @@ public class MongoDbAccessTest {
 	static MongoDbAccess mongoDbAccess;
 	static MongodExecutable mongodExecutable;
 	static MongoClient mongoClient;
+    static MongodProcess mongod;
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
+        final MongodStarter starter = MongodStarter.getDefaultInstance();
+        mongodExecutable = starter.prepare(new MongodConfigBuilder()
+            .version(Version.Main.PRODUCTION)
+            .net(new Net(DATABASE_PORT, Network.localhostIsIPv6()))
+            .build());
+        mongod = mongodExecutable.start();
 
-		MongodStarter starter = MongodStarter.getDefaultInstance();
-		IMongodConfig mongodConfig = new MongodConfigBuilder()
-				.version(Version.Main.PRODUCTION)
-				.net(new Net(DATABASE_PORT, Network.localhostIsIPv6()))
-				.build();
-
-		mongodExecutable = starter.prepare(mongodConfig);
-		mongodExecutable.start();
-		MongoClientOptions options = MongoDbAccess.getMongoClientOptions();
+        MongoClientOptions options = MongoDbAccess.getMongoClientOptions();
 		
 		mongoClient = new MongoClient(new ServerAddress(DATABASE_HOST, DATABASE_PORT), options);
 	}
@@ -52,7 +52,8 @@ public class MongoDbAccessTest {
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
 		mongoDbAccess.closeFinal();
-		mongodExecutable.stop();
+        mongod.stop();
+        mongodExecutable.stop();
 	}
 	
 	@After

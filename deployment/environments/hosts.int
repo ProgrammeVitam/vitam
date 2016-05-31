@@ -2,12 +2,16 @@
 
 [hosts:children]
 hosts-metadata-mongodb
+hosts-logbook
 hosts-metadata
 hosts-workspace
 hosts-storage
 hosts-ingest
 
 [hosts-metadata]
+vitam-prod-app-10.internet.agri
+
+[hosts-logbook]
 vitam-prod-app-10.internet.agri
 
 [hosts-workspace]

@@ -34,15 +34,45 @@ public final class GUIDObjectType {
      * Utility Enum for GUIDObjectType
      */
     public enum GUIDObjectEnumType {
+        /**
+         * Unassigned type
+         */
         UNASSIGNED(UNASSIGNED_TYPE),
+        /**
+         * Unit type
+         */
         UNIT(UNIT_TYPE),
+        /**
+         * ObjectGroup type
+         */
         OBJECTGROUP(OBJECTGROUP_TYPE),
+        /**
+         * Object type
+         */
         OBJECT(OBJECT_TYPE),
+        /**
+         * Operation Logbook file type
+         */
         OPERATION_LOGBOOK(OPERATION_LOGBOOK_TYPE),
+        /**
+         * Write Logbook file type
+         */
         WRITE_LOGBOOK(WRITE_LOGBOOK_TYPE),
+        /**
+         * Manifest file type (if used)
+         */
         MANIFEST(MANIFEST_TYPE),
+        /**
+         * Operation Id type (as for Ingest when receiving SIP)
+         */
         OPERATIONID(OPERATIONID_TYPE),
+        /**
+         * Request Id type (as for Access when receiving a request)
+         */
         REQUESTID(REQUESTID_TYPE),
+        /**
+         * Store operation Id type (when a write opeation occurs within the Write Logbook)
+         */
         STORAGE_OPERATION(STORAGE_OPERATION_TYPE);
 
         final int id;

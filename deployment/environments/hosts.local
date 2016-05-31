@@ -2,10 +2,14 @@
 
 [hosts:children]
 hosts-metadata-mongodb
+hosts-logbook
 hosts-metadata
 hosts-workspace
 hosts-storage
 hosts-ingest
+
+[hosts-logbook]
+localhost
 
 [hosts-metadata]
 localhost

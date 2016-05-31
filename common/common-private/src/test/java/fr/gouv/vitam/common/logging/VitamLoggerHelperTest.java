@@ -42,7 +42,7 @@ public class VitamLoggerHelperTest {
         assertNotNull(test);
         assertTrue(test.endsWith(MESSAGE));
         assertNotNull(helper.format((String) null));
-        StringBuilder builder = new StringBuilder(MESSAGE);
+        final StringBuilder builder = new StringBuilder(MESSAGE);
         test = helper.format(builder);
         assertNotNull(test);
         assertTrue(test.endsWith(MESSAGE));

@@ -1,0 +1,11 @@
+---
+## Variables internes au rôle ; à ne pas surcharger par des variables plus globales
+vitam_component: logbook
+
+vitam_folder_conf: "{{vitam_folder_root}}/{{vitam_component}}/conf"
+vitam_folder_log: "{{vitam_folder_root}}/{{vitam_component}}/log"
+vitam_folder_data: "{{vitam_folder_root}}/{{vitam_component}}/data"
+
+vitam_docker_name: "{{vitam_component}}-{{vitam_environment}}"
+vitam_docker_tag: "latest"
+vitam_docker_port_http: 8200
