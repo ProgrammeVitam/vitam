@@ -34,55 +34,68 @@
  */
 package fr.gouv.vitam.logbook.common.parameters;
 
-import java.util.HashMap;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+
+import fr.gouv.vitam.logbook.common.parameters.helper.LogbookParametersHelper;
 
 /**
  * Parameters for the logbook operation
  */
 public class LogbookOperationParameters implements LogbookParameters {
 
-    private static Set<String> mandatoryParameters = new HashSet<>();
+    private static final Set<LogbookParameterName> mandatoryParameters = new HashSet<>();
 
     /**
      * Initialize mandatories fields list
      */
     static {
-        mandatoryParameters.add(LogbookParameterName.eventTypeProcess.name());
-        mandatoryParameters.add(LogbookParameterName.outcome.name());
-        mandatoryParameters.add(LogbookParameterName.outcomeDetail.name());
-        mandatoryParameters.add(LogbookParameterName.outcomeDetailMessage.name());
-        mandatoryParameters.add(LogbookParameterName.agentIdentifierApplicationSession.name());
-        mandatoryParameters.add(LogbookParameterName.eventIdentifier.name());
-        mandatoryParameters.add(LogbookParameterName.eventIdentifierProcess.name());
-        mandatoryParameters.add(LogbookParameterName.eventType.name());
-        mandatoryParameters.add(LogbookParameterName.eventIdentifierRequest.name());
+        mandatoryParameters.add(LogbookParameterName.eventIdentifier);
+        mandatoryParameters.add(LogbookParameterName.eventType);
+        mandatoryParameters.add(LogbookParameterName.eventIdentifierProcess);
+        mandatoryParameters.add(LogbookParameterName.eventTypeProcess);
+        mandatoryParameters.add(LogbookParameterName.outcome);
+        mandatoryParameters.add(LogbookParameterName.outcomeDetailMessage);
+        mandatoryParameters.add(LogbookParameterName.eventIdentifierRequest);
     }
 
-    private Map<String, String> mapParameters = new HashMap<>();
+    // Note: enum has declaration order comparable property
+    private Map<LogbookParameterName, String> mapParameters = new TreeMap<>();
 
     /**
      * Set parameterValue on mapParamaters with parameterName key
      * <br /><br />If parameterKey already exists, the override it (no check)
      *
-     * @param parameterName  the key of the parameter to put on the paramater map
+     * @param parameterName  the key of the parameter to put on the parameter map
      * @param parameterValue the value to put on the parameter map
      * @return actual instance of LogbookOperationParameters (fluent like)
+     * @throws IllegalArgumentException if the parameterName is null or if the parameterValue cannot be null or empty
      */
-    public LogbookOperationParameters setParameterValue(String parameterName, String parameterValue) {
+    public LogbookOperationParameters setParameterValue(LogbookParameterName parameterName, String parameterValue) {
+        LogbookParametersHelper.checkNullOrEmptyParameter(parameterName, parameterValue, getMandatoriesParameters());
         this.mapParameters.put(parameterName, parameterValue);
         return this;
     }
 
     @Override
-    public Set<String> getMandatoriesParameters() {
+    public Set<LogbookParameterName> getMandatoriesParameters() {
         return mandatoryParameters;
     }
 
     @Override
-    public Map<String, String> getMapParameters() {
-        return this.mapParameters;
+    public Map<LogbookParameterName, String> getMapParameters() {
+        return mapParameters;
+    }
+
+    @Override
+    public LocalDateTime getEventDateTime() {
+        String date = mapParameters.get(LogbookParameterName.eventDateTime);
+        if (date != null) {
+            return LocalDateTime.parse(date);
+        }
+        return null;
     }
 }

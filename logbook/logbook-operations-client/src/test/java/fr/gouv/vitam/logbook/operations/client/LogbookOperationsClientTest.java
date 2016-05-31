@@ -36,9 +36,11 @@ package fr.gouv.vitam.logbook.operations.client;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 
@@ -57,8 +59,7 @@ public class LogbookOperationsClientTest {
 
         fillLogbookParamaters(logbookParameters);
 
-        String ret = client.create(logbookParameters);
-        assertEquals(LogbookOperationsClientMock.OK, ret);
+        assertTrue(client.create(logbookParameters));
     }
 
     @Test
@@ -71,27 +72,40 @@ public class LogbookOperationsClientTest {
 
         fillLogbookParamaters(logbookParameters);
 
-        String ret = client.update(logbookParameters);
-        assertEquals(LogbookOperationsClientMock.OK, ret);
+        assertTrue(client.update(logbookParameters));
     }
 
     private void fillLogbookParamaters(LogbookOperationParameters logbookParamaters) {
-        logbookParamaters.setParameterValue(LogbookParameterName.eventTypeProcess.name(),
-            LogbookParameterName.eventTypeProcess.name());
-        logbookParamaters.setParameterValue(LogbookParameterName.outcome.name(), LogbookParameterName.outcome.name());
-        logbookParamaters
-            .setParameterValue(LogbookParameterName.outcomeDetail.name(), LogbookParameterName.outcomeDetail.name());
-        logbookParamaters.setParameterValue(LogbookParameterName.outcomeDetailMessage.name(),
-            LogbookParameterName.outcomeDetailMessage.name());
-        logbookParamaters.setParameterValue(LogbookParameterName.agentIdentifierApplicationSession.name(),
-            LogbookParameterName.agentIdentifierApplicationSession.name());
-        logbookParamaters.setParameterValue(LogbookParameterName.eventIdentifier.name(),
+        logbookParamaters.setParameterValue(LogbookParameterName.eventIdentifier,
             LogbookParameterName.eventIdentifier.name());
-        logbookParamaters.setParameterValue(LogbookParameterName.eventIdentifierProcess.name(),
-            LogbookParameterName.eventIdentifierProcess.name());
         logbookParamaters
-            .setParameterValue(LogbookParameterName.eventType.name(), LogbookParameterName.eventType.name());
-        logbookParamaters.setParameterValue(LogbookParameterName.eventIdentifierRequest.name(),
+        .setParameterValue(LogbookParameterName.eventType, LogbookParameterName.eventType.name());
+        logbookParamaters.setParameterValue(LogbookParameterName.eventDateTime,
+            LocalDateUtil.now().toString());
+        logbookParamaters.setParameterValue(LogbookParameterName.eventIdentifierProcess,
+            LogbookParameterName.eventIdentifierProcess.name());
+        logbookParamaters.setParameterValue(LogbookParameterName.eventTypeProcess,
+            LogbookParameterName.eventTypeProcess.name());
+        logbookParamaters.setParameterValue(LogbookParameterName.outcome, LogbookParameterName.outcome.name());
+        logbookParamaters
+            .setParameterValue(LogbookParameterName.outcomeDetail, LogbookParameterName.outcomeDetail.name());
+        logbookParamaters.setParameterValue(LogbookParameterName.outcomeDetailMessage,
+            LogbookParameterName.outcomeDetailMessage.name());
+        logbookParamaters.setParameterValue(LogbookParameterName.agentIdentifier,
+            LogbookParameterName.agentIdentifier.name());
+        logbookParamaters.setParameterValue(LogbookParameterName.agentIdentifierApplicationSession,
+            LogbookParameterName.agentIdentifierApplicationSession.name());
+        logbookParamaters.setParameterValue(LogbookParameterName.eventIdentifierRequest,
             LogbookParameterName.eventIdentifierRequest.name());
+        logbookParamaters.setParameterValue(LogbookParameterName.agentIdentifierSubmission,
+            LogbookParameterName.agentIdentifierSubmission.name());
+        logbookParamaters.setParameterValue(LogbookParameterName.agentIdentifierOriginating,
+            LogbookParameterName.agentIdentifierOriginating.name());
+        logbookParamaters.setParameterValue(LogbookParameterName.objectIdentifier,
+            LogbookParameterName.objectIdentifier.name());
+        logbookParamaters.setParameterValue(LogbookParameterName.objectIdentifierRequest,
+            LogbookParameterName.objectIdentifierRequest.name());
+        logbookParamaters.setParameterValue(LogbookParameterName.objectIdentifierIncome,
+            LogbookParameterName.objectIdentifierIncome.name());
     }
 }

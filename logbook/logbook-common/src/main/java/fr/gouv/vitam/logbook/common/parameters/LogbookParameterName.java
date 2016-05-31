@@ -36,22 +36,25 @@ package fr.gouv.vitam.logbook.common.parameters;
 
 /**
  * Enum with all possible logbook parameters
- * <br /><br />Use to set parameter value and to check emptiness or nullity
+ * <br /><br />
+ * Use to set parameter value and to check emptiness or nullity
  */
 public enum LogbookParameterName {
+    eventIdentifier,
+    eventType,
+    eventDateTime,
+    eventIdentifierProcess,
     eventTypeProcess,
     outcome,
     outcomeDetail,
     outcomeDetailMessage,
+    agentIdentifier,
     agentIdentifierApplication,
     agentIdentifierApplicationSession,
-    eventIdentifier,
-    eventIdentifierProcess,
-    eventType,
     eventIdentifierRequest,
+    agentIdentifierSubmission,
+    agentIdentifierOriginating,
     objectIdentifier,
     objectIdentifierRequest,
-    objectIdentifierIncome,
-    agentIdentifierSubmission,
-    agentIdentifierOriginating;
+    objectIdentifierIncome;
 }

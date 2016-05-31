@@ -38,10 +38,12 @@ package fr.gouv.vitam.logbook.common.parameters.helper;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 
 import org.junit.Test;
 
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 
@@ -55,11 +57,11 @@ public class LogbookOperationParametersTest {
         LogbookOperationParameters params = new LogbookOperationParameters();
         assertNotNull(params);
         for (LogbookParameterName value : LogbookParameterName.values()) {
-            params.setParameterValue(value.name(), value.name());
+            params.setParameterValue(value, value.name());
         }
         assertEquals(params.getMapParameters().size(), LogbookParameterName.values().length);
 
-        assertEquals(params.getMapParameters().get(LogbookParameterName.eventType.name()), LogbookParameterName.eventType.name());
+        assertEquals(params.getMapParameters().get(LogbookParameterName.eventType), LogbookParameterName.eventType.name());
     }
 
     @Test
@@ -67,11 +69,20 @@ public class LogbookOperationParametersTest {
         LogbookOperationParameters params = new LogbookOperationParameters();
         assertNotNull(params);
 
-        Set<String> mandatories = params.getMandatoriesParameters();
+        Set<LogbookParameterName> mandatories = params.getMandatoriesParameters();
         assertNotNull(mandatories);
 
-        for (String value : mandatories) {
-            assertEquals(LogbookParameterName.valueOf(value).name(), value);
+        for (LogbookParameterName value : mandatories) {
+            assertEquals(value.name(), value.toString());
         }
+    }
+    
+    @Test
+    public void getEventDateTime() {
+        LogbookOperationParameters params = new LogbookOperationParameters();
+        assertNotNull(params);
+        LocalDateTime dateTime = LocalDateUtil.now();
+        params.getMapParameters().put(LogbookParameterName.eventDateTime, dateTime.toString());
+        assertEquals(dateTime, params.getEventDateTime());
     }
 }

@@ -34,12 +34,13 @@
  */
 package fr.gouv.vitam.logbook.operations.client;
 
-import java.time.LocalDateTime;
+import java.util.Map;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.logging.VitamLoggerHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.parameters.helper.LogbookParametersHelper;
@@ -49,39 +50,24 @@ import fr.gouv.vitam.logbook.common.parameters.helper.LogbookParametersHelper;
  */
 class LogbookOperationsClientMock implements LogbookClient {
 
-    static final String OK = "OK";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookOperationsClientMock.class);
-
-    /**
-     * Create operation logbook entry
-     *
-     * Actually doesn't check eventIdentity (if not exists)
-     *
-     * @param parameters the entry parameters
-     * @return the status of the operation, OK if no problem, KO otherwise
-     */
+    private static final VitamLoggerHelper VITAM_LOGGER_HELPER = VitamLoggerHelper.newInstance();
+    private static final ServerIdentity SERVER_IDENTITY = ServerIdentity.getInstance();
+    
     @Override
-    public String create(LogbookParameters parameters) {
+    public boolean create(LogbookParameters parameters) {
         LogbookParametersHelper
             .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
         logInformation(parameters);
-        return OK;
+        return true;
     }
 
-    /**
-     * Update operation logbook entry
-     *
-     * Actually doesn't check eventIdentity (if exists)
-     *
-     * @param parameters the entry parameters
-     * @return the status of the operation, OK if no problem, KO otherwise
-     */
     @Override
-    public String update(LogbookParameters parameters) {
+    public boolean update(LogbookParameters parameters) {
         LogbookParametersHelper
             .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
         logInformation(parameters);
-        return OK;
+        return true;
     }
 
     @Override
@@ -90,12 +76,14 @@ class LogbookOperationsClientMock implements LogbookClient {
     }
 
     private void logInformation(LogbookParameters parameters) {
-        String name = ServerIdentity.getInstance().getName();
-        LocalDateTime date = LocalDateUtil.now();
-        LOGGER.info("Date: " + date);
-        parameters.getMapParameters().put(LogbookParameterName.agentIdentifierApplication.name(), name);
-        for (String key : parameters.getMapParameters().keySet()) {
-            LOGGER.info(key + ": " + parameters.getMapParameters().get(key));
+        Map<LogbookParameterName, String> map = parameters.getMapParameters();
+        map.put(LogbookParameterName.agentIdentifier, SERVER_IDENTITY.getName());
+        map.put(LogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
+        StringBuilder builder = new StringBuilder("{ ");
+        for (LogbookParameterName key : map.keySet()) {
+            builder.append(key).append(": ").append(parameters.getMapParameters().get(key)).append(", ");
         }
+        builder.setLength(builder.length() - 2);
+        LOGGER.info(VITAM_LOGGER_HELPER.format(builder.append(" }")));
     }
 }
