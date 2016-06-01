@@ -145,5 +145,3 @@ Exception
 *********
 
 L'exception parente Vitam VitamException s'y trouve. Toutes les exceptions Vitam en héritent.
-
- 

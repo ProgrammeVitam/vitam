@@ -18,4 +18,5 @@ Rest API
 | http://server/app/v1
 | POST /operations/{id_op}/lifecycles/ -> **POST un lifecyle sur une opération**
 | PUT /operations/{id_op}/lifecycles/{id_li} -> **Append sur un lifecycle existant**
-| GET  /lifecycle -> **Administration du licycle **
+| GET  /lifecycle -> **Administration du lifecycle**
+
