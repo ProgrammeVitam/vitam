@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.common;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -33,6 +34,7 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Path;
 
 import org.junit.Test;
 
@@ -77,12 +79,48 @@ public class PropertiesUtilsTest {
 
     @Test
     public void testGetResourcesFile() throws FileNotFoundException {
-        assertTrue(PropertiesUtils.getResourcesFile(
-            ResourcesPublicUtilTest.GUID_TEST_PROPERTIES).exists());
+        File file = PropertiesUtils.getResourcesFile(
+            ResourcesPublicUtilTest.GUID_TEST_PROPERTIES);
+        assertTrue(file.exists());
+        Path path = PropertiesUtils.getResourcesPath(ResourcesPublicUtilTest.GUID_TEST_PROPERTIES);
+        assertEquals(file.getAbsolutePath(), path.toString());
         try {
             assertFalse(PropertiesUtils.readResourcesProperties(
                 ResourcesPublicUtilTest.GUID_TEST_PROPERTIES).isEmpty());
-        } catch (IOException e) { //NOSONAR
+        } catch (final IOException e) { // NOSONAR
+            fail(ResourcesPublicUtilTest.SHOULD_NOT_HAVE_AN_EXCEPTION);
+        }
+    }
+
+    private static class ConfigurationTest {
+        private String test;
+        private int number;
+        protected ConfigurationTest(){
+            // empty
+        }
+        protected final String getTest() {
+            return test;
+        }
+        protected final void setTest(String test) {
+            this.test = test;
+        }
+        protected final int getNumber() {
+            return number;
+        }
+        protected final void setNumber(int number) {
+            this.number = number;
+        }
+        
+    }
+    @Test
+    public void testGetYamlFile() throws FileNotFoundException {
+        try {
+            ConfigurationTest test = PropertiesUtils.readResourcesYaml(
+                ResourcesPublicUtilTest.YAML_TEST_CONF, ConfigurationTest.class);
+            assertEquals("test", test.getTest());
+            assertEquals(12346, test.getNumber());
+        } catch (IOException e1) {
+            e1.printStackTrace();
             fail(ResourcesPublicUtilTest.SHOULD_NOT_HAVE_AN_EXCEPTION);
         }
     }

@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.logging;
 
 import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.ServerIdentityInterface;
 
 /**
  * Vitam Logger Helper to format LOG within Private Module within Vitam <br>
@@ -39,14 +40,16 @@ import fr.gouv.vitam.common.ServerIdentity;
  * LOGGER.info(helper.format("My message2: {}"), arg1);
  * LOGGER.info(helper.format("My message3"));
  * </pre>
+ * @deprecated This class is no more useful and should not be used
  */
+@Deprecated
 public class VitamLoggerHelper {
     final StringBuilder preMessage = new StringBuilder();
     final int resetPosition;
 
     private VitamLoggerHelper() {
         // Set ServerIdentity
-        final ServerIdentity serverIdentity = ServerIdentity.getInstance();
+        final ServerIdentityInterface serverIdentity = ServerIdentity.getInstance();
         preMessage.append('[').append(serverIdentity.getName()).append(':')
             .append(serverIdentity.getRole()).append("] ");
         resetPosition = preMessage.length();
@@ -56,7 +59,8 @@ public class VitamLoggerHelper {
      * Helper to format the Message for Internal Vitam LOG
      *
      * @param message
-     * @return
+     * @return the new formatted String
+     * @deprecated This method is no more useful and should not be used
      */
     public String format(String message) {
         final String result = preMessage.append(message).toString();
@@ -68,7 +72,8 @@ public class VitamLoggerHelper {
      * Helper to format the Message for Internal Vitam LOG
      *
      * @param message
-     * @return
+     * @return the new formatted String
+     * @deprecated This method is no more useful and should not be used
      */
     public String format(StringBuilder message) {
         return message.insert(0, preMessage.toString()).toString();
@@ -76,8 +81,9 @@ public class VitamLoggerHelper {
     // TODO To compare to Logbook and improve message format and arguments
 
     /**
-     * 
+     *
      * @return a new Instance
+     * @deprecated This method is no more useful and should not be used
      */
     public static final VitamLoggerHelper newInstance() {
         return new VitamLoggerHelper();

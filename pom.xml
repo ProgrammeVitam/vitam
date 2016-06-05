@@ -96,6 +96,7 @@
 		<project.scm.id>vitam-gitlab</project.scm.id>
 		<vitam.docker.registry.pull>docker.programmevitam.fr</vitam.docker.registry.pull>
 		<vitam.docker.registry.push>vitam-prod-app-6.internet.agri:8082</vitam.docker.registry.push>
+		<vitam.docker.baseimage>vitam/java:0:2.0</vitam.docker.baseimage>
 
 		<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
 		<!-- Sonar properties -->
@@ -112,27 +113,29 @@
 		<!-- Dependencies versions -->
 		<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
 		<jacoco-maven-plugin.version>0.7.6.201602180812</jacoco-maven-plugin.version>
-		<slf4j.version>1.7.20</slf4j.version>
+		<slf4j.version>1.7.21</slf4j.version>
 		<logback.version>1.1.7</logback.version>
-		<jersey.version>2.22.2</jersey.version>
+		<jersey.version>2.23</jersey.version>
 		<jclouds.version>1.9.2</jclouds.version>
-		<jackson.version>2.7.3</jackson.version>
+		<jackson.version>2.7.4</jackson.version>
 		<guava.version>19.0</guava.version>
 		<log4j.version>1.2.17</log4j.version>
+		<commons-io.version>2.5</commons-io.version>
 		<easymock.version>3.4</easymock.version>
-		<joda-time.version>2.9.3</joda-time.version>
+		<joda-time.version>2.9.4</joda-time.version>
 		<jmeter.version>2.11</jmeter.version>
-		<elasticsearch.version>2.3.1</elasticsearch.version>
+		<elasticsearch.version>2.3.3</elasticsearch.version>
 		<mongo.version>3.2.2</mongo.version>
+		<!-- 1.0.5 ? -->
 		<testcontainers.version>1.0.4</testcontainers.version>
 		<yamlbeans.version>1.09</yamlbeans.version>
-		<jetty.version>9.3.8.v20160314</jetty.version>
+		<jetty.version>9.3.9.v20160517</jetty.version>
 		<assertj.version>2.4.0</assertj.version>
 		<rest-assured.version>2.9.0</rest-assured.version>
 		<junit.version>4.12</junit.version>
 		<mockito.version>1.10.19</mockito.version>
+		<!-- 1.50.5 -->
 		<flapdoodle.version>1.50.3</flapdoodle.version>
-		<commons-io.version>2.5</commons-io.version>
 		<org.json.version>20160212</org.json.version>
 		<commons-lang.version>2.6</commons-lang.version>
 	</properties>
@@ -189,6 +192,7 @@
 					<!-- Copy the resources to the output directory for including in the 
 						JAR. -->
 					<artifactId>maven-resources-plugin</artifactId>
+					<!-- 3.0 ? -->
 					<version>2.7</version>
 					<configuration>
 						<encoding>${project.build.sourceEncoding}</encoding>
@@ -197,7 +201,7 @@
 				<plugin>
 					<!-- Generate a site for the current project. -->
 					<artifactId>maven-site-plugin</artifactId>
-					<version>3.5</version>
+					<version>3.5.1</version>
 				</plugin>
 				<plugin>
 					<groupId>org.jacoco</groupId>
@@ -245,6 +249,7 @@
 				<plugin>
 					<!-- Build a JAR from the current project. -->
 					<artifactId>maven-jar-plugin</artifactId>
+					<!-- 3.0 ? -->
 					<version>2.6</version>
 					<configuration>
 						<archive>
@@ -263,6 +268,7 @@
 					<!-- Build Docker Container from Project -->
 					<groupId>com.spotify</groupId>
 					<artifactId>docker-maven-plugin</artifactId>
+					<!-- com.spotify 0.4.10 ? -->
 					<version>0.4.9</version>
 					<configuration>
 						<skipDockerBuild>true</skipDockerBuild> <!-- Skip build by default -->
@@ -374,7 +380,7 @@
 					<!-- Maven/Sonarqube integration -->
 					<groupId>org.sonarsource.scanner.maven</groupId>
 					<artifactId>sonar-maven-plugin</artifactId>
-					<version>3.0.1</version>
+					<version>3.0.2</version>
 				</plugin>
 			</plugins>
 		</pluginManagement>
@@ -390,16 +396,6 @@
 
 	<dependencyManagement>
 		<dependencies>
-			<dependency>
-				<groupId>org.glassfish.jersey.test-framework.providers</groupId>
-				<artifactId>jersey-test-framework-provider-grizzly2</artifactId>
-				<version>${jersey.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.glassfish.jersey.test-framework.providers</groupId>
-				<artifactId>jersey-test-framework-provider-jetty</artifactId>
-				<version>${jersey.version}</version>
-			</dependency>
 			<dependency>
 				<groupId>org.apache.jclouds</groupId>
 				<artifactId>jclouds-core</artifactId>
@@ -524,12 +520,16 @@
 			<!-- ########################## Logger ########################## -->
 
 			<dependency>
-				<groupId>log4j</groupId>
-				<artifactId>log4j</artifactId>
-				<version>${log4j.version}</version>
-				<optional>true</optional>
+				<groupId>ch.qos.logback</groupId>
+				<artifactId>logback-core</artifactId>
+				<version>${logback.version}</version>
+				<!--<scope>provided</scope> -->
 			</dependency>
-
+			<dependency>
+				<groupId>ch.qos.logback</groupId>
+				<artifactId>logback-classic</artifactId>
+				<version>${logback.version}</version>
+			</dependency>
 			<dependency>
 				<groupId>org.slf4j</groupId>
 				<artifactId>slf4j-api</artifactId>
@@ -554,42 +554,43 @@
 				<version>${apache.logging.version}</version>
 			</dependency>
 			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>jul-to-slf4j</artifactId>
+				<version>${slf4j.version}</version>
+				<!--<scope>provided</scope> -->
+			</dependency>
+
+			<dependency>
+				<groupId>log4j</groupId>
+				<artifactId>log4j</artifactId>
+				<version>${log4j.version}</version>
+				<optional>true</optional>
+			</dependency>
+
+			<dependency>
 				<groupId>org.apache.logging.log4j</groupId>
 				<artifactId>log4j-core</artifactId>
 				<version>${apache.logging.version}</version>
+				<optional>true</optional>
 			</dependency>
+
 			<dependency>
 				<groupId>org.apache.logging.log4j</groupId>
 				<artifactId>log4j-1.2-api</artifactId>
 				<version>${apache.logging.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>ch.qos.logback</groupId>
-				<artifactId>logback-classic</artifactId>
-				<version>${logback.version}</version>
 			</dependency>
 
 			<dependency>
 				<groupId>org.slf4j</groupId>
 				<artifactId>slf4j-log4j12</artifactId>
 				<version>${slf4j.version}</version>
+				<optional>true</optional>
 			</dependency>
 			<dependency>
 				<groupId>org.slf4j</groupId>
 				<artifactId>slf4j-simple</artifactId>
 				<version>${slf4j.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.slf4j</groupId>
-				<artifactId>jul-to-slf4j</artifactId>
-				<version>${slf4j.version}</version>
-				<!--<scope>provided</scope> -->
-			</dependency>
-			<dependency>
-				<groupId>ch.qos.logback</groupId>
-				<artifactId>logback-core</artifactId>
-				<version>${logback.version}</version>
-				<!--<scope>provided</scope> -->
+				<optional>true</optional>
 			</dependency>
 
 			<!-- ####################### Tests ####################### -->
@@ -645,16 +646,19 @@
 				<groupId>org.glassfish.jersey.test-framework.providers</groupId>
 				<artifactId>jersey-test-framework-provider-grizzly2</artifactId>
 				<version>${jersey.version}</version>
+				<scope>test</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.glassfish.jersey.test-framework.providers</groupId>
 				<artifactId>jersey-test-framework-provider-jetty</artifactId>
 				<version>${jersey.version}</version>
-				</dependency>
+				<scope>test</scope>
+			</dependency>
 			<dependency>
 				<groupId>de.flapdoodle.embed</groupId>
 				<artifactId>de.flapdoodle.embed.mongo</artifactId>
 				<version>${flapdoodle.version}</version>
+				<scope>test</scope>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

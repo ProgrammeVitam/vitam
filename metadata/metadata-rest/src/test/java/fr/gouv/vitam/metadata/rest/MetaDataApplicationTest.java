@@ -7,6 +7,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
+import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
 import de.flapdoodle.embed.mongo.config.IMongodConfig;
 import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
@@ -19,21 +20,21 @@ public class MetaDataApplicationTest {
     private static int DATABASE_PORT = 45678;
     private static MongodExecutable mongodExecutable;
 	private MetaDataApplication application = new MetaDataApplication();
-	
+    static MongodProcess mongod;
+
     @BeforeClass
     public static void setUp() throws IOException {
-        MongodStarter starter = MongodStarter.getDefaultInstance();
-        IMongodConfig mongodConfig = new MongodConfigBuilder()
-                .version(Version.Main.PRODUCTION)
-                .net(new Net(DATABASE_PORT , Network.localhostIsIPv6()))
-                .build();
-
-        mongodExecutable = starter.prepare(mongodConfig);
-        mongodExecutable.start();
+        final MongodStarter starter = MongodStarter.getDefaultInstance();
+        mongodExecutable = starter.prepare(new MongodConfigBuilder()
+            .version(Version.Main.PRODUCTION)
+            .net(new Net(DATABASE_PORT, Network.localhostIsIPv6()))
+            .build());
+        mongod = mongodExecutable.start();
     }
     
     @AfterClass
     public static void tearDownAfterClass() {
+        mongod.stop();
         mongodExecutable.stop();
     }
 	@Test(expected = IllegalArgumentException.class)

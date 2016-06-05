@@ -18,6 +18,10 @@
   roles:
     - metadata
 
+- hosts: hosts-logbook
+  roles:
+    - logbook
+
 - hosts: hosts-ingest
   roles:
     - ingest

@@ -271,9 +271,9 @@ public class Digest {
      * @throws IOException if any IO error occurs
      * @throws IllegalArgumentException fileChannelIinputStream null
      */
-    public final Digest update(FileChannel fileChannelIinputStream)
+    public final Digest update(FileChannel fileChannelInputStream)
         throws IOException {
-        return update(fileChannelIinputStream, 0, BUFFER_SIZE, -1);
+        return update(fileChannelInputStream, 0, BUFFER_SIZE, -1);
     }
 
     /**

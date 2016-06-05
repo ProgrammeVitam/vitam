@@ -74,14 +74,14 @@ public class ResourcesPrivateUtilTest {
         File file;
         try {
             file = PropertiesUtils.getResourcesFile(name);
-        } catch (FileNotFoundException e) { // NOSONAR
+        } catch (final FileNotFoundException e) { // NOSONAR
             LOGGER.debug("Not able to load: " + name);
             return null;
         }
         if (file != null && file.exists()) {
             return file;
         }
-        
+
         return null;
     }
 

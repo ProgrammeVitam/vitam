@@ -57,7 +57,7 @@ public final class LogbackLoggerFactory extends VitamLoggerFactory {
 
     @Override
     protected void seLevelSpecific(final VitamLogLevel level) {
-        final Logger logger = (Logger) LoggerFactory.getLogger(ROOT); //NOSONAR keep it non static
+        final Logger logger = (Logger) LoggerFactory.getLogger(ROOT); // NOSONAR keep it non static
         switch (level) {
             case TRACE:
                 logger.setLevel(Level.TRACE);
@@ -82,7 +82,7 @@ public final class LogbackLoggerFactory extends VitamLoggerFactory {
 
     @Override
     public VitamLogger newInstance(final String name) {
-        final Logger logger = (Logger) LoggerFactory.getLogger(name); //NOSONAR keep it non static
+        final Logger logger = (Logger) LoggerFactory.getLogger(name); // NOSONAR keep it non static
         return new LogbackLogger(logger);
     }
 
@@ -121,7 +121,7 @@ public final class LogbackLoggerFactory extends VitamLoggerFactory {
 
     @Override
     protected VitamLogLevel getLevelSpecific() {
-        final Logger logger = (Logger) LoggerFactory.getLogger(ROOT); //NOSONAR keep it non static
+        final Logger logger = (Logger) LoggerFactory.getLogger(ROOT); // NOSONAR keep it non static
         if (logger.isTraceEnabled()) {
             return VitamLogLevel.TRACE;
         } else if (logger.isDebugEnabled()) {

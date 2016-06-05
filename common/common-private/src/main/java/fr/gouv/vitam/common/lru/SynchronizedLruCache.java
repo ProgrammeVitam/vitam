@@ -96,7 +96,7 @@ public class SynchronizedLruCache<K, V> extends AbstractLruCache<K, V> {
     }
 
     @Override
-    public synchronized V get(K key) { //NOSONAR do not remove since synchronized
+    public synchronized V get(K key) { // NOSONAR do not remove since synchronized
         return super.get(key);
     }
 
@@ -116,7 +116,7 @@ public class SynchronizedLruCache<K, V> extends AbstractLruCache<K, V> {
     }
 
     @Override
-    public synchronized void put(K key, V value, long ttl) {//NOSONAR do not remove (synchronized)
+    public synchronized void put(K key, V value, long ttl) {// NOSONAR do not remove (synchronized)
         super.put(key, value, ttl);
     }
 

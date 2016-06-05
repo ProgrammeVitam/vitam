@@ -42,6 +42,7 @@ public class ResourcesPublicUtilTest {
     public static final String GUID_TEST_PROPERTIES = "GUID-test.properties";
     private static final String JSON_TEST_JSON = "json-test.json";
     private static final String JSON_TEST2_JSON = "json-test2.json";
+    public static final String YAML_TEST_CONF = "yaml-test.conf";
 
     public static final String SHOULD_HAVE_AN_EXCEPTION = "Should have an exception";
     public static final String SHOULD_NOT_HAVE_AN_EXCEPTION = "Should not have an exception";
@@ -101,14 +102,14 @@ public class ResourcesPublicUtilTest {
         File file;
         try {
             file = PropertiesUtils.getResourcesFile(name);
-        } catch (FileNotFoundException e) { // NOSONAR
+        } catch (final FileNotFoundException e) { // NOSONAR
             LOGGER.debug("Not able to load: " + name);
             return null;
         }
         if (file != null && file.exists()) {
             return file;
         }
-        
+
         return null;
     }
 }

@@ -28,6 +28,9 @@ package fr.gouv.vitam.common.logging;
 
 import java.io.ObjectStreamException;
 import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
+
+import fr.gouv.vitam.common.ServerIdentityInterface;
 
 /**
  * A skeletal implementation of {@link VitamLogger}. This class implements all methods that have a {@link VitamLogLevel}
@@ -36,19 +39,21 @@ import java.io.Serializable;
  */
 public abstract class AbstractVitamLogger implements VitamLogger, Serializable {
 
+    private static final char PACKAGE_SEPARATOR_CHAR = '.';
+
     private static final long serialVersionUID = -6382972526573193470L;
 
     private static final String EXCEPTION_MESSAGE = "Unexpected exception:";
 
     private final String name;
 
-    private static int baseLevel;
-    private static int logLevel;
-
-    { // NOSONAR
-      // Must be dynamic to ensure correct value
-        baseLevel = detectLoggingBaseLevel();
-        logLevel = baseLevel + 2;
+    private static boolean initialized = false;
+    private static boolean hasServerIdentity = false;
+    private static Object serverIdentity = null;
+    
+    static {
+        // Initialization for ServerIdentity
+        initLogger();
     }
 
     /**
@@ -59,6 +64,24 @@ public abstract class AbstractVitamLogger implements VitamLogger, Serializable {
             throw new NullPointerException("name");
         }
         this.name = name;
+    }
+
+    private static void initLogger() {
+        if (initialized) {
+            return;
+        }
+        try {
+            Class<?> clasz = Class.forName("fr.gouv.vitam.common.ServerIdentity", 
+                true, VitamLoggerFactory.class.getClassLoader());
+            hasServerIdentity = true;
+            serverIdentity = clasz.getMethod("getInstance").invoke(null);
+        } catch (ClassNotFoundException | NoClassDefFoundError e) {// NOSONAR ignore
+            // ignore
+        } catch (IllegalAccessException | IllegalArgumentException | // NOSONAR ignore
+            InvocationTargetException | NoSuchMethodException | SecurityException e) {// NOSONAR ignore
+            e.printStackTrace();//NOSONAR : no choice since no logger yet
+        }
+        initialized = true;
     }
 
     @Override
@@ -86,47 +109,48 @@ public abstract class AbstractVitamLogger implements VitamLogger, Serializable {
 
     @Override
     public void trace(final Throwable t) {
-        trace(EXCEPTION_MESSAGE, t);
+        trace(getMessagePrepend() + EXCEPTION_MESSAGE, t);
     }
 
     @Override
     public void debug(final Throwable t) {
-        debug(EXCEPTION_MESSAGE, t);
+        debug(getMessagePrepend() + EXCEPTION_MESSAGE, t);
     }
 
     @Override
     public void info(final Throwable t) {
-        info(EXCEPTION_MESSAGE, t);
+        info(getMessagePrepend() + EXCEPTION_MESSAGE, t);
     }
 
     @Override
     public void warn(final Throwable t) {
-        warn(EXCEPTION_MESSAGE, t);
+        warn(getMessagePrepend() + EXCEPTION_MESSAGE, t);
     }
 
     @Override
     public void error(final Throwable t) {
-        error(EXCEPTION_MESSAGE, t);
+        error(getMessagePrepend() + EXCEPTION_MESSAGE, t);
     }
 
     @Override
     public void log(final VitamLogLevel level, final String msg, final Throwable cause) {
+        final String newmsg = getMessagePrepend() + msg;
         switch (level) {
             case TRACE:
-                trace(msg, cause);
+                trace(newmsg, cause);
                 break;
             case DEBUG:
-                debug(msg, cause);
+                debug(newmsg, cause);
                 break;
             case INFO:
-                info(msg, cause);
+                info(newmsg, cause);
                 break;
             case WARN:
-                warn(msg, cause);
+                warn(newmsg, cause);
                 break;
             case ERROR:
             default:
-                error(msg, cause);
+                error(newmsg, cause);
                 break;
         }
     }
@@ -135,64 +159,66 @@ public abstract class AbstractVitamLogger implements VitamLogger, Serializable {
     public void log(final VitamLogLevel level, final Throwable cause) {
         switch (level) {
             case TRACE:
-                trace(cause);
+                trace(getMessagePrepend() + cause.getMessage(), cause);
                 break;
             case DEBUG:
-                debug(cause);
+                debug(getMessagePrepend() + cause.getMessage(), cause);
                 break;
             case INFO:
-                info(cause);
+                info(getMessagePrepend() + cause.getMessage(), cause);
                 break;
             case WARN:
-                warn(cause);
+                warn(getMessagePrepend() + cause.getMessage(), cause);
                 break;
             case ERROR:
             default:
-                error(cause);
+                error(getMessagePrepend() + cause.getMessage(), cause);
                 break;
         }
     }
 
     @Override
     public void log(final VitamLogLevel level, final String msg) {
+        final String newmsg = getMessagePrepend() + msg;
         switch (level) {
             case TRACE:
-                trace(msg);
+                trace(newmsg);
                 break;
             case DEBUG:
-                debug(msg);
+                debug(newmsg);
                 break;
             case INFO:
-                info(msg);
+                info(newmsg);
                 break;
             case WARN:
-                warn(msg);
+                warn(newmsg);
                 break;
             case ERROR:
             default:
-                error(msg);
+                error(newmsg);
                 break;
         }
     }
 
     @Override
     public void log(final VitamLogLevel level, final String format, final Object arg) {
+        final String newmsg = getMessagePrepend() + format;
         switch (level) {
             case TRACE:
-                trace(format, arg);
+                trace(newmsg, arg);
                 break;
             case DEBUG:
-                debug(format, arg);
+                debug(newmsg, arg);
                 break;
             case INFO:
-                info(format, arg);
+                info(newmsg, arg);
                 break;
             case WARN:
-                warn(format, arg);
+                warn(newmsg, arg);
                 break;
             case ERROR:
             default:
-                error(format, arg);
+                error(newmsg, arg);
                 break;
         }
     }
@@ -200,22 +226,23 @@ public abstract class AbstractVitamLogger implements VitamLogger, Serializable {
     @Override
     public void log(final VitamLogLevel level, final String format, final Object argA,
         final Object argB) {
+        final String newmsg = getMessagePrepend() + format;
         switch (level) {
             case TRACE:
-                trace(format, argA, argB);
+                trace(newmsg, argA, argB);
                 break;
             case DEBUG:
-                debug(format, argA, argB);
+                debug(newmsg, argA, argB);
                 break;
             case INFO:
-                info(format, argA, argB);
+                info(newmsg, argA, argB);
                 break;
             case WARN:
-                warn(format, argA, argB);
+                warn(newmsg, argA, argB);
                 break;
             case ERROR:
             default:
-                error(format, argA, argB);
+                error(newmsg, argA, argB);
                 break;
         }
     }
@@ -223,22 +250,23 @@ public abstract class AbstractVitamLogger implements VitamLogger, Serializable {
     @Override
     public void log(final VitamLogLevel level, final String format,
         final Object... arguments) {
+        final String newmsg = getMessagePrepend() + format;
         switch (level) {
             case TRACE:
-                trace(format, arguments);
+                trace(newmsg, arguments);
                 break;
             case DEBUG:
-                debug(format, arguments);
+                debug(newmsg, arguments);
                 break;
             case INFO:
-                info(format, arguments);
+                info(newmsg, arguments);
                 break;
             case WARN:
-                warn(format, arguments);
+                warn(newmsg, arguments);
                 break;
             case ERROR:
             default:
-                error(format, arguments);
+                error(newmsg, arguments);
                 break;
         }
     }
@@ -267,74 +295,27 @@ public abstract class AbstractVitamLogger implements VitamLogger, Serializable {
         if (clazz == null) {
             return "null_class";
         }
-        final Package pkg = clazz.getPackage();
-        if (pkg != null) {
-            return clazz.getName().substring(pkg.getName().length() + 1);
-        } else {
-            return clazz.getName();
+        String className = clazz.getName();
+        final int lastDotIdx = className.lastIndexOf(PACKAGE_SEPARATOR_CHAR);
+        if (lastDotIdx > -1) {
+            return className.substring(lastDotIdx + 1);
         }
+        return className;
     }
 
     @Override
     public String toString() {
         return simpleClassName(this) + '(' + name() + ')';
     }
-
+    
     /**
-     * Determine the good level
-     *
-     * @return the default base level
+     * 
+     * @return Message prepend using ServerIdentity
      */
-    private static final int detectLoggingBaseLevel() {
-        final StackTraceElement[] elt = Thread.currentThread().getStackTrace();
-        int i;
-        for (i = 0; i < elt.length; i++) {
-            if ("detectLoggingBaseLevel".equalsIgnoreCase(elt[i].getMethodName())) {
-                break;
-            }
+    static final String getMessagePrepend() {
+        if (hasServerIdentity) {
+            return ((ServerIdentityInterface) serverIdentity).getLoggerMessagePrepend();
         }
-        return i;
-    }
-
-    /**
-     * To be used in message for logger (rank 2) like logger.warn(code,"message:"+getImmediateMethodAndLine(),null);
-     *
-     * @return "ClassAndMethodName(FileName:LineNumber)"
-     */
-    public static final String getImmediateMethodAndLine() {
-        final StackTraceElement elt =
-            Thread.currentThread().getStackTrace()[baseLevel + 1];
-        return getMethodAndLine(elt);
-    }
-
-    /**
-     * To be used only by Logger (rank 5)
-     *
-     * @return "MethodName(FileName:LineNumber)"
-     */
-    public static final String getLoggerMethodAndLine() {
-        final StackTraceElement elt = Thread.currentThread().getStackTrace()[logLevel];
-        return getMethodAndLine(elt);
-    }
-
-    /**
-     * @param rank is the current depth of call+1 (immediate = 1+1=2)
-     * @return "ClassAndMethodName(FileName:LineNumber)"
-     */
-    protected static final String getRankMethodAndLine(final int rank) {
-        final StackTraceElement elt = Thread.currentThread().getStackTrace()[rank];
-        return getMethodAndLine(elt);
-    }
-
-    /**
-     *
-     * @param elt
-     * @return "MethodName(FileName:LineNumber) " from elt
-     */
-    private static final String getMethodAndLine(final StackTraceElement elt) {
-        return new StringBuilder(elt.getClassName())
-            .append('.').append(elt.getMethodName())
-            .append('(').append(elt.getFileName())
-            .append(':').append(elt.getLineNumber()).append(") : ").toString();
+        return "";
     }
 }
