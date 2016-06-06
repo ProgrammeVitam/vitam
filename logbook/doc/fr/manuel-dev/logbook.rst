@@ -32,10 +32,10 @@ Actuellement, elle ne fonctionne que pour le journal des opérations.
 
     // Récupération de la classe paramètre
     LogbookParameters parameters = LogbookParametersFactory.newLogbookOperationParameters();
-    // Utilisation des setter : parameters.setParameterValue(parameterName, parameterValue);
-    parameters.setParameterValue(LogbookParameterName.eventTypeProcess,
+    // Utilisation des setter : parameters.putParameterValue(parameterName, parameterValue);
+    parameters.putParameterValue(LogbookParameterName.eventTypeProcess,
                 LogbookParameterName.eventTypeProcess.name())
-              .setParameterValue(LogbookParameterName.outcome,
+              .putParameterValue(LogbookParameterName.outcome,
                 LogbookParameterName.outcome.name());
     
     // Usage recommandé : utiliser le factory avec les arguments obligatoires à remplir
@@ -86,12 +86,12 @@ Chacune de ces méthodes prend en arguement la classe paramètre instanciée via
 
     // Récupération de la classe paramètre
     LogbookParameters parameters = LogbookParametersFactory.newLogbookOperationParameters();
-    // Utilisation des setter : parameters.setParameterValue(parameterName, parameterValue);
+    // Utilisation des setter : parameters.putParameterValue(parameterName, parameterValue);
 
     // create
     client.create(parameters);
     // possibilité de réutiliser le même parameters
-    // Utilisation des setter : parameters.setParameterValue(parameterName, parameterValue);
+    // Utilisation des setter : parameters.putParameterValue(parameterName, parameterValue);
     // update
     client.update(parameters);
 
@@ -106,8 +106,8 @@ Exemple d'usage générique
 
     // Récupération de la classe paramètre
     LogbookParameters parameters = LogbookParametersFactory.newLogbookOperationParameters();
-    // Utilisation des setter : parameters.setParameterValue(parameterName, parameterValue);
-    parameters.setParameterValue(LogbookParameterName.eventIdentifierProcess,
+    // Utilisation des setter : parameters.putParameterValue(parameterName, parameterValue);
+    parameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
               GUIDFactory.newOperationId(tenant).getId())
             .setStatus(outcome).setTypeProcess(type);
 
@@ -120,18 +120,18 @@ Exemple d'usage générique
     // Récupère les valeurs du parent: attention à resetter les valeurs propres !
     subParameters.setFromParameters(parameters);
     // Event GUID
-    subParameters.setParameterValue(LogbookParameterName.eventIdentifier,
+    subParameters.putParameterValue(LogbookParameterName.eventIdentifier,
         GUIDFactory.newOperationIdGUID(tenantId).getId());
     // Event Type
-    subParameters.setParameterValue(LogbookParameterName.eventType,
+    subParameters.putParameterValue(LogbookParameterName.eventType,
         "UNZIP");
-    subParameters.setStatus(LogbookOperationOutcome.STARTED);
+    subParameters.setStatus(LogbookOutcome.STARTED);
     // Et autres paramètres
     ...
     // Start sous opération
     client.update(subParameters);
     // Unsip
-    subParameters.setStatus(LogbookOperationOutcome.OK);
+    subParameters.setStatus(LogbookOutcome.OK);
     // Sous opération OK
     client.update(subParameters);
 
@@ -139,7 +139,7 @@ Exemple d'usage générique
 
     // Fin Opération Globale
     // create global du processus AVANT toute opération sur ce processus
-    parameters.setStatus(LogbookOperationOutcome.OK);
+    parameters.setStatus(LogbookOutcome.OK);
     client.update(parameters);
 
     // Quand toutes les opérations sont terminées
@@ -179,30 +179,30 @@ Exemple Ingest
 
         // Utilisation du setter
         // Event GUID
-        parameters.setParameterValue(LogbookParameterName.eventIdentifier,
+        parameters.putParameterValue(LogbookParameterName.eventIdentifier,
             GUIDFactory.newOperationIdGUID(tenantId).getId());
         // Event Type
-        parameters.setParameterValue(LogbookParameterName.eventType,
+        parameters.putParameterValue(LogbookParameterName.eventType,
             "UNZIP");
         // Event Identifier Process
-        parameters.setParameterValue(LogbookParameterName.eventIdentifierProcess,
+        parameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
             guidSip);
         // Event Type Process
         parameters.setTypeProcess(LogbookTypeProcess.INGEST);
         // X-Request-Id
-        parameters.setParameterValue(LogbookParameterName.eventIdentifierRequest,
+        parameters.putParameterValue(LogbookParameterName.eventIdentifierRequest,
             xRequestId);
         // Global Object Id = SIP GUID for Ingest
-        parameters.setParameterValue(LogbookParameterName.objectIdentifier,
+        parameters.putParameterValue(LogbookParameterName.objectIdentifier,
             guidSip);
 
 
 
         // Lancement de l'opération
         // Outcome: status
-        parameters.setStatus(LogbookOperationOutcome.STARTED);
+        parameters.setStatus(LogbookOutcome.STARTED);
         // Outcome detail message
-        parameters.setParameterValue(LogbookParameterName.outcomeDetailMessage,
+        parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
             "One infotmation to set before starting the operation");
 
 
@@ -222,16 +222,16 @@ Exemple Ingest
 
         // Finalisation de l'opération, selon le statut
         // 1) Si OK
-        parameters.setStatus(LogbookOperationOutcome.OK);
+        parameters.setStatus(LogbookOutcome.OK);
         // 2) Si non OK
-        parameters.setStatus(LogbookOperationOutcome.ERROR);
-        parameters.setParameterValue(LogbookParameterName.outcomeDetail,
+        parameters.setStatus(LogbookOutcome.ERROR);
+        parameters.putParameterValue(LogbookParameterName.outcomeDetail,
             "404_123456"); // 404 = code http, 123456 = code erreur Vitam
 
 
 
         // Outcome detail message
-        parameters.setParameterValue(LogbookParameterName.outcomeDetailMessage,
+        parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
             "One infotmation to set after the operation");
         // update global process operation
         client.update(parameters);

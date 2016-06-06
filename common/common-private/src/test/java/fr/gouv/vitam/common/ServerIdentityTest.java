@@ -54,7 +54,7 @@ public class ServerIdentityTest {
         if (first) {
             final ServerIdentityInterface serverIdentity = ServerIdentity.getInstance();
             assertNotNull("Should not be null", serverIdentity);
-            assertEquals("Role should be set to default", "UnknownRole", serverIdentity.getRole());
+            assertEquals("Role should be set to default", "role1", serverIdentity.getRole());
             assertNotEquals("Mac Address should not be 0", 0, serverIdentity.getPlatformId());
             assertFalse("Server Name should not be empty", serverIdentity.getName().isEmpty());
             first = false;

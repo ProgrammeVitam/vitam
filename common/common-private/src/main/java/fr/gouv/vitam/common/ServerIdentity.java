@@ -43,6 +43,7 @@ import java.util.Scanner;
 import java.util.regex.Pattern;
 
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.server.application.configuration.ServerIdentityConfigurationImpl;
 
 /**
  * Server Identity containing ServerName, ServerRole, Global PlatformId<br>
@@ -85,6 +86,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
  * </ul>
  */
 public final class ServerIdentity implements ServerIdentityInterface {
+    private static final String SERVER_IDENTITY_CONF_FILE_NAME = "server-identity.conf";
     private static final int OTHER_ADDRESS = 4;
     private static final int SITE_LOCAL_ADDRESS = 3;
     private static final int LINKLOCAL_ADDRESS = 2;
@@ -111,6 +113,29 @@ public final class ServerIdentity implements ServerIdentityInterface {
     private String preMessageString;
 
     private ServerIdentity() {
+        boolean propertyFileNotFound = false;
+        ServerIdentityConfigurationImpl serverIdentityConf;
+        try {
+            serverIdentityConf =
+                PropertiesUtils.readResourcesYaml(PropertiesUtils.getResourcesPath(SERVER_IDENTITY_CONF_FILE_NAME),
+                    ServerIdentityConfigurationImpl.class);
+            name = serverIdentityConf.getIdentityName();
+            role = serverIdentityConf.getIdentityRole();
+            platformId = serverIdentityConf.getIdentityPlatformId();
+            initializeCommentFormat();
+        } catch (IOException e) {
+            System.err
+                .println(
+                    "Issue while getting configuration File: " +
+                        e.getMessage());
+            propertyFileNotFound = true;
+        }
+        if (propertyFileNotFound) {
+            defaultServerIdentity();
+        }
+    }
+
+    private void defaultServerIdentity() {
         // Compute name from Hostname
         if (System.getProperty(OS_NAME).toLowerCase().startsWith(WIN)) {
             // Just for fun
@@ -127,14 +152,14 @@ public final class ServerIdentity implements ServerIdentityInterface {
                             name = scanner.useDelimiter("\\A").hasNext() ? scanner.next() : "";
                         }
                     }
-                } catch (final IOException e) {//NOSONAR ignore
+                } catch (final IOException e) {// NOSONAR ignore
                     // ignore since will be checked just after
                 }
                 if (name == null) {
                     // Warning since it could return the real IP
                     try {
                         name = InetAddress.getLocalHost().getHostName();
-                    } catch (final UnknownHostException e) {//NOSONAR ignore
+                    } catch (final UnknownHostException e) {// NOSONAR ignore
                         name = UNKNOWN_HOSTNAME;
                     }
                 }
@@ -155,12 +180,12 @@ public final class ServerIdentity implements ServerIdentityInterface {
             .append(':').append(getPlatformId()).append("] ");
         preMessageString = preMessage.toString();
     }
-    
+
     @Override
     public final String getLoggerMessagePrepend() {
         return preMessageString;
     }
-    
+
     /**
      * 
      * @return the Json representation of the ServerIdentity
@@ -217,7 +242,7 @@ public final class ServerIdentity implements ServerIdentityInterface {
             }
             svalue = properties.getProperty(MAP_KEYNAME.PLATFORMID.name());
             platformId = Integer.parseInt(svalue);
-        } catch (final IOException | NumberFormatException e) {//NOSONAR ignore
+        } catch (final IOException | NumberFormatException e) {// NOSONAR ignore
             // ignore
         }
         initializeCommentFormat();
@@ -354,7 +379,7 @@ public final class ServerIdentity implements ServerIdentityInterface {
             }
             machineId[0] &= 0x7F;
             return machineId;
-        } catch (final Exception e) {//NOSONAR ignore
+        } catch (final Exception e) {// NOSONAR ignore
             // Could not get MAC address: generate a random one
             final byte[] machineId = StringUtils.getRandom(MACHINE_ID_LEN);
             machineId[0] &= 0x7F;
@@ -439,7 +464,7 @@ public final class ServerIdentity implements ServerIdentityInterface {
             final byte[] macAddr;
             try {
                 macAddr = iface.getHardwareAddress();
-            } catch (final SocketException e) {//NOSONAR ignore
+            } catch (final SocketException e) {// NOSONAR ignore
                 continue;
             }
             boolean replace = false;
@@ -544,5 +569,6 @@ public final class ServerIdentity implements ServerIdentityInterface {
         }
         return OTHER_ADDRESS;
     }
+
 
 }
