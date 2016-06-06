@@ -65,7 +65,7 @@ public class WorkspaceApplication {
 
                 if (arguments.length >= 2) {
                     serverPort = Integer.parseInt(arguments[1]);
-                    if (serverPort >= 0) {
+                    if (serverPort < 0) {
                         serverPort = DEFAULT_PORT;
                     }
                 }

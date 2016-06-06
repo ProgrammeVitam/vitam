@@ -190,7 +190,7 @@ public class WorkspaceResource {
         return Response.status(Status.NO_CONTENT).entity(containerName).build();
     }
 
-    @Path("containers/{containerName}/objects/{objectName}")
+    @Path("containers/{containerName}/objects/{objectName:.*}")
     @GET
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)

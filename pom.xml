@@ -96,7 +96,7 @@
 		<project.scm.id>vitam-gitlab</project.scm.id>
 		<vitam.docker.registry.pull>docker.programmevitam.fr</vitam.docker.registry.pull>
 		<vitam.docker.registry.push>vitam-prod-app-6.internet.agri:8082</vitam.docker.registry.push>
-		<vitam.docker.baseimage>vitam/java:0:2.0</vitam.docker.baseimage>
+		<vitam.docker.baseimage>vitam/java:0.2.0</vitam.docker.baseimage>
 
 		<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
 		<!-- Sonar properties -->
@@ -120,7 +120,8 @@
 		<jackson.version>2.7.4</jackson.version>
 		<guava.version>19.0</guava.version>
 		<log4j.version>1.2.17</log4j.version>
-		<commons-io.version>2.5</commons-io.version>
+		<commons-logging.version>1.2</commons-logging.version>
+		<commons-io.version>1.3.2</commons-io.version>
 		<easymock.version>3.4</easymock.version>
 		<joda-time.version>2.9.4</joda-time.version>
 		<jmeter.version>2.11</jmeter.version>
@@ -136,6 +137,7 @@
 		<mockito.version>1.10.19</mockito.version>
 		<!-- 1.50.5 -->
 		<flapdoodle.version>1.50.3</flapdoodle.version>
+		<staxon.version>1.3</staxon.version>
 		<org.json.version>20160212</org.json.version>
 		<commons-lang.version>2.6</commons-lang.version>
 	</properties>
@@ -480,11 +482,6 @@
 				<version>${jersey.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.glassfish.jersey.core</groupId>
-				<artifactId>jersey-client</artifactId>
-				<version>${jersey.version}</version>
-			</dependency>
-			<dependency>
 				<groupId>org.glassfish.jersey.media</groupId>
 				<artifactId>jersey-media-json-jackson</artifactId>
 				<version>${jersey.version}</version>
@@ -592,6 +589,12 @@
 				<version>${slf4j.version}</version>
 				<optional>true</optional>
 			</dependency>
+			
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-io</artifactId>
+				<version>${commons-io.version}</version>
+			</dependency>
 
 			<!-- ####################### Tests ####################### -->
 
@@ -659,6 +662,11 @@
 				<artifactId>de.flapdoodle.embed.mongo</artifactId>
 				<version>${flapdoodle.version}</version>
 				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>de.odysseus.staxon</groupId>
+				<artifactId>staxon</artifactId>
+				<version>${staxon.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

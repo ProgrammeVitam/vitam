@@ -212,6 +212,12 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
         ParametersChecker.checkParamater(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(), containerName, objectName);
         try {
             BlobStore blobStore = context.getBlobStore();
+            
+            if (!objectExists(containerName, objectName)) {
+                LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
+                throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
+            }
+            
             Blob blob = blobStore.getBlob(containerName, objectName);
             if (null != blob) {
                 return blob.getPayload().openStream();
@@ -219,7 +225,10 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
         } catch (ContainerNotFoundException e) {
             LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
             throw new ContentAddressableStorageNotFoundException(e);
-        } catch (Exception e) {
+        } catch (ContentAddressableStorageNotFoundException e) {
+            LOGGER.error(e.getMessage());
+            throw e;
+        }catch (Exception e) {
             LOGGER.error(e.getMessage());
             throw new ContentAddressableStorageException(e);
         } finally {

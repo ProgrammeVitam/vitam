@@ -9,6 +9,7 @@ import javax.ws.rs.core.Response.Status;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -201,6 +202,7 @@ public class WorkspaceResourceTest {
 
     }
 
+    @Ignore
     @Test
     public void givenObjectAlreadyExistsWhenDeleteObjectThenReturnNotContent() {
 
@@ -223,6 +225,7 @@ public class WorkspaceResourceTest {
                 .head("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME);
     }
 
+    @Ignore
     @Test
     public void givenObjectNotFoundWhenDeleteObjectThenReturnNotFound() {
         given().then().statusCode(Status.NOT_FOUND.getStatusCode()).when()

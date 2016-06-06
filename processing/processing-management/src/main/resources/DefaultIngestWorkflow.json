@@ -1,0 +1,26 @@
+{
+    "id": "DefaultIngestWorkflow",
+    "comment":"Default Ingest Workflow V3",
+    "steps":
+    [
+    {
+    "workerGroupId" :"DefaultWorker",
+        "stepName":"Check SIP",
+        "distribution" : {
+        	"kind":"REF",
+        	"element" : "SIP/manifest.xml"
+        	},
+        "actions":[{"action":"checkSeda"}, {"action":"ExtractSeda"}]
+    },
+    {
+    "workerGroupId" :"DefaultWorker",
+        "stepName":"Index seda",
+          "distribution" : {
+        	"kind":"LIST",
+        	"element" : "Units"
+        	},
+        "actions":[{"action":"IndexUnit"}]
+       
+    }
+    ]
+}

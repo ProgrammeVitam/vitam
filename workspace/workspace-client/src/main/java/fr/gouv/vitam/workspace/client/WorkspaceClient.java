@@ -151,7 +151,7 @@ public class WorkspaceClient implements ContentAddressableStorage {
         multiPart.bodyPart(
                 new StreamDataBodyPart("object", stream, objectName, MediaType.APPLICATION_OCTET_STREAM_TYPE));
 
-        Response response = client.target(serviceUrl).path("/containers/" + containerName + "/objects/").request()
+        Response response = client.target(serviceUrl).path("/containers/" + containerName + "/objects").request()
                 .post(Entity.entity(multiPart, MediaType.MULTIPART_FORM_DATA_TYPE));
 
         if (Status.CREATED.getStatusCode() == response.getStatus()) {

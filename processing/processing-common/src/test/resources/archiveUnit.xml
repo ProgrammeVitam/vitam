@@ -1,0 +1,45 @@
+<ArchiveUnit id="ID019">
+	<Management>
+		<StorageRule>
+			<Rule id="ID012">Rule0</Rule>
+			<FinalAction>RestrictAccess</FinalAction>
+		</StorageRule>
+		<AppraisalRule>
+			<Rule id="ID014">Rule2</Rule>
+			<FinalAction>Keep</FinalAction>
+		</AppraisalRule>
+		<AccessRule>
+			<Rule id="ID016">Rule4</Rule>
+		</AccessRule>
+		<DisseminationRule>
+			<Rule id="ID020">Rule6</Rule>
+		</DisseminationRule>
+		<ReuseRule>
+			<Rule id="ID022">Rule8</Rule>
+			<Rule id="ID023">Rule9</Rule>
+		</ReuseRule>
+		<ClassificationRule>
+			<Rule id="ID024">Rule10</Rule>
+			<Rule id="ID025">Rule11</Rule>
+			<ClassificationLevel>ClassificationLevel0</ClassificationLevel>
+			<ClassificationOwner>ClassificationOwner0</ClassificationOwner>
+		</ClassificationRule>
+		<NeedAuthorization>false</NeedAuthorization>
+	</Management>
+	<Content>
+		<DescriptionLevel>Item</DescriptionLevel>
+		<Title>Annuaire_projet</Title>
+		<FilePlanPosition>FilePlanPosition0</FilePlanPosition>
+		<SystemId>019</SystemId>
+		<OriginatingSystemId>OriginatingSystemId0</OriginatingSystemId>
+		<ArchivalAgencyArchiveUnitIdentifier>ArchivalAgencyArchiveUnitIdentifier0</ArchivalAgencyArchiveUnitIdentifier>
+		<OriginatingAgencyArchiveUnitIdentifier>OriginatingAgencyArchiveUnitIdentifier0</OriginatingAgencyArchiveUnitIdentifier>
+		<TransferringAgencyArchiveUnitIdentifier>TransferringAgencyArchiveUnitIdentifier0</TransferringAgencyArchiveUnitIdentifier>
+		<Description xml:lang="en-US">annuaire du projet de solution logicielle Vitam</Description>
+		<Type>Type0</Type>
+		<TransactedDate>2016-04-25</TransactedDate>
+	</Content>
+	<DataObjectReference>
+		<DataObjectReferenceId>ID018</DataObjectReferenceId>
+	</DataObjectReference>
+</ArchiveUnit>

@@ -214,8 +214,8 @@ public class FileSystemTest {
         workspace.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"));
     }
 
-    @Test
-    public void givenObjectNotFoundWhenGetObjectThenReturnEmptyStream() throws IOException {
+    @Test(expected = ContentAddressableStorageNotFoundException.class)
+    public void givenObjectNotFoundWhenGetObjectThenRaiseAnException() throws IOException {
         workspace.createContainer(CONTAINER_NAME);
 
         assertEquals(0, workspace.getObject(CONTAINER_NAME, OBJECT_NAME).available());
@@ -236,7 +236,7 @@ public class FileSystemTest {
         workspace.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"));
 
         workspace.deleteObject(CONTAINER_NAME, OBJECT_NAME);
-        assertEquals(0, workspace.getObject(CONTAINER_NAME, OBJECT_NAME).available());
+        assertFalse(workspace.objectExists(CONTAINER_NAME, OBJECT_NAME));
     }
 
     // Check Path parameters (containerName,folder, objectName)
