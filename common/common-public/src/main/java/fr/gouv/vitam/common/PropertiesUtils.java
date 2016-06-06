@@ -45,6 +45,8 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
  */
 public final class PropertiesUtils {
 
+    private static final String ARGUMENTS_MUST_BE_NON_NULL = "Arguments must be non null";
+
     private PropertiesUtils() {
         // Empty
     }
@@ -124,35 +126,47 @@ public final class PropertiesUtils {
 
     /**
      * Read the Yaml file and return the object read
-     * @param yamlResourcesPath
+     * @param yamlFile
      * @param clasz the class representing the target object
      * @return the object read
      * @throws IOException
      */
-    public static final <C> C readResourcesYaml(Path yamlResourcesPath, Class<C> clasz) throws IOException {
-        if (yamlResourcesPath == null || clasz == null) {
-            throw new FileNotFoundException("Arguments must be non null");
+    public static final <C> C readYaml(File yamlFile, Class<C> clasz) throws IOException {
+        if (yamlFile == null || clasz == null) {
+            throw new FileNotFoundException(ARGUMENTS_MUST_BE_NON_NULL);
         }
-        File file = yamlResourcesPath.toFile();
-        final FileReader yamlFile = new FileReader(file);
+        final FileReader yamlFileReader = new FileReader(yamlFile);
         final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-        return clasz.cast(mapper.readValue(yamlFile, clasz));
+        return clasz.cast(mapper.readValue(yamlFileReader, clasz));
     }
 
     /**
      * Read the Yaml file and return the object read
-     * @param yamlResourcesFile
+     * @param yamlPath
+     * @param clasz the class representing the target object
+     * @return the object read
+     * @throws IOException
+     */
+    public static final <C> C readYaml(Path yamlPath, Class<C> clasz) throws IOException {
+        if (yamlPath == null || clasz == null) {
+            throw new FileNotFoundException(ARGUMENTS_MUST_BE_NON_NULL);
+        }
+        File file = yamlPath.toFile();
+        return readYaml(file, clasz);
+    }
+
+    /**
+     * Read the Yaml Resources file and return the object read
+     * @param yamlResourcesFile as Resource path
      * @param clasz the class representing the target object
      * @return the object read
      * @throws IOException
      */
     public static final <C> C readResourcesYaml(String yamlResourcesFile, Class<C> clasz) throws IOException {
         if (yamlResourcesFile == null || clasz == null) {
-            throw new FileNotFoundException("Arguments must be non null");
+            throw new FileNotFoundException(ARGUMENTS_MUST_BE_NON_NULL);
         }
         File file = getResourcesFile(yamlResourcesFile);
-        final FileReader yamlFile = new FileReader(file);
-        final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-        return clasz.cast(mapper.readValue(yamlFile, clasz));
+        return readYaml(file, clasz);
     }
 }

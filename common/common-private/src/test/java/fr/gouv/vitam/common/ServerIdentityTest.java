@@ -163,4 +163,25 @@ public class ServerIdentityTest {
         assertEquals("Pid still the same", 1000, serverIdentity.getPlatformId());
     }
 
+    @Test
+    public final void testSetFromYamlFile() {
+        testGetInstance();
+        final ServerIdentity serverIdentity = ServerIdentity.getInstance();
+        final File file = ResourcesPrivateUtilTest.getInstance().getServerIdentityYamlFile();
+        if (file == null) {
+            LOGGER.error(ResourcesPrivateUtilTest.CANNOT_FIND_RESOURCES_TEST_FILE);
+        }
+        Assume.assumeTrue(ResourcesPrivateUtilTest.CANNOT_FIND_RESOURCES_TEST_FILE, file != null);
+
+        try {
+            serverIdentity.setFromYamlFile(file);
+        } catch (final FileNotFoundException e) {
+            LOGGER.error("Yaml file not found", e);
+            fail("Should find the Yaml file: " + e.getMessage());
+        }
+        assertEquals("Name still the same", "name1", serverIdentity.getName());
+        assertEquals("Role still the same", "role1", serverIdentity.getRole());
+        assertEquals("Pid still the same", 1, serverIdentity.getPlatformId());
+    }
+
 }

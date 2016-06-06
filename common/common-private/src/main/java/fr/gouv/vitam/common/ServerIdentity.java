@@ -117,18 +117,26 @@ public final class ServerIdentity implements ServerIdentityInterface {
         ServerIdentityConfigurationImpl serverIdentityConf;
         try {
             serverIdentityConf =
-                PropertiesUtils.readResourcesYaml(PropertiesUtils.getResourcesPath(SERVER_IDENTITY_CONF_FILE_NAME),
+                PropertiesUtils.readYaml(new File(SystemPropertyUtil.getVitamConfigFolder()
+                    + "/" + SERVER_IDENTITY_CONF_FILE_NAME),
                     ServerIdentityConfigurationImpl.class);
-            name = serverIdentityConf.getIdentityName();
-            role = serverIdentityConf.getIdentityRole();
-            platformId = serverIdentityConf.getIdentityPlatformId();
+            setYamlConfiguration(serverIdentityConf);
             initializeCommentFormat();
-        } catch (IOException e) {
-            System.err
-                .println(
-                    "Issue while getting configuration File: " +
-                        e.getMessage());
-            propertyFileNotFound = true;
+        } catch (IOException e) {//NOSONAR no logger
+            // try from Resources
+            try {
+                serverIdentityConf =
+                    PropertiesUtils.readResourcesYaml(SERVER_IDENTITY_CONF_FILE_NAME,
+                        ServerIdentityConfigurationImpl.class);
+                setYamlConfiguration(serverIdentityConf);
+                initializeCommentFormat();
+            } catch (IOException e2) {//NOSONAR no logger
+                System.err
+                    .println(
+                        "Issue while getting configuration File: " +
+                            e2.getMessage());
+                propertyFileNotFound = true;
+            }
         }
         if (propertyFileNotFound) {
             defaultServerIdentity();
@@ -247,6 +255,33 @@ public final class ServerIdentity implements ServerIdentityInterface {
         }
         initializeCommentFormat();
         return this;
+    }
+
+    /**
+     * Assign the ServerIdentity from a Yaml file where Key are elements from MAP_KEYNAME. <br>
+     * Other keys are ignored. Illegal values are ignored.
+     *
+     * @param yamlFile file
+     * @return this
+     * @throws FileNotFoundException if the Yaml file is not found
+     */
+    public final ServerIdentity setFromYamlFile(File yamlFile) throws FileNotFoundException {
+        try {
+            ServerIdentityConfigurationImpl serverIdentityConf =
+                PropertiesUtils.readYaml(new File(SERVER_IDENTITY_CONF_FILE_NAME),
+                    ServerIdentityConfigurationImpl.class);
+            setYamlConfiguration(serverIdentityConf);
+        } catch (IOException e) {//NOSONAR no logger
+            // ignore
+        }
+        initializeCommentFormat();
+        return this;
+    }
+
+    private final void setYamlConfiguration(ServerIdentityConfigurationImpl serverIdentityConf) {
+        name = serverIdentityConf.getIdentityName();
+        role = serverIdentityConf.getIdentityRole();
+        platformId = serverIdentityConf.getIdentityPlatformId();
     }
 
     private final String getStringFromMap(Map<String, Object> map, String key) {
