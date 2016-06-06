@@ -123,5 +123,25 @@ public class PropertiesUtilsTest {
             e1.printStackTrace();
             fail(ResourcesPublicUtilTest.SHOULD_NOT_HAVE_AN_EXCEPTION);
         }
+        try {
+            ConfigurationTest test = PropertiesUtils.readYaml(
+                PropertiesUtils.getResourcesFile(ResourcesPublicUtilTest.YAML_TEST_CONF),
+                ConfigurationTest.class);
+            assertEquals("test", test.getTest());
+            assertEquals(12346, test.getNumber());
+        } catch (IOException e1) {
+            e1.printStackTrace();
+            fail(ResourcesPublicUtilTest.SHOULD_NOT_HAVE_AN_EXCEPTION);
+        }
+        try {
+            ConfigurationTest test = PropertiesUtils.readYaml(
+                PropertiesUtils.getResourcesPath(ResourcesPublicUtilTest.YAML_TEST_CONF),
+                ConfigurationTest.class);
+            assertEquals("test", test.getTest());
+            assertEquals(12346, test.getNumber());
+        } catch (IOException e1) {
+            e1.printStackTrace();
+            fail(ResourcesPublicUtilTest.SHOULD_NOT_HAVE_AN_EXCEPTION);
+        }
     }
 }

@@ -26,10 +26,12 @@
  */
 package fr.gouv.vitam.logbook.operations.client;
 
+import java.io.File;
 import java.io.IOException;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.VitamServerFactory;
@@ -114,7 +116,7 @@ public final class LogbookClientFactory {
     private int port = VitamServerFactory.DEFAULT_PORT;
 
     private LogbookClientFactory() {
-        changeConfigurationFile(CONFIGURATION_FILENAME);
+        changeConfigurationFile(SystemPropertyUtil.getVitamConfigFolder() + "/" + CONFIGURATION_FILENAME);
     }
 
     /**
@@ -227,7 +229,7 @@ public final class LogbookClientFactory {
     }
 
     /**
-     * Change client configuration from a properties files
+     * Change client configuration from a Yaml files
      *
      * @param configurationPath the path to the configuration file
      */
@@ -235,7 +237,7 @@ public final class LogbookClientFactory {
         changeDefaultClientType(LogbookClientType.MOCK_OPERATIONS);
         ClientConfiguration configuration = null;
         try {
-            configuration = PropertiesUtils.readResourcesYaml(configurationPath,
+            configuration = PropertiesUtils.readYaml(new File(configurationPath),
                 ClientConfigurationImpl.class);
         } catch (IOException fnf) {
             if (LOGGER.isDebugEnabled()) {

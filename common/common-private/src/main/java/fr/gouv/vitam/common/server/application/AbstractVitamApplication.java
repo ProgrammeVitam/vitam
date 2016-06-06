@@ -27,6 +27,7 @@
 
 package fr.gouv.vitam.common.server.application;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -35,6 +36,7 @@ import java.nio.file.Paths;
 import org.eclipse.jetty.server.Handler;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 
 /**
@@ -82,7 +84,7 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<?>, C>
         }
 
         try {
-            setConfiguration(PropertiesUtils.readResourcesYaml(
+            setConfiguration(PropertiesUtils.readYaml(
                 configPath, getConfigurationType()));
         } catch (final IOException exc) {
             throw new VitamApplicationServerException("An error occurred while reading the configuration file or " +
@@ -101,16 +103,30 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<?>, C>
      * @throws VitamApplicationServerException if a problem occurs
      */
     public Path computeConfigurationPathFromInputArguments(String... args) throws VitamApplicationServerException {
-        Path configurationFile;
+        Path configurationFile = null;
         if (args != null && args.length >= 1) {
             configurationFile = Paths.get(args[0]);
-        } else {
-            try {
-                configurationFile = PropertiesUtils.getResourcesPath(getConfigFilename());
-            } catch (FileNotFoundException e) {
+            if (! configurationFile.toFile().exists()) {
+                configurationFile = null;
+            }
+        }
+        if (configurationFile == null) {
+            File file = new File(SystemPropertyUtil.getVitamConfigFolder() 
+                + "/" + getConfigFilename());
+            if (file.exists()) {
+                configurationFile = file.toPath();
+            } else {
+                try {
+                    file = PropertiesUtils.getResourcesFile(getConfigFilename());
+                    configurationFile = file.toPath();
+                } catch (FileNotFoundException e) {//NOSONAR ignore
+                    configurationFile = null;
+                }
+            }
+            if (configurationFile == null) {
                 throw new VitamApplicationServerException(
                     String.format("Configuration file not found '%s'",
-                    getConfigFilename()), e);
+                    getConfigFilename()));
             }
         }
         return configurationFile;

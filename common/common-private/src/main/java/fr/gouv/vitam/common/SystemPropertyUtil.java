@@ -41,9 +41,17 @@ public final class SystemPropertyUtil {
      * Default File encoding field
      */
     public static final String FILE_ENCODING = "file.encoding";
+    /**
+     * Property Vitam Config Folder
+     */
+    private static final String VITAM_CONFIG_FOLDER = "vitam.config.folder";
+    /**
+     * Default Vitam Config Folder
+     */
+    private static final String VITAM_CONFIG_FOLDER_DEFAULT  = "/vitam/conf";
 
     private static final Properties PROPS = new Properties();
-
+    
     // Retrieve all system properties at once so that there's no need to deal
     // with
     // security exceptions from next time. Otherwise, we might end up with
@@ -105,6 +113,17 @@ public final class SystemPropertyUtil {
      */
     public static boolean isFileEncodingCorrect() {
         return contains(FILE_ENCODING) && get(FILE_ENCODING).equalsIgnoreCase(CharsetUtils.UTF_8);
+    }
+
+    /**
+     * 
+     * @return the VitamConfigFolder path
+     */
+    public static String getVitamConfigFolder() {
+        if (contains(VITAM_CONFIG_FOLDER)) {
+            return get(VITAM_CONFIG_FOLDER);
+        }
+        return VITAM_CONFIG_FOLDER_DEFAULT;
     }
 
     /**
