@@ -1,86 +1,87 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ArchiveTransfer xmlns:xlink="http://www.w3.org/1999/xlink"
-    xmlns:pr="info:lc/xmlns/premis-v2"
-    xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 file:/C:/Users/gwendoline.stab.CULTURE.DOM/Documents/Travaux_transversaux/SEDA/SEDA_Vitam/seda-2.0-main.xsd" xml:id="ID001">
-   <!-- Bordereau avec objets OK -->
-    <Date>2016-04-25T18:13:51.0</Date>
-    <MessageIdentifier>MessageIdentifier0</MessageIdentifier>
-    <CodeListVersions xml:id="ID005">
-        <ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
-        <MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0</MessageDigestAlgorithmCodeListVersion>
-        <MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion>
-        <EncodingCodeListVersion>EncodingCodeListVersion0</EncodingCodeListVersion>
-        <FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
-        <CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion>
-        <DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion>
-        <StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion>
-        <AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion>
-        <AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion>
-        <DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion>
-        <ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion>
-        <ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion>
-        <AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion>
-        <RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion>
-    </CodeListVersions>
-    
-    
-    
-    <DataObjectPackage xml:id="ID007">
-        
-        <BinaryDataObject id="ID018">
-            <Uri>content/Annuaire_projet</Uri>
-            <MessageDigest algorithm="MD5">A7A8FF5623DD1BEA753972D7552D2BC5</MessageDigest>
-            <Size>58933</Size>
-            
-            <FormatIdentification>
-                <FormatLitteral>FormatLitteral0</FormatLitteral>
-                <MimeType>MimeType0</MimeType>
-                <FormatId>FormatId0</FormatId>
-                <Encoding>Encoding0</Encoding>
-            </FormatIdentification>
-            <Metadata>
-                <Document xml:id="ID014" xlink:href="http://www.oxygenxml.com/">
-                </Document>
-            </Metadata>
-        </BinaryDataObject>
-        
-        <DescriptiveMetadata>
-            <ArchiveUnit id="ID019">
-                <Content>
-                    <DescriptionLevel>Item</DescriptionLevel>
-                    <Title>Annuaire_projet</Title>
-                    <FilePlanPosition>FilePlanPosition0</FilePlanPosition>
-                    <SystemId>019</SystemId>
-                    <OriginatingSystemId>OriginatingSystemId0</OriginatingSystemId>
-                    <ArchivalAgencyArchiveUnitIdentifier>ArchivalAgencyArchiveUnitIdentifier0</ArchivalAgencyArchiveUnitIdentifier>
-                    <OriginatingAgencyArchiveUnitIdentifier>OriginatingAgencyArchiveUnitIdentifier0</OriginatingAgencyArchiveUnitIdentifier>
-                    <TransferringAgencyArchiveUnitIdentifier>TransferringAgencyArchiveUnitIdentifier0</TransferringAgencyArchiveUnitIdentifier>
-                    <Description xml:lang="en-US">annuaire du projet de solution logicielle Vitam</Description>
-                    <Type>Type0</Type>
-                    <TransactedDate>2016-04-25</TransactedDate>
-                </Content>
-                <DataObjectReference>
-                    <DataObjectReferenceId>ID018</DataObjectReferenceId>
-                </DataObjectReference>
-        </DescriptiveMetadata>
-        
-        
-        
-        
-        <ManagementMetadata>
-            <ArchivalProfile>Profil1</ArchivalProfile>
-        </ManagementMetadata>
-        
-        
-    </DataObjectPackage>
-    
-    <ArchivalAgency xml:id="ID110">
-        <Identifier>Pool_PO-BA_ArchivalAgency</Identifier>
-    </ArchivalAgency>
-    
-    <TransferringAgency xml:id="ID114">
-        <Identifier>Pool_PO-BA_TransferringAgency</Identifier>
-    </TransferringAgency>
+	xmlns:pr="info:lc/xmlns/premis-v2" xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 file:/C:/Users/gwendoline.stab.CULTURE.DOM/Documents/Travaux_transversaux/SEDA/SEDA_Vitam/seda-2.0-main.xsd"
+	xml:id="ID001">
+	<!-- Bordereau avec objets OK -->
+	<Date>2016-04-25T18:13:51.0</Date>
+	<MessageIdentifier>MessageIdentifier0</MessageIdentifier>
+	<CodeListVersions xml:id="ID005">
+		<ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
+		<MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0</MessageDigestAlgorithmCodeListVersion>
+		<MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion>
+		<EncodingCodeListVersion>EncodingCodeListVersion0</EncodingCodeListVersion>
+		<FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
+		<CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion>
+		<DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion>
+		<StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion>
+		<AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion>
+		<AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion>
+		<DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion>
+		<ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion>
+		<ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion>
+		<AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion>
+		<RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion>
+	</CodeListVersions>
+
+
+
+	<DataObjectPackage xml:id="ID007">
+
+		<BinaryDataObject id="ID018">
+			<Uri>content/Annuaire_projet</Uri>
+			<MessageDigest algorithm="MD5">A7A8FF5623DD1BEA753972D7552D2BC5</MessageDigest>
+			<Size>58933</Size>
+
+			<FormatIdentification>
+				<FormatLitteral>FormatLitteral0</FormatLitteral>
+				<MimeType>MimeType0</MimeType>
+				<FormatId>FormatId0</FormatId>
+				<Encoding>Encoding0</Encoding>
+			</FormatIdentification>
+			<Metadata>
+				<Document xml:id="ID014" xlink:href="http://www.oxygenxml.com/">
+				</Document>
+			</Metadata>
+		</BinaryDataObject>
+
+		<DescriptiveMetadata>
+			<ArchiveUnit id="ID019">
+				<Content>
+					<DescriptionLevel>Item</DescriptionLevel>
+					<Title>Annuaire_projet</Title>
+					<FilePlanPosition>FilePlanPosition0</FilePlanPosition>
+					<SystemId>019</SystemId>
+					<OriginatingSystemId>OriginatingSystemId0</OriginatingSystemId>
+					<ArchivalAgencyArchiveUnitIdentifier>ArchivalAgencyArchiveUnitIdentifier0</ArchivalAgencyArchiveUnitIdentifier>
+					<OriginatingAgencyArchiveUnitIdentifier>OriginatingAgencyArchiveUnitIdentifier0</OriginatingAgencyArchiveUnitIdentifier>
+					<TransferringAgencyArchiveUnitIdentifier>TransferringAgencyArchiveUnitIdentifier0</TransferringAgencyArchiveUnitIdentifier>
+					<Description xml:lang="en-US">annuaire du projet de solution
+						logicielle Vitam</Description>
+					<Type>Type0</Type>
+					<TransactedDate>2016-04-25</TransactedDate>
+				</Content>
+				<DataObjectReference>
+					<DataObjectReferenceId>ID018</DataObjectReferenceId>
+				</DataObjectReference>
+		</DescriptiveMetadata>
+
+
+
+
+		<ManagementMetadata>
+			<ArchivalProfile>Profil1</ArchivalProfile>
+		</ManagementMetadata>
+
+
+	</DataObjectPackage>
+
+	<ArchivalAgency xml:id="ID110">
+		<Identifier>Pool_PO-BA_ArchivalAgency</Identifier>
+	</ArchivalAgency>
+
+	<TransferringAgency xml:id="ID114">
+		<Identifier>Pool_PO-BA_TransferringAgency</Identifier>
+	</TransferringAgency>
 </ArchiveTransfer>

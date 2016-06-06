@@ -24,16 +24,33 @@ import fr.gouv.vitam.processing.common.utils.ExtractUriResponse;
 import fr.gouv.vitam.processing.common.utils.SedaUtils;
 import fr.gouv.vitam.processing.common.utils.SedaUtilsFactory;
 
+/**
+ * Handler that checks that the number of digital objects stored in the workspace equals the number of digital objects
+ * referenced in the manifest.xml file
+ */
 public class CheckObjectsNumberActionHandler extends ActionHandler {
 
+    /**
+     * Use to log vitam
+     */
     public static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ExtractSedaActionHandler.class);
+
+    /**
+     * Handler's ID
+     */
     public static final String HANDLER_ID = "CheckObjectsNumberAction";
+
+    private static final String NULL_MESSAGE_ARGS = "Null is not allowed";
 
     private final SedaUtilsFactory sedaUtilsFactory;
     private final ContainerExtractionUtilsFactory containerExtractionUtilsFactory;
 
 
 
+    /**
+     * @param sedaUtilsFactory
+     * @param containerExtractionUtilsFactory
+     */
     public CheckObjectsNumberActionHandler(SedaUtilsFactory sedaUtilsFactory,
         ContainerExtractionUtilsFactory containerExtractionUtilsFactory) {
         this.sedaUtilsFactory = sedaUtilsFactory;
@@ -57,7 +74,8 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
 
 
         List<String> messages = new ArrayList<>();
-        EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK).setMessages(messages);
+        EngineResponse response = new ProcessResponse();
+        response.setStatus(StatusCode.OK).setMessages(messages);
 
         try {
 
@@ -70,15 +88,11 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
                 checkDuplicatedUriFromWorkspace(uriListFromWorkspace, response);
                 checkCountDigitalObjectConformity(uriListFromManifest, uriListFromWorkspace, response);
 
-            } else if (response != null && extractUriResponse != null) {
+            } else if (extractUriResponse != null) {
                 response.setStatus(StatusCode.KO).setMessages(extractUriResponse.getMessages());
             }
 
-        } catch (XMLStreamException e) {
-            response.setStatus(StatusCode.FATAL);
-        } catch (ProcessingException e) {
-            response.setStatus(StatusCode.FATAL);
-        } catch (Exception e) {
+        } catch (XMLStreamException | ProcessingException | NullPointerException e) {
             response.setStatus(StatusCode.FATAL);
         }
 
@@ -99,8 +113,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
         throws ProcessingException, XMLStreamException {
         // get uri list from manifest
         SedaUtils sedaUtils = sedaUtilsFactory.create();
-        ExtractUriResponse extractUriResponse = sedaUtils.getAllDigitalObjectUriFromManifest(params);
-        return extractUriResponse;
+        return sedaUtils.getAllDigitalObjectUriFromManifest(params);
     }
 
 
@@ -113,8 +126,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
      */
     private List<URI> getUriListFromWorkspace(WorkParams params) throws ProcessingException {
         ContainerExtractionUtils containerExtractionUtils = containerExtractionUtilsFactory.create();
-        List<URI> uriListFromWorkspace = containerExtractionUtils.getDigitalObjectUriListFromWorkspace(params);
-        return uriListFromWorkspace;
+        return containerExtractionUtils.getDigitalObjectUriListFromWorkspace(params);
     }
 
 
@@ -125,9 +137,14 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
      * @param uriListFromWorkspace
      * @param response
      */
-    private void checkDuplicatedUriFromWorkspace(List<URI> uriListFromWorkspace, EngineResponse response) {
-        final Set<String> setDuplicatedUri = new HashSet<String>();
-        final Set<URI> set = new HashSet<URI>();
+    private void checkDuplicatedUriFromWorkspace(List<URI> uriListFromWorkspace, EngineResponse response)
+        throws NullPointerException {
+        final Set<String> setDuplicatedUri = new HashSet<>();
+        final Set<URI> set = new HashSet<>();
+
+        if (uriListFromWorkspace == null) {
+            throw new NullPointerException();
+        }
 
         for (URI uri : uriListFromWorkspace) {
             if (!set.add(uri)) {
@@ -135,10 +152,11 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
                     CheckObjectsNumberMessage.DUPLICATED_DIGITAL_OBJECT_WORKSPACE.getMessage().concat(uri.toString()));
             }
         }
-        if (setDuplicatedUri != null && !setDuplicatedUri.isEmpty()) {
+
+        if (!setDuplicatedUri.isEmpty()) {
             response.getMessages().addAll(setDuplicatedUri);
             response.setStatus(StatusCode.KO);
-        } ;
+        }
     }
 
     /**
@@ -147,30 +165,26 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
      * @param uriListManifest
      * @param uriListWorkspace
      * @param response
+     * @throws ProcessingException will be throwed when one or all arguments is null
      */
     private void checkCountDigitalObjectConformity(List<URI> uriListManifest, List<URI> uriListWorkspace,
-        EngineResponse response) {
-
+        EngineResponse response) throws ProcessingException {
+        ParametersChecker.checkParameter("Manifest uri list is a mandatory parameter", uriListManifest);
+        ParametersChecker.checkParameter("Workspace uri list is a mandatory parameter", uriListWorkspace);
+        ParametersChecker.checkParameter("EngineResponse is a mandatory parameter", response);
         // TODO
         // Use Java 8, Methods Reference, lambda expressions and streams
-
-        if (response == null) {
-            response = new ProcessResponse();
-        }
+        
         /**
          * compare the size between list uri from manifest and list uri from workspace.
          */
-
-        int countCompare = 0;
-        if (uriListManifest != null && uriListWorkspace != null) {
-            countCompare = Integer.compare(uriListManifest.size(), uriListWorkspace.size());
-        }
+        int countCompare = Integer.compare(uriListManifest.size(), uriListWorkspace.size());
         if (countCompare != 0) {
             response.setStatus(StatusCode.KO);
             response.getMessages().add(CheckObjectsNumberMessage.COUNT_DIGITAL_OBJECT_SIP.getMessage()
-                .concat(new Integer(uriListWorkspace.size()).toString()));
+                .concat(Integer.toString(uriListWorkspace.size())));
             response.getMessages().add(CheckObjectsNumberMessage.COUNT_DIGITAL_OBJECT_MANIFEST.getMessage()
-                .concat(new Integer(uriListManifest.size()).toString()));
+                .concat(Integer.toString(uriListManifest.size())));
 
             // found not declared digital object in the manifest
             foundUnreferencedDigitalObject(uriListManifest, uriListWorkspace, response,
@@ -183,11 +197,11 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
             /**
              * count the number of object in the manifest found in the sip
              */
-            long countConsistentDigitalObjectFromManifest = 0l;
+            long countConsistentDigitalObjectFromManifest = 0L;
             /**
              * count the number of digital object in the sip found in the manifest
              */
-            long countConsistentDigitalObjectFromWorkspace = 0l;
+            long countConsistentDigitalObjectFromWorkspace = 0L;
 
             for (Iterator<URI> iterator = uriListManifest.iterator(); iterator.hasNext();) {
                 URI uriManifest = iterator.next();
@@ -214,7 +228,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
 
             }
 
-            boolean countOK = (countConsistentDigitalObjectFromManifest == countConsistentDigitalObjectFromWorkspace);
+            boolean countOK = countConsistentDigitalObjectFromManifest == countConsistentDigitalObjectFromWorkspace;
             boolean countConsistent = countConsistentDigitalObjectFromManifest == uriListManifest.size();
 
             if (countOK && countConsistent) {
@@ -237,9 +251,13 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
      * @param element
      */
     private void foundUnreferencedDigitalObject(List<URI> uriListToCompared, List<URI> uriListReference,
-        EngineResponse response, String element) {
+        EngineResponse response, String element) throws RuntimeException {
 
-        Set<String> uriNotFoundSet = new HashSet<String>();
+        Set<String> uriNotFoundSet = new HashSet<>();
+
+        if (uriListToCompared == null || uriListReference == null) {
+            throw new NullPointerException();
+        }
 
         for (Iterator<URI> iterator = uriListToCompared.iterator(); iterator.hasNext();) {
             URI uriManifest = iterator.next();

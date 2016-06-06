@@ -73,6 +73,11 @@ public class WorkspaceResource {
     private ContentAddressableStorageImpl workspace;
 
     // TODO REVIEW comment
+    /**
+     * Constructor used to configure a workspace
+     * 
+     * @param configuration
+     */
     public WorkspaceResource(StorageConfiguration configuration) {
         super();
         // TODO this implements directly the Filesystem implementation while it should not! You should have a
@@ -81,6 +86,11 @@ public class WorkspaceResource {
         LOGGER.info("init Workspace Resource server");
     }
 
+    /**
+     * Return a response status
+     * 
+     * @return Response
+     */
     @Path("status")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -89,6 +99,12 @@ public class WorkspaceResource {
         return Response.status(Status.OK).build();
     }
 
+    /**
+     * creates a container into the workspace *
+     * 
+     * @param container
+     * @return Response
+     */
     @Path("containers")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -105,6 +121,12 @@ public class WorkspaceResource {
         return Response.status(Status.CREATED).entity(container.getName()).build();
     }
 
+    /**
+     * deletes a container in the workspace
+     * 
+     * @param containerName
+     * @return Response
+     */
     @Path("/containers/{containerName}")
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
@@ -122,6 +144,12 @@ public class WorkspaceResource {
         return Response.status(Status.NO_CONTENT).entity(containerName).build();
     }
 
+    /**
+     * checks if a container exists in the workspace
+     * 
+     * @param containerName
+     * @return Response
+     */
     @Path("/containers/{containerName}")
     @HEAD
     @Consumes(MediaType.APPLICATION_JSON)
@@ -136,6 +164,13 @@ public class WorkspaceResource {
 
     }
 
+    /**
+     * creates a folder into a container
+     * 
+     * @param containerName
+     * @param folder
+     * @return Response
+     */
     @Path("containers/{containerName}/folders")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -155,6 +190,13 @@ public class WorkspaceResource {
         return Response.status(Status.CREATED).entity(containerName + "/" + folder.getName()).build();
     }
 
+    /**
+     * deletes a folder in a container
+     * 
+     * @param containerName
+     * @param folderName
+     * @return Response
+     */
     @Path("/containers/{containerName}/folders/{folderName}")
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
@@ -172,6 +214,13 @@ public class WorkspaceResource {
         return Response.status(Status.NO_CONTENT).entity(containerName + "/" + folderName).build();
     }
 
+    /**
+     * checks if a folder exists in a container
+     * 
+     * @param containerName
+     * @param folderName
+     * @return Response
+     */
     @Path("/containers/{containerName}/folders/{folderName}")
     @HEAD
     @Consumes(MediaType.APPLICATION_JSON)
@@ -188,6 +237,15 @@ public class WorkspaceResource {
 
     }
 
+    /**
+     * puts an object into a container
+     * 
+     * @param stream
+     * @param header
+     * @param objectName
+     * @param containerName
+     * @return Response
+     */
     @Path("containers/{containerName}/objects")
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -208,6 +266,13 @@ public class WorkspaceResource {
         return Response.status(Status.CREATED).entity(containerName + "/" + objectName).build();
     }
 
+    /**
+     * Deletes an objects in a container *
+     * 
+     * @param containerName
+     * @param objectName
+     * @return
+     */
     @Path("containers/{containerName}/objects/{objectName}")
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
@@ -225,6 +290,14 @@ public class WorkspaceResource {
         return Response.status(Status.NO_CONTENT).entity(containerName).build();
     }
 
+    /**
+     * gets an objects from a container in the workspace
+     * 
+     * @param containerName
+     * @param objectName
+     * @return Response
+     * @throws IOException
+     */
     @Path("containers/{containerName}/objects/{objectName:.*}")
     @GET
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -246,6 +319,12 @@ public class WorkspaceResource {
             .header("Content-Disposition", "attachment; filename=\"" + objectName + "\"").build();
     }
 
+    /**
+     * checks if a object exists in an container
+     * 
+     * @param containerName
+     * @return Response
+     */
     @Path("/containers/{containerName}/objects/{objectName}")
     @HEAD
     @Consumes(MediaType.APPLICATION_JSON)
@@ -262,7 +341,14 @@ public class WorkspaceResource {
 
     }
 
-
+    /**
+     * unzip a sip into the workspace
+     * 
+     * @param stream
+     * @param header
+     * @param containerName
+     * @return Response
+     */
     @Path("containers/{containerName}/objects")
     @PUT
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -283,6 +369,13 @@ public class WorkspaceResource {
         return Response.status(Status.CREATED).entity(containerName).build();
     }
 
+    /**
+     * gets the list of object from folder
+     * 
+     * @param containerName
+     * @param folderName
+     * @return Response
+     */
     @Path("/containers/{containerName}/folders/{folderName}")
     @GET
     @Consumes(MediaType.APPLICATION_JSON)

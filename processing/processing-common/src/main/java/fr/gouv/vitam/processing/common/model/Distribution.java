@@ -37,15 +37,18 @@ package fr.gouv.vitam.processing.common.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
- * Distribution object in each step
+ * Distribution object in each step of workflow processing
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Distribution {
     
-    DistributionKind  kind;
-    String element;
+    private DistributionKind  kind;
+    private String element;
     
+    /** getKind(), get the object kind 
+     * @return the reference of DistributionKind
+     */
     public DistributionKind getKind() {
         if (kind == null) {
             return DistributionKind.REF;
@@ -53,11 +56,18 @@ public class Distribution {
         return kind;
     }
     
+    /** setKind, set the kind of Distribution object
+     * @param kind of DistributionKind
+     * @return Distribution object with kind setted
+     */
     public Distribution setKind(DistributionKind kind) {
         this.kind = kind;
         return this;
     }
     
+    /** getElement(), return the element of Distribution
+     * @return the element as String
+     */
     public String getElement() {
         if (element == null) {
             return "";
@@ -65,10 +75,12 @@ public class Distribution {
         return element;
     }
     
+    /** setElement, set the value of element 
+     * @param element as String
+     * @return Distribution instance with element setted
+     */
     public Distribution setElement(String element) {
         this.element = element;
         return this;
-    }
-    
-
+    }   
 }

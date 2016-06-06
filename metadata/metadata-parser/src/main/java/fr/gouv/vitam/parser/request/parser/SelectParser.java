@@ -45,7 +45,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
  * : projection } or [ roots, query, filter, projection ]
  *
  */
-public class SelectParser extends RequestParser implements internalParseSelect {
+public class SelectParser extends RequestParser implements InternalParseSelect {
     /**
      * 
      */

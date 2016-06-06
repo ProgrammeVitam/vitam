@@ -51,27 +51,27 @@ public class GlobalDatas {
     /**
      * Default limit for loading result
      */
-    public static int limitLoad = 10000;
+    public static final int limitLoad = 10000;
     /**
      * Default limit for Value (sanity check)
      */
-    public static int limitValue = 10000000;
+    private static int limitValue = 10000000;
     /**
      * Default limit for small parameter (sanity check)
      */
-    public static int limitParameter = 1000;
+    private static int limitParameter = 1000;
     /**
      * Default limit for number of roots
      */
-    public static int nbRoots = 1000;
+    public static final int nbRoots = 1000;
     /**
      * Default limit for number of filters
      */
-    public static int nbFilters = 10;
+    public static final int nbFilters = 10;
     /**
      * Default limit for number of projections
      */
-    public static int nbProjections = 1000;
+    public static final int nbProjections = 1000;
     /**
      * True means commands are to be written using '$' as prefix
      */
@@ -197,4 +197,20 @@ public class GlobalDatas {
 	        throw new InvalidParseOperationException("Variable name cannot be a protected one (starting with '#'");
 	    }
 	}
+
+    public static int getLimitValue() {
+        return limitValue;
+    }
+
+    public static void setLimitValue(int limitValue) {
+        GlobalDatas.limitValue = limitValue;
+    }
+
+    public static int getLimitParameter() {
+        return limitParameter;
+    }
+
+    public static void setLimitParameter(int limitParameter) {
+        GlobalDatas.limitParameter = limitParameter;
+    }
 }

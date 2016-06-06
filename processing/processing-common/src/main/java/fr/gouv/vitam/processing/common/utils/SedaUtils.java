@@ -88,6 +88,7 @@ public class SedaUtils {
     private static String TMP_FOLDER = "/vitam/data/";
     private static final String NAMESPACE_URI = "fr:gouv:culture:archivesdefrance:seda:v2.0";
     private static final String SEDA_FILE = "manifest.xml";
+    private static final String XML_EXTENSION = ".xml";
     private static final String SEDA_FOLDER = "SIP";
     private static final String BINARY_DATA_OBJECT = "BinaryDataObject";
     private static final String BINARY_DATA_FOLDER = "DataObjects";
@@ -115,7 +116,6 @@ public class SedaUtils {
 
     private static final HashMap<String, String> objectToGroupMapping = new HashMap<String, String>() {
         private static final long serialVersionUID = 1257583431403626689L;
-
         {
             put(BINARY_DATA_OBJECT, DATA_OBJECT_GROUPID);
             put(ARCHIVE_UNIT, DATA_OBJECT_REFERENCEID);
@@ -147,34 +147,54 @@ public class SedaUtils {
         this(new WorkspaceClientFactory(), new MetaDataClientFactory());
     }
 
+    /**
+     * Get temporary folder
+     * @return folder name as String
+     */
     public static String getTmpFolder() {
         return TMP_FOLDER;
     }
 
-    public static void setTmpFolder(String tMP_FOLDER) {
-        TMP_FOLDER = tMP_FOLDER;
+
+    /**
+     * Set the temporary folder
+     * @param tmp as String
+     */
+    public static void setTmpFolder(String tmp) {
+        TMP_FOLDER = tmp;
     }
 
+    /**
+     * @return Map<String, String> reflects BinaryDataObject and File(GUID)
+     */
     public Map<String, String> getBinaryDataObjectIdToGuid() {
         return binaryDataObjectIdToGuid;
     }
 
-
+    /**
+     * @return Map<String, String> reflects ObjectGroup and File(GUID)
+     */
     public Map<String, String> getObjectGroupIdToGuid() {
         return objectGroupIdToGuid;
     }
 
-
+    /**
+     * @return Map<String, String> reflects Unit and File(GUID)
+     */
     public Map<String, String> getUnitIdToGuid() {
         return unitIdToGuid;
     }
 
-
+    /**
+     * @return Map<String, String> reflects BinaryDataObject and ObjectGroup
+     */
     public Map<String, String> getBinaryDataObjectIdToGroupId() {
         return binaryDataObjectIdToGroupId;
     }
 
-
+    /**
+     * @return Map<String, String> reflects Unit and ObjectGroup
+     */
     public Map<String, String> getUnitIdToGroupId() {
         return unitIdToGroupId;
     }
@@ -289,7 +309,7 @@ public class SedaUtils {
             writer.close();
             if (tmpFile != null) {
                 client.putObject(containerId,
-                    objectToFolderMapping.get((name.getLocalPart())) + "/" + elementGuid,
+                    objectToFolderMapping.get(name.getLocalPart()) + "/" + elementGuid + XML_EXTENSION,
                     new FileInputStream(tmpFile));
                 tmpFile.delete();
             }
@@ -308,23 +328,32 @@ public class SedaUtils {
     private Map<String, String> getAdaptMap(String element) {
         Map<String, String> result = null;
         switch (element) {
-            case (BINARY_DATA_OBJECT):
+            case BINARY_DATA_OBJECT:
                 result = this.binaryDataObjectIdToGuid;
                 break;
-            case (ARCHIVE_UNIT):
+            case ARCHIVE_UNIT:
                 result = this.unitIdToGuid;
                 break;
-            case (DATA_OBJECT_GROUPID):
+            case DATA_OBJECT_GROUPID:
                 result = this.binaryDataObjectIdToGroupId;
                 break;
-            case (DATA_OBJECT_REFERENCEID):
+            case DATA_OBJECT_REFERENCEID:
                 result = this.unitIdToGroupId;
+                break;
+            default:
                 break;
         }
 
         return result;
     }
 
+    /**
+     * The method is used to validate SEDA by XSD
+     * 
+     * @param params
+     * @return boolean true/false
+     * @throws IOException
+     */
     public boolean checkSedaValidation(WorkParams params) throws IOException {
         ParametersChecker.checkParameter("WorkParams is a mandatory parameter", params);
         String containerId = params.getContainerName();
@@ -336,6 +365,7 @@ public class SedaUtils {
 
             return validationXsdUtils.checkWithXSD(input, xsd);
         } catch (ProcessingException | XMLStreamException | SAXException e) {
+            LOGGER.error("Manifest.xml is not valid ");
             return false;
         }
     }
@@ -384,21 +414,20 @@ public class SedaUtils {
             input = workspaceClient.getObject(containerId, ARCHIVE_UNIT_FOLDER + "/" + objectName);
 
             if (input != null) {
-                try {
-                    JsonNode json = convertArchiveUnitToJson(input, containerId, objectName).get(ARCHIVE_UNIT);
-                    String insertRequest = new Insert().addData((ObjectNode) json).getFinalInsert().toString();
-                    metadataClient.insert(insertRequest);
-                } catch (InvalidParseOperationException e) {
-                    LOGGER.debug("Archive unit json invalid");
-                    throw new ProcessingException(e);
-                } catch (MetaDataExecutionException e) {
-                    LOGGER.debug("Internal Server Error");
-                    throw new ProcessingException(e);
-                }
+                JsonNode json = convertArchiveUnitToJson(input, containerId, objectName).get(ARCHIVE_UNIT);
+                String insertRequest = new Insert().addData((ObjectNode) json).getFinalInsert().toString();
+                metadataClient.insert(insertRequest);
             } else {
                 LOGGER.error("Archive unit not found");
                 throw new ProcessingException("Archive unit not found");
             }
+            
+        } catch (InvalidParseOperationException e) {
+            LOGGER.debug("Archive unit json invalid");
+            throw new ProcessingException(e);
+        } catch (MetaDataExecutionException e) {
+            LOGGER.debug("Internal Server Error");
+            throw new ProcessingException(e);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
             LOGGER.debug("Workspace Server Error");
             throw new ProcessingException(e);
@@ -529,7 +558,7 @@ public class SedaUtils {
         try {
             xmlFile = client.getObject(guid, SEDA_FOLDER + "/" + SEDA_FILE);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e1) {
-
+            LOGGER.error("Workspace error: Can not get file");
             throw new ProcessingException(e1.getMessage());
         }
         LOGGER.info(SedaUtils.MSG_PARSING_BDO);
@@ -559,13 +588,14 @@ public class SedaUtils {
         try {
 
             while (true) {
-                XMLEvent event = (XMLEvent) evenReader.nextEvent();
+                XMLEvent event = evenReader.nextEvent();
                 // reach the start of an BinaryDataObject
                 if (event.isStartElement()) {
                     StartElement element = event.asStartElement();
 
-                    if (element.getName().equals(binaryDataObject))
-                        getUri(extractUriResponse, evenReader);
+                    if (element.getName().equals(binaryDataObject)) {
+                        getUri(extractUriResponse, evenReader);                        
+                    }
                 }
                 if (event.isEndDocument()) {
                     LOGGER.info("data : " + event);
@@ -579,7 +609,7 @@ public class SedaUtils {
             LOGGER.error(e.getMessage());
             throw new ProcessingException(e);
         } finally {
-            extractUriResponse.setErrorDuplicateUri(extractUriResponse.getMessages().size() != 0);
+            extractUriResponse.setErrorDuplicateUri(!extractUriResponse.getMessages().isEmpty());
         }
         return extractUriResponse;
     }
@@ -608,6 +638,7 @@ public class SedaUtils {
                     // Check element is duplicate
                     checkDuplicatedUri(extractUriResponse, uri);
                     extractUriResponse.getUriListManifest().add(new URI(uri));
+                    break;
                 }
             }
         }

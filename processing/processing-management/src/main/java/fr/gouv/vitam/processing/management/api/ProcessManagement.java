@@ -40,7 +40,6 @@ import fr.gouv.vitam.processing.common.model.WorkParams;
  * 
  */
 public interface ProcessManagement {
-
     /**
      * execute Vitam process by workflow id
      * 
@@ -52,8 +51,7 @@ public interface ProcessManagement {
      * @throws ProcessingException
      * @throws IllegalArgumentException
      */
-    // TODO REVIEW Probably add status as SUBMITTED (asynchronous)
+    
     EngineResponse submitWorkflow(WorkParams workParams, String workflowId)
         throws WorkflowNotFoundException, HandlerNotFoundException, ProcessingException;
-
 }

@@ -60,6 +60,9 @@ import fr.gouv.vitam.workspace.common.ParametersChecker;
 
 // TODO REVIEW missing comments
 
+/**
+ * Workspace client which calls rest services
+ */
 public class WorkspaceClient implements ContentAddressableStorage {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkspaceClient.class);

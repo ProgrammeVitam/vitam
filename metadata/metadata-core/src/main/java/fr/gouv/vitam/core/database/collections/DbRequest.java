@@ -115,7 +115,7 @@ public class DbRequest {
                 LOGGER.error("No result at rank: " + rank + " from " + requestParser
                         + " \n\twhere previous is " + result);
                 // XXX TODO should be adapted to have a correct error feedback
-                result = new ResultError(newResult.type)
+                result = new ResultError(requestParser.model())
                         .addError(newResult != null ? newResult.getCurrentIds().toString() : "no_result: true")
                         .addError("no_result_at_rank: " + rank).addError("from: " + requestParser)
                         .addError("where_previous_result_was: " + result);

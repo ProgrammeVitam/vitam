@@ -44,7 +44,7 @@ public class ProcessPopulator {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessPopulator.class);
 
     /**
-     * create workflow object :parse JSON file
+     * create workflow object : parse JSON file
      * 
      * @param workflowId
      * @return workflow's object

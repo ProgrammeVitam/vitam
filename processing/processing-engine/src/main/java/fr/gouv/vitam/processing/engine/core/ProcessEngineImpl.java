@@ -68,10 +68,19 @@ public class ProcessEngineImpl implements ProcessEngine {
     private Map<String, WorkFlow> poolWorkflows;
     private ProcessDistributor processDistributor;
 
-    public void setWorkflow(String worrkflowId) throws WorkflowNotFoundException {
-        poolWorkflows.put(worrkflowId, ProcessPopulator.populate(worrkflowId));
+    /** 
+     * setWorkflow : populate a workflow to the pool of workflow 
+     * @param workflowId as String 
+     * @throws WorkflowNotFoundException
+     */
+    public void setWorkflow(String workflowId) throws WorkflowNotFoundException {
+        poolWorkflows.put(workflowId, ProcessPopulator.populate(workflowId));
     }
 
+    /**
+     *  ProcessEngineImpl constructor
+     *  populate also the workflow to the pool of workflow
+     */
     public ProcessEngineImpl() {
         this.processDistributor = new ProcessDistributorImpl();
         this.poolWorkflows = new HashMap<>();
@@ -82,6 +91,10 @@ public class ProcessEngineImpl implements ProcessEngine {
         }
     }
 
+    /**
+     * Implement method startWorkflow of ProcessEngine API  
+     * Ref : see return and params of method in  ProcessEngine API class
+     */
     @Override
     public EngineResponse startWorkflow(WorkParams workParams, String workflowId)
         throws IllegalArgumentException, WorkflowNotFoundException {
@@ -90,6 +103,9 @@ public class ProcessEngineImpl implements ProcessEngine {
         long time = System.currentTimeMillis();
         LOGGER.info(START_MESSAGE);
 
+        /**
+         * Check if workflow exist in the pool of workflows 
+         */
         if (!poolWorkflows.containsKey(workflowId)) {
             throw new WorkflowNotFoundException(WORKFLOW_NOT_FOUND_MESSAGE);
         }

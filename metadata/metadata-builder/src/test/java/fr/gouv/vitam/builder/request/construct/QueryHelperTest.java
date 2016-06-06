@@ -29,7 +29,33 @@
  *******************************************************************************/
 package fr.gouv.vitam.builder.request.construct;
 
-import static fr.gouv.vitam.builder.request.construct.QueryHelper.*;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.and;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.eq;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.exists;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.flt;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.gt;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.gte;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.in;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.isNull;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.lt;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.lte;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.match;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.matchPhrase;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.matchPhrasePrefix;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.missing;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.mlt;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.ne;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.nin;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.not;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.or;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.path;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.prefix;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.range;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.regex;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.search;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.size;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.term;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.wildcard;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -37,6 +63,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -47,6 +74,9 @@ import fr.gouv.vitam.builder.request.exception.InvalidCreateOperationException;
 @SuppressWarnings("javadoc")
 public class QueryHelperTest {
 
+    private int limitValue;
+    private int limitParameter;
+    
     private static String createLongString(int size) {
         StringBuilder sb = new StringBuilder(size);
         for (int i = 0; i < size; i++) {
@@ -57,21 +87,28 @@ public class QueryHelperTest {
 
     @Before
     public void setupConfig() {
-    	// TODO REVIEW should backup pevious values and reset to previous ones @After
-        GlobalDatas.limitValue = 1000;
-        GlobalDatas.limitParameter = 100;
+        limitValue = GlobalDatas.getLimitValue();
+        limitParameter = GlobalDatas.getLimitParameter();
+        GlobalDatas.setLimitValue(1000);
+        GlobalDatas.setLimitParameter(100);
+    }
+    
+    @After
+    public void tearDown() {
+        GlobalDatas.setLimitValue(limitValue);
+        GlobalDatas.setLimitParameter(limitParameter);
     }
 
     @Test
     public void testSanityCheckRequest() {
         try {
-            String longname = createLongString(GlobalDatas.limitParameter + 100);
+            String longname = createLongString(GlobalDatas.getLimitParameter() + 100);
             path(longname, "id2");
             fail("Should fail");
         } catch (final InvalidCreateOperationException e) {
         }
         try {
-            String longvalue = createLongString(GlobalDatas.limitValue + 100);
+            String longvalue = createLongString(GlobalDatas.getLimitValue() + 100);
             eq("var", longvalue);
             fail("Should fail");
         } catch (final InvalidCreateOperationException e) {

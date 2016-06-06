@@ -25,11 +25,20 @@ package fr.gouv.vitam.processing.engine.core;
 
 import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
 
+/**
+ * Class ProcessEngineImplFactory 
+ * Goal : create an instance of ProcessEngineImpl 
+ */
 public class ProcessEngineImplFactory {
+    
+    /**
+     * @param workflow as String is workfolowId
+     * @return ProcessEngineImpl object created
+     * @throws WorkflowNotFoundException
+     */
     public ProcessEngineImpl create(String workflow) throws WorkflowNotFoundException {
         ProcessEngineImpl processImpl = new ProcessEngineImpl();
         processImpl.setWorkflow(workflow);
         return processImpl;
     }
-
 }

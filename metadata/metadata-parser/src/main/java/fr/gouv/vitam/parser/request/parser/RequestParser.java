@@ -460,6 +460,7 @@ public abstract class RequestParser {
             case SEARCH:
             case SIZE:
                 GlobalDatas.sanityValueCheck(command.toString());
+                break;
             default:
         }
         switch (query) {

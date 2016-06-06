@@ -37,6 +37,8 @@ import java.util.Date;
 import java.util.HashMap;
 
 import org.joda.time.DateTime;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import fr.gouv.vitam.builder.request.construct.action.Action;
@@ -52,6 +54,9 @@ import fr.gouv.vitam.builder.request.exception.InvalidCreateOperationException;
 @SuppressWarnings("javadoc")
 public class UpdateActionHelperTest {
 
+    private int limitValue;
+    private int limitParameter;
+
     private static String createLongString(int size) {
         StringBuilder sb = new StringBuilder(size);
         for (int i = 0; i < size; i++) {
@@ -59,17 +64,31 @@ public class UpdateActionHelperTest {
         }
         return sb.toString();
     }
+    
+    @Before
+    public void setupConfig() {
+        limitValue = GlobalDatas.getLimitValue();
+        limitParameter = GlobalDatas.getLimitParameter();
+        GlobalDatas.setLimitValue(1000);
+        GlobalDatas.setLimitParameter(100);
+    }
+    
+    @After
+    public void tearDown() {
+        GlobalDatas.setLimitValue(limitValue);
+        GlobalDatas.setLimitParameter(limitParameter);
+    }
 
     @Test
     public void testSanityCheckRequest() {
         try {
-            String longname = createLongString(GlobalDatas.limitParameter + 100);
+            String longname = createLongString(GlobalDatas.getLimitParameter() + 100);
             add(longname, "id2");
             fail("Should fail");
         } catch (final InvalidCreateOperationException e) {
         }
         try {
-            String longvalue = createLongString(GlobalDatas.limitValue + 100);
+            String longvalue = createLongString(GlobalDatas.getLimitValue() + 100);
             add("var", longvalue);
             fail("Should fail");
         } catch (final InvalidCreateOperationException e) {

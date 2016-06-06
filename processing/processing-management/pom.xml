@@ -60,9 +60,9 @@
 			<artifactId>rest-assured</artifactId>
 			<scope>test</scope>
 		</dependency>
-	
+
 	</dependencies>
-	
+
 	<build>
 		<plugins>
 			<plugin>
@@ -84,28 +84,28 @@
 					</execution>
 				</executions>
 			</plugin>
-			
+
 			<plugin>
-			    <artifactId>maven-resources-plugin</artifactId>
-			    <executions>
-			      <execution>
-			        <id>copy-resources</id>
-			        <phase>validate</phase>
-			        <goals>
-			          <goal>copy-resources</goal>
-			        </goals>
-			        <configuration>
-			          <outputDirectory>${project.build.directory}/bin</outputDirectory>
-			          <resources>
-			            <resource>
-			                <directory>src/main/bin</directory>
-			                <filtering>true</filtering>
-			            </resource>
-			          </resources>
-			        </configuration>
-			      </execution>
-			    </executions>
-			  </plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy-resources</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/bin</outputDirectory>
+							<resources>
+								<resource>
+									<directory>src/main/bin</directory>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -125,9 +125,9 @@
 				<artifactId>docker-maven-plugin</artifactId>
 				<configuration>
 					<!-- Activate docker build -->
-					<skipDockerBuild>false</skipDockerBuild> 
+					<skipDockerBuild>false</skipDockerBuild>
 					<skipDockerTag>false</skipDockerTag>
-				    <!-- Images specification -->
+					<!-- Images specification -->
 					<baseImage>${vitam.docker.registry.pull}/${vitam.docker.baseimage}</baseImage>
 					<imageName>${vitam.docker.registry.push}/vitam/processing</imageName>
 					<!-- copy the service's jar file from target into the root directory 
@@ -161,5 +161,5 @@
 			</plugin>
 
 		</plugins>
-	</build>	
+	</build>
 </project>

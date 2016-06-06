@@ -55,6 +55,9 @@ public class ProcessResponse implements EngineResponse {
      */
     private Map<String, List<EngineResponse>> stepResponses;
 
+    /**
+     * implementation of getStatus() of EngineResponse API class
+     */
     @Override
     public StatusCode getStatus() {
         if (status == null) {
@@ -63,12 +66,18 @@ public class ProcessResponse implements EngineResponse {
         return status;
     }
 
+    /**
+     * implementation of setStatus() of EngineResponse API class
+     */    
     @Override
     public ProcessResponse setStatus(StatusCode status) {
         this.status = status;
         return this;
     }
 
+    /**
+     * implementation of getMessage() of EngineResponse API class
+     */    
     @Override
     public List<String> getMessages() {
         if (messages == null) {
@@ -77,13 +86,16 @@ public class ProcessResponse implements EngineResponse {
         return messages;
     }
 
+    /**
+     * implementation of setMessage() of EngineResponse API class
+     */    
     @Override
     public ProcessResponse setMessages(List<String> messages) {
         this.messages = messages;
         return this;
     }
 
-    /**
+    /** getStepResponses given the response of each step of workflow processing
      * @return the stepResponses
      */
 
@@ -94,7 +106,7 @@ public class ProcessResponse implements EngineResponse {
         return stepResponses;
     }
 
-    /**
+    /** setStepResponses, set the response at each step of workflow processing
      * @param stepResponses the stepResponses to set
      */
     public ProcessResponse setStepResponses(Map<String, List<EngineResponse>> stepResponses) {
@@ -105,6 +117,10 @@ public class ProcessResponse implements EngineResponse {
         return this;
     }
 
+    /** getGlobalProcessStatusCode, return the global status of workflow processing
+     * @param responses, list of step response
+     * @return the status of StatusCode type
+     */
     public StatusCode getGlobalProcessStatusCode(List<EngineResponse> responses) {
         StatusCode statusCode = StatusCode.OK;
 
@@ -124,6 +140,9 @@ public class ProcessResponse implements EngineResponse {
         return statusCode;
     }
 
+    /**
+     * implementation of getValue() of EngineResponse API class
+     */    
     @Override
     public String getValue() {
         return status.value();

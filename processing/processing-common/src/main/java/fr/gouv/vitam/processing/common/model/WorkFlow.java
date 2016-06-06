@@ -53,6 +53,9 @@ public class WorkFlow {
 	@JsonProperty("steps")
 	protected List<Step> steps;
 
+	/** getId, get id of workflow
+	 * @return the workflowID
+	 */
 	public String getId() {
 	    if (id == null) {
             return "";
@@ -60,14 +63,18 @@ public class WorkFlow {
 		return id;
 	}
 
+	/** setId, set the id of workflow
+	 * @param id as String
+	 * @return the WorkFlow instance with id setted
+	 */
 	public WorkFlow setId(String id) {
 		this.id = id;
 		return this;
 	}
 
 	/**
-	 * 
-	 * @return comments
+	 * getComment
+	 * @return comments on workflow
 	 */
 	public String getComment() {
 	    if (comment == null) {
@@ -76,6 +83,9 @@ public class WorkFlow {
 		return comment;
 	}
 
+	/** getSteps(), get all step of workflow
+	 * @return the list of type Step
+	 */
 	public List<Step> getSteps() {
 	    if (steps == null) {
 	        return new ArrayList<>();
@@ -83,13 +93,17 @@ public class WorkFlow {
 		return steps;
 	}
 
+	/** setSteps, set the steps to workflow
+	 * @param steps as List
+	 * @return the Workflow instance with steps setted
+	 */
 	public WorkFlow setSteps(List<Step> steps) {
 		this.steps = steps;
 		return this;
 	}
 
 	/**
-	 * 
+	 * setComment, set the comment for workflow
 	 * @param comments
 	 */
 	public WorkFlow setComment(String comments) {
@@ -97,6 +111,9 @@ public class WorkFlow {
 		return this;
 	}
 
+	/**
+	 * toString : get the wortflowId and comments on workflow as String 
+	 */
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();

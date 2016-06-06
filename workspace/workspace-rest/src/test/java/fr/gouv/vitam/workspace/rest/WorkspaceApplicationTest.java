@@ -26,7 +26,7 @@ public class WorkspaceApplicationTest {
 
     @Test
     public void givenFileAlreadyExistsWhenConfigureApplicationOThenRunServer() throws Exception {
-        application.configure("src/test/resources/workspace.conf", "8084");
+        application.configure("src/test/resources/workspace.conf", "8098");
     }
 
 }

@@ -42,7 +42,7 @@ public class ProcessManagementResourceTest {
     
     /**
      * Test server status 
-     * shoud return 200
+     * should return 200
      */
     @Test
     public void shouldGetStatusOK() throws Exception {

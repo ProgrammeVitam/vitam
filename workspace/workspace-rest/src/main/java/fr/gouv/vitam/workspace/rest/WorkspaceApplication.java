@@ -113,7 +113,7 @@ public class WorkspaceApplication {
      * @throws Exception Thrown if something goes wrong
      */
     // TODO Don't throw Exception
-    public void run(StorageConfiguration configuration, int serverPort) throws Exception {
+    public static void run(StorageConfiguration configuration, int serverPort) throws Exception {
 
         ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(JacksonFeature.class);
@@ -132,6 +132,11 @@ public class WorkspaceApplication {
     }
 
     // TODO Don't throw Exception
+    /**
+     * stop a workspace server
+     * 
+     * @throws Exception
+     */
     public void stop() throws Exception {
         server.stop();
     }

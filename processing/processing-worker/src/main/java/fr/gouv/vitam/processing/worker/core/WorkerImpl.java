@@ -76,7 +76,12 @@ public class WorkerImpl implements Worker {
          */
         init();
     }
-
+    
+    /**
+     * Constructor which can add an actionhandler in the pool of action
+     * @param actionName
+     * @param actionHandler
+     */
     public WorkerImpl(String actionName, ActionHandler actionHandler) {
         actions.put(actionName, actionHandler);
     }

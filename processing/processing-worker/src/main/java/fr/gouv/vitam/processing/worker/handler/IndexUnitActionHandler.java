@@ -53,6 +53,10 @@ public class IndexUnitActionHandler extends ActionHandler {
     private static final String HANDLER_ID = "IndexUnit";
     private final SedaUtilsFactory sedaUtilsFactory;
 
+    /**
+     * Constructor with parameter SedaUtilsFactory
+     * @param factory
+     */
     public IndexUnitActionHandler(SedaUtilsFactory factory) {
         sedaUtilsFactory = factory;
     }

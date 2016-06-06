@@ -45,6 +45,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final String HANDLER_ID = "ExtractSeda";
     private final SedaUtilsFactory sedaUtilsFactory;
 
+    /**
+     * Constructor with parameter SedaUtilsFactory
+     * @param factory
+     */
     public ExtractSedaActionHandler(SedaUtilsFactory factory) {
         sedaUtilsFactory = factory;
     }

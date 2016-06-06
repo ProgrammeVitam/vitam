@@ -32,6 +32,11 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
  * ContainerExtractionUtilsFactory Factory to create ContainerExtractionUtils
  */
 public class ContainerExtractionUtilsFactory {
+    /**
+     * Create a workspace client
+     * 
+     * @return ContainerExtractionUtils
+     */
     public ContainerExtractionUtils create() {
         return new ContainerExtractionUtils(new WorkspaceClientFactory());
     }

@@ -23,7 +23,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.distributor.core;
 
-import java.io.File;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,6 +50,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 public class ProcessDistributorImpl implements ProcessDistributor {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessDistributorImpl.class);
+    private static final String ARCHIVE_UNIT_FOLDER = "Units";
     private static final String ELAPSED_TIME_MESSAGE = "Total elapsed time in execution of method distribute is :";
 
     private static final String EXCEPTION_MESSAGE =
@@ -67,6 +68,10 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         availableWorkers.add(worker1.getWorkerId());
     }
 
+    /**
+     * Constructor with parameter workerImpl
+     * @param workerImpl
+     */
     public ProcessDistributorImpl(WorkerImpl workerImpl) {
         Worker worker1 = workerImpl;
         workers.add(worker1);
@@ -85,24 +90,20 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         try {
 
             if (step.getDistribution().getKind().equals(DistributionKind.LIST)) {
-                WorkspaceClientFactory workspaceClientFactory = new WorkspaceClientFactory();
-                WorkspaceClient workspace =
-                    workspaceClientFactory.create(workParams.getServerConfiguration().getUrlWorkspace());
-                // FIXME use workspace listObjects Method (we are getting directly from filesystem)
-                List<String> objectsList =
-                    listObjects(
-                        "/vitam/data/" + workParams.getContainerName() + "/" + step.getDistribution().getElement());
+                WorkspaceClient workspaceClient =
+                    new WorkspaceClientFactory().create(workParams.getServerConfiguration().getUrlWorkspace());
+                List<URI> objectsList = workspaceClient.getListUriDigitalObjectFromFolder(workParams.getContainerName(), ARCHIVE_UNIT_FOLDER);
                 if ((objectsList == null) || objectsList.isEmpty()) {
                     responses.add(errorResponse);
                 } else {
-                    for (String objectName : objectsList) {
+                    for (URI objectUri : objectsList) {
                         if (availableWorkers.size() == 0) {
                             LOGGER.info(errorResponse.getStatus().toString());
                             responses.add(errorResponse);
                             break;
                         } else {
                             // TODO distribution Management
-                            responses.addAll(workers.get(0).run(workParams.setObjectName(objectName), step));
+                            responses.addAll(workers.get(0).run(workParams.setObjectName(objectUri.getPath()), step));
                         }
                     }
                 }
@@ -143,25 +144,5 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         }
 
         return step.getStepName();
-    }
-
-    // TODO to use workspace Clinet to list objects
-    private List<String> listObjects(String path) {
-
-        LOGGER.info("list Objects : " + path);
-        List<String> results = new ArrayList<String>();
-        try {
-            File[] files = new File(path).listFiles();
-            for (File file : files) {
-                if (file.isFile()) {
-                    results.add(file.getName());
-                }
-            }
-        } catch (NullPointerException e) {
-            LOGGER.error("Object not found");
-        }
-        LOGGER.info("list Objects : " + results);
-        return results;
-
     }
 }

@@ -79,6 +79,10 @@ public class ProcessManagementApplication {
         }
     }
     
+    /** read the configured parameters of lauched server from the file
+     * @param arguments : name of configured file
+     * @throws RuntimeException
+     */
     public void configure(String... arguments) throws RuntimeException {
         if (arguments.length >= 1) {
             try {
@@ -109,6 +113,12 @@ public class ProcessManagementApplication {
         
     }
 
+    /**
+     * run a server instance with the configuration and port 
+     * @param configuration as ServerConfiguration
+     * @param serverPort port number of launched server
+     * @throws Exception
+     */
     public static void run(ServerConfiguration configuration, int serverPort) throws Exception {
 
         ResourceConfig resourceConfig = new ResourceConfig();
@@ -126,6 +136,10 @@ public class ProcessManagementApplication {
         server.start();
     }    
     
+    /**
+     * stop the lauched server
+     * @throws Exception
+     */
     public void stop() throws Exception {
         server.stop();
     }

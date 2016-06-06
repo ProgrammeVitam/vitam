@@ -45,6 +45,9 @@ public enum CheckObjectsNumberMessage {
         this.message = message;
     }
 
+    /** getMessage, return the logged message
+     * @return message contain
+     */
     public String getMessage() {
         return message;
     }

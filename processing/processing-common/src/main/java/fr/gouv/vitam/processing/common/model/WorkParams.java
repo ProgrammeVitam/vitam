@@ -35,9 +35,8 @@ import fr.gouv.vitam.processing.common.config.ServerConfiguration;
  * WorkParams class
  *
  * Contains all useful parameters for the process engine and handler
- * 
  */
-// TODO REVIEW improve comment form
+
 public class WorkParams {
     
 	private String containerName;
@@ -47,6 +46,9 @@ public class WorkParams {
 	private String workerGUID;
 	private String metaDataRequest;
 
+	/** getContainerName
+	 * @return : the container name of workparam
+	 */
 	public String getContainerName() {
 	    if (containerName == null) {
 	        return "";
@@ -54,6 +56,10 @@ public class WorkParams {
 		return containerName;
 	}
 
+	/** setContainerName, set the name of container for WorkParams
+	 * @param containerName as String
+	 * @return WorkParams instance with container name setted
+	 */
 	public WorkParams setContainerName(String containerName) {
 		this.containerName = containerName;
 		return this;

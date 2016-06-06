@@ -66,7 +66,6 @@ public class ExtractUriResponse extends ProcessResponse {
 
     /**
      * @param uriListManifest the uriListManifest to set
-     *
      * @return this
      */
     public ExtractUriResponse setUriListManifest(List<URI> uriListManifest) {

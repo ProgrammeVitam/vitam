@@ -35,7 +35,8 @@
 		<ArchivalAgencyArchiveUnitIdentifier>ArchivalAgencyArchiveUnitIdentifier0</ArchivalAgencyArchiveUnitIdentifier>
 		<OriginatingAgencyArchiveUnitIdentifier>OriginatingAgencyArchiveUnitIdentifier0</OriginatingAgencyArchiveUnitIdentifier>
 		<TransferringAgencyArchiveUnitIdentifier>TransferringAgencyArchiveUnitIdentifier0</TransferringAgencyArchiveUnitIdentifier>
-		<Description xml:lang="en-US">annuaire du projet de solution logicielle Vitam</Description>
+		<Description xml:lang="en-US">annuaire du projet de solution
+			logicielle Vitam</Description>
 		<Type>Type0</Type>
 		<TransactedDate>2016-04-25</TransactedDate>
 	</Content>

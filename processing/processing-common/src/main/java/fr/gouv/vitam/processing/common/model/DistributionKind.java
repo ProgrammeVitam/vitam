@@ -48,6 +48,9 @@ public enum DistributionKind {
         this.value = value;
     }
 
+    /** value(), get the value of DistributionKind
+     * @return the value as String
+     */
     public String value() {
         return value;
     }

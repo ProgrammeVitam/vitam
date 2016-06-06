@@ -10,7 +10,7 @@
         	"kind":"REF",
         	"element" : "SIP/manifest.xml"
         	},
-        "actions":[{"action":"checkSeda"}, {"action":"ExtractSeda"}]
+        "actions":[{"action":"checkSeda"}, {"action":"CheckObjectsNumberAction"}, {"action":"ExtractSeda"}]
     },
     {
     "workerGroupId" :"DefaultWorker",

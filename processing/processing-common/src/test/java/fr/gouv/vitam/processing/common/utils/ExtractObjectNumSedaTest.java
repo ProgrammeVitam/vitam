@@ -36,9 +36,7 @@ import java.io.InputStream;
 
 import javax.xml.stream.XMLStreamException;
 
-import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -63,26 +61,17 @@ public class ExtractObjectNumSedaTest {
     private WorkspaceClientFactory factory;
     private final InputStream seda = Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP);
     private SedaUtils utils;
-    private String tmp = "";
     private WorkParams params = new WorkParams()
-        .setGuuid("id")
+        .setContainerName("id")
         .setServerConfiguration(new ServerConfiguration().setUrlWorkspace("ws"));
 
     @Before
     public void setUp() {
-        tmp = SedaUtils.getTmpFolder();
         SedaUtils.setTmpFolder(TMP);
         client = mock(WorkspaceClient.class);
         factory = mock(WorkspaceClientFactory.class);
     }
 
-    @After
-    public void tearDown() {
-        SedaUtils.setTmpFolder(tmp);
-    }
-
-    // In object ExtractUriResponse - List Uri Manifest not Null
-    @Ignore
     @Test
     public void givenListUriNotEmpty()
         throws FileNotFoundException, XMLStreamException, ProcessingException, Exception, Exception {

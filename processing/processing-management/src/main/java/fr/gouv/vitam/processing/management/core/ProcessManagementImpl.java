@@ -39,24 +39,33 @@ import fr.gouv.vitam.processing.management.api.ProcessManagement;
 
 /**
  * ProcessManagementImpl
- * 
- * 
- * 
+ * implementation of ProcessManagement API  
  */
 public class ProcessManagementImpl implements ProcessManagement {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessManagementImpl.class);
     private ProcessEngine processEngine;
     private ServerConfiguration serverConfig;
 
+    /**
+     * get the server configuration 
+     * @return serverConfig of type ServerConfiguration
+     */
     public ServerConfiguration getServerConfig() {
         return this.serverConfig;
     }
 
+    /** set the server configuration 
+     * @param serverConfig
+     * @return ProcessManagementImpl instance with serverConfig is setted
+     */
     public ProcessManagementImpl setServerConfig(ServerConfiguration serverConfig) {
         this.serverConfig = serverConfig;
         return this;
     }
 
+    /** constructor of ProcessManagementImpl 
+     * @param serverConfig 
+     */
     public ProcessManagementImpl(ServerConfiguration serverConfig) {
         /**
          * inject process engine
@@ -65,6 +74,11 @@ public class ProcessManagementImpl implements ProcessManagement {
         processEngine = new ProcessEngineImpl();
     }
 
+    /**
+     * submitWorkflow
+     * implemente submitWorkflow of ProcessManagement API
+     * see params and return in ProcessManagement API class
+     */
     @Override
     public EngineResponse submitWorkflow(WorkParams workParams, String workflowId) throws ProcessingException {
         EngineResponse response = null;

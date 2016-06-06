@@ -43,8 +43,13 @@ public class ContainerExtractionUtils {
     private WorkspaceClientFactory workspaceClientFactory;
     // TODO
     // Retrieve the hard code value for the path of the folder of digital objects
-    private final String digitalObjectFolderName = "sip/content";
+    private static final String DIGITAL_OBJECT_FOLDER_NAME = "SIP";
 
+    /**
+     * Constructor that instantiates a workspace client factory
+     * 
+     * @param workspaceClientFactory
+     */
     public ContainerExtractionUtils(WorkspaceClientFactory workspaceClientFactory) {
         ParametersChecker.checkParameter("workspaceFactory is a mandatory parameter", workspaceClientFactory);
         this.workspaceClientFactory = workspaceClientFactory;
@@ -60,12 +65,10 @@ public class ContainerExtractionUtils {
      */
     public List<URI> getDigitalObjectUriListFromWorkspace(WorkParams workParams)
         throws ProcessingException {
-        List<URI> uriListWorkspace = null;
         WorkspaceClient workspaceClient =
             workspaceClientFactory.create(workParams.getServerConfiguration().getUrlWorkspace());
-        String guidContainer = workParams.getGuuid();
-        uriListWorkspace = getDigitalObjectUriListFromWorkspace(workspaceClient, guidContainer);
-        return uriListWorkspace;
+        String guidContainer = workParams.getContainerName();
+        return getDigitalObjectUriListFromWorkspace(workspaceClient, guidContainer);
     }
 
     /**
@@ -78,7 +81,8 @@ public class ContainerExtractionUtils {
     private List<URI> getDigitalObjectUriListFromWorkspace(WorkspaceClient workspaceClient, String guidContainer)
         throws ProcessingException {
         List<URI> uriListWorkspace =
-            workspaceClient.getListUriDigitalObjectFromFolder(guidContainer, digitalObjectFolderName);
+            workspaceClient.getListUriDigitalObjectFromFolder(guidContainer, DIGITAL_OBJECT_FOLDER_NAME);
+        uriListWorkspace.remove(uriListWorkspace.size() - 1);
         return uriListWorkspace;
 
     }
