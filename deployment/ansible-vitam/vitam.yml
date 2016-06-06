@@ -6,13 +6,17 @@
 
 
 # Vitam solution deployment
-- hosts: hosts-storage
+- hosts: hosts-ihm-demo
   roles:
-  - storage
+  - ihm-demo
 
 - hosts: hosts-workspace
   roles:
     - workspace
+
+- hosts: hosts-processing
+  roles:
+    - processing
 
 - hosts: hosts-metadata
   roles:

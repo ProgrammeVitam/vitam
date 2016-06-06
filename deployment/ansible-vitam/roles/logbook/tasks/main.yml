@@ -21,7 +21,9 @@
   notify: restart container
   with_items:
   - "logbook.conf"
+  - "server-identity.conf"
   - "setenv.sh"
+  - "logback.xml"
 
 - name: Deploy VITAM docker file
   docker:
