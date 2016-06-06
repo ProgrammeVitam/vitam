@@ -813,7 +813,7 @@ public class QueryTest {
     }
     
     protected String getStringWithLength() {
-    	// FIXME REVIEW  Define the size using GlobalDatasXXX
+    	// TODO REVIEW  Define the size using GlobalDatasXXX
         char[] array = new char[10000001];
         int pos = 0;
         while (pos < 10000001) {

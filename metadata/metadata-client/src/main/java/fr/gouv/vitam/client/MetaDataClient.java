@@ -14,8 +14,8 @@ import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 // TODO REVIEW comment
-// FIXME REVIEW missing package-info
-// FIXME REVIEW pom.xml : junit + mockito-all + jersey.test => test
+// TODO REVIEW missing package-info
+// TODO REVIEW pom.xml : junit + mockito-all + jersey.test => test
 public class MetaDataClient {
 
 	private Client client;
@@ -39,9 +39,9 @@ public class MetaDataClient {
 	 * @return : response as String
 	 * @throws InvalidParseOperationException 
 	 */
-	// FIXME REVIEW since could be Unit or ObjectGroup, name should reflect this (here Unit)
+	// TODO REVIEW since could be Unit or ObjectGroup, name should reflect this (here Unit)
 	public String insert(String insertQuery) throws InvalidParseOperationException {
-		// FIXME REVIEW check null
+		// TODO REVIEW check null
 		Response response = client.target(url).path("units").request(MediaType.APPLICATION_JSON)
 				.accept(MediaType.APPLICATION_JSON)
 				.post(Entity.entity(insertQuery, MediaType.APPLICATION_JSON), Response.class);
@@ -64,7 +64,7 @@ public class MetaDataClient {
 	/**
 	 * @return : status of metadata server 200 : server is alive
 	 */
-	// FIXME REVIEW What was required at first was: empty response with code 204
+	// TODO REVIEW What was required at first was: empty response with code 204
 	public Response status() {
 		return client.target(url).path("status").request().get();
 	}

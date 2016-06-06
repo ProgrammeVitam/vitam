@@ -125,7 +125,7 @@ public class MetaDataImplTest {
         GlobalDatasParser.limitRequest = 1000;
         
         metaDataImpl.insertUnit(createLongString(1001));
-        // FIXME REVIEW should reset limitRequest to previous default value
+        // TODO REVIEW should reset limitRequest to previous default value
     }
     
     @Test(expected = MetaDataNotFoundException.class)

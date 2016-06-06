@@ -46,7 +46,7 @@ import fr.gouv.vitam.parser.request.parser.InsertParser;
 /**
  * MetaDataImpl implements a MetaData interface
  */
-// FIXME REVIEW should be final
+// TODO REVIEW should be final
 public class MetaDataImpl implements MetaData {
 
     private final DbRequestFactory dbRequestFactory;
@@ -57,10 +57,10 @@ public class MetaDataImpl implements MetaData {
      * @param configuration
      *            of mongoDB access
      */
-    // FIXME REVIEW should be private and adding public static final Metadata newMetadata(...) calling this private constructor
+    // TODO REVIEW should be private and adding public static final Metadata newMetadata(...) calling this private constructor
     public MetaDataImpl(MetaDataConfiguration configuration, MongoDbAccessFactory mongoDbAccessFactory, DbRequestFactory dbRequestFactory) {
         mongoDbAccessFactory.create(configuration);        
-        // FIXME REVIEW should check null
+        // TODO REVIEW should check null
         this.dbRequestFactory = dbRequestFactory;
     }
 

@@ -51,27 +51,27 @@ public class GlobalDatas {
     /**
      * Default limit for loading result
      */
-    public static int limitLoad = 10000;
+    public static final int limitLoad = 10000;
     /**
      * Default limit for Value (sanity check)
      */
-    public static int limitValue = 10000000;
+    private static int limitValue = 10000000;
     /**
      * Default limit for small parameter (sanity check)
      */
-    public static int limitParameter = 1000;
+    private static int limitParameter = 1000;
     /**
      * Default limit for number of roots
      */
-    public static int nbRoots = 1000;
+    public static final int nbRoots = 1000;
     /**
      * Default limit for number of filters
      */
-    public static int nbFilters = 10;
+    public static final int nbFilters = 10;
     /**
      * Default limit for number of projections
      */
-    public static int nbProjections = 1000;
+    public static final int nbProjections = 1000;
     /**
      * True means commands are to be written using '$' as prefix
      */
@@ -86,7 +86,7 @@ public class GlobalDatas {
      */
     protected static final void sanityCheck(String arg, int size)
             throws InvalidParseOperationException {
-    	// FIXME REVIEW should check null
+    	// TODO REVIEW should check null
         if (arg != null && arg.length() > size) {
             throw new InvalidParseOperationException(
                     "String exceeds sanity check of " + size);
@@ -144,7 +144,7 @@ public class GlobalDatas {
      * @return the corresponding Date in Json format
      */
     public static final ObjectNode getDate(final Date date) {
-		// FIXME REVIEW should check null
+		// TODO REVIEW should check null
         return JsonHandler.createObjectNode().put(Query.DATE,
                 new DateTime(date).toString());
     }
@@ -192,9 +192,25 @@ public class GlobalDatas {
 	 */
 	public static final void sanityVariableNameCheck(String arg)
 	        throws InvalidParseOperationException {
-		// FIXME REVIEW should check null
+		// TODO REVIEW should check null
 	    if (arg.charAt(0) == '#') {
 	        throw new InvalidParseOperationException("Variable name cannot be a protected one (starting with '#'");
 	    }
 	}
+
+    public static int getLimitValue() {
+        return limitValue;
+    }
+
+    public static void setLimitValue(int limitValue) {
+        GlobalDatas.limitValue = limitValue;
+    }
+
+    public static int getLimitParameter() {
+        return limitParameter;
+    }
+
+    public static void setLimitParameter(int limitParameter) {
+        GlobalDatas.limitParameter = limitParameter;
+    }
 }

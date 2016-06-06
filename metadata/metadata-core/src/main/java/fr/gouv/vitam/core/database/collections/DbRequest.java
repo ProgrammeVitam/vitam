@@ -114,8 +114,8 @@ public class DbRequest {
             } else {
                 LOGGER.error("No result at rank: " + rank + " from " + requestParser
                         + " \n\twhere previous is " + result);
-                // XXX FIXME should be adapted to have a correct error feedback
-                result = new ResultError(newResult.type)
+                // XXX TODO should be adapted to have a correct error feedback
+                result = new ResultError(requestParser.model())
                         .addError(newResult != null ? newResult.getCurrentIds().toString() : "no_result: true")
                         .addError("no_result_at_rank: " + rank).addError("from: " + requestParser)
                         .addError("where_previous_result_was: " + result);
@@ -135,7 +135,7 @@ public class DbRequest {
             } else {
                 LOGGER.error("No result at rank: " + rank + " from " + requestParser
                         + " \n\twhere previous is " + result);
-                // XXX FIXME should be adapted to have a correct error feedback
+                // XXX TODO should be adapted to have a correct error feedback
                 result = new ResultError(newResult.type)
                         .addError(newResult != null ? newResult.getCurrentIds().toString() : "no_result: true")
                         .addError("no_result_at_rank: " + rank).addError("from: " + requestParser)
@@ -162,7 +162,7 @@ public class DbRequest {
         if (result.getCurrentIds().isEmpty()) {
         	LOGGER.error("No result at rank: " + rank + " from " + requestParser
                     + " \n\twhere previous is " + result);
-            // XXX FIXME should be adapted to have a correct error feedback
+            // XXX TODO should be adapted to have a correct error feedback
             result = new ResultError(result.type)
                     .addError(result != null ? result.getCurrentIds().toString() : "no_result: true")
                     .addError("no_result_at_rank: " + rank).addError("from: " + requestParser)
@@ -265,7 +265,7 @@ public class DbRequest {
      */
     protected Set<String> checkUnitAgainstRoots(final Set<String> current, final Result defaultStartSet)
             throws InvalidParseOperationException {
-    	// FIXME: was: || defaultStartSet.getCurrentIds().isEmpty() in order to allow emptyStartSet => default roots
+    	// TODO: was: || defaultStartSet.getCurrentIds().isEmpty() in order to allow emptyStartSet => default roots
     	if (defaultStartSet == null) {
     		// no limitation: using roots
             return current;
@@ -446,7 +446,7 @@ public class DbRequest {
         if (roots != null) {
             query = QueryToMongodb.getFullCommand(query, roots);
         }
-    	// FIXME REVIEW now query could be null! you need to not use query if null
+    	// TODO REVIEW now query could be null! you need to not use query if null
         LOGGER.debug("query: "+MongoDbHelper.bsonToString(query, false));
         result = MongoDbAccess.createOneResult(FILTERARGS.UNITS);
         if (GlobalDatasDb.PRINT_REQUEST) {
@@ -659,7 +659,7 @@ public class DbRequest {
                 return last;
             }
             case OBJECTS:
-                // XXX FIXME
+                // XXX TODO
             default:
             	throw new MetaDataExecutionException("Model not supported: " + model);
         }
@@ -694,7 +694,7 @@ public class DbRequest {
 	                return last;
 	            }
 	            case OBJECTS:
-	                // XXX FIXME
+	                // XXX TODO
 	            default:
 	            	throw new MetaDataExecutionException("Model not supported: " + model);
 	        }
@@ -750,7 +750,7 @@ public class DbRequest {
                     return last;
                 }
                 case OBJECTS:
-                    // XXX FIXME
+                    // XXX TODO
                 default:
                 	throw new MetaDataExecutionException("Model not supported: " + model);
             }
@@ -789,7 +789,7 @@ public class DbRequest {
 	                return last;
 	            }
 	            case OBJECTS:
-	                // XXX FIXME
+	                // XXX TODO
 	            default:
 	            	throw new MetaDataExecutionException("Model not supported: " + model);
 	        }

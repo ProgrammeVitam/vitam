@@ -123,7 +123,7 @@ public class InsertParser extends RequestParser {
     	}
         GlobalDatas.sanityValueCheck(rootNode.toString());
         // Fix varname using adapter
-        // XXX FIXME Note: values are not changed. This shall be a specific computation
+        // XXX TODO Note: values are not changed. This shall be a specific computation
         // For instance: mavar : #id
         JsonNode newRootNode = insertAdapter.getFixedVarNameJsonNode(rootNode);
         try {

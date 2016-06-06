@@ -233,7 +233,7 @@ public class MongoDbHelper {
      * @return the Filter condition to find if ancestorIds are ancestors of targetIds or equals to targetIds
      */
     public static final Bson queryForAncestorsOrSame(Set<String> targetIds, Set<String> ancestorIds) {
-    	// FIXME REVIEW you change massively the code and the algorithm: it was Filters.or(Filters.and(Filters.in(VitamDocument.ID, targetIds), Filters.in(VitamDocument.ID, ancestorIds)), Filters.and(Filters.in(VitamDocument.ID, targetIds), Filters.in(VitamDocument.UP, ancestorIds)));
+    	// TODO REVIEW you change massively the code and the algorithm: it was Filters.or(Filters.and(Filters.in(VitamDocument.ID, targetIds), Filters.in(VitamDocument.ID, ancestorIds)), Filters.and(Filters.in(VitamDocument.ID, targetIds), Filters.in(VitamDocument.UP, ancestorIds)));
         ancestorIds.addAll(targetIds);
         // TODO: I understand why but not the possible reason of such value?
         ancestorIds.remove("");

@@ -75,29 +75,29 @@ public class WorkspaceClientContainerTest extends WorkspaceClientTest {
 
     // create
     @Test(expected = IllegalArgumentException.class)
-    public void givenNullParamWhenCreateContainerThenRaiseAnException() {
+    public void givenNullParamWhenCreateContainerThenRaiseAnException()throws Exception  {
         client.createContainer(null);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void givenEmptyParamWhenCreateContainerThenRaiseAnException() {
+    public void givenEmptyParamWhenCreateContainerThenRaiseAnException() throws Exception {
         client.createContainer("");
     }
 
     @Test(expected = ContentAddressableStorageServerException.class)
-    public void givenServerErrorWhenCreateContainerThenRaiseAnException() {
+    public void givenServerErrorWhenCreateContainerThenRaiseAnException() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         client.createContainer(CONTAINER_NAME);
     }
 
     @Test(expected = ContentAddressableStorageAlreadyExistException.class)
-    public void givenContainerAlreadyExistsWhenCreateContainerThenRaiseAnException() {
+    public void givenContainerAlreadyExistsWhenCreateContainerThenRaiseAnException()throws Exception  {
         when(mock.post()).thenReturn(Response.status(Status.CONFLICT).build());
         client.createContainer(CONTAINER_NAME);
     }
 
     @Test
-    public void givenContainerNotFoundWhenCreateContainerThenReturnCreated() {
+    public void givenContainerNotFoundWhenCreateContainerThenReturnCreated() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.CREATED).build());
         client.createContainer(CONTAINER_NAME);
         assertTrue(true);
@@ -105,29 +105,29 @@ public class WorkspaceClientContainerTest extends WorkspaceClientTest {
 
     // delete
     @Test(expected = IllegalArgumentException.class)
-    public void givenNullParamWhenDeleteContainerThenRaiseAnException() {
+    public void givenNullParamWhenDeleteContainerThenRaiseAnException()throws Exception  {
         client.deleteContainer(null);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void givenEmptyParamWhenDeleteContainerThenRaiseAnException() {
+    public void givenEmptyParamWhenDeleteContainerThenRaiseAnException()throws Exception  {
         client.deleteContainer("");
     }
 
     @Test(expected = ContentAddressableStorageServerException.class)
-    public void givenServerErrorWhenDeleteContainerThenRaiseAnException() {
+    public void givenServerErrorWhenDeleteContainerThenRaiseAnException() throws Exception {
         when(mock.delete()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         client.deleteContainer(CONTAINER_NAME);
     }
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
-    public void givenContainerNotFoundWhenDeleteContainerThenRaiseAnException() {
+    public void givenContainerNotFoundWhenDeleteContainerThenRaiseAnException()throws Exception  {
         when(mock.delete()).thenReturn(Response.status(Status.NOT_FOUND).build());
         client.deleteContainer(CONTAINER_NAME);
     }
 
     @Test
-    public void givenContainerAlreadyExistsWhenDeleteContainerThenReturnNotContent() {
+    public void givenContainerAlreadyExistsWhenDeleteContainerThenReturnNotContent() throws Exception {
         when(mock.delete()).thenReturn(Response.status(Status.NO_CONTENT).build());
         client.deleteContainer(CONTAINER_NAME);
         assertTrue(true);

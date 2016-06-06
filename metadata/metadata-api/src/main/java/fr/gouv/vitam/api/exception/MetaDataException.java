@@ -5,7 +5,7 @@ package fr.gouv.vitam.api.exception;
  */
 public class MetaDataException extends RuntimeException{
 	// TODO REVIEW specify that this exception is the general one (father of all exception)
-	// FIXME REVIEW Should not be a RuntimeException but an Exception since it must be catch (checked)
+	// TODO REVIEW Should not be a RuntimeException but an Exception since it must be catch (checked)
 	 /**
 	 * 
 	 */
