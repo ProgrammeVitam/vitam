@@ -45,6 +45,11 @@ public class BasicVitamServerTest {
             fail(SHOULD_RAIZED_AN_EXCEPTION);
         } catch (VitamApplicationServerException e) {
         }
+        try {
+            server.stop();
+            fail(SHOULD_RAIZED_AN_EXCEPTION);
+        } catch (VitamApplicationServerException e) {
+        }
         assertNotNull(server.getServer());
         MyRunner myRunner = new MyRunner(server);
         assertFalse(server.isConfigured());

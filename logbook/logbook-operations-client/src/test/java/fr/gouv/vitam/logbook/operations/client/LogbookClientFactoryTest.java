@@ -26,14 +26,16 @@
  */
 package fr.gouv.vitam.logbook.operations.client;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import org.junit.Before;
 import org.junit.Test;
 
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.operations.client.LogbookClientFactory.LogbookClientType;
@@ -42,6 +44,11 @@ import fr.gouv.vitam.logbook.operations.client.LogbookClientFactory.LogbookClien
  * Test class for client (and parameters) factory
  */
 public class LogbookClientFactoryTest {
+
+    @Before
+    public void initFileConfiguration() {
+        LogbookClientFactory.getInstance().changeConfigurationFile("logbook-client.conf");
+    }
 
     @Test
     public void getClientInstanceTest() {
@@ -88,19 +95,48 @@ public class LogbookClientFactoryTest {
     }
 
     @Test
-    public void changeDefaultClientTypeTest() {
-        LogbookClientFactory.setConfiguration(LogbookClientType.MOCK_OPERATIONS, null, 0);
+    public void changeDefaultClientTypeTest()  {
         final LogbookClient client =
             LogbookClientFactory.getInstance().getLogbookOperationClient();
-        assertTrue(client instanceof LogbookOperationsClientMock);
-
+        assertTrue(client instanceof LogbookOperationsClientRest);
         final LogbookClientFactory.LogbookClientType type = LogbookClientFactory.getDefaultLogbookClientType();
         assertNotNull(type);
-        assertEquals(LogbookClientFactory.LogbookClientType.MOCK_OPERATIONS, type);
+        assertEquals(LogbookClientType.OPERATIONS, type);
+
+        LogbookClientFactory.setConfiguration(LogbookClientType.MOCK_OPERATIONS, null, 0);
+        final LogbookClient client2 = LogbookClientFactory.getInstance().getLogbookOperationClient();
+        assertTrue(client2 instanceof LogbookOperationsClientMock);
+        final LogbookClientFactory.LogbookClientType type2 = LogbookClientFactory.getDefaultLogbookClientType();
+        assertNotNull(type2);
+        assertEquals(LogbookClientType.MOCK_OPERATIONS, type2);
 
         LogbookClientFactory.setConfiguration(LogbookClientFactory.LogbookClientType.OPERATIONS, "server", 1025);
-        final LogbookClient client2 = LogbookClientFactory.getInstance().getLogbookOperationClient();
-        assertTrue(client2 instanceof LogbookOperationsClientRest);
+        final LogbookClient client3 = LogbookClientFactory.getInstance().getLogbookOperationClient();
+        assertTrue(client3 instanceof LogbookOperationsClientRest);
+        final LogbookClientFactory.LogbookClientType type3 = LogbookClientFactory.getDefaultLogbookClientType();
+        assertNotNull(type3);
+        assertEquals(LogbookClientType.OPERATIONS, type3);
+    }
+
+    @Test
+    public void testInitWithoutConfigurationFile() {
+        // assume that a fake file is like no file
+        LogbookClientFactory.getInstance().changeConfigurationFile("tmp");
+        final LogbookClient client = LogbookClientFactory.getInstance().getLogbookOperationClient();
+        assertTrue(client instanceof LogbookOperationsClientMock);
+        final LogbookClientFactory.LogbookClientType type = LogbookClientFactory.getDefaultLogbookClientType();
+        assertNotNull(type);
+        assertEquals(LogbookClientType.MOCK_OPERATIONS, type);
+    }
+
+    @Test
+    public void testInitWithConfigurationFile() {
+        final LogbookClient client =
+            LogbookClientFactory.getInstance().getLogbookOperationClient();
+        assertTrue(client instanceof LogbookOperationsClientRest);
+        final LogbookClientFactory.LogbookClientType type = LogbookClientFactory.getDefaultLogbookClientType();
+        assertNotNull(type);
+        assertEquals(LogbookClientType.OPERATIONS, type);
     }
 
     @Test

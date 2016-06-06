@@ -26,8 +26,15 @@
  */
 package fr.gouv.vitam.logbook.operations.client;
 
+import java.io.IOException;
+
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.VitamServerFactory;
+import fr.gouv.vitam.common.server.application.configuration.ClientConfiguration;
+import fr.gouv.vitam.common.server.application.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 
@@ -84,6 +91,8 @@ public final class LogbookClientFactory {
      * Default client operation type
      */
     private static LogbookClientType defaultOperationsClientType;
+    private static final String CONFIGURATION_FILENAME = "logbook-client.conf";
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookClientFactory.class);
     private static final LogbookClientFactory LOGBOOK_CLIENT_FACTORY = new LogbookClientFactory();
 
     /**
@@ -101,14 +110,11 @@ public final class LogbookClientFactory {
     @Deprecated
     public static final String OPERATIONS = "OPERATIONS";
 
-    static {
-        defaultOperationsClientType = LogbookClientType.MOCK_OPERATIONS;
-    }
     private String server = "localhost";
     private int port = VitamServerFactory.DEFAULT_PORT;
 
     private LogbookClientFactory() {
-        // do nothing
+        changeConfigurationFile(CONFIGURATION_FILENAME);
     }
 
     /**
@@ -218,6 +224,35 @@ public final class LogbookClientFactory {
      */
     public static LogbookClientType getDefaultLogbookClientType() {
         return defaultOperationsClientType;
+    }
+
+    /**
+     * Change client configuration from a properties files
+     *
+     * @param configurationPath the path to the configuration file
+     */
+    public final void changeConfigurationFile(String configurationPath) {
+        changeDefaultClientType(LogbookClientType.MOCK_OPERATIONS);
+        ClientConfiguration configuration = null;
+        try {
+            configuration = PropertiesUtils.readResourcesYaml(configurationPath,
+                ClientConfigurationImpl.class);
+        } catch (IOException fnf) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER
+                    .debug(String.format("Error when retrieving configuration file %s, using mock",
+                        CONFIGURATION_FILENAME),
+                        fnf);
+            }
+        }
+        if (configuration == null) {
+            LOGGER.debug(String.format("Error when retrieving configuration file %s, using mock",
+                CONFIGURATION_FILENAME));
+        } else {
+            this.server = configuration.getServerHost();
+            this.port = configuration.getServerPort();
+            changeDefaultClientType(LogbookClientType.OPERATIONS);
+        }
     }
 
     /**
