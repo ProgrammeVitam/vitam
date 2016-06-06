@@ -1,14 +1,21 @@
 galaxy_info:
-  author: VITAM
+  author: your name
   description: 
-  company: VITAM
+  company: your company (optional)
   
   # If the issue tracker for your role is not on github, uncomment the
   # next line and provide a value
-  issue_tracker_url: http://dev.programmevitam.fr
+  # issue_tracker_url: http://example.com/issue/tracker
   
-  license: CeCILL
-
+  # Some suggested licenses:
+  # - BSD (default)
+  # - MIT
+  # - GPLv2
+  # - GPLv3
+  # - Apache
+  # - CC-BY
+  license: license (GPLv2, CC-BY, etc)
+  
   min_ansible_version: 1.2
 
   # Optionally specify the branch Galaxy will use when accessing the GitHub
@@ -19,6 +26,7 @@ galaxy_info:
   # (usually master) will be used.
   #github_branch:
   
+  #
   # Below are all platforms currently available. Just uncomment
   # the ones that apply to your role. If you don't see your
   # platform on this list, let us know and we'll get it added!

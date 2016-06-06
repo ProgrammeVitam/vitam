@@ -11,16 +11,19 @@
   - "{{vitam_folder_conf}}"
   - "{{vitam_folder_log}}"
   - "{{vitam_folder_data}}"
+  - "{{vitam_conf_ingest_web}}"
+  - "{{vitam_data_ingest_web}}"
+  - "{{vitam_log_ingest_web}}"
 
 - name: Deploy configuration files
   template:
     src="{{item}}.j2"
-    dest="{{vitam_folder_conf}}/{{item}}"
+    dest="{{vitam_conf_ingest_web}}/{{item}}"
     owner=vitam
     group=vitam mode=0500
   notify: restart container
   with_items:
-  - "workspace.conf"
+  - "ingest-web.properties"
   - "logbook-client.conf"
   - "server-identity.conf"
   - "setenv.sh"
@@ -29,12 +32,12 @@
 - name: Deploy VITAM docker file
   docker:
     name: "{{vitam_docker_name}}"
-    image: "{{docker_registry_hostname}}/vitam/workspace:{{vitam_docker_tag}}"
+    image: "{{docker_registry_hostname}}/vitam/ingest:{{vitam_docker_tag}}"
     state: started
     restart_policy: always
     pull: always
     ports:
-      - "{{vitam_docker_port_http}}:{{vitam_internal_http_port_web}}"
+      - "{{vitam_docker_port_http}}:{{vitam_docker_port_internal}}"
     volumes: 
       - "{{vitam_folder_conf}}:/vitam/conf"
       - "{{vitam_folder_log}}:/vitam/log"

@@ -20,18 +20,21 @@
     group=vitam mode=0500
   notify: restart container
   with_items:
-  - "workspace.conf"
+  - "processing.conf"
+  - "logbook-client.conf"
+  - "server-identity.conf"
   - "setenv.sh"
+  - "logback.xml"
 
 - name: Deploy VITAM docker file
   docker:
     name: "{{vitam_docker_name}}"
-    image: "{{docker_registry_hostname}}/vitam/workspace:{{vitam_docker_tag}}"
+    image: "{{docker_registry_hostname}}/vitam/processing:{{vitam_docker_tag}}"
     state: started
     restart_policy: always
     pull: always
     ports:
-      - "{{vitam_docker_port_http}}:8082"
+      - "{{vitam_docker_port_http}}:{{vitam_docker_port_internal}}"
     volumes: 
       - "{{vitam_folder_conf}}:/vitam/conf"
       - "{{vitam_folder_log}}:/vitam/log"

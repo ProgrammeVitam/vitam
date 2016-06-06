@@ -2,7 +2,7 @@
 #(user vitam / groupe vitam)
 - name: Ensure VITAM directories exist to persist VITAM data, configuration and logs
   file: 
-    name={{item}} 
+    name={{item}}
     state=directory
     owner=vitam
     group=vitam
@@ -21,7 +21,10 @@
   notify: restart container
   with_items:
   - "metadata.conf"
+  - "logbook-client.conf"
+  - "server-identity.conf"
   - "setenv.sh"
+  - "logback.xml"
 
 - name: Deploy VITAM docker file
   docker:
@@ -31,7 +34,7 @@
     restart_policy: always
     pull: always
     ports:
-      - "{{vitam_docker_port_http}}:8082"
+      - "{{vitam_docker_port_http}}:{{vitam_internal_http_port_web}}"
     volumes: 
       - "{{vitam_folder_conf}}:/vitam/conf"
       - "{{vitam_folder_log}}:/vitam/log"

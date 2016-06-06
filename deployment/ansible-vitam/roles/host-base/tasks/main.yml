@@ -19,4 +19,5 @@
     state: directory
     owner: vitam
     group: vitam
-    mode: 0700
+    recurse: yes
+    mode: 0770
