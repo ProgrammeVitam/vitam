@@ -12,6 +12,7 @@ import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -65,22 +66,22 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
         @Consumes(MediaType.MULTIPART_FORM_DATA)
         @Produces(MediaType.APPLICATION_JSON)
         public Response create(@FormDataParam("object") InputStream stream,
-                @FormDataParam("object") FormDataContentDisposition header,
-                @FormDataParam("objectName") String objectName, @PathParam("containerName") String containerName) {
+            @FormDataParam("object") FormDataContentDisposition header,
+            @FormDataParam("objectName") String objectName, @PathParam("containerName") String containerName) {
             return expectedResponse.post();
         }
 
         @DELETE
         @Path("{containerName}/objects/{objectName}")
         public Response delete(@PathParam("containerName") String containerName,
-                @PathParam("objectName") String objectName) {
+            @PathParam("objectName") String objectName) {
             return expectedResponse.delete();
         }
 
         @HEAD
         @Path("{containerName}/objects/{objectName}")
         public Response containerExists(@PathParam("containerName") String containerName,
-                @PathParam("objectName") String objectName) {
+            @PathParam("objectName") String objectName) {
             return expectedResponse.head();
         }
 
@@ -89,34 +90,44 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
         @Consumes(MediaType.MULTIPART_FORM_DATA)
         @Produces(MediaType.APPLICATION_OCTET_STREAM)
         public Response get(@PathParam("containerName") String containerName,
-                @PathParam("objectName") String objectName) {
+            @PathParam("objectName") String objectName) {
             return expectedResponse.get();
+        }
+
+        @Path("{containerName}/objects")
+        @PUT
+        @Consumes(MediaType.MULTIPART_FORM_DATA)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response unzipSipObject(@FormDataParam("object") InputStream stream,
+            @FormDataParam("object") FormDataContentDisposition header,
+            @PathParam("containerName") String containerName) {
+            return expectedResponse.put();
         }
 
     }
 
     // create
     @Test(expected = IllegalArgumentException.class)
-    public void givenNullParamWhenCreateObjectThenRaiseAnException() {
+    public void givenNullParamWhenCreateObjectThenRaiseAnException() throws Exception {
         stream = getInputStream("file1");
         client.putObject(CONTAINER_NAME, null, stream);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void givenEmptyParamWhenCreateObjectThenRaiseAnException() {
+    public void givenEmptyParamWhenCreateObjectThenRaiseAnException() throws Exception {
         stream = getInputStream("file1");
         client.putObject(CONTAINER_NAME, "", stream);
     }
 
     @Test(expected = ContentAddressableStorageServerException.class)
-    public void givenServerErrorWhenCreateObjectThenRaiseAnException() {
+    public void givenServerErrorWhenCreateObjectThenRaiseAnException()throws Exception  {
         stream = getInputStream("file1");
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         client.putObject(CONTAINER_NAME, OBJECT_NAME, stream);
     }
 
     @Test
-    public void givenObjectNotFoundWhenCreateObjectThenReturnCreated() {
+    public void givenObjectNotFoundWhenCreateObjectThenReturnCreated() throws Exception {
         stream = getInputStream("file1");
         when(mock.post()).thenReturn(Response.status(Status.CREATED).build());
         client.putObject(CONTAINER_NAME, OBJECT_NAME, stream);
@@ -125,29 +136,29 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
 
     // delete
     @Test(expected = IllegalArgumentException.class)
-    public void givenNullParamWhenDeleteObjectThenRaiseAnException() {
+    public void givenNullParamWhenDeleteObjectThenRaiseAnException() throws Exception {
         client.deleteObject(CONTAINER_NAME, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void givenEmptyParamWhenDeleteObjectThenRaiseAnException() {
+    public void givenEmptyParamWhenDeleteObjectThenRaiseAnException()throws Exception  {
         client.deleteObject(CONTAINER_NAME, "");
     }
 
     @Test(expected = ContentAddressableStorageServerException.class)
-    public void givenServerErrorWhenDeleteObjectThenRaiseAnException() {
+    public void givenServerErrorWhenDeleteObjectThenRaiseAnException()throws Exception  {
         when(mock.delete()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         client.deleteObject(CONTAINER_NAME, OBJECT_NAME);
     }
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
-    public void givenObjectNotFoundWhenDeleteObjectThenRaiseAnException() {
+    public void givenObjectNotFoundWhenDeleteObjectThenRaiseAnException() throws Exception {
         when(mock.delete()).thenReturn(Response.status(Status.NOT_FOUND).build());
         client.deleteObject(CONTAINER_NAME, OBJECT_NAME);
     }
 
     @Test
-    public void givenObjectAlreadyExistsWhenDeleteObjectThenReturnNotContent() {
+    public void givenObjectAlreadyExistsWhenDeleteObjectThenReturnNotContent()throws Exception  {
         when(mock.delete()).thenReturn(Response.status(Status.NO_CONTENT).build());
         client.deleteObject(CONTAINER_NAME, OBJECT_NAME);
         assertTrue(true);
@@ -155,29 +166,29 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
 
     // get
     @Test(expected = IllegalArgumentException.class)
-    public void givenNullParamWhenGeObjetctThenRaiseAnException() {
+    public void givenNullParamWhenGeObjetctThenRaiseAnException()throws Exception  {
         client.getObject(CONTAINER_NAME, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void givenEmptyParamWhenGetObjectThenRaiseAnException() {
+    public void givenEmptyParamWhenGetObjectThenRaiseAnException() throws Exception {
         client.getObject(CONTAINER_NAME, "");
     }
 
     @Test(expected = ContentAddressableStorageServerException.class)
-    public void givenServerErrorWhenGetObjectThenRaiseAnException() {
+    public void givenServerErrorWhenGetObjectThenRaiseAnException() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         client.getObject(CONTAINER_NAME, OBJECT_NAME);
     }
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
-    public void givenObjectNotFoundWhenGetObjectThenRaiseAnException() {
+    public void givenObjectNotFoundWhenGetObjectThenRaiseAnException() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
         client.getObject(CONTAINER_NAME, OBJECT_NAME);
     }
 
     @Test
-    public void givenObjectAlreadyExistsWhenGetObjectThenReturnObject() {
+    public void givenObjectAlreadyExistsWhenGetObjectThenReturnObject() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.OK).build());
         client.getObject(CONTAINER_NAME, OBJECT_NAME);
         assertTrue(true);
@@ -204,6 +215,33 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
     public void givenObjectAlreadyExistsWhenCheckObjectExistenceThenReturnFalse() {
         when(mock.head()).thenReturn(Response.status(Status.NOT_FOUND).build());
         assertFalse(client.objectExists(CONTAINER_NAME, OBJECT_NAME));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void given_NullParam_When_UnzipSip_Then_RaiseAnException() throws Exception {
+        stream = getInputStream("sip.zip");
+        client.unzipSipObject(null, stream);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void given_EmptyParam_When_UnzipSip_Then_RaiseAnException() throws Exception {
+        stream = getInputStream("sip.zip");
+        client.unzipSipObject("", stream);
+    }
+
+    @Test(expected = ContentAddressableStorageServerException.class)
+    public void given_ServerError_When_ExtractSipObject_Then_RaiseAnException()throws Exception  {
+        stream = getInputStream("sip.zip");
+        when(mock.put()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        client.unzipSipObject(CONTAINER_NAME, stream);
+    }
+
+    @Test
+    public void given_ObjectNotFound_When_UnzipSip_Then_ReturnCreated() throws Exception {
+        stream = getInputStream("sip.zip");
+        when(mock.put()).thenReturn(Response.status(Status.CREATED).build());
+        client.unzipSipObject(CONTAINER_NAME, stream);
+        assertTrue(true);
     }
 
     private InputStream getInputStream(String file) {

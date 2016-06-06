@@ -115,7 +115,8 @@ public class ProcessEngineImpl implements ProcessEngine {
                     parameters.putParameterValue(LogbookParameterName.eventType, step.getStepName());
                     parameters.putParameterValue(LogbookParameterName.eventTypeProcess, step.getStepName());
                     parameters.putParameterValue(LogbookParameterName.outcome, stepStatus.value());
-                    parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, "Result: " + stepStatus.value());
+                    parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                        "Result: " + stepStatus.value());
                     client.create(parameters);
 
                     if (stepStatus.equals(StatusCode.FATAL)) {

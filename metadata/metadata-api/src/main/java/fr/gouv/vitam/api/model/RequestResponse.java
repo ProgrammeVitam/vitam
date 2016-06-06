@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.JsonNode;
  *
  */
 // TODO REVIEW Fix comment with a correct vision (either adding <br> either adding ':'
-// FIXME REVIEW should be abstract
+// TODO REVIEW should be abstract
 public class RequestResponse {
     private JsonNode query;
 
@@ -15,7 +15,7 @@ public class RequestResponse {
      * @return the query as JsonNode of Response
      */ 
     public JsonNode getQuery() {
-    	// FIXME REVIEW not return null but empty Json
+    	// TODO REVIEW not return null but empty Json
         return query;
     }
     /**

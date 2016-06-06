@@ -31,8 +31,12 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
@@ -69,6 +73,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.WorkParams;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
@@ -90,6 +95,9 @@ public class SedaUtils {
     private static final String ARCHIVE_UNIT = "ArchiveUnit";
     private static final String ARCHIVE_UNIT_FOLDER = "Units";
     private static final String DATA_OBJECT_REFERENCEID = "DataObjectReferenceId";
+    private static final String TAG_URI = "Uri";
+    private static final String MSG_PARSING_BDO = "Parsing Binary Data Object";
+    private static final String STAX_PROPERTY_PREFIX_OUTPUT_SIDE = "javax.xml.stream.isRepairingNamespaces";
 
     private Map<String, String> binaryDataObjectIdToGuid;
     private Map<String, String> objectGroupIdToGuid;
@@ -101,6 +109,9 @@ public class SedaUtils {
     private String tmpDirectory;
     private final WorkspaceClientFactory workspaceClientFactory;
     private final MetaDataClientFactory metaDataClientFactory;
+
+    // Messages for duplicate Uri from SEDA
+    private static final String MSG_DUPLICATE_URI_MANIFEST = "Présence d'un URI en doublon dans le bordereau: ";
 
     private static final HashMap<String, String> objectToGroupMapping = new HashMap<String, String>() {
         private static final long serialVersionUID = 1257583431403626689L;
@@ -176,28 +187,28 @@ public class SedaUtils {
      * @param workspaceClientFactory workspace client factory
      * @throws ProcessingException throw when can't read or extract element from SEDA
      */
-    public void extractSEDA(WorkParams params) throws ProcessingException{
+    public void extractSEDA(WorkParams params) throws ProcessingException {
         ParametersChecker.checkParameter("WorkParams is a mandatory parameter", params);
         String containerId = params.getContainerName();
         WorkspaceClient client = workspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
         extractSEDAWithWorkspaceClient(client, containerId);
     }
 
-    private void extractSEDAWithWorkspaceClient(WorkspaceClient client, String containerId) throws ProcessingException{
+    private void extractSEDAWithWorkspaceClient(WorkspaceClient client, String containerId) throws ProcessingException {
         ParametersChecker.checkParameter("WorkspaceClient is a mandatory parameter", client);
         ParametersChecker.checkParameter("ContainerId is a mandatory parameter", containerId);
-        
+
         /**
          * Retrieves SEDA
          **/
         InputStream xmlFile = null;
         try {
             xmlFile = client.getObject(containerId, SEDA_FOLDER + "/" + SEDA_FILE);
-        } catch (ContentAddressableStorageNotFoundException e) {
+        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
             LOGGER.error("Manifest.xml Not Found");
             throw new ProcessingException(e);
         }
-        
+
         XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
         XMLEventReader reader = null;
         QName dataObjectName = new QName(NAMESPACE_URI, BINARY_DATA_OBJECT);
@@ -225,7 +236,8 @@ public class SedaUtils {
         }
     }
 
-    private void writeToWorkspace(WorkspaceClient client, String containerId, XMLEventReader reader, StartElement startElement,
+    private void writeToWorkspace(WorkspaceClient client, String containerId, XMLEventReader reader,
+        StartElement startElement,
         String groupName) throws ProcessingException {
 
         XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
@@ -268,7 +280,7 @@ public class SedaUtils {
                     // Create new startElement for group with new guid
                     writer.add(eventFactory.createStartElement("", NAMESPACE_URI, groupName));
                     writer.add(eventFactory.createCharacters(groupGuid));
-                    writer.add(eventFactory.createEndElement("", NAMESPACE_URI, groupName));                                
+                    writer.add(eventFactory.createEndElement("", NAMESPACE_URI, groupName));
                 } else {
                     writer.add(event);
                 }
@@ -281,11 +293,14 @@ public class SedaUtils {
                     new FileInputStream(tmpFile));
                 tmpFile.delete();
             }
-        } catch (XMLStreamException  e) {
+        } catch (XMLStreamException e) {
             LOGGER.error("Can not extract Object from SEDA XMLStreamException");
             throw new ProcessingException(e);
         } catch (IOException e) {
             LOGGER.error("Can not extract Object from SEDA IOException " + elementGuid);
+            throw new ProcessingException(e);
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage());
             throw new ProcessingException(e);
         }
     }
@@ -295,21 +310,21 @@ public class SedaUtils {
         switch (element) {
             case (BINARY_DATA_OBJECT):
                 result = this.binaryDataObjectIdToGuid;
-            break;
+                break;
             case (ARCHIVE_UNIT):
                 result = this.unitIdToGuid;
-            break;
+                break;
             case (DATA_OBJECT_GROUPID):
                 result = this.binaryDataObjectIdToGroupId;
-            break;
+                break;
             case (DATA_OBJECT_REFERENCEID):
                 result = this.unitIdToGroupId;
-            break;
+                break;
         }
 
         return result;
     }
-    
+
     public boolean checkSedaValidation(WorkParams params) throws IOException {
         ParametersChecker.checkParameter("WorkParams is a mandatory parameter", params);
         String containerId = params.getContainerName();
@@ -318,13 +333,13 @@ public class SedaUtils {
             InputStream input = checkExistenceManifest(client, containerId);
             ValidationXsdUtils validationXsdUtils = new ValidationXsdUtils();
             File xsd = PropertiesUtils.getResourcesFile("seda-2.0-main.xsd");
-            
+
             return validationXsdUtils.checkWithXSD(input, xsd);
         } catch (ProcessingException | XMLStreamException | SAXException e) {
             return false;
         }
     }
-    
+
     /**
      * The function is used for checking the existence of the file manifest.xml in workspace
      * 
@@ -332,15 +347,16 @@ public class SedaUtils {
      * @param guid
      * @return true (if manifest.xml exists), true (if not)
      * @throws IOException
-     * @throws ProcessingException 
+     * @throws ProcessingException
      */
-    private InputStream checkExistenceManifest(WorkspaceClient client, String guid) throws IOException, ProcessingException{
+    private InputStream checkExistenceManifest(WorkspaceClient client, String guid)
+        throws IOException, ProcessingException {
         ParametersChecker.checkParameter("WorkspaceClient is a mandatory parameter", client);
         ParametersChecker.checkParameter("guid is a mandatory parameter", guid);
         InputStream manifest = null;
         try {
-            manifest = client.getObject(guid, SEDA_FOLDER + "/" + SEDA_FILE);            
-        } catch (ContentAddressableStorageNotFoundException e) {
+            manifest = client.getObject(guid, SEDA_FOLDER + "/" + SEDA_FILE);
+        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
             LOGGER.error("Manifest not found");
             throw new ProcessingException("Manifest not found", e);
         }
@@ -360,29 +376,39 @@ public class SedaUtils {
         ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
         ParametersChecker.checkParameter("ObjectName id is a mandatory parameter", objectName);
 
-        WorkspaceClient workspaceClient = workspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
+        WorkspaceClient workspaceClient =
+            workspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
         MetaDataClient metadataClient = metaDataClientFactory.create(params.getServerConfiguration().getUrlMetada());
-        InputStream input = workspaceClient.getObject(containerId, ARCHIVE_UNIT_FOLDER + "/" + objectName);
-        if (input != null) {
-            try {
-                JsonNode json = convertArchiveUnitToJson(input, containerId, objectName).get(ARCHIVE_UNIT);
-                String insertRequest = new Insert().addData((ObjectNode) json).getFinalInsert().toString();
-                metadataClient.insert(insertRequest);
-            } catch (InvalidParseOperationException e) {
-                LOGGER.debug("Archive unit json invalid");
-                throw new ProcessingException(e);
-            } catch (MetaDataExecutionException e){
-                LOGGER.debug("Internal Server Error");
-                throw new ProcessingException(e);
+        InputStream input;
+        try {
+            input = workspaceClient.getObject(containerId, ARCHIVE_UNIT_FOLDER + "/" + objectName);
+
+            if (input != null) {
+                try {
+                    JsonNode json = convertArchiveUnitToJson(input, containerId, objectName).get(ARCHIVE_UNIT);
+                    String insertRequest = new Insert().addData((ObjectNode) json).getFinalInsert().toString();
+                    metadataClient.insert(insertRequest);
+                } catch (InvalidParseOperationException e) {
+                    LOGGER.debug("Archive unit json invalid");
+                    throw new ProcessingException(e);
+                } catch (MetaDataExecutionException e) {
+                    LOGGER.debug("Internal Server Error");
+                    throw new ProcessingException(e);
+                }
+            } else {
+                LOGGER.error("Archive unit not found");
+                throw new ProcessingException("Archive unit not found");
             }
-        } else {
-            LOGGER.error("Archive unit not found");
-            throw new ProcessingException("Archive unit not found");
+        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
+            LOGGER.debug("Workspace Server Error");
+            throw new ProcessingException(e);
         }
+
     }
 
 
-    private JsonNode convertArchiveUnitToJson(InputStream input, String containerId, String objectName) throws InvalidParseOperationException, ProcessingException {
+    private JsonNode convertArchiveUnitToJson(InputStream input, String containerId, String objectName)
+        throws InvalidParseOperationException, ProcessingException {
         ParametersChecker.checkParameter("Input stream is a mandatory parameter", input);
         ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
         ParametersChecker.checkParameter("ObjectName id is a mandatory parameter", objectName);
@@ -411,7 +437,7 @@ public class SedaUtils {
                         if (startElement.getName().getLocalPart() == ARCHIVE_UNIT) {
                             writer.add(eventFactory.createStartElement("", "", "#id"));
                             writer.add(eventFactory.createCharacters(((Attribute) it.next()).getValue()));
-                            writer.add(eventFactory.createEndElement("", "", "#id"));                            
+                            writer.add(eventFactory.createEndElement("", "", "#id"));
                         }
                         eventWritable = false;
                     }
@@ -429,13 +455,13 @@ public class SedaUtils {
                 if (event.isEndElement()) {
 
                     if (event.asEndElement().getName().getLocalPart() == ARCHIVE_UNIT) {
-                        eventWritable = false;                     
+                        eventWritable = false;
                     }
 
                     if (event.asEndElement().getName().getLocalPart() == "Content") {
                         eventWritable = false;
                         contentWritable = false;
-                    } 
+                    }
 
                     if (event.asEndElement().getName().getLocalPart() == "Management") {
                         writer.add(eventFactory.createEndElement("", "", "_mgt"));
@@ -468,6 +494,137 @@ public class SedaUtils {
         return data;
     }
 
+    /**
+     * 
+     * @param params - parameters of workspace server
+     * @return ExtractUriResponse - Object ExtractUriResponse contains listURI, listMessages and value boolean(error).
+     * @throws ProcessingException - throw when can't read or extract element from SEDA.
+     * @throws XMLStreamException -This Exception class is used to report well format SEDA.
+     */
+    public ExtractUriResponse getAllDigitalObjectUriFromManifest(WorkParams params)
+        throws ProcessingException, XMLStreamException {
+        String guid = params.getContainerName();
+        WorkspaceClient client = workspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
+        ExtractUriResponse extractUriResponse = parsingUriSEDAWithWorkspaceClient(client, guid);
+        return extractUriResponse;
+    }
 
+
+    /**
+     * Parsing file Manifest
+     * 
+     * @param client - the InputStream to read from
+     * @param guid - Identification file seda.
+     * @return ExtractUriResponse - Object ExtractUriResponse contains listURI, listMessages and value boolean(error).
+     * @throws XMLStreamException-This Exception class is used to report well format SEDA.
+     */
+    private ExtractUriResponse parsingUriSEDAWithWorkspaceClient(WorkspaceClient client, String guid)
+        throws ProcessingException, XMLStreamException {
+
+        /**
+         * Extract SEDA
+         **/
+        InputStream xmlFile = null;
+
+        try {
+            xmlFile = client.getObject(guid, SEDA_FOLDER + "/" + SEDA_FILE);
+        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e1) {
+
+            throw new ProcessingException(e1.getMessage());
+        }
+        LOGGER.info(SedaUtils.MSG_PARSING_BDO);
+
+        ExtractUriResponse extractUriResponse = new ExtractUriResponse();
+
+        // create URI list String for add elements uri from inputstream Seda
+        List<URI> listUri = new ArrayList<URI>();
+        // create String Messages list
+        List<String> listMessages = new ArrayList<>();
+
+        extractUriResponse.setUriListManifest(listUri);
+        extractUriResponse.setMessages(listMessages);
+
+        // Create the XML input factory
+        XMLInputFactory xmlInputFactory = (XMLInputFactory) XMLInputFactory.newInstance();
+        // Create the XML output factory
+        XMLOutputFactory xmlOutputFactory = (XMLOutputFactory) XMLOutputFactory.newInstance();
+
+        xmlOutputFactory.setProperty(SedaUtils.STAX_PROPERTY_PREFIX_OUTPUT_SIDE, Boolean.TRUE);
+
+        // Create event reader
+        XMLEventReader evenReader = xmlInputFactory.createXMLEventReader(xmlFile);
+
+        QName binaryDataObject = new QName(SedaUtils.NAMESPACE_URI, SedaUtils.BINARY_DATA_OBJECT);
+
+        try {
+
+            while (true) {
+                XMLEvent event = (XMLEvent) evenReader.nextEvent();
+                // reach the start of an BinaryDataObject
+                if (event.isStartElement()) {
+                    StartElement element = event.asStartElement();
+
+                    if (element.getName().equals(binaryDataObject))
+                        getUri(extractUriResponse, evenReader);
+                }
+                if (event.isEndDocument()) {
+                    LOGGER.info("data : " + event);
+                    break;
+                }
+            }
+            LOGGER.info("End of extracting  Uri from manifest");
+            evenReader.close();
+
+        } catch (XMLStreamException | URISyntaxException e) {
+            LOGGER.error(e.getMessage());
+            throw new ProcessingException(e);
+        } finally {
+            extractUriResponse.setErrorDuplicateUri(extractUriResponse.getMessages().size() != 0);
+        }
+        return extractUriResponse;
+    }
+
+    /**
+     * Using Stax to split element Uri of Binary Data Object.
+     * 
+     * @param extractUriResponse - list Uri of Binary Data Object and list Message and value error.
+     * @param evenReader -
+     * @throws XMLStreamException - This Exception class is used to report well-format SEDA.
+     * @throws URISyntaxException - if some information could not be parsed while creating a URI.
+     */
+    private void getUri(ExtractUriResponse extractUriResponse, XMLEventReader evenReader)
+        throws XMLStreamException, URISyntaxException {
+
+        while (evenReader.hasNext()) {
+            XMLEvent event = evenReader.nextEvent();
+
+            if (event.isStartElement()) {
+                StartElement startElement = event.asStartElement();
+
+                // If we have an Tag Uri element equal Uri into SEDA
+                if (startElement.getName().getLocalPart() == (SedaUtils.TAG_URI)) {
+                    event = evenReader.nextEvent();
+                    String uri = event.asCharacters().getData();
+                    // Check element is duplicate
+                    checkDuplicatedUri(extractUriResponse, uri);
+                    extractUriResponse.getUriListManifest().add(new URI(uri));
+                }
+            }
+        }
+    }
+
+    /**
+     * Check element duplicate from UriListManifest.
+     * 
+     * @param extractUriResponse - List contains listURI , listMessages and value error
+     * @param uriString - Value of uri in SEDA.
+     * @throws URISyntaxException - if some information could not be parsed while creating a URI
+     */
+    private void checkDuplicatedUri(ExtractUriResponse extractUriResponse, String uriString) throws URISyntaxException {
+
+        if (extractUriResponse.getUriListManifest().contains(new URI(uriString))) {
+            extractUriResponse.getMessages().add(SedaUtils.MSG_DUPLICATE_URI_MANIFEST + uriString);
+        }
+    }
 
 }

@@ -4,7 +4,7 @@ package fr.gouv.vitam.api.model;
  *  	Show database position of request response
  */
 // TODO REVIEW Fix comment with a correct vision (either adding <br> either adding ':'
-// FIXME REVIEW should be final
+// TODO REVIEW should be final
 public class DatabaseCursor {
 	private int total;
 	private int offset;

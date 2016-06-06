@@ -26,7 +26,7 @@ import com.sun.org.apache.xerces.internal.util.XMLCatalogResolver;
  */
 public class ValidationXsdUtils {
 
-    static final Logger LOGGER = LoggerFactory.getLogger(ValidationXsdUtils.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ValidationXsdUtils.class);
     /**
      * Filename of the catalog file ; should be found in the classpath.
      */

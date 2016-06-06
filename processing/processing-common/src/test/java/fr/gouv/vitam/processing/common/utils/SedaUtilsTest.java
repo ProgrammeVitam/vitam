@@ -26,7 +26,9 @@
  */
 package fr.gouv.vitam.processing.common.utils;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -45,18 +47,19 @@ import org.junit.rules.TemporaryFolder;
 
 import fr.gouv.vitam.client.MetaDataClient;
 import fr.gouv.vitam.client.MetaDataClientFactory;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.WorkParams;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 public class SedaUtilsTest {
 
-    @Rule 
+    @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
-    
+
     private static final String SIP = "sip1.xml";
     private static final String OBJ = "obj";
     private static final String TMP = "/tmp/";
@@ -66,7 +69,8 @@ public class SedaUtilsTest {
     private MetaDataClient metadataClient;
     private MetaDataClientFactory metadataFactory;
     private final InputStream seda = Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP);
-    private final InputStream archiveUnit = Thread.currentThread().getContextClassLoader().getResourceAsStream(ARCHIVE_UNIT);
+    private final InputStream archiveUnit =
+        Thread.currentThread().getContextClassLoader().getResourceAsStream(ARCHIVE_UNIT);
     private SedaUtils utils;
     private String tmp = "";
     private WorkParams params = new WorkParams()
@@ -85,16 +89,18 @@ public class SedaUtilsTest {
         metadataClient = mock(MetaDataClient.class);
         metadataFactory = mock(MetaDataClientFactory.class);
     }
-    
-    @After 
+
+    @After
     public void tearDown() {
         SedaUtils.setTmpFolder(tmp);
     }
 
     @Test
-    public void givenCorrectManifestWhenSplitElementThenOK() throws XMLStreamException, IOException, ProcessingException {
+    public void givenCorrectManifestWhenSplitElementThenOK()
+        throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageNotFoundException,
+        ContentAddressableStorageServerException {
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(seda);
-        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);  
+        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
         utils = new SedaUtilsFactory().create(workspaceFactory, null);
         utils.extractSEDA(params);
         assertEquals(utils.getBinaryDataObjectIdToGuid().size(), 1);
@@ -102,33 +108,34 @@ public class SedaUtilsTest {
         assertEquals(utils.getUnitIdToGuid().size(), 1);
         assertEquals(utils.getUnitIdToGroupId().size(), 1);
     }
-    
+
     @Test
-    public void givenGuidWhenXmlExistThenReturnTrue () throws IOException {
+    public void givenGuidWhenXmlExistThenReturnTrue() throws Exception {
         when(workspaceClient.getObject(params.getGuuid(), "SIP/manifest.xml")).thenReturn(seda);
         when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
-        
+
         utils = new SedaUtilsFactory().create(workspaceFactory, null);
-        assertTrue(utils.checkSedaValidation(params));     
+        assertTrue(utils.checkSedaValidation(params));
     }
-    
+
     @Test
-    public void givenGuidWhenXmlNotExistThenReturnFalse () throws IOException {        
+    public void givenGuidWhenXmlNotExistThenReturnFalse() throws Exception {
         String str = "";
         InputStream is = new ByteArrayInputStream(str.getBytes());
         when(workspaceClient.getObject("XXX", "SIP/manifest.xml")).thenReturn(is);
         when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
-        
+
         utils = new SedaUtilsFactory().create(workspaceFactory, null);
         assertFalse(utils.checkSedaValidation(params));
     }
 
     @Test
-    public void givenCorrectArchiveUnitWhenConvertToJsonThenOK() throws XMLStreamException, IOException, ProcessingException, InvalidParseOperationException {
-        when(metadataClient.insert(anyObject())).thenReturn(""); 
-        when(metadataFactory.create(anyObject())).thenReturn(metadataClient); 
+    public void givenCorrectArchiveUnitWhenConvertToJsonThenOK()
+        throws Exception {
+        when(metadataClient.insert(anyObject())).thenReturn("");
+        when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(archiveUnit);
-        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);  
+        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
         utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
 
         utils.indexArchiveUnit(params);

@@ -55,7 +55,7 @@ public class GlobalDatasParser extends GlobalDatas {
      * @return number of child of JsonNode
      */
     public static final int getJsonNodedepth(JsonNode jsonNode) {
-		// FIXME REVIEW should check null
+		// TODO REVIEW should check null
 		int depth = 0;
 		boolean hasArrayNode = false;
 		Iterator<JsonNode> iterator = jsonNode.iterator();

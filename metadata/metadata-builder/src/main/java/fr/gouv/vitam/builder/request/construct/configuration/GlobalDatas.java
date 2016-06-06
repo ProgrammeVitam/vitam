@@ -86,7 +86,7 @@ public class GlobalDatas {
      */
     protected static final void sanityCheck(String arg, int size)
             throws InvalidParseOperationException {
-    	// FIXME REVIEW should check null
+    	// TODO REVIEW should check null
         if (arg != null && arg.length() > size) {
             throw new InvalidParseOperationException(
                     "String exceeds sanity check of " + size);
@@ -144,7 +144,7 @@ public class GlobalDatas {
      * @return the corresponding Date in Json format
      */
     public static final ObjectNode getDate(final Date date) {
-		// FIXME REVIEW should check null
+		// TODO REVIEW should check null
         return JsonHandler.createObjectNode().put(Query.DATE,
                 new DateTime(date).toString());
     }
@@ -192,7 +192,7 @@ public class GlobalDatas {
 	 */
 	public static final void sanityVariableNameCheck(String arg)
 	        throws InvalidParseOperationException {
-		// FIXME REVIEW should check null
+		// TODO REVIEW should check null
 	    if (arg.charAt(0) == '#') {
 	        throw new InvalidParseOperationException("Variable name cannot be a protected one (starting with '#'");
 	    }

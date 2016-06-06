@@ -6,7 +6,7 @@ package fr.gouv.vitam.api.model;
  *
  */
 // TODO REVIEW Fix comment with a correct vision (either adding <br> either adding ':'
-// FIXME REVIEW should be final
+// TODO REVIEW should be final
 public class RequestResponseError extends RequestResponse {
 
 	private VitamError error;
@@ -15,7 +15,7 @@ public class RequestResponseError extends RequestResponse {
      * @return the error of the RequestResponseError
      */ 	
 	public VitamError getError() {
-		// FIXME REVIEW do not return null but empty
+		// TODO REVIEW do not return null but empty
 		return error;
 	}
 

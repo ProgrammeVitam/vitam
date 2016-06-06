@@ -41,7 +41,7 @@ public class MetaDataApplication {
     }
     // TODO: comment and probably protected
     public void configure(String... arguments) throws Exception {
-        // FIXME REVIEW define a real vitam config
+        // TODO REVIEW define a real vitam config
 
         if (arguments.length >= 1) {
             try {

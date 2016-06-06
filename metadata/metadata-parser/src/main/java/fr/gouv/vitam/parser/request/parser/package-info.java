@@ -33,5 +33,5 @@
  * 
  *
  */
-// FIXME REVIEW pom.xml : junit => test
+// TODO REVIEW pom.xml : junit => test
 package fr.gouv.vitam.parser.request.parser;

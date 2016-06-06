@@ -32,37 +32,30 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL 2.1 license and that you accept its terms.
  */
-package fr.gouv.vitam.common.logging;
+package fr.gouv.vitam.workspace.common;
 
 /**
- * 
+ * Display logged messages
  */
-public class VitamPrivateLoggerFactory extends VitamLoggerFactory {
+public enum WorkspaceMessage {
+    BEGINNING_GET_LIST_OF_DIGITAL_OBJECT("Beginning of getting List of Digital Object"),
+    BEGINNING_GET_URI_LIST_OF_DIGITAL_OBJECT("Beginning of getting Uri List of Digital Object"),
+    BEGINNING_GET_URI_LIST_OF_FOLDER("Beginning of getting Uri List of folders"),
+    ENDING_GET_LIST_OF_DIGITAL_OBJECT("Ending of getting List of Digital Object"),
+    ENDING_GET_URI_LIST_OF_DIGITAL_OBJECT("Ending of getting Uri List of Digital Object"),
+    ENDING_GET_URI_LIST_OF_FOLDER("Ending of getting Uri List of folders"),   
+    URI_LIST_OF_DIGITAL_OBJECT_EMPTY("Uri list of digital objects empty");
+   
+   
+    
+    private final String message;
 
-    /**
-     * @param level
-     */
-    public VitamPrivateLoggerFactory(VitamLogLevel level) {
-        super(level);
-        // TODO Auto-generated constructor stub
+    private WorkspaceMessage(String message) {
+        this.message = message;
     }
 
-    @Override
-    protected VitamLogLevel getLevelSpecific() {
-        // TODO Auto-generated method stub
-        return null;
+    public String getMessage() {
+        return message;
     }
-
-    @Override
-    protected void seLevelSpecific(VitamLogLevel level) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    protected VitamLogger newInstance(String name) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
+    
 }

@@ -331,7 +331,7 @@ public class Unit extends VitamDocument<Unit> {
 
     @Override
     protected boolean updated() throws MongoWriteException, MongoWriteConcernException, MongoException {
-        // XXX FIXME only addition is taken into consideration there: removal shall be done elsewhere
+        // XXX TODO only addition is taken into consideration there: removal shall be done elsewhere
         final Unit vt = (Unit) MongoDbHelper.findOneNoAfterLoad(getVitamCollections(), getId());
         BasicDBObject update = null;
         if (vt != null) {
@@ -602,7 +602,7 @@ public class Unit extends VitamDocument<Unit> {
             	max += val;
             }
             update = combine(update, updateSubDepth, updateSubUnits);
-            // FIXME REVIEW Why removing this computation without knowing why?
+            // TODO REVIEW Why removing this computation without knowing why?
 //            if (min < unit.getInteger(MINDEPTH)) {
 //                update = combine(update, set(MINDEPTH, min));
 //            }
