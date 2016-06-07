@@ -93,7 +93,7 @@ public class ServerIdentityConfigurationImpl implements ServerIdentityConfigurat
     }
 
     /**
-     * @param identityName the identity Platform id to set
+     * @param identityPlatformId the identityPlatformId to set
      * @return this
      * @throws IllegalArgumentException if identityPlatformId < 0
      */
@@ -106,7 +106,7 @@ public class ServerIdentityConfigurationImpl implements ServerIdentityConfigurat
     }
 
     /**
-     * @param identityName the identity Role to set
+     * @param identityRole the identityRole to set
      * @return this
      * @throws IllegalArgumentException if identityRole is null or empty
      */

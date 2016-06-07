@@ -31,12 +31,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import org.eclipse.jetty.server.Handler;
 
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 
 /**
@@ -95,8 +93,7 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<?>, C>
     }
 
     /**
-     * Compute a java Path using the command line arguments if any. Otherwise it compute the path based on the
-     * classpath and the configuration file name
+     * Compute a java Path using the command line arguments if any. Otherwise uses the default configuration file name
      * 
      * @param args the command line arguments
      * @return the path to the found
@@ -105,29 +102,25 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<?>, C>
     public Path computeConfigurationPathFromInputArguments(String... args) throws VitamApplicationServerException {
         Path configurationFile = null;
         if (args != null && args.length >= 1) {
-            configurationFile = Paths.get(args[0]);
-            if (! configurationFile.toFile().exists()) {
-                configurationFile = null;
+            try {
+                File file = PropertiesUtils.findFile(args[0]);
+                configurationFile = file.toPath();
+            } catch (FileNotFoundException e) {//NOSONAR ignore yet
+                // ignore
             }
         }
         if (configurationFile == null) {
-            File file = new File(SystemPropertyUtil.getVitamConfigFolder() 
-                + "/" + getConfigFilename());
-            if (file.exists()) {
+            try {
+                File file = PropertiesUtils.findFile(getConfigFilename());
                 configurationFile = file.toPath();
-            } else {
-                try {
-                    file = PropertiesUtils.getResourcesFile(getConfigFilename());
-                    configurationFile = file.toPath();
-                } catch (FileNotFoundException e) {//NOSONAR ignore
-                    configurationFile = null;
-                }
+            } catch (FileNotFoundException e) {//NOSONAR ignore yet
+                // ignore
             }
-            if (configurationFile == null) {
-                throw new VitamApplicationServerException(
-                    String.format("Configuration file not found '%s'",
-                    getConfigFilename()));
-            }
+        }
+        if (configurationFile == null) {
+            throw new VitamApplicationServerException(
+                String.format("Configuration file not found '%s'",
+                getConfigFilename()));
         }
         return configurationFile;
     }

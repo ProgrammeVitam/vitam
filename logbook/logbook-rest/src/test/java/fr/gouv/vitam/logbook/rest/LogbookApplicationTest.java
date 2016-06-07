@@ -60,20 +60,26 @@ public class LogbookApplicationTest {
     @Test
     public final void testFictiveLaunch() {
         try {
-            LogbookApplication.main(new String[] {
-                "fileDoesNotExists", "12347"
-            });
-            fail(SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final IllegalStateException e) {
-            // Ignore
-        }
-        try {
             LogbookApplication.startApplication(new String[] {
                 PropertiesUtils.getResourcesFile(LOGBOOK_CONF).getAbsolutePath(), "-1"
             });
         } catch (final IllegalStateException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         } catch (final FileNotFoundException e) {
+            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
+        }
+        try {
+            LogbookApplication.startApplication(new String[] {
+                PropertiesUtils.getResourcesFile(LOGBOOK_CONF).getAbsolutePath(), "-1xx"
+            });
+        } catch (final IllegalStateException e) {
+            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
+        } catch (final FileNotFoundException e) {
+            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
+        }
+        try {
+            LogbookApplication.startApplication(new String[0]);
+        } catch (final IllegalStateException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
 
