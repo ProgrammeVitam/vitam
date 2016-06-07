@@ -116,7 +116,7 @@ public final class LogbookClientFactory {
     private int port = VitamServerFactory.DEFAULT_PORT;
 
     private LogbookClientFactory() {
-        changeConfigurationFile(SystemPropertyUtil.getVitamConfigFolder() + "/" + CONFIGURATION_FILENAME);
+        changeConfigurationFile(CONFIGURATION_FILENAME);
     }
 
     /**
@@ -237,7 +237,7 @@ public final class LogbookClientFactory {
         changeDefaultClientType(LogbookClientType.MOCK_OPERATIONS);
         ClientConfiguration configuration = null;
         try {
-            configuration = PropertiesUtils.readYaml(new File(configurationPath),
+            configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
                 ClientConfigurationImpl.class);
         } catch (IOException fnf) {
             if (LOGGER.isDebugEnabled()) {

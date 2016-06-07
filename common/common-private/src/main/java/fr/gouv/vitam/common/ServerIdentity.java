@@ -84,6 +84,8 @@ import fr.gouv.vitam.common.server.application.configuration.ServerIdentityConfi
  * <li>GUID for PlatformId</li>
  * <li>Logger and Logbook: for all</li>
  * </ul>
+ * <br><br>
+ * NOTE for developers: Do not add LOGGER there
  */
 public final class ServerIdentity implements ServerIdentityInterface {
     private static final String SERVER_IDENTITY_CONF_FILE_NAME = "server-identity.conf";
@@ -116,34 +118,24 @@ public final class ServerIdentity implements ServerIdentityInterface {
         boolean propertyFileNotFound = false;
         ServerIdentityConfigurationImpl serverIdentityConf;
         try {
+            File file = PropertiesUtils.findFile(SERVER_IDENTITY_CONF_FILE_NAME);
             serverIdentityConf =
-                PropertiesUtils.readYaml(new File(SystemPropertyUtil.getVitamConfigFolder()
-                    + "/" + SERVER_IDENTITY_CONF_FILE_NAME),
-                    ServerIdentityConfigurationImpl.class);
+                PropertiesUtils.readYaml(file, ServerIdentityConfigurationImpl.class);
             setYamlConfiguration(serverIdentityConf);
             initializeCommentFormat();
         } catch (IOException e) {//NOSONAR no logger
-            // try from Resources
-            try {
-                serverIdentityConf =
-                    PropertiesUtils.readResourcesYaml(SERVER_IDENTITY_CONF_FILE_NAME,
-                        ServerIdentityConfigurationImpl.class);
-                setYamlConfiguration(serverIdentityConf);
-                initializeCommentFormat();
-            } catch (IOException e2) {//NOSONAR no logger
-                System.err
-                    .println(
-                        "Issue while getting configuration File: " +
-                            e2.getMessage());
-                propertyFileNotFound = true;
-            }
+            System.err //NOSONAR no logger
+                .println(
+                    "Issue while getting configuration File: " +
+                        e.getMessage());
+            propertyFileNotFound = true;
         }
         if (propertyFileNotFound) {
             defaultServerIdentity();
         }
     }
 
-    private void defaultServerIdentity() {
+    void defaultServerIdentity() {
         // Compute name from Hostname
         if (System.getProperty(OS_NAME).toLowerCase().startsWith(WIN)) {
             // Just for fun
@@ -268,7 +260,7 @@ public final class ServerIdentity implements ServerIdentityInterface {
     public final ServerIdentity setFromYamlFile(File yamlFile) throws FileNotFoundException {
         try {
             ServerIdentityConfigurationImpl serverIdentityConf =
-                PropertiesUtils.readYaml(new File(SERVER_IDENTITY_CONF_FILE_NAME),
+                PropertiesUtils.readYaml(yamlFile,
                     ServerIdentityConfigurationImpl.class);
             setYamlConfiguration(serverIdentityConf);
         } catch (IOException e) {//NOSONAR no logger

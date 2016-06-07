@@ -98,10 +98,10 @@ public class LogbookClientFactoryTest {
     public void changeDefaultClientTypeTest()  {
         final LogbookClient client =
             LogbookClientFactory.getInstance().getLogbookOperationClient();
-        assertTrue(client instanceof LogbookOperationsClientMock);
+        assertTrue(client instanceof LogbookOperationsClientRest);
         final LogbookClientFactory.LogbookClientType type = LogbookClientFactory.getDefaultLogbookClientType();
         assertNotNull(type);
-        assertEquals(LogbookClientType.MOCK_OPERATIONS, type);
+        assertEquals(LogbookClientType.OPERATIONS, type);
 
         LogbookClientFactory.setConfiguration(LogbookClientType.MOCK_OPERATIONS, null, 0);
         final LogbookClient client2 = LogbookClientFactory.getInstance().getLogbookOperationClient();
@@ -133,10 +133,10 @@ public class LogbookClientFactoryTest {
     public void testInitWithConfigurationFile() {
         final LogbookClient client =
             LogbookClientFactory.getInstance().getLogbookOperationClient();
-        assertTrue(client instanceof LogbookOperationsClientMock);
+        assertTrue(client instanceof LogbookOperationsClientRest);
         final LogbookClientFactory.LogbookClientType type = LogbookClientFactory.getDefaultLogbookClientType();
         assertNotNull(type);
-        assertEquals(LogbookClientType.MOCK_OPERATIONS, type);
+        assertEquals(LogbookClientType.OPERATIONS, type);
     }
 
     @Test

@@ -58,6 +58,11 @@ public class ServerIdentityTest {
             assertNotEquals("Mac Address should not be 0", 0, serverIdentity.getPlatformId());
             assertFalse("Server Name should not be empty", serverIdentity.getName().isEmpty());
             first = false;
+            ((ServerIdentity) serverIdentity).defaultServerIdentity();
+            assertEquals("Role should be set to default", "UnknownRole", serverIdentity.getRole());
+            assertNotEquals("Mac Address should not be 0", 0, serverIdentity.getPlatformId());
+            assertFalse("Server Name should not be empty", serverIdentity.getName().isEmpty());
+            assertNotNull(((ServerIdentity) serverIdentity).getJsonIdentity());
         }
     }
 

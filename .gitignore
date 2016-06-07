@@ -5,4 +5,5 @@ target
 .classpath
 .project
 .settings
-evosuite-tests
+**/evosuite-tests/
+

@@ -41,14 +41,20 @@ import org.junit.Test;
 public class PropertiesUtilsTest {
 
     @Test(expected = FileNotFoundException.class)
-    public void testReadResourcesPropertiesFileNotFound() throws IOException {
-        PropertiesUtils.readResourcesProperties("vesR[l}EQ2v6");
+    public void testReadResourcesPathFileNotFound() throws IOException {
+        PropertiesUtils.getResourcesPath("vesR[l}EQ2v6");
         fail(ResourcesPublicUtilTest.EXPECTING_EXCEPTION_FILE_NOT_FOUND_EXCEPTION);
     }
 
     @Test(expected = FileNotFoundException.class)
     public void testGetResourcesFileNotFound() throws FileNotFoundException {
         PropertiesUtils.getResourcesFile("Y?DFe@=JZEwEbf~c");
+        fail(ResourcesPublicUtilTest.EXPECTING_EXCEPTION_FILE_NOT_FOUND_EXCEPTION);
+    }
+
+    @Test(expected = FileNotFoundException.class)
+    public void testGetFileNotFound() throws FileNotFoundException {
+        PropertiesUtils.findFile("notfoundfilename");
         fail(ResourcesPublicUtilTest.EXPECTING_EXCEPTION_FILE_NOT_FOUND_EXCEPTION);
     }
 
@@ -67,7 +73,7 @@ public class PropertiesUtilsTest {
 
     @Test(expected = FileNotFoundException.class)
     public void testReadResourcesPropertiesFileNotFoundNull() throws IOException {
-        PropertiesUtils.readResourcesProperties(null);
+        PropertiesUtils.readProperties(null);
         fail(ResourcesPublicUtilTest.EXPECTING_EXCEPTION_FILE_NOT_FOUND_EXCEPTION);
     }
 
@@ -85,8 +91,7 @@ public class PropertiesUtilsTest {
         Path path = PropertiesUtils.getResourcesPath(ResourcesPublicUtilTest.GUID_TEST_PROPERTIES);
         assertEquals(file.getAbsolutePath(), path.toString());
         try {
-            assertFalse(PropertiesUtils.readResourcesProperties(
-                ResourcesPublicUtilTest.GUID_TEST_PROPERTIES).isEmpty());
+            assertFalse(PropertiesUtils.readProperties(path.toFile()).isEmpty());
         } catch (final IOException e) { // NOSONAR
             fail(ResourcesPublicUtilTest.SHOULD_NOT_HAVE_AN_EXCEPTION);
         }
@@ -115,8 +120,8 @@ public class PropertiesUtilsTest {
     @Test
     public void testGetYamlFile() throws FileNotFoundException {
         try {
-            ConfigurationTest test = PropertiesUtils.readResourcesYaml(
-                ResourcesPublicUtilTest.YAML_TEST_CONF, ConfigurationTest.class);
+            ConfigurationTest test = PropertiesUtils.readYaml(
+                PropertiesUtils.findFile(ResourcesPublicUtilTest.YAML_TEST_CONF), ConfigurationTest.class);
             assertEquals("test", test.getTest());
             assertEquals(12346, test.getNumber());
         } catch (IOException e1) {
@@ -142,6 +147,38 @@ public class PropertiesUtilsTest {
         } catch (IOException e1) {
             e1.printStackTrace();
             fail(ResourcesPublicUtilTest.SHOULD_NOT_HAVE_AN_EXCEPTION);
+        }
+        try {
+            ConfigurationTest test = PropertiesUtils.readYaml(
+                new File("inexistantFile"),
+                ConfigurationTest.class);
+            fail(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
+        } catch (IOException e1) {
+            //ignore
+        }
+        try {
+            ConfigurationTest test = PropertiesUtils.readYaml(
+                (File) null,
+                ConfigurationTest.class);
+            fail(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
+        } catch (IOException e1) {
+            //ignore
+        }
+        try {
+            ConfigurationTest test = PropertiesUtils.readYaml(
+                (Path) null,
+                ConfigurationTest.class);
+            fail(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
+        } catch (IOException e1) {
+            //ignore
+        }
+        try {
+            ConfigurationTest test = PropertiesUtils.readYaml(
+                PropertiesUtils.getResourcesPath(ResourcesPublicUtilTest.YAML_TEST_CONF),
+                null);
+            fail(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
+        } catch (IOException e1) {
+            //ignore
         }
     }
 }

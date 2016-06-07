@@ -42,31 +42,16 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 /**
  * Property Utility class
+ * <br><br>
+ * NOTE for developers: Do not add LOGGER there
  */
 public final class PropertiesUtils {
 
+    private static final String FILE_NOT_FOUND_IN_RESOURCES = "File not found in Resources: ";
     private static final String ARGUMENTS_MUST_BE_NON_NULL = "Arguments must be non null";
 
     private PropertiesUtils() {
         // Empty
-    }
-
-    /**
-     * Read a properties file and returns the associated Properties
-     *
-     * @param propertiesFile properties file
-     * @return the associated Properties
-     * @throws IOException
-     */
-    public static final Properties readProperties(File propertiesFile) throws IOException {
-        if (propertiesFile == null) {
-            throw new FileNotFoundException("File not found in Resources: " + propertiesFile);
-        }
-        final Properties properties = new Properties();
-        try (InputStream inputStream = new FileInputStream(propertiesFile)) {
-            properties.load(inputStream);
-        }
-        return properties;
     }
 
     /**
@@ -78,16 +63,16 @@ public final class PropertiesUtils {
      */
     public static final File getResourcesFile(String resourcesFile) throws FileNotFoundException {
         if (resourcesFile == null) {
-            throw new FileNotFoundException("File not found in Resources: " + resourcesFile);
+            throw new FileNotFoundException(FILE_NOT_FOUND_IN_RESOURCES + resourcesFile);
         }
         URL url;
         try {
             url = PropertiesUtils.class.getClassLoader().getResource(resourcesFile);
         } catch (final SecurityException e) {// NOSONAR since an exception is thrown
-            throw new FileNotFoundException("File not found in Resources: " + resourcesFile);
+            throw new FileNotFoundException(FILE_NOT_FOUND_IN_RESOURCES + resourcesFile);
         }
         if (url == null) {
-            throw new FileNotFoundException("File not found in Resources: " + resourcesFile);
+            throw new FileNotFoundException(FILE_NOT_FOUND_IN_RESOURCES + resourcesFile);
         }
         File file;
         try {
@@ -98,7 +83,7 @@ public final class PropertiesUtils {
         if (file.exists()) {
             return file;
         }
-        throw new FileNotFoundException("File not found in Resources: " + resourcesFile);
+        throw new FileNotFoundException(FILE_NOT_FOUND_IN_RESOURCES + resourcesFile);
     }
 
     /**
@@ -113,15 +98,52 @@ public final class PropertiesUtils {
     }
 
     /**
-     * Read a properties file from resources directory and returns the associated Properties
+     * Get the File associated with this filename, trying in this order: as fullpath, 
+     * as in Vitam Config Folder, as Resources file
+     * 
+     * @param filename
+     * @return the File if found
+     * @throws FileNotFoundException if not fount
+     */
+    public static final File findFile(String filename) throws FileNotFoundException {
+        // First try as full path
+        File file = new File(filename);
+        try {
+            if (! file.exists()) {
+                // Second try using VitamConfigFolder
+                file = new File(SystemPropertyUtil.getVitamConfigFolder(),
+                    filename);
+                if (! file.exists()) {
+                    // Third try using Resources
+                    file = getResourcesFile(filename);
+                }
+                
+            }
+        } catch (FileNotFoundException e) {// NOSONAR need to rewrite the exception
+            throw new FileNotFoundException("File not found: " + filename);
+        }
+        if (! file.exists()) {
+            throw new FileNotFoundException("File not found: " + filename);
+        }
+        return file;
+    }
+
+    /**
+     * Read a properties file and returns the associated Properties
      *
-     * @param propertiesResourcesFile properties file from resources directory
+     * @param propertiesFile properties file
      * @return the associated Properties
      * @throws IOException
      */
-    public static final Properties readResourcesProperties(String propertiesResourcesFile) throws IOException {
-        final File propertiesFile = getResourcesFile(propertiesResourcesFile);
-        return readProperties(propertiesFile);
+    public static final Properties readProperties(File propertiesFile) throws IOException {
+        if (propertiesFile == null) {
+            throw new FileNotFoundException(FILE_NOT_FOUND_IN_RESOURCES + propertiesFile);
+        }
+        final Properties properties = new Properties();
+        try (InputStream inputStream = new FileInputStream(propertiesFile)) {
+            properties.load(inputStream);
+        }
+        return properties;
     }
 
     /**
@@ -152,21 +174,6 @@ public final class PropertiesUtils {
             throw new FileNotFoundException(ARGUMENTS_MUST_BE_NON_NULL);
         }
         File file = yamlPath.toFile();
-        return readYaml(file, clasz);
-    }
-
-    /**
-     * Read the Yaml Resources file and return the object read
-     * @param yamlResourcesFile as Resource path
-     * @param clasz the class representing the target object
-     * @return the object read
-     * @throws IOException
-     */
-    public static final <C> C readResourcesYaml(String yamlResourcesFile, Class<C> clasz) throws IOException {
-        if (yamlResourcesFile == null || clasz == null) {
-            throw new FileNotFoundException(ARGUMENTS_MUST_BE_NON_NULL);
-        }
-        File file = getResourcesFile(yamlResourcesFile);
         return readYaml(file, clasz);
     }
 }
