@@ -136,14 +136,15 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
      * 
      * @param uriListFromWorkspace
      * @param response
+     * @throws IllegalArgumentException
      */
     private void checkDuplicatedUriFromWorkspace(List<URI> uriListFromWorkspace, EngineResponse response)
-        throws NullPointerException {
+        throws IllegalArgumentException {
         final Set<String> setDuplicatedUri = new HashSet<>();
         final Set<URI> set = new HashSet<>();
 
         if (uriListFromWorkspace == null) {
-            throw new NullPointerException();
+            throw new IllegalArgumentException("uriListFromWorkspace must not be null");
         }
 
         for (URI uri : uriListFromWorkspace) {
@@ -186,12 +187,16 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
             response.getMessages().add(CheckObjectsNumberMessage.COUNT_DIGITAL_OBJECT_MANIFEST.getMessage()
                 .concat(Integer.toString(uriListManifest.size())));
 
-            // found not declared digital object in the manifest
-            foundUnreferencedDigitalObject(uriListManifest, uriListWorkspace, response,
-                CheckObjectsNumberMessage.NOT_FOUND_DIGITAL_OBJECT_WORKSPACE.getMessage());
-            // found not declared digital object in the sip
-            foundUnreferencedDigitalObject(uriListWorkspace, uriListManifest, response,
-                CheckObjectsNumberMessage.NOT_FOUND_DIGITAL_OBJECT_MANIFEST.getMessage());
+            try {
+                // found not declared digital object in the manifest
+                foundUnreferencedDigitalObject(uriListManifest, uriListWorkspace, response,
+                    CheckObjectsNumberMessage.NOT_FOUND_DIGITAL_OBJECT_WORKSPACE.getMessage());
+                // found not declared digital object in the sip
+                foundUnreferencedDigitalObject(uriListWorkspace, uriListManifest, response,
+                    CheckObjectsNumberMessage.NOT_FOUND_DIGITAL_OBJECT_MANIFEST.getMessage());
+            } catch (IllegalAccessException e) {
+                throw new ProcessingException("Some arguments were null", e);
+            }
         } else {
 
             /**
@@ -251,12 +256,12 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
      * @param element
      */
     private void foundUnreferencedDigitalObject(List<URI> uriListToCompared, List<URI> uriListReference,
-        EngineResponse response, String element) throws RuntimeException {
+        EngineResponse response, String element) throws IllegalAccessException {
 
         Set<String> uriNotFoundSet = new HashSet<>();
 
         if (uriListToCompared == null || uriListReference == null) {
-            throw new NullPointerException();
+            throw new IllegalAccessException("uriListToCompared or uriListReference must not be null");
         }
 
         for (Iterator<URI> iterator = uriListToCompared.iterator(); iterator.hasNext();) {

@@ -17,6 +17,8 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.server.BasicVitamServer;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.logbook.common.server.MongoDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.MongoDbAccessFactory;
@@ -60,26 +62,32 @@ public class LogbookApplicationTest {
     @Test
     public final void testFictiveLaunch() {
         try {
-            LogbookApplication.startApplication(new String[] {
+            ((BasicVitamServer) LogbookApplication.startApplication(new String[] {
                 PropertiesUtils.getResourcesFile(LOGBOOK_CONF).getAbsolutePath(), "-1"
-            });
+            })).stop();
         } catch (final IllegalStateException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         } catch (final FileNotFoundException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
+        } catch (VitamApplicationServerException e) {
+            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
         try {
-            LogbookApplication.startApplication(new String[] {
+            ((BasicVitamServer) LogbookApplication.startApplication(new String[] {
                 PropertiesUtils.getResourcesFile(LOGBOOK_CONF).getAbsolutePath(), "-1xx"
-            });
+            })).stop();
         } catch (final IllegalStateException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         } catch (final FileNotFoundException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
+        } catch (VitamApplicationServerException e) {
+            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
         try {
-            LogbookApplication.startApplication(new String[0]);
+            ((BasicVitamServer) LogbookApplication.startApplication(new String[0])).stop();
         } catch (final IllegalStateException e) {
+            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
+        } catch (VitamApplicationServerException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
 

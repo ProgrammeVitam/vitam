@@ -62,7 +62,7 @@ public class VitamLoggerFactoryTest {
         VitamLoggerFactory.setDefaultFactory(oldLoggerFactory);
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void shouldNotAllowNullDefaultFactory() {
         VitamLoggerFactory.setDefaultFactory(null);
     }

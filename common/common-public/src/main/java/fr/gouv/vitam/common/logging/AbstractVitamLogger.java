@@ -61,7 +61,7 @@ public abstract class AbstractVitamLogger implements VitamLogger, Serializable {
      */
     protected AbstractVitamLogger(final String name) {
         if (name == null) {
-            throw new NullPointerException("name");
+            throw new IllegalArgumentException("name must not be null");
         }
         this.name = name;
     }
