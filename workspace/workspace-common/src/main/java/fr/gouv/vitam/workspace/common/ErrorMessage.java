@@ -28,26 +28,64 @@ package fr.gouv.vitam.workspace.common;
 
 // TODO REVIEW missing coments
 // TODO REVIEW missing i18n
+/**
+ * Enum that describes error messages due the workspace
+ */
 public enum ErrorMessage {
 
+    /**
+     * Container already exist
+     */
     CONTAINER_ALREADY_EXIST("Container already exist "),
+    /**
+     * CONTAINER Container not found FOUND
+     */
     CONTAINER_NOT_FOUND("Container not found "),
 
+    /**
+     * Folder already exist
+     */
     FOLDER_ALREADY_EXIST("Folder already exist "),
+    /**
+     * Folder not found
+     */
     FOLDER_NOT_FOUND("Folder not found "),
 
+    /**
+     * Object already exist
+     */
     OBJECT_ALREADY_EXIST("Object already exist "),
+
+    /**
+     * Object not found
+     */
     OBJECT_NOT_FOUND("Object not found "),
 
+    /**
+     * Input stream is null
+     */
     STREAM_IS_NULL("Input stream is null"),
 
+    /**
+     * Container name is a mandatory parameter
+     */
     CONTAINER_NAME_IS_A_MANDATORY_PARAMETER(
         "Container name is a mandatory parameter"),
+
+    /**
+     * Container name and Folder name are a mandatory parameter
+     */
     CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER(
         "Container name and Folder name are a mandatory parameter"),
+    /**
+     * Container name and Object name are a mandatory parameter
+     */
     CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER(
         "Container name and Object name are a mandatory parameter"),
 
+    /**
+     * Internal Server Error
+     */
     INTERNAL_SERVER_ERROR("Internal Server Error");
 
     private final String message;
@@ -56,6 +94,11 @@ public enum ErrorMessage {
         this.message = message;
     }
 
+    /**
+     * getter for attribute message
+     * 
+     * @return message
+     */
     public String getMessage() {
         return message;
     }

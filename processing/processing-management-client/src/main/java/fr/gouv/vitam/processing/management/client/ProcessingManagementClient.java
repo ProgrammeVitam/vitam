@@ -33,11 +33,15 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
-import fr.gouv.vitam.processing.common.model.ProcessResponse;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.jackson.JacksonFeature;
 
 /**
  * 
@@ -53,8 +57,11 @@ public class ProcessingManagementClient {
      * @param url of metadata server
      */
     public ProcessingManagementClient(String url) {
-        super();
-        client = ClientBuilder.newClient();
+        final ClientConfig clientConfig=new ClientConfig();
+        clientConfig.register(JacksonJsonProvider.class);
+        clientConfig.register(JacksonFeature.class);
+
+        client = ClientBuilder.newClient(clientConfig);
         this.url = url + RESOURCE_PATH;
     }
 
@@ -74,7 +81,7 @@ public class ProcessingManagementClient {
      * @return : Engine response containe message and status
      * @throws ProcessingException
      */
-    public ProcessResponse executeVitamProcess(String container, String workflow) throws ProcessingException {
+    public String executeVitamProcess(String container, String workflow) throws ProcessingException, InvalidParseOperationException {
         ParametersChecker.checkParameter("container is a mandatory parameter", container);
         ParametersChecker.checkParameter("workflow is a mandatory parameter", workflow);
 
@@ -90,6 +97,6 @@ public class ProcessingManagementClient {
             throw new ProcessingException("Unauthorized Operation");
         }
 
-        return response.readEntity(ProcessResponse.class);
+        return response.readEntity(String.class);
     }
 }

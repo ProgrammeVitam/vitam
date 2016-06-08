@@ -30,17 +30,20 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-// TODO Explicit the role of the class in the comment (eg : used for the serialisation/unserialisation of the json
-// object) . It is currently used both for container and folder
 /**
- * The Entry class.
- *
+ * used for the serialisation/unserialisation of the json object It is currently used both for container and folder
  */
 public class Entry {
 
     @JsonProperty("name")
     private String name;
 
+
+    /**
+     * Creates a new Entry associated with a param name
+     * 
+     * @param name to associate with a new Entry
+     */
     @JsonCreator
     public Entry(@JsonProperty("name") String name) {
         // TODO REVIEW useful super() ?
@@ -49,6 +52,12 @@ public class Entry {
         this.name = name;
     }
 
+
+    /**
+     * Getter for name from Entry class
+     * 
+     * @return name
+     */
     @JsonIgnore
     public String getName() {
         return name;

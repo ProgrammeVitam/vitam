@@ -36,7 +36,10 @@ public class ContentAddressableStorageException extends Exception {
 
     private static final long serialVersionUID = -4421004141804361330L;
 
-    // TODO REVIEW comment
+    /**
+     * @param message message to associate with the exception *
+     * @param message
+     */
     public ContentAddressableStorageException(String message) {
         super(message);
     }

@@ -54,8 +54,7 @@ import fr.gouv.vitam.processing.engine.api.ProcessEngine;
  */
 public class ProcessEngineImpl implements ProcessEngine {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessEngineImpl.class);
-
-    final LogbookClient client = LogbookClientFactory.getInstance().getLogbookOperationClient();
+    private static LogbookClient client = LogbookClientFactory.getInstance().getLogbookOperationClient();
     LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters();
 
     private static final String RUNTIME_EXCEPTION_MESSAGE =
@@ -97,7 +96,7 @@ public class ProcessEngineImpl implements ProcessEngine {
      */
     @Override
     public EngineResponse startWorkflow(WorkParams workParams, String workflowId)
-        throws IllegalArgumentException, WorkflowNotFoundException {
+        throws WorkflowNotFoundException {
         ParametersChecker.checkParameter("WorkParams is a mandatory parameter", workParams);
         ParametersChecker.checkParameter("workflowId is a mandatory parameter", workflowId);
         long time = System.currentTimeMillis();
@@ -115,29 +114,33 @@ public class ProcessEngineImpl implements ProcessEngine {
         try {
             WorkFlow workFlow = poolWorkflows.get(workflowId);
             if (workFlow != null && workFlow.getSteps() != null && !workFlow.getSteps().isEmpty()) {
+                
                 /**
                  * call process distribute to manage steps
                  */
 
                 for (Step step : workFlow.getSteps()) {
+
+                    parameters.putParameterValue(LogbookParameterName.eventIdentifier, GUIDFactory.newGUID().toString());
+                    parameters.putParameterValue(LogbookParameterName.eventIdentifierProcess, workParams.getContainerName());
+                    parameters.putParameterValue(LogbookParameterName.eventIdentifierRequest, step.getStepName());
+                    parameters.putParameterValue(LogbookParameterName.eventType, step.getStepName());
+                    parameters.putParameterValue(LogbookParameterName.eventTypeProcess, StatusCode.SUBMITTED.value());
+                    parameters.putParameterValue(LogbookParameterName.outcome, StatusCode.SUBMITTED.value());
+                    parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, StatusCode.SUBMITTED.value());
+                    client.update(parameters);
+
                     List<EngineResponse> stepResponse = processDistributor.distribute(workParams, step, workflowId);
                     StatusCode stepStatus = processResponse.getGlobalProcessStatusCode(stepResponse);
                     stepsResponses.put(step.getStepName(), stepResponse);
-
-                    parameters.putParameterValue(LogbookParameterName.eventIdentifier,
-                        GUIDFactory.newGUID().toString());
-                    parameters.putParameterValue(LogbookParameterName.eventIdentifierProcess, step.getStepName());
-                    parameters.putParameterValue(LogbookParameterName.eventIdentifierRequest, step.getStepName());
-                    parameters.putParameterValue(LogbookParameterName.eventType, step.getStepName());
-                    parameters.putParameterValue(LogbookParameterName.eventTypeProcess, step.getStepName());
-                    parameters.putParameterValue(LogbookParameterName.outcome, stepStatus.value());
-                    parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                        "Result: " + stepStatus.value());
-                    client.create(parameters);
-
                     if (stepStatus.equals(StatusCode.FATAL)) {
                         break;
                     }
+
+                    parameters.putParameterValue(LogbookParameterName.eventTypeProcess, stepStatus.value());
+                    parameters.putParameterValue(LogbookParameterName.outcome, stepStatus.value());
+                    parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, "Result: " + stepStatus.value());
+                    client.update(parameters);
                 }
 
                 /**

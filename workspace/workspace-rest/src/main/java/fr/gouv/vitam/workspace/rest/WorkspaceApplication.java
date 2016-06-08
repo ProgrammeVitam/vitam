@@ -56,6 +56,11 @@ public class WorkspaceApplication {
     private static final String CONFIG_FILE_IS_A_MANDATORY_ARGUMENT = "Config file is a mandatory argument";
 
     // TODO REVIEW comment
+    /**
+     * runs the application
+     * 
+     * @param args
+     */
     public static void main(String[] args) {
         try {
             new WorkspaceApplication().configure(args);

@@ -86,13 +86,21 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
 
 
 
-    // TODO REVIEW comment
+    /**
+     * creates a new ContentAddressableStorageImpl with a storage configuration param
+     * 
+     * @param configuration
+     */
     public ContentAddressableStorageImpl(StorageConfiguration configuration) {
-        // TODO REVIEW super() Useless as it is implements an interface
-        super();
         context = getContext(configuration);
     }
 
+    /**
+     * enables the connection to a storage service with the param provided
+     * 
+     * @param configuration
+     * @return BlobStoreContext
+     */
     public abstract BlobStoreContext getContext(StorageConfiguration configuration);
 
     @Override
@@ -278,12 +286,13 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
             containerName, objectName);
         try {
             BlobStore blobStore = context.getBlobStore();
-            
+
             if (!objectExists(containerName, objectName)) {
                 LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
-                throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
+                throw new ContentAddressableStorageNotFoundException(
+                    ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
             }
-            
+
             Blob blob = blobStore.getBlob(containerName, objectName);
             if (null != blob) {
                 return blob.getPayload().openStream();
@@ -294,7 +303,7 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
         } catch (ContentAddressableStorageNotFoundException e) {
             LOGGER.error(e.getMessage());
             throw e;
-        }catch (Exception e) {
+        } catch (Exception e) {
             LOGGER.error(e.getMessage());
             throw new ContentAddressableStorageException(e);
         } finally {

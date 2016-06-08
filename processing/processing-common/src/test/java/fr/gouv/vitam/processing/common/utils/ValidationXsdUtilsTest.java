@@ -3,7 +3,6 @@ package fr.gouv.vitam.processing.common.utils;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -16,26 +15,27 @@ import org.xml.sax.SAXException;
 import fr.gouv.vitam.common.PropertiesUtils;
 
 public class ValidationXsdUtilsTest {
+    
+    private static final String SEDA_VALIDATION_FILE = "seda-2.0-main.xsd";
+    private static final String SEDA_FILE = "sip1.xml";
+    private static final String SEDA_WRONG_FILE = "wrong_sip1.xml";
 
     @Test
     public void givenXmlCorrectWhenCheckXsdThenReturnTrue() throws XMLStreamException, SAXException, IOException {
         ValidationXsdUtils valid = new ValidationXsdUtils();
-        File xsd = PropertiesUtils.getResourcesFile("seda-2.0-main.xsd");
-        assertTrue(valid.checkWithXSD(new FileInputStream(PropertiesUtils.getResourcesFile("sip1.xml")), xsd));
+        assertTrue(valid.checkWithXSD(new FileInputStream(PropertiesUtils.getResourcesFile(SEDA_FILE)), SEDA_VALIDATION_FILE));
     }
     
-    @Test
-    public void givenXmlWithInvalidContentWhenCheckXsdThenReturnFalse() throws XMLStreamException, SAXException, IOException{
+    @Test(expected = SAXException.class)
+    public void givenXmlWithInvalidContentWhenCheckXsdThenThrowSAXException() throws XMLStreamException, SAXException, IOException{
         ValidationXsdUtils valid = new ValidationXsdUtils();
-        File xsd = PropertiesUtils.getResourcesFile("seda-2.0-main.xsd");
-        assertFalse(valid.checkWithXSD(new FileInputStream(PropertiesUtils.getResourcesFile("wrong_sip1.xml")), xsd));
+        assertFalse(valid.checkWithXSD(new FileInputStream(PropertiesUtils.getResourcesFile(SEDA_WRONG_FILE)), SEDA_VALIDATION_FILE));
     }
     
     @Test(expected = FileNotFoundException.class)
     public void givenXmlNotFoundWhenCheckXsdThenRaiseAnException() throws XMLStreamException, SAXException, IOException{
         ValidationXsdUtils valid = new ValidationXsdUtils();
-        File xsd = PropertiesUtils.getResourcesFile("seda-2.0-main.xsd");
-        valid.checkWithXSD(new FileInputStream(PropertiesUtils.getResourcesFile("wrong_sip.xml")), xsd);
+        valid.checkWithXSD(new FileInputStream(PropertiesUtils.getResourcesFile("")), SEDA_VALIDATION_FILE);
     }
     
 }

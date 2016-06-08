@@ -53,7 +53,6 @@ public class FileSystemTest {
 
     private ContentAddressableStorageImpl workspace;
     private File tempDir;
-    // TODO REVIEW Add variable for file.pdf
     private static final String CONTAINER_NAME = "myContainer";
     private static final String FOLDER_NAME = "myFolder";
     private static final String OBJECT_NAME = "myObject";

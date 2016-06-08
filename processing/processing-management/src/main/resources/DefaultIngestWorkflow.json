@@ -5,12 +5,30 @@
     [
     {
     "workerGroupId" :"DefaultWorker",
-        "stepName":"Check SIP",
+        "stepName":"check Seda",
         "distribution" : {
         	"kind":"REF",
         	"element" : "SIP/manifest.xml"
         	},
-        "actions":[{"action":"checkSeda"}, {"action":"CheckObjectsNumberAction"}, {"action":"ExtractSeda"}]
+        "actions":[{"action":"checkSeda"}]
+    },
+    {
+    "workerGroupId" :"DefaultWorker",
+        "stepName":"Check Objects Number",
+        "distribution" : {
+        	"kind":"REF",
+        	"element" : "SIP/manifest.xml"
+        	},
+        "actions":[{"action":"CheckObjectsNumber"}]
+    },
+    {
+    "workerGroupId" :"DefaultWorker",
+        "stepName":"Extract Seda",
+        "distribution" : {
+        	"kind":"REF",
+        	"element" : "SIP/manifest.xml"
+        	},
+        "actions":[{"action":"ExtractSeda"}]
     },
     {
     "workerGroupId" :"DefaultWorker",

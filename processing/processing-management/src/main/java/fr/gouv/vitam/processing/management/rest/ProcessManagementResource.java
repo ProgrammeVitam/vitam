@@ -39,15 +39,14 @@ import org.apache.log4j.Logger;
 
 import fr.gouv.vitam.api.model.RequestResponseError;
 import fr.gouv.vitam.api.model.VitamError;
-import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
+import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.model.WorkParams;
 import fr.gouv.vitam.processing.management.core.ProcessManagementImpl;
-import fr.gouv.vitam.processing.common.model.ProcessResponse;
 
 /**
  * This class is resource provider of ProcessManagement
@@ -64,8 +63,6 @@ public class ProcessManagementResource {
      * @param configuration 
      */
     public ProcessManagementResource(ServerConfiguration configuration) {
-        super();
-        // launch resources 
         processManagement = new ProcessManagementImpl(configuration);
         this.config = configuration;
         LOGGER.info("init Process Management Resource server");

@@ -95,7 +95,7 @@ public class WorkerImpl implements Worker {
         actions.put(ExtractSedaActionHandler.getId(), new ExtractSedaActionHandler(new SedaUtilsFactory()));
         actions.put(IndexUnitActionHandler.getId(), new IndexUnitActionHandler(new SedaUtilsFactory()));
         actions.put(CheckSedaActionHandler.getId(), new CheckSedaActionHandler(new SedaUtilsFactory()));
-        actions.put(CheckObjectsNumberActionHandler.HANDLER_ID,
+        actions.put(CheckObjectsNumberActionHandler.getId(),
             new CheckObjectsNumberActionHandler(new SedaUtilsFactory(), new ContainerExtractionUtilsFactory()));
     }
 
