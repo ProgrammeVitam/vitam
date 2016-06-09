@@ -248,7 +248,8 @@ public class UploadServiceImpl extends AbstractService implements UploadService 
         String guidSip = "xxx";
 
         // Changer la configuration du Factory
-        LogbookClientFactory.setConfiguration(LogbookClientFactory.LogbookClientType.OPERATIONS, server, port);
+        //en test
+        //LogbookClientFactory.setConfiguration(LogbookClientFactory.LogbookClientType.OPERATIONS, server, port);
 
         // Récupération du client
         LogbookClient client = LogbookClientFactory.getInstance().getLogbookOperationClient();
