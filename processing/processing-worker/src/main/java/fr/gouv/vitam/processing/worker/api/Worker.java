@@ -40,11 +40,13 @@ import fr.gouv.vitam.processing.common.model.WorkParams;
  */
 // TODO REVIEW improve comment form
 public interface Worker {
+    
     /**
+     * Worker execute the step's actions
      * 
-     * @param step {@link Step}
+     * @param step {@link Step} null not allowed
      * @param workParams {@link WorkParams} (one and only workItem will be in workParams)
-     * @return List<Response> :list of action response
+     * @return List<EngineResponse> {@link EngineResponse} : list of action response {OK,KO,FATAL...}
      * 
      * @throws IllegalArgumentException
      * @throws HandlerNotFoundException

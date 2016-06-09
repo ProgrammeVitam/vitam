@@ -32,7 +32,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 public class CheckObjectsNumberActionHandlerTest {
 
     private CheckObjectsNumberActionHandler checkObjectsNumberActionHandler;
-    private static final String HANDLER_ID = "CheckObjectsNumberAction";
+    private static final String HANDLER_ID = "CheckObjectsNumber";
 
     private WorkParams workParams;
 
@@ -49,7 +49,6 @@ public class CheckObjectsNumberActionHandlerTest {
     private List<URI> uriListManifestOK = new ArrayList<>();
     private List<URI> uriOutNumberListManifestKO = new ArrayList<>();
 
-    private List<URI> uriDuplicatedListWorkspaceKO = new ArrayList<>();
     private List<URI> uriListWorkspaceOK = new ArrayList<>();
     private List<URI> uriOutNumberListWorkspaceKO = new ArrayList<>();
 
@@ -75,8 +74,6 @@ public class CheckObjectsNumberActionHandlerTest {
         workspaceClient = mock(WorkspaceClient.class);
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
 
-
-
         // URI LIST MANIFEST
         uriDuplicatedListManifestKO.add(new URI("content/file1.pdf"));
         uriDuplicatedListManifestKO.add(new URI("content/file1.pdf"));
@@ -89,8 +86,6 @@ public class CheckObjectsNumberActionHandlerTest {
         uriOutNumberListManifestKO.add(new URI("content/file3.pdf"));
 
         // URI LIST WORKSPACE
-        uriDuplicatedListWorkspaceKO.add(new URI("content/diary.html"));
-        uriDuplicatedListWorkspaceKO.add(new URI("content/diary.html"));
 
         uriListWorkspaceOK.add(new URI("content/file1.pdf"));
         uriListWorkspaceOK.add(new URI("content/file2.pdf"));
@@ -190,27 +185,6 @@ public class CheckObjectsNumberActionHandlerTest {
         assertThat(response.getMessages()).isNotNull().isNotEmpty();
     }
 
-    @Test
-    public void givenWorkspaceExistWhenExecuteThenReturnResponseKOAndDuplicatedURIWorkspace()
-        throws XMLStreamException, IOException, ProcessingException {
-
-        when(sedaFactory.create()).thenReturn(sedaUtils);
-        when(containerExtractionUtilsFactory.create()).thenReturn(containerExtractionUtils);
-
-        checkObjectsNumberActionHandler =
-            new CheckObjectsNumberActionHandler(sedaFactory, containerExtractionUtilsFactory);
-
-        when(sedaUtils.getAllDigitalObjectUriFromManifest(anyObject())).thenReturn(extractUriResponseOK);
-        when(containerExtractionUtils.getDigitalObjectUriListFromWorkspace(anyObject()))
-            .thenReturn(uriDuplicatedListWorkspaceKO);
-
-        assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
-
-        EngineResponse response = checkObjectsNumberActionHandler.execute(workParams);
-        assertThat(response).isNotNull();
-        assertThat(response.getStatus()).isEqualTo(StatusCode.KO);
-        assertThat(response.getMessages()).isNotNull().isNotEmpty();
-    }
 
     @Test
     public void givenWorkspaceExistWhenExecuteThenReturnResponseKOAndOutNumberManifest()

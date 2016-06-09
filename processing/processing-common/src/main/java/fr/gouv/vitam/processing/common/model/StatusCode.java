@@ -29,7 +29,6 @@ package fr.gouv.vitam.processing.common.model;
  * different constants status code for workflow , action handler and process
  *
  */
-// TODO REVIEW improve comment form
 public enum StatusCode {
     /**
      * OK : indicates the successful without warning
@@ -37,20 +36,24 @@ public enum StatusCode {
     OK("OK"),
 
     /**
-     * indicates the failed execution of the action
+     * KO : indicates the failed execution of the action
      */
     KO("KO"),
+    
     /**
-     * Indicates a critical error such as technical Exception ( runtime exception, illegal argument exception, null
-     * pointer exception ...)
-     * 
+     * FATAL : indicates a critical error such as technical Exception ( runtime exception, illegal argument exception, null pointer exception ...)
      */
     FATAL("FATAL"),
+    
     /**
-     * indicates successful with a general warning. Warning are often useful in preventing future Action problems
+     * WARNING : indicates successful with a general warning. Warning are often useful in preventing future Action problems
      */
-    WARNING("WARNING");
-    // TODO REVIEW Add SUBMITTED
+    WARNING("WARNING"),
+    
+    /**
+     * SUBMITTED : indicates that the workflow or the action handler or the process has been submitted
+     */
+    SUBMITTED("SUBMITTED");
 
     private String value;
 

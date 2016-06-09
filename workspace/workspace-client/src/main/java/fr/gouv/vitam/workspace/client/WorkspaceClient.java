@@ -58,7 +58,6 @@ import fr.gouv.vitam.workspace.common.Entry;
 import fr.gouv.vitam.workspace.common.ErrorMessage;
 import fr.gouv.vitam.workspace.common.ParametersChecker;
 
-// TODO REVIEW missing comments
 
 /**
  * Workspace client which calls rest services
@@ -71,6 +70,11 @@ public class WorkspaceClient implements ContentAddressableStorage {
     private final String serviceUrl;
     private final Client client;
 
+    /**
+     * Instantiates a workspace client with an url parameter
+     * 
+     * @param serviceUrl
+     */
     public WorkspaceClient(String serviceUrl) {
         this.serviceUrl = serviceUrl + RESOURCE_PATH;
 
@@ -275,7 +279,6 @@ public class WorkspaceClient implements ContentAddressableStorage {
         } else {
             return Collections.<URI>emptyList();
         }
-
     }
 
     @Override
@@ -291,7 +294,7 @@ public class WorkspaceClient implements ContentAddressableStorage {
             new StreamDataBodyPart("object", zipInputStreamSipObject, containerName,
                 MediaType.APPLICATION_OCTET_STREAM_TYPE));
 
-        final Response response = client.target(serviceUrl).path("/containers/" + containerName + "/objects/").request()
+        final Response response = client.target(serviceUrl).path("/containers/" + containerName + "/objects").request()
             .put(Entity.entity(multiPart, MediaType.MULTIPART_FORM_DATA_TYPE));
 
         if (Status.CREATED.getStatusCode() == response.getStatus()) {
@@ -300,9 +303,5 @@ public class WorkspaceClient implements ContentAddressableStorage {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
             throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
         }
-
     }
-
-
-
 }

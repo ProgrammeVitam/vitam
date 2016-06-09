@@ -32,7 +32,7 @@ import fr.gouv.vitam.processing.common.model.WorkParams;
 /**
  * interface ProcessDistributor
  * 
- * improves a disponibility and scalability
+ * improves a availability and scalability
  * 
  * Various methods Distributor engine
  */
@@ -45,7 +45,8 @@ public interface ProcessDistributor {
      * @param workParams {@link WorkParams} null not allowed
      * @param step {@link Step} null not allowed
      * @param workflowId
-     * @return result of actions 's step
+     * 
+     * @return List<EngineResponse> {@link EngineResponse} : list of action response
      */
     List<EngineResponse> distribute(WorkParams workParams, Step step, String workflowId);
 }

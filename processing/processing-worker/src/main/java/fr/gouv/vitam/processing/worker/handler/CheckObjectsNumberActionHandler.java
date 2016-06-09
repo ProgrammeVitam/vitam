@@ -33,14 +33,12 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
     /**
      * Use to log vitam
      */
-    public static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ExtractSedaActionHandler.class);
+    public static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckObjectsNumberActionHandler.class);
 
     /**
      * Handler's ID
      */
-    public static final String HANDLER_ID = "CheckObjectsNumberAction";
-
-    private static final String NULL_MESSAGE_ARGS = "Null is not allowed";
+    public static final String HANDLER_ID = "CheckObjectsNumber";
 
     private final SedaUtilsFactory sedaUtilsFactory;
     private final ContainerExtractionUtilsFactory containerExtractionUtilsFactory;
@@ -85,7 +83,6 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
 
                 List<URI> uriListFromManifest = extractUriResponse.getUriListManifest();
                 List<URI> uriListFromWorkspace = getUriListFromWorkspace(params);
-                checkDuplicatedUriFromWorkspace(uriListFromWorkspace, response);
                 checkCountDigitalObjectConformity(uriListFromManifest, uriListFromWorkspace, response);
 
             } else if (extractUriResponse != null) {
@@ -128,38 +125,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
         ContainerExtractionUtils containerExtractionUtils = containerExtractionUtilsFactory.create();
         return containerExtractionUtils.getDigitalObjectUriListFromWorkspace(params);
     }
-
-
-
-    /**
-     * Find duplicated URI for URI List extracted from the workspace
-     * 
-     * @param uriListFromWorkspace
-     * @param response
-     * @throws IllegalArgumentException
-     */
-    private void checkDuplicatedUriFromWorkspace(List<URI> uriListFromWorkspace, EngineResponse response)
-        throws IllegalArgumentException {
-        final Set<String> setDuplicatedUri = new HashSet<>();
-        final Set<URI> set = new HashSet<>();
-
-        if (uriListFromWorkspace == null) {
-            throw new IllegalArgumentException("uriListFromWorkspace must not be null");
-        }
-
-        for (URI uri : uriListFromWorkspace) {
-            if (!set.add(uri)) {
-                setDuplicatedUri.add(
-                    CheckObjectsNumberMessage.DUPLICATED_DIGITAL_OBJECT_WORKSPACE.getMessage().concat(uri.toString()));
-            }
-        }
-
-        if (!setDuplicatedUri.isEmpty()) {
-            response.getMessages().addAll(setDuplicatedUri);
-            response.setStatus(StatusCode.KO);
-        }
-    }
-
+    
     /**
      * Count the number of digital objects consistent between the manifest.xm file and the sip
      * 
@@ -175,7 +141,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
         ParametersChecker.checkParameter("EngineResponse is a mandatory parameter", response);
         // TODO
         // Use Java 8, Methods Reference, lambda expressions and streams
-        
+
         /**
          * compare the size between list uri from manifest and list uri from workspace.
          */

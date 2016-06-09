@@ -24,17 +24,15 @@
 package fr.gouv.vitam.processing.common.exception;
 
 /**
- * 
- * Exception that is the superclass of all VITAM processing exceptions. *
+ * Exception is the superclass of all VITAM processing exceptions.
  */
-// TODO REVIEW improve comment form
-
 public class ProcessingException extends Exception {
 
     private static final long serialVersionUID = 3375441536550669880L;
 
     /**
      * ProcessingException constructor
+     * Construct the processing exception with a message and a throwable exception
      * 
      * @param message
      * @param cause
@@ -45,6 +43,7 @@ public class ProcessingException extends Exception {
 
     /**
      * ProcessingException constructor
+     * Construct the processing exception with a throwable exception
      * 
      * @param cause
      */
@@ -54,6 +53,7 @@ public class ProcessingException extends Exception {
 
     /**
      * ProcessingException constructor
+     * Construct the processing exception with a message
      * 
      * @param message
      */

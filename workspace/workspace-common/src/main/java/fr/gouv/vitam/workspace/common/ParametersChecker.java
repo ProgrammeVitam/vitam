@@ -37,6 +37,12 @@ public class ParametersChecker {
 
     // TODO Explicitly add IllegalArgumentException in the signature
     // TODO comment
+    /**
+     * throws an IllegalArgumentException in case of there is an error on parameters
+     * 
+     * @param errorMessage
+     * @param parameters
+     */
     public static final void checkParamater(String errorMessage, String... parameters) {
         if (parameters == null) {
             throw new IllegalArgumentException(errorMessage);

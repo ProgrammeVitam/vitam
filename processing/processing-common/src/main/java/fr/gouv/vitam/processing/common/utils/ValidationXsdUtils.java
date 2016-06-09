@@ -1,7 +1,7 @@
 package fr.gouv.vitam.processing.common.utils;
 
-import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 
@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
 import com.sun.org.apache.xerces.internal.util.XMLCatalogResolver;
+
 
 /**
  * Class ValidationXsdUtils validate the file XML by XSD Method checkWithXSD return true if XSD validate the file XML,
@@ -41,30 +42,37 @@ public class ValidationXsdUtils {
      * @throws FileNotFoundException
      * @throws XMLStreamException
      * @throws SAXException
+     * @throws IOException 
      */
-    public boolean checkWithXSD(InputStream xmlFile, File xsdFile)
-        throws FileNotFoundException, XMLStreamException, SAXException {
+    public boolean checkWithXSD(InputStream xmlFile, String xsdFile)
+        throws SAXException, IOException, XMLStreamException {
 
         XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
-        xmlStreamReader = xmlInputFactory.createXMLStreamReader(xmlFile, "UTF-8");
-        schema = getSchema(xsdFile);
-
         try {
+            xmlStreamReader = xmlInputFactory.createXMLStreamReader(xmlFile, "UTF-8");
+            schema = getSchema(xsdFile);
             Validator validator = schema.newValidator();
             validator.validate(new StAXSource(xmlStreamReader));
             return true;
-        } catch (Exception e) {
-            LOGGER.info("XSD cannnot validate the file XML");
-            return false;
+        } catch (SAXException e) {
+            LOGGER.error("SAXException");
+            throw e;
+        } catch (IOException e) {
+            LOGGER.error("IOException");
+            throw e;
+        } catch (XMLStreamException e) {
+            LOGGER.error("XMLStreamException");
+            throw e;
         }
     }
 
-    private Schema getSchema(File xsdFile) throws SAXException {
+    private Schema getSchema(String xsdFile) throws SAXException {
         SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-        URL catalogUrl = this.getClass().getClassLoader().getResource(CATALOG_FILENAME); // KWA : load catalog to
-                                                                                         // resolve external schemas,
-                                                                                         // even offline.
+        
+        // Load catalog to resolve external schemas even offline.
+        URL catalogUrl = this.getClass().getClassLoader().getResource(CATALOG_FILENAME); 
         factory.setResourceResolver(new XMLCatalogResolver(new String[] {catalogUrl.toString()}, false));
-        return factory.newSchema(xsdFile);
+
+        return factory.newSchema(this.getClass().getClassLoader().getResource(xsdFile));
     }
 }

@@ -64,7 +64,6 @@ import fr.gouv.vitam.builder.request.construct.Insert;
 import fr.gouv.vitam.client.MetaDataClient;
 import fr.gouv.vitam.client.MetaDataClientFactory;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -88,6 +87,7 @@ public class SedaUtils {
     private static String TMP_FOLDER = "/vitam/data/";
     private static final String NAMESPACE_URI = "fr:gouv:culture:archivesdefrance:seda:v2.0";
     private static final String SEDA_FILE = "manifest.xml";
+    private static final String SEDA_VALIDATION_FILE = "seda-2.0-main.xsd";
     private static final String XML_EXTENSION = ".xml";
     private static final String SEDA_FOLDER = "SIP";
     private static final String BINARY_DATA_OBJECT = "BinaryDataObject";
@@ -360,12 +360,10 @@ public class SedaUtils {
         WorkspaceClient client = workspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
         try {
             InputStream input = checkExistenceManifest(client, containerId);
-            ValidationXsdUtils validationXsdUtils = new ValidationXsdUtils();
-            File xsd = PropertiesUtils.getResourcesFile("seda-2.0-main.xsd");
-
-            return validationXsdUtils.checkWithXSD(input, xsd);
+            return new ValidationXsdUtils().checkWithXSD(input, SEDA_VALIDATION_FILE);
+            
         } catch (ProcessingException | XMLStreamException | SAXException e) {
-            LOGGER.error("Manifest.xml is not valid ");
+            LOGGER.error("Manifest.xml is not valid ", e);
             return false;
         }
     }

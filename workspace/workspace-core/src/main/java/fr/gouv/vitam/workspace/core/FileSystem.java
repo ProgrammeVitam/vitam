@@ -43,7 +43,9 @@ public class FileSystem extends ContentAddressableStorageImpl {
 
     private static final Logger LOGGER = Logger.getLogger(FileSystem.class);
 
-    // TODO comment
+    /**
+     * @param configuration to associate with the FileSystem
+     */
     public FileSystem(StorageConfiguration configuration) {
         super(configuration);
     }
