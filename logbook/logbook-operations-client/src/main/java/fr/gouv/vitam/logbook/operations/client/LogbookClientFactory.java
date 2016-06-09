@@ -26,12 +26,10 @@
  */
 package fr.gouv.vitam.logbook.operations.client;
 
-import java.io.File;
 import java.io.IOException;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.VitamServerFactory;
