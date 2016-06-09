@@ -8,7 +8,7 @@ angular
             //url: 'http://143.126.93.153:8080/servlet/upload'    //test inter equipe
             //url: 'http://localhost:8080/servlet/upload'         //local
             //url: 'https://int.env.programmevitam.fr/ihm-demo/servlet/upload' //test dockerPic
-            url: '/servlet/upload' //test dockerPic
+            url : 'https://int.env.programmevitam.fr/ihm-demo/servlet/upload'
         });
 
         // FILTERS

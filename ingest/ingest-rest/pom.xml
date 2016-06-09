@@ -79,6 +79,11 @@
                     of the image -->
                     <resources>
                         <resource>
+                            <targetPath>/vitam/lib</targetPath>
+                            <directory>${project.build.directory}</directory>
+                            <include>${project.build.finalName}.jar</include>
+                        </resource>
+                        <resource>
                             <targetPath>/vitam/conf</targetPath>
                             <directory>${basedir}/src/main/config</directory>
                         </resource>
