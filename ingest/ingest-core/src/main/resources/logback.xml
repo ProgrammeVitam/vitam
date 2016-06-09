@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{5} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="NOTIFICATION" class="ch.qos.logback.core.FileAppender">
+        <file>/vitam/log/ingest-core/notification.log</file>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{5} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="INGEST-CORE" class="ch.qos.logback.core.FileAppender">
+        <file>/vitam/log/ingest-core/ingest-core.log</file>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{5} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT" />
+    </root>
+
+    <logger name="fr.gouv.vitam.ingest" level="DEBUG" additivity="false">
+        <appender-ref ref="STDOUT" />
+    </logger>
+    <logger name="notification" level="DEBUG" additivity="false">
+        <appender-ref ref="NOTIFICATION" />
+    </logger>
+    <logger name="ingest-core" level="DEBUG" additivity="false">
+        <appender-ref ref="INGEST-CORE" />
+    </logger>
+</configuration>
