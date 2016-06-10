@@ -1,32 +1,43 @@
 [hosts]
 
 [hosts:children]
+hosts-ihm-demo
 hosts-metadata-mongodb
 hosts-logbook
 hosts-metadata
 hosts-workspace
-hosts-storage
 hosts-ingest
 
-[hosts-logbook]
-localhost
+[hosts-ihm-demo]
+#localhost
+
+[hosts-ingest]
+#localhost
 
 [hosts-metadata]
+localhost
+
+[hosts-logbook]
 localhost
 
 [hosts-workspace]
 localhost
 
-[hosts-storage]
+[hosts-processing]
 localhost
 
 [hosts-metadata-mongodb]
 localhost
 
-[hosts-ingest]
-localhost
-
 [hosts:vars]
-#ansible_become=true
-vitam_environment=dev
+ansible_become=true
 ansible_connection=local
+vitam_environment=local
+docker_registry_hostname=docker.programmevitam.fr
+vitam_mongodb_host=172.17.0.1
+vitam_logbook_host=172.17.0.1
+vitam_logbook_port=8204
+vitam_folder_permission=0775
+vitam_conf_permission=0775
+pull_strategy=missing
+local_user={{ansible_user_id}}

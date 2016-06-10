@@ -9,33 +9,33 @@ hosts-workspace
 hosts-ingest
 
 [hosts-ihm-demo]
-vitam-prod-app-15.internet.agri
+vitam-prod-app-12.internet.agri
 
 [hosts-ingest]
-vitam-prod-app-13.internet.agri
+vitam-prod-app-10.internet.agri
 
 [hosts-metadata]
-vitam-prod-app-13.internet.agri
+vitam-prod-app-10.internet.agri
 
 [hosts-logbook]
-vitam-prod-app-13.internet.agri
+vitam-prod-app-10.internet.agri
 
 [hosts-workspace]
-vitam-prod-app-13.internet.agri
+vitam-prod-app-10.internet.agri
 
 [hosts-processing]
-vitam-prod-app-13.internet.agri
+vitam-prod-app-10.internet.agri
 
 [hosts-metadata-mongodb]
-vitam-prod-app-14.internet.agri
+vitam-prod-app-11.internet.agri
 
 [hosts:vars]
 ansible_ssh_user=ansible
 ansible_become=true
-vitam_environment=int
+vitam_environment=rec
 docker_registry_hostname=vitam-prod-app-6.internet.agri:8084
-vitam_mongodb_host=vitam-prod-app-14.internet.agri
-vitam_logbook_host=vitam-prod-app-13.internet.agri
+vitam_mongodb_host=vitam-prod-app-11.internet.agri
+vitam_logbook_host=vitam-prod-app-10.internet.agri
 vitam_logbook_port=8204
 vitam_folder_permission=0755
 vitam_conf_permission=0500
