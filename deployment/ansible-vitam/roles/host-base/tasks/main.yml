@@ -17,7 +17,7 @@
   file:
     name: "{{vitam_folder_root}}"
     state: directory
-    owner: vitam
+    owner: "{{local_user}}"
     group: vitam
     recurse: yes
-    mode: 0770
+    mode: "{{vitam_folder_permission}}"

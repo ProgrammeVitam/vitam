@@ -95,7 +95,7 @@
 		<!-- Build environment Properties -->
 		<project.scm.id>vitam-gitlab</project.scm.id>
 		<vitam.docker.registry.pull>docker.programmevitam.fr</vitam.docker.registry.pull>
-		<vitam.docker.registry.push>vitam-prod-app-6.internet.agri:8082</vitam.docker.registry.push>
+		<vitam.docker.registry.push>docker.programmevitam.fr</vitam.docker.registry.push>
 		<vitam.docker.baseimage>vitam/java:0.2.0</vitam.docker.baseimage>
 
 		<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
@@ -146,6 +146,12 @@
 	<!-- Définition des profils -->
 	<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
 	<profiles>
+		<profile>
+			<id>pic</id>
+			<properties>
+				<vitam.docker.registry.push>vitam-prod-app-6.internet.agri:8082</vitam.docker.registry.push>		
+			</properties>
+		</profile>
 
 	</profiles>
 

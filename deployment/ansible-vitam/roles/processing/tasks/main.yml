@@ -4,9 +4,9 @@
   file: 
     name={{item}} 
     state=directory
-    owner=vitam
+    owner={{local_user}}
     group=vitam
-    mode=0755
+    mode={{vitam_folder_permission}}
   with_items:
   - "{{vitam_folder_conf}}"
   - "{{vitam_folder_log}}"
@@ -16,8 +16,8 @@
   template:
     src="{{item}}.j2"
     dest="{{vitam_folder_conf}}/{{item}}"
-    owner=vitam
-    group=vitam mode=0500
+    owner={{local_user}}
+    group=vitam mode={{vitam_conf_permission}}
   notify: restart container
   with_items:
   - "processing.conf"
@@ -32,7 +32,7 @@
     image: "{{docker_registry_hostname}}/vitam/processing:{{vitam_docker_tag}}"
     state: started
     restart_policy: always
-    pull: always
+    pull: "{{pull_strategy}}"
     ports:
       - "{{vitam_docker_port_http}}:{{vitam_docker_port_internal}}"
     volumes: 
