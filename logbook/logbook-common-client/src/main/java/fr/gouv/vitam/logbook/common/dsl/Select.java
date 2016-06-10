@@ -21,7 +21,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.logbook.common.server.database.collections.request;
+package fr.gouv.vitam.logbook.common.dsl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;

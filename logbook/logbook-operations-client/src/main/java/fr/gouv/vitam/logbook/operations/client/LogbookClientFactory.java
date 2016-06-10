@@ -95,21 +95,6 @@ public final class LogbookClientFactory {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookClientFactory.class);
     private static final LogbookClientFactory LOGBOOK_CLIENT_FACTORY = new LogbookClientFactory();
 
-    /**
-     * To get operation mocked client
-     *
-     * @deprecated shoud use the {@link LogbookClientType} enum
-     */
-    @Deprecated
-    public static final String MOCK_OPERATIONS = "MOCK_OPERATIONS";
-    /**
-     * To get the operation client (actually mocked)
-     *
-     * @deprecated shoud use the {@link LogbookClientType} enum
-     */
-    @Deprecated
-    public static final String OPERATIONS = "OPERATIONS";
-
     private String server = "localhost";
     private int port = VitamServerFactory.DEFAULT_PORT;
 
@@ -125,7 +110,7 @@ public final class LogbookClientFactory {
      * @param port port to use
      * @throws IllegalArgumentException if type null or if type is OPERATIONS and server is null or empty or port <= 0
      */
-    public static final void setConfiguration(LogbookClientType type, String server, int port) {
+    static final void setConfiguration(LogbookClientType type, String server, int port) {
         changeDefaultClientType(type);
         if (type == LogbookClientType.OPERATIONS) {
             ParametersChecker.checkParameter("Server cannot be null or empty with OPERATIONS", server);
@@ -142,34 +127,6 @@ public final class LogbookClientFactory {
      */
     public static final LogbookClientFactory getInstance() {
         return LOGBOOK_CLIENT_FACTORY;
-    }
-
-    /**
-     * Get the logbook client
-     *
-     * @param type the client type
-     * @return the logbook client instance for the type
-     * @throws IllegalArgumentException if type is unknown or null
-     * @deprecated should use getLogbookOperationClient()
-     */
-    @Deprecated
-    public static LogbookClient getLogbookClient(String type) {
-        final LogbookClientType logbookType = LogbookClientType.valueOf(type);
-        return getLogbookClient(logbookType);
-    }
-
-    /**
-     * Get the logbook client
-     *
-     * @param type the client type
-     * @return the logbook client instance for the type
-     * @throws IllegalArgumentException if type is unknown or null
-     * @deprecated should use getLogbookOperationClient()
-     */
-    @Deprecated
-    public static LogbookClient getLogbookClient(LogbookClientType type) {
-        changeDefaultClientType(type);
-        return LOGBOOK_CLIENT_FACTORY.getLogbookOperationClient();
     }
 
     /**
@@ -190,18 +147,6 @@ public final class LogbookClientFactory {
                 throw new IllegalArgumentException("Log type unknown");
         }
         return client;
-    }
-
-    /**
-     * Get LogbookOperationParamaters object
-     *
-     * @return the LogbookOperationParameters
-     * @throws IllegalArgumentException if type is unknown
-     * @deprecated use {@link LogbookParametersFactory}
-     */
-    @Deprecated
-    public static LogbookOperationParameters newOperationParameters() {
-        return LogbookParametersFactory.newLogbookOperationParameters();
     }
 
     /**

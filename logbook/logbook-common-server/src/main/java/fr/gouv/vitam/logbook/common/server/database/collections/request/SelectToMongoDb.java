@@ -41,6 +41,7 @@ import com.mongodb.client.model.Sorts;
 import fr.gouv.vitam.builder.request.construct.configuration.GlobalDatas;
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.PROJECTION;
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.SELECTFILTER;
+import fr.gouv.vitam.logbook.common.dsl.Select;
 import fr.gouv.vitam.logbook.common.server.database.collections.MongoDbAccessImpl;
 
 /**

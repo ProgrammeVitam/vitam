@@ -21,8 +21,35 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.logbook.common.server.database.collections.request;
+package fr.gouv.vitam.logbook.common.dsl;
 
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.and;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.eq;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.exists;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.flt;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.gt;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.gte;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.in;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.isNull;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.lt;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.lte;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.match;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.matchPhrase;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.matchPhrasePrefix;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.missing;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.mlt;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.ne;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.nin;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.not;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.or;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.path;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.prefix;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.range;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.regex;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.search;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.size;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.term;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.wildcard;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -32,6 +59,7 @@ import static org.junit.Assert.fail;
 
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.FILTERARGS;
@@ -191,4 +219,41 @@ public class SelectTest {
         assertEquals(s, select.toString());
     }
 
+    @Test
+    public void testVariousQueries() throws InvalidCreateOperationException, InvalidParseOperationException {
+        final Select select = new Select();
+        select.setQuery(path("id1"));
+        select.setQuery(
+            and().add(exists("mavar1"), missing("mavar2"), isNull("mavar3"),
+                or().add(in("mavar4", 1, 2).add("maval1"),
+                    nin("mavar5", "maval2").add(true)),
+                not().add(size("mavar5", 5), gt("mavar6", 7), lte("mavar7", 8),
+                    gte("mavar7", 8), lt("mavar7", 8)),
+                not().add(eq("mavar8", 5), ne("mavar9", "ab"),
+                    range("mavar10", 12, true, 20, true)),
+                matchPhrase("mavar11", "ceci est une phrase"),
+                matchPhrasePrefix("mavar11", "ceci est une phrase")
+                    .setMatchMaxExpansions(10),
+                flt("ceci est une phrase", "mavar12", "mavar13"),
+                mlt("ceci est une phrase", "mavar12", "mavar13"),
+                and().add(search("mavar13", "ceci est une phrase"),
+                    prefix("mavar13", "ceci est une phrase"),
+                    wildcard("mavar13", "ceci"),
+                    regex("mavar14", "^start?aa.*")),
+                and().add(term("mavar14", "motMajuscule").add("mavar15", "simplemot")),
+                and().add(term("mavar16", "motMajuscule").add("mavar17", "simplemot"),
+                    or().add(eq("mavar19", "abcd"),
+                        match("mavar18", "quelques mots"))),
+                regex("mavar14", "^start?aa.*")));
+        select.setLimitFilter(100, 1000).addHintFilter(FILTERARGS.CACHE.exactToken());
+        select.addOrderByAscFilter("maclef1")
+            .addOrderByDescFilter("maclef2").addOrderByAscFilter("maclef3");
+        select.addUsedProjection("#dua", "#all");
+        assertNotNull(select.getFinalSelect());
+        assertTrue(select.getAllProjection());
+        assertNotNull(select.getFilter());
+        assertNotNull(select.getProjection());
+        assertNotNull(select.getQuery());
+        assertNotNull(select.getFinal());
+    }
 }

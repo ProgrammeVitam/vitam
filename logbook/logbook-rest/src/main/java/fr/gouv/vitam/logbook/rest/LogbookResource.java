@@ -93,7 +93,7 @@ public class LogbookResource {
         try {
             LogbookParametersHelper.checkNullOrEmptyParameters(operation);
         } catch (IllegalArgumentException e) {
-            LOGGER.error("Operations is incorrect");
+            LOGGER.error("Operations is incorrect", e);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         if (! operation.getParameterValue(LogbookOperation.getIdParameterName()).equals(operationId)) {
@@ -132,7 +132,7 @@ public class LogbookResource {
         try {
             LogbookParametersHelper.checkNullOrEmptyParameters(operation);
         } catch (IllegalArgumentException e) {
-            LOGGER.error("Operations is incorrect");
+            LOGGER.error("Operations is incorrect", e);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         if (! operation.getParameterValue(LogbookOperation.getIdParameterName()).equals(operationId)) {

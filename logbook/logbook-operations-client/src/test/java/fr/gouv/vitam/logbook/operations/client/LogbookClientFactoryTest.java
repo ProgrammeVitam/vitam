@@ -81,17 +81,6 @@ public class LogbookClientFactoryTest {
         assertNotNull(client2);
 
         assertNotSame(client, client2);
-
-        boolean catchException = false;
-        try {
-            LogbookClientFactory.getLogbookClient("test");
-        } catch (final IllegalArgumentException iae) {
-            catchException = true;
-        }
-        assertTrue(catchException);
-
-        final LogbookClient client3 = LogbookClientFactory.getLogbookClient("MOCK_OPERATIONS");
-        assertNotNull(client3);
     }
 
     @Test
@@ -137,13 +126,5 @@ public class LogbookClientFactoryTest {
         final LogbookClientFactory.LogbookClientType type = LogbookClientFactory.getDefaultLogbookClientType();
         assertNotNull(type);
         assertEquals(LogbookClientType.OPERATIONS, type);
-    }
-
-    @Test
-    @Deprecated
-    public void getOperationsParametersTest() {
-        final LogbookParameters parameters = LogbookClientFactory.newOperationParameters();
-        assertNotNull(parameters);
-        assertTrue(parameters instanceof LogbookOperationParameters);
     }
 }

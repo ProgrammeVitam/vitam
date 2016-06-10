@@ -33,6 +33,8 @@ import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.GLOBAL
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.PROJECTION;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.logbook.common.dsl.Request;
+import fr.gouv.vitam.logbook.common.dsl.Select;
 import fr.gouv.vitam.parser.request.parser.VarNameAdapter;
 
 /**
@@ -153,10 +155,10 @@ public class SelectParser extends RequestParser {
         }
         GlobalDatas.sanityParametersCheck(slice.toString(), GlobalDatas.nbProjections);
         try {
-            ObjectNode node = (ObjectNode) ((Select) request).projection.get(
+            ObjectNode node = (ObjectNode) ((Select) request).getProjection().get(
                 PROJECTION.FIELDS.exactToken());
             if (node == null) {
-                node = ((Select) request).projection.putObject(PROJECTION.FIELDS.exactToken());
+                node = ((Select) request).getProjection().putObject(PROJECTION.FIELDS.exactToken());
                 // Add all fields
                 node.setAll(allFields);
             } else {

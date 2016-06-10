@@ -40,6 +40,8 @@ import java.util.TreeSet;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
@@ -122,6 +124,44 @@ public class LogbookOperationParametersTest {
         }
         assertEquals("incorrect", params.getParameterValue(LogbookParameterName.eventTypeProcess));
         assertEquals(null, params.getParameterValue(LogbookParameterName.eventDateTime));
+        GUID aa = GUIDFactory.newOperationIdGUID(0);
+        GUID bb = GUIDFactory.newOperationIdGUID(0);
+        GUID cc = GUIDFactory.newOperationIdGUID(0);
+        LogbookParametersFactory.newLogbookOperationParameters(aa, "aa", aa,
+            LogbookTypeProcess.AUDIT, LogbookOutcome.STARTED, bb, cc);
+        try {
+            LogbookParametersFactory.newLogbookOperationParameters(aa, "", aa,
+                LogbookTypeProcess.AUDIT, LogbookOutcome.STARTED, bb, cc);
+            fail("Should raized an exception");
+        } catch (final IllegalArgumentException e) {
+            // ignore
+        }
+        try {
+            LogbookParametersFactory.newLogbookOperationParameters(aa, "aa", null,
+                LogbookTypeProcess.AUDIT, LogbookOutcome.STARTED, bb, cc);
+            fail("Should raized an exception");
+        } catch (final IllegalArgumentException e) {
+            // ignore
+        }
+        try {
+            LogbookParametersFactory.newLogbookOperationParameters(aa, "aa", aa,
+                LogbookTypeProcess.AUDIT, null, bb, cc);
+            fail("Should raized an exception");
+        } catch (final IllegalArgumentException e) {
+            // ignore
+        }
+        try {
+            LogbookParametersFactory.newLogbookOperationParameters(aa, "aa", aa,
+                null, LogbookOutcome.STARTED, bb, cc);
+            fail("Should raized an exception");
+        } catch (final IllegalArgumentException e) {
+            // ignore
+        }
+
+    }
+
+    @Test
+    public void deprecatedMethod() {
 
         LogbookParametersFactory.newLogbookOperationParameters("aa", "aa", "aa",
             LogbookTypeProcess.AUDIT, LogbookOutcome.STARTED, "bb", "cc");
@@ -155,7 +195,6 @@ public class LogbookOperationParametersTest {
         }
 
     }
-
     @Test
     public void getEventDateTime() {
         final LogbookOperationParameters params = LogbookParametersFactory.newLogbookOperationParameters();

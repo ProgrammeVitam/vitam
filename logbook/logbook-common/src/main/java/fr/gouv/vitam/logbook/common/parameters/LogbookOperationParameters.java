@@ -27,7 +27,6 @@
 package fr.gouv.vitam.logbook.common.parameters;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -57,39 +56,6 @@ public class LogbookOperationParameters implements LogbookParameters {
 
     @JsonIgnore
     private final Set<LogbookParameterName> mandatoryParameters;
-
-    /**
-     * To keep compatibility
-     *
-     * @deprecated set initialize by factory
-     */
-    @JsonIgnore
-    @Deprecated
-    private static final Set<LogbookParameterName> deprecatedMandatoryParameters = new HashSet<>();
-
-    /**
-     * Initialize mandatories fields list
-     */
-    static {
-        deprecatedMandatoryParameters.add(LogbookParameterName.eventIdentifier);
-        deprecatedMandatoryParameters.add(LogbookParameterName.eventType);
-        deprecatedMandatoryParameters.add(LogbookParameterName.eventIdentifierProcess);
-        deprecatedMandatoryParameters.add(LogbookParameterName.eventTypeProcess);
-        deprecatedMandatoryParameters.add(LogbookParameterName.outcome);
-        deprecatedMandatoryParameters.add(LogbookParameterName.outcomeDetailMessage);
-        deprecatedMandatoryParameters.add(LogbookParameterName.eventIdentifierRequest);
-    }
-
-    /**
-     * Constructor to keep compatibility
-     *
-     * @deprecated use the LogbookParametersFactory to get the {@link LogbookOperationParameters}
-     */
-    @JsonIgnore
-    @Deprecated
-    public LogbookOperationParameters() {
-        mandatoryParameters = deprecatedMandatoryParameters;
-    }
 
     /**
      * Constructor use by the factory to initialize the set of mandatories
@@ -183,11 +149,6 @@ public class LogbookOperationParameters implements LogbookParameters {
             return LogbookOutcome.valueOf(status);
         }
         return null;
-    }
-
-    @JsonIgnore
-    protected static final Set<LogbookParameterName> getDeprecatedmandatoryparameters() {
-        return deprecatedMandatoryParameters;
     }
 
     @JsonIgnore
