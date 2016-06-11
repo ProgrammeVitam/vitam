@@ -78,7 +78,7 @@ public interface InterfaceLruCache<K, V> {
      * @param key
      * @param callback
      * @return Value
-     * @throws VitamException 
+     * @throws VitamException
      * @throws Exception if callback throws exception
      */
     public V get(K key, Callable<V> callback) throws VitamException;
@@ -91,7 +91,7 @@ public interface InterfaceLruCache<K, V> {
      * @param callback
      * @param ttl time to live in milliseconds
      * @return Value
-     * @throws VitamException 
+     * @throws VitamException
      * @throws Exception if callback throws exception
      */
     public V get(K key, Callable<V> callback, long ttl) throws VitamException;

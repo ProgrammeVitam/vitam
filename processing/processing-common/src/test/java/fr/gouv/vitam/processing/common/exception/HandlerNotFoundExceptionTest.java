@@ -8,7 +8,7 @@ public class HandlerNotFoundExceptionTest {
 
     private static final String ERROR = "ERROR";
     private static final String EXCEPTION = "fr.gouv.vitam.processing.common.exception.HandlerNotFoundException";
-    
+
     @Test
     public void testConstructor() {
         HandlerNotFoundException exception =

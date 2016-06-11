@@ -7,6 +7,7 @@ import org.junit.Test;
 public class ServerConfigurationTest {
 
     private static final String Test = "test";
+
     @Test
     public void testConstructor() {
         assertEquals("", new ServerConfiguration().getUrlMetada());

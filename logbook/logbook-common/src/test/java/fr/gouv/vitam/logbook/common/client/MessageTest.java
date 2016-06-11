@@ -26,7 +26,10 @@
  */
 package fr.gouv.vitam.logbook.common.client;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 
@@ -36,7 +39,7 @@ public class MessageTest {
 
     @Test
     public final void test() {
-        for (ErrorMessage message : ErrorMessage.values()) {
+        for (final ErrorMessage message : ErrorMessage.values()) {
             assertNotNull(message.getMessage());
         }
         StatusMessage message = new StatusMessage();

@@ -17,7 +17,7 @@ public class ProcessResponseTest {
         assertTrue(new ProcessResponse().getStepResponses().isEmpty());
 
         assertEquals(StatusCode.OK.value(), new ProcessResponse().setStatus(StatusCode.OK).getStatus().value());
-        ArrayList<EngineResponse> list = new ArrayList<EngineResponse>();
+        final ArrayList<EngineResponse> list = new ArrayList<EngineResponse>();
         list.add(new ProcessResponse().setStatus(StatusCode.WARNING));
         assertEquals(StatusCode.WARNING, new ProcessResponse().getGlobalProcessStatusCode(list));
         assertTrue(new ProcessResponse().setMessages(new ArrayList<>()).getMessages().isEmpty());

@@ -47,7 +47,7 @@ public class StatusMessage {
 
     /**
      * Constructor from ServerIdentity
-     * 
+     *
      * @param serverIdentity
      */
     public StatusMessage(ServerIdentity serverIdentity) {

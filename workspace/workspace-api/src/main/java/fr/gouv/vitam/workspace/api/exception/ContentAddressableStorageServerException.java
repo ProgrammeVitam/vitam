@@ -36,7 +36,7 @@ public class ContentAddressableStorageServerException extends ContentAddressable
 
     /**
      * param message to associate with a new ContentAddressableStorageServerException
-     * 
+     *
      * @param message
      */
     public ContentAddressableStorageServerException(String message) {

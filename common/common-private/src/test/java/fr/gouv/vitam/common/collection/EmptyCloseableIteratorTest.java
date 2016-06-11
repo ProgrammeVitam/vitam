@@ -1,6 +1,7 @@
 package fr.gouv.vitam.common.collection;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 
@@ -9,7 +10,7 @@ public class EmptyCloseableIteratorTest {
     @Test
     public final void test() {
         EmptyCloseableIterator<Object> emptyCloseableIterator0 = new EmptyCloseableIterator<Object>();
-        Object object0 = emptyCloseableIterator0.next();
+        final Object object0 = emptyCloseableIterator0.next();
         assertNull(object0);
         emptyCloseableIterator0 = new EmptyCloseableIterator<Object>();
         emptyCloseableIterator0.close();

@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -58,27 +58,31 @@ public class ExtractSedaActionHandlerTest {
         factory = mock(SedaUtilsFactory.class);
         sedaUtils = mock(SedaUtils.class);
     }
-    
+
     @Test
-    public void givenWorkspaceNotExistWhenExecuteThenReturnResponseFATAL() throws XMLStreamException, IOException, ProcessingException {
-        Mockito.doThrow(new ProcessingException("")).when(sedaUtils).extractSEDA(anyObject()); 
-        when(factory.create()).thenReturn(sedaUtils);  
+    public void givenWorkspaceNotExistWhenExecuteThenReturnResponseFATAL()
+        throws XMLStreamException, IOException, ProcessingException {
+        Mockito.doThrow(new ProcessingException("")).when(sedaUtils).extractSEDA(anyObject());
+        when(factory.create()).thenReturn(sedaUtils);
         handler = new ExtractSedaActionHandler(factory);
         assertEquals(ExtractSedaActionHandler.getId(), HANDLER_ID);
-        WorkParams params = new WorkParams().setServerConfiguration(new ServerConfiguration().setUrlWorkspace("")).setGuuid("");
-        EngineResponse response = handler.execute(params);
+        final WorkParams params =
+            new WorkParams().setServerConfiguration(new ServerConfiguration().setUrlWorkspace("")).setGuuid("");
+        final EngineResponse response = handler.execute(params);
         assertEquals(response.getStatus(), StatusCode.FATAL);
     }
-    
+
     @Test
-    public void givenWorkspaceExistWhenExecuteThenReturnResponseOK() throws XMLStreamException, IOException, ProcessingException {
-        Mockito.doNothing().when(sedaUtils).extractSEDA(anyObject()); 
-        when(factory.create()).thenReturn(sedaUtils);  
+    public void givenWorkspaceExistWhenExecuteThenReturnResponseOK()
+        throws XMLStreamException, IOException, ProcessingException {
+        Mockito.doNothing().when(sedaUtils).extractSEDA(anyObject());
+        when(factory.create()).thenReturn(sedaUtils);
         handler = new ExtractSedaActionHandler(factory);
         assertEquals(ExtractSedaActionHandler.getId(), HANDLER_ID);
-        WorkParams params = new WorkParams().setServerConfiguration(new ServerConfiguration().setUrlWorkspace("")).setGuuid("");
-        EngineResponse response = handler.execute(params);
+        final WorkParams params =
+            new WorkParams().setServerConfiguration(new ServerConfiguration().setUrlWorkspace("")).setGuuid("");
+        final EngineResponse response = handler.execute(params);
         assertEquals(response.getStatus(), StatusCode.OK);
     }
-    
+
 }

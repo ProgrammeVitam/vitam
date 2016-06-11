@@ -71,11 +71,11 @@ import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.FILTER
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.PROJECTION;
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.SELECTFILTER;
 import fr.gouv.vitam.builder.request.construct.query.Query;
+import fr.gouv.vitam.builder.singlerequest.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogLevel;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.logbook.common.dsl.Select;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.common.server.database.collections.MongoDbAccessImpl;

@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -53,36 +53,35 @@ public class WorkerImplTest {
     private Worker workerImpl;
 
     @Before
-    public void setUp() throws Exception {
-    }
+    public void setUp() throws Exception {}
 
     @Test(expected = IllegalArgumentException.class)
     public void givenWorkerImplementWhenWorkParamsIsNullThenThrowsIllegalArgumentException()
-            throws IllegalArgumentException, HandlerNotFoundException, ProcessingException {
+        throws IllegalArgumentException, HandlerNotFoundException, ProcessingException {
         workerImpl = new WorkerImplFactory().create();
         workerImpl.run(null, new Step());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void givenWorkerImplementWhenStepIsNullThenThrowsIllegalArgumentException()
-            throws IllegalArgumentException, HandlerNotFoundException, ProcessingException {
+        throws IllegalArgumentException, HandlerNotFoundException, ProcessingException {
         workerImpl = new WorkerImplFactory().create();
         workerImpl.run(new WorkParams(), null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void givenWorkerImplementWhenEmptyActionsInStepThenThrowsIllegalArgumentException()
-            throws IllegalArgumentException, HandlerNotFoundException, ProcessingException {
+        throws IllegalArgumentException, HandlerNotFoundException, ProcessingException {
         workerImpl = new WorkerImplFactory().create();
         workerImpl.run(new WorkParams(), new Step());
     }
 
     @Test(expected = HandlerNotFoundException.class)
     public void givenWorkerImplementWhenActionIsNullThenThrowsHandlerNotFoundException()
-            throws IllegalArgumentException, HandlerNotFoundException, ProcessingException {
+        throws IllegalArgumentException, HandlerNotFoundException, ProcessingException {
         workerImpl = new WorkerImplFactory().create();
-        Step step = new Step();
-        List<Action> actions = new ArrayList<Action>();
+        final Step step = new Step();
+        final List<Action> actions = new ArrayList<Action>();
         actions.add(new Action());
         step.setActions(actions);
         workerImpl.run(new WorkParams(), step);
@@ -90,16 +89,16 @@ public class WorkerImplTest {
 
     @Test
     public void test() throws Exception {
-        Step step = new Step();
+        final Step step = new Step();
         step.setStepName("Traiter_archives");
-        List<Action> actions = new ArrayList<Action>();
-        Action action = new Action();
+        final List<Action> actions = new ArrayList<Action>();
+        final Action action = new Action();
         action.setActionKey(ExtractSedaActionHandler.getId());
         actions.add(action);
         step.setActions(actions);
 
-        ActionHandler actionHandler = mock(ExtractSedaActionHandler.class);
-        EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK);
+        final ActionHandler actionHandler = mock(ExtractSedaActionHandler.class);
+        final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK);
         when(actionHandler.execute(anyObject())).thenReturn(response);
         workerImpl = new WorkerImplFactory().create(ExtractSedaActionHandler.getId(), actionHandler);
         workerImpl.run(new WorkParams(), step);

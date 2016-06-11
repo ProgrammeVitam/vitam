@@ -96,7 +96,7 @@ public enum ErrorMessage {
 
     /**
      * getter for attribute message
-     * 
+     *
      * @return message
      */
     public String getMessage() {

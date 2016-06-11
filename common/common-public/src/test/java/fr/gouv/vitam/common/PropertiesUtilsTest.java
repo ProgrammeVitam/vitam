@@ -85,10 +85,10 @@ public class PropertiesUtilsTest {
 
     @Test
     public void testGetResourcesFile() throws FileNotFoundException {
-        File file = PropertiesUtils.getResourcesFile(
+        final File file = PropertiesUtils.getResourcesFile(
             ResourcesPublicUtilTest.GUID_TEST_PROPERTIES);
         assertTrue(file.exists());
-        Path path = PropertiesUtils.getResourcesPath(ResourcesPublicUtilTest.GUID_TEST_PROPERTIES);
+        final Path path = PropertiesUtils.getResourcesPath(ResourcesPublicUtilTest.GUID_TEST_PROPERTIES);
         assertEquals(file.getAbsolutePath(), path.toString());
         try {
             assertFalse(PropertiesUtils.readProperties(path.toFile()).isEmpty());
@@ -100,85 +100,91 @@ public class PropertiesUtilsTest {
     private static class ConfigurationTest {
         private String test;
         private int number;
-        protected ConfigurationTest(){
+
+        protected ConfigurationTest() {
             // empty
         }
+
         protected final String getTest() {
             return test;
         }
+
         protected final void setTest(String test) {
             this.test = test;
         }
+
         protected final int getNumber() {
             return number;
         }
+
         protected final void setNumber(int number) {
             this.number = number;
         }
-        
+
     }
+
     @Test
     public void testGetYamlFile() throws FileNotFoundException {
         try {
-            ConfigurationTest test = PropertiesUtils.readYaml(
+            final ConfigurationTest test = PropertiesUtils.readYaml(
                 PropertiesUtils.findFile(ResourcesPublicUtilTest.YAML_TEST_CONF), ConfigurationTest.class);
             assertEquals("test", test.getTest());
             assertEquals(12346, test.getNumber());
-        } catch (IOException e1) {
+        } catch (final IOException e1) {
             e1.printStackTrace();
             fail(ResourcesPublicUtilTest.SHOULD_NOT_HAVE_AN_EXCEPTION);
         }
         try {
-            ConfigurationTest test = PropertiesUtils.readYaml(
+            final ConfigurationTest test = PropertiesUtils.readYaml(
                 PropertiesUtils.getResourcesFile(ResourcesPublicUtilTest.YAML_TEST_CONF),
                 ConfigurationTest.class);
             assertEquals("test", test.getTest());
             assertEquals(12346, test.getNumber());
-        } catch (IOException e1) {
+        } catch (final IOException e1) {
             e1.printStackTrace();
             fail(ResourcesPublicUtilTest.SHOULD_NOT_HAVE_AN_EXCEPTION);
         }
         try {
-            ConfigurationTest test = PropertiesUtils.readYaml(
+            final ConfigurationTest test = PropertiesUtils.readYaml(
                 PropertiesUtils.getResourcesPath(ResourcesPublicUtilTest.YAML_TEST_CONF),
                 ConfigurationTest.class);
             assertEquals("test", test.getTest());
             assertEquals(12346, test.getNumber());
-        } catch (IOException e1) {
+        } catch (final IOException e1) {
             e1.printStackTrace();
             fail(ResourcesPublicUtilTest.SHOULD_NOT_HAVE_AN_EXCEPTION);
         }
         try {
-            ConfigurationTest test = PropertiesUtils.readYaml(
+            final ConfigurationTest test = PropertiesUtils.readYaml(
                 new File("inexistantFile"),
                 ConfigurationTest.class);
             fail(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
-        } catch (IOException e1) {
-            //ignore
+        } catch (final IOException e1) {
+            // ignore
         }
         try {
-            ConfigurationTest test = PropertiesUtils.readYaml(
+            final ConfigurationTest test = PropertiesUtils.readYaml(
                 (File) null,
                 ConfigurationTest.class);
             fail(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
-        } catch (IOException e1) {
-            //ignore
+        } catch (final IOException e1) {
+            // ignore
         }
         try {
-            ConfigurationTest test = PropertiesUtils.readYaml(
+            final ConfigurationTest test = PropertiesUtils.readYaml(
                 (Path) null,
                 ConfigurationTest.class);
             fail(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
-        } catch (IOException e1) {
-            //ignore
+        } catch (final IOException e1) {
+            // ignore
         }
         try {
-            ConfigurationTest test = PropertiesUtils.readYaml(
+            final ConfigurationTest test = PropertiesUtils.readYaml(
                 PropertiesUtils.getResourcesPath(ResourcesPublicUtilTest.YAML_TEST_CONF),
                 null);
             fail(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
-        } catch (IOException e1) {
-            //ignore
+        } catch (final IOException e1) {
+            // ignore
         }
     }
 }

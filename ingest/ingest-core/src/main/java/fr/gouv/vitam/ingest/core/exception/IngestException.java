@@ -31,10 +31,14 @@ package fr.gouv.vitam.ingest.core.exception;
  */
 public class IngestException extends Exception {
 
+    /**
+     *
+     */
+    private static final long serialVersionUID = -7770252753759091537L;
     private final String code = "";
 
     /**
-     * 
+     *
      * @param e
      */
     public IngestException(Exception e) {
@@ -42,7 +46,7 @@ public class IngestException extends Exception {
     }
 
     /**
-     * 
+     *
      * @param message
      */
     public IngestException(String message) {

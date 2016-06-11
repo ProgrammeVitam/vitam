@@ -63,9 +63,9 @@ import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.QUERY;
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.SELECTFILTER;
 import fr.gouv.vitam.builder.request.construct.query.Query;
 import fr.gouv.vitam.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.builder.singlerequest.Request;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.logbook.common.dsl.Request;
 import fr.gouv.vitam.parser.request.parser.GlobalDatasParser;
 import fr.gouv.vitam.parser.request.parser.VarNameAdapter;
 

@@ -35,7 +35,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.common.server.application.configuration.ClientConfiguration;
 import fr.gouv.vitam.common.server.application.configuration.ClientConfigurationImpl;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 
 /**
@@ -182,7 +181,7 @@ public final class LogbookClientFactory {
         try {
             configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
                 ClientConfigurationImpl.class);
-        } catch (IOException fnf) {
+        } catch (final IOException fnf) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER
                     .debug(String.format("Error when retrieving configuration file %s, using mock",
@@ -194,8 +193,8 @@ public final class LogbookClientFactory {
             LOGGER.debug(String.format("Error when retrieving configuration file %s, using mock",
                 CONFIGURATION_FILENAME));
         } else {
-            this.server = configuration.getServerHost();
-            this.port = configuration.getServerPort();
+            server = configuration.getServerHost();
+            port = configuration.getServerPort();
             changeDefaultClientType(LogbookClientType.OPERATIONS);
         }
     }

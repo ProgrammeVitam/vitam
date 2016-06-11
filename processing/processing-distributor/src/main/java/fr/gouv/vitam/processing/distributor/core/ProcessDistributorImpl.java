@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
- * 
+ *
  * Copyright Vitam (2012, 2015)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
@@ -45,7 +45,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
  * The Process Distributor call the workers {@link Worker}and intercept the response for manage a post actions step
- * 
+ *
  */
 public class ProcessDistributorImpl implements ProcessDistributor {
 
@@ -56,24 +56,25 @@ public class ProcessDistributorImpl implements ProcessDistributor {
     private static final String EXCEPTION_MESSAGE =
         "runtime exceptions thrown by the Process distributor during runnig...";
 
-    private List<Worker> workers = new ArrayList<Worker>();
-    private List<String> availableWorkers = new ArrayList<String>();
+    private final List<Worker> workers = new ArrayList<Worker>();
+    private final List<String> availableWorkers = new ArrayList<String>();
 
     /**
      * Empty constructor
      */
     public ProcessDistributorImpl() {
-        Worker worker1 = new WorkerImpl();
+        final Worker worker1 = new WorkerImpl();
         workers.add(worker1);
         availableWorkers.add(worker1.getWorkerId());
     }
 
     /**
      * Constructor with parameter workerImpl
+     * 
      * @param workerImpl
      */
     public ProcessDistributorImpl(WorkerImpl workerImpl) {
-        Worker worker1 = workerImpl;
+        final Worker worker1 = workerImpl;
         workers.add(worker1);
         availableWorkers.add(worker1.getWorkerId());
     }
@@ -83,20 +84,21 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         ParametersChecker.checkParameter("WorkParams is a mandatory parameter", workParams);
         ParametersChecker.checkParameter("Step is a mandatory parameter", step);
         ParametersChecker.checkParameter("workflowId is a mandatory parameter", workflowId);
-        long time = System.currentTimeMillis();
-        EngineResponse errorResponse = new ProcessResponse();
+        final long time = System.currentTimeMillis();
+        final EngineResponse errorResponse = new ProcessResponse();
         errorResponse.setStatus(StatusCode.FATAL);
-        List<EngineResponse> responses = new ArrayList<>();
+        final List<EngineResponse> responses = new ArrayList<>();
         try {
 
             if (step.getDistribution().getKind().equals(DistributionKind.LIST)) {
-                WorkspaceClient workspaceClient =
+                final WorkspaceClient workspaceClient =
                     new WorkspaceClientFactory().create(workParams.getServerConfiguration().getUrlWorkspace());
-                List<URI> objectsList = workspaceClient.getListUriDigitalObjectFromFolder(workParams.getContainerName(), ARCHIVE_UNIT_FOLDER);
-                if ((objectsList == null) || objectsList.isEmpty()) {
+                final List<URI> objectsList = workspaceClient
+                    .getListUriDigitalObjectFromFolder(workParams.getContainerName(), ARCHIVE_UNIT_FOLDER);
+                if (objectsList == null || objectsList.isEmpty()) {
                     responses.add(errorResponse);
                 } else {
-                    for (URI objectUri : objectsList) {
+                    for (final URI objectUri : objectsList) {
                         if (availableWorkers.size() == 0) {
                             LOGGER.info(errorResponse.getStatus().toString());
                             responses.add(errorResponse);
@@ -118,18 +120,18 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             }
 
 
-        } catch (IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             responses.add(errorResponse);
             LOGGER.error(e.getMessage());
-        } catch (HandlerNotFoundException e) {
+        } catch (final HandlerNotFoundException e) {
             responses.add(errorResponse);
             LOGGER.error(e.getMessage());
 
-        } catch (Exception e) {
+        } catch (final Exception e) {
             responses.add(errorResponse);
             LOGGER.error(EXCEPTION_MESSAGE, e);
         } finally {
-            LOGGER.info(ELAPSED_TIME_MESSAGE + ((System.currentTimeMillis() - time) / 1000) + "s /stepName :" +
+            LOGGER.info(ELAPSED_TIME_MESSAGE + (System.currentTimeMillis() - time) / 1000 + "s /stepName :" +
                 getSaftyStepName(step) + "Status: " + responses.toString() + "/workflowId :" + workflowId);
         }
 

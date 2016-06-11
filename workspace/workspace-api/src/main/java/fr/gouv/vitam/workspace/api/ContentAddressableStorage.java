@@ -45,9 +45,9 @@ public interface ContentAddressableStorage {
     // Container
     /**
      * Creates a container
-     * 
+     *
      * @param containerName name of container to create
-     * 
+     *
      * @throws ContentAddressableStorageAlreadyExistException Thrown when creating a container while it (containerName)
      *         already exists
      * @throws ContentAddressableStorageServerException
@@ -60,9 +60,9 @@ public interface ContentAddressableStorage {
      * <p>
      * Note: this function will delete everything inside a container recursively.
      * </p>
-     * 
+     *
      * @param containerName name of container to purge
-     * 
+     *
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
      */
 
@@ -70,9 +70,9 @@ public interface ContentAddressableStorage {
 
     /**
      * Deletes a container if it is empty.
-     * 
+     *
      * @param containerName name of the container to delete
-     * 
+     *
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
      * @throws ContentAddressableStorageServerException
      */
@@ -81,7 +81,7 @@ public interface ContentAddressableStorage {
 
     /**
      * Deletes everything inside a container recursively.
-     * 
+     *
      * @param containerName name of the container to delete
      * @param recursive false : deletes a container if it is empty, true : deletes everything recursively
      *
@@ -92,7 +92,7 @@ public interface ContentAddressableStorage {
 
     /**
      * Determines if a container exists
-     * 
+     *
      * @param containerName name of container
      */
     // TODO change name to isExistingContainer(String containeNname)
@@ -107,7 +107,7 @@ public interface ContentAddressableStorage {
 
     /**
      * Creates a folder (or a directory) marker depending on the service
-     * 
+     *
      * @param containerName container to create the directory in
      * @param folderName full path to the folder (or directory)
      * @throws ContentAddressableStorageAlreadyExistException Thrown when creating a directory while it already exists
@@ -120,7 +120,7 @@ public interface ContentAddressableStorage {
 
     /**
      * Deletes a folder (or a directory) marker depending on the service
-     * 
+     *
      * @param containerName container to delete the folder from
      * @param folderName full path to the folder to delete
      * @throws ContentAddressableStorageNotFoundException Thrown when the directory cannot be located.
@@ -131,7 +131,7 @@ public interface ContentAddressableStorage {
 
     /**
      * Determines if a folder (or a directory) exists
-     * 
+     *
      * @param containerName container where the folder resides
      * @param folderName full path to the folder
      */
@@ -142,11 +142,11 @@ public interface ContentAddressableStorage {
 
     /**
      * Adds an object representing the data at location containerName/objectName
-     * 
+     *
      * @param containerName container to place the object.
      * @param objectName fully qualified object name relative to the container.
      * @param stream the data
-     * 
+     *
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
      * @throws ContentAddressableStorageException Thrown when put action failed due some other failure
      */
@@ -156,11 +156,11 @@ public interface ContentAddressableStorage {
 
     /**
      * Retrieves an object representing the data at location containerName/objectName
-     * 
+     *
      * @param containerName container where this exists.
      * @param objectName fully qualified name relative to the container.
      * @return the object you intended to receive or empty array, if it doesn't exist.
-     * 
+     *
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
      * @throws ContentAddressableStorageException Thrown when get action failed due some other failure
      */
@@ -169,10 +169,10 @@ public interface ContentAddressableStorage {
 
     /**
      * Deletes a object representing the data at location containerName/objectName
-     * 
+     *
      * @param containerName container where this exists.
      * @param objectName fully qualified name relative to the container.
-     * 
+     *
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located or the blob cannot
      *         be located in the container.
      * @throws ContentAddressableStorageException Thrown when delete action failed due some other failure
@@ -183,7 +183,7 @@ public interface ContentAddressableStorage {
 
     /**
      * Determines if an object exists
-     * 
+     *
      * @param containerName container where the object resides
      * @param objectName fully qualified name relative to the container.
      */
@@ -193,12 +193,12 @@ public interface ContentAddressableStorage {
 
     /**
      * Retrieves recursively the uri list of object inside a folder rootFolder/subfolder/
-     * 
+     *
      * @param containerName, not null allowed container where this exists.
      * @param folderName, not null allowed fully qualified folder name relative to the container.
-     * 
+     *
      * @return a list of URI
-     * 
+     *
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
      * @throws ContentAddressableStorageException Thrown when get action failed due some other failure
      */
@@ -208,7 +208,7 @@ public interface ContentAddressableStorage {
 
     /**
      * create container: will be identified by GUID && extract objects and push it on the container
-     * 
+     *
      * @param containerName : the container name (will be Guid created in ingest module)
      * @param SipObject : compressed SIP object
      * @throws ContentAddressableStorageAlreadyExistException Thrown when creating a container while it already exists

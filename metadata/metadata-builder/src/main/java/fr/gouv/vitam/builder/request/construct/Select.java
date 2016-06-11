@@ -1,47 +1,41 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
- * 
+ *
  * Copyright Vitam (2012, 2015)
  *
- * This software is governed by the CeCILL 2.1 license under French law and
- * abiding by the rules of distribution of free software. You can use, modify
- * and/ or redistribute the software under the terms of the CeCILL license as
- * circulated by CEA, CNRS and INRIA at the following URL
- * "http://www.cecill.info".
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
+ * by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
  *
- * As a counterpart to the access to the source code and rights to copy, modify
- * and redistribute granted by the license, users are provided only with a
- * limited warranty and the software's author, the holder of the economic
- * rights, and the successive licensors have only limited liability.
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
  *
- * In this respect, the user's attention is drawn to the risks associated with
- * loading, using, modifying and/or developing or reproducing the software by
- * the user in light of its specific status of free software, that may mean that
- * it is complicated to manipulate, and that also therefore means that it is
- * reserved for developers and experienced professionals having in-depth
- * computer knowledge. Users are therefore encouraged to load and test the
- * software's suitability as regards their requirements in conditions enabling
- * the security of their systems and/or data to be ensured and, more generally,
- * to use and operate it in the same conditions as regards security.
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
  *
- * The fact that you are presently reading this means that you have had
- * knowledge of the CeCILL license and that you accept its terms.
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you
+ * accept its terms.
  *******************************************************************************/
 package fr.gouv.vitam.builder.request.construct;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.builder.request.construct.configuration.GlobalDatas;
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.GLOBAL;
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.PROJECTION;
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.SELECTFILTER;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
- * Select: { $roots: roots, $query : query, $filter : filter, $projection :
- * projection } or [ roots, query, filter, projection ]
+ * Select: { $roots: roots, $query : query, $filter : filter, $projection : projection } or [ roots, query, filter,
+ * projection ]
  *
  */
 public class Select extends Request {
@@ -95,6 +89,7 @@ public class Select extends Request {
     /**
      * @return this Query
      */
+    @Override
     public final Select reset() {
         super.reset();
         resetUsageProjection();
@@ -103,10 +98,8 @@ public class Select extends Request {
     }
 
     /**
-     * @param offset
-     *            ignored if 0
-     * @param limit
-     *            ignored if 0
+     * @param offset ignored if 0
+     * @param limit ignored if 0
      * @return this Query
      */
     public final Select setLimitFilter(final long offset, final long limit) {
@@ -124,7 +117,7 @@ public class Select extends Request {
     }
 
     /**
-     * 
+     *
      * @param filterContent
      * @return this Query
      */
@@ -133,11 +126,11 @@ public class Select extends Request {
         long limit = GlobalDatas.limitLoad;
         if (filterContent.has(SELECTFILTER.LIMIT.exactToken())) {
             /*
-             * $limit : n $maxScan: <number> / cursor.limit(n) "filter" : {
-             * "limit" : {"value" : n} } ou "from" : start, "size" : n
+             * $limit : n $maxScan: <number> / cursor.limit(n) "filter" : { "limit" : {"value" : n} } ou "from" : start,
+             * "size" : n
              */
             limit = filterContent.get(SELECTFILTER.LIMIT.exactToken())
-                    .asLong(GlobalDatas.limitLoad);
+                .asLong(GlobalDatas.limitLoad);
         }
         if (filterContent.has(SELECTFILTER.OFFSET.exactToken())) {
             /*
@@ -149,15 +142,15 @@ public class Select extends Request {
     }
 
     /**
-     * 
+     *
      * @param filter
      * @return this Query
      * @throws InvalidParseOperationException
      */
     public final Select parseLimitFilter(final String filter)
-            throws InvalidParseOperationException {
+        throws InvalidParseOperationException {
         GlobalDatas.sanityParametersCheck(filter, GlobalDatas.nbFilters);
-        JsonNode rootNode = JsonHandler.getFromString(filter);
+        final JsonNode rootNode = JsonHandler.getFromString(filter);
         return setLimitFilter(rootNode);
     }
 
@@ -168,7 +161,7 @@ public class Select extends Request {
      * @throws InvalidParseOperationException
      */
     public final Select addOrderByAscFilter(final String... variableNames)
-            throws InvalidParseOperationException {
+        throws InvalidParseOperationException {
         if (filter == null) {
             filter = JsonHandler.createObjectNode();
         }
@@ -193,7 +186,7 @@ public class Select extends Request {
      * @throws InvalidParseOperationException
      */
     public final Select addOrderByDescFilter(final String... variableNames)
-            throws InvalidParseOperationException {
+        throws InvalidParseOperationException {
         if (filter == null) {
             filter = JsonHandler.createObjectNode();
         }
@@ -212,20 +205,20 @@ public class Select extends Request {
     }
 
     /**
-     * 
+     *
      * @param filterContent
      * @return this Query
      * @throws InvalidParseOperationException
      */
     public final Select addOrderByFilter(final JsonNode filterContent)
-            throws InvalidParseOperationException {
+        throws InvalidParseOperationException {
         if (filter == null) {
             filter = JsonHandler.createObjectNode();
         }
         if (filterContent.has(SELECTFILTER.ORDERBY.exactToken())) {
             /*
-             * $orderby : { key : +/-1, ... } $orderby: { key : +/-1, ... }
-             * "sort" : [ { "key" : "asc/desc"}, ..., "_score" ]
+             * $orderby : { key : +/-1, ... } $orderby: { key : +/-1, ... } "sort" : [ { "key" : "asc/desc"}, ...,
+             * "_score" ]
              */
             final JsonNode node = filterContent.get(SELECTFILTER.ORDERBY.exactToken());
             filter.putObject(SELECTFILTER.ORDERBY.exactToken()).setAll((ObjectNode) node);
@@ -234,26 +227,27 @@ public class Select extends Request {
     }
 
     /**
-     * 
+     *
      * @param filter
      * @return this Query
      * @throws InvalidParseOperationException
      */
     public final Select parseOrderByFilter(final String filter)
-            throws InvalidParseOperationException {
+        throws InvalidParseOperationException {
         GlobalDatas.sanityParametersCheck(filter, GlobalDatas.nbFilters);
-        JsonNode rootNode = JsonHandler.getFromString(filter);
+        final JsonNode rootNode = JsonHandler.getFromString(filter);
         return addOrderByFilter(rootNode);
     }
 
     /**
-     * 
+     *
      * @param filterContent
      * @return this Query
      * @throws InvalidParseOperationException
      */
+    @Override
     public final Select setFilter(final JsonNode filterContent)
-            throws InvalidParseOperationException {
+        throws InvalidParseOperationException {
         super.setFilter(filterContent);
         return setLimitFilter(filterContent).addOrderByFilter(filterContent);
     }
@@ -265,7 +259,7 @@ public class Select extends Request {
      * @throws InvalidParseOperationException
      */
     public final Select addUsedProjection(final String... variableNames)
-            throws InvalidParseOperationException {
+        throws InvalidParseOperationException {
         if (projection == null) {
             projection = JsonHandler.createObjectNode();
         }
@@ -293,7 +287,7 @@ public class Select extends Request {
      * @throws InvalidParseOperationException
      */
     public final Select addUnusedProjection(final String... variableNames)
-            throws InvalidParseOperationException {
+        throws InvalidParseOperationException {
         if (projection == null) {
             projection = JsonHandler.createObjectNode();
         }
@@ -315,7 +309,7 @@ public class Select extends Request {
     }
 
     /**
-     * 
+     *
      * @param projectionContent
      * @return this Query
      */
@@ -324,24 +318,24 @@ public class Select extends Request {
             projection = JsonHandler.createObjectNode();
         }
         if (projectionContent.has(PROJECTION.FIELDS.exactToken())) {
-            ObjectNode node =
-                    (ObjectNode) projection.putObject(PROJECTION.FIELDS.exactToken());
+            final ObjectNode node =
+                projection.putObject(PROJECTION.FIELDS.exactToken());
             node.setAll(
-                    (ObjectNode) projectionContent.get(PROJECTION.FIELDS.exactToken()));
+                (ObjectNode) projectionContent.get(PROJECTION.FIELDS.exactToken()));
         }
         return this;
     }
 
     /**
-     * 
+     *
      * @param projection
      * @return this Query
      * @throws InvalidParseOperationException
      */
     public final Select parseProjection(final String projection)
-            throws InvalidParseOperationException {
+        throws InvalidParseOperationException {
         GlobalDatas.sanityParametersCheck(projection, GlobalDatas.nbProjections);
-        JsonNode rootNode = JsonHandler.getFromString(projection);
+        final JsonNode rootNode = JsonHandler.getFromString(projection);
         return setProjection(rootNode);
     }
 
@@ -352,7 +346,7 @@ public class Select extends Request {
      * @throws InvalidParseOperationException
      */
     public final Select setUsageProjection(final String usage)
-            throws InvalidParseOperationException {
+        throws InvalidParseOperationException {
         GlobalDatas.sanityParameterCheck(usage);
         if (projection == null) {
             projection = JsonHandler.createObjectNode();
@@ -365,17 +359,17 @@ public class Select extends Request {
     }
 
     /**
-     * 
+     *
      * @param projectionContent
      * @return this Query
      * @throws InvalidParseOperationException
      */
     public final Select setUsageProjection(final JsonNode projectionContent)
-            throws InvalidParseOperationException {
+        throws InvalidParseOperationException {
         resetUsageProjection();
         if (projectionContent.has(PROJECTION.USAGE.exactToken())) {
             setUsageProjection(
-                    projectionContent.get(PROJECTION.USAGE.exactToken()).asText());
+                projectionContent.get(PROJECTION.USAGE.exactToken()).asText());
         }
         return this;
     }
@@ -387,15 +381,14 @@ public class Select extends Request {
      * @throws InvalidParseOperationException
      */
     public final Select setProjection(final JsonNode projectionContent)
-            throws InvalidParseOperationException {
+        throws InvalidParseOperationException {
         resetUsedProjection();
         return addProjection(projectionContent).setUsageProjection(projectionContent);
     }
 
     /**
      *
-     * @return the Final Select containing all 4 parts: roots array, queries
-     *         array, filter and projection
+     * @return the Final Select containing all 4 parts: roots array, queries array, filter and projection
      */
     public final ObjectNode getFinalSelect() {
         final ObjectNode node = getFinal();
@@ -408,23 +401,24 @@ public class Select extends Request {
     }
 
     /**
-     * 
+     *
      * @return True if the projection is not restricted
      */
     public final boolean getAllProjection() {
         if (projection != null) {
-            ObjectNode node = (ObjectNode) projection.get(PROJECTION.FIELDS.exactToken());
+            final ObjectNode node = (ObjectNode) projection.get(PROJECTION.FIELDS.exactToken());
             if (node == null || node.isMissingNode()) {
                 return true;
             }
-            String all = VitamFieldsHelper.all();
+            final String all = VitamFieldsHelper.all();
             if (node.has(all) && node.get(all).asInt() > 0) {
-            	return true;
+                return true;
             }
             return false;
         }
         return true;
     }
+
     /**
      * @return the projection
      */
@@ -439,7 +433,7 @@ public class Select extends Request {
     public String toString() {
         final StringBuilder builder = new StringBuilder();
         builder.append("QUERY: ").append(super.toString())
-                .append("\n\tProjection: ").append(projection);
+            .append("\n\tProjection: ").append(projection);
         return builder.toString();
     }
 

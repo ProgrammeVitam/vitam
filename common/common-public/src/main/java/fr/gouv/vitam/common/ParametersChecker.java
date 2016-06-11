@@ -98,6 +98,7 @@ public final class ParametersChecker {
 
     /**
      * Check if an integer parameter is greater or equals to minValue
+     * 
      * @param name name of the variable
      * @param variable
      * @param minValue

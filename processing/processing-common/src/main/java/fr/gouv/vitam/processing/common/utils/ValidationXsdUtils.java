@@ -14,11 +14,12 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
 import com.sun.org.apache.xerces.internal.util.XMLCatalogResolver;
+
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 
 /**
@@ -27,7 +28,7 @@ import com.sun.org.apache.xerces.internal.util.XMLCatalogResolver;
  */
 public class ValidationXsdUtils {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ValidationXsdUtils.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ValidationXsdUtils.class);
     /**
      * Filename of the catalog file ; should be found in the classpath.
      */
@@ -42,35 +43,35 @@ public class ValidationXsdUtils {
      * @throws FileNotFoundException
      * @throws XMLStreamException
      * @throws SAXException
-     * @throws IOException 
+     * @throws IOException
      */
     public boolean checkWithXSD(InputStream xmlFile, String xsdFile)
         throws SAXException, IOException, XMLStreamException {
 
-        XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+        final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
         try {
             xmlStreamReader = xmlInputFactory.createXMLStreamReader(xmlFile, "UTF-8");
             schema = getSchema(xsdFile);
-            Validator validator = schema.newValidator();
+            final Validator validator = schema.newValidator();
             validator.validate(new StAXSource(xmlStreamReader));
             return true;
-        } catch (SAXException e) {
+        } catch (final SAXException e) {
             LOGGER.error("SAXException");
             throw e;
-        } catch (IOException e) {
+        } catch (final IOException e) {
             LOGGER.error("IOException");
             throw e;
-        } catch (XMLStreamException e) {
+        } catch (final XMLStreamException e) {
             LOGGER.error("XMLStreamException");
             throw e;
         }
     }
 
     private Schema getSchema(String xsdFile) throws SAXException {
-        SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-        
+        final SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+
         // Load catalog to resolve external schemas even offline.
-        URL catalogUrl = this.getClass().getClassLoader().getResource(CATALOG_FILENAME); 
+        final URL catalogUrl = this.getClass().getClassLoader().getResource(CATALOG_FILENAME);
         factory.setResourceResolver(new XMLCatalogResolver(new String[] {catalogUrl.toString()}, false));
 
         return factory.newSchema(this.getClass().getClassLoader().getResource(xsdFile));

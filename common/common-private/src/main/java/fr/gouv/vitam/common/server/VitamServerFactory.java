@@ -39,7 +39,7 @@ public class VitamServerFactory {
     public static final int DEFAULT_PORT = 8082;
 
     /**
-     * 
+     *
      * @return a VitamServer with the default port
      */
     public static VitamServer newVitamServerOnDefaultPort() {
@@ -47,7 +47,7 @@ public class VitamServerFactory {
     }
 
     /**
-     * 
+     *
      * @param port
      * @return a VitamServer with the specified port
      * @throws IllegalArgumentException if port <= 0

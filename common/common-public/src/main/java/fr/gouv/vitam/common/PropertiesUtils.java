@@ -41,8 +41,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 /**
- * Property Utility class
- * <br><br>
+ * Property Utility class <br>
+ * <br>
  * NOTE for developers: Do not add LOGGER there
  */
 public final class PropertiesUtils {
@@ -98,9 +98,9 @@ public final class PropertiesUtils {
     }
 
     /**
-     * Get the File associated with this filename, trying in this order: as fullpath, 
-     * as in Vitam Config Folder, as Resources file
-     * 
+     * Get the File associated with this filename, trying in this order: as fullpath, as in Vitam Config Folder, as
+     * Resources file
+     *
      * @param filename
      * @return the File if found
      * @throws FileNotFoundException if not fount
@@ -109,20 +109,20 @@ public final class PropertiesUtils {
         // First try as full path
         File file = new File(filename);
         try {
-            if (! file.exists()) {
+            if (!file.exists()) {
                 // Second try using VitamConfigFolder
                 file = new File(SystemPropertyUtil.getVitamConfigFolder(),
                     filename);
-                if (! file.exists()) {
+                if (!file.exists()) {
                     // Third try using Resources
                     file = getResourcesFile(filename);
                 }
-                
+
             }
-        } catch (FileNotFoundException e) {// NOSONAR need to rewrite the exception
+        } catch (final FileNotFoundException e) {// NOSONAR need to rewrite the exception
             throw new FileNotFoundException("File not found: " + filename);
         }
-        if (! file.exists()) {
+        if (!file.exists()) {
             throw new FileNotFoundException("File not found: " + filename);
         }
         return file;
@@ -148,6 +148,7 @@ public final class PropertiesUtils {
 
     /**
      * Read the Yaml file and return the object read
+     * 
      * @param yamlFile
      * @param clasz the class representing the target object
      * @return the object read
@@ -164,6 +165,7 @@ public final class PropertiesUtils {
 
     /**
      * Read the Yaml file and return the object read
+     * 
      * @param yamlPath
      * @param clasz the class representing the target object
      * @return the object read
@@ -173,7 +175,7 @@ public final class PropertiesUtils {
         if (yamlPath == null || clasz == null) {
             throw new FileNotFoundException(ARGUMENTS_MUST_BE_NON_NULL);
         }
-        File file = yamlPath.toFile();
+        final File file = yamlPath.toFile();
         return readYaml(file, clasz);
     }
 }

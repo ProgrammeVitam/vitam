@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
- * 
+ *
  * Copyright Vitam (2012, 2015)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
@@ -28,31 +28,31 @@ import java.util.List;
 public interface EngineResponse {
 
     /**
-     * 
+     *
      * @return Enum StatusCode {OK,KO,FATAL}
      */
     public StatusCode getStatus();
 
     /**
-     * 
+     *
      * @return StatusCode value {OK,KO,FATAL}
      */
     public String getValue();
 
     /**
-     * 
+     *
      * @param status ENUM statusCode
      */
     public EngineResponse setStatus(StatusCode status);
 
     /**
-     * 
+     *
      * @return list of functional error message
      */
     public List<String> getMessages();
 
     /**
-     * 
+     *
      * @param messages list of functional error message
      */
     public EngineResponse setMessages(List<String> messages);

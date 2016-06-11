@@ -186,12 +186,12 @@ public class LogbookResourceTest {
             .then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
     }
-    
+
     @Test
     public void testError() {
         // Create KO since Bad Request
         final LogbookOperationParameters empty = LogbookParametersFactory.newLogbookOperationParameters();
-        String id = GUIDFactory.newOperationIdGUID(0).getId();
+        final String id = GUIDFactory.newOperationIdGUID(0).getId();
         empty.putParameterValue(LogbookParameterName.eventIdentifierProcess, id);
         given()
             .contentType(ContentType.JSON)

@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
- * 
+ *
  * Copyright Vitam (2012, 2015)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
@@ -26,18 +26,17 @@ package fr.gouv.vitam.processing.engine.core;
 import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
 
 /**
- * Class ProcessEngineImplFactory 
- * Goal : create an instance of ProcessEngineImpl 
+ * Class ProcessEngineImplFactory Goal : create an instance of ProcessEngineImpl
  */
 public class ProcessEngineImplFactory {
-    
+
     /**
      * @param workflow as String is workfolowId
      * @return ProcessEngineImpl object created
      * @throws WorkflowNotFoundException
      */
     public ProcessEngineImpl create(String workflow) throws WorkflowNotFoundException {
-        ProcessEngineImpl processImpl = new ProcessEngineImpl();
+        final ProcessEngineImpl processImpl = new ProcessEngineImpl();
         processImpl.setWorkflow(workflow);
         return processImpl;
     }

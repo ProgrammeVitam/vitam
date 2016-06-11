@@ -29,30 +29,30 @@ package fr.gouv.vitam.common.server.application.configuration;
 
 /**
  * Defines minimal common configurations for database configuration properties.
- * 
- * <br><br>
- * Your configuration class must implement
- * it whenever you use database configuration in your configuration file
+ *
+ * <br>
+ * <br>
+ * Your configuration class must implement it whenever you use database configuration in your configuration file
  *
  */
 public interface DbConfiguration extends VitamApplicationConfiguration {
     /**
      * Must return the value of a 'dbHost' attribute
-     * 
+     *
      * @return the database host value
      */
     String getDbHost();
 
     /**
      * Must return the value of a 'dbPort' attribute
-     * 
+     *
      * @return the database port value
      */
     int getDbPort();
 
     /**
      * Must return the value of a 'dbName' attribute
-     * 
+     *
      * @return the database host value
      */
     String getDbName();

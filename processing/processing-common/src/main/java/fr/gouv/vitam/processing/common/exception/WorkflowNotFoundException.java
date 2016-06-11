@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
- * 
+ *
  * Copyright Vitam (2012, 2015)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
@@ -34,7 +34,7 @@ public class WorkflowNotFoundException extends ProcessingException {
     private static final long serialVersionUID = 2008622374138271571L;
 
     /**
-     * 
+     *
      * @param message
      * @param cause
      */
@@ -43,7 +43,7 @@ public class WorkflowNotFoundException extends ProcessingException {
     }
 
     /**
-     * 
+     *
      * @param message
      */
     public WorkflowNotFoundException(String message) {

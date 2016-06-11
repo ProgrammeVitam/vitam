@@ -21,7 +21,7 @@ import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 
 public class ProcessManagementResourceTest {
- 
+
     private static final int SERVER_PORT = 1234;
     private static final String DATA_URI = "/processing/api/v0.0.3";
     private static final String NOT_EXITS_WORKFLOW_ID = "workflowJSONv3";
@@ -29,66 +29,59 @@ public class ProcessManagementResourceTest {
     private static final String URL_METADATA = "http://localhost:8086";
     private static final String URL_WORKSPACE = "http://localhost:8084";
     private static final String CONTAINER_NAME = "sipContainer";
-    
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        ServerConfiguration configuration = new ServerConfiguration();
+        final ServerConfiguration configuration = new ServerConfiguration();
         configuration.setUrlMetada(URL_METADATA);
         configuration.setUrlWorkspace(URL_WORKSPACE);
         ProcessManagementApplication.run(configuration, SERVER_PORT);
         RestAssured.port = SERVER_PORT;
         RestAssured.basePath = DATA_URI;
-    }    
-    
+    }
+
     /**
-     * Test server status 
-     * should return 200
+     * Test server status should return 200
      */
     @Test
     public void shouldGetStatusOK() throws Exception {
         get("/status").then().statusCode(200);
     }
-  
+
     @Test
     public void shouldReturnErrorNotFoundWhenNotExistWorkFlow() throws Exception {
         given()
             .contentType(ContentType.JSON)
-            .body(new ProcessingEntry(CONTAINER_NAME, NOT_EXITS_WORKFLOW_ID)).
-        when()
-            .post("/operations").
-        then()
+            .body(new ProcessingEntry(CONTAINER_NAME, NOT_EXITS_WORKFLOW_ID)).when()
+            .post("/operations").then()
             .body(equalTo(generateResponseErrorFromStatus(Status.NOT_FOUND)))
             .statusCode(Status.NOT_FOUND.getStatusCode());
-    }    
-    
-        
+    }
+
+
     @Test
     public void shouldReturnPreconditionFailedWhenEmptyBody() throws Exception {
         given()
             .contentType(ContentType.JSON)
-            .body(new ProcessingEntry(CONTAINER_NAME, "")).
-        when()
-            .post("/operations").
-        then()
+            .body(new ProcessingEntry(CONTAINER_NAME, "")).when()
+            .post("/operations").then()
             .body(equalTo(generateResponseErrorFromStatus(Status.PRECONDITION_FAILED)))
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
-    
+
     @Ignore
     @Test
     public void shouldReturnResponseOKIfWorkflowExecuted() throws Exception {
         given()
             .contentType(ContentType.JSON)
-            .body(new ProcessingEntry(CONTAINER_NAME, EXITS_WORKFLOW_ID)).
-        when()
-            .post("/operations").
-        then()
+            .body(new ProcessingEntry(CONTAINER_NAME, EXITS_WORKFLOW_ID)).when()
+            .post("/operations").then()
             .statusCode(Status.CREATED.getStatusCode());
     }
-    
+
     private static String generateResponseErrorFromStatus(Status status) throws JsonProcessingException {
         return new ObjectMapper().writeValueAsString(new RequestResponseError()
-                .setError(new VitamError(status.getStatusCode()).setContext("ingest").setState("code_vitam")
-                        .setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase())));
-    }    
+            .setError(new VitamError(status.getStatusCode()).setContext("ingest").setState("code_vitam")
+                .setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase())));
+    }
 }

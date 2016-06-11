@@ -6,12 +6,10 @@
     <parent>
         <groupId>fr.gouv.vitam</groupId>
         <artifactId>ingest</artifactId>
-        <version>0.3.0-SNAPSHOT</version>
+		<version>0.3.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>fr.gouv.vitam</groupId>
     <artifactId>ingest-web</artifactId>
-    <version>0.3.0-SNAPSHOT</version>
 
     <packaging>jar</packaging>
     <name>ingest-web</name>

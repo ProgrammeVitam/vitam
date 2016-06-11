@@ -58,7 +58,7 @@ public interface LogbookParameters {
 
     /**
      * Set the outcome status
-     * 
+     *
      * @param outcome
      * @return this
      */
@@ -66,7 +66,7 @@ public interface LogbookParameters {
 
     /**
      * Get the outcome status
-     * 
+     *
      * @return the status (or null if not set yet)
      * @throws IllegalArgumentException if the status is with incorrect value
      */
@@ -74,7 +74,7 @@ public interface LogbookParameters {
 
     /**
      * Set the process type
-     * 
+     *
      * @param process process type
      * @return this
      */
@@ -82,7 +82,7 @@ public interface LogbookParameters {
 
     /**
      * Get the process type
-     * 
+     *
      * @return the process type (or null if not set yet)
      * @throws IllegalArgumentException if the process type is with incorrect value
      */

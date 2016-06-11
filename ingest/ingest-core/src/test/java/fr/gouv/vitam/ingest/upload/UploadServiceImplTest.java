@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -39,7 +39,6 @@ import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
-import org.junit.Test;
 import org.mockito.Mockito;
 
 import fr.gouv.vitam.ingest.util.PropertyUtil;
@@ -68,7 +67,7 @@ public class UploadServiceImplTest {
 
     /**
      * gets the inputstream of a file
-     * 
+     *
      * @param file
      * @return
      * @throws IOException
@@ -79,7 +78,7 @@ public class UploadServiceImplTest {
 
     @Ignore
     public void givenWorkspaceExistWhenUploadSipAsStreamThenReturnOK() throws IOException, Exception {
-        Response response = uploadServiceImpl.uploadSipAsStream(getInputStream("SIP_bordereau_avec_objet_OK.zip"),
+        final Response response = uploadServiceImpl.uploadSipAsStream(getInputStream("SIP_bordereau_avec_objet_OK.zip"),
             formDataContentDisposition, "SIP");
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(200);
@@ -89,7 +88,7 @@ public class UploadServiceImplTest {
     public void givenWorkspaceNotExistWhenUploadSipAsStreamThenReturnKO() throws IOException, Exception {
         Mockito.doThrow(new ContentAddressableStorageServerException("")).when(workspaceClient)
             .unzipSipObject(anyObject(), anyObject());
-        Response response = uploadServiceImpl.uploadSipAsStream(getInputStream("SIP_bordereau_avec_objet_OK.zip"),
+        final Response response = uploadServiceImpl.uploadSipAsStream(getInputStream("SIP_bordereau_avec_objet_OK.zip"),
             formDataContentDisposition, "SIP");
         assertThat(response).isNotNull();
     }
@@ -101,10 +100,10 @@ public class UploadServiceImplTest {
     // formDataContentDisposition, "SIP");
     // }
 
-    //@Test(expected = Exception.class)
+    // @Test(expected = Exception.class)
     @Ignore
     public void givenInputStreamNullParameterWhenUploadSipAsStreamThenRaiseAnException() throws Exception {
-        Response response = uploadServiceImpl.uploadSipAsStream(null,
+        final Response response = uploadServiceImpl.uploadSipAsStream(null,
             formDataContentDisposition, "SIP");
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(500);

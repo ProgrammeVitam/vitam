@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -30,7 +30,7 @@ import com.google.common.base.Strings;
 
 /**
  * Workspace Checker Parameters
- * 
+ *
  *
  */
 public class ParametersChecker {
@@ -39,7 +39,7 @@ public class ParametersChecker {
     // TODO comment
     /**
      * throws an IllegalArgumentException in case of there is an error on parameters
-     * 
+     *
      * @param errorMessage
      * @param parameters
      */
@@ -47,7 +47,7 @@ public class ParametersChecker {
         if (parameters == null) {
             throw new IllegalArgumentException(errorMessage);
         }
-        for (String parameter : parameters) {
+        for (final String parameter : parameters) {
             if (Strings.isNullOrEmpty(parameter)) {
                 throw new IllegalArgumentException(errorMessage);
             }

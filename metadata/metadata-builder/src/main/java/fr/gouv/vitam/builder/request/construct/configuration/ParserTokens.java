@@ -1,63 +1,59 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
- * 
+ *
  * Copyright Vitam (2012, 2015)
  *
- * This software is governed by the CeCILL 2.1 license under French law and
- * abiding by the rules of distribution of free software. You can use, modify
- * and/ or redistribute the software under the terms of the CeCILL license as
- * circulated by CEA, CNRS and INRIA at the following URL
- * "http://www.cecill.info".
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
+ * by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
  *
- * As a counterpart to the access to the source code and rights to copy, modify
- * and redistribute granted by the license, users are provided only with a
- * limited warranty and the software's author, the holder of the economic
- * rights, and the successive licensors have only limited liability.
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
  *
- * In this respect, the user's attention is drawn to the risks associated with
- * loading, using, modifying and/or developing or reproducing the software by
- * the user in light of its specific status of free software, that may mean that
- * it is complicated to manipulate, and that also therefore means that it is
- * reserved for developers and experienced professionals having in-depth
- * computer knowledge. Users are therefore encouraged to load and test the
- * software's suitability as regards their requirements in conditions enabling
- * the security of their systems and/or data to be ensured and, more generally,
- * to use and operate it in the same conditions as regards security.
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
  *
- * The fact that you are presently reading this means that you have had
- * knowledge of the CeCILL license and that you accept its terms.
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you
+ * accept its terms.
  *******************************************************************************/
 package fr.gouv.vitam.builder.request.construct.configuration;
 
 /**
  * Main language definition
- * 
+ *
  *
  */
 public class ParserTokens {
 
-	private static final String DEFAULT_PREFIX = "$";
+    private static final String DEFAULT_PREFIX = "$";
+
     /**
-     * @formatter:off
-     * For a Select :<br>
-     * { $roots: roots, $query : query, $filter : filter, $projection : projection } or [ roots, query, filter, projection ]<br>
-     * For an Update : <br>
-     * { $roots: roots, $query : query, $filter : multi, $action : action } or [ roots, query, multi, action ]<br>
-     * For an Insert : <br>
-     * { $roots: roots, $query : query, $filter : multi, $data : data } or [ roots, query, multi, data ]<br>
-     * For a Delete : <br>
-     * { $roots: roots, $query : query, $filter : multi } or [ roots, query, multi ]<br>
+     * @formatter:off For a Select :<br>
+     *                { $roots: roots, $query : query, $filter : filter, $projection : projection } or [ roots, query,
+     *                filter, projection ]<br>
+     *                For an Update : <br>
+     *                { $roots: roots, $query : query, $filter : multi, $action : action } or [ roots, query, multi,
+     *                action ]<br>
+     *                For an Insert : <br>
+     *                { $roots: roots, $query : query, $filter : multi, $data : data } or [ roots, query, multi, data ]
+     *                <br>
+     *                For a Delete : <br>
+     *                { $roots: roots, $query : query, $filter : multi } or [ roots, query, multi ]<br>
      *
-     * Select is in a subtree, by default next level (1), except if $exactdepth
-     * is set with a value (exact depth) or $depth with a relative value (+ or
-     * -, meaning leaves or parents, 0 for no limit in leaves depth) Only one of
-     * $exactdepth and $depth might be set. If both are set, only $depth will be
-     * kept. <br>
-     *  { expression, $exactdepth : exactdepth, $depth : /- depth }
+     *                Select is in a subtree, by default next level (1), except if $exactdepth is set with a value
+     *                (exact depth) or $depth with a relative value (+ or -, meaning leaves or parents, 0 for no limit
+     *                in leaves depth) Only one of $exactdepth and $depth might be set. If both are set, only $depth
+     *                will be kept. <br>
+     *                { expression, $exactdepth : exactdepth, $depth : /- depth }
      * @formatter:on
      */
     public static enum GLOBAL {
-    	
+
         /**
          * Roots part (departure of the request)
          */
@@ -83,17 +79,18 @@ public class ParserTokens {
          */
         DATA("data");
 
-    	private final String exactToken;
-    	
-    	/** Constructor
-    	 * Add DEFAULT_PREFIX before the exactToken ($+exactToken)
-    	 */
-        private GLOBAL(String realName) {
-        	// TODO REVIEW no toLowerCase() since already set through realName
-        	this.exactToken = DEFAULT_PREFIX + realName.toLowerCase();
-        }
+        private final String exactToken;
+
         /**
-         * @return the exact token 
+         * Constructor Add DEFAULT_PREFIX before the exactToken ($+exactToken)
+         */
+        private GLOBAL(String realName) {
+            // TODO REVIEW no toLowerCase() since already set through realName
+            exactToken = DEFAULT_PREFIX + realName.toLowerCase();
+        }
+
+        /**
+         * @return the exact token
          */
         public final String exactToken() {
             return exactToken;
@@ -101,7 +98,7 @@ public class ParserTokens {
 
     }
 
-    
+
     /**
      * Query model
      *
@@ -114,7 +111,7 @@ public class ParserTokens {
         AND("and"),
         /**
          * All expressions are grouped by an NOT operator (all shall be false)<br>
-         *  $not : [ expression1, expression2, ... ]
+         * $not : [ expression1, expression2, ... ]
          */
         NOT("not"),
         /**
@@ -149,7 +146,7 @@ public class ParserTokens {
         NIN("nin"),
         /**
          * Size of an array named 'name' equals to specified length<br>
-         *  $size : { name : length }
+         * $size : { name : length }
          */
         SIZE("size"),
         /**
@@ -237,14 +234,13 @@ public class ParserTokens {
         /**
          * Selects where field named 'name' matches a phrase as a prefix of the field <br>
          * $prefix : { name : phrase } <br>
-         * Should not be used externally (but
-         * possible) but in replacement of match_phrase_prefix if parameter not
+         * Should not be used externally (but possible) but in replacement of match_phrase_prefix if parameter not
          * analyzed
          */
         PREFIX("prefix"),
         /**
-         * Selects where fields named 'name' are like the one provided,
-         * introducing some "fuzzy", which tends to be slower than mlt<br> 
+         * Selects where fields named 'name' are like the one provided, introducing some "fuzzy", which tends to be
+         * slower than mlt<br>
          * $flt : { $fields : [ name1, name2 ], $like : like_text }
          */
         FLT("flt"),
@@ -254,9 +250,8 @@ public class ParserTokens {
          */
         MLT("mlt"),
         /**
-         * Selects where field named 'name' contains something relevant to the
-         * search parameter. This search parameter can contain wildcards (* ?),
-         * specifications:<br>
+         * Selects where field named 'name' contains something relevant to the search parameter. This search parameter
+         * can contain wildcards (* ?), specifications:<br>
          * (x y) meaning x or y<br>
          * "x y" meaning exactly sub phrase "x y"<br>
          * +x -y meaning x must be present, y must be absent<br>
@@ -264,22 +259,19 @@ public class ParserTokens {
          */
         SEARCH("search"),
         /**
-         * Selects where field named 'name' contains a value valid with the
-         * corresponding regular expression. <br>
+         * Selects where field named 'name' contains a value valid with the corresponding regular expression. <br>
          * $regex : { name : regex }
          */
         REGEX("regex"),
         /**
-         * Selects where field named 'name' contains exactly this term
-         * (lowercase only, no blank). Useful in simple value field to find one
-         * specific item, or for multiple tests at once (AND implicit). <br>
+         * Selects where field named 'name' contains exactly this term (lowercase only, no blank). Useful in simple
+         * value field to find one specific item, or for multiple tests at once (AND implicit). <br>
          * $term : { name : term, name : term }
          */
         TERM("term"),
         /**
-         * Selects where field named 'name' contains exactly this term
-         * (lowercase only, no blank) with optional wildcard character (* and
-         * ?). Useful in simple value field to find one specific item.<br> 
+         * Selects where field named 'name' contains exactly this term (lowercase only, no blank) with optional wildcard
+         * character (* and ?). Useful in simple value field to find one specific item.<br>
          * $wildcard : { name : term }
          */
         WILDCARD("wildcard"),
@@ -290,22 +282,23 @@ public class ParserTokens {
         PATH("path");
 
 
-    	private final String exactToken;
-    	
-    	/** Constructor
-    	 * Add DEFAULT_PREFIX before the exactToken ($+exactToken)
-    	 */
-        private QUERY(String realName) {
-        	// TODO REVIEW no toLowerCase() since already set through realName
-        	this.exactToken = DEFAULT_PREFIX + realName.toLowerCase();
-        }
+        private final String exactToken;
+
         /**
-         * @return the exact token 
+         * Constructor Add DEFAULT_PREFIX before the exactToken ($+exactToken)
+         */
+        private QUERY(String realName) {
+            // TODO REVIEW no toLowerCase() since already set through realName
+            exactToken = DEFAULT_PREFIX + realName.toLowerCase();
+        }
+
+        /**
+         * @return the exact token
          */
         public final String exactToken() {
             return exactToken;
         }
-        
+
     }
 
     /**
@@ -323,9 +316,8 @@ public class ParserTokens {
          */
         OFFSET("offset"),
         /**
-         * Specify an orderby to respect in the return of the elements according
-         * to one field named 'name' and an orderby ascendant (+1) or descendant
-         * (-1) <br>
+         * Specify an orderby to respect in the return of the elements according to one field named 'name' and an
+         * orderby ascendant (+1) or descendant (-1) <br>
          * $orderby : [ { key : +/-1 } ]
          */
         ORDERBY("orderby"),
@@ -335,17 +327,18 @@ public class ParserTokens {
          */
         HINT("hint");
 
-    	private final String exactToken;
-    	
-    	/** Constructor
-    	 * Add DEFAULT_PREFIX before the exactToken ($+exactToken)
-    	 */
-        private SELECTFILTER(String realName) {
-        	// TODO REVIEW no toLowerCase() since already set through realName
-        	this.exactToken = DEFAULT_PREFIX + realName.toLowerCase();
-        }
+        private final String exactToken;
+
         /**
-         * @return the exact token 
+         * Constructor Add DEFAULT_PREFIX before the exactToken ($+exactToken)
+         */
+        private SELECTFILTER(String realName) {
+            // TODO REVIEW no toLowerCase() since already set through realName
+            exactToken = DEFAULT_PREFIX + realName.toLowerCase();
+        }
+
+        /**
+         * @return the exact token
          */
         public final String exactToken() {
             return exactToken;
@@ -358,27 +351,26 @@ public class ParserTokens {
      */
     public static enum PROJECTION {
         /**
-         * Specify the fields to return $fields : {name1 : 0/1, name2 : 0/1,
-         * ...}
+         * Specify the fields to return $fields : {name1 : 0/1, name2 : 0/1, ...}
          */
         FIELDS("fields"),
         /**
-         * UsageContract reference that will be used to select the binary object
-         * version to return $usage : contractId
+         * UsageContract reference that will be used to select the binary object version to return $usage : contractId
          */
         USAGE("usage");
 
-    	private final String exactToken;
-    	
-    	/** Constructor
-    	 * Add DEFAULT_PREFIX before the exactToken ($+exactToken)
-    	 */
-        private PROJECTION(String realName) {
-        	// TODO REVIEW no toLowerCase() since already set through realName
-        	this.exactToken = DEFAULT_PREFIX + realName.toLowerCase();
-        }
+        private final String exactToken;
+
         /**
-         * @return the exact token 
+         * Constructor Add DEFAULT_PREFIX before the exactToken ($+exactToken)
+         */
+        private PROJECTION(String realName) {
+            // TODO REVIEW no toLowerCase() since already set through realName
+            exactToken = DEFAULT_PREFIX + realName.toLowerCase();
+        }
+
+        /**
+         * @return the exact token
          */
         public final String exactToken() {
             return exactToken;
@@ -427,17 +419,18 @@ public class ParserTokens {
          */
         DATE("date");
 
-    	private final String exactToken;
-    	
-    	/** Constructor
-    	 * Add DEFAULT_PREFIX before the exactToken ($+exactToken)
-    	 */
-        private QUERYARGS(String realName) {
-        	// TODO REVIEW no toLowerCase() since already set through realName
-        	this.exactToken = DEFAULT_PREFIX + realName.toLowerCase();
-        }
+        private final String exactToken;
+
         /**
-         * @return the exact token 
+         * Constructor Add DEFAULT_PREFIX before the exactToken ($+exactToken)
+         */
+        private QUERYARGS(String realName) {
+            // TODO REVIEW no toLowerCase() since already set through realName
+            exactToken = DEFAULT_PREFIX + realName.toLowerCase();
+        }
+
+        /**
+         * @return the exact token
          */
         public final String exactToken() {
             return exactToken;
@@ -467,17 +460,18 @@ public class ParserTokens {
          */
         LTE("lte");
 
-    	private final String exactToken;
-    	
-    	/** Constructor
-    	 * Add DEFAULT_PREFIX before the exactToken ($+exactToken)
-    	 */
-        private RANGEARGS(String realName) {
-        	// TODO REVIEW no toLowerCase() since already set through realName
-        	this.exactToken = DEFAULT_PREFIX + realName.toLowerCase();
-        }
+        private final String exactToken;
+
         /**
-         * @return the exact token 
+         * Constructor Add DEFAULT_PREFIX before the exactToken ($+exactToken)
+         */
+        private RANGEARGS(String realName) {
+            // TODO REVIEW no toLowerCase() since already set through realName
+            exactToken = DEFAULT_PREFIX + realName.toLowerCase();
+        }
+
+        /**
+         * @return the exact token
          */
         public final String exactToken() {
             return exactToken;
@@ -520,31 +514,33 @@ public class ParserTokens {
          */
         TYPE("type");
 
-    	private final String exactToken;
-    	
-    	/** Constructor
-    	 * Add DEFAULT_PREFIX before the exactToken ($+exactToken)
-    	 */
-        private PROJECTIONARGS(String realName) {
-        	// TODO REVIEW no toLowerCase() since already set through realName
-        	this.exactToken = "#" + realName.toLowerCase();
-        }
+        private final String exactToken;
+
         /**
-         * @return the exact token 
+         * Constructor Add DEFAULT_PREFIX before the exactToken ($+exactToken)
+         */
+        private PROJECTIONARGS(String realName) {
+            // TODO REVIEW no toLowerCase() since already set through realName
+            exactToken = "#" + realName.toLowerCase();
+        }
+
+        /**
+         * @return the exact token
          */
         public final String exactToken() {
             return exactToken;
         }
+
         /**
-         * 
+         *
          * @param name
          * @return True if this value is not allowed on set (insert, update)
          */
         public static boolean notAllowedOnSet(String name) {
             if (name.charAt(0) == '#') {
                 try {
-                	// TODO REVIEW incorrect since tolowercase compared to real name
-                    PROJECTIONARGS proj = PROJECTIONARGS.valueOf(name.substring(1));
+                    // TODO REVIEW incorrect since tolowercase compared to real name
+                    final PROJECTIONARGS proj = PROJECTIONARGS.valueOf(name.substring(1));
                     switch (proj) {
                         case ALL:
                         case FORMAT:
@@ -554,7 +550,7 @@ public class ParserTokens {
                             return true;
                         default:
                     }
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     // Ignore
                 }
             }
@@ -592,17 +588,18 @@ public class ParserTokens {
          */
         OBJECTS("objects");
 
-    	private final String exactToken;
-    	
-    	/** Constructor
-    	 * Add DEFAULT_PREFIX before the exactToken ($+exactToken)
-    	 */
-        private FILTERARGS(String realName) {
-        	// TODO REVIEW no toLowerCase() since already set through realName
-        	this.exactToken = realName.toLowerCase();
-        }
+        private final String exactToken;
+
         /**
-         * @return the exact token 
+         * Constructor Add DEFAULT_PREFIX before the exactToken ($+exactToken)
+         */
+        private FILTERARGS(String realName) {
+            // TODO REVIEW no toLowerCase() since already set through realName
+            exactToken = realName.toLowerCase();
+        }
+
+        /**
+         * @return the exact token
          */
         public final String exactToken() {
             return exactToken;
@@ -615,12 +612,12 @@ public class ParserTokens {
      *
      * <pre>
      * {\@code
-     *      
+     *
      * Pour mettre à jour (update) :
      * multiple update : { $multi : true/false } pour autoriser une mise à jour de plusieurs noeuds ou pas (si la requête présente plusieurs résultats mais $multi = false => erreur )
-     * action : 
+     * action :
      *   { $set : { clef : valeur, clef : valeur, ... } } / { $unset : { clef : "", ... } } positionne ou ajoute (si elle n'existait pas) une valeur pour une clef ou efface la clef
-     *   { $inc : { clef : valeur, clef : valeur, ... } } incrémente la valeur 
+     *   { $inc : { clef : valeur, clef : valeur, ... } } incrémente la valeur
      *   { $rename : { clef : nouvelleclef, ... } } renomme une clef
      *   { $push : { clef : valeur, ... } : ajoute une valeur à une clef de liste (si la liste maliste est [ a, b, c], $push : { maliste : b } donnera maliste = [ a, b, c, b])
      *     { $push : { clef : { $each : [valeur, valeur, ... ] } } } idem mais plusieurs éléments en une fois ($push : { maliste : { $each : [ b, d, e, a] } } donnera  maliste = [ a, b, c, b, d, e, a] )
@@ -628,11 +625,11 @@ public class ParserTokens {
      *     Si valeur est multiple (une liste) et que chacune des valeurs doit être intégrées : $add : { maliste : { $each : [ b, d, e, a] } } donnera maliste = [ a, b, c, d, e]
      *   { $pop : { clef : 1 ou -1 } } retire le dernier (1) ou le premier (-1) élément de la liste
      *   { $pull : { clef : valeur } } retire l'élément valeur de la liste
-     *     { $pull : { clef : { $each : [valeur, valeur, ... ] } } } idem mais plusieurs éléments en une fois 
+     *     { $pull : { clef : { $each : [valeur, valeur, ... ] } } } idem mais plusieurs éléments en une fois
      *   { $sort : { clef : 1 ou -1 } } pour trier une liste selon un ordre ascendant (1) ou descendant (-1)
      * 3 parties : critères de sélection (expression depuis root) + filtres (multi) + action
-     * retourne : la requête + des info générales (nb de résultats) + les n premiers résultats (noeuds mis à jour) selon le format souhaité 
-     *      
+     * retourne : la requête + des info générales (nb de résultats) + les n premiers résultats (noeuds mis à jour) selon le format souhaité
+     *
      * }
      * </pre>
      */
@@ -651,14 +648,12 @@ public class ParserTokens {
          */
         INC("inc"),
         /**
-         * set one field named 'name' with minimum value of current value and
-         * given value <br>
+         * set one field named 'name' with minimum value of current value and given value <br>
          * $min : { name : value }
          */
         MIN("min"),
         /**
-         * set one field named 'name' with maximum value of current value and
-         * given value <br>
+         * set one field named 'name' with maximum value of current value and given value <br>
          * $max : { name : value }
          */
         MAX("max"),
@@ -668,20 +663,17 @@ public class ParserTokens {
          */
         RENAME("rename"),
         /**
-         * Add one element at the end of a list value, or each element of a list
-         * if $each parameter is used <br>
+         * Add one element at the end of a list value, or each element of a list if $each parameter is used <br>
          * $push : { name : { $each : [ value, value, ... ] } }
          */
         PUSH("push"),
         /**
-         * Remove one specific element from a list or each element of a list if
-         * $each parameter is used <br>
+         * Remove one specific element from a list or each element of a list if $each parameter is used <br>
          * $pull : { name : { $each : [ value, value, ... ] } }
          */
         PULL("pull"),
         /**
-         * Add one element (or each element of a list) if not already in the
-         * list <br>
+         * Add one element (or each element of a list) if not already in the list <br>
          * $add : { name : { $each : [ value, value, ... ] } }
          */
         ADD("add"),
@@ -691,17 +683,18 @@ public class ParserTokens {
          */
         POP("pop");
 
-    	private final String exactToken;
-    	
-    	/** Constructor
-    	 * Add DEFAULT_PREFIX before the exactToken ($+exactToken)
-    	 */
-        private UPDATEACTION(String realName) {
-        	// TODO REVIEW no toLowerCase() since already set through realName
-        	this.exactToken = DEFAULT_PREFIX + realName.toLowerCase();
-        }
+        private final String exactToken;
+
         /**
-         * @return the exact token 
+         * Constructor Add DEFAULT_PREFIX before the exactToken ($+exactToken)
+         */
+        private UPDATEACTION(String realName) {
+            // TODO REVIEW no toLowerCase() since already set through realName
+            exactToken = DEFAULT_PREFIX + realName.toLowerCase();
+        }
+
+        /**
+         * @return the exact token
          */
         public final String exactToken() {
             return exactToken;
@@ -717,17 +710,18 @@ public class ParserTokens {
          * Update argument
          */
         EACH("each");
-    	private final String exactToken;
-    	
-    	/** Constructor
-    	 * Add DEFAULT_PREFIX before the exactToken ($+exactToken)
-    	 */
-        private UPDATEACTIONARGS(String realName) {
-        	// TODO REVIEW no toLowerCase() since already set through realName
-        	this.exactToken = DEFAULT_PREFIX + realName.toLowerCase();
-        }
+        private final String exactToken;
+
         /**
-         * @return the exact token 
+         * Constructor Add DEFAULT_PREFIX before the exactToken ($+exactToken)
+         */
+        private UPDATEACTIONARGS(String realName) {
+            // TODO REVIEW no toLowerCase() since already set through realName
+            exactToken = DEFAULT_PREFIX + realName.toLowerCase();
+        }
+
+        /**
+         * @return the exact token
          */
         public final String exactToken() {
             return exactToken;
@@ -740,23 +734,23 @@ public class ParserTokens {
      */
     public static enum MULTIFILTER {
         /**
-         * True to allow multiple update if multiple elements are found through
-         * the QUERY, else False will return an error if multiple elements are
-         * found. $mult : true/false
+         * True to allow multiple update if multiple elements are found through the QUERY, else False will return an
+         * error if multiple elements are found. $mult : true/false
          */
         MULT("mult");
 
-    	private final String exactToken;
-    	
-    	/** Constructor
-    	 * Add DEFAULT_PREFIX before the exactToken ($+exactToken)
-    	 */
-        private MULTIFILTER(String realName) {
-        	// TODO REVIEW no toLowerCase() since already set through realName
-        	this.exactToken = DEFAULT_PREFIX + realName.toLowerCase();
-        }
+        private final String exactToken;
+
         /**
-         * @return the exact token 
+         * Constructor Add DEFAULT_PREFIX before the exactToken ($+exactToken)
+         */
+        private MULTIFILTER(String realName) {
+            // TODO REVIEW no toLowerCase() since already set through realName
+            exactToken = DEFAULT_PREFIX + realName.toLowerCase();
+        }
+
+        /**
+         * @return the exact token
          */
         public final String exactToken() {
             return exactToken;

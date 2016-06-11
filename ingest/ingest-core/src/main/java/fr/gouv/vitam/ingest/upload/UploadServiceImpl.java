@@ -26,11 +26,28 @@
  */
 package fr.gouv.vitam.ingest.upload;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
+import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.util.concurrent.AbstractService;
+
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.ingest.api.response.IngestResponse;
@@ -41,22 +58,16 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsExceptio
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.logbook.common.parameters.*;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookClientFactory;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
-import org.glassfish.jersey.media.multipart.FormDataParam;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.io.*;
-import java.util.Properties;
 
 @Path("/ingest")
 @Consumes("application/json")
@@ -80,7 +91,7 @@ public class UploadServiceImpl extends AbstractService implements UploadService 
         if (properties == null) {
             try {
                 properties = PropertyUtil.loadProperties(PROPERTIES_CORE, INGEST_MODULE_DIR);
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 VITAM_LOGGER.error(e.getMessage());
                 throw new IngestException("properties error");
             }
@@ -105,21 +116,22 @@ public class UploadServiceImpl extends AbstractService implements UploadService 
      * @return
      * @throws IngestException
      */
+    @Override
     @POST
     @Path("/upload")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     public Response uploadSipAsStream(@FormDataParam("file") InputStream uploadedInputStream,
-                                      @FormDataParam("file") FormDataContentDisposition fileDetail) throws IngestException {
+        @FormDataParam("file") FormDataContentDisposition fileDetail) throws IngestException {
 
-        if ((uploadedInputStream == null) || (fileDetail == null)) {
+        if (uploadedInputStream == null || fileDetail == null) {
             VITAM_LOGGER.error("input stream null");
             throw new IngestException("error input stream");
         }
 
-        int tenantId = 0;
+        final int tenantId = 0;
         Response response = null;
-        IngestResponse ingestResponse = null;
+        final IngestResponse ingestResponse = null;
         String Url = "";
         String containerName = "";
         LogbookClient client = null;
@@ -129,7 +141,7 @@ public class UploadServiceImpl extends AbstractService implements UploadService 
             VITAM_LOGGER.info("Starting up the save file sip : " + fileDetail.getFileName());
 
             // guid generated for the container in the workspace
-            GUID guid = GUIDFactory.newOperationIdGUID(tenantId);
+            final GUID guid = GUIDFactory.newOperationIdGUID(tenantId);
 
             if (guid != null) {
                 containerName = guid.getId();
@@ -139,78 +151,82 @@ public class UploadServiceImpl extends AbstractService implements UploadService 
                 Url = properties.getProperty(URI_WORKSPACE);
             }
 
-            String eventIdentifier = GUIDFactory.newOperationIdGUID(tenantId).getId();              //Event GUID
-            String eventType = "Process_SIP_unitary";                                                             // Event Type
-            String eventIdentifierProcess = guid.getId();                                                     // Event Identifier Process
-            LogbookTypeProcess eventTypeProcess = LogbookTypeProcess.INGEST;                        // Event Type Process
-            LogbookOutcome outcome = LogbookOutcome.STARTED;                                        // Outcome: status
-            String outcomeDetailMessage = "SIP entry : " + fileDetail.getFileName();   // Outcome detail message
-            String eventIdentifierRequest = guid.getId();                                           // X-Request-Id
-            String server = properties.getProperty("ingest.core.logbook.server");
-            String sPort = properties.getProperty("ingest.core.logbook.port");
-            int port = Integer.parseInt(sPort);
+            final String eventIdentifier = GUIDFactory.newOperationIdGUID(tenantId).getId(); // Event GUID
+            final String eventType = "Process_SIP_unitary"; // Event Type
+            final String eventIdentifierProcess = guid.getId(); // Event Identifier Process
+            final LogbookTypeProcess eventTypeProcess = LogbookTypeProcess.INGEST; // Event Type Process
+            final LogbookOutcome outcome = LogbookOutcome.STARTED; // Outcome: status
+            final String outcomeDetailMessage = "SIP entry : " + fileDetail.getFileName(); // Outcome detail message
+            final String eventIdentifierRequest = guid.getId(); // X-Request-Id
+            final String server = properties.getProperty("ingest.core.logbook.server");
+            final String sPort = properties.getProperty("ingest.core.logbook.port");
+            final int port = Integer.parseInt(sPort);
 
             VITAM_LOGGER.info("call journal...");
             // Récupération de la classe paramètre avec ou sans argument
             parameters = buildLogBookParameters(eventIdentifier, eventType, eventIdentifierProcess,
-                    eventTypeProcess, outcome, outcomeDetailMessage, eventIdentifierRequest);
+                eventTypeProcess, outcome, outcomeDetailMessage, eventIdentifierRequest);
             client = callLogBookCreate(guid.getId(), tenantId, parameters, server, port);
 
 
-            parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, "Try to push stream to workspace...");
+            parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                "Try to push stream to workspace...");
             VITAM_LOGGER.info("Try to push stream to workspace...");
             runOperation(Url, containerName, uploadedInputStream);
             VITAM_LOGGER.info(" -> push stream to workspace finished");
-            parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, "-> push stream to workspace finished");
+            parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                "-> push stream to workspace finished");
 
             parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, "Try to call processing...");
             VITAM_LOGGER.info("Try to call processing...");
-            String workflowId = "DefaultIngestWorkflow";
-            String urlProcessing = properties.getProperty(URI_PROCESSING);
-            ProcessingManagementClient processingManagementClient = new ProcessingManagementClient(urlProcessing);
-            String processingRetour = processingManagementClient.executeVitamProcess(containerName, workflowId);
+            final String workflowId = "DefaultIngestWorkflow";
+            final String urlProcessing = properties.getProperty(URI_PROCESSING);
+            final ProcessingManagementClient processingManagementClient = new ProcessingManagementClient(urlProcessing);
+            final String processingRetour = processingManagementClient.executeVitamProcess(containerName, workflowId);
             VITAM_LOGGER.info(" -> process workflow finished " + processingRetour);
             parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, "-> process workflow finished");
             client = callLogBookUpdate(client, parameters);
 
-            UploadResponseDTO uploadResponseDTO = getUploadResponseDTO(fileDetail.getFileName(), 200, "success",
-                    "201", "success", "200", "success");
+            final UploadResponseDTO uploadResponseDTO = getUploadResponseDTO(fileDetail.getFileName(), 200, "success",
+                "201", "success", "200", "success");
 
             response = Response.ok(uploadResponseDTO, "application/json").build();
 
-            Response.Status status = Response.Status.fromStatusCode(response.getStatus());
-            //TODO test status
+            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+            // TODO test status
 
-        } catch (ContentAddressableStorageServerException e) {
+        } catch (final ContentAddressableStorageServerException e) {
 
-            if(parameters!=null) {
+            if (parameters != null) {
                 parameters.setStatus(LogbookOutcome.ERROR);
                 parameters.putParameterValue(LogbookParameterName.outcomeDetail,
-                        "500_123456"); // 404 = code http, 123456 = code erreur Vitam
+                    "500_123456"); // 404 = code http, 123456 = code erreur Vitam
                 client = callLogBookUpdate(client, parameters);
             }
 
             VITAM_LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
-            UploadResponseDTO uploadResponseDTO = getUploadResponseDTO(fileDetail.getFileName(), 500, e.getMessage(),
+            final UploadResponseDTO uploadResponseDTO =
+                getUploadResponseDTO(fileDetail.getFileName(), 500, e.getMessage(),
                     "500", "workspace failed", "500", "error workspace");
             response = Response.ok(uploadResponseDTO, "application/json").build();
-        } catch (Exception e) {
+        } catch (final Exception e) {
 
-            if(parameters!=null) {
+            if (parameters != null) {
                 parameters.setStatus(LogbookOutcome.ERROR);
                 parameters.putParameterValue(LogbookParameterName.outcomeDetail,
-                        "500_123456"); // 404 = code http, 123456 = code erreur Vitam
-                //client = callLogBookUpdate(client, parameters);
+                    "500_123456"); // 404 = code http, 123456 = code erreur Vitam
+                // client = callLogBookUpdate(client, parameters);
             }
 
             VITAM_LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
-            UploadResponseDTO uploadResponseDTO = getUploadResponseDTO(fileDetail.getFileName(), 500, e.getMessage(),
+            final UploadResponseDTO uploadResponseDTO =
+                getUploadResponseDTO(fileDetail.getFileName(), 500, e.getMessage(),
                     "500", "upload failed", "500", "error ingest");
             e.printStackTrace();
             response = Response.ok(uploadResponseDTO, "application/json").build();
 
         } finally {
-            if(client!=null) {
+            if (client != null) {
                 client.close();
             }
             return response;
@@ -223,9 +239,10 @@ public class UploadServiceImpl extends AbstractService implements UploadService 
      * @param containerName
      * @param uploadedInputStream
      */
-    private void runOperation(String Url, String containerName, InputStream uploadedInputStream) throws ContentAddressableStorageServerException {
-        //call workspace
-        WorkspaceClient workspaceClient = new WorkspaceClient(Url);
+    private void runOperation(String Url, String containerName, InputStream uploadedInputStream)
+        throws ContentAddressableStorageServerException {
+        // call workspace
+        final WorkspaceClient workspaceClient = new WorkspaceClient(Url);
         workspaceClient.unzipSipObject(containerName, uploadedInputStream);
     }
 
@@ -233,26 +250,27 @@ public class UploadServiceImpl extends AbstractService implements UploadService 
      *
      *
      *
-     * @param containerGuid  X-Request-Id, Global Object Id: in ingest = SIP GUID
-     * @param tenantId  TenantId
+     * @param containerGuid X-Request-Id, Global Object Id: in ingest = SIP GUID
+     * @param tenantId TenantId
      * @throws LogbookClientNotFoundException
      * @throws LogbookClientBadRequestException
      * @throws LogbookClientServerException
      */
-    private LogbookClient callLogBookCreate(String containerGuid, int tenantId, LogbookParameters parameters, String server, int port)
-            throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException,
-            LogbookClientAlreadyExistsException {
+    private LogbookClient callLogBookCreate(String containerGuid, int tenantId, LogbookParameters parameters,
+        String server, int port)
+        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException,
+        LogbookClientAlreadyExistsException {
 
         // Available informations
         // Process Id (SIP GUID)
-        String guidSip = "xxx";
+        final String guidSip = "xxx";
 
         // Changer la configuration du Factory
-        //en test
-        //LogbookClientFactory.setConfiguration(LogbookClientFactory.LogbookClientType.OPERATIONS, server, port);
+        // en test
+        // LogbookClientFactory.setConfiguration(LogbookClientFactory.LogbookClientType.OPERATIONS, server, port);
 
         // Récupération du client
-        LogbookClient client = LogbookClientFactory.getInstance().getLogbookOperationClient();
+        final LogbookClient client = LogbookClientFactory.getInstance().getLogbookOperationClient();
 
         // 2 possibilities
         // 1) Démarrage de l'Opération globale (eventIdentifierProcess) dans INGEST première fois
@@ -273,19 +291,20 @@ public class UploadServiceImpl extends AbstractService implements UploadService 
      * @param eventIdentifierRequest
      * @return
      */
-    private LogbookParameters buildLogBookParameters(String eventIdentifier, String eventType, String eventIdentifierProcess,
-                                                     LogbookTypeProcess eventTypeProcess, LogbookOutcome outcome,
-                                                     String outcomeDetailMessage, String eventIdentifierRequest) {
+    private LogbookParameters buildLogBookParameters(String eventIdentifier, String eventType,
+        String eventIdentifierProcess,
+        LogbookTypeProcess eventTypeProcess, LogbookOutcome outcome,
+        String outcomeDetailMessage, String eventIdentifierRequest) {
         // Récupération de la classe paramètre avec ou sans argument
-        LogbookParameters parameters =
-                LogbookParametersFactory.newLogbookOperationParameters(eventIdentifier,
-                        eventType, eventIdentifierProcess, eventTypeProcess,
-                        outcome, outcomeDetailMessage, eventIdentifierRequest);
+        final LogbookParameters parameters =
+            LogbookParametersFactory.newLogbookOperationParameters(eventIdentifier,
+                eventType, eventIdentifierProcess, eventTypeProcess,
+                outcome, outcomeDetailMessage, eventIdentifierRequest);
         return parameters;
     }
 
     private LogbookClient callLogBookUpdate(LogbookClient client, LogbookParameters parameters)
-            throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
+        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
 
         parameters.setStatus(LogbookOutcome.OK);
 
@@ -304,14 +323,15 @@ public class UploadServiceImpl extends AbstractService implements UploadService 
      * @return
      * @throws IngestException
      */
+    @Override
     @POST
     @Path("/uploadName")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     public Response uploadSipAsStream(@FormDataParam("file") InputStream uploadedInputStream,
-                                      @FormDataParam("file") FormDataContentDisposition fileDetail, @FormParam("name") String sipName)
-            throws Exception {
-        Response response = uploadSipAsStream(uploadedInputStream, fileDetail);
+        @FormDataParam("file") FormDataContentDisposition fileDetail, @FormParam("name") String sipName)
+        throws Exception {
+        final Response response = uploadSipAsStream(uploadedInputStream, fileDetail);
         return response;
     }
 
@@ -327,8 +347,8 @@ public class UploadServiceImpl extends AbstractService implements UploadService 
      * @return
      */
     private UploadResponseDTO getUploadResponseDTO(String fileName, Integer httpCode, String message, String vitamCode,
-                                                   String vitamStatus, String engineCode, String engineStatus) {
-        UploadResponseDTO uploadResponseDTO = new UploadResponseDTO();
+        String vitamStatus, String engineCode, String engineStatus) {
+        final UploadResponseDTO uploadResponseDTO = new UploadResponseDTO();
         uploadResponseDTO.setFileName(fileName);
         uploadResponseDTO.setHttpCode(httpCode);
         uploadResponseDTO.setMessage(message);
@@ -339,6 +359,7 @@ public class UploadServiceImpl extends AbstractService implements UploadService 
         return uploadResponseDTO;
     }
 
+    @Override
     @GET
     @Path("/status")
     public Response status() {

@@ -69,7 +69,7 @@ public class LogbookOperationParameters implements LogbookParameters {
 
     /**
      * Builder for REST interface
-     * 
+     *
      * @param map
      * @throws IllegalArgumentException if one key is not allowed
      */

@@ -36,7 +36,7 @@ public class ContentAddressableStorageNotFoundException extends ContentAddressab
 
     /**
      * param message to associate with a new ContentAddressableStorageNotFoundException
-     * 
+     *
      * @param message
      */
     public ContentAddressableStorageNotFoundException(String message) {

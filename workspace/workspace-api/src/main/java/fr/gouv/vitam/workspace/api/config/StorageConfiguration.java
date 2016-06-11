@@ -39,7 +39,7 @@ public class StorageConfiguration {
 
     /**
      * getter for storage path
-     * 
+     *
      * @return String
      */
     public String getStoragePath() {
@@ -48,7 +48,7 @@ public class StorageConfiguration {
 
     /**
      * setter for storage path
-     * 
+     *
      * @param storagePath
      */
     public void setStoragePath(String storagePath) {

@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
- * 
+ *
  * Copyright Vitam (2012, 2015)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
@@ -31,9 +31,8 @@ public class ProcessingException extends Exception {
     private static final long serialVersionUID = 3375441536550669880L;
 
     /**
-     * ProcessingException constructor
-     * Construct the processing exception with a message and a throwable exception
-     * 
+     * ProcessingException constructor Construct the processing exception with a message and a throwable exception
+     *
      * @param message
      * @param cause
      */
@@ -42,9 +41,8 @@ public class ProcessingException extends Exception {
     }
 
     /**
-     * ProcessingException constructor
-     * Construct the processing exception with a throwable exception
-     * 
+     * ProcessingException constructor Construct the processing exception with a throwable exception
+     *
      * @param cause
      */
     public ProcessingException(Throwable cause) {
@@ -52,9 +50,8 @@ public class ProcessingException extends Exception {
     }
 
     /**
-     * ProcessingException constructor
-     * Construct the processing exception with a message
-     * 
+     * ProcessingException constructor Construct the processing exception with a message
+     *
      * @param message
      */
     public ProcessingException(String message) {

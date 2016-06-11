@@ -3,34 +3,26 @@
  * <p>
  * contact.vitam@culture.gouv.fr
  * <p>
- * This software is a computer program whose purpose is to implement a digital
- * archiving back-office system managing high volumetry securely and efficiently.
+ * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
+ * high volumetry securely and efficiently.
  * <p>
- * This software is governed by the CeCILL 2.1 license under French law and
- * abiding by the rules of distribution of free software.  You can  use,
- * modify and/ or redistribute the software under the terms of the CeCILL 2.1
- * license as circulated by CEA, CNRS and INRIA at the following URL
- * "http://www.cecill.info".
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
+ * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
  * <p>
- * As a counterpart to the access to the source code and  rights to copy,
- * modify and redistribute granted by the license, users are provided only
- * with a limited warranty  and the software's author,  the holder of the
- * economic rights,  and the successive licensors  have only  limited
- * liability.
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
  * <p>
- * In this respect, the user's attention is drawn to the risks associated
- * with loading,  using,  modifying and/or developing or reproducing the
- * software by the user in light of its specific status of free software,
- * that may mean  that it is complicated to manipulate,  and  that  also
- * therefore means  that it is reserved for developers  and  experienced
- * professionals having in-depth computer knowledge. Users are therefore
- * encouraged to load and test the software's suitability as regards their
- * requirements in conditions enabling the security of their systems and/or
- * data to be ensured and,  more generally, to use and operate it in the
- * same conditions as regards security.
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
  * <p>
- * The fact that you are presently reading this means that you have had
- * knowledge of the CeCILL 2.1 license and that you accept its terms.
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
+ * accept its terms.
  */
 package fr.gouv.vitam.ingest.web.servlet;
 
@@ -75,25 +67,30 @@ import fr.gouv.vitam.ingest.util.PropertyUtil;
 @MultipartConfig
 public class UploadSipServlet extends HttpServlet {
 
+    /**
+     *
+     */
+    private static final long serialVersionUID = 124775838223922594L;
+
     private static VitamLogger VITAM_LOGGER = VitamLoggerFactory.getInstance(UploadSipServlet.class);
 
     private static final String PROPERTIES_FILE = "ingest-web.properties";
-    private static final String INGEST_WEB_UPLOAD_DIR =  "ingest.web.upload.dir";
+    private static final String INGEST_WEB_UPLOAD_DIR = "ingest.web.upload.dir";
     private static final String INGEST_MODULE_DIR = "ingest-web";
 
 
-    private int maxFileSize = 1000000 * 1024;
-    private int maxMemSize = 4 * 1024;
-    private File file ;
+    private final int maxFileSize = 1000000 * 1024;
+    private final int maxMemSize = 4 * 1024;
+    private File file;
     private String filePath = "";
     private Properties properties;
 
     public UploadSipServlet() throws IngestException {
 
-        if(properties==null) {
+        if (properties == null) {
             try {
                 properties = PropertyUtil.loadProperties(PROPERTIES_FILE, INGEST_MODULE_DIR);
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 VITAM_LOGGER.error(e.getMessage());
                 throw new IngestException("loading properties ingest-web.properties failed");
             }
@@ -121,11 +118,11 @@ public class UploadSipServlet extends HttpServlet {
     private void processRequest(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
         // Check that we have a file upload request
-        boolean isMultipart = ServletFileUpload.isMultipartContent(request);
+        final boolean isMultipart = ServletFileUpload.isMultipartContent(request);
 
         response.setContentType("text/html");
-        java.io.PrintWriter out = response.getWriter( );
-        if( !isMultipart ){
+        final java.io.PrintWriter out = response.getWriter();
+        if (!isMultipart) {
             out.println("<html>");
             out.println("<head>");
             out.println("<title>Servlet SIP upload</title>");
@@ -136,48 +133,48 @@ public class UploadSipServlet extends HttpServlet {
             out.println("</html>");
             return;
         }
-        DiskFileItemFactory factory = new DiskFileItemFactory();
+        final DiskFileItemFactory factory = new DiskFileItemFactory();
         // maximum size that will be stored in memory
         factory.setSizeThreshold(maxMemSize);
         // Location to save data that is larger than maxMemSize.
-        File fileProperties = new File(properties.getProperty("ingest.web.upload.dir"));
+        final File fileProperties = new File(properties.getProperty("ingest.web.upload.dir"));
         factory.setRepository(fileProperties);
 
         // Create a new file upload handler
-        ServletFileUpload upload = new ServletFileUpload(factory);
+        final ServletFileUpload upload = new ServletFileUpload(factory);
         // maximum file size to be uploaded.
-        upload.setSizeMax( maxFileSize );
+        upload.setSizeMax(maxFileSize);
 
-        try{
+        try {
             // Parse the request to get file items.
-            List fileItems = upload.parseRequest(request);
+            final List fileItems = upload.parseRequest(request);
 
             // Process the uploaded file items
-            Iterator i = fileItems.iterator();
+            final Iterator i = fileItems.iterator();
 
             out.println("<html>");
             out.println("<head>");
             out.println("<title>Servlet sip upload</title>");
             out.println("</head>");
             out.println("<body>");
-            while ( i.hasNext () )  {
-                FileItem fi = (FileItem)i.next();
-                if ( !fi.isFormField () )  {
+            while (i.hasNext()) {
+                final FileItem fi = (FileItem) i.next();
+                if (!fi.isFormField()) {
                     // Get the uploaded file parameters
-                    String fieldName = fi.getFieldName();
-                    String fileName = fi.getName();
-                    String contentType = fi.getContentType();
-                    boolean isInMemory = fi.isInMemory();
-                    long sizeInBytes = fi.getSize();
+                    final String fieldName = fi.getFieldName();
+                    final String fileName = fi.getName();
+                    final String contentType = fi.getContentType();
+                    final boolean isInMemory = fi.isInMemory();
+                    final long sizeInBytes = fi.getSize();
                     // Write the file
-                    if( fileName.lastIndexOf("\\") >= 0 ){
-                        file = new File( filePath + "/" +
-                                fileName.substring( fileName.lastIndexOf("\\"))) ;
-                    } else{
-                        file = new File( filePath + "/" +
-                                fileName.substring(fileName.lastIndexOf("\\")+1)) ;
+                    if (fileName.lastIndexOf("\\") >= 0) {
+                        file = new File(filePath + "/" +
+                            fileName.substring(fileName.lastIndexOf("\\")));
+                    } else {
+                        file = new File(filePath + "/" +
+                            fileName.substring(fileName.lastIndexOf("\\") + 1));
                     }
-                    fi.write( file ) ;
+                    fi.write(file);
 
                     processUploadSip(file);
 
@@ -186,29 +183,30 @@ public class UploadSipServlet extends HttpServlet {
             }
             out.println("</body>");
             out.println("</html>");
-        }catch(Exception ex) {
+        } catch (final Exception ex) {
             VITAM_LOGGER.error("error upload sip", ex);
             ex.printStackTrace();
         }
     }
 
     private Response processUploadSip(File file) throws URISyntaxException {
-        Client clientUpload = ClientBuilder.newBuilder()
-                .register(MultiPartFeature.class)
-                .build();
+        final Client clientUpload = ClientBuilder.newBuilder()
+            .register(MultiPartFeature.class)
+            .build();
 
-        WebTarget webTargetUpload = clientUpload.target(new URI(properties.getProperty("ingest.web.core.upload.url")));
+        final WebTarget webTargetUpload =
+            clientUpload.target(new URI(properties.getProperty("ingest.web.core.upload.url")));
 
-        MultiPart multiPart = new MultiPart();
+        final MultiPart multiPart = new MultiPart();
         multiPart.setMediaType(MediaType.MULTIPART_FORM_DATA_TYPE);
 
-        FileDataBodyPart filePart = new FileDataBodyPart("file", file, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+        final FileDataBodyPart filePart = new FileDataBodyPart("file", file, MediaType.APPLICATION_OCTET_STREAM_TYPE);
         multiPart.bodyPart(filePart);
 
-        Invocation.Builder builder = webTargetUpload
-                .request(MediaType.APPLICATION_JSON_TYPE);
-        Entity entity = Entity.entity(multiPart, multiPart.getMediaType());
-        Response response =  builder.post(entity);
+        final Invocation.Builder builder = webTargetUpload
+            .request(MediaType.APPLICATION_JSON_TYPE);
+        final Entity entity = Entity.entity(multiPart, multiPart.getMediaType());
+        final Response response = builder.post(entity);
 
         return response;
     }

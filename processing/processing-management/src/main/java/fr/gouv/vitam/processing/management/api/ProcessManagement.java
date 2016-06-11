@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -35,14 +35,14 @@ import fr.gouv.vitam.processing.common.model.WorkParams;
 
 /**
  * ProcessManagement interface
- * 
+ *
  * This service will be invoked by Ingest Module
- * 
+ *
  */
 public interface ProcessManagement {
     /**
      * execute Vitam process by workflow id
-     * 
+     *
      * @param workParams null not allowed
      * @param workflowId null not allowed
      * @return Response :global process response such as OK, KO, FATAL,WARNING
@@ -51,7 +51,7 @@ public interface ProcessManagement {
      * @throws ProcessingException
      * @throws IllegalArgumentException
      */
-    
+
     EngineResponse submitWorkflow(WorkParams workParams, String workflowId)
         throws WorkflowNotFoundException, HandlerNotFoundException, ProcessingException;
 }

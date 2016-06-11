@@ -70,12 +70,12 @@ public class WorkspaceResource {
 
         VitamLoggerFactory.getInstance(WorkspaceResource.class);
 
-    private ContentAddressableStorageImpl workspace;
+    private final ContentAddressableStorageImpl workspace;
 
     // TODO REVIEW comment
     /**
      * Constructor used to configure a workspace
-     * 
+     *
      * @param configuration
      */
     public WorkspaceResource(StorageConfiguration configuration) {
@@ -88,7 +88,7 @@ public class WorkspaceResource {
 
     /**
      * Return a response status
-     * 
+     *
      * @return Response
      */
     @Path("status")
@@ -101,7 +101,7 @@ public class WorkspaceResource {
 
     /**
      * creates a container into the workspace *
-     * 
+     *
      * @param container
      * @return Response
      */
@@ -113,7 +113,7 @@ public class WorkspaceResource {
 
         try {
             workspace.createContainer(container.getName());
-        } catch (ContentAddressableStorageAlreadyExistException e) {
+        } catch (final ContentAddressableStorageAlreadyExistException e) {
             LOGGER.error(e.getMessage());
             return Response.status(Status.CONFLICT).entity(container.getName()).build();
         }
@@ -123,7 +123,7 @@ public class WorkspaceResource {
 
     /**
      * deletes a container in the workspace
-     * 
+     *
      * @param containerName
      * @return Response
      */
@@ -136,7 +136,7 @@ public class WorkspaceResource {
 
         try {
             workspace.deleteContainer(containerName, true);
-        } catch (ContentAddressableStorageNotFoundException e) {
+        } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(e.getMessage());
             return Response.status(Status.NOT_FOUND).entity(containerName).build();
         }
@@ -146,7 +146,7 @@ public class WorkspaceResource {
 
     /**
      * checks if a container exists in the workspace
-     * 
+     *
      * @param containerName
      * @return Response
      */
@@ -155,7 +155,7 @@ public class WorkspaceResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response containerExists(@PathParam("containerName") String containerName) {
-        boolean exists = workspace.containerExists(containerName);
+        final boolean exists = workspace.containerExists(containerName);
         if (exists) {
             return Response.status(Status.OK).entity(containerName).build();
         } else {
@@ -166,7 +166,7 @@ public class WorkspaceResource {
 
     /**
      * creates a folder into a container
-     * 
+     *
      * @param containerName
      * @param folder
      * @return Response
@@ -179,10 +179,10 @@ public class WorkspaceResource {
 
         try {
             workspace.createFolder(containerName, folder.getName());
-        } catch (ContentAddressableStorageAlreadyExistException e) {
+        } catch (final ContentAddressableStorageAlreadyExistException e) {
             LOGGER.error(e.getMessage());
             return Response.status(Status.CONFLICT).entity(containerName + "/" + folder.getName()).build();
-        } catch (ContentAddressableStorageNotFoundException e) {
+        } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(e.getMessage());
             return Response.status(Status.NOT_FOUND).entity(containerName + "/" + folder.getName()).build();
         }
@@ -192,7 +192,7 @@ public class WorkspaceResource {
 
     /**
      * deletes a folder in a container
-     * 
+     *
      * @param containerName
      * @param folderName
      * @return Response
@@ -206,7 +206,7 @@ public class WorkspaceResource {
 
         try {
             workspace.deleteFolder(containerName, folderName);
-        } catch (ContentAddressableStorageNotFoundException e) {
+        } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(e.getMessage());
             return Response.status(Status.NOT_FOUND).entity(containerName + "/" + folderName).build();
         }
@@ -216,7 +216,7 @@ public class WorkspaceResource {
 
     /**
      * checks if a folder exists in a container
-     * 
+     *
      * @param containerName
      * @param folderName
      * @return Response
@@ -228,7 +228,7 @@ public class WorkspaceResource {
     public Response folderExists(@PathParam("containerName") String containerName,
         @PathParam("folderName") String folderName) {
 
-        boolean exists = workspace.folderExists(containerName, folderName);
+        final boolean exists = workspace.folderExists(containerName, folderName);
         if (exists) {
             return Response.status(Status.OK).entity(containerName + "/" + folderName).build();
         } else {
@@ -239,7 +239,7 @@ public class WorkspaceResource {
 
     /**
      * puts an object into a container
-     * 
+     *
      * @param stream
      * @param header
      * @param objectName
@@ -255,10 +255,10 @@ public class WorkspaceResource {
         @PathParam("containerName") String containerName) {
         try {
             workspace.putObject(containerName, objectName, stream);
-        } catch (ContentAddressableStorageNotFoundException e) {
+        } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(e.getMessage());
             return Response.status(Status.NOT_FOUND).entity(containerName).build();
-        } catch (ContentAddressableStorageException e) {
+        } catch (final ContentAddressableStorageException e) {
             LOGGER.error(e.getMessage());
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
         }
@@ -268,7 +268,7 @@ public class WorkspaceResource {
 
     /**
      * Deletes an objects in a container *
-     * 
+     *
      * @param containerName
      * @param objectName
      * @return
@@ -282,7 +282,7 @@ public class WorkspaceResource {
 
         try {
             workspace.deleteObject(containerName, objectName);
-        } catch (ContentAddressableStorageNotFoundException e) {
+        } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(e.getMessage());
             return Response.status(Status.NOT_FOUND).entity(containerName).build();
         }
@@ -292,7 +292,7 @@ public class WorkspaceResource {
 
     /**
      * gets an objects from a container in the workspace
-     * 
+     *
      * @param containerName
      * @param objectName
      * @return Response
@@ -307,10 +307,10 @@ public class WorkspaceResource {
         InputStream stream = null;
         try {
             stream = workspace.getObject(containerName, objectName);
-        } catch (ContentAddressableStorageNotFoundException e) {
+        } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(e.getMessage());
             return Response.status(Status.NOT_FOUND).entity(containerName).build();
-        } catch (ContentAddressableStorageException e) {
+        } catch (final ContentAddressableStorageException e) {
             LOGGER.error(e.getMessage());
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
         }
@@ -321,7 +321,7 @@ public class WorkspaceResource {
 
     /**
      * checks if a object exists in an container
-     * 
+     *
      * @param containerName
      * @return Response
      */
@@ -332,7 +332,7 @@ public class WorkspaceResource {
     public Response objectExists(@PathParam("containerName") String containerName,
         @PathParam("objectName") String objectName) {
 
-        boolean exists = workspace.objectExists(containerName, objectName);
+        final boolean exists = workspace.objectExists(containerName, objectName);
         if (exists) {
             return Response.status(Status.OK).entity(containerName + "/" + objectName).build();
         } else {
@@ -343,7 +343,7 @@ public class WorkspaceResource {
 
     /**
      * unzip a sip into the workspace
-     * 
+     *
      * @param stream
      * @param header
      * @param containerName
@@ -358,10 +358,10 @@ public class WorkspaceResource {
         @PathParam("containerName") String containerName) {
         try {
             workspace.unzipSipObject(containerName, stream);
-        } catch (ContentAddressableStorageAlreadyExistException e) {
+        } catch (final ContentAddressableStorageAlreadyExistException e) {
             LOGGER.error(e.getMessage());
             return Response.status(Status.CONFLICT).entity(containerName).build();
-        } catch (ContentAddressableStorageException e) {
+        } catch (final ContentAddressableStorageException e) {
             LOGGER.error(e.getMessage());
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
         }
@@ -371,7 +371,7 @@ public class WorkspaceResource {
 
     /**
      * gets the list of object from folder
-     * 
+     *
      * @param containerName
      * @param folderName
      * @return Response
@@ -387,16 +387,16 @@ public class WorkspaceResource {
         try {
             uriList = workspace.getListUriDigitalObjectFromFolder(containerName, folderName);
 
-        } catch (ContentAddressableStorageNotFoundException eNotFoundException) {
+        } catch (final ContentAddressableStorageNotFoundException eNotFoundException) {
             LOGGER.error(eNotFoundException.getMessage());
             return Response.status(Status.NOT_FOUND).entity(containerName).build();
         } catch (
 
-        ContentAddressableStorageException eAddressableStorageException) {
+        final ContentAddressableStorageException eAddressableStorageException) {
             LOGGER.error(eAddressableStorageException.getMessage());
 
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(Collections.<URI>emptyList()).build();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error(e.getMessage());
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(Collections.<URI>emptyList()).build();
 

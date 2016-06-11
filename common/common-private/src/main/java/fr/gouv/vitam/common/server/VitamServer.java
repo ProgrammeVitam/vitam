@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 public interface VitamServer {
     /**
      * Configure the server with one handler
+     * 
      * @param applicationHandler
      * @throws VitamApplicationServerException
      */
@@ -44,22 +45,23 @@ public interface VitamServer {
 
     /**
      * Start the server
+     * 
      * @throws VitamApplicationServerException
      */
     void run() throws VitamApplicationServerException;
-    
+
     /**
      * @return the associated port
      */
     int getPort();
-    
+
     /**
      * @return true if Server is configured
      */
     boolean isConfigured();
-    
+
     /**
-     * 
+     *
      * @return the associated handler
      */
     public Handler getHandler();

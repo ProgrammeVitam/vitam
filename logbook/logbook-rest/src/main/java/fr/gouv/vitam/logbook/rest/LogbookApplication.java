@@ -57,7 +57,7 @@ public final class LogbookApplication extends AbstractVitamApplication<LogbookAp
 
     /**
      * Main method to run the application (doing start and join)
-     * 
+     *
      * @param args command line parameters
      * @throws IllegalStateException
      */

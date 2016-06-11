@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
- * 
+ *
  * Copyright Vitam (2012, 2015)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
@@ -28,10 +28,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.Action;
@@ -50,13 +49,13 @@ import fr.gouv.vitam.processing.worker.handler.IndexUnitActionHandler;
 
 /**
  * WorkerImpl class implements Worker interface
- * 
+ *
  * manages and executes actions by step
  */
 
 public class WorkerImpl implements Worker {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(WorkerImpl.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerImpl.class);
 
     private static final String EMPTY_LIST = "null or Empty Action list";
     private static final String STEP_NULL = "step paramaters is null";
@@ -76,9 +75,10 @@ public class WorkerImpl implements Worker {
          */
         init();
     }
-    
+
     /**
      * Constructor which can add an actionhandler in the pool of action
+     * 
      * @param actionName
      * @param actionHandler
      */
@@ -104,7 +104,7 @@ public class WorkerImpl implements Worker {
         throws IllegalArgumentException, ProcessingException {
 
 
-        long time = System.currentTimeMillis();
+        final long time = System.currentTimeMillis();
 
         if (workParams == null) {
             throw new IllegalArgumentException(WORK_PARAM_NULL);
@@ -118,11 +118,11 @@ public class WorkerImpl implements Worker {
             throw new IllegalArgumentException(EMPTY_LIST);
         }
 
-        List<EngineResponse> responses = new ArrayList<>();
+        final List<EngineResponse> responses = new ArrayList<>();
 
-        for (Action action : step.getActions()) {
+        for (final Action action : step.getActions()) {
 
-            ActionHandler actionHandler = getActionHandler(action.getActionKey());
+            final ActionHandler actionHandler = getActionHandler(action.getActionKey());
             if (actionHandler == null) {
                 throw new HandlerNotFoundException(action.getActionKey() + HANDLER_NOT_FOUND);
             }
@@ -130,7 +130,7 @@ public class WorkerImpl implements Worker {
             responses.add(actionHandler.execute(workParams));
         }
 
-        LOGGER.info(ELAPSED_TIME_MESSAGE + ((System.currentTimeMillis() - time) / 1000) + "s / for step name :" +
+        LOGGER.info(ELAPSED_TIME_MESSAGE + (System.currentTimeMillis() - time) / 1000 + "s / for step name :" +
             step.getStepName());
         return responses;
     }

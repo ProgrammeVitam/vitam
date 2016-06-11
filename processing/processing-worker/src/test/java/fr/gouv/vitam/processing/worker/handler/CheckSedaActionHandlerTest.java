@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -26,11 +26,6 @@
  */
 package fr.gouv.vitam.processing.worker.handler;
 
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.mockito.Mockito;
-
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
@@ -39,6 +34,11 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 
 import javax.xml.stream.XMLStreamException;
+
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.mockito.Mockito;
 
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -49,7 +49,7 @@ import fr.gouv.vitam.processing.common.utils.SedaUtils;
 import fr.gouv.vitam.processing.common.utils.SedaUtilsFactory;
 
 public class CheckSedaActionHandlerTest {
-    CheckSedaActionHandler handler;    
+    CheckSedaActionHandler handler;
     private static final String HANDLER_ID = "checkSeda";
     private SedaUtilsFactory factory;
     private SedaUtils sedaUtils;
@@ -59,38 +59,44 @@ public class CheckSedaActionHandlerTest {
         factory = mock(SedaUtilsFactory.class);
         sedaUtils = mock(SedaUtils.class);
     }
-    
-    @Ignore // TODO 
+
+    @Ignore // TODO
     @Test
-    public void givenWorkspaceWhenXmlNotExistThenReturnResponseFATAL() throws XMLStreamException, IOException, ProcessingException {
-        Mockito.doThrow(new ProcessingException("")).when(sedaUtils.checkSedaValidation(anyObject())); 
-        when(factory.create()).thenReturn(sedaUtils);  
+    public void givenWorkspaceWhenXmlNotExistThenReturnResponseFATAL()
+        throws XMLStreamException, IOException, ProcessingException {
+        Mockito.doThrow(new ProcessingException("")).when(sedaUtils.checkSedaValidation(anyObject()));
+        when(factory.create()).thenReturn(sedaUtils);
         handler = new CheckSedaActionHandler(factory);
         assertEquals(CheckSedaActionHandler.getId(), HANDLER_ID);
-        WorkParams params = new WorkParams().setServerConfiguration(new ServerConfiguration().setUrlWorkspace("")).setGuuid("");
-        EngineResponse response = handler.execute(params);
+        final WorkParams params =
+            new WorkParams().setServerConfiguration(new ServerConfiguration().setUrlWorkspace("")).setGuuid("");
+        final EngineResponse response = handler.execute(params);
         assertEquals(response.getStatus(), StatusCode.FATAL);
     }
-    
+
     @Test
-    public void givenWorkspaceWhenXmlExistThenReturnResponseOK() throws XMLStreamException, IOException, ProcessingException {
-        Mockito.doReturn(true).when(sedaUtils).checkSedaValidation(anyObject());  
-        when(factory.create()).thenReturn(sedaUtils);  
+    public void givenWorkspaceWhenXmlExistThenReturnResponseOK()
+        throws XMLStreamException, IOException, ProcessingException {
+        Mockito.doReturn(true).when(sedaUtils).checkSedaValidation(anyObject());
+        when(factory.create()).thenReturn(sedaUtils);
         handler = new CheckSedaActionHandler(factory);
         assertEquals(CheckSedaActionHandler.getId(), HANDLER_ID);
-        WorkParams params = new WorkParams().setServerConfiguration(new ServerConfiguration().setUrlWorkspace("")).setGuuid("");
-        EngineResponse response = handler.execute(params);
+        final WorkParams params =
+            new WorkParams().setServerConfiguration(new ServerConfiguration().setUrlWorkspace("")).setGuuid("");
+        final EngineResponse response = handler.execute(params);
         assertEquals(response.getStatus(), StatusCode.OK);
     }
-    
+
     @Test
-    public void givenWorkspaceWhenXmlIsEmptyThenReturnResponseKO() throws XMLStreamException, IOException, ProcessingException {
-        Mockito.doReturn(false).when(sedaUtils).checkSedaValidation(anyObject()); 
-        when(factory.create()).thenReturn(sedaUtils);  
+    public void givenWorkspaceWhenXmlIsEmptyThenReturnResponseKO()
+        throws XMLStreamException, IOException, ProcessingException {
+        Mockito.doReturn(false).when(sedaUtils).checkSedaValidation(anyObject());
+        when(factory.create()).thenReturn(sedaUtils);
         handler = new CheckSedaActionHandler(factory);
         assertEquals(CheckSedaActionHandler.getId(), HANDLER_ID);
-        WorkParams params = new WorkParams().setServerConfiguration(new ServerConfiguration().setUrlWorkspace("")).setGuuid("");
-        EngineResponse response = handler.execute(params);
+        final WorkParams params =
+            new WorkParams().setServerConfiguration(new ServerConfiguration().setUrlWorkspace("")).setGuuid("");
+        final EngineResponse response = handler.execute(params);
         assertEquals(response.getStatus(), StatusCode.KO);
     }
 

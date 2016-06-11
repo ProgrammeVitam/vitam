@@ -11,10 +11,6 @@
     <artifactId>functional-administration</artifactId>
 
     <dependencies>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-        </dependency>
     </dependencies>
     
     <name>Functional Administration</name>

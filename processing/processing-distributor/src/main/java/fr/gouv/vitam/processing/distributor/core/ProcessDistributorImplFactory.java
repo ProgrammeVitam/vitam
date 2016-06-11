@@ -13,7 +13,7 @@ public class ProcessDistributorImplFactory {
     public ProcessDistributorImpl create() {
         return new ProcessDistributorImpl();
     }
-    
+
     /**
      * @param workerImpl
      * @return ProcessDistributorImpl

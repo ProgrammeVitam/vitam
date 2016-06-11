@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -33,23 +33,24 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.processing.common.ProcessingEntry;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
 
+import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.processing.common.ProcessingEntry;
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
+
 /**
- * 
+ *
  */
 public class ProcessingManagementClient {
 
-    private Client client;
-    private String url;
+    private final Client client;
+    private final String url;
     private static final String RESOURCE_PATH = "/processing/api/v0.0.3";
 
 
@@ -57,7 +58,7 @@ public class ProcessingManagementClient {
      * @param url of metadata server
      */
     public ProcessingManagementClient(String url) {
-        final ClientConfig clientConfig=new ClientConfig();
+        final ClientConfig clientConfig = new ClientConfig();
         clientConfig.register(JacksonJsonProvider.class);
         clientConfig.register(JacksonFeature.class);
 
@@ -75,17 +76,18 @@ public class ProcessingManagementClient {
 
     /**
      * executeVitamProcess : processing operation of a workflow
-     * 
+     *
      * @param container : name of container
      * @param workflow : id of workflow
      * @return : Engine response containe message and status
      * @throws ProcessingException
      */
-    public String executeVitamProcess(String container, String workflow) throws ProcessingException, InvalidParseOperationException {
+    public String executeVitamProcess(String container, String workflow)
+        throws ProcessingException, InvalidParseOperationException {
         ParametersChecker.checkParameter("container is a mandatory parameter", container);
         ParametersChecker.checkParameter("workflow is a mandatory parameter", workflow);
 
-        Response response = client.target(url).path("operations").request(MediaType.APPLICATION_JSON)
+        final Response response = client.target(url).path("operations").request(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .post(Entity.entity(new ProcessingEntry(container, workflow), MediaType.APPLICATION_JSON), Response.class);
 

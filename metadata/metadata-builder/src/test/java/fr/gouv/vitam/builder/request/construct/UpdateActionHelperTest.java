@@ -1,42 +1,44 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
- * 
+ *
  * Copyright Vitam (2012, 2015)
  *
- * This software is governed by the CeCILL 2.1 license under French law and
- * abiding by the rules of distribution of free software. You can use, modify
- * and/ or redistribute the software under the terms of the CeCILL license as
- * circulated by CEA, CNRS and INRIA at the following URL
- * "http://www.cecill.info".
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
+ * by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
  *
- * As a counterpart to the access to the source code and rights to copy, modify
- * and redistribute granted by the license, users are provided only with a
- * limited warranty and the software's author, the holder of the economic
- * rights, and the successive licensors have only limited liability.
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
  *
- * In this respect, the user's attention is drawn to the risks associated with
- * loading, using, modifying and/or developing or reproducing the software by
- * the user in light of its specific status of free software, that may mean that
- * it is complicated to manipulate, and that also therefore means that it is
- * reserved for developers and experienced professionals having in-depth
- * computer knowledge. Users are therefore encouraged to load and test the
- * software's suitability as regards their requirements in conditions enabling
- * the security of their systems and/or data to be ensured and, more generally,
- * to use and operate it in the same conditions as regards security.
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
  *
- * The fact that you are presently reading this means that you have had
- * knowledge of the CeCILL license and that you accept its terms.
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you
+ * accept its terms.
  *******************************************************************************/
 package fr.gouv.vitam.builder.request.construct;
 
-import static fr.gouv.vitam.builder.request.construct.UpdateActionHelper.*;
+import static fr.gouv.vitam.builder.request.construct.UpdateActionHelper.add;
+import static fr.gouv.vitam.builder.request.construct.UpdateActionHelper.inc;
+import static fr.gouv.vitam.builder.request.construct.UpdateActionHelper.max;
+import static fr.gouv.vitam.builder.request.construct.UpdateActionHelper.min;
+import static fr.gouv.vitam.builder.request.construct.UpdateActionHelper.pop;
+import static fr.gouv.vitam.builder.request.construct.UpdateActionHelper.pull;
+import static fr.gouv.vitam.builder.request.construct.UpdateActionHelper.push;
+import static fr.gouv.vitam.builder.request.construct.UpdateActionHelper.rename;
+import static fr.gouv.vitam.builder.request.construct.UpdateActionHelper.set;
+import static fr.gouv.vitam.builder.request.construct.UpdateActionHelper.unset;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.Date;
 import java.util.HashMap;
 
-import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -50,6 +52,7 @@ import fr.gouv.vitam.builder.request.construct.action.UnsetAction;
 import fr.gouv.vitam.builder.request.construct.configuration.GlobalDatas;
 import fr.gouv.vitam.builder.request.construct.query.Query;
 import fr.gouv.vitam.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.LocalDateUtil;
 
 @SuppressWarnings("javadoc")
 public class UpdateActionHelperTest {
@@ -58,13 +61,13 @@ public class UpdateActionHelperTest {
     private int limitParameter;
 
     private static String createLongString(int size) {
-        StringBuilder sb = new StringBuilder(size);
+        final StringBuilder sb = new StringBuilder(size);
         for (int i = 0; i < size; i++) {
             sb.append('a');
         }
         return sb.toString();
     }
-    
+
     @Before
     public void setupConfig() {
         limitValue = GlobalDatas.getLimitValue();
@@ -72,7 +75,7 @@ public class UpdateActionHelperTest {
         GlobalDatas.setLimitValue(1000);
         GlobalDatas.setLimitParameter(100);
     }
-    
+
     @After
     public void tearDown() {
         GlobalDatas.setLimitValue(limitValue);
@@ -82,17 +85,15 @@ public class UpdateActionHelperTest {
     @Test
     public void testSanityCheckRequest() {
         try {
-            String longname = createLongString(GlobalDatas.getLimitParameter() + 100);
+            final String longname = createLongString(GlobalDatas.getLimitParameter() + 100);
             add(longname, "id2");
             fail("Should fail");
-        } catch (final InvalidCreateOperationException e) {
-        }
+        } catch (final InvalidCreateOperationException e) {}
         try {
-            String longvalue = createLongString(GlobalDatas.getLimitValue() + 100);
+            final String longvalue = createLongString(GlobalDatas.getLimitValue() + 100);
             add("var", longvalue);
             fail("Should fail");
-        } catch (final InvalidCreateOperationException e) {
-        }
+        } catch (final InvalidCreateOperationException e) {}
     }
 
     @Test
@@ -160,13 +161,12 @@ public class UpdateActionHelperTest {
             assertTrue(action.getCurrentAction().size() == 1);
             assertTrue(action.getCurrentObject().size() == 1);
             assertTrue(action.getCurrentObject().path("var1").asText() == "val");
-            Date date = new Date(0);
+            final Date date = new Date(0);
             action = min("var1", date);
             assertTrue(action.getCurrentAction().size() == 1);
             assertTrue(action.getCurrentObject().size() == 1);
-            Date date2 = DateTime.parse(
-                    action.getCurrentObject().path("var1").get(Query.DATE).asText())
-                    .toDate();
+            final Date date2 = LocalDateUtil.getDate(
+                action.getCurrentObject().path("var1").get(Query.DATE).asText());
             assertTrue(date.equals(date2));
         } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
@@ -193,13 +193,12 @@ public class UpdateActionHelperTest {
             assertTrue(action.getCurrentAction().size() == 1);
             assertTrue(action.getCurrentObject().size() == 1);
             assertTrue(action.getCurrentObject().path("var1").asText() == "val");
-            Date date = new Date(0);
+            final Date date = new Date(0);
             action = max("var1", date);
             assertTrue(action.getCurrentAction().size() == 1);
             assertTrue(action.getCurrentObject().size() == 1);
-            Date date2 = DateTime.parse(
-                    action.getCurrentObject().path("var1").get(Query.DATE).asText())
-                    .toDate();
+            final Date date2 = LocalDateUtil.getDate(
+                action.getCurrentObject().path("var1").get(Query.DATE).asText());
             assertTrue(date.equals(date2));
         } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();

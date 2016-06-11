@@ -1,6 +1,10 @@
 package fr.gouv.vitam.common.server.application;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.FileNotFoundException;
 import java.nio.file.Path;
@@ -15,10 +19,12 @@ import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl
 public class AbstractVitamApplicationTest {
 
     private static final String TEST_CONF_CONF = "test-conf.conf";
-    private static class TestVitamApplication 
+
+    private static class TestVitamApplication
         extends AbstractVitamApplication<TestVitamApplication, DbConfigurationImpl> {
 
         String conf = TEST_CONF_CONF;
+
         protected TestVitamApplication(Class<TestVitamApplication> applicationType,
             Class<DbConfigurationImpl> configurationType) {
             super(applicationType, configurationType);
@@ -33,24 +39,25 @@ public class AbstractVitamApplicationTest {
         protected String getConfigFilename() {
             return conf;
         }
-        
+
     }
+
     @Test
     public final void testBuild() throws VitamApplicationServerException, FileNotFoundException {
-        TestVitamApplication testVitamApplication = 
+        final TestVitamApplication testVitamApplication =
             new TestVitamApplication(TestVitamApplication.class, DbConfigurationImpl.class);
-        String filename1 = testVitamApplication.getConfigFilename();
+        final String filename1 = testVitamApplication.getConfigFilename();
         assertTrue(filename1.equals(TEST_CONF_CONF));
-        Path path0 = testVitamApplication.computeConfigurationPathFromInputArguments();
-        Path path1 = testVitamApplication.computeConfigurationPathFromInputArguments(
+        final Path path0 = testVitamApplication.computeConfigurationPathFromInputArguments();
+        final Path path1 = testVitamApplication.computeConfigurationPathFromInputArguments(
             PropertiesUtils.getResourcesFile(filename1).getAbsolutePath());
         System.out.println(path0);
         System.out.println(path1);
         assertTrue(path0.equals(path1));
-        TestVitamApplication testVitamApplication2 = testVitamApplication.configure(path0);
+        final TestVitamApplication testVitamApplication2 = testVitamApplication.configure(path0);
         assertNotNull(testVitamApplication2);
         assertNull(testVitamApplication.getApplicationHandler());
-        DbConfigurationImpl configuration = testVitamApplication.getConfiguration();
+        final DbConfigurationImpl configuration = testVitamApplication.getConfiguration();
         assertNotNull(configuration);
         assertEquals(45678, configuration.getDbPort());
         assertEquals("localhost", configuration.getDbHost());
@@ -59,7 +66,7 @@ public class AbstractVitamApplicationTest {
         try {
             testVitamApplication.computeConfigurationPathFromInputArguments();
             fail("Should raized an exception");
-        } catch (VitamApplicationServerException e) {
+        } catch (final VitamApplicationServerException e) {
             // ignore
         }
     }

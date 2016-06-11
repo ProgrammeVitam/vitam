@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
- * 
+ *
  * Copyright Vitam (2012, 2015)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
@@ -24,7 +24,7 @@
 package fr.gouv.vitam.processing.common.config;
 
 /**
- * 
+ *
  * ServerConfiguration class contains the different parameter {hostName ,ipAddress, port }to connect a remote server
  * such as workspace or metaData
  *
@@ -42,7 +42,7 @@ public class ServerConfiguration {
         if (urlMetada == null) {
             return "";
         }
-        return this.urlMetada;
+        return urlMetada;
     }
 
     /**
@@ -60,7 +60,7 @@ public class ServerConfiguration {
         if (urlWorkspace == null) {
             return "";
         }
-        return this.urlWorkspace;
+        return urlWorkspace;
     }
 
     /**

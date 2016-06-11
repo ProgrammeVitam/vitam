@@ -156,7 +156,7 @@ public class IngestResponse {
 
     /**
      * get the container which contains the unzipped file from the received SIP
-     * 
+     *
      * @return the storageService
      */
     public ContentAddressableStorage getStorageService() {
@@ -164,7 +164,7 @@ public class IngestResponse {
     }
 
     /**
-     * 
+     *
      * @param storageService the storageService to set
      */
     public IngestResponse setStorageService(ContentAddressableStorage storageService) {
@@ -189,10 +189,10 @@ public class IngestResponse {
     }
 
     public void addGuidNumericObject(String guid) {
-        this.guidNumObjList.add(guid);
+        guidNumObjList.add(guid);
     }
 
     public String getListGuidObjectAsString() {
-        return this.guidNumObjList.toString();
+        return guidNumObjList.toString();
     }
 }

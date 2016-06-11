@@ -1,31 +1,25 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
- * 
+ *
  * Copyright Vitam (2012, 2015)
  *
- * This software is governed by the CeCILL 2.1 license under French law and
- * abiding by the rules of distribution of free software. You can use, modify
- * and/ or redistribute the software under the terms of the CeCILL license as
- * circulated by CEA, CNRS and INRIA at the following URL
- * "http://www.cecill.info".
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
+ * by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
  *
- * As a counterpart to the access to the source code and rights to copy, modify
- * and redistribute granted by the license, users are provided only with a
- * limited warranty and the software's author, the holder of the economic
- * rights, and the successive licensors have only limited liability.
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
  *
- * In this respect, the user's attention is drawn to the risks associated with
- * loading, using, modifying and/or developing or reproducing the software by
- * the user in light of its specific status of free software, that may mean that
- * it is complicated to manipulate, and that also therefore means that it is
- * reserved for developers and experienced professionals having in-depth
- * computer knowledge. Users are therefore encouraged to load and test the
- * software's suitability as regards their requirements in conditions enabling
- * the security of their systems and/or data to be ensured and, more generally,
- * to use and operate it in the same conditions as regards security.
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
  *
- * The fact that you are presently reading this means that you have had
- * knowledge of the CeCILL license and that you accept its terms.
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you
+ * accept its terms.
  *******************************************************************************/
 package fr.gouv.vitam.builder.request.construct;
 
@@ -76,9 +70,9 @@ public class QueryHelperTest {
 
     private int limitValue;
     private int limitParameter;
-    
+
     private static String createLongString(int size) {
-        StringBuilder sb = new StringBuilder(size);
+        final StringBuilder sb = new StringBuilder(size);
         for (int i = 0; i < size; i++) {
             sb.append('a');
         }
@@ -92,7 +86,7 @@ public class QueryHelperTest {
         GlobalDatas.setLimitValue(1000);
         GlobalDatas.setLimitParameter(100);
     }
-    
+
     @After
     public void tearDown() {
         GlobalDatas.setLimitValue(limitValue);
@@ -102,22 +96,19 @@ public class QueryHelperTest {
     @Test
     public void testSanityCheckRequest() {
         try {
-            String longname = createLongString(GlobalDatas.getLimitParameter() + 100);
+            final String longname = createLongString(GlobalDatas.getLimitParameter() + 100);
             path(longname, "id2");
             fail("Should fail");
-        } catch (final InvalidCreateOperationException e) {
-        }
+        } catch (final InvalidCreateOperationException e) {}
         try {
-            String longvalue = createLongString(GlobalDatas.getLimitValue() + 100);
+            final String longvalue = createLongString(GlobalDatas.getLimitValue() + 100);
             eq("var", longvalue);
             fail("Should fail");
-        } catch (final InvalidCreateOperationException e) {
-        }
+        } catch (final InvalidCreateOperationException e) {}
         try {
             eq("_var", "val");
             fail("Should fail");
-        } catch (final InvalidCreateOperationException e) {
-        }
+        } catch (final InvalidCreateOperationException e) {}
     }
 
     @Test
@@ -150,7 +141,7 @@ public class QueryHelperTest {
 
     @Test
     public void testCompareRequest() {
-        Date date1 = new Date(System.currentTimeMillis());
+        final Date date1 = new Date(System.currentTimeMillis());
         try {
             Query query = eq("var", true);
             assertTrue(query.isReady());
@@ -245,8 +236,8 @@ public class QueryHelperTest {
 
     @Test
     public void testInRequest() {
-        Date date1 = new Date(System.currentTimeMillis());
-        Date date2 = new Date(System.currentTimeMillis() + 100);
+        final Date date1 = new Date(System.currentTimeMillis());
+        final Date date2 = new Date(System.currentTimeMillis() + 100);
         try {
             Query query = in("var", true);
             assertTrue(query.isReady());
@@ -352,7 +343,7 @@ public class QueryHelperTest {
     @Test
     public void testWildcardRequest() {
         try {
-            Query query = wildcard("var", "value");
+            final Query query = wildcard("var", "value");
             assertTrue(query.isReady());
         } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
@@ -380,8 +371,8 @@ public class QueryHelperTest {
 
     @Test
     public void testRangeRequest() {
-        Date date1 = new Date(System.currentTimeMillis());
-        Date date2 = new Date(System.currentTimeMillis() + 100);
+        final Date date1 = new Date(System.currentTimeMillis());
+        final Date date2 = new Date(System.currentTimeMillis() + 100);
         try {
             Query query = range("var", 1, false, 2, false);
             assertTrue(query.isReady());

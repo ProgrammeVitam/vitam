@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
- * 
+ *
  * Copyright Vitam (2012, 2015)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
@@ -27,15 +27,15 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.WorkParams;
 import fr.gouv.vitam.processing.common.utils.SedaUtils;
 import fr.gouv.vitam.processing.common.utils.SedaUtilsFactory;
 
 /**
- * 
+ *
  * ExtractContentActionHandler handler class used to extract metaData .Create and put a new file (metadata extracted)
  * json.json into container GUID
  *
@@ -47,11 +47,13 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     /**
      * Constructor with parameter SedaUtilsFactory
+     * 
      * @param factory
      */
     public ExtractSedaActionHandler(SedaUtilsFactory factory) {
         sedaUtilsFactory = factory;
     }
+
     /**
      * @return HANDLER_ID
      */
@@ -62,17 +64,18 @@ public class ExtractSedaActionHandler extends ActionHandler {
     @Override
     public EngineResponse execute(WorkParams params) {
         ParametersChecker.checkParameter("params is a mandatory parameter", params);
-        ParametersChecker.checkParameter("ServerConfiguration is a mandatory parameter", params.getServerConfiguration());
+        ParametersChecker.checkParameter("ServerConfiguration is a mandatory parameter",
+            params.getServerConfiguration());
         LOGGER.info("ExtractContentActionHandler running ...");
-        EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK);
-        SedaUtils sedaUtils = sedaUtilsFactory.create();
+        final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK);
+        final SedaUtils sedaUtils = sedaUtilsFactory.create();
 
         try {
             sedaUtils.extractSEDA(params);
-        } catch (ProcessingException e) {
+        } catch (final ProcessingException e) {
             response.setStatus(StatusCode.FATAL);
         }
-        
+
         LOGGER.info("ExtractSedaActionHandler response: ", response.getStatus().value());
         return response;
     }

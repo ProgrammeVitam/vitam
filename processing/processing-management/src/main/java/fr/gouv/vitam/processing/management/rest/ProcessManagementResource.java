@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -35,10 +35,10 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.apache.log4j.Logger;
-
 import fr.gouv.vitam.api.model.RequestResponseError;
 import fr.gouv.vitam.api.model.VitamError;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
@@ -54,22 +54,24 @@ import fr.gouv.vitam.processing.management.core.ProcessManagementImpl;
 @Path("/processing/api/v0.0.3")
 public class ProcessManagementResource {
 
-    private static final Logger LOGGER = Logger.getLogger(ProcessManagementResource.class);
-    private ProcessManagementImpl processManagement;   
-    private ServerConfiguration config;
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessManagementResource.class);
+    private final ProcessManagementImpl processManagement;
+    private final ServerConfiguration config;
 
     /**
-     * ProcessManagementResource : initiate the ProcessManagementResource resources  
-     * @param configuration 
+     * ProcessManagementResource : initiate the ProcessManagementResource resources
+     * 
+     * @param configuration
      */
     public ProcessManagementResource(ServerConfiguration configuration) {
         processManagement = new ProcessManagementImpl(configuration);
-        this.config = configuration;
+        config = configuration;
         LOGGER.info("init Process Management Resource server");
     }
 
     /**
      * check the status of server
+     * 
      * @return Response with OK status
      */
     @Path("status")
@@ -81,7 +83,8 @@ public class ProcessManagementResource {
     }
 
     /**
-     * Execute the process as a set of operations. 
+     * Execute the process as a set of operations.
+     * 
      * @param process as Json of type ProcessingEntry, indicate the container and workflowId
      * @return http response
      */
@@ -91,8 +94,8 @@ public class ProcessManagementResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response executeVitamProcess(ProcessingEntry process) {
         Status status;
-        WorkParams workParam = new WorkParams();
-        
+        final WorkParams workParam = new WorkParams();
+
         workParam.setContainerName(process.getContainer());
         workParam.setServerConfiguration(config);
         ProcessResponse resp = new ProcessResponse();
@@ -110,7 +113,7 @@ public class ProcessManagementResource {
                         .setMessage(status.getReasonPhrase())
                         .setDescription(status.getReasonPhrase())))
                 .build();
-        } catch (IllegalArgumentException e) {   // if the entry argument if illegal
+        } catch (final IllegalArgumentException e) { // if the entry argument if illegal
             LOGGER.error(e.getMessage());
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
@@ -121,7 +124,7 @@ public class ProcessManagementResource {
                         .setMessage(status.getReasonPhrase())
                         .setDescription(status.getReasonPhrase())))
                 .build();
-        } catch (ProcessingException e) {      // if there is an unauthorized action
+        } catch (final ProcessingException e) { // if there is an unauthorized action
             LOGGER.error(e.getMessage());
             status = Status.UNAUTHORIZED;
             return Response.status(status)

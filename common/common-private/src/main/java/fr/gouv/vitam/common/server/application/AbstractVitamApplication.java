@@ -39,6 +39,7 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 
 /**
  * Abstract implementation of VitamApplication which handle common tasks for all sub-implementation
+ * 
  * @param <A> VitamApplication final class
  * @param <C> VitamApplicationConfiguration final class
  */
@@ -52,7 +53,7 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<?>, C>
      * Protected constructor assigning application and configuration types Usage example in sub-implementation : class
      * MyApplication extends AbstractVitamApplication<MyApplication, MyApplicationConfiguration> { protected
      * MyApplication() { super(MyApplication.class, MyApplicationConfiguration.class); } }
-     * 
+     *
      * @param applicationType the application class type
      * @param configurationType the configuration class type
      */
@@ -63,14 +64,14 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<?>, C>
 
     /**
      * Implement this method to construct your application specific handler
-     * 
+     *
      * @return the generated Handler
      */
     protected abstract Handler buildApplicationHandler();
 
     /**
      * Must return the name as a string of your configuration file. Example : "logbook.conf"
-     * 
+     *
      * @return the name of the application configuration file
      */
     protected abstract String getConfigFilename();
@@ -94,7 +95,7 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<?>, C>
 
     /**
      * Compute a java Path using the command line arguments if any. Otherwise uses the default configuration file name
-     * 
+     *
      * @param args the command line arguments
      * @return the path to the found
      * @throws VitamApplicationServerException if a problem occurs
@@ -103,24 +104,24 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<?>, C>
         Path configurationFile = null;
         if (args != null && args.length >= 1) {
             try {
-                File file = PropertiesUtils.findFile(args[0]);
+                final File file = PropertiesUtils.findFile(args[0]);
                 configurationFile = file.toPath();
-            } catch (FileNotFoundException e) {//NOSONAR ignore yet
+            } catch (final FileNotFoundException e) {// NOSONAR ignore yet
                 // ignore
             }
         }
         if (configurationFile == null) {
             try {
-                File file = PropertiesUtils.findFile(getConfigFilename());
+                final File file = PropertiesUtils.findFile(getConfigFilename());
                 configurationFile = file.toPath();
-            } catch (FileNotFoundException e) {//NOSONAR ignore yet
+            } catch (final FileNotFoundException e) {// NOSONAR ignore yet
                 // ignore
             }
         }
         if (configurationFile == null) {
             throw new VitamApplicationServerException(
                 String.format("Configuration file not found '%s'",
-                getConfigFilename()));
+                    getConfigFilename()));
         }
         return configurationFile;
     }

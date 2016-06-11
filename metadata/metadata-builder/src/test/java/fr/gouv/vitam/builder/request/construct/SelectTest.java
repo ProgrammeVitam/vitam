@@ -1,31 +1,25 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
- * 
+ *
  * Copyright Vitam (2012, 2015)
  *
- * This software is governed by the CeCILL 2.1 license under French law and
- * abiding by the rules of distribution of free software. You can use, modify
- * and/ or redistribute the software under the terms of the CeCILL license as
- * circulated by CEA, CNRS and INRIA at the following URL
- * "http://www.cecill.info".
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
+ * by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
  *
- * As a counterpart to the access to the source code and rights to copy, modify
- * and redistribute granted by the license, users are provided only with a
- * limited warranty and the software's author, the holder of the economic
- * rights, and the successive licensors have only limited liability.
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
  *
- * In this respect, the user's attention is drawn to the risks associated with
- * loading, using, modifying and/or developing or reproducing the software by
- * the user in light of its specific status of free software, that may mean that
- * it is complicated to manipulate, and that also therefore means that it is
- * reserved for developers and experienced professionals having in-depth
- * computer knowledge. Users are therefore encouraged to load and test the
- * software's suitability as regards their requirements in conditions enabling
- * the security of their systems and/or data to be ensured and, more generally,
- * to use and operate it in the same conditions as regards security.
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
  *
- * The fact that you are presently reading this means that you have had
- * knowledge of the CeCILL license and that you accept its terms.
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you
+ * accept its terms.
  *******************************************************************************/
 package fr.gouv.vitam.builder.request.construct;
 
@@ -39,7 +33,6 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import fr.gouv.vitam.builder.request.construct.Select;
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.FILTERARGS;
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.PROJECTION;
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.QUERY;
@@ -80,7 +73,7 @@ public class SelectTest {
         assertNull(select.filter);
         try {
             select.addHintFilter(FILTERARGS.CACHE.exactToken());
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
@@ -88,7 +81,7 @@ public class SelectTest {
         assertEquals(1, select.filter.get(SELECTFILTER.HINT.exactToken()).size());
         try {
             select.addHintFilter(FILTERARGS.NOCACHE.exactToken());
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
@@ -110,7 +103,7 @@ public class SelectTest {
             select.addOrderByDescFilter("var1", "var2");
             assertEquals(4, select.filter.get(SELECTFILTER.ORDERBY.exactToken()).size());
             select.addOrderByDescFilter("var3").addOrderByDescFilter("var4");
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
@@ -132,7 +125,7 @@ public class SelectTest {
             // used/unused identical so don't change the number
             assertEquals(4, select.projection.get(PROJECTION.FIELDS.exactToken()).size());
             select.addUnusedProjection("var3").addUnusedProjection("var4");
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
@@ -147,7 +140,7 @@ public class SelectTest {
         assertNull(select.projection);
         try {
             select.setUsageProjection("usage");
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
@@ -162,10 +155,10 @@ public class SelectTest {
         assertTrue(select.queries.isEmpty());
         try {
             select.addQueries(
-                    new BooleanQuery(QUERY.AND).add(new ExistsQuery(QUERY.EXISTS, "varA"))
-                            .setRelativeDepthLimit(5));
+                new BooleanQuery(QUERY.AND).add(new ExistsQuery(QUERY.EXISTS, "varA"))
+                    .setRelativeDepthLimit(5));
             select.addQueries(new PathQuery("path1", "path2"),
-                    new ExistsQuery(QUERY.EXISTS, "varB").setExactDepthLimit(10));
+                new ExistsQuery(QUERY.EXISTS, "varB").setExactDepthLimit(10));
             select.addQueries(new PathQuery("path3"));
             assertEquals(4, select.getQueries().size());
             select.setLimitFilter(10, 10);
@@ -183,7 +176,7 @@ public class SelectTest {
                 assertEquals(4, node.size());
                 select.resetQueries();
                 assertEquals(0, select.getQueries().size());
-            } catch (InvalidParseOperationException e) {
+            } catch (final InvalidParseOperationException e) {
                 e.printStackTrace();
                 fail(e.getMessage());
             }
@@ -192,34 +185,35 @@ public class SelectTest {
             fail(e.getMessage());
         }
     }
-    
+
     @Test
-    public void testAllReset() throws InvalidParseOperationException{
-    	final Select select = new Select();
+    public void testAllReset() throws InvalidParseOperationException {
+        final Select select = new Select();
         select.addUsedProjection("var1");
         select.setUsageProjection("usageId1");
         assertEquals(2, select.projection.size());
         select.reset();
         assertEquals(0, select.projection.size());
     }
-    
+
     @Test
-    public void testParser() throws InvalidParseOperationException{
-    	final Select select = new Select();
-    	select.parseOrderByFilter("{$orderby : { maclef1 : 1 , maclef2 : -1 }}");
-    	select.parseLimitFilter("{$limit : 5}");
-    	assertEquals("{\"maclef1\":1,\"maclef2\":-1}", select.filter.get(SELECTFILTER.ORDERBY.exactToken()).toString());
-    	assertEquals("5", select.filter.get(SELECTFILTER.LIMIT.exactToken()).toString());
-    	select.resetFilter();
-    	select.parseFilter("{$orderby : { maclef1 : 1 , maclef2 : -1 }, $limit : 5}");
-    	select.parseProjection("{$fields : {#dua : 1, #all : 1}, $usage : 'abcdef1234' }");
-    	assertTrue(select.getAllProjection());
-    	assertEquals("{\"$fields\":{\"#dua\":1,\"#all\":1},\"$usage\":\"abcdef1234\"}", select.getProjection().toString());
-    	String s= "QUERY: Requests: \n\tFilter: {\"$limit\":5,\"$orderby\":{\"maclef1\":1,\"maclef2\":-1}}"
-    			+"\n\tRoots: []\n\tProjection: {\"$fields\":{\"#dua\":1,\"#all\":1},\"$usage\":\"abcdef1234\"}";
-    	assertEquals(s, select.toString());
-    	select.parseRoots("[ 'id0' ]");
-    	assertEquals(1, select.roots.size());
+    public void testParser() throws InvalidParseOperationException {
+        final Select select = new Select();
+        select.parseOrderByFilter("{$orderby : { maclef1 : 1 , maclef2 : -1 }}");
+        select.parseLimitFilter("{$limit : 5}");
+        assertEquals("{\"maclef1\":1,\"maclef2\":-1}", select.filter.get(SELECTFILTER.ORDERBY.exactToken()).toString());
+        assertEquals("5", select.filter.get(SELECTFILTER.LIMIT.exactToken()).toString());
+        select.resetFilter();
+        select.parseFilter("{$orderby : { maclef1 : 1 , maclef2 : -1 }, $limit : 5}");
+        select.parseProjection("{$fields : {#dua : 1, #all : 1}, $usage : 'abcdef1234' }");
+        assertTrue(select.getAllProjection());
+        assertEquals("{\"$fields\":{\"#dua\":1,\"#all\":1},\"$usage\":\"abcdef1234\"}",
+            select.getProjection().toString());
+        final String s = "QUERY: Requests: \n\tFilter: {\"$limit\":5,\"$orderby\":{\"maclef1\":1,\"maclef2\":-1}}" +
+            "\n\tRoots: []\n\tProjection: {\"$fields\":{\"#dua\":1,\"#all\":1},\"$usage\":\"abcdef1234\"}";
+        assertEquals(s, select.toString());
+        select.parseRoots("[ 'id0' ]");
+        assertEquals(1, select.roots.size());
     }
 
 }

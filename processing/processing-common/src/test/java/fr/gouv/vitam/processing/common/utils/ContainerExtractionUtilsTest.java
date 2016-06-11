@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -45,7 +45,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
- * 
+ *
  */
 public class ContainerExtractionUtilsTest {
 
@@ -58,7 +58,7 @@ public class ContainerExtractionUtilsTest {
     private final String CONTENT = "Content";
     private final String folder = new StringBuilder().append(SIP).append(SLASH).append(CONTENT).toString();
 
-    private WorkParams workParams =
+    private final WorkParams workParams =
         new WorkParams().setGuuid("id").setServerConfiguration(new ServerConfiguration().setUrlWorkspace("ws"))
             .setObjectName(folder);
 

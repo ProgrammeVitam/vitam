@@ -88,7 +88,7 @@ public class LogbookLifeCycle extends LogbookDocument<LogbookLifeCycle> {
     }
 
     /**
-     * 
+     *
      * @return the ParameterName as id in collection
      */
     public static final LogbookParameterName getIdParameterName() {

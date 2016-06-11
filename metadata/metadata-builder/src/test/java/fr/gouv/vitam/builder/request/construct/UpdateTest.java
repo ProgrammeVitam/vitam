@@ -1,31 +1,25 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
- * 
+ *
  * Copyright Vitam (2012, 2015)
  *
- * This software is governed by the CeCILL 2.1 license under French law and
- * abiding by the rules of distribution of free software. You can use, modify
- * and/ or redistribute the software under the terms of the CeCILL license as
- * circulated by CEA, CNRS and INRIA at the following URL
- * "http://www.cecill.info".
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
+ * by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
  *
- * As a counterpart to the access to the source code and rights to copy, modify
- * and redistribute granted by the license, users are provided only with a
- * limited warranty and the software's author, the holder of the economic
- * rights, and the successive licensors have only limited liability.
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
  *
- * In this respect, the user's attention is drawn to the risks associated with
- * loading, using, modifying and/or developing or reproducing the software by
- * the user in light of its specific status of free software, that may mean that
- * it is complicated to manipulate, and that also therefore means that it is
- * reserved for developers and experienced professionals having in-depth
- * computer knowledge. Users are therefore encouraged to load and test the
- * software's suitability as regards their requirements in conditions enabling
- * the security of their systems and/or data to be ensured and, more generally,
- * to use and operate it in the same conditions as regards security.
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
  *
- * The fact that you are presently reading this means that you have had
- * knowledge of the CeCILL license and that you accept its terms.
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you
+ * accept its terms.
  *******************************************************************************/
 package fr.gouv.vitam.builder.request.construct;
 
@@ -70,27 +64,27 @@ public class UpdateTest {
         assertTrue(update.getFilter().size() == 0);
     }
 
-	@Test
-	public void testAddActions() {
-		final Update update = new Update();
-		assertTrue(update.actions.isEmpty());
-		try {
-			update.addActions(new AddAction("varname", 1).add(true));
-			update.addActions(new IncAction("varname2", 2));
-			update.addActions(new PullAction("varname3", true).add("val"));
-			update.addActions(new PopAction("varname4"));
-			update.addActions(new PushAction("varname5", "val").add(1.0));
-			update.addActions(new RenameAction("varname6", "varname7"));
-			update.addActions(new SetAction("varname8", "val").add("varname9", 1));
-			update.addActions(new UnsetAction("varname10", "varname11").add("varname12"));
-			assertEquals(8, update.actions.size());
-			update.resetActions();
-			assertEquals(0, update.actions.size());
-		} catch (final InvalidCreateOperationException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
+    @Test
+    public void testAddActions() {
+        final Update update = new Update();
+        assertTrue(update.actions.isEmpty());
+        try {
+            update.addActions(new AddAction("varname", 1).add(true));
+            update.addActions(new IncAction("varname2", 2));
+            update.addActions(new PullAction("varname3", true).add("val"));
+            update.addActions(new PopAction("varname4"));
+            update.addActions(new PushAction("varname5", "val").add(1.0));
+            update.addActions(new RenameAction("varname6", "varname7"));
+            update.addActions(new SetAction("varname8", "val").add("varname9", 1));
+            update.addActions(new UnsetAction("varname10", "varname11").add("varname12"));
+            assertEquals(8, update.actions.size());
+            update.resetActions();
+            assertEquals(0, update.actions.size());
+        } catch (final InvalidCreateOperationException e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+    }
 
     @Test
     public void testAddRequests() {
@@ -98,10 +92,10 @@ public class UpdateTest {
         assertTrue(update.queries.isEmpty());
         try {
             update.addQueries(
-                    new BooleanQuery(QUERY.AND).add(new ExistsQuery(QUERY.EXISTS, "varA"))
-                            .setRelativeDepthLimit(5));
+                new BooleanQuery(QUERY.AND).add(new ExistsQuery(QUERY.EXISTS, "varA"))
+                    .setRelativeDepthLimit(5));
             update.addQueries(new PathQuery("path1", "path2"),
-                    new ExistsQuery(QUERY.EXISTS, "varB").setExactDepthLimit(10));
+                new ExistsQuery(QUERY.EXISTS, "varB").setExactDepthLimit(10));
             update.addQueries(new PathQuery("path3"));
             assertEquals(4, update.queries.size());
             update.resetQueries();
@@ -112,46 +106,47 @@ public class UpdateTest {
         }
     }
 
-	@Test
-	public void testGetFinalUpdate() {
-		final Update update = new Update();
-		assertTrue(update.queries.isEmpty());
-		try {
-			update.addQueries(new PathQuery("path3"));
-			assertEquals(1, update.queries.size());
-			update.setMult(true);
-			update.addActions(new IncAction("mavar"));
-			final ObjectNode node = update.getFinalUpdate();
-			assertEquals(4, node.size());
-		} catch (final InvalidCreateOperationException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-	}
+    @Test
+    public void testGetFinalUpdate() {
+        final Update update = new Update();
+        assertTrue(update.queries.isEmpty());
+        try {
+            update.addQueries(new PathQuery("path3"));
+            assertEquals(1, update.queries.size());
+            update.setMult(true);
+            update.addActions(new IncAction("mavar"));
+            final ObjectNode node = update.getFinalUpdate();
+            assertEquals(4, node.size());
+        } catch (final InvalidCreateOperationException e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+    }
 
-	@Test
-	public void testAllReset() throws InvalidCreateOperationException{
-		final Update update = new Update();
-		update.addActions(new AddAction("varname", 1));
-		assertEquals(1,update.actions.size());
-		update.reset();
-		assertEquals(0, update.actions.size());
-	}
+    @Test
+    public void testAllReset() throws InvalidCreateOperationException {
+        final Update update = new Update();
+        update.addActions(new AddAction("varname", 1));
+        assertEquals(1, update.actions.size());
+        update.reset();
+        assertEquals(0, update.actions.size());
+    }
 
-	@Test
-	public void testAllSet() throws InvalidParseOperationException, InvalidCreateOperationException{
-		final Update update = new Update();
-		update.setMult(JsonHandler.createObjectNode().put("$mult", "true"));
-		assertTrue(update.getFilter().size() == 1);
-		update.resetFilter();
-		assertTrue(update.getFilter().size() == 0);
-		update.setFilter(JsonHandler.createObjectNode().put("$mult", "true"));
-		assertTrue(update.getFilter().size() == 1);
+    @Test
+    public void testAllSet() throws InvalidParseOperationException, InvalidCreateOperationException {
+        final Update update = new Update();
+        update.setMult(JsonHandler.createObjectNode().put("$mult", "true"));
+        assertTrue(update.getFilter().size() == 1);
+        update.resetFilter();
+        assertTrue(update.getFilter().size() == 0);
+        update.setFilter(JsonHandler.createObjectNode().put("$mult", "true"));
+        assertTrue(update.getFilter().size() == 1);
 
-		String s= "UPDATEACTION: Requests: \n\tFilter: {\"$mult\":\"true\"}\n\tRoots: []\n\tActions: \n{\"$inc\":{\"var2\":2}}";
-		update.addActions(new IncAction("var2", 2));
-		assertEquals(s, update.toString());
+        final String s =
+            "UPDATEACTION: Requests: \n\tFilter: {\"$mult\":\"true\"}\n\tRoots: []\n\tActions: \n{\"$inc\":{\"var2\":2}}";
+        update.addActions(new IncAction("var2", 2));
+        assertEquals(s, update.toString());
 
-	}
+    }
 
 }

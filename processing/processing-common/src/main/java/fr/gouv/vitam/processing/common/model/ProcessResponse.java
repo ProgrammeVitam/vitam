@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
- * 
+ *
  * Copyright Vitam (2012, 2015)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
@@ -29,9 +29,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 
+ *
  * Process Response class
- * 
+ *
  * contains global process status, messages and list of action results
  */
 
@@ -47,10 +47,10 @@ public class ProcessResponse implements EngineResponse {
     private List<String> messages;
     /**
      * List of steps 's responses
-     * 
-     * 
+     *
+     *
      * key is stepName
-     * 
+     *
      * object is list of response 's action
      */
     private Map<String, List<EngineResponse>> stepResponses;
@@ -68,7 +68,7 @@ public class ProcessResponse implements EngineResponse {
 
     /**
      * implementation of setStatus() of EngineResponse API class
-     */    
+     */
     @Override
     public ProcessResponse setStatus(StatusCode status) {
         this.status = status;
@@ -77,7 +77,7 @@ public class ProcessResponse implements EngineResponse {
 
     /**
      * implementation of getMessage() of EngineResponse API class
-     */    
+     */
     @Override
     public List<String> getMessages() {
         if (messages == null) {
@@ -88,14 +88,16 @@ public class ProcessResponse implements EngineResponse {
 
     /**
      * implementation of setMessage() of EngineResponse API class
-     */    
+     */
     @Override
     public ProcessResponse setMessages(List<String> messages) {
         this.messages = messages;
         return this;
     }
 
-    /** getStepResponses given the response of each step of workflow processing
+    /**
+     * getStepResponses given the response of each step of workflow processing
+     *
      * @return the stepResponses
      */
 
@@ -106,18 +108,22 @@ public class ProcessResponse implements EngineResponse {
         return stepResponses;
     }
 
-    /** setStepResponses, set the response at each step of workflow processing
+    /**
+     * setStepResponses, set the response at each step of workflow processing
+     *
      * @param stepResponses the stepResponses to set
      */
     public ProcessResponse setStepResponses(Map<String, List<EngineResponse>> stepResponses) {
         if (stepResponses != null && !stepResponses.isEmpty()) {
-            stepResponses.forEach((actionKey, responses) -> this.status = getGlobalProcessStatusCode(responses));
+            stepResponses.forEach((actionKey, responses) -> status = getGlobalProcessStatusCode(responses));
         }
         this.stepResponses = stepResponses;
         return this;
     }
 
-    /** getGlobalProcessStatusCode, return the global status of workflow processing
+    /**
+     * getGlobalProcessStatusCode, return the global status of workflow processing
+     *
      * @param responses, list of step response
      * @return the status of StatusCode type
      */
@@ -125,14 +131,14 @@ public class ProcessResponse implements EngineResponse {
         StatusCode statusCode = StatusCode.OK;
 
         if (responses != null) {
-            for (EngineResponse response : responses) {
+            for (final EngineResponse response : responses) {
                 if (StatusCode.FATAL == response.getStatus()) {
                     statusCode = StatusCode.FATAL;
                     break;
                 } else if (StatusCode.KO == response.getStatus()) {
                     statusCode = StatusCode.KO;
                     continue;
-                } else if (StatusCode.WARNING == response.getStatus() && this.status != StatusCode.KO) {
+                } else if (StatusCode.WARNING == response.getStatus() && status != StatusCode.KO) {
                     statusCode = StatusCode.WARNING;
                 }
             }
@@ -142,7 +148,7 @@ public class ProcessResponse implements EngineResponse {
 
     /**
      * implementation of getValue() of EngineResponse API class
-     */    
+     */
     @Override
     public String getValue() {
         return status.value();

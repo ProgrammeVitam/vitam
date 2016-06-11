@@ -29,7 +29,7 @@ package fr.gouv.vitam.common.server.application.configuration;
 
 /**
  * Defines minimal common configurations for server identity configuration properties.
- * 
+ *
  * <br>
  * <br>
  * Your configuration class must implement it
@@ -38,21 +38,21 @@ package fr.gouv.vitam.common.server.application.configuration;
 public interface ServerIdentityConfiguration extends VitamApplicationConfiguration {
     /**
      * Must return the value of a 'identityName' attribute
-     * 
+     *
      * @return the identity name value
      */
     String getIdentityName();
 
     /**
      * Must return the value of a 'IdentityPlatformId' attribute
-     * 
+     *
      * @return the identity platform id value
      */
     int getIdentityPlatformId();
 
     /**
      * Must return the value of a 'identityRole' attribute
-     * 
+     *
      * @return the identity role value
      */
     String getIdentityRole();
