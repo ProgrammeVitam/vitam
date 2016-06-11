@@ -1,31 +1,25 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
- * 
+ *
  * Copyright Vitam (2012, 2015)
  *
- * This software is governed by the CeCILL 2.1 license under French law and
- * abiding by the rules of distribution of free software. You can use, modify
- * and/ or redistribute the software under the terms of the CeCILL license as
- * circulated by CEA, CNRS and INRIA at the following URL
- * "http://www.cecill.info".
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
+ * by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
  *
- * As a counterpart to the access to the source code and rights to copy, modify
- * and redistribute granted by the license, users are provided only with a
- * limited warranty and the software's author, the holder of the economic
- * rights, and the successive licensors have only limited liability.
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
  *
- * In this respect, the user's attention is drawn to the risks associated with
- * loading, using, modifying and/or developing or reproducing the software by
- * the user in light of its specific status of free software, that may mean that
- * it is complicated to manipulate, and that also therefore means that it is
- * reserved for developers and experienced professionals having in-depth
- * computer knowledge. Users are therefore encouraged to load and test the
- * software's suitability as regards their requirements in conditions enabling
- * the security of their systems and/or data to be ensured and, more generally,
- * to use and operate it in the same conditions as regards security.
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
  *
- * The fact that you are presently reading this means that you have had
- * knowledge of the CeCILL license and that you accept its terms.
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you
+ * accept its terms.
  *******************************************************************************/
 package fr.gouv.vitam.builder.request.construct.query;
 
@@ -64,30 +58,29 @@ public class MltQuery extends Query {
     /**
      * MoreLikeThis Query constructor
      *
-     * @param mltQuery
-     *            flt, mlt
+     * @param mltQuery flt, mlt
      * @param value
      * @param variableNames
      * @throws InvalidCreateOperationException
      */
     public MltQuery(final QUERY mltQuery, final String value,
-            final String... variableNames)
-            throws InvalidCreateOperationException {
+        final String... variableNames)
+        throws InvalidCreateOperationException {
         super();
         if (value == null || value.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                    "Query " + mltQuery + " cannot be created with empty variable name");
+                "Query " + mltQuery + " cannot be created with empty variable name");
         }
         try {
             GlobalDatas.sanityValueCheck(value);
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             throw new InvalidCreateOperationException(e);
         }
         switch (mltQuery) {
             case FLT:
             case MLT: {
                 final ObjectNode sub =
-                        ((ObjectNode) currentObject).putObject(mltQuery.exactToken());
+                    ((ObjectNode) currentObject).putObject(mltQuery.exactToken());
                 final ArrayNode array = sub.putArray(QUERYARGS.FIELDS.exactToken());
                 stringVals = new HashSet<String>();
                 for (final String varName : variableNames) {
@@ -96,7 +89,7 @@ public class MltQuery extends Query {
                     }
                     try {
                         GlobalDatas.sanityParameterCheck(varName);
-                    } catch (InvalidParseOperationException e) {
+                    } catch (final InvalidParseOperationException e) {
                         throw new InvalidCreateOperationException(e);
                     }
                     final String var = varName.trim();
@@ -111,7 +104,7 @@ public class MltQuery extends Query {
             }
             default:
                 throw new InvalidCreateOperationException(
-                        "Query " + mltQuery + " is not an MoreLikeThis or In Query");
+                    "Query " + mltQuery + " is not an MoreLikeThis or In Query");
         }
         currentQUERY = mltQuery;
         setReady(true);
@@ -125,11 +118,10 @@ public class MltQuery extends Query {
      * @throws InvalidCreateOperationException
      */
     public final MltQuery add(final String... variableName)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         if (currentQUERY != QUERY.FLT && currentQUERY != QUERY.MLT) {
             throw new InvalidCreateOperationException(
-                    "Cannot add a variableName since this is not an Mlt Query: "
-                            + currentQUERY);
+                "Cannot add a variableName since this is not an Mlt Query: " + currentQUERY);
         }
         final ArrayNode array = (ArrayNode) currentObject;
         if (stringVals == null) {
@@ -137,12 +129,12 @@ public class MltQuery extends Query {
         }
         for (String val : variableName) {
             if (val == null || val.trim().isEmpty()) {
-                throw new InvalidCreateOperationException("Query " + currentQUERY
-                        + " cannot be updated with empty variable name");
+                throw new InvalidCreateOperationException(
+                    "Query " + currentQUERY + " cannot be updated with empty variable name");
             }
             try {
                 GlobalDatas.sanityParameterCheck(val);
-            } catch (InvalidParseOperationException e) {
+            } catch (final InvalidParseOperationException e) {
                 throw new InvalidCreateOperationException(e);
             }
             val = val.trim();

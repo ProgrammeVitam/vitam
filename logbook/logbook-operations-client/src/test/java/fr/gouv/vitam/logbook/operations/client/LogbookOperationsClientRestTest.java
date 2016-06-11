@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.logbook.operations.client;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -40,22 +41,21 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.logbook.common.client.StatusMessage;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.glassfish.jersey.test.TestProperties;
 import org.junit.Test;
 
+import fr.gouv.vitam.logbook.common.client.StatusMessage;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import static org.junit.Assert.assertEquals;
 
 public class LogbookOperationsClientRestTest extends JerseyTest {
     protected static final String HOSTNAME = "localhost";
@@ -218,7 +218,7 @@ public class LogbookOperationsClientRestTest extends JerseyTest {
         when(mock.get()).thenReturn(Response.status(Status.OK).entity("{\"name\":\"logbook\",\"role\":\"myRole\"," +
             "\"pid\":123}")
             .build());
-        StatusMessage message = client.status();
+        final StatusMessage message = client.status();
         assertEquals("logbook", message.getName());
         assertEquals("myRole", message.getRole());
         assertEquals(123, message.getPid());

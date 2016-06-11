@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
- * 
+ *
  * Copyright Vitam (2012, 2015)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
@@ -31,9 +31,9 @@ import fr.gouv.vitam.processing.common.model.WorkParams;
 
 /**
  * interface ProcessDistributor
- * 
+ *
  * improves a availability and scalability
- * 
+ *
  * Various methods Distributor engine
  */
 // TODO REVIEW improve comment form
@@ -41,11 +41,11 @@ public interface ProcessDistributor {
 
     /**
      * Distribute different steps (execute a workflow actions step by step)
-     * 
+     *
      * @param workParams {@link WorkParams} null not allowed
      * @param step {@link Step} null not allowed
      * @param workflowId
-     * 
+     *
      * @return List<EngineResponse> {@link EngineResponse} : list of action response
      */
     List<EngineResponse> distribute(WorkParams workParams, Step step, String workflowId);

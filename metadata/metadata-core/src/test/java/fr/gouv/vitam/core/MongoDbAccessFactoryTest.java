@@ -1,6 +1,7 @@
 package fr.gouv.vitam.core;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -19,10 +20,11 @@ import fr.gouv.vitam.core.database.collections.MongoDbAccess;
 public class MongoDbAccessFactoryTest {
 
     private static final String DATABASE_HOST = "localhost";
-    private static final int DATABASE_PORT = 12345; 
+    private static final int DATABASE_PORT = 12345;
     static MongoDbAccess mongoDbAccess;
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         final MongodStarter starter = MongodStarter.getDefaultInstance();
@@ -41,10 +43,11 @@ public class MongoDbAccessFactoryTest {
         mongod.stop();
         mongodExecutable.stop();
     }
-    
+
     @Test
     public void testCreateFn() {
-        mongoDbAccess = new MongoDbAccessFactory().create(new MetaDataConfiguration(DATABASE_HOST, DATABASE_PORT, "vitam-test", "Unit"));
+        mongoDbAccess = new MongoDbAccessFactory()
+            .create(new MetaDataConfiguration(DATABASE_HOST, DATABASE_PORT, "vitam-test", "Unit"));
         assertNotNull(mongoDbAccess);
         assertEquals("vitam-test", mongoDbAccess.getMongoDatabase().getName());
         mongoDbAccess.closeFinal();

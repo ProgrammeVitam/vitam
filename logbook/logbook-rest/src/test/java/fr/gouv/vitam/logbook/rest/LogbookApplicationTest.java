@@ -69,7 +69,7 @@ public class LogbookApplicationTest {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         } catch (final FileNotFoundException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        } catch (VitamApplicationServerException e) {
+        } catch (final VitamApplicationServerException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
         try {
@@ -80,14 +80,14 @@ public class LogbookApplicationTest {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         } catch (final FileNotFoundException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        } catch (VitamApplicationServerException e) {
+        } catch (final VitamApplicationServerException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
         try {
             ((BasicVitamServer) LogbookApplication.startApplication(new String[0])).stop();
         } catch (final IllegalStateException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        } catch (VitamApplicationServerException e) {
+        } catch (final VitamApplicationServerException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
 

@@ -8,7 +8,7 @@ public class MetaDataClientFactoryTest {
 
     @Test
     public void givenMetaDataClientFactoryWhenCallingCreateThenReturnClient() {
-        MetaDataClientFactory factory = new MetaDataClientFactory();
+        final MetaDataClientFactory factory = new MetaDataClientFactory();
         assertTrue(factory.create("url") instanceof MetaDataClient);
     }
 

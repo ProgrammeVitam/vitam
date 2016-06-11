@@ -26,18 +26,15 @@
  */
 package fr.gouv.vitam.logbook.operations.client;
 
-import static org.junit.Assert.*;
-
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.operations.client.LogbookClientFactory.LogbookClientType;
 
 /**
@@ -84,7 +81,7 @@ public class LogbookClientFactoryTest {
     }
 
     @Test
-    public void changeDefaultClientTypeTest()  {
+    public void changeDefaultClientTypeTest() {
         final LogbookClient client =
             LogbookClientFactory.getInstance().getLogbookOperationClient();
         assertTrue(client instanceof LogbookOperationsClientRest);

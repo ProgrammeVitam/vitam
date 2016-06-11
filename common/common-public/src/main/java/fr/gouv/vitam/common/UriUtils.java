@@ -37,7 +37,7 @@ public final class UriUtils {
 
     /**
      * Removes the extension file and the root folder
-     * 
+     *
      * @param uriString
      * @return a URI path
      */
@@ -45,10 +45,10 @@ public final class UriUtils {
         String splitedString = null;
         try {
             if (uriString.contains(SLASH) && uriString.contains(POINT)) {
-                String[] uriWithoutRootFolderTable = uriString.split(SLASH, 2);
-                splitedString = (String) uriWithoutRootFolderTable[1];
+                final String[] uriWithoutRootFolderTable = uriString.split(SLASH, 2);
+                splitedString = uriWithoutRootFolderTable[1];
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             // TODO: handle exception
             splitedString = "";
         }

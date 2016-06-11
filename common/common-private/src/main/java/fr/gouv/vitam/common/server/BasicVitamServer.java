@@ -45,7 +45,7 @@ public class BasicVitamServer implements VitamServer {
 
     /**
      * A Vitam server can only be instantiated with a given port to listen to
-     * 
+     *
      * @param port the port to listen to (must be a valid logical port number)
      * @throws IllegalArgumentException if port <= 0
      */
@@ -77,6 +77,7 @@ public class BasicVitamServer implements VitamServer {
 
     /**
      * For Junit tests, starts only, not join
+     * 
      * @throws VitamApplicationServerException
      */
     public void start() throws VitamApplicationServerException {
@@ -89,9 +90,10 @@ public class BasicVitamServer implements VitamServer {
             throw new VitamApplicationServerException("A problem occurred while attempting to start the server", exc);
         }
     }
-    
+
     /**
      * For Junit tests, stops the server
+     * 
      * @throws VitamApplicationServerException
      */
     public void stop() throws VitamApplicationServerException {
@@ -107,7 +109,7 @@ public class BasicVitamServer implements VitamServer {
 
     /**
      * Retrieving the underlying jetty server is restricted to sub-implementations only
-     * 
+     *
      * @return the underlying jetty server
      */
     protected Server getServer() {

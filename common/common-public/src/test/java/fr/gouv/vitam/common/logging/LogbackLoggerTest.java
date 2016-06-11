@@ -49,7 +49,7 @@ public class LogbackLoggerTest {
     @BeforeClass
     public static void setUpBeforeClass() {
         VitamLoggerFactory.setDefaultFactory(new LogbackLoggerFactory(VitamLogLevel.TRACE));
-        VitamLogger logger = VitamLoggerFactory.getInstance(LogbackLoggerTest.class);
+        final VitamLogger logger = VitamLoggerFactory.getInstance(LogbackLoggerTest.class);
         logger.debug("Start Logback test", new Exception("test", new Exception("original")));
         try {
             System.setOut(new PrintStream(new OutputStream() {

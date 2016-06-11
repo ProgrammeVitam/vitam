@@ -1,6 +1,6 @@
 package fr.gouv.vitam.logbook.common.server.database.exception;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 
@@ -13,6 +13,7 @@ public class LogbookExceptionTest {
 
     private static final String MESSAGE = "message";
     private static final Exception exception = new Exception();
+
     @Test
     public final void testLogbookAlreadyExistsException() {
         assertNotNull(new LogbookAlreadyExistsException());

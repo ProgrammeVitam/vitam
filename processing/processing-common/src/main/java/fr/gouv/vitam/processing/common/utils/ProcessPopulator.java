@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
- * 
+ *
  * Copyright Vitam (2012, 2015)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
@@ -35,7 +35,7 @@ import fr.gouv.vitam.processing.common.model.WorkFlow;
 
 /**
  * Temporary process populator
- * 
+ *
  * populates workflow java object
  *
  */
@@ -45,21 +45,21 @@ public class ProcessPopulator {
 
     /**
      * create workflow object : parse JSON file
-     * 
+     *
      * @param workflowId
      * @return workflow's object
      * @throws WorkflowNotFoundException
      */
     public static WorkFlow populate(String workflowId) throws WorkflowNotFoundException {
 
-        ObjectMapper objectMapper = new ObjectMapper();
+        final ObjectMapper objectMapper = new ObjectMapper();
         WorkFlow process = null;
 
         try {
-            InputStream inputJSON = getFileAsInputStream(workflowId + ".json");
+            final InputStream inputJSON = getFileAsInputStream(workflowId + ".json");
             process = objectMapper.readValue(inputJSON, WorkFlow.class);
 
-        } catch (IOException e) {
+        } catch (final IOException e) {
             LOGGER.error("IOException thrown by populator", e);
             throw new WorkflowNotFoundException("IOException thrown by populator", e);
         }

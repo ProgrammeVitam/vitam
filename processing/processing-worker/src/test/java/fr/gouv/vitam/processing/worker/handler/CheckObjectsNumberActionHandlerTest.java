@@ -45,18 +45,18 @@ public class CheckObjectsNumberActionHandlerTest {
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
 
-    private List<URI> uriDuplicatedListManifestKO = new ArrayList<>();
-    private List<URI> uriListManifestOK = new ArrayList<>();
-    private List<URI> uriOutNumberListManifestKO = new ArrayList<>();
+    private final List<URI> uriDuplicatedListManifestKO = new ArrayList<>();
+    private final List<URI> uriListManifestOK = new ArrayList<>();
+    private final List<URI> uriOutNumberListManifestKO = new ArrayList<>();
 
-    private List<URI> uriListWorkspaceOK = new ArrayList<>();
-    private List<URI> uriOutNumberListWorkspaceKO = new ArrayList<>();
+    private final List<URI> uriListWorkspaceOK = new ArrayList<>();
+    private final List<URI> uriOutNumberListWorkspaceKO = new ArrayList<>();
 
     private ExtractUriResponse extractUriResponseOK;
     private ExtractUriResponse extractDuplicatedUriResponseKO;
     private ExtractUriResponse extractOutNumberUriResponseKO;
 
-    private List<String> messages = new ArrayList<>();
+    private final List<String> messages = new ArrayList<>();
 
 
     @Before
@@ -122,7 +122,7 @@ public class CheckObjectsNumberActionHandlerTest {
         checkObjectsNumberActionHandler =
             new CheckObjectsNumberActionHandler(sedaFactory, containerExtractionUtilsFactory);
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
-        EngineResponse response = checkObjectsNumberActionHandler.execute(workParams);
+        final EngineResponse response = checkObjectsNumberActionHandler.execute(workParams);
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(StatusCode.FATAL);
     }
@@ -137,7 +137,7 @@ public class CheckObjectsNumberActionHandlerTest {
         checkObjectsNumberActionHandler =
             new CheckObjectsNumberActionHandler(sedaFactory, containerExtractionUtilsFactory);
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
-        EngineResponse response = checkObjectsNumberActionHandler.execute(workParams);
+        final EngineResponse response = checkObjectsNumberActionHandler.execute(workParams);
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(StatusCode.FATAL);
     }
@@ -158,7 +158,7 @@ public class CheckObjectsNumberActionHandlerTest {
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
 
 
-        EngineResponse response = checkObjectsNumberActionHandler.execute(workParams);
+        final EngineResponse response = checkObjectsNumberActionHandler.execute(workParams);
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(StatusCode.OK);
         assertThat(response.getMessages()).hasSize(1);
@@ -179,7 +179,7 @@ public class CheckObjectsNumberActionHandlerTest {
 
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
 
-        EngineResponse response = checkObjectsNumberActionHandler.execute(workParams);
+        final EngineResponse response = checkObjectsNumberActionHandler.execute(workParams);
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(StatusCode.KO);
         assertThat(response.getMessages()).isNotNull().isNotEmpty();
@@ -202,7 +202,7 @@ public class CheckObjectsNumberActionHandlerTest {
 
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
 
-        EngineResponse response = checkObjectsNumberActionHandler.execute(workParams);
+        final EngineResponse response = checkObjectsNumberActionHandler.execute(workParams);
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(StatusCode.KO);
         assertThat(response.getMessages()).isNotNull().isNotEmpty();
@@ -224,7 +224,7 @@ public class CheckObjectsNumberActionHandlerTest {
 
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
 
-        EngineResponse response = checkObjectsNumberActionHandler.execute(workParams);
+        final EngineResponse response = checkObjectsNumberActionHandler.execute(workParams);
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(StatusCode.KO);
         assertThat(response.getMessages()).isNotNull().isNotEmpty();
@@ -246,7 +246,7 @@ public class CheckObjectsNumberActionHandlerTest {
 
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
 
-        EngineResponse response = checkObjectsNumberActionHandler.execute(workParams);
+        final EngineResponse response = checkObjectsNumberActionHandler.execute(workParams);
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(StatusCode.KO);
         assertThat(response.getMessages()).isNotNull().isNotEmpty();

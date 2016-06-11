@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -38,23 +38,25 @@ import fr.gouv.vitam.processing.engine.core.ProcessEngineImpl;
 import fr.gouv.vitam.processing.management.api.ProcessManagement;
 
 /**
- * ProcessManagementImpl
- * implementation of ProcessManagement API  
+ * ProcessManagementImpl implementation of ProcessManagement API
  */
 public class ProcessManagementImpl implements ProcessManagement {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessManagementImpl.class);
-    private ProcessEngine processEngine;
+    private final ProcessEngine processEngine;
     private ServerConfiguration serverConfig;
 
     /**
-     * get the server configuration 
+     * get the server configuration
+     * 
      * @return serverConfig of type ServerConfiguration
      */
     public ServerConfiguration getServerConfig() {
-        return this.serverConfig;
+        return serverConfig;
     }
 
-    /** set the server configuration 
+    /**
+     * set the server configuration
+     * 
      * @param serverConfig
      * @return ProcessManagementImpl instance with serverConfig is setted
      */
@@ -63,8 +65,10 @@ public class ProcessManagementImpl implements ProcessManagement {
         return this;
     }
 
-    /** constructor of ProcessManagementImpl 
-     * @param serverConfig 
+    /**
+     * constructor of ProcessManagementImpl
+     * 
+     * @param serverConfig
      */
     public ProcessManagementImpl(ServerConfiguration serverConfig) {
         /**
@@ -75,9 +79,8 @@ public class ProcessManagementImpl implements ProcessManagement {
     }
 
     /**
-     * submitWorkflow
-     * implemente submitWorkflow of ProcessManagement API
-     * see params and return in ProcessManagement API class
+     * submitWorkflow implemente submitWorkflow of ProcessManagement API see params and return in ProcessManagement API
+     * class
      */
     @Override
     public EngineResponse submitWorkflow(WorkParams workParams, String workflowId) throws ProcessingException {
@@ -85,13 +88,13 @@ public class ProcessManagementImpl implements ProcessManagement {
         workParams.setServerConfiguration(serverConfig);
         try {
             response = processEngine.startWorkflow(workParams, workflowId);
-        } catch (WorkflowNotFoundException e) {
+        } catch (final WorkflowNotFoundException e) {
             LOGGER.error("WorkflowNotFoundException");
             throw new WorkflowNotFoundException(workflowId, e);
-        } catch (IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             LOGGER.error("IllegalArgumentException");
             throw new IllegalArgumentException(workflowId, e);
-        } catch (ProcessingException e) {
+        } catch (final ProcessingException e) {
             LOGGER.error("ProcessingException");
             throw new ProcessingException(workflowId, e);
         }

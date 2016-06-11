@@ -48,10 +48,10 @@ public final class SystemPropertyUtil {
     /**
      * Default Vitam Config Folder
      */
-    private static final String VITAM_CONFIG_FOLDER_DEFAULT  = "/vitam/conf";
+    private static final String VITAM_CONFIG_FOLDER_DEFAULT = "/vitam/conf";
 
     private static final Properties PROPS = new Properties();
-    
+
     // Retrieve all system properties at once so that there's no need to deal
     // with
     // security exceptions from next time. Otherwise, we might end up with
@@ -116,7 +116,7 @@ public final class SystemPropertyUtil {
     }
 
     /**
-     * 
+     *
      * @return the VitamConfigFolder path
      */
     public static String getVitamConfigFolder() {

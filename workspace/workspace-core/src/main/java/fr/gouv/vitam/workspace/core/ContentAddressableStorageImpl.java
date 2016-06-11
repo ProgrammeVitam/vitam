@@ -34,7 +34,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -77,7 +76,7 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(ContentAddressableStorageImpl.class);
 
-    private BlobStoreContext context;
+    private final BlobStoreContext context;
 
 
     private static final String TMP_FOLDER = "/tmp/";
@@ -88,7 +87,7 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
 
     /**
      * creates a new ContentAddressableStorageImpl with a storage configuration param
-     * 
+     *
      * @param configuration
      */
     public ContentAddressableStorageImpl(StorageConfiguration configuration) {
@@ -97,7 +96,7 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
 
     /**
      * enables the connection to a storage service with the param provided
-     * 
+     *
      * @param configuration
      * @return BlobStoreContext
      */
@@ -115,7 +114,7 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
                     ErrorMessage.CONTAINER_ALREADY_EXIST.getMessage() + containerName);
             }
 
-        } catch (ContentAddressableStorageAlreadyExistException e) {
+        } catch (final ContentAddressableStorageAlreadyExistException e) {
             // TODO REVIEW You already log the same message before throwing the exception
             LOGGER.error(e.getMessage());
             throw e;
@@ -130,7 +129,7 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
         ParametersChecker.checkParamater(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
             containerName);
         try {
-            BlobStore blobStore = context.getBlobStore();
+            final BlobStore blobStore = context.getBlobStore();
             if (!containerExists(containerName)) {
                 LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
                 throw new ContentAddressableStorageNotFoundException(
@@ -139,7 +138,7 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
                 blobStore.clearContainer(containerName);
             }
 
-        } catch (ContentAddressableStorageNotFoundException e) {
+        } catch (final ContentAddressableStorageNotFoundException e) {
             // TODO REVIEW You already log the same message before throwing the exception
             LOGGER.error(e.getMessage());
             throw e;
@@ -163,7 +162,7 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
         ParametersChecker.checkParamater(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
             containerName);
         try {
-            BlobStore blobStore = context.getBlobStore();
+            final BlobStore blobStore = context.getBlobStore();
 
             if (!containerExists(containerName)) {
                 LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
@@ -176,7 +175,7 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
                 blobStore.deleteContainerIfEmpty(containerName);
             }
 
-        } catch (ContentAddressableStorageNotFoundException e) {
+        } catch (final ContentAddressableStorageNotFoundException e) {
             // TODO REVIEW You already log the same message before throwing the exception
             LOGGER.error(e.getMessage());
             throw e;
@@ -202,7 +201,7 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
             containerName, folderName);
         try {
 
-            BlobStore blobStore = context.getBlobStore();
+            final BlobStore blobStore = context.getBlobStore();
             if (!containerExists(containerName)) {
                 LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
                 throw new ContentAddressableStorageNotFoundException(
@@ -228,7 +227,7 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
         ParametersChecker.checkParamater(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, folderName);
         try {
-            BlobStore blobStore = context.getBlobStore();
+            final BlobStore blobStore = context.getBlobStore();
 
             if (!folderExists(containerName, folderName)) {
                 LOGGER.error(ErrorMessage.FOLDER_NOT_FOUND.getMessage() + folderName);
@@ -238,7 +237,7 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
             // TODO should it be a check of emptyness?
             blobStore.deleteDirectory(containerName, folderName);
 
-        } catch (ContentAddressableStorageNotFoundException e) {
+        } catch (final ContentAddressableStorageNotFoundException e) {
             throw e;
         } finally {
             context.close();
@@ -248,7 +247,7 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
     @Override
     public boolean folderExists(String containerName, String folderName) {
         try {
-            BlobStore blobStore = context.getBlobStore();
+            final BlobStore blobStore = context.getBlobStore();
             return blobStore.containerExists(containerName) && blobStore.directoryExists(containerName, folderName);
         } finally {
             context.close();
@@ -261,18 +260,18 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
         ParametersChecker.checkParamater(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName);
         try {
-            BlobStore blobStore = context.getBlobStore();
+            final BlobStore blobStore = context.getBlobStore();
 
             if (objectExists(containerName, objectName)) {
                 LOGGER.info(ErrorMessage.OBJECT_ALREADY_EXIST.getMessage() + objectName);
             }
 
-            Blob blob = blobStore.blobBuilder(objectName).payload(stream).build();
+            final Blob blob = blobStore.blobBuilder(objectName).payload(stream).build();
             blobStore.putBlob(containerName, blob);
-        } catch (ContainerNotFoundException e) {
+        } catch (final ContainerNotFoundException e) {
             LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
             throw new ContentAddressableStorageNotFoundException(e);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error(e.getMessage());
             throw new ContentAddressableStorageException(e);
         } finally {
@@ -285,7 +284,7 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
         ParametersChecker.checkParamater(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName);
         try {
-            BlobStore blobStore = context.getBlobStore();
+            final BlobStore blobStore = context.getBlobStore();
 
             if (!objectExists(containerName, objectName)) {
                 LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
@@ -293,17 +292,17 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
                     ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
             }
 
-            Blob blob = blobStore.getBlob(containerName, objectName);
+            final Blob blob = blobStore.getBlob(containerName, objectName);
             if (null != blob) {
                 return blob.getPayload().openStream();
             }
-        } catch (ContainerNotFoundException e) {
+        } catch (final ContainerNotFoundException e) {
             LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
             throw new ContentAddressableStorageNotFoundException(e);
-        } catch (ContentAddressableStorageNotFoundException e) {
+        } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(e.getMessage());
             throw e;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error(e.getMessage());
             throw new ContentAddressableStorageException(e);
         } finally {
@@ -322,7 +321,7 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
         ParametersChecker.checkParamater(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName);
         try {
-            BlobStore blobStore = context.getBlobStore();
+            final BlobStore blobStore = context.getBlobStore();
 
             if (!objectExists(containerName, objectName)) {
                 LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
@@ -331,7 +330,7 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
             }
 
             blobStore.removeBlob(containerName, objectName);
-        } catch (ContentAddressableStorageNotFoundException e) {
+        } catch (final ContentAddressableStorageNotFoundException e) {
             // TODO REVIEW You already log the same message before throwing the exception
             LOGGER.error(e.getMessage());
             throw e;
@@ -344,7 +343,7 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
     @Override
     public boolean objectExists(String containerName, String objectName) {
         try {
-            BlobStore blobStore = context.getBlobStore();
+            final BlobStore blobStore = context.getBlobStore();
             return blobStore.containerExists(containerName) && blobStore.blobExists(containerName, objectName);
         } finally {
             context.close();
@@ -359,10 +358,10 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
         ParametersChecker.checkParamater(ErrorMessage.FOLDER_NOT_FOUND.getMessage(), folderName);
         List<URI> uriFolderListFromContainer;
         try {
-            BlobStore blobStore = context.getBlobStore();
+            final BlobStore blobStore = context.getBlobStore();
 
             // It's like a filter
-            ListContainerOptions listContainerOptions = new ListContainerOptions();
+            final ListContainerOptions listContainerOptions = new ListContainerOptions();
             // List of all resources in a container recursively
             final PageSet<? extends StorageMetadata> blobStoreList =
                 blobStore.list(containerName, listContainerOptions.inDirectory(folderName).recursive());
@@ -381,20 +380,18 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
             // }
 
 
-            for (Iterator<? extends StorageMetadata> iterator = blobStoreList.iterator(); iterator.hasNext();) {
-                StorageMetadata storageMetada = iterator.next();
-
+            for (final StorageMetadata storageMetada : blobStoreList) {
                 // select BLOB only, not folder nor relative path
-                if ((storageMetada.getType().equals(StorageType.BLOB) && storageMetada.getName() != null &&
-                    !storageMetada.getName().isEmpty())) {
+                if (storageMetada.getType().equals(StorageType.BLOB) && storageMetada.getName() != null &&
+                    !storageMetada.getName().isEmpty()) {
                     uriFolderListFromContainer.add(new URI(UriUtils.splitUri(storageMetada.getName())));
                 }
             }
             LOGGER.info(WorkspaceMessage.ENDING_GET_URI_LIST_OF_DIGITAL_OBJECT.getMessage());
-        } catch (ContainerNotFoundException e) {
+        } catch (final ContainerNotFoundException e) {
             LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
             throw new ContentAddressableStorageNotFoundException(e);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error(e.getMessage());
             throw new ContentAddressableStorageException(e);
         } finally {
@@ -427,7 +424,7 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
 
     /**
      * extract compressed SIP and push the objects on the SIP folder
-     * 
+     *
      * @param containerName: GUID
      * @param inputStreamSipObject :compressed SIP stream
      * @throws ContentAddressableStorageException
@@ -467,7 +464,7 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
             }
             zInputStream.close();
 
-        } catch (IOException e) {
+        } catch (final IOException e) {
             LOGGER.error(e.getMessage());
             throw new ContentAddressableStorageException(e);
         }

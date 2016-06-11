@@ -1,7 +1,54 @@
 package fr.gouv.vitam.parser.request.parser.query;
 
-import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.*;
-import static org.junit.Assert.*;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.and;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.eq;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.exists;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.flt;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.gt;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.gte;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.in;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.isNull;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.lt;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.lte;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.match;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.matchPhrase;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.matchPhrasePrefix;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.missing;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.mlt;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.ne;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.nin;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.not;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.or;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.path;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.prefix;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.range;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.regex;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.term;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.wildcard;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.eq;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.exists;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.flt;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.gt;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.gte;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.in;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.isNull;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.lt;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.lte;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.match;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.matchPhrase;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.matchPhrasePrefix;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.missing;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.mlt;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.ne;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.nin;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.path;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.prefix;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.range;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.regex;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.term;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.wildcard;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.util.Date;
 
@@ -14,42 +61,38 @@ import org.junit.Test;
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.QUERY;
 import fr.gouv.vitam.builder.request.construct.query.Query;
 import fr.gouv.vitam.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.parser.request.parser.VarNameAdapter;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.parser.request.parser.VarNameAdapter;
 
 @SuppressWarnings("javadoc")
 public class QueryParserHelperTest {
 
     VarNameAdapter noAdapter = new VarNameAdapter();
-    
+
     @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
-    }
+    public static void setUpBeforeClass() throws Exception {}
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-    }
+    public static void tearDownAfterClass() throws Exception {}
 
     @Before
-    public void setUp() throws Exception {
-    }
+    public void setUp() throws Exception {}
 
     @After
-    public void tearDown() throws Exception {
-    }
+    public void tearDown() throws Exception {}
 
     private void compare(Query query, Query request2) {
         assertEquals("String shall be equal", query.getCurrentQuery().toString(),
-                request2.getCurrentQuery().toString());
+            request2.getCurrentQuery().toString());
     }
 
     @Test
     public void testPathJsonNode() {
         try {
-            Query path = path("id1", "id2");
-            Query path2 = path(path.getNode(QUERY.PATH.exactToken()), noAdapter);
+            final Query path = path("id1", "id2");
+            final Query path2 = path(path.getNode(QUERY.PATH.exactToken()), noAdapter);
             compare(path, path2);
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
@@ -115,10 +158,10 @@ public class QueryParserHelperTest {
             comp = nin("var1", 10, 20);
             comp2 = nin(comp.getNode(QUERY.NIN.exactToken()), noAdapter);
             compare(comp, comp2);
-        } catch (InvalidCreateOperationException e) {
+        } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
@@ -148,8 +191,8 @@ public class QueryParserHelperTest {
     @Test
     public void testRegexJsonNode() {
         try {
-            Query reg = regex("id1", "id2");
-            Query reg2 = regex(reg.getNode(QUERY.REGEX.exactToken()), noAdapter);
+            final Query reg = regex("id1", "id2");
+            final Query reg2 = regex(reg.getNode(QUERY.REGEX.exactToken()), noAdapter);
             compare(reg, reg2);
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             e.printStackTrace();
@@ -184,9 +227,9 @@ public class QueryParserHelperTest {
     @Test
     public void testWildcardJsonNode() {
         try {
-            Query wildcard = wildcard("var", "value");
-            Query wildcard2 =
-                    wildcard(wildcard.getNode(QUERY.WILDCARD.exactToken()), noAdapter);
+            final Query wildcard = wildcard("var", "value");
+            final Query wildcard2 =
+                wildcard(wildcard.getNode(QUERY.WILDCARD.exactToken()), noAdapter);
             compare(wildcard, wildcard2);
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             e.printStackTrace();
@@ -235,25 +278,25 @@ public class QueryParserHelperTest {
         try {
             Query bool = and().add(wildcard("var", "value"));
             Query bool2 = and().add(wildcard(
-                    bool.getCurrentObject().get(0).get(QUERY.WILDCARD.exactToken()), noAdapter));
+                bool.getCurrentObject().get(0).get(QUERY.WILDCARD.exactToken()), noAdapter));
             compare(bool, bool2);
             bool = or().add(wildcard("var", "value"));
             bool2 = or().add(wildcard(
-                    bool.getCurrentObject().get(0).get(QUERY.WILDCARD.exactToken()), noAdapter));
+                bool.getCurrentObject().get(0).get(QUERY.WILDCARD.exactToken()), noAdapter));
             compare(bool, bool2);
             bool = not().add(wildcard("var", "value"));
             bool2 = not().add(wildcard(
-                    bool.getCurrentObject().get(0).get(QUERY.WILDCARD.exactToken()), noAdapter));
+                bool.getCurrentObject().get(0).get(QUERY.WILDCARD.exactToken()), noAdapter));
             compare(bool, bool2);
             bool = not().add(wildcard("var", "value"));
             bool2 = not().add(wildcard(
-                    bool.getCurrentObject().get(0).get(QUERY.WILDCARD.exactToken()), noAdapter));
+                bool.getCurrentObject().get(0).get(QUERY.WILDCARD.exactToken()), noAdapter));
             compare(bool, bool2);
             bool = not().add(wildcard("var", "value"), wildcard("var2", "value2"));
             bool2 = not().add(wildcard(
-                    bool.getCurrentObject().get(0).get(QUERY.WILDCARD.exactToken()), noAdapter))
-                    .add(wildcard(bool.getCurrentObject().get(1)
-                            .get(QUERY.WILDCARD.exactToken()), noAdapter));
+                bool.getCurrentObject().get(0).get(QUERY.WILDCARD.exactToken()), noAdapter))
+                .add(wildcard(bool.getCurrentObject().get(1)
+                    .get(QUERY.WILDCARD.exactToken()), noAdapter));
             compare(bool, bool2);
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             e.printStackTrace();
@@ -266,15 +309,15 @@ public class QueryParserHelperTest {
         try {
             Query exists = exists("var1");
             Query exists2 = exists(
-                    exists.getNode(QUERY.EXISTS.exactToken()), noAdapter);
+                exists.getNode(QUERY.EXISTS.exactToken()), noAdapter);
             compare(exists, exists2);
             exists = missing("var1");
             exists2 = missing(
-                    exists.getNode(QUERY.MISSING.exactToken()), noAdapter);
+                exists.getNode(QUERY.MISSING.exactToken()), noAdapter);
             compare(exists, exists2);
             exists = isNull("var1");
             exists2 = isNull(
-                    exists.getNode(QUERY.ISNULL.exactToken()), noAdapter);
+                exists.getNode(QUERY.ISNULL.exactToken()), noAdapter);
             compare(exists, exists2);
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             e.printStackTrace();

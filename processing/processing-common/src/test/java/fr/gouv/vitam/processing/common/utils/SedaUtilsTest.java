@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -73,7 +73,7 @@ public class SedaUtilsTest {
         Thread.currentThread().getContextClassLoader().getResourceAsStream(ARCHIVE_UNIT);
     private SedaUtils utils;
     private String tmp = "";
-    private WorkParams params = new WorkParams()
+    private final WorkParams params = new WorkParams()
         .setGuuid(OBJ)
         .setContainerName(OBJ)
         .setServerConfiguration(new ServerConfiguration()
@@ -120,8 +120,8 @@ public class SedaUtilsTest {
 
     @Test
     public void givenGuidWhenXmlNotExistThenReturnFalse() throws Exception {
-        String str = "";
-        InputStream is = new ByteArrayInputStream(str.getBytes());
+        final String str = "";
+        final InputStream is = new ByteArrayInputStream(str.getBytes());
         when(workspaceClient.getObject("XXX", "SIP/manifest.xml")).thenReturn(is);
         when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
 

@@ -3,7 +3,6 @@ package fr.gouv.vitam.processing.worker.handler;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -71,18 +70,18 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
         LOGGER.info("CheckObjectsNumberActionHandler running ...");
 
 
-        List<String> messages = new ArrayList<>();
-        EngineResponse response = new ProcessResponse();
+        final List<String> messages = new ArrayList<>();
+        final EngineResponse response = new ProcessResponse();
         response.setStatus(StatusCode.OK).setMessages(messages);
 
         try {
 
-            ExtractUriResponse extractUriResponse = getUriListFromManifest(params);
+            final ExtractUriResponse extractUriResponse = getUriListFromManifest(params);
 
             if (extractUriResponse != null && !extractUriResponse.isErrorDuplicateUri()) {
 
-                List<URI> uriListFromManifest = extractUriResponse.getUriListManifest();
-                List<URI> uriListFromWorkspace = getUriListFromWorkspace(params);
+                final List<URI> uriListFromManifest = extractUriResponse.getUriListManifest();
+                final List<URI> uriListFromWorkspace = getUriListFromWorkspace(params);
                 checkCountDigitalObjectConformity(uriListFromManifest, uriListFromWorkspace, response);
 
             } else if (extractUriResponse != null) {
@@ -100,7 +99,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
 
     /**
      * gets URI list of Digital object from the workspace, checks if there are duplicated URIs
-     * 
+     *
      * @param params
      * @return
      * @throws XMLStreamException
@@ -109,26 +108,26 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
     private ExtractUriResponse getUriListFromManifest(WorkParams params)
         throws ProcessingException, XMLStreamException {
         // get uri list from manifest
-        SedaUtils sedaUtils = sedaUtilsFactory.create();
+        final SedaUtils sedaUtils = sedaUtilsFactory.create();
         return sedaUtils.getAllDigitalObjectUriFromManifest(params);
     }
 
 
     /**
      * gets URI list of Digital object from the workspace, checks if there are duplicated URIs
-     * 
+     *
      * @param params
      * @return List<URI>
      * @throws ProcessingException if params is null, or some params' attributes are null
      */
     private List<URI> getUriListFromWorkspace(WorkParams params) throws ProcessingException {
-        ContainerExtractionUtils containerExtractionUtils = containerExtractionUtilsFactory.create();
+        final ContainerExtractionUtils containerExtractionUtils = containerExtractionUtilsFactory.create();
         return containerExtractionUtils.getDigitalObjectUriListFromWorkspace(params);
     }
-    
+
     /**
      * Count the number of digital objects consistent between the manifest.xm file and the sip
-     * 
+     *
      * @param uriListManifest
      * @param uriListWorkspace
      * @param response
@@ -145,7 +144,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
         /**
          * compare the size between list uri from manifest and list uri from workspace.
          */
-        int countCompare = Integer.compare(uriListManifest.size(), uriListWorkspace.size());
+        final int countCompare = Integer.compare(uriListManifest.size(), uriListWorkspace.size());
         if (countCompare != 0) {
             response.setStatus(StatusCode.KO);
             response.getMessages().add(CheckObjectsNumberMessage.COUNT_DIGITAL_OBJECT_SIP.getMessage()
@@ -160,7 +159,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
                 // found not declared digital object in the sip
                 foundUnreferencedDigitalObject(uriListWorkspace, uriListManifest, response,
                     CheckObjectsNumberMessage.NOT_FOUND_DIGITAL_OBJECT_MANIFEST.getMessage());
-            } catch (IllegalAccessException e) {
+            } catch (final IllegalAccessException e) {
                 throw new ProcessingException("Some arguments were null", e);
             }
         } else {
@@ -174,9 +173,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
              */
             long countConsistentDigitalObjectFromWorkspace = 0L;
 
-            for (Iterator<URI> iterator = uriListManifest.iterator(); iterator.hasNext();) {
-                URI uriManifest = iterator.next();
-
+            for (final URI uriManifest : uriListManifest) {
                 if (uriListWorkspace.contains(uriManifest)) {
                     countConsistentDigitalObjectFromManifest++;
                 } else {
@@ -186,9 +183,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
                 }
             }
 
-            for (Iterator<URI> iterator = uriListWorkspace.iterator(); iterator.hasNext();) {
-                URI uriWorkspace = iterator.next();
-
+            for (final URI uriWorkspace : uriListWorkspace) {
                 if (uriListManifest.contains(uriWorkspace)) {
                     countConsistentDigitalObjectFromWorkspace++;
                 } else {
@@ -199,8 +194,9 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
 
             }
 
-            boolean countOK = countConsistentDigitalObjectFromManifest == countConsistentDigitalObjectFromWorkspace;
-            boolean countConsistent = countConsistentDigitalObjectFromManifest == uriListManifest.size();
+            final boolean countOK =
+                countConsistentDigitalObjectFromManifest == countConsistentDigitalObjectFromWorkspace;
+            final boolean countConsistent = countConsistentDigitalObjectFromManifest == uriListManifest.size();
 
             if (countOK && countConsistent) {
                 response.setStatus(StatusCode.OK).getMessages()
@@ -215,7 +211,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
 
     /**
      * Found the undeclared digital object either in the manifest or in the sip
-     * 
+     *
      * @param uriListManifest
      * @param uriListWorkspace
      * @param response
@@ -224,22 +220,20 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
     private void foundUnreferencedDigitalObject(List<URI> uriListToCompared, List<URI> uriListReference,
         EngineResponse response, String element) throws IllegalAccessException {
 
-        Set<String> uriNotFoundSet = new HashSet<>();
+        final Set<String> uriNotFoundSet = new HashSet<>();
 
         if (uriListToCompared == null || uriListReference == null) {
             throw new IllegalAccessException("uriListToCompared or uriListReference must not be null");
         }
 
-        for (Iterator<URI> iterator = uriListToCompared.iterator(); iterator.hasNext();) {
-            URI uriManifest = iterator.next();
-
+        for (final URI uriManifest : uriListToCompared) {
             if (!uriListReference.contains(uriManifest)) {
                 uriNotFoundSet.add(element
                     .concat(uriManifest.toString()));
             }
 
             if (!uriNotFoundSet.isEmpty()) {
-                for (String s : uriNotFoundSet) {
+                for (final String s : uriNotFoundSet) {
                     if (response != null && response.getMessages() != null) {
                         response.getMessages().add(s);
                     }

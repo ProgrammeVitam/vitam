@@ -1,11 +1,9 @@
 /**
- * 
+ *
  */
 package fr.gouv.vitam.parser.request.parser;
 
 import java.util.Iterator;
-
-import org.joda.time.DateTime;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -13,6 +11,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.builder.request.construct.configuration.GlobalDatas;
 import fr.gouv.vitam.builder.request.construct.query.Query;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
@@ -38,55 +37,54 @@ public class GlobalDatasParser extends GlobalDatas {
 
     /**
      * Check the Request if conforms to sanity check
-     * 
+     *
      * @param arg
-     * @throws InvalidParseOperationException
-     *             if the sanity check is in error
+     * @throws InvalidParseOperationException if the sanity check is in error
      */
     public static final void sanityRequestCheck(String arg)
-            throws InvalidParseOperationException {
+        throws InvalidParseOperationException {
         GlobalDatas.sanityCheck(arg, GlobalDatasParser.limitRequest);
     }
-    
+
     /**
      * calculate JsonNode depth or number of child
-     * 
-     * @param JsonNode
+     *
+     * @param jsonNode
      * @return number of child of JsonNode
      */
     public static final int getJsonNodedepth(JsonNode jsonNode) {
-		// TODO REVIEW should check null
-		int depth = 0;
-		boolean hasArrayNode = false;
-		Iterator<JsonNode> iterator = jsonNode.iterator();
-		while (iterator.hasNext()) {
-			JsonNode node = iterator.next();
-			if (node instanceof ObjectNode || node instanceof ArrayNode) {
-				int tempDepth = getJsonNodedepth(node);
-				if (tempDepth > depth) {
-					depth = tempDepth;
-				}
-			}
-			if (node instanceof ArrayNode) {
-				hasArrayNode = true;
-			}
-		}
+        // TODO REVIEW should check null
+        int depth = 0;
+        boolean hasArrayNode = false;
+        final Iterator<JsonNode> iterator = jsonNode.iterator();
+        while (iterator.hasNext()) {
+            final JsonNode node = iterator.next();
+            if (node instanceof ObjectNode || node instanceof ArrayNode) {
+                final int tempDepth = getJsonNodedepth(node);
+                if (tempDepth > depth) {
+                    depth = tempDepth;
+                }
+            }
+            if (node instanceof ArrayNode) {
+                hasArrayNode = true;
+            }
+        }
 
-		if (hasArrayNode) {
-			return depth;
-		} else {
-			return 1 + depth;
-		}
-	}
-    
+        if (hasArrayNode) {
+            return depth;
+        } else {
+            return 1 + depth;
+        }
+    }
+
     /**
-     * 
+     *
      * @param value
      * @return the Object for Value
      * @throws InvalidParseOperationException
      */
     public static final Object getValue(final JsonNode value)
-            throws InvalidParseOperationException {
+        throws InvalidParseOperationException {
         if (value == null || value.isArray()) {
             throw new InvalidParseOperationException("Not correctly parsed");
         }
@@ -101,7 +99,7 @@ public class GlobalDatasParser extends GlobalDatas {
         } else if (value.canConvertToLong()) {
             return value.asLong();
         } else if (value.has(Query.DATE)) {
-            return DateTime.parse(value.get(Query.DATE).asText()).toDate();
+            return LocalDateUtil.getDate(value.get(Query.DATE).asText());
         } else {
             return value.asText();
         }

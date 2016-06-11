@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -69,7 +69,7 @@ public class WorkspaceClientFolderTest extends WorkspaceClientTest {
         set(TestProperties.DUMP_ENTITY, true);
         forceSet(TestProperties.CONTAINER_PORT, String.valueOf(PORT));
 
-        ResourceConfig resourceConfig = new ResourceConfig();
+        final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(JacksonFeature.class);
         mock = mock(ExpectedResults.class);
         resourceConfig.registerInstances(new MockFolderResource(mock));
@@ -79,7 +79,7 @@ public class WorkspaceClientFolderTest extends WorkspaceClientTest {
     @Path("workspace/v1/containers")
     public static class MockFolderResource {
 
-        private ExpectedResults expectedResponse;
+        private final ExpectedResults expectedResponse;
 
         public MockFolderResource(ExpectedResults expectedResponse) {
             this.expectedResponse = expectedResponse;
@@ -215,7 +215,7 @@ public class WorkspaceClientFolderTest extends WorkspaceClientTest {
     @Test
     public void given_FolderAlreadyExists_When_FindingUriObjects_Then_ReturnList() {
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(Collections.<URI>emptyList()).build());
-        List<URI> uris = client.getListUriDigitalObjectFromFolder(CONTAINER_NAME, FOLDER_NAME);
+        final List<URI> uris = client.getListUriDigitalObjectFromFolder(CONTAINER_NAME, FOLDER_NAME);
         assertTrue(uris.isEmpty());
     }
 

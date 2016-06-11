@@ -84,7 +84,8 @@ import fr.gouv.vitam.common.server.application.configuration.ServerIdentityConfi
  * <li>GUID for PlatformId</li>
  * <li>Logger and Logbook: for all</li>
  * </ul>
- * <br><br>
+ * <br>
+ * <br>
  * NOTE for developers: Do not add LOGGER there
  */
 public final class ServerIdentity implements ServerIdentityInterface {
@@ -118,13 +119,13 @@ public final class ServerIdentity implements ServerIdentityInterface {
         boolean propertyFileNotFound = false;
         ServerIdentityConfigurationImpl serverIdentityConf;
         try {
-            File file = PropertiesUtils.findFile(SERVER_IDENTITY_CONF_FILE_NAME);
+            final File file = PropertiesUtils.findFile(SERVER_IDENTITY_CONF_FILE_NAME);
             serverIdentityConf =
                 PropertiesUtils.readYaml(file, ServerIdentityConfigurationImpl.class);
             setYamlConfiguration(serverIdentityConf);
             initializeCommentFormat();
-        } catch (IOException e) {//NOSONAR no logger
-            System.err //NOSONAR no logger
+        } catch (final IOException e) {// NOSONAR no logger
+            System.err // NOSONAR no logger
                 .println(
                     "Issue while getting configuration File: " +
                         e.getMessage());
@@ -187,7 +188,7 @@ public final class ServerIdentity implements ServerIdentityInterface {
     }
 
     /**
-     * 
+     *
      * @return the Json representation of the ServerIdentity
      */
     public final String getJsonIdentity() {
@@ -259,11 +260,11 @@ public final class ServerIdentity implements ServerIdentityInterface {
      */
     public final ServerIdentity setFromYamlFile(File yamlFile) throws FileNotFoundException {
         try {
-            ServerIdentityConfigurationImpl serverIdentityConf =
+            final ServerIdentityConfigurationImpl serverIdentityConf =
                 PropertiesUtils.readYaml(yamlFile,
                     ServerIdentityConfigurationImpl.class);
             setYamlConfiguration(serverIdentityConf);
-        } catch (IOException e) {//NOSONAR no logger
+        } catch (final IOException e) {// NOSONAR no logger
             // ignore
         }
         initializeCommentFormat();

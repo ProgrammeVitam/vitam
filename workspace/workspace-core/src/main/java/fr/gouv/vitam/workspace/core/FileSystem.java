@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -28,11 +28,12 @@ package fr.gouv.vitam.workspace.core;
 
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
 import org.jclouds.ContextBuilder;
 import org.jclouds.blobstore.BlobStoreContext;
 import org.jclouds.filesystem.reference.FilesystemConstants;
 
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
 
 
@@ -41,7 +42,7 @@ import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
  */
 public class FileSystem extends ContentAddressableStorageImpl {
 
-    private static final Logger LOGGER = Logger.getLogger(FileSystem.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(FileSystem.class);
 
     /**
      * @param configuration to associate with the FileSystem
@@ -52,7 +53,7 @@ public class FileSystem extends ContentAddressableStorageImpl {
 
     @Override
     public BlobStoreContext getContext(StorageConfiguration configuration) {
-        Properties props = new Properties();
+        final Properties props = new Properties();
         props.setProperty(FilesystemConstants.PROPERTY_BASEDIR, configuration.getStoragePath());
         LOGGER.info("Get File System Context");
         return ContextBuilder.newBuilder("filesystem").overrides(props).buildView(BlobStoreContext.class);

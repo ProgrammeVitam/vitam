@@ -50,7 +50,7 @@ public abstract class AbstractVitamLogger implements VitamLogger, Serializable {
     private static boolean initialized = false;
     private static boolean hasServerIdentity = false;
     private static Object serverIdentity = null;
-    
+
     static {
         // Initialization for ServerIdentity
         initLogger();
@@ -71,7 +71,7 @@ public abstract class AbstractVitamLogger implements VitamLogger, Serializable {
             return;
         }
         try {
-            Class<?> clasz = Class.forName("fr.gouv.vitam.common.ServerIdentity", 
+            final Class<?> clasz = Class.forName("fr.gouv.vitam.common.ServerIdentity",
                 true, VitamLoggerFactory.class.getClassLoader());
             hasServerIdentity = true;
             serverIdentity = clasz.getMethod("getInstance").invoke(null);
@@ -79,7 +79,7 @@ public abstract class AbstractVitamLogger implements VitamLogger, Serializable {
             // ignore
         } catch (IllegalAccessException | IllegalArgumentException | // NOSONAR ignore
             InvocationTargetException | NoSuchMethodException | SecurityException e) {// NOSONAR ignore
-            e.printStackTrace();//NOSONAR : no choice since no logger yet
+            e.printStackTrace();// NOSONAR : no choice since no logger yet
         }
         initialized = true;
     }
@@ -295,7 +295,7 @@ public abstract class AbstractVitamLogger implements VitamLogger, Serializable {
         if (clazz == null) {
             return "null_class";
         }
-        String className = clazz.getName();
+        final String className = clazz.getName();
         final int lastDotIdx = className.lastIndexOf(PACKAGE_SEPARATOR_CHAR);
         if (lastDotIdx > -1) {
             return className.substring(lastDotIdx + 1);
@@ -307,9 +307,9 @@ public abstract class AbstractVitamLogger implements VitamLogger, Serializable {
     public String toString() {
         return simpleClassName(this) + '(' + name() + ')';
     }
-    
+
     /**
-     * 
+     *
      * @return Message prepend using ServerIdentity
      */
     static final String getMessagePrepend() {

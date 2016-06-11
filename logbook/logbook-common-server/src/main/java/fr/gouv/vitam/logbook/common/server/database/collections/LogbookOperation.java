@@ -89,7 +89,7 @@ public class LogbookOperation extends LogbookDocument<LogbookOperation> {
     }
 
     /**
-     * 
+     *
      * @return the ParameterName as id in collection
      */
     public static final LogbookParameterName getIdParameterName() {

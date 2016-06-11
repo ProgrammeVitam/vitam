@@ -11,13 +11,13 @@ public class SedaUtilsFactoryTest {
 
     @Test
     public void givenSedaUtilsFactoryWhenCallingCreateWithoutParamsThenReturnClient() {
-        SedaUtilsFactory factory = new SedaUtilsFactory();
+        final SedaUtilsFactory factory = new SedaUtilsFactory();
         assertTrue(factory.create() instanceof SedaUtils);
     }
-    
+
     @Test
     public void givenSedaUtilsFactoryWhenCallingCreateWithParamsThenReturnClient() {
-        SedaUtilsFactory factory = new SedaUtilsFactory();
+        final SedaUtilsFactory factory = new SedaUtilsFactory();
         assertTrue(factory.create(new WorkspaceClientFactory(), new MetaDataClientFactory()) instanceof SedaUtils);
     }
 

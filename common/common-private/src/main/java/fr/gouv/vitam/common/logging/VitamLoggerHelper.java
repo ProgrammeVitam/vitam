@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.ServerIdentityInterface;
  * LOGGER.info(helper.format("My message2: {}"), arg1);
  * LOGGER.info(helper.format("My message3"));
  * </pre>
+ * 
  * @deprecated This class is no more useful and should not be used
  */
 @Deprecated
@@ -62,6 +63,7 @@ public class VitamLoggerHelper {
      * @return the new formatted String
      * @deprecated This method is no more useful and should not be used
      */
+    @Deprecated
     public String format(String message) {
         final String result = preMessage.append(message).toString();
         preMessage.setLength(resetPosition);
@@ -75,6 +77,7 @@ public class VitamLoggerHelper {
      * @return the new formatted String
      * @deprecated This method is no more useful and should not be used
      */
+    @Deprecated
     public String format(StringBuilder message) {
         return message.insert(0, preMessage.toString()).toString();
     }
@@ -85,6 +88,7 @@ public class VitamLoggerHelper {
      * @return a new Instance
      * @deprecated This method is no more useful and should not be used
      */
+    @Deprecated
     public static final VitamLoggerHelper newInstance() {
         return new VitamLoggerHelper();
     }

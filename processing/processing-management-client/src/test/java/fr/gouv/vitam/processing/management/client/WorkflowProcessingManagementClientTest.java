@@ -42,7 +42,7 @@ public class WorkflowProcessingManagementClientTest extends JerseyTest {
 
     @Path("/processing/api/v0.0.3")
     public static class ProcessingResource {
-        private Supplier<Response> expectedResponse;
+        private final Supplier<Response> expectedResponse;
 
         public ProcessingResource(Supplier<Response> expectedResponse) {
             this.expectedResponse = expectedResponse;

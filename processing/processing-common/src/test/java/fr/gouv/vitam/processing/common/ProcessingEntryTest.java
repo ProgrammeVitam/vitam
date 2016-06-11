@@ -7,6 +7,7 @@ import org.junit.Test;
 public class ProcessingEntryTest {
 
     private static final String Test = "test";
+
     @Test
     public void testConstructor() {
         assertEquals(Test, new ProcessingEntry(Test, Test).getContainer());

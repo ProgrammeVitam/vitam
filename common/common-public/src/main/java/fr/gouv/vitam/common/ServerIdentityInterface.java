@@ -48,7 +48,7 @@ public interface ServerIdentityInterface {
     int getPlatformId();
 
     /**
-     * 
+     *
      * @return the Logger Message prepend
      */
     String getLoggerMessagePrepend();

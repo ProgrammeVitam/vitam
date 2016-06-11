@@ -67,11 +67,11 @@ public class WorkspaceResourceTest {
 
     @Before
     public void setup() throws Exception {
-        StorageConfiguration configuration = new StorageConfiguration();
-        File tempDir = tempFolder.newFolder();
+        final StorageConfiguration configuration = new StorageConfiguration();
+        final File tempDir = tempFolder.newFolder();
         configuration.setStoragePath(tempDir.getCanonicalPath());
         workspaceApplication = new WorkspaceApplication();
-        workspaceApplication.run(configuration, SERVER_PORT);
+        WorkspaceApplication.run(configuration, SERVER_PORT);
         RestAssured.port = SERVER_PORT;
         RestAssured.basePath = RESOURCE_URI;
     }

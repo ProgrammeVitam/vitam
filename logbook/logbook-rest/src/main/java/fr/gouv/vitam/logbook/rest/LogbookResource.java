@@ -64,7 +64,7 @@ public class LogbookResource {
 
     /**
      * Constructor
-     * 
+     *
      * @param configuration
      */
     public LogbookResource(LogbookConfiguration configuration) {
@@ -88,15 +88,15 @@ public class LogbookResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response createOperation(@PathParam("id_op") String operationId, LogbookOperationParameters operation) {
         Response finalResponse = Response.status(Response.Status.CREATED).build();
-        LOGGER.debug(operation.getParameterValue(LogbookOperation.getIdParameterName()).equals(operationId)
-            + " " + operation.getParameterValue(LogbookOperation.getIdParameterName()) + " =? " + operationId);
+        LOGGER.debug(operation.getParameterValue(LogbookOperation.getIdParameterName()).equals(operationId) + " " +
+            operation.getParameterValue(LogbookOperation.getIdParameterName()) + " =? " + operationId);
         try {
             LogbookParametersHelper.checkNullOrEmptyParameters(operation);
-        } catch (IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             LOGGER.error("Operations is incorrect", e);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
-        if (! operation.getParameterValue(LogbookOperation.getIdParameterName()).equals(operationId)) {
+        if (!operation.getParameterValue(LogbookOperation.getIdParameterName()).equals(operationId)) {
             LOGGER.error("OperationId is not the same as in the operation parameter");
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
@@ -131,11 +131,11 @@ public class LogbookResource {
         Response finalResponse = Response.status(Response.Status.OK).build();
         try {
             LogbookParametersHelper.checkNullOrEmptyParameters(operation);
-        } catch (IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             LOGGER.error("Operations is incorrect", e);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
-        if (! operation.getParameterValue(LogbookOperation.getIdParameterName()).equals(operationId)) {
+        if (!operation.getParameterValue(LogbookOperation.getIdParameterName()).equals(operationId)) {
             LOGGER.error("OperationId is not the same as in the operation parameter");
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
@@ -156,7 +156,7 @@ public class LogbookResource {
 
     /**
      * Check the state of the logbook service API
-     * 
+     *
      * @return an http response with OK status (200)
      */
     @GET

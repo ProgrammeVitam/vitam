@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
- * 
+ *
  * Copyright Vitam (2012, 2015)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
@@ -50,7 +50,7 @@ public class Step {
     }
 
     /**
-     * 
+     *
      * @param actions
      */
     public Step setActions(List<Action> actions) {
@@ -59,7 +59,7 @@ public class Step {
     }
 
     /**
-     * 
+     *
      * @return workerGroupId
      */
     public String getWorkerGroupId() {
@@ -70,7 +70,7 @@ public class Step {
     }
 
     /**
-     * 
+     *
      * @param workerGroupId
      */
     public Step setWorkerGroupId(String workerGroupId) {
@@ -96,7 +96,9 @@ public class Step {
         return this;
     }
 
-    /** getDistribution
+    /**
+     * getDistribution
+     *
      * @return the distribution object of step
      */
     public Distribution getDistribution() {
@@ -106,7 +108,9 @@ public class Step {
         return distribution;
     }
 
-    /** setDistribution
+    /**
+     * setDistribution
+     *
      * @param distribution object
      * @return the Step instance with distribution value setted
      */

@@ -9,9 +9,10 @@ import fr.gouv.vitam.core.database.collections.MongoDbAccess;
 public class MongoDbAccessFactory {
     public MongoDbAccess create(MetaDataConfiguration configuration) {
         return new MongoDbAccess(
-                new MongoClient(new ServerAddress(
-                        configuration.getHost(), 
-                        configuration.getPort()),
-                        MongoDbAccess.getMongoClientOptions()), configuration.getDbName(), false);
+            new MongoClient(new ServerAddress(
+                configuration.getHost(),
+                configuration.getPort()),
+                MongoDbAccess.getMongoClientOptions()),
+            configuration.getDbName(), false);
     }
 }

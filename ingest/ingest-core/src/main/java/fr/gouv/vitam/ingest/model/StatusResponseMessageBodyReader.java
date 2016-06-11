@@ -1,6 +1,11 @@
 
 package fr.gouv.vitam.ingest.model;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
@@ -8,10 +13,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.Providers;
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
 
 /**
  * Created by bsui on 12/05/16.
@@ -20,8 +21,7 @@ import java.lang.reflect.Type;
 public class StatusResponseMessageBodyReader implements MessageBodyReader<StatusResponseDTO> {
 
 
-    public StatusResponseMessageBodyReader(@Context Providers providers) {
-    }
+    public StatusResponseMessageBodyReader(@Context Providers providers) {}
 
     @Override
     public boolean isReadable(Class<?> aClass, Type type, Annotation[] annotations, MediaType mediaType) {
@@ -29,7 +29,9 @@ public class StatusResponseMessageBodyReader implements MessageBodyReader<Status
     }
 
     @Override
-    public StatusResponseDTO readFrom(Class<StatusResponseDTO> aClass, Type type, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, String> multivaluedMap, InputStream inputStream) throws IOException, WebApplicationException {
+    public StatusResponseDTO readFrom(Class<StatusResponseDTO> aClass, Type type, Annotation[] annotations,
+        MediaType mediaType, MultivaluedMap<String, String> multivaluedMap, InputStream inputStream)
+        throws IOException, WebApplicationException {
         return null;
     }
 }

@@ -1,31 +1,25 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
- * 
+ *
  * Copyright Vitam (2012, 2015)
  *
- * This software is governed by the CeCILL 2.1 license under French law and
- * abiding by the rules of distribution of free software. You can use, modify
- * and/ or redistribute the software under the terms of the CeCILL license as
- * circulated by CEA, CNRS and INRIA at the following URL
- * "http://www.cecill.info".
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
+ * by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
  *
- * As a counterpart to the access to the source code and rights to copy, modify
- * and redistribute granted by the license, users are provided only with a
- * limited warranty and the software's author, the holder of the economic
- * rights, and the successive licensors have only limited liability.
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
  *
- * In this respect, the user's attention is drawn to the risks associated with
- * loading, using, modifying and/or developing or reproducing the software by
- * the user in light of its specific status of free software, that may mean that
- * it is complicated to manipulate, and that also therefore means that it is
- * reserved for developers and experienced professionals having in-depth
- * computer knowledge. Users are therefore encouraged to load and test the
- * software's suitability as regards their requirements in conditions enabling
- * the security of their systems and/or data to be ensured and, more generally,
- * to use and operate it in the same conditions as regards security.
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
  *
- * The fact that you are presently reading this means that you have had
- * knowledge of the CeCILL license and that you accept its terms.
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you
+ * accept its terms.
  *******************************************************************************/
 package fr.gouv.vitam.parser.request.parser;
 
@@ -36,9 +30,9 @@ import java.util.Map.Entry;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.PROJECTIONARGS;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.PROJECTIONARGS;
 
 /**
  * Model for VarNameAdapter
@@ -46,9 +40,11 @@ import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.PROJEC
 public class VarNameInsertAdapter extends VarNameAdapter {
 
     VarNameAdapter adapter;
+
     /**
      * Constructor
-     * @param adapter 
+     * 
+     * @param adapter
      */
     public VarNameInsertAdapter(VarNameAdapter adapter) {
         this.adapter = adapter;
@@ -56,24 +52,25 @@ public class VarNameInsertAdapter extends VarNameAdapter {
 
     /**
      * Check for Insert from Builder
+     * 
      * @param rootNode
      * @return the new JsonNode in replacement of rootNode
      * @throws InvalidParseOperationException
      */
     public JsonNode getFixedVarNameJsonNode(JsonNode rootNode) throws InvalidParseOperationException {
         // Note: some values are not allowed, as #id
-        ObjectNode object = JsonHandler.createObjectNode();
-        Iterator<Entry<String, JsonNode>> fieldIterator = rootNode.fields();
+        final ObjectNode object = JsonHandler.createObjectNode();
+        final Iterator<Entry<String, JsonNode>> fieldIterator = rootNode.fields();
         while (fieldIterator.hasNext()) {
-            Entry<String, JsonNode> entry = fieldIterator.next();
+            final Entry<String, JsonNode> entry = fieldIterator.next();
             String name = entry.getKey();
-            String newname = adapter.getVariableName(name);
+            final String newname = adapter.getVariableName(name);
             if (newname != null) {
                 name = newname;
             }
             if (PROJECTIONARGS.notAllowedOnSet(name)) {
                 throw new InvalidParseOperationException(
-                        "Parse in error for Insert as Variable not allowed(" + name +"): " + rootNode);
+                    "Parse in error for Insert as Variable not allowed(" + name + "): " + rootNode);
             }
             object.set(name, entry.getValue());
         }

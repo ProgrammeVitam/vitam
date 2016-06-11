@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
- * 
+ *
  * Copyright Vitam (2012, 2015)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
@@ -33,21 +33,21 @@ import fr.gouv.vitam.processing.common.model.WorkParams;
 
 /**
  * Worker Interface
- * 
- * 
+ *
+ *
  * Various methods of Worker
  *
  */
 // TODO REVIEW improve comment form
 public interface Worker {
-    
+
     /**
      * Worker execute the step's actions
-     * 
+     *
      * @param step {@link Step} null not allowed
      * @param workParams {@link WorkParams} (one and only workItem will be in workParams)
      * @return List<EngineResponse> {@link EngineResponse} : list of action response {OK,KO,FATAL...}
-     * 
+     *
      * @throws IllegalArgumentException
      * @throws HandlerNotFoundException
      * @throws ProcessingException

@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -40,14 +40,14 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
  */
 public class ContainerExtractionUtils {
 
-    private WorkspaceClientFactory workspaceClientFactory;
+    private final WorkspaceClientFactory workspaceClientFactory;
     // TODO
     // Retrieve the hard code value for the path of the folder of digital objects
     private static final String DIGITAL_OBJECT_FOLDER_NAME = "SIP";
 
     /**
      * Constructor that instantiates a workspace client factory
-     * 
+     *
      * @param workspaceClientFactory
      */
     public ContainerExtractionUtils(WorkspaceClientFactory workspaceClientFactory) {
@@ -57,30 +57,30 @@ public class ContainerExtractionUtils {
 
     /**
      * get the uri list of digital object from a container into the workspace *
-     * 
+     *
      * @param params - parameters of workspace server
      * @return List<URI>
      * @throws ProcessingException - throw when workspace is unavailable.
-     * 
+     *
      */
     public List<URI> getDigitalObjectUriListFromWorkspace(WorkParams workParams)
         throws ProcessingException {
-        WorkspaceClient workspaceClient =
+        final WorkspaceClient workspaceClient =
             workspaceClientFactory.create(workParams.getServerConfiguration().getUrlWorkspace());
-        String guidContainer = workParams.getContainerName();
+        final String guidContainer = workParams.getContainerName();
         return getDigitalObjectUriListFromWorkspace(workspaceClient, guidContainer);
     }
 
     /**
      * * get the uri list of digital object from a container into the workspace *
-     * 
+     *
      * @param workspaceClient
      * @param guidContainer
      * @return List<URI> - list uri
      */
     private List<URI> getDigitalObjectUriListFromWorkspace(WorkspaceClient workspaceClient, String guidContainer)
         throws ProcessingException {
-        List<URI> uriListWorkspace =
+        final List<URI> uriListWorkspace =
             workspaceClient.getListUriDigitalObjectFromFolder(guidContainer, DIGITAL_OBJECT_FOLDER_NAME);
         uriListWorkspace.remove(uriListWorkspace.size() - 1);
         return uriListWorkspace;

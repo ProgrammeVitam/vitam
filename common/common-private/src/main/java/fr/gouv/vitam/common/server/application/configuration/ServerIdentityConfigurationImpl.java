@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -48,7 +48,7 @@ public class ServerIdentityConfigurationImpl implements ServerIdentityConfigurat
 
     /**
      * ServerIdentityConfiguration constructor
-     * 
+     *
      * @param identityName database identity name
      * @param identityPlatformId identity platform id
      * @param identityRole identity role

@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -29,7 +29,6 @@ package fr.gouv.vitam.workspace.rest;
 import java.io.File;
 import java.io.FileReader;
 
-import org.apache.log4j.Logger;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -41,6 +40,8 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
 
 /**
@@ -48,7 +49,7 @@ import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
  *
  */
 public class WorkspaceApplication {
-    private static final Logger LOGGER = Logger.getLogger(WorkspaceApplication.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkspaceApplication.class);
 
     private static final int DEFAULT_PORT = 8082;
     private static Server server;
@@ -58,14 +59,14 @@ public class WorkspaceApplication {
     // TODO REVIEW comment
     /**
      * runs the application
-     * 
+     *
      * @param args
      */
     public static void main(String[] args) {
         try {
             new WorkspaceApplication().configure(args);
             server.join();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error(e.getMessage());
             System.exit(1);
         }
@@ -73,7 +74,7 @@ public class WorkspaceApplication {
 
     /**
      * Parses command-line arguments and runs the application.
-     * 
+     *
      * @param arguments the command-line arguments
      * @throws RuntimeException Thrown if something goes wrong
      */
@@ -84,8 +85,8 @@ public class WorkspaceApplication {
         // TODO REVIEW The host on which the server will listen must be specified (to prevent from listen on 0.0.0.0)
         if (arguments.length >= 1) {
             try {
-                FileReader yamlFile = new FileReader(new File(arguments[0]));
-                ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+                final FileReader yamlFile = new FileReader(new File(arguments[0]));
+                final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
                 StorageConfiguration configuration = new StorageConfiguration();
                 configuration = mapper.readValue(yamlFile, StorageConfiguration.class);
 
@@ -99,7 +100,7 @@ public class WorkspaceApplication {
                 }
                 run(configuration, serverPort);
 
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 LOGGER.error(e.getMessage());
                 throw new RuntimeException(e.getMessage());
             }
@@ -113,21 +114,21 @@ public class WorkspaceApplication {
 
     /**
      * Run workspace server
-     * 
+     *
      * @param configuration Storage Configuration
      * @throws Exception Thrown if something goes wrong
      */
     // TODO Don't throw Exception
     public static void run(StorageConfiguration configuration, int serverPort) throws Exception {
 
-        ResourceConfig resourceConfig = new ResourceConfig();
+        final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(JacksonFeature.class);
         resourceConfig.register(MultiPartFeature.class);
         resourceConfig.register(new WorkspaceResource(configuration));
 
-        ServletContainer servletContainer = new ServletContainer(resourceConfig);
-        ServletHolder sh = new ServletHolder(servletContainer);
-        ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+        final ServletContainer servletContainer = new ServletContainer(resourceConfig);
+        final ServletHolder sh = new ServletHolder(servletContainer);
+        final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
         context.addServlet(sh, "/*");
         server = new Server(serverPort);
@@ -139,7 +140,7 @@ public class WorkspaceApplication {
     // TODO Don't throw Exception
     /**
      * stop a workspace server
-     * 
+     *
      * @throws Exception
      */
     public void stop() throws Exception {

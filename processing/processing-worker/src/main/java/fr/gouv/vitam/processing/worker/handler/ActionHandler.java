@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
- * 
+ *
  * Copyright Vitam (2012, 2015)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free

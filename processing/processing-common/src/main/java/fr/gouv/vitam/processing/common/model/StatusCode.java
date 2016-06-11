@@ -1,6 +1,6 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
- * 
+ *
  * Copyright Vitam (2012, 2015)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
@@ -25,7 +25,7 @@ package fr.gouv.vitam.processing.common.model;
 
 /**
  * Enum StatusCode
- * 
+ *
  * different constants status code for workflow , action handler and process
  *
  */
@@ -39,17 +39,19 @@ public enum StatusCode {
      * KO : indicates the failed execution of the action
      */
     KO("KO"),
-    
+
     /**
-     * FATAL : indicates a critical error such as technical Exception ( runtime exception, illegal argument exception, null pointer exception ...)
+     * FATAL : indicates a critical error such as technical Exception ( runtime exception, illegal argument exception,
+     * null pointer exception ...)
      */
     FATAL("FATAL"),
-    
+
     /**
-     * WARNING : indicates successful with a general warning. Warning are often useful in preventing future Action problems
+     * WARNING : indicates successful with a general warning. Warning are often useful in preventing future Action
+     * problems
      */
     WARNING("WARNING"),
-    
+
     /**
      * SUBMITTED : indicates that the workflow or the action handler or the process has been submitted
      */
@@ -61,7 +63,9 @@ public enum StatusCode {
         this.value = value;
     }
 
-    /** value
+    /**
+     * value
+     *
      * @return : value of status code
      */
     public String value() {

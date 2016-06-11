@@ -36,12 +36,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Entry {
 
     @JsonProperty("name")
-    private String name;
+    private final String name;
 
 
     /**
      * Creates a new Entry associated with a param name
-     * 
+     *
      * @param name to associate with a new Entry
      */
     @JsonCreator
@@ -55,7 +55,7 @@ public class Entry {
 
     /**
      * Getter for name from Entry class
-     * 
+     *
      * @return name
      */
     @JsonIgnore

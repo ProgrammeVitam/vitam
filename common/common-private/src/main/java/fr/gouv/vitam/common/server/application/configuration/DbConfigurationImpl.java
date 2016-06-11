@@ -44,11 +44,11 @@ public class DbConfigurationImpl implements DbConfiguration {
     public DbConfigurationImpl() {
         // empty
     }
-    
-    
+
+
     /**
      * DbConfiguration constructor
-     * 
+     *
      * @param dbHost database server IP address
      * @param dbPort database server port
      * @param dbName database name

@@ -64,7 +64,7 @@ public class FileSystemTest {
 
     @Before
     public void setup() throws IOException {
-        StorageConfiguration configuration = new StorageConfiguration();
+        final StorageConfiguration configuration = new StorageConfiguration();
         tempDir = tempFolder.newFolder();
         configuration.setStoragePath(tempDir.getCanonicalPath());
         workspace = new FileSystem(configuration);
@@ -319,16 +319,19 @@ public class FileSystemTest {
         workspace.createContainer(SIP_CONTAINER);
 
         // Given a root folder "SIP_FOLDER", add manifest.xml to this root folder
-        String manifestName = new StringBuilder().append(SIP_FOLDER).append(SLASH).append("manifest.xml").toString();
+        final String manifestName =
+            new StringBuilder().append(SIP_FOLDER).append(SLASH).append("manifest.xml").toString();
         workspace.putObject(SIP_CONTAINER, manifestName, getInputStream("manifest.xml"));
 
         // Given a sub folder "CONTENT_FOLDER" add digital objects
-        String contentSubFolder =
+        final String contentSubFolder =
             new StringBuilder().append(SIP_FOLDER).append(SLASH).append(CONTENT_FOLDER).toString();
         // workspace.createFolder(SIP_CONTAINER, contentSubFolder);
-        String fileName1 = new StringBuilder().append(contentSubFolder).append(SLASH).append("file1.pdf").toString();
+        final String fileName1 =
+            new StringBuilder().append(contentSubFolder).append(SLASH).append("file1.pdf").toString();
         workspace.putObject(SIP_CONTAINER, fileName1, getInputStream("file1.pdf"));
-        String fileName2 = new StringBuilder().append(contentSubFolder).append(SLASH).append("file2.pdf").toString();
+        final String fileName2 =
+            new StringBuilder().append(contentSubFolder).append(SLASH).append("file2.pdf").toString();
         workspace.putObject(SIP_CONTAINER, fileName2, getInputStream("file2.pdf"));
 
         // Then check that there is 2 URIs found recursively from the content folder

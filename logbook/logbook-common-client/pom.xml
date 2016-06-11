@@ -4,21 +4,26 @@
     <parent>
         <groupId>fr.gouv.vitam</groupId>
         <artifactId>logbook</artifactId>
-        <version>0.3.0-SNAPSHOT</version>
+		<version>0.3.0-SNAPSHOT</version>
     </parent>
     <artifactId>logbook-common-client</artifactId>
     <name>Logbook Common Client</name>
     <dependencies>
+ 		<dependency>
+ 			<groupId>fr.gouv.vitam</groupId>
+ 			<artifactId>common-public</artifactId>
+	        <version>${project.version}</version>
+ 		</dependency>
     	<dependency>
     		<groupId>fr.gouv.vitam</groupId>
-    		<artifactId>metadata-core</artifactId>
-    		<version>0.3.0-SNAPSHOT</version>
+    		<artifactId>metadata-builder</artifactId>
+	        <version>${project.version}</version>
     	</dependency>
     	<dependency>
     		<groupId>fr.gouv.vitam</groupId>
     		<artifactId>logbook-common</artifactId>
-    		<version>0.3.0-SNAPSHOT</version>
-    	</dependency>
+            <version>${project.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -29,10 +34,5 @@
  				<artifactId>mockito-all</artifactId>
  				<scope>test</scope>
 		</dependency>
- 		<dependency>
- 			<groupId>fr.gouv.vitam</groupId>
- 			<artifactId>common-public</artifactId>
- 			<version>0.3.0-SNAPSHOT</version>
- 		</dependency>
     </dependencies>
 </project>

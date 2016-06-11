@@ -97,7 +97,7 @@ public class LogbookParametersFactory {
 
     /**
      * Get a new LogbookOperationParameters object
-     * 
+     *
      * @param eventIdentifier
      * @param eventType
      * @param eventIdentifierProcess
@@ -131,7 +131,7 @@ public class LogbookParametersFactory {
 
     /**
      * Get a new LogbookOperationParameters object
-     * 
+     *
      * @param eventIdentifier
      * @param eventType
      * @param eventIdentifierProcess

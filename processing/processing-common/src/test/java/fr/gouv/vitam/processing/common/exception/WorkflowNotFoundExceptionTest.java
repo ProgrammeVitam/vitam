@@ -9,7 +9,7 @@ public class WorkflowNotFoundExceptionTest {
 
     private static final String ERROR = "ERROR";
     private static final String EXCEPTION = "fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException";
-    
+
     @Test
     public void testConstructor() {
         assertEquals(EXCEPTION + ": " + ERROR,

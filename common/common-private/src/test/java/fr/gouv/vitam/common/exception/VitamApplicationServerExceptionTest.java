@@ -27,7 +27,6 @@
 package fr.gouv.vitam.common.exception;
 
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 
@@ -35,7 +34,7 @@ public class VitamApplicationServerExceptionTest {
 
     @Test
     public void testConstruct() {
-        VitamApplicationServerException exception0 = 
+        VitamApplicationServerException exception0 =
             new VitamApplicationServerException("");
         VitamApplicationServerException invalidParseOperationException1 =
             new VitamApplicationServerException("", exception0);

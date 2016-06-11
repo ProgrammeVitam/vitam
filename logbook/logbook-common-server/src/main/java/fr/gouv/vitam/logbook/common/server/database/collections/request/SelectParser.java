@@ -31,10 +31,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.builder.request.construct.configuration.GlobalDatas;
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.GLOBAL;
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.PROJECTION;
+import fr.gouv.vitam.builder.singlerequest.Request;
+import fr.gouv.vitam.builder.singlerequest.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.logbook.common.dsl.Request;
-import fr.gouv.vitam.logbook.common.dsl.Select;
 import fr.gouv.vitam.parser.request.parser.VarNameAdapter;
 
 /**

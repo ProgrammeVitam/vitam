@@ -11,6 +11,11 @@
   	<dependencies>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>common-private</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>metadata-builder</artifactId>
 			<version>${project.version}</version>
 		</dependency>

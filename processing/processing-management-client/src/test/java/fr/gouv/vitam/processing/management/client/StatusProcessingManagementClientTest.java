@@ -34,7 +34,7 @@ public class StatusProcessingManagementClientTest extends JerseyTest {
 
     @Path("/processing/api/v0.0.3")
     public static class ProcessingResource {
-        private Supplier<Response> expectedResponse;
+        private final Supplier<Response> expectedResponse;
 
         public ProcessingResource(Supplier<Response> expectedResponse) {
             this.expectedResponse = expectedResponse;
@@ -50,7 +50,7 @@ public class StatusProcessingManagementClientTest extends JerseyTest {
     @Test
     public void shouldGetStatusOK() {
         when(mock.get()).thenReturn(Response.status(Status.OK).build());
-        Response response = client.status();
+        final Response response = client.status();
         assertEquals(Status.OK.getStatusCode(), response.getStatus());
     }
 

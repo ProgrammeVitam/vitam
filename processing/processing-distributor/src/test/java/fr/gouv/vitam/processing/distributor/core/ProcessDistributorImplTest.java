@@ -34,27 +34,27 @@ public class ProcessDistributorImplTest {
     }
 
     @Test
-    public void givenProcessDistributorWhendistributeThenCatchTheOtherException(){
+    public void givenProcessDistributorWhendistributeThenCatchTheOtherException() {
         processDistributorImpl = new ProcessDistributorImplFactory().create();
-        Step step = new Step();
+        final Step step = new Step();
         step.setStepName("Traiter_archives");
-        List<Action> actions = new ArrayList<Action>();
-        Action action = new Action();
+        final List<Action> actions = new ArrayList<Action>();
+        final Action action = new Action();
         action.setActionKey(ExtractSedaActionHandler.getId());
         System.out.println(action.getActionKey());
         actions.add(action);
         step.setActions(actions);
-        
+
         processDistributorImpl.distribute(params, step, WORKFLOW_ID);
     }
-    
-    @Test(expected=IllegalArgumentException.class)
+
+    @Test(expected = IllegalArgumentException.class)
     public void givenProcessDistributorWhendistributeThenCatchIllegalArgumentException() {
         processDistributorImpl = new ProcessDistributorImplFactory().create();
-        Step step = new Step();
-        Action a = new Action();
+        final Step step = new Step();
+        final Action a = new Action();
         a.setActionKey("notExist");
-        List<Action> actions = new ArrayList<>();
+        final List<Action> actions = new ArrayList<>();
         actions.add(a);
         step.setActions(actions);
         processDistributorImpl.distribute(params, null, WORKFLOW_ID);
@@ -63,35 +63,35 @@ public class ProcessDistributorImplTest {
     @Test
     public void givenProcessDistributorWhenDistributeWithListKindThenCatchHandlerNotFoundException() {
         processDistributorImpl = new ProcessDistributorImplFactory().create();
-        Step step = new Step().setDistribution(new Distribution().setKind(DistributionKind.LIST));
-        Action a = new Action();
+        final Step step = new Step().setDistribution(new Distribution().setKind(DistributionKind.LIST));
+        final Action a = new Action();
         a.setActionKey("notExist");
-        List<Action> actions = new ArrayList<>();
+        final List<Action> actions = new ArrayList<>();
         actions.add(a);
         step.setActions(actions);
         processDistributorImpl.distribute(params, step, WORKFLOW_ID);
     }
-    
+
     @Test
     public void givenProcessDistributorWhenDistributeWithRefThenCatchHandlerNotFoundException() {
         processDistributorImpl = new ProcessDistributorImplFactory().create();
-        Step step = new Step().setDistribution(new Distribution().setKind(DistributionKind.REF));
-        Action a = new Action();
+        final Step step = new Step().setDistribution(new Distribution().setKind(DistributionKind.REF));
+        final Action a = new Action();
         a.setActionKey("notExist");
-        List<Action> actions = new ArrayList<>();
+        final List<Action> actions = new ArrayList<>();
         actions.add(a);
         step.setActions(actions);
         processDistributorImpl.distribute(params, step, WORKFLOW_ID);
     }
-    
+
     @Test
-    public void test() throws IllegalArgumentException, ProcessingException{
-        WorkerImpl worker = mock(WorkerImpl.class);
-        List<EngineResponse> response = new ArrayList<EngineResponse>();
+    public void test() throws IllegalArgumentException, ProcessingException {
+        final WorkerImpl worker = mock(WorkerImpl.class);
+        final List<EngineResponse> response = new ArrayList<EngineResponse>();
         response.add(new ProcessResponse().setStatus(StatusCode.OK));
         when(worker.run(anyObject(), anyObject())).thenReturn(response);
-        
+
         processDistributorImpl = new ProcessDistributorImplFactory().create(worker);
-        processDistributorImpl.distribute(params, new Step(), WORKFLOW_ID);   
+        processDistributorImpl.distribute(params, new Step(), WORKFLOW_ID);
     }
 }

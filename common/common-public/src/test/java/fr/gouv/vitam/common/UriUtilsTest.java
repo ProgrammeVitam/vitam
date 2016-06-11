@@ -26,26 +26,29 @@
  */
 package fr.gouv.vitam.common;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+
 import org.junit.Test;
 
-import static org.junit.Assert.*;
-
 public class UriUtilsTest {
-	
-	private String uriName ="SIP/content/lenovo.html";
-	private String uriNull=null;
-	
-	@Test
-	public void givenUriWhenSplitThenReturnUriStringNotBlankTrue(){
-		String splitedString = UriUtils.splitUri(uriName);
-		assertNotNull(splitedString);
-		assertNotEquals("", splitedString);	}
-	
-	   
-	   @Test
-	    public void givenNullUriWhenSplitThenRaiseAnException() {
-		   String splitedString = UriUtils.splitUri(uriNull);
-		   assertNotNull(splitedString);
-		   assertEquals("", splitedString);
-	    }
+
+    private final String uriName = "SIP/content/lenovo.html";
+    private final String uriNull = null;
+
+    @Test
+    public void givenUriWhenSplitThenReturnUriStringNotBlankTrue() {
+        final String splitedString = UriUtils.splitUri(uriName);
+        assertNotNull(splitedString);
+        assertNotEquals("", splitedString);
+    }
+
+
+    @Test
+    public void givenNullUriWhenSplitThenRaiseAnException() {
+        final String splitedString = UriUtils.splitUri(uriNull);
+        assertNotNull(splitedString);
+        assertEquals("", splitedString);
+    }
 }

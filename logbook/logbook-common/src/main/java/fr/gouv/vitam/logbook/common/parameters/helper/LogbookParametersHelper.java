@@ -76,10 +76,10 @@ public class LogbookParametersHelper {
             }
         }
     }
-    
+
     /**
      * Check parameters emptiness or nullity
-     * 
+     *
      * @param parameters
      * @throws IllegalArgumentException if an argument is null or empty against mandatory
      */

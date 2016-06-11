@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 
 /**
  * VitamApplication Interface
+ * 
  * @param <A> The VitamApplication final class
  */
 public interface VitamApplication<A extends VitamApplication<?>> {
@@ -40,7 +41,7 @@ public interface VitamApplication<A extends VitamApplication<?>> {
      *
      * @param configPath
      * @return the VitamApplication
-     * @throws VitamApplicationServerException 
+     * @throws VitamApplicationServerException
      */
     A configure(Path configPath) throws VitamApplicationServerException;
 }

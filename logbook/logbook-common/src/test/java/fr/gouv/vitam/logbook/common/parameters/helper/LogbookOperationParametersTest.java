@@ -124,9 +124,9 @@ public class LogbookOperationParametersTest {
         }
         assertEquals("incorrect", params.getParameterValue(LogbookParameterName.eventTypeProcess));
         assertEquals(null, params.getParameterValue(LogbookParameterName.eventDateTime));
-        GUID aa = GUIDFactory.newOperationIdGUID(0);
-        GUID bb = GUIDFactory.newOperationIdGUID(0);
-        GUID cc = GUIDFactory.newOperationIdGUID(0);
+        final GUID aa = GUIDFactory.newOperationIdGUID(0);
+        final GUID bb = GUIDFactory.newOperationIdGUID(0);
+        final GUID cc = GUIDFactory.newOperationIdGUID(0);
         LogbookParametersFactory.newLogbookOperationParameters(aa, "aa", aa,
             LogbookTypeProcess.AUDIT, LogbookOutcome.STARTED, bb, cc);
         try {
@@ -195,6 +195,7 @@ public class LogbookOperationParametersTest {
         }
 
     }
+
     @Test
     public void getEventDateTime() {
         final LogbookOperationParameters params = LogbookParametersFactory.newLogbookOperationParameters();

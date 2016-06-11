@@ -1,31 +1,25 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
- * 
+ *
  * Copyright Vitam (2012, 2015)
  *
- * This software is governed by the CeCILL 2.1 license under French law and
- * abiding by the rules of distribution of free software. You can use, modify
- * and/ or redistribute the software under the terms of the CeCILL license as
- * circulated by CEA, CNRS and INRIA at the following URL
- * "http://www.cecill.info".
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
+ * by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
  *
- * As a counterpart to the access to the source code and rights to copy, modify
- * and redistribute granted by the license, users are provided only with a
- * limited warranty and the software's author, the holder of the economic
- * rights, and the successive licensors have only limited liability.
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
  *
- * In this respect, the user's attention is drawn to the risks associated with
- * loading, using, modifying and/or developing or reproducing the software by
- * the user in light of its specific status of free software, that may mean that
- * it is complicated to manipulate, and that also therefore means that it is
- * reserved for developers and experienced professionals having in-depth
- * computer knowledge. Users are therefore encouraged to load and test the
- * software's suitability as regards their requirements in conditions enabling
- * the security of their systems and/or data to be ensured and, more generally,
- * to use and operate it in the same conditions as regards security.
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
  *
- * The fact that you are presently reading this means that you have had
- * knowledge of the CeCILL license and that you accept its terms.
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you
+ * accept its terms.
  *******************************************************************************/
 package fr.gouv.vitam.builder.request.construct;
 
@@ -48,8 +42,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
- * Abstract Request (common part): { $roots: roots, $query : query, $filter :
- * filter } or [ roots, query, filter ]
+ * Abstract Request (common part): { $roots: roots, $query : query, $filter : filter } or [ roots, query, filter ]
  *
  */
 public abstract class Request {
@@ -86,7 +79,7 @@ public abstract class Request {
     public final Request resetQueries() {
         if (queries != null) {
             queries.forEach(new Consumer<Query>() {
-            	@Override
+                @Override
                 public void accept(Query t) {
                     t.clean();
                 }
@@ -123,7 +116,7 @@ public abstract class Request {
      * @throws InvalidParseOperationException
      */
     public final Request addHintFilter(final String... hints)
-            throws InvalidParseOperationException {
+        throws InvalidParseOperationException {
         if (filter == null) {
             filter = JsonHandler.createObjectNode();
         }
@@ -142,7 +135,7 @@ public abstract class Request {
     }
 
     /**
-     * 
+     *
      * @param filterContent
      * @return this Request
      */
@@ -162,40 +155,40 @@ public abstract class Request {
     }
 
     /**
-     * 
+     *
      * @param filter
      * @return this Request
      * @throws InvalidParseOperationException
      */
     public final Request parseHintFilter(final String filter)
-            throws InvalidParseOperationException {
+        throws InvalidParseOperationException {
         GlobalDatas.sanityParametersCheck(filter, GlobalDatas.nbFilters);
-        JsonNode rootNode = JsonHandler.getFromString(filter);
+        final JsonNode rootNode = JsonHandler.getFromString(filter);
         return addHintFilter(rootNode);
     }
 
     /**
-     * 
+     *
      * @param filterContent
      * @return this Request
      * @throws InvalidParseOperationException
      */
     public Request setFilter(final JsonNode filterContent)
-            throws InvalidParseOperationException {
+        throws InvalidParseOperationException {
         resetFilter();
         return addHintFilter(filterContent);
     }
 
     /**
-     * 
+     *
      * @param filter
      * @return this Request
      * @throws InvalidParseOperationException
      */
     public final Request parseFilter(final String filter)
-            throws InvalidParseOperationException {
+        throws InvalidParseOperationException {
         GlobalDatas.sanityParametersCheck(filter, GlobalDatas.nbFilters);
-        JsonNode filterContent = JsonHandler.getFromString(filter);
+        final JsonNode filterContent = JsonHandler.getFromString(filter);
         return setFilter(filterContent);
     }
 
@@ -206,11 +199,11 @@ public abstract class Request {
      * @throws InvalidCreateOperationException
      */
     public final Request addQueries(final Query... queries)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         for (final Query query : queries) {
             if (!query.isReady()) {
                 throw new InvalidCreateOperationException(
-                        "Query is not ready to be added: " + query.getCurrentQuery());
+                    "Query is not ready to be added: " + query.getCurrentQuery());
             }
             this.queries.add(query);
         }
@@ -218,13 +211,13 @@ public abstract class Request {
     }
 
     /**
-     * 
+     *
      * @param roots
      * @return this Request
      * @throws InvalidParseOperationException
      */
     public final Request addRoots(final String... roots)
-            throws InvalidParseOperationException {
+        throws InvalidParseOperationException {
         for (final String root : roots) {
             GlobalDatas.sanityParameterCheck(root);
             this.roots.add(root);
@@ -233,19 +226,19 @@ public abstract class Request {
     }
 
     /**
-     * 
+     *
      * @param rootContent
      * @return this Request
      */
     public final Request addRoots(final ArrayNode rootContent) {
-        for (JsonNode jsonNode : rootContent) {
-            this.roots.add(jsonNode.asText());
+        for (final JsonNode jsonNode : rootContent) {
+            roots.add(jsonNode.asText());
         }
         return this;
     }
 
     /**
-     * 
+     *
      * @param roots
      * @return this Request
      * @throws InvalidParseOperationException
@@ -253,11 +246,11 @@ public abstract class Request {
     public final Request parseRoots(String roots) throws InvalidParseOperationException {
         GlobalDatas.sanityParametersCheck(roots, GlobalDatas.nbRoots);
         try {
-            ArrayNode rootNode = (ArrayNode) JsonHandler.getFromString(roots);
+            final ArrayNode rootNode = (ArrayNode) JsonHandler.getFromString(roots);
             return addRoots(rootNode);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new InvalidParseOperationException("Error while parsing Array of Roots",
-                    e);
+                e);
         }
     }
 
@@ -268,16 +261,16 @@ public abstract class Request {
     protected final ObjectNode getFinal() {
         final ObjectNode node = JsonHandler.createObjectNode();
         if (roots != null && roots.size() > 0) {
-            ArrayNode array = node.putArray(GLOBAL.ROOTS.exactToken());
-            for (String val : roots) {
+            final ArrayNode array = node.putArray(GLOBAL.ROOTS.exactToken());
+            for (final String val : roots) {
                 array.add(val);
             }
         } else {
-        	node.putArray(GLOBAL.ROOTS.exactToken());
+            node.putArray(GLOBAL.ROOTS.exactToken());
         }
         if (queries != null && queries.size() > 0) {
-            ArrayNode array = JsonHandler.createArrayNode();
-            for (Query query : queries) {
+            final ArrayNode array = JsonHandler.createArrayNode();
+            for (final Query query : queries) {
                 array.add(query.getCurrentQuery());
             }
             node.set(GLOBAL.QUERY.exactToken(), array);
@@ -314,7 +307,7 @@ public abstract class Request {
     }
 
     /**
-     * @param nth 
+     * @param nth
      * @return the nth query
      */
     public final Query getNthQuery(int nth) {
@@ -338,7 +331,7 @@ public abstract class Request {
     public String toString() {
         final StringBuilder builder = new StringBuilder();
         builder.append("Requests: ");
-        for (Query subrequest : getQueries()) {
+        for (final Query subrequest : getQueries()) {
             builder.append("\n").append(subrequest);
         }
         builder.append("\n\tFilter: ").append(filter).append("\n\tRoots: ").append(roots);
