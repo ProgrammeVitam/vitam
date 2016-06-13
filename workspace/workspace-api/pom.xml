@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>workspace</artifactId>
-		<version>0.3.0-SNAPSHOT</version>
+		<version>0.3.0</version>
 	</parent>
 	<artifactId>workspace-api</artifactId>
 </project>
