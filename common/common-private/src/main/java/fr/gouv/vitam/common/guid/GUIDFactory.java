@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.guid;
 
 import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.ServerIdentityInterface;
 
 /**
  * GUID Factory <br>
@@ -38,7 +39,7 @@ import fr.gouv.vitam.common.ServerIdentity;
  * <b>No one should not in general use directly newGUID helpers.</b><br>
  */
 public final class GUIDFactory {
-    private static final ServerIdentity serverIdentity = ServerIdentity.getInstance();
+    private static final ServerIdentityInterface serverIdentity = ServerIdentity.getInstance();
 
     /**
      * Default empty constructor

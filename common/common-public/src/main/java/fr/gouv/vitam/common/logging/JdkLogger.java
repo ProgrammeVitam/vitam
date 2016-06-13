@@ -38,7 +38,7 @@ final class JdkLogger extends AbstractVitamLogger {
 
     private static final long serialVersionUID = -1767272577989225979L;
 
-    final transient Logger logger;//NOSONAR keep it non static
+    final transient Logger logger;// NOSONAR keep it non static
 
     JdkLogger(final Logger logger) {
         super(logger.getName());

@@ -42,8 +42,8 @@ import java.util.Properties;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.server.application.configuration.ServerIdentityConfigurationImpl;
 
 /**
  * Server Identity containing ServerName, ServerRole, Global PlatformId<br>
@@ -69,6 +69,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  *
  * Where name, role and platformID comes from a configuration file for instance.<br>
  * <br>
+ * Role could be a multiple, noted as role1_role2_role3. <br>
  * Usage:<br>
  *
  * <pre>
@@ -83,13 +84,12 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  * <li>GUID for PlatformId</li>
  * <li>Logger and Logbook: for all</li>
  * </ul>
+ * <br>
+ * <br>
+ * NOTE for developers: Do not add LOGGER there
  */
-public final class ServerIdentity {
-    private static final String IGNORE = "Ignore";
-
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(ServerIdentity.class);
-
+public final class ServerIdentity implements ServerIdentityInterface {
+    private static final String SERVER_IDENTITY_CONF_FILE_NAME = "server-identity.conf";
     private static final int OTHER_ADDRESS = 4;
     private static final int SITE_LOCAL_ADDRESS = 3;
     private static final int LINKLOCAL_ADDRESS = 2;
@@ -112,9 +112,31 @@ public final class ServerIdentity {
     private String name;
     private String role;
     private int platformId;
-
+    private final StringBuilder preMessage = new StringBuilder();
+    private String preMessageString;
 
     private ServerIdentity() {
+        boolean propertyFileNotFound = false;
+        ServerIdentityConfigurationImpl serverIdentityConf;
+        try {
+            final File file = PropertiesUtils.findFile(SERVER_IDENTITY_CONF_FILE_NAME);
+            serverIdentityConf =
+                PropertiesUtils.readYaml(file, ServerIdentityConfigurationImpl.class);
+            setYamlConfiguration(serverIdentityConf);
+            initializeCommentFormat();
+        } catch (final IOException e) {// NOSONAR no logger
+            System.err // NOSONAR no logger
+                .println(
+                    "Issue while getting configuration File: " +
+                        e.getMessage());
+            propertyFileNotFound = true;
+        }
+        if (propertyFileNotFound) {
+            defaultServerIdentity();
+        }
+    }
+
+    void defaultServerIdentity() {
         // Compute name from Hostname
         if (System.getProperty(OS_NAME).toLowerCase().startsWith(WIN)) {
             // Just for fun
@@ -131,16 +153,14 @@ public final class ServerIdentity {
                             name = scanner.useDelimiter("\\A").hasNext() ? scanner.next() : "";
                         }
                     }
-                } catch (final IOException e) {
-                    LOGGER.debug(IGNORE, e);
+                } catch (final IOException e) {// NOSONAR ignore
                     // ignore since will be checked just after
                 }
                 if (name == null) {
                     // Warning since it could return the real IP
                     try {
                         name = InetAddress.getLocalHost().getHostName();
-                    } catch (final UnknownHostException e) {
-                        LOGGER.debug(IGNORE, e);
+                    } catch (final UnknownHostException e) {// NOSONAR ignore
                         name = UNKNOWN_HOSTNAME;
                     }
                 }
@@ -149,6 +169,31 @@ public final class ServerIdentity {
         name = name.replaceAll("[\n\r]", "");
         role = UNKNOWN_ROLE;
         platformId = macAddress(macAddress());
+        initializeCommentFormat();
+    }
+
+    /**
+     * initialize after each configuration change the Logger pre-message
+     */
+    private void initializeCommentFormat() {
+        preMessage.setLength(0);
+        preMessage.append('[').append(getName()).append(':').append(getRole())
+            .append(':').append(getPlatformId()).append("] ");
+        preMessageString = preMessage.toString();
+    }
+
+    @Override
+    public final String getLoggerMessagePrepend() {
+        return preMessageString;
+    }
+
+    /**
+     *
+     * @return the Json representation of the ServerIdentity
+     */
+    public final String getJsonIdentity() {
+        return JsonHandler.createObjectNode().put("name", getName())
+            .put("role", getRole()).put("pid", getPlatformId()).toString();
     }
 
     /**
@@ -198,11 +243,38 @@ public final class ServerIdentity {
             }
             svalue = properties.getProperty(MAP_KEYNAME.PLATFORMID.name());
             platformId = Integer.parseInt(svalue);
-        } catch (final IOException | NumberFormatException e) {
-            LOGGER.debug(IGNORE, e);
+        } catch (final IOException | NumberFormatException e) {// NOSONAR ignore
             // ignore
         }
+        initializeCommentFormat();
         return this;
+    }
+
+    /**
+     * Assign the ServerIdentity from a Yaml file where Key are elements from MAP_KEYNAME. <br>
+     * Other keys are ignored. Illegal values are ignored.
+     *
+     * @param yamlFile file
+     * @return this
+     * @throws FileNotFoundException if the Yaml file is not found
+     */
+    public final ServerIdentity setFromYamlFile(File yamlFile) throws FileNotFoundException {
+        try {
+            final ServerIdentityConfigurationImpl serverIdentityConf =
+                PropertiesUtils.readYaml(yamlFile,
+                    ServerIdentityConfigurationImpl.class);
+            setYamlConfiguration(serverIdentityConf);
+        } catch (final IOException e) {// NOSONAR no logger
+            // ignore
+        }
+        initializeCommentFormat();
+        return this;
+    }
+
+    private final void setYamlConfiguration(ServerIdentityConfigurationImpl serverIdentityConf) {
+        name = serverIdentityConf.getIdentityName();
+        role = serverIdentityConf.getIdentityRole();
+        platformId = serverIdentityConf.getIdentityPlatformId();
     }
 
     private final String getStringFromMap(Map<String, Object> map, String key) {
@@ -240,6 +312,7 @@ public final class ServerIdentity {
      * Other keys are ignored. Illegal values are ignored.
      *
      * @param map the map from which the values are to be set
+     * @return this
      * @throws IllegalArgumentException map null
      */
     public final ServerIdentity setFromMap(Map<String, Object> map) {
@@ -256,12 +329,11 @@ public final class ServerIdentity {
         if (pid != null) {
             platformId = pid.intValue();
         }
+        initializeCommentFormat();
         return this;
     }
 
-    /**
-     * @return the name of the Server
-     */
+    @Override
     public final String getName() {
         return name;
     }
@@ -275,12 +347,11 @@ public final class ServerIdentity {
     public final ServerIdentity setName(String name) {
         ParametersChecker.checkParameter("Name", name);
         this.name = name;
+        initializeCommentFormat();
         return this;
     }
 
-    /**
-     * @return the role of the Server
-     */
+    @Override
     public final String getRole() {
         return role;
     }
@@ -294,12 +365,11 @@ public final class ServerIdentity {
     public final ServerIdentity setRole(String role) {
         ParametersChecker.checkParameter("Role", role);
         this.role = role;
+        initializeCommentFormat();
         return this;
     }
 
-    /**
-     * @return the platformId of the Vitam Platform
-     */
+    @Override
     public final int getPlatformId() {
         return platformId;
     }
@@ -315,6 +385,7 @@ public final class ServerIdentity {
     public final ServerIdentity setPlatformId(int platformId) {
         ParametersChecker.checkValue("platform", platformId, 0);
         this.platformId = platformId;
+        initializeCommentFormat();
         return this;
     }
 
@@ -336,8 +407,7 @@ public final class ServerIdentity {
             }
             machineId[0] &= 0x7F;
             return machineId;
-        } catch (final Exception e) {
-            LOGGER.debug(IGNORE, e);
+        } catch (final Exception e) {// NOSONAR ignore
             // Could not get MAC address: generate a random one
             final byte[] machineId = StringUtils.getRandom(MACHINE_ID_LEN);
             machineId[0] &= 0x7F;
@@ -422,8 +492,7 @@ public final class ServerIdentity {
             final byte[] macAddr;
             try {
                 macAddr = iface.getHardwareAddress();
-            } catch (final SocketException e) {
-                LOGGER.debug(IGNORE, e);
+            } catch (final SocketException e) {// NOSONAR ignore
                 continue;
             }
             boolean replace = false;
@@ -528,5 +597,6 @@ public final class ServerIdentity {
         }
         return OTHER_ADDRESS;
     }
+
 
 }

@@ -1,33 +1,29 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
- * 
+ *
  * Copyright Vitam (2012, 2015)
  *
- * This software is governed by the CeCILL 2.1 license under French law and
- * abiding by the rules of distribution of free software. You can use, modify
- * and/ or redistribute the software under the terms of the CeCILL license as
- * circulated by CEA, CNRS and INRIA at the following URL
- * "http://www.cecill.info".
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
+ * by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
  *
- * As a counterpart to the access to the source code and rights to copy, modify
- * and redistribute granted by the license, users are provided only with a
- * limited warranty and the software's author, the holder of the economic
- * rights, and the successive licensors have only limited liability.
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
  *
- * In this respect, the user's attention is drawn to the risks associated with
- * loading, using, modifying and/or developing or reproducing the software by
- * the user in light of its specific status of free software, that may mean that
- * it is complicated to manipulate, and that also therefore means that it is
- * reserved for developers and experienced professionals having in-depth
- * computer knowledge. Users are therefore encouraged to load and test the
- * software's suitability as regards their requirements in conditions enabling
- * the security of their systems and/or data to be ensured and, more generally,
- * to use and operate it in the same conditions as regards security.
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
  *
- * The fact that you are presently reading this means that you have had
- * knowledge of the CeCILL license and that you accept its terms.
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you
+ * accept its terms.
  *******************************************************************************/
 package fr.gouv.vitam.core.database.collections;
+
+import static com.mongodb.client.model.Filters.eq;
 
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -39,87 +35,84 @@ import com.mongodb.MongoWriteException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.UpdateOptions;
 
-import static com.mongodb.client.model.Filters.*;
-
-import fr.gouv.vitam.core.database.collections.MongoDbAccess.VitamCollections;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.core.database.collections.MongoDbAccess.VitamCollections;
 
 /**
- * The default Vitam Type object to be stored in the database
- * (MongoDb/ElasticSearch mode)
- * 
- * @param <E>
- *            Class associated with this Document
+ * The default Vitam Type object to be stored in the database (MongoDb/ElasticSearch mode)
+ *
+ * @param <E> Class associated with this Document
  *
  */
 public abstract class VitamDocument<E> extends Document {
     private static final long serialVersionUID = 7912599149562030658L;
     private static final VitamLogger LOGGER =
-            VitamLoggerFactory.getInstance(VitamDocument.class);
+        VitamLoggerFactory.getInstance(VitamDocument.class);
     /**
      * Default ID field name
      */
     public static final String ID = "_id";
     /**
-     * Object Type (text, audio, video, document, image, ...)
-     * Unit Type (facture, paye, ...)
+     * Object Type (text, audio, video, document, image, ...) Unit Type (facture, paye, ...)
      */
     public static final String TYPE = "_type";
     /**
      * DomainId
      */
     public static final String DOMID = "_dom";
-	/**
-	 * Parents link (Units or ObjectGroup to parent Units)
-	 */
-	public static final String UP = "_up";
-	/**
-	 * Unused field
-	 */
-	public static final String UNUSED = "_unused";
-	/**
-	 * ObjectGroup link (Unit to ObjectGroup)
-	 */
-	public static final String OG = "_og";
+    /**
+     * Parents link (Units or ObjectGroup to parent Units)
+     */
+    public static final String UP = "_up";
+    /**
+     * Unused field
+     */
+    public static final String UNUSED = "_unused";
+    /**
+     * ObjectGroup link (Unit to ObjectGroup)
+     */
+    public static final String OG = "_og";
 
     /**
      * Empty constructor
      */
-    public VitamDocument() {
-    }
+    public VitamDocument() {}
 
     /**
      * Constructor from Json
+     * 
      * @param content
      */
     public VitamDocument(JsonNode content) {
-    	super(Document.parse(content.toString()));
-    	checkId();
+        super(Document.parse(content.toString()));
+        checkId();
     }
 
     /**
      * Constructor from Document
+     * 
      * @param content
      */
     public VitamDocument(Document content) {
-    	super(content);
-    	checkId();
+        super(content);
+        checkId();
     }
 
     /**
      * Constructor from Json as text
+     * 
      * @param content
      */
     public VitamDocument(String content) {
-    	super(Document.parse(content));
-    	checkId();
+        super(Document.parse(content));
+        checkId();
     }
 
     /**
-     * 
+     *
      * @return the associated GUIDObjectType
      */
     public static int getGUIDObjectTypeId() {
@@ -128,18 +121,18 @@ public abstract class VitamDocument<E> extends Document {
 
     /**
      * Create a new ID
-     * 
+     *
      * @param tenantId
      * @return this
      */
     public VitamDocument<E> checkId() {
-		try {
-	    	int domainId = GUIDReader.getGUID(getId()).getTenantId();
-	        append(DOMID, domainId);
-		} catch (InvalidGuidOperationException e) {
-			// TODO REVIEW Auto-generated catch block
-			e.printStackTrace();
-		}
+        try {
+            final int domainId = GUIDReader.getGUID(getId()).getTenantId();
+            append(DOMID, domainId);
+        } catch (final InvalidGuidOperationException e) {
+            // TODO REVIEW Auto-generated catch block
+            e.printStackTrace();
+        }
         return this;
     }
 
@@ -148,7 +141,7 @@ public abstract class VitamDocument<E> extends Document {
      * @return the ID
      */
     public final String getId() {
-        return this.getString(ID);
+        return getString(ID);
     }
 
     /**
@@ -166,40 +159,41 @@ public abstract class VitamDocument<E> extends Document {
      * @return this
      */
     public final VitamDocument<E> load(final String json) {
-        this.putAll(Document.parse(json));
+        putAll(Document.parse(json));
         getAfterLoad();
-    	checkId();
+        checkId();
         return this;
     }
 
     /**
-     * To be called after any automatic load or loadFromJson to update HashMap
-     * values.
+     * To be called after any automatic load or loadFromJson to update HashMap values.
+     * 
      * @return this
      */
     public abstract VitamDocument<?> getAfterLoad();
 
     /**
-     * To be called before any collection.insert() or update if HashMap values
-     * is changed.
+     * To be called before any collection.insert() or update if HashMap values is changed.
+     * 
      * @return this
      */
     public abstract VitamDocument<?> putBeforeSave();
 
     /**
-     * 
+     *
      * @return the associated collection
      */
     protected abstract MongoCollection<E> getCollection();
+
     /**
-     * 
+     *
      * @return the associated VitamCollection
      */
     protected abstract VitamCollections getVitamCollections();
 
     /**
-     * Save the object. Implementation should call putBeforeSave before the real
-     * save operation (insert or update)
+     * Save the object. Implementation should call putBeforeSave before the real save operation (insert or update)
+     * 
      * @return this
      */
     public abstract VitamDocument<E> save() throws MongoWriteException, MongoWriteConcernException, MongoException;
@@ -210,9 +204,10 @@ public abstract class VitamDocument<E> extends Document {
      * @param update
      * @return this
      */
-    public VitamDocument<E> update(final Bson update) throws MongoWriteException, MongoWriteConcernException, MongoException {
+    public VitamDocument<E> update(final Bson update)
+        throws MongoWriteException, MongoWriteConcernException, MongoException {
         try {
-        	getCollection().updateOne(eq(ID, getId()), update);
+            getCollection().updateOne(eq(ID, getId()), update);
         } catch (final MongoException e) {
             LOGGER.error("Exception for " + update, e);
             throw e;
@@ -221,8 +216,7 @@ public abstract class VitamDocument<E> extends Document {
     }
 
     /**
-     * try to update the object if necessary (difference from the current value
-     * in the database)
+     * try to update the object if necessary (difference from the current value in the database)
      *
      * @return True if the object does not need any extra save operation
      */
@@ -247,15 +241,15 @@ public abstract class VitamDocument<E> extends Document {
     }
 
     /**
-     * Save the document if new, update it (keeping non set fields, replacing
-     * set fields)
+     * Save the document if new, update it (keeping non set fields, replacing set fields)
      *
      * @return this
      */
     @SuppressWarnings("unchecked")
-    protected final VitamDocument<E> updateOrSave() throws MongoWriteException, MongoWriteConcernException, MongoException {
+    protected final VitamDocument<E> updateOrSave()
+        throws MongoWriteException, MongoWriteConcernException, MongoException {
         final String id = this.getId();
-        if (MongoDbHelper.exists(getVitamCollections(), id)) {
+        if (MongoDbMetadataHelper.exists(getVitamCollections(), id)) {
             getCollection().replaceOne(eq(ID, id), (E) this);
         } else {
             getCollection().insertOne((E) this);
@@ -265,15 +259,18 @@ public abstract class VitamDocument<E> extends Document {
 
     /**
      * Force the save (insert) of this document (no putBeforeSave done)
+     * 
      * @return this
      */
-    protected final VitamDocument<E> forceSave() throws MongoWriteException, MongoWriteConcernException, MongoException {
+    protected final VitamDocument<E> forceSave()
+        throws MongoWriteException, MongoWriteConcernException, MongoException {
         getCollection().updateOne(eq(ID, getId()), this, new UpdateOptions().upsert(true));
         return this;
     }
 
     /**
      * Delete the current object
+     * 
      * @return this
      */
     public final VitamDocument<E> delete() throws MongoWriteException, MongoWriteConcernException, MongoException {

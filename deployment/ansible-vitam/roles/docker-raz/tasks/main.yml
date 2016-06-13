@@ -1,0 +1,144 @@
+---
+# tasks file for docker-raz
+- name: stop all VITAM containers from {{docker_registry_hostname}} (except mongo)
+  docker: 
+    name="{{item}}-{{vitam_environment}}"
+    image="{{docker_registry_hostname}}/vitam/{{item}}:{{vitam_docker_tag}}"
+    signal=KILL
+    state=stopped
+  with_items:
+  - "ihm-demo"
+  - "ingest"
+  - "logbook"
+  - "metadata"
+  - "processing"
+  - "workspace"
+  ignore_errors: true
+
+- name: stop all VITAM containers from {{docker_registry_external_hostname}} (except mongo)
+  docker: 
+    name="{{item}}-{{vitam_environment}}"
+    image="{{docker_registry_external_hostname}}/vitam/{{item}}:{{vitam_docker_tag}}"
+    signal=KILL
+    state=stopped
+  with_items:
+  - "ihm-demo"
+  - "ingest"
+  - "logbook"
+  - "metadata"
+  - "processing"
+  - "workspace"
+  ignore_errors: true
+
+- name: stop all VITAM containers from {{docker_registry_push_hostname}} (except mongo)
+  docker: 
+    name="{{item}}-{{vitam_environment}}"
+    image="{{docker_registry_push_hostname}}/vitam/{{item}}:{{vitam_docker_tag}}"
+    signal=KILL
+    state=stopped
+  with_items:
+  - "ihm-demo"
+  - "ingest"
+  - "logbook"
+  - "metadata"
+  - "processing"
+  - "workspace"
+  ignore_errors: true
+
+
+
+- name: delete all VITAM containers from {{docker_registry_hostname}} (except mongo)
+  # shell: /usr/bin/docker ps -qa | xargs docker rm
+  # ignore_errors: True
+  docker_image: 
+    name="{{docker_registry_hostname}}/vitam/{{item}}"
+    state=absent
+  with_items:
+  - "ihm-demo"
+  - "ingest"
+  - "logbook"
+  - "metadata"
+  - "processing"
+  - "workspace"
+  ignore_errors: true
+ 
+- name: delete all VITAM containers from {{docker_registry_external_hostname}} (except mongo)
+  # shell: /usr/bin/docker ps -qa | xargs docker rm
+  # ignore_errors: True
+  docker_image: 
+    name="{{docker_registry_external_hostname}}/vitam/{{item}}"
+    state=absent
+  with_items:
+  - "ihm-demo"
+  - "ingest"
+  - "logbook"
+  - "metadata"
+  - "processing"
+  - "workspace"
+  ignore_errors: true
+
+- name: delete all VITAM containers from {{docker_registry_push_hostname}} (except mongo)
+  # shell: /usr/bin/docker ps -qa | xargs docker rm
+  # ignore_errors: True
+  docker_image: 
+    name="{{docker_registry_push_hostname}}/vitam/{{item}}"
+    state=absent
+  with_items:
+  - "ihm-demo"
+  - "ingest"
+  - "logbook"
+  - "metadata"
+  - "processing"
+  - "workspace"
+  ignore_errors: true
+
+# name="{{item}}-{{vitam_environment}}"
+- name: delete all VITAM containers from {{vitam_environment}} (except mongo)
+  # shell: /usr/bin/docker ps -qa | xargs docker rm
+  # ignore_errors: True
+  docker_image: 
+    name="{{item}}-{{vitam_environment}}"
+    state=absent
+  with_items:
+  - "ihm-demo"
+  - "ingest"
+  - "logbook"
+  - "metadata"
+  - "processing"
+  - "workspace"
+  ignore_errors: true
+
+# name="{{item}}-{{vitam_environment}}"
+- name: delete all VITAM containers from {{vitam_environment}} with docker module (except mongo)
+  # shell: /usr/bin/docker ps -qa | xargs docker rm
+  # ignore_errors: True
+  docker: 
+    name="{{item}}-{{vitam_environment}}"
+    image="{{item}}-{{vitam_environment}}"
+    state=absent
+  with_items:
+  - "ihm-demo"
+  - "ingest"
+  - "logbook"
+  - "metadata"
+  - "processing"
+  - "workspace"
+  ignore_errors: true
+
+#- name: delete all containers
+#  shell: docker images -q | xargs docker rmi
+#  ignore_errors: True
+
+- name: delete /opt/vitam directory
+  file:
+    path={{item}}
+    state=absent
+  with_items:
+    - "{{vitam_folder_root}}/ihm-demo/"
+    - "{{ vitam_folder_root }}/ingest/"
+    - "{{ vitam_folder_root }}/logbook/"
+    - "{{ vitam_folder_root }}/metadata/"
+    - "{{ vitam_folder_root }}/processing/"
+    - "{{ vitam_folder_root }}/workspace/"
+
+

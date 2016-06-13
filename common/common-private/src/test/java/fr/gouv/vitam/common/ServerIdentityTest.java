@@ -52,12 +52,17 @@ public class ServerIdentityTest {
 
     public static final void testGetInstance() {
         if (first) {
-            final ServerIdentity serverIdentity = ServerIdentity.getInstance();
+            final ServerIdentityInterface serverIdentity = ServerIdentity.getInstance();
             assertNotNull("Should not be null", serverIdentity);
-            assertEquals("Role should be set to default", "UnknownRole", serverIdentity.getRole());
+            assertEquals("Role should be set to default", "role1", serverIdentity.getRole());
             assertNotEquals("Mac Address should not be 0", 0, serverIdentity.getPlatformId());
             assertFalse("Server Name should not be empty", serverIdentity.getName().isEmpty());
             first = false;
+            ((ServerIdentity) serverIdentity).defaultServerIdentity();
+            assertEquals("Role should be set to default", "UnknownRole", serverIdentity.getRole());
+            assertNotEquals("Mac Address should not be 0", 0, serverIdentity.getPlatformId());
+            assertFalse("Server Name should not be empty", serverIdentity.getName().isEmpty());
+            assertNotNull(((ServerIdentity) serverIdentity).getJsonIdentity());
         }
     }
 
@@ -161,6 +166,27 @@ public class ServerIdentityTest {
         assertEquals("Name still the same", "test1", serverIdentity.getName());
         assertEquals("Role still the same", "test2", serverIdentity.getRole());
         assertEquals("Pid still the same", 1000, serverIdentity.getPlatformId());
+    }
+
+    @Test
+    public final void testSetFromYamlFile() {
+        testGetInstance();
+        final ServerIdentity serverIdentity = ServerIdentity.getInstance();
+        final File file = ResourcesPrivateUtilTest.getInstance().getServerIdentityYamlFile();
+        if (file == null) {
+            LOGGER.error(ResourcesPrivateUtilTest.CANNOT_FIND_RESOURCES_TEST_FILE);
+        }
+        Assume.assumeTrue(ResourcesPrivateUtilTest.CANNOT_FIND_RESOURCES_TEST_FILE, file != null);
+
+        try {
+            serverIdentity.setFromYamlFile(file);
+        } catch (final FileNotFoundException e) {
+            LOGGER.error("Yaml file not found", e);
+            fail("Should find the Yaml file: " + e.getMessage());
+        }
+        assertEquals("Name still the same", "name1", serverIdentity.getName());
+        assertEquals("Role still the same", "role1", serverIdentity.getRole());
+        assertEquals("Pid still the same", 1, serverIdentity.getPlatformId());
     }
 
 }

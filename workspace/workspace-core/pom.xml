@@ -7,7 +7,12 @@
 	</parent>
 	<artifactId>workspace-core</artifactId>
 	<dependencies>
-	<dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>common-private</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>workspace-common</artifactId>
 			<version>${project.version}</version>
@@ -20,32 +25,27 @@
 		<dependency>
 			<groupId>org.apache.jclouds</groupId>
 			<artifactId>jclouds-core</artifactId>
+			<exclusions>
+				<exclusion>
+					<artifactId>jsr311-api</artifactId>
+					<groupId>javax.ws.rs</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.jclouds.api</groupId>
 			<artifactId>filesystem</artifactId>
 		</dependency>
-		
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>log4j-over-slf4j</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-simple</artifactId>
-		</dependency>
 
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.assertj</groupId>
 			<artifactId>assertj-core</artifactId>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 </project>

@@ -1,31 +1,25 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
- * 
+ *
  * Copyright Vitam (2012, 2015)
  *
- * This software is governed by the CeCILL 2.1 license under French law and
- * abiding by the rules of distribution of free software. You can use, modify
- * and/ or redistribute the software under the terms of the CeCILL license as
- * circulated by CEA, CNRS and INRIA at the following URL
- * "http://www.cecill.info".
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
+ * by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
  *
- * As a counterpart to the access to the source code and rights to copy, modify
- * and redistribute granted by the license, users are provided only with a
- * limited warranty and the software's author, the holder of the economic
- * rights, and the successive licensors have only limited liability.
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
  *
- * In this respect, the user's attention is drawn to the risks associated with
- * loading, using, modifying and/or developing or reproducing the software by
- * the user in light of its specific status of free software, that may mean that
- * it is complicated to manipulate, and that also therefore means that it is
- * reserved for developers and experienced professionals having in-depth
- * computer knowledge. Users are therefore encouraged to load and test the
- * software's suitability as regards their requirements in conditions enabling
- * the security of their systems and/or data to be ensured and, more generally,
- * to use and operate it in the same conditions as regards security.
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
  *
- * The fact that you are presently reading this means that you have had
- * knowledge of the CeCILL license and that you accept its terms.
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you
+ * accept its terms.
  *******************************************************************************/
 package fr.gouv.vitam.builder.request.construct.action;
 
@@ -57,7 +51,7 @@ public class SetAction extends Action {
      * @throws InvalidCreateOperationException
      */
     public SetAction(final String variableName, final String value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         super();
         createActionVariableValue(UPDATEACTION.SET, variableName, value);
         currentUPDATEACTION = UPDATEACTION.SET;
@@ -71,10 +65,10 @@ public class SetAction extends Action {
      * @throws InvalidCreateOperationException
      */
     public SetAction(final Map<String, ?> variableNameValue)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         super();
         currentObject =
-                ((ObjectNode) currentObject).putObject(UPDATEACTION.SET.exactToken());
+            ((ObjectNode) currentObject).putObject(UPDATEACTION.SET.exactToken());
         final ObjectNode node = (ObjectNode) currentObject;
         for (final Entry<String, ?> entry : variableNameValue.entrySet()) {
             final String name = entry.getKey();
@@ -83,7 +77,7 @@ public class SetAction extends Action {
             }
             try {
                 GlobalDatas.sanityParameterCheck(name);
-            } catch (InvalidParseOperationException e) {
+            } catch (final InvalidParseOperationException e) {
                 throw new InvalidCreateOperationException(e);
             }
             final Object val = entry.getValue();
@@ -101,7 +95,7 @@ public class SetAction extends Action {
      * @throws InvalidCreateOperationException
      */
     public SetAction(final String variableName, final long value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         super();
         createActionVariableValue(UPDATEACTION.SET, variableName, value);
         currentUPDATEACTION = UPDATEACTION.SET;
@@ -116,7 +110,7 @@ public class SetAction extends Action {
      * @throws InvalidCreateOperationException
      */
     public SetAction(final String variableName, final boolean value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         super();
         createActionVariableValue(UPDATEACTION.SET, variableName, value);
         currentUPDATEACTION = UPDATEACTION.SET;
@@ -131,7 +125,7 @@ public class SetAction extends Action {
      * @throws InvalidCreateOperationException
      */
     public SetAction(final String variableName, final double value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         super();
         createActionVariableValue(UPDATEACTION.SET, variableName, value);
         currentUPDATEACTION = UPDATEACTION.SET;
@@ -146,19 +140,19 @@ public class SetAction extends Action {
      * @throws InvalidCreateOperationException
      */
     public SetAction(final String variableName, final Date value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         super();
         if (variableName == null || variableName.trim().isEmpty()) {
-            throw new InvalidCreateOperationException("Action " + currentUPDATEACTION
-                    + " cannot be created with empty variable name");
+            throw new InvalidCreateOperationException(
+                "Action " + currentUPDATEACTION + " cannot be created with empty variable name");
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             throw new InvalidCreateOperationException(e);
         }
         currentObject =
-                ((ObjectNode) currentObject).putObject(UPDATEACTION.SET.exactToken());
+            ((ObjectNode) currentObject).putObject(UPDATEACTION.SET.exactToken());
         final ObjectNode node = (ObjectNode) currentObject;
         node.set(variableName, GlobalDatas.getDate(value));
         currentUPDATEACTION = UPDATEACTION.SET;
@@ -174,20 +168,19 @@ public class SetAction extends Action {
      * @throws InvalidCreateOperationException
      */
     public final SetAction add(final String variableName, final String value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         if (currentUPDATEACTION != UPDATEACTION.SET) {
             throw new InvalidCreateOperationException(
-                    "Cannot add a set element since this is not a Set Action: "
-                            + currentUPDATEACTION);
+                "Cannot add a set element since this is not a Set Action: " + currentUPDATEACTION);
         }
         if (variableName == null || variableName.trim().isEmpty()) {
-            throw new InvalidCreateOperationException("Action " + currentUPDATEACTION
-                    + " cannot be updated with empty variable name");
+            throw new InvalidCreateOperationException(
+                "Action " + currentUPDATEACTION + " cannot be updated with empty variable name");
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
             GlobalDatas.sanityValueCheck(value);
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             throw new InvalidCreateOperationException(e);
         }
         ((ObjectNode) currentObject).put(variableName.trim(), value);
@@ -203,19 +196,18 @@ public class SetAction extends Action {
      * @throws InvalidCreateOperationException
      */
     public final SetAction add(final String variableName, final boolean value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         if (currentUPDATEACTION != UPDATEACTION.SET) {
             throw new InvalidCreateOperationException(
-                    "Cannot add a set element since this is not a Set Action: "
-                            + currentUPDATEACTION);
+                "Cannot add a set element since this is not a Set Action: " + currentUPDATEACTION);
         }
         if (variableName == null || variableName.trim().isEmpty()) {
-            throw new InvalidCreateOperationException("Action " + currentUPDATEACTION
-                    + " cannot be updated with empty variable name");
+            throw new InvalidCreateOperationException(
+                "Action " + currentUPDATEACTION + " cannot be updated with empty variable name");
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             throw new InvalidCreateOperationException(e);
         }
         ((ObjectNode) currentObject).put(variableName.trim(), value);
@@ -231,19 +223,18 @@ public class SetAction extends Action {
      * @throws InvalidCreateOperationException
      */
     public final SetAction add(final String variableName, final long value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         if (currentUPDATEACTION != UPDATEACTION.SET) {
             throw new InvalidCreateOperationException(
-                    "Cannot add a set element since this is not a Set Action: "
-                            + currentUPDATEACTION);
+                "Cannot add a set element since this is not a Set Action: " + currentUPDATEACTION);
         }
         if (variableName == null || variableName.trim().isEmpty()) {
-            throw new InvalidCreateOperationException("Action " + currentUPDATEACTION
-                    + " cannot be updated with empty variable name");
+            throw new InvalidCreateOperationException(
+                "Action " + currentUPDATEACTION + " cannot be updated with empty variable name");
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             throw new InvalidCreateOperationException(e);
         }
         ((ObjectNode) currentObject).put(variableName.trim(), value);
@@ -259,19 +250,18 @@ public class SetAction extends Action {
      * @throws InvalidCreateOperationException
      */
     public final SetAction add(final String variableName, final double value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         if (currentUPDATEACTION != UPDATEACTION.SET) {
             throw new InvalidCreateOperationException(
-                    "Cannot add a set element since this is not a Set Action: "
-                            + currentUPDATEACTION);
+                "Cannot add a set element since this is not a Set Action: " + currentUPDATEACTION);
         }
         if (variableName == null || variableName.trim().isEmpty()) {
-            throw new InvalidCreateOperationException("Action " + currentUPDATEACTION
-                    + " cannot be updated with empty variable name");
+            throw new InvalidCreateOperationException(
+                "Action " + currentUPDATEACTION + " cannot be updated with empty variable name");
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             throw new InvalidCreateOperationException(e);
         }
         ((ObjectNode) currentObject).put(variableName.trim(), value);
@@ -287,19 +277,18 @@ public class SetAction extends Action {
      * @throws InvalidCreateOperationException
      */
     public final SetAction add(final String variableName, final Date value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         if (currentUPDATEACTION != UPDATEACTION.SET) {
             throw new InvalidCreateOperationException(
-                    "Cannot add a set element since this is not a Set Action: "
-                            + currentUPDATEACTION);
+                "Cannot add a set element since this is not a Set Action: " + currentUPDATEACTION);
         }
         if (variableName == null || variableName.trim().isEmpty()) {
-            throw new InvalidCreateOperationException("Action " + currentUPDATEACTION
-                    + " cannot be updated with empty variable name");
+            throw new InvalidCreateOperationException(
+                "Action " + currentUPDATEACTION + " cannot be updated with empty variable name");
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             throw new InvalidCreateOperationException(e);
         }
         ((ObjectNode) currentObject).set(variableName, GlobalDatas.getDate(value));

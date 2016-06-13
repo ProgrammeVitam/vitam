@@ -20,7 +20,8 @@ Sommaire
    :maxdepth: 2
 
    introduction.rst
-   common/doc/fr/archi-technique/index.rst
+   logbook.rst
+   logbook-dsl.rst
 
 
 ##############

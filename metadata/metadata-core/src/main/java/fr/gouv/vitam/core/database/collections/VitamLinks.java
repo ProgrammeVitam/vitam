@@ -3,14 +3,13 @@ package fr.gouv.vitam.core.database.collections;
 import fr.gouv.vitam.core.database.collections.MongoDbAccess.VitamCollections;
 
 /**
- * 
+ *
  * Structure Access
  *
  */
 enum VitamLinks {
     /**
-     * Unit to Unit N-N link but asymmetric where only childs reference
-     * their fathers (so only "_up" link)
+     * Unit to Unit N-N link but asymmetric where only childs reference their fathers (so only "_up" link)
      */
     Unit2Unit(VitamCollections.Cunit, LinkType.SymLink_N_N, VitamDocument.UNUSED, VitamCollections.Cunit, VitamDocument.UP),
     /**
@@ -32,8 +31,8 @@ enum VitamLinks {
      * @param field2to1
      */
     private VitamLinks(final VitamCollections col1, final LinkType type,
-            final String field1to2, final VitamCollections col2,
-            final String field2to1) {
+        final String field1to2, final VitamCollections col2,
+        final String field2to1) {
         this.col1 = col1;
         this.type = type;
         this.field1to2 = field1to2;

@@ -1,0 +1,5 @@
+---
+# Root prerequesites on all hosts
+- hosts: hosts
+  roles:
+    - docker-raz

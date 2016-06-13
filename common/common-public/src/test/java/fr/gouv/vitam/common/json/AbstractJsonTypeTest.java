@@ -79,9 +79,9 @@ public class AbstractJsonTypeTest {
         try {
             file2 = File.createTempFile("test", "test", file.getParentFile());
             tc2.writeJsonToFile(file2);
-            final TestClass tc3 = (TestClass) TestClass.readJsonFile(file2);
+            final TestClass tc3 = (TestClass) AbstractJsonType.readJsonFile(file2);
             assertEquals(tc2.getA(), tc3.getA());
-        } catch (IOException e) { //NOSONAR
+        } catch (final IOException e) { // NOSONAR
             // ignore: write right access
         }
     }

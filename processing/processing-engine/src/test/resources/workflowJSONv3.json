@@ -1,0 +1,12 @@
+{
+	"id": "id",
+	"comment":"traitement en deux macro étapes",
+	"steps":
+	[
+	{
+	"workerGroupId" :"worker3",
+		"stepName":"Traiter_archives",
+		actions":[{"action":""}]
+	}
+	]
+}

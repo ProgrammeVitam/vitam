@@ -1,192 +1,220 @@
+/**
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ *
+ * contact.vitam@culture.gouv.fr
+ *
+ * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
+ * high volumetry securely and efficiently.
+ *
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
+ * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ *
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
+ *
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
+ *
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
+ * accept its terms.
+ */
 package fr.gouv.vitam.workspace.api;
 
 import java.io.InputStream;
+import java.net.URI;
+import java.util.List;
 
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-// TODO REVIEW missing licence header
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+
 /**
  * The ContentAddressableStorage interface.
  *
  */
 public interface ContentAddressableStorage {
-    // FIXME REVIEW should see null checking variable as IllegalArgumentException explicitely
+    // TODO should see null checking variable as IllegalArgumentException explicitely
 
     // Container
     /**
      * Creates a container
-     * 
-     * @param containerName
-     *            name of container to create
-     * 
-     * @throws ContentAddressableStorageAlreadyExistException
-     *             Thrown when creating a container while it (containerName)
-     *             already exists
+     *
+     * @param containerName name of container to create
+     *
+     * @throws ContentAddressableStorageAlreadyExistException Thrown when creating a container while it (containerName)
+     *         already exists
+     * @throws ContentAddressableStorageServerException
      */
-    public void createContainer(String containerName) throws ContentAddressableStorageAlreadyExistException;
+    public void createContainer(String containerName)
+        throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageServerException;
 
     /**
-     * Deletes the contents of a container at its root path without deleting the
-     * container
+     * Deletes the contents of a container at its root path without deleting the container
      * <p>
-     * Note: this function will delete everything inside a container
-     * recursively.
+     * Note: this function will delete everything inside a container recursively.
      * </p>
-     * 
-     * @param containerName
-     *            name of container to purge
-     * 
-     * @throws ContentAddressableStorageNotFoundException
-     *             Thrown when the container cannot be located.
+     *
+     * @param containerName name of container to purge
+     *
+     * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
      */
 
     public void purgeContainer(String containerName) throws ContentAddressableStorageNotFoundException;
 
     /**
      * Deletes a container if it is empty.
-     * 
-     * @param containerName
-     *            name of the container to delete
-     * 
-     * @throws ContentAddressableStorageNotFoundException
-     *             Thrown when the container cannot be located.
+     *
+     * @param containerName name of the container to delete
+     *
+     * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
+     * @throws ContentAddressableStorageServerException
      */
-    public void deleteContainer(String containerName) throws ContentAddressableStorageNotFoundException;
+    public void deleteContainer(String containerName)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
 
     /**
      * Deletes everything inside a container recursively.
-     * 
-     * @param containerName
-     *            name of the container to delete
-     * @param recursive
-     *            false : deletes a container if it is empty, true : deletes
-     *            everything recursively
      *
-     * @throws ContentAddressableStorageNotFoundException
-     *             Thrown when the container cannot be located.
+     * @param containerName name of the container to delete
+     * @param recursive false : deletes a container if it is empty, true : deletes everything recursively
+     *
+     * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
      */
-    public void deleteContainer(String containerName, boolean recursive) throws ContentAddressableStorageNotFoundException;
+    public void deleteContainer(String containerName, boolean recursive)
+        throws ContentAddressableStorageNotFoundException;
+
     /**
      * Determines if a container exists
-     * 
-     * @param containerName
-     *            name of container
+     *
+     * @param containerName name of container
      */
-    // FIXME REVIEW change name to isExistingContainer(String containeNname)
+    // TODO change name to isExistingContainer(String containeNname)
     public boolean containerExists(String containerName);
 
-    // FIXME
-    /**
-     * Lists all objects available to the full path.
-     */
-    // TODO REVIEW Might be interesting to not have only String but a way to know if it is a Folder or an Object: either create a structure (model) or a String with a convention (using first part as F# O# or whatever)
+
+    // TODO REVIEW Might be interesting to not have only String but a way to know if it is a Folder or an Object: either
+    // create a structure (model) or a String with a convention (using first part as F# O# or whatever)
     // Set<? extends String> list(String fullPath)
 
     // folder (or directory)
 
     /**
      * Creates a folder (or a directory) marker depending on the service
-     * 
-     * @param containerName
-     *            container to create the directory in
-     * @param folderName
-     *            full path to the folder (or directory)
-     * @throws ContentAddressableStorageAlreadyExistException
-     *             Thrown when creating a directory while it already exists
-     * @throws ContentAddressableStorageNotFoundException
-     *             Thrown when the container cannot be located.
+     *
+     * @param containerName container to create the directory in
+     * @param folderName full path to the folder (or directory)
+     * @throws ContentAddressableStorageAlreadyExistException Thrown when creating a directory while it already exists
+     * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
+     * @throws ContentAddressableStorageServerException
      */
-    void createFolder(String containerName, String folderName) throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageNotFoundException;
+    void createFolder(String containerName, String folderName)
+        throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageNotFoundException,
+        ContentAddressableStorageServerException;
 
     /**
      * Deletes a folder (or a directory) marker depending on the service
-     * 
-     * @param containerName
-     *            container to delete the folder from
-     * @param folderName
-     *            full path to the folder to delete
-     * @throws ContentAddressableStorageNotFoundException
-     *             Thrown when the directory cannot be located.
+     *
+     * @param containerName container to delete the folder from
+     * @param folderName full path to the folder to delete
+     * @throws ContentAddressableStorageNotFoundException Thrown when the directory cannot be located.
+     * @throws ContentAddressableStorageServerException
      */
-    void deleteFolder(String containerName, String folderName) throws ContentAddressableStorageNotFoundException;
+    void deleteFolder(String containerName, String folderName)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
 
     /**
      * Determines if a folder (or a directory) exists
-     * 
-     * @param containerName
-     *            container where the folder resides
-     * @param folderName
-     *            full path to the folder
+     *
+     * @param containerName container where the folder resides
+     * @param folderName full path to the folder
      */
-    // FIXME REVIEW change name to isExistingFolder(String containeNname, String folderName)
+    // TODO change name to isExistingFolder(String containeNname, String folderName)
     boolean folderExists(String containerName, String folderName);
 
     // Object
 
     /**
      * Adds an object representing the data at location containerName/objectName
-     * 
-     * @param containerName
-     *            container to place the object.
-     * @param objectName
-     *            fully qualified object name relative to the container.
-     * @param stream
-     *            the data
-     * 
-     * @throws ContentAddressableStorageNotFoundException
-     *             Thrown when the container cannot be located.
-     * @throws ContentAddressableStorageException
-     *             Thrown when put action failed due some other failure
+     *
+     * @param containerName container to place the object.
+     * @param objectName fully qualified object name relative to the container.
+     * @param stream the data
+     *
+     * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
+     * @throws ContentAddressableStorageException Thrown when put action failed due some other failure
      */
-    public void putObject(String containerName, String objectName, InputStream stream) throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageNotFoundException;
+    public void putObject(String containerName, String objectName, InputStream stream)
+        throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageNotFoundException,
+        ContentAddressableStorageException;
 
     /**
-     * Retrieves an object representing the data at location
-     * containerName/objectName
-     * 
-     * @param containerName
-     *            container where this exists.
-     * @param objectName
-     *            fully qualified name relative to the container.
-     * @return the object you intended to receive or empty array, if it doesn't
-     *         exist.
-     * 
-     * @throws ContentAddressableStorageNotFoundException
-     *             Thrown when the container cannot be located.
-     * @throws ContentAddressableStorageException
-     *             Thrown when get action failed due some other failure
+     * Retrieves an object representing the data at location containerName/objectName
+     *
+     * @param containerName container where this exists.
+     * @param objectName fully qualified name relative to the container.
+     * @return the object you intended to receive or empty array, if it doesn't exist.
+     *
+     * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
+     * @throws ContentAddressableStorageException Thrown when get action failed due some other failure
      */
-    public InputStream getObject(String containerName, String objectName) throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
+    public InputStream getObject(String containerName, String objectName)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
 
     /**
-     * Deletes a object representing the data at location
-     * containerName/objectName
-     * 
-     * @param containerName
-     *            container where this exists.
-     * @param objectName
-     *            fully qualified name relative to the container.
-     * 
-     * @throws ContentAddressableStorageNotFoundException
-     *             Thrown when the container cannot be located or the blob
-     *             cannot be located in the container.
-     * @throws ContentAddressableStorageException
-     *             Thrown when delete action failed due some other failure
+     * Deletes a object representing the data at location containerName/objectName
+     *
+     * @param containerName container where this exists.
+     * @param objectName fully qualified name relative to the container.
+     *
+     * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located or the blob cannot
+     *         be located in the container.
+     * @throws ContentAddressableStorageException Thrown when delete action failed due some other failure
      */
 
-    public void deleteObject(String containerName, String objectName) throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
+    public void deleteObject(String containerName, String objectName)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
 
     /**
      * Determines if an object exists
-     * 
-     * @param containerName
-     *            container where the object resides
-     * @param objectName
-     *            fully qualified name relative to the container.
+     *
+     * @param containerName container where the object resides
+     * @param objectName fully qualified name relative to the container.
      */
-    // FIXME REVIEW change name to isExistingObject(String containeNname, String objectName)
+    // TODO change name to isExistingObject(String containeNname, String objectName)
 
     public boolean objectExists(String containerName, String objectName);
+
+    /**
+     * Retrieves recursively the uri list of object inside a folder rootFolder/subfolder/
+     *
+     * @param containerName, not null allowed container where this exists.
+     * @param folderName, not null allowed fully qualified folder name relative to the container.
+     *
+     * @return a list of URI
+     *
+     * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
+     * @throws ContentAddressableStorageException Thrown when get action failed due some other failure
+     */
+    public List<URI> getListUriDigitalObjectFromFolder(String containerName, String folderName)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
+
+
+    /**
+     * create container: will be identified by GUID && extract objects and push it on the container
+     *
+     * @param containerName : the container name (will be Guid created in ingest module)
+     * @param SipObject : compressed SIP object
+     * @throws ContentAddressableStorageAlreadyExistException Thrown when creating a container while it already exists
+     * @throws ContentAddressableStorageException Thrown when get action failed due some other failure
+     */
+    public void unzipSipObject(String containerName, InputStream sipObject)
+        throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageException;
 
 }

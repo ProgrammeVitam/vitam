@@ -3,7 +3,7 @@ package fr.gouv.vitam.core.database.collections;
 /**
  * Link used in relation between objects as hierarchies in Vitam
  */
-// FIXME REVIEW should be UPPER CASE
+// TODO REVIEW should be UPPER CASE
 public enum LinkType {
     /**
      * Link N-N

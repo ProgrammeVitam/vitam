@@ -1,31 +1,25 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
- * 
+ *
  * Copyright Vitam (2012, 2015)
  *
- * This software is governed by the CeCILL 2.1 license under French law and
- * abiding by the rules of distribution of free software. You can use, modify
- * and/ or redistribute the software under the terms of the CeCILL license as
- * circulated by CEA, CNRS and INRIA at the following URL
- * "http://www.cecill.info".
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
+ * by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
  *
- * As a counterpart to the access to the source code and rights to copy, modify
- * and redistribute granted by the license, users are provided only with a
- * limited warranty and the software's author, the holder of the economic
- * rights, and the successive licensors have only limited liability.
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
  *
- * In this respect, the user's attention is drawn to the risks associated with
- * loading, using, modifying and/or developing or reproducing the software by
- * the user in light of its specific status of free software, that may mean that
- * it is complicated to manipulate, and that also therefore means that it is
- * reserved for developers and experienced professionals having in-depth
- * computer knowledge. Users are therefore encouraged to load and test the
- * software's suitability as regards their requirements in conditions enabling
- * the security of their systems and/or data to be ensured and, more generally,
- * to use and operate it in the same conditions as regards security.
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
  *
- * The fact that you are presently reading this means that you have had
- * knowledge of the CeCILL license and that you accept its terms.
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you
+ * accept its terms.
  *******************************************************************************/
 package fr.gouv.vitam.builder.request.construct.query;
 
@@ -43,18 +37,6 @@ import org.junit.Test;
 
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.QUERY;
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.QUERYARGS;
-import fr.gouv.vitam.builder.request.construct.query.BooleanQuery;
-import fr.gouv.vitam.builder.request.construct.query.CompareQuery;
-import fr.gouv.vitam.builder.request.construct.query.ExistsQuery;
-import fr.gouv.vitam.builder.request.construct.query.InQuery;
-import fr.gouv.vitam.builder.request.construct.query.MatchQuery;
-import fr.gouv.vitam.builder.request.construct.query.MltQuery;
-import fr.gouv.vitam.builder.request.construct.query.PathQuery;
-import fr.gouv.vitam.builder.request.construct.query.Query;
-import fr.gouv.vitam.builder.request.construct.query.RangeQuery;
-import fr.gouv.vitam.builder.request.construct.query.SearchQuery;
-import fr.gouv.vitam.builder.request.construct.query.TermQuery;
-import fr.gouv.vitam.builder.request.construct.query.WildcardQuery;
 import fr.gouv.vitam.builder.request.exception.InvalidCreateOperationException;
 
 @SuppressWarnings("javadoc")
@@ -154,26 +136,26 @@ public class QueryTest {
         }
     }
 
-	@Test
-	public void testRequestPath() {
-		PathQuery request = null;
-		try {
-			request = new PathQuery("id1", "id2", "id3");
-			assertTrue(request.isReady());
-			assertEquals(3, request.getCurrentObject().size());
-			request.add("id4", "id5").add("id6");
-			assertEquals(6, request.getCurrentObject().size());
-		} catch (final InvalidCreateOperationException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-		try {
-			request = new PathQuery("");
-			fail("Should have raized an exception due to incorrect argument");
-		} catch (final InvalidCreateOperationException e) {
-			assertNotNull(e);
-		}
-	}
+    @Test
+    public void testRequestPath() {
+        PathQuery request = null;
+        try {
+            request = new PathQuery("id1", "id2", "id3");
+            assertTrue(request.isReady());
+            assertEquals(3, request.getCurrentObject().size());
+            request.add("id4", "id5").add("id6");
+            assertEquals(6, request.getCurrentObject().size());
+        } catch (final InvalidCreateOperationException e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+        try {
+            request = new PathQuery("");
+            fail("Should have raized an exception due to incorrect argument");
+        } catch (final InvalidCreateOperationException e) {
+            assertNotNull(e);
+        }
+    }
 
     @Test
     public void testRequestExists() {
@@ -314,7 +296,7 @@ public class QueryTest {
     @Test
     public void testRequestCompareDate() {
         CompareQuery request = null;
-        Date date = new Date(System.currentTimeMillis());
+        final Date date = new Date(System.currentTimeMillis());
         try {
             request = new CompareQuery(QUERY.LT, "var", date);
             assertTrue(request.isReady());
@@ -417,22 +399,22 @@ public class QueryTest {
             assertTrue(request.isReady());
             request.setMatchMaxExpansions(10);
             assertTrue(request.getCurrentObject()
-                    .has(QUERYARGS.MAX_EXPANSIONS.exactToken()));
+                .has(QUERYARGS.MAX_EXPANSIONS.exactToken()));
             request = new MatchQuery(QUERY.MATCH_PHRASE, "var", "val");
             assertTrue(request.isReady());
             request.setMatchMaxExpansions(10);
             assertTrue(request.getCurrentObject()
-                    .has(QUERYARGS.MAX_EXPANSIONS.exactToken()));
+                .has(QUERYARGS.MAX_EXPANSIONS.exactToken()));
             request = new MatchQuery(QUERY.MATCH_PHRASE_PREFIX, "var", "val");
             assertTrue(request.isReady());
             request.setMatchMaxExpansions(10);
             assertTrue(request.getCurrentObject()
-                    .has(QUERYARGS.MAX_EXPANSIONS.exactToken()));
+                .has(QUERYARGS.MAX_EXPANSIONS.exactToken()));
             request = new MatchQuery(QUERY.PREFIX, "var", "val");
             assertTrue(request.isReady());
             request.setMatchMaxExpansions(10);
             assertTrue(request.getCurrentObject()
-                    .has(QUERYARGS.MAX_EXPANSIONS.exactToken()));
+                .has(QUERYARGS.MAX_EXPANSIONS.exactToken()));
         } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
@@ -455,7 +437,7 @@ public class QueryTest {
     @Test
     public void testRequestIn() {
         InQuery request = null;
-        Date date = new Date(System.currentTimeMillis());
+        final Date date = new Date(System.currentTimeMillis());
         try {
             request = new InQuery(QUERY.IN, "var", true);
             assertTrue(request.isReady());
@@ -582,8 +564,8 @@ public class QueryTest {
 
     @Test
     public void testRequestInArray() {
-        Date date1 = new Date(System.currentTimeMillis());
-        Date date2 = new Date(System.currentTimeMillis() + 1000);
+        final Date date1 = new Date(System.currentTimeMillis());
+        final Date date2 = new Date(System.currentTimeMillis() + 1000);
         try {
             InQuery request = null;
             request = new InQuery(QUERY.IN, "var", "val1", "val2");
@@ -660,68 +642,68 @@ public class QueryTest {
         }
     }
 
-	@Test
-	public void testRequestTerm() {
-		final Map<String, Object> map = new HashMap<String, Object>();
-		Date date1 = new Date(System.currentTimeMillis());
-		map.put("var1", "val1");
-		map.put("var2", "val2");
-		map.put("var3", date1);
-		map.put("var4", 1);
-		map.put("var5", 2.0);
-		map.put("var6", true);
-		TermQuery request = null;
-		try {
-			request = new TermQuery("var", "val");
-			assertTrue(request.isReady());
-			request = new TermQuery(map);
-			assertEquals(6, request.getCurrentObject().size());
-			assertTrue(request.isReady());
-			request.add("var2", "val2bis");
-			assertTrue(request.isReady());
-			assertEquals(6, request.getCurrentObject().size());
-			request.add("var3", "val2");
-			assertTrue(request.isReady());
-			assertEquals(6, request.getCurrentObject().size());
-			request.add("var7", "val7");
-			assertTrue(request.isReady());
-			assertEquals(7, request.getCurrentObject().size());
-		} catch (final InvalidCreateOperationException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-		try {
-			request = new TermQuery("", "val1");
-			fail("Should have raized an exception due to incorrect argument");
-		} catch (final InvalidCreateOperationException e) {
-			assertNotNull(e);
-		}
-	}
+    @Test
+    public void testRequestTerm() {
+        final Map<String, Object> map = new HashMap<String, Object>();
+        final Date date1 = new Date(System.currentTimeMillis());
+        map.put("var1", "val1");
+        map.put("var2", "val2");
+        map.put("var3", date1);
+        map.put("var4", 1);
+        map.put("var5", 2.0);
+        map.put("var6", true);
+        TermQuery request = null;
+        try {
+            request = new TermQuery("var", "val");
+            assertTrue(request.isReady());
+            request = new TermQuery(map);
+            assertEquals(6, request.getCurrentObject().size());
+            assertTrue(request.isReady());
+            request.add("var2", "val2bis");
+            assertTrue(request.isReady());
+            assertEquals(6, request.getCurrentObject().size());
+            request.add("var3", "val2");
+            assertTrue(request.isReady());
+            assertEquals(6, request.getCurrentObject().size());
+            request.add("var7", "val7");
+            assertTrue(request.isReady());
+            assertEquals(7, request.getCurrentObject().size());
+        } catch (final InvalidCreateOperationException e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+        try {
+            request = new TermQuery("", "val1");
+            fail("Should have raized an exception due to incorrect argument");
+        } catch (final InvalidCreateOperationException e) {
+            assertNotNull(e);
+        }
+    }
 
-	@Test
-	public void testRequestWildcard() {
-		WildcardQuery request = null;
-		try {
-			request = new WildcardQuery("var", "val");
-			assertTrue(request.isReady());
-			assertEquals(1, request.getCurrentObject().size());
-		} catch (final InvalidCreateOperationException e) {
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-		try {
-			request = new WildcardQuery("", "val1");
-			fail("Should have raized an exception due to incorrect argument");
-		} catch (final InvalidCreateOperationException e) {
-			assertNotNull(e);
-		}
-	}
+    @Test
+    public void testRequestWildcard() {
+        WildcardQuery request = null;
+        try {
+            request = new WildcardQuery("var", "val");
+            assertTrue(request.isReady());
+            assertEquals(1, request.getCurrentObject().size());
+        } catch (final InvalidCreateOperationException e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+        try {
+            request = new WildcardQuery("", "val1");
+            fail("Should have raized an exception due to incorrect argument");
+        } catch (final InvalidCreateOperationException e) {
+            assertNotNull(e);
+        }
+    }
 
     @Test
     public void testRequestRange() {
         RangeQuery request = null;
-        Date date1 = new Date(System.currentTimeMillis());
-        Date date2 = new Date(System.currentTimeMillis() + 100);
+        final Date date1 = new Date(System.currentTimeMillis());
+        final Date date2 = new Date(System.currentTimeMillis() + 100);
         try {
             request = new RangeQuery("var", QUERY.GT, 1, QUERY.LT, 2);
             assertTrue(request.isReady());
@@ -811,10 +793,10 @@ public class QueryTest {
             fail(e.getMessage());
         }
     }
-    
+
     protected String getStringWithLength() {
-    	// FIXME REVIEW  Define the size using GlobalDatasXXX
-        char[] array = new char[10000001];
+        // TODO REVIEW Define the size using GlobalDatasXXX
+        final char[] array = new char[10000001];
         int pos = 0;
         while (pos < 10000001) {
             array[pos] = 'a';
@@ -822,21 +804,21 @@ public class QueryTest {
         }
         return new String(array);
     }
-    
-    
+
+
     @Test
     public void createTermQuery() throws InvalidCreateOperationException {
-    	TermQuery request = new TermQuery("var", "val");
+        final TermQuery request = new TermQuery("var", "val");
         assertTrue(request.isReady());
-        TermQuery request2 = new TermQuery("var", new Date(System.currentTimeMillis()));
+        final TermQuery request2 = new TermQuery("var", new Date(System.currentTimeMillis()));
         assertTrue(request2.isReady());
-        TermQuery request3 = new TermQuery("var", 1);
+        final TermQuery request3 = new TermQuery("var", 1);
         assertTrue(request3.isReady());
-        TermQuery request4 = new TermQuery("var", 2.0);
+        final TermQuery request4 = new TermQuery("var", 2.0);
         assertTrue(request4.isReady());
-        TermQuery request5 = new TermQuery("var", true);
+        final TermQuery request5 = new TermQuery("var", true);
         assertTrue(request5.isReady());
-        
+
         assertEquals(1, request.getCurrentObject().size());
         request.add("var2", 2);
         assertEquals(2, request.getCurrentObject().size());
@@ -848,235 +830,235 @@ public class QueryTest {
         assertEquals(5, request.getCurrentObject().size());
         request.add("var1", "var1");
         assertEquals(6, request.getCurrentObject().size());
-      
+
     }
-    
-    @Test(expected=InvalidCreateOperationException.class)
+
+    @Test(expected = InvalidCreateOperationException.class)
     public void shouldRaiseExceptionWhenAddStringWithEmptyVaribaleName()
-    		throws InvalidCreateOperationException {
-    	TermQuery request = new TermQuery("var", 1);
+        throws InvalidCreateOperationException {
+        final TermQuery request = new TermQuery("var", 1);
         request.add("", "var");
     }
-    
-    @Test(expected=InvalidCreateOperationException.class)
+
+    @Test(expected = InvalidCreateOperationException.class)
     public void shouldRaiseExceptionWhenAddIntWithEmptyVaribaleName()
-    		throws InvalidCreateOperationException {
-    	TermQuery request = new TermQuery("var", 1);
+        throws InvalidCreateOperationException {
+        final TermQuery request = new TermQuery("var", 1);
         request.add("", 3);
     }
-    
-    @Test(expected=InvalidCreateOperationException.class)
+
+    @Test(expected = InvalidCreateOperationException.class)
     public void shouldRaiseExceptionWhenAddDoubleWithEmptyVaribaleName()
-    		throws InvalidCreateOperationException {
-    	TermQuery request = new TermQuery("var", 1);
+        throws InvalidCreateOperationException {
+        final TermQuery request = new TermQuery("var", 1);
         request.add("", 3.0);
     }
-    
-    @Test(expected=InvalidCreateOperationException.class)
+
+    @Test(expected = InvalidCreateOperationException.class)
     public void shouldRaiseExceptionWhenAddBooleanWithEmptyVaribaleName()
-    		throws InvalidCreateOperationException {
-    	TermQuery request = new TermQuery("var", 1);
+        throws InvalidCreateOperationException {
+        final TermQuery request = new TermQuery("var", 1);
         request.add("", true);
     }
-    
-    @Test(expected=InvalidCreateOperationException.class)
+
+    @Test(expected = InvalidCreateOperationException.class)
     public void shouldRaiseExceptionWhenAddDateWithEmptyVaribaleName()
-    		throws InvalidCreateOperationException {
-    	TermQuery request = new TermQuery("var", 1);
+        throws InvalidCreateOperationException {
+        final TermQuery request = new TermQuery("var", 1);
         request.add("", new Date(System.currentTimeMillis()));
     }
-    
-    @Test(expected=InvalidCreateOperationException.class)
+
+    @Test(expected = InvalidCreateOperationException.class)
     public void shouldRaiseExceptionWhenAddStringWithTooLongVaribaleName()
-    		throws InvalidCreateOperationException {
-    	TermQuery request = new TermQuery("var", 1);
-    	String s = getStringWithLength();
+        throws InvalidCreateOperationException {
+        final TermQuery request = new TermQuery("var", 1);
+        final String s = getStringWithLength();
         request.add(s, "var");
     }
-    
-    @Test(expected=InvalidCreateOperationException.class)
+
+    @Test(expected = InvalidCreateOperationException.class)
     public void shouldRaiseExceptionWhenAddIntWithTooLongVaribaleName()
-    		throws InvalidCreateOperationException {
-    	TermQuery request = new TermQuery("var", 1);
-    	String s = getStringWithLength();
+        throws InvalidCreateOperationException {
+        final TermQuery request = new TermQuery("var", 1);
+        final String s = getStringWithLength();
         request.add(s, 3);
     }
-    
-    @Test(expected=InvalidCreateOperationException.class)
+
+    @Test(expected = InvalidCreateOperationException.class)
     public void shouldRaiseExceptionWhenAddDoubleWithTooLongVaribaleName()
-    		throws InvalidCreateOperationException {
-    	TermQuery request = new TermQuery("var", 1);
-    	String s = getStringWithLength();
+        throws InvalidCreateOperationException {
+        final TermQuery request = new TermQuery("var", 1);
+        final String s = getStringWithLength();
         request.add(s, 3.0);
     }
-    
-    @Test(expected=InvalidCreateOperationException.class)
+
+    @Test(expected = InvalidCreateOperationException.class)
     public void shouldRaiseExceptionWhenAddBooleanWithTooLongVaribaleName()
-    		throws InvalidCreateOperationException {
-    	TermQuery request = new TermQuery("var", 1);
-    	String s = getStringWithLength();
+        throws InvalidCreateOperationException {
+        final TermQuery request = new TermQuery("var", 1);
+        final String s = getStringWithLength();
         request.add(s, true);
     }
-    
-    @Test(expected=InvalidCreateOperationException.class)
+
+    @Test(expected = InvalidCreateOperationException.class)
     public void shouldRaiseExceptionWhenAddDateWithTooLongVaribaleName()
-    		throws InvalidCreateOperationException {
-        TermQuery request = new TermQuery("var", 1);
-        String s = getStringWithLength();
+        throws InvalidCreateOperationException {
+        final TermQuery request = new TermQuery("var", 1);
+        final String s = getStringWithLength();
         request.add(s, new Date(System.currentTimeMillis()));
     }
-    
-    @Test (expected=InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenAddRangeIntWithEmptyVariableName() 
-    		throws InvalidCreateOperationException{
+
+    @Test(expected = InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenAddRangeIntWithEmptyVariableName()
+        throws InvalidCreateOperationException {
         new RangeQuery("", QUERY.GT, 1, QUERY.LT, 2);
     }
-    
-    @Test (expected=InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenAddRangeDoubleWithEmptyVariableName() 
-    		throws InvalidCreateOperationException{
+
+    @Test(expected = InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenAddRangeDoubleWithEmptyVariableName()
+        throws InvalidCreateOperationException {
         new RangeQuery("", QUERY.GT, 1.0, QUERY.LT, 2.0);
     }
-    
-    @Test (expected=InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenAddRangeStringWithEmptyVariableName() 
-    		throws InvalidCreateOperationException{
+
+    @Test(expected = InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenAddRangeStringWithEmptyVariableName()
+        throws InvalidCreateOperationException {
         new RangeQuery("", QUERY.GT, "1", QUERY.LT, "2");
     }
-    
-    @Test (expected=InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenAddRangeDateWithEmptyVariableName() 
-    		throws InvalidCreateOperationException{
-    	Date date1 = new Date(System.currentTimeMillis());
-        Date date2 = new Date(System.currentTimeMillis() + 100);
+
+    @Test(expected = InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenAddRangeDateWithEmptyVariableName()
+        throws InvalidCreateOperationException {
+        final Date date1 = new Date(System.currentTimeMillis());
+        final Date date2 = new Date(System.currentTimeMillis() + 100);
         new RangeQuery("", QUERY.GT, date1, QUERY.LT, date2);
     }
-    
-    @Test (expected=InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenAddRangeIntWithWrongFromWord() 
-    		throws InvalidCreateOperationException{
+
+    @Test(expected = InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenAddRangeIntWithWrongFromWord()
+        throws InvalidCreateOperationException {
         new RangeQuery("var", QUERY.NOT, 1, QUERY.LT, 2);
     }
-    
-    @Test (expected=InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenAddRangeDoubleWithWrongFromWord() 
-    		throws InvalidCreateOperationException{
+
+    @Test(expected = InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenAddRangeDoubleWithWrongFromWord()
+        throws InvalidCreateOperationException {
         new RangeQuery("var", QUERY.NOT, 1.0, QUERY.LT, 2.0);
     }
-    
-    @Test (expected=InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenAddRangeStringWithWrongFromWord() 
-    		throws InvalidCreateOperationException{
+
+    @Test(expected = InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenAddRangeStringWithWrongFromWord()
+        throws InvalidCreateOperationException {
         new RangeQuery("var", QUERY.NOT, "1", QUERY.LT, "2");
     }
-    
-    @Test (expected=InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenAddRangeDateWithWrongFromWord() 
-    		throws InvalidCreateOperationException{
-    	Date date1 = new Date(System.currentTimeMillis());
-        Date date2 = new Date(System.currentTimeMillis() + 100);
+
+    @Test(expected = InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenAddRangeDateWithWrongFromWord()
+        throws InvalidCreateOperationException {
+        final Date date1 = new Date(System.currentTimeMillis());
+        final Date date2 = new Date(System.currentTimeMillis() + 100);
         new RangeQuery("var", QUERY.NOT, date1, QUERY.LT, date2);
     }
-    
-    @Test (expected=InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenAddRangeIntWithWrongToWord() 
-    		throws InvalidCreateOperationException{
+
+    @Test(expected = InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenAddRangeIntWithWrongToWord()
+        throws InvalidCreateOperationException {
         new RangeQuery("var", QUERY.GT, 1, QUERY.NOT, 2);
     }
-    
-    @Test (expected=InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenAddRangeDoubleWithWrongToWord() 
-    		throws InvalidCreateOperationException{
+
+    @Test(expected = InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenAddRangeDoubleWithWrongToWord()
+        throws InvalidCreateOperationException {
         new RangeQuery("var", QUERY.GT, 1.0, QUERY.NOT, 2.0);
     }
-    
-    @Test (expected=InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenAddRangeStringWithWrongToWord() 
-    		throws InvalidCreateOperationException{
+
+    @Test(expected = InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenAddRangeStringWithWrongToWord()
+        throws InvalidCreateOperationException {
         new RangeQuery("var", QUERY.GT, "1", QUERY.NOT, "2");
     }
-    
-    @Test (expected=InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenAddRangeDateWithToFromWord() 
-    		throws InvalidCreateOperationException{
-    	Date date1 = new Date(System.currentTimeMillis());
-        Date date2 = new Date(System.currentTimeMillis() + 100);
+
+    @Test(expected = InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenAddRangeDateWithToFromWord()
+        throws InvalidCreateOperationException {
+        final Date date1 = new Date(System.currentTimeMillis());
+        final Date date2 = new Date(System.currentTimeMillis() + 100);
         new RangeQuery("var", QUERY.GT, date1, QUERY.NOT, date2);
     }
-    
+
     @Test
-    public void testClean() throws InvalidCreateOperationException{
-    	BooleanQuery bq = new BooleanQuery(QUERY.AND);
-    	MltQuery mq = new MltQuery(QUERY.MLT, "var", "val");
-    	InQuery iq = new InQuery(QUERY.IN, "var", true);
-    	bq.clean();
-    	assertEquals(0, bq.getCurrentObject().size());
-    	mq.clean();
-    	assertEquals(0, mq.getCurrentObject().size());
-    	iq.clean();
-    	assertEquals(0, iq.getCurrentObject().size());
+    public void testClean() throws InvalidCreateOperationException {
+        final BooleanQuery bq = new BooleanQuery(QUERY.AND);
+        final MltQuery mq = new MltQuery(QUERY.MLT, "var", "val");
+        final InQuery iq = new InQuery(QUERY.IN, "var", true);
+        bq.clean();
+        assertEquals(0, bq.getCurrentObject().size());
+        mq.clean();
+        assertEquals(0, mq.getCurrentObject().size());
+        iq.clean();
+        assertEquals(0, iq.getCurrentObject().size());
     }
-    
-    @Test(expected=InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenInRequestAddBooleanWithTooLongVariableName() 
-    		throws InvalidCreateOperationException{
+
+    @Test(expected = InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenInRequestAddBooleanWithTooLongVariableName()
+        throws InvalidCreateOperationException {
         new InQuery(QUERY.IN, getStringWithLength(), true);
     }
-    
-    @Test(expected=InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenInRequestAddIntWithTooLongVariableName() 
-    		throws InvalidCreateOperationException{
+
+    @Test(expected = InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenInRequestAddIntWithTooLongVariableName()
+        throws InvalidCreateOperationException {
         new InQuery(QUERY.IN, getStringWithLength(), 1);
     }
-    
-    @Test(expected=InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenInRequestAddDoubleWithTooLongVariableName() 
-    		throws InvalidCreateOperationException{
+
+    @Test(expected = InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenInRequestAddDoubleWithTooLongVariableName()
+        throws InvalidCreateOperationException {
         new InQuery(QUERY.IN, getStringWithLength(), 1.0);
     }
-    
-    @Test(expected=InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenInRequestAddDateWithTooLongVariableName() 
-    		throws InvalidCreateOperationException{
-    	Date date = new Date(System.currentTimeMillis());
-    	new InQuery(QUERY.IN, getStringWithLength(), date);
+
+    @Test(expected = InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenInRequestAddDateWithTooLongVariableName()
+        throws InvalidCreateOperationException {
+        final Date date = new Date(System.currentTimeMillis());
+        new InQuery(QUERY.IN, getStringWithLength(), date);
     }
-    
-    @Test(expected=InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenInRequestAddBooleanWithWrongQueryWord() 
-    		throws InvalidCreateOperationException{
+
+    @Test(expected = InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenInRequestAddBooleanWithWrongQueryWord()
+        throws InvalidCreateOperationException {
         new InQuery(QUERY.GT, getStringWithLength(), true);
     }
-    
-    @Test(expected=InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenInRequestAddIntWithWrongQueryWord() 
-    		throws InvalidCreateOperationException{
+
+    @Test(expected = InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenInRequestAddIntWithWrongQueryWord()
+        throws InvalidCreateOperationException {
         new InQuery(QUERY.GT, getStringWithLength(), 1);
     }
-    
-    @Test(expected=InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenInRequestAddDoubleWithWrongQueryWord() 
-    		throws InvalidCreateOperationException{
+
+    @Test(expected = InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenInRequestAddDoubleWithWrongQueryWord()
+        throws InvalidCreateOperationException {
         new InQuery(QUERY.GT, getStringWithLength(), 1.0);
     }
-    
-    @Test(expected=InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenInRequestAddDateWithWrongQueryWord() 
-    		throws InvalidCreateOperationException{
-    	Date date = new Date(System.currentTimeMillis());
-    	String s = getStringWithLength();
-    	new InQuery(QUERY.GT, s, date);
+
+    @Test(expected = InvalidCreateOperationException.class)
+    public void shouldRaiseExceptionWhenInRequestAddDateWithWrongQueryWord()
+        throws InvalidCreateOperationException {
+        final Date date = new Date(System.currentTimeMillis());
+        final String s = getStringWithLength();
+        new InQuery(QUERY.GT, s, date);
     }
-    
-    @Test(expected=InvalidCreateOperationException.class)
+
+    @Test(expected = InvalidCreateOperationException.class)
     public void shouldRaiseExceptionWhenRequestMltWithTooLongValue() throws InvalidCreateOperationException {
-        String s = getStringWithLength();
+        final String s = getStringWithLength();
         new MltQuery(QUERY.MLT, s, "var");
     }
-    
-    @Test(expected=InvalidCreateOperationException.class)
+
+    @Test(expected = InvalidCreateOperationException.class)
     public void shouldRaiseExceptionWhenRequestMltWithTooLongVariableName() throws InvalidCreateOperationException {
-        String s = getStringWithLength();
+        final String s = getStringWithLength();
         new MltQuery(QUERY.MLT, "var", s);
     }
 }

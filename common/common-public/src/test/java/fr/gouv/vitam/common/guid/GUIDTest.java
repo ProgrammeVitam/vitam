@@ -59,9 +59,9 @@ public class GUIDTest {
 
     private static final String WRONG_ARK1 = "ark:/1/aeasppnwoyafrlybkt3kfuyaaaaacaaaaa";
 
-    private static final String WRONG_BYTES = 
+    private static final String WRONG_BYTES =
         "[2, 1, 0, 0, 0, 1, 39, -67, -74, 118, 0, 88, -81, 1, 84, -10, -94, -45, 0, 0, 0, 1]";
-    private static final String WRONG_STRING_ID = 
+    private static final String WRONG_STRING_ID =
         "02010000000127bdb6760058af0154f6a2d300000001";
 
     private enum FIELDS {
@@ -100,7 +100,8 @@ public class GUIDTest {
             properties.setProperty(FIELDS.BASE32.name(), "aeaqaaaaaet33ntwabmk6aku62rngaaaaaaq");
             properties.setProperty(FIELDS.BASE64.name(), "AQEAAAABJ722dgBYrwFU9qLTAAAAAQ");
             properties.setProperty(FIELDS.BASEARK.name(), "ark:/1/aeasppnwoyafrlybkt3kfuyaaaaac");
-            properties.setProperty(FIELDS.BYTES.name(), "[1, 1, 0, 0, 0, 1, 39, -67, -74, 118, 0, 88, -81, 1, 84, -10, -94, -45, 0, 0, 0, 1]");
+            properties.setProperty(FIELDS.BYTES.name(),
+                "[1, 1, 0, 0, 0, 1, 39, -67, -74, 118, 0, 88, -81, 1, 84, -10, -94, -45, 0, 0, 0, 1]");
         } else {
             properties = PropertiesUtils.readProperties(file);
         }
@@ -253,7 +254,7 @@ public class GUIDTest {
             return;
         }
     }
-    
+
     @Test
     public final void testIllegalArgument() {
         try {

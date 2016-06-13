@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package fr.gouv.vitam.core.database.collections;
 
@@ -29,7 +29,6 @@ import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 
 import fr.gouv.vitam.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.api.exception.MetaDataMaxDepthException;
 import fr.gouv.vitam.builder.request.construct.Delete;
 import fr.gouv.vitam.builder.request.construct.Insert;
 import fr.gouv.vitam.builder.request.construct.Request;
@@ -44,12 +43,14 @@ import fr.gouv.vitam.core.database.collections.MongoDbAccess.VitamCollections;
 import fr.gouv.vitam.core.database.collections.translator.RequestToAbstract;
 import fr.gouv.vitam.core.database.collections.translator.mongodb.DeleteToMongodb;
 import fr.gouv.vitam.core.database.collections.translator.mongodb.InsertToMongodb;
+import fr.gouv.vitam.core.database.collections.translator.mongodb.MongoDbHelper;
 import fr.gouv.vitam.core.database.collections.translator.mongodb.QueryToMongodb;
 import fr.gouv.vitam.core.database.collections.translator.mongodb.RequestToMongodb;
 import fr.gouv.vitam.core.database.collections.translator.mongodb.SelectToMongodb;
 import fr.gouv.vitam.core.database.collections.translator.mongodb.UpdateToMongodb;
 import fr.gouv.vitam.core.database.configuration.GlobalDatasDb;
 import fr.gouv.vitam.parser.request.construct.query.QueryDepthHelper;
+import fr.gouv.vitam.parser.request.parser.GlobalDatasParser;
 import fr.gouv.vitam.parser.request.parser.RequestParser;
 import fr.gouv.vitam.parser.request.parser.query.PathQuery;
 
@@ -57,75 +58,72 @@ import fr.gouv.vitam.parser.request.parser.query.PathQuery;
  * DB Request using MongoDB only
  */
 public class DbRequest {
-	private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DbRequest.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DbRequest.class);
 
     boolean debug = true;
-    
+
     /**
      * Constructor
      */
-    public DbRequest() {
-    }
+    public DbRequest() {}
 
     /**
-     * @param debug
-     *            If True, in debug mode
+     * @param debug If True, in debug mode
      */
     public void setDebug(final boolean debug) {
         this.debug = debug;
     }
-    
+
     /**
      * The request should be already analyzed.
      *
      * @param requestParser
-     * @param defaultStartSet
-     *            the set of id from which the request should start, whatever the roots set
+     * @param defaultStartSet the set of id from which the request should start, whatever the roots set
      * @return the Result
      * @throws IllegalAccessException
      * @throws InstantiationException
      * @throws MetaDataExecutionException
-     * @throws InvalidParseOperationException 
-     * @throws MetaDataMaxDepthException 
+     * @throws InvalidParseOperationException
      */
     public Result execRequest(final RequestParser requestParser, final Result defaultStartSet)
-            throws InstantiationException, IllegalAccessException, MetaDataExecutionException, InvalidParseOperationException, MetaDataMaxDepthException {
+        throws InstantiationException, IllegalAccessException, MetaDataExecutionException,
+        InvalidParseOperationException {
         final Request request = requestParser.getRequest();
         final RequestToAbstract requestToMongodb = RequestToMongodb.getRequestToMongoDb(requestParser);
-        int maxQuery = request.getNbQueries();
+        final int maxQuery = request.getNbQueries();
         Result roots;
         switch (requestParser.model()) {
-	        case OBJECTGROUPS:
-	        	roots = checkObjectGroupStartupRoots(requestParser, defaultStartSet);
-	            break;
-	        case UNITS:
-	        	roots = checkUnitStartupRoots(requestParser, defaultStartSet);
-	        	break;
-	        default:
-	        	throw new MetaDataExecutionException("Model not yet requestable: " + requestParser.model());
-	    }
+            case OBJECTGROUPS:
+                roots = checkObjectGroupStartupRoots(requestParser, defaultStartSet);
+                break;
+            case UNITS:
+                roots = checkUnitStartupRoots(requestParser, defaultStartSet);
+                break;
+            default:
+                throw new MetaDataExecutionException("Model not yet requestable: " + requestParser.model());
+        }
         Result result = roots;
         int rank = 0;
         // if roots is empty, check if first query gives a non empty roots (empty query allowed for insert)
         if (result.getCurrentIds().isEmpty() && maxQuery > 0) {
-        	final Result newResult = executeQuery(requestToMongodb, rank, result);
-        	if (newResult != null && !newResult.getCurrentIds().isEmpty() && !newResult.isError()) {
+            final Result newResult = executeQuery(requestToMongodb, rank, result);
+            if (newResult != null && !newResult.getCurrentIds().isEmpty() && !newResult.isError()) {
                 result = newResult;
             } else {
-                LOGGER.error("No result at rank: " + rank + " from " + requestParser
-                        + " \n\twhere previous is " + result);
-                // XXX FIXME should be adapted to have a correct error feedback
-                result = new ResultError(newResult.type)
-                        .addError(newResult != null ? newResult.getCurrentIds().toString() : "no_result: true")
-                        .addError("no_result_at_rank: " + rank).addError("from: " + requestParser)
-                        .addError("where_previous_result_was: " + result);
-                
+                LOGGER.error(
+                    "No result at rank: " + rank + " from " + requestParser + " \n\twhere previous is " + result);
+                // XXX TODO should be adapted to have a correct error feedback
+                result = new ResultError(requestParser.model())
+                    .addError(newResult != null ? newResult.getCurrentIds().toString() : "no_result: true")
+                    .addError("no_result_at_rank: " + rank).addError("from: " + requestParser)
+                    .addError("where_previous_result_was: " + result);
+
                 return result;
             }
             if (debug) {
                 LOGGER.debug("Query: {}\n\tResult: {}", requestParser, result);
             }
-        	rank++;
+            rank++;
         }
         // Stops if no result (empty)
         for (; !result.getCurrentIds().isEmpty() && rank < maxQuery; rank++) {
@@ -133,13 +131,13 @@ public class DbRequest {
             if (newResult != null && !newResult.getCurrentIds().isEmpty() && !newResult.isError()) {
                 result = newResult;
             } else {
-                LOGGER.error("No result at rank: " + rank + " from " + requestParser
-                        + " \n\twhere previous is " + result);
-                // XXX FIXME should be adapted to have a correct error feedback
+                LOGGER.error(
+                    "No result at rank: " + rank + " from " + requestParser + " \n\twhere previous is " + result);
+                // XXX TODO should be adapted to have a correct error feedback
                 result = new ResultError(newResult.type)
-                        .addError(newResult != null ? newResult.getCurrentIds().toString() : "no_result: true")
-                        .addError("no_result_at_rank: " + rank).addError("from: " + requestParser)
-                        .addError("where_previous_result_was: " + result);
+                    .addError(newResult != null ? newResult.getCurrentIds().toString() : "no_result: true")
+                    .addError("no_result_at_rank: " + rank).addError("from: " + requestParser)
+                    .addError("where_previous_result_was: " + result);
                 return result;
             }
             if (debug) {
@@ -149,10 +147,10 @@ public class DbRequest {
         // Result contains the selection on which to act
         // Insert allow to have no result
         if (request instanceof Insert) {
-            Result newResult = lastInsertFilterProjection((InsertToMongodb) requestToMongodb, result);
+            final Result newResult = lastInsertFilterProjection((InsertToMongodb) requestToMongodb, result);
             if (newResult != null) {
                 result = newResult;
-            }   
+            }
             if (GlobalDatasDb.PRINT_REQUEST) {
                 LOGGER.warn("Results: " + result);
             }
@@ -160,32 +158,31 @@ public class DbRequest {
         }
         // others do not allow empty result
         if (result.getCurrentIds().isEmpty()) {
-        	LOGGER.error("No result at rank: " + rank + " from " + requestParser
-                    + " \n\twhere previous is " + result);
-            // XXX FIXME should be adapted to have a correct error feedback
+            LOGGER.error("No result at rank: " + rank + " from " + requestParser + " \n\twhere previous is " + result);
+            // XXX TODO should be adapted to have a correct error feedback
             result = new ResultError(result.type)
-                    .addError(result != null ? result.getCurrentIds().toString() : "no_result: true")
-                    .addError("no_result_at_rank: " + rank).addError("from: " + requestParser)
-                    .addError("where_previous_result_was: " + result);
+                .addError(result != null ? result.getCurrentIds().toString() : "no_result: true")
+                .addError("no_result_at_rank: " + rank).addError("from: " + requestParser)
+                .addError("where_previous_result_was: " + result);
             return result;
         }
         if (request instanceof Update) {
-            Result newResult = lastUpdateFilterProjection((UpdateToMongodb) requestToMongodb, result);
+            final Result newResult = lastUpdateFilterProjection((UpdateToMongodb) requestToMongodb, result);
             if (newResult != null) {
                 result = newResult;
             }
         } else if (request instanceof Delete) {
-            Result newResult = lastDeleteFilterProjection((DeleteToMongodb) requestToMongodb, result);
+            final Result newResult = lastDeleteFilterProjection((DeleteToMongodb) requestToMongodb, result);
             if (newResult != null) {
                 result = newResult;
                 // Clean cache
-                for (String id : result.getCurrentIds()) {
+                for (final String id : result.getCurrentIds()) {
                     MongoDbAccess.LRU.remove(id);
                 }
             }
         } else {
             // Select part
-            Result newResult = lastSelectFilterProjection((SelectToMongodb) requestToMongodb, result);
+            final Result newResult = lastSelectFilterProjection((SelectToMongodb) requestToMongodb, result);
             if (newResult != null) {
                 result = newResult;
             }
@@ -195,53 +192,56 @@ public class DbRequest {
         }
         return result;
     }
-    
+
     /**
      * Check Unit at startup against Roots
+     * 
      * @param request
      * @param defaultStartSet
      * @return the valid root ids
      * @throws InvalidParseOperationException
      */
     protected Result checkUnitStartupRoots(final RequestParser request, final Result defaultStartSet)
-            throws InvalidParseOperationException {
-        Set<String> roots = request.getRequest().getRoots();
-        Set<String> newRoots = checkUnitAgainstRoots(roots, defaultStartSet);
+        throws InvalidParseOperationException {
+        final Set<String> roots = request.getRequest().getRoots();
+        final Set<String> newRoots = checkUnitAgainstRoots(roots, defaultStartSet);
         if (newRoots.isEmpty()) {
             return MongoDbAccess.createOneResult(FILTERARGS.UNITS);
         }
-        if (! newRoots.containsAll(roots)) {
+        if (!newRoots.containsAll(roots)) {
             LOGGER.debug("Not all roots are preserved");
         }
         return MongoDbAccess.createOneResult(FILTERARGS.UNITS, newRoots);
     }
-    
+
     /**
      * Check ObjectGroup at startup against Roots
+     * 
      * @param request
      * @param defaultStartSet
      * @return the valid root ids
      * @throws InvalidParseOperationException
      */
     protected Result checkObjectGroupStartupRoots(final RequestParser request, final Result defaultStartSet)
-            throws InvalidParseOperationException {
-        Set<String> roots = request.getRequest().getRoots();
-    	if (defaultStartSet == null || defaultStartSet.getCurrentIds().isEmpty()) {
-    		// no limitation: using roots
+        throws InvalidParseOperationException {
+        final Set<String> roots = request.getRequest().getRoots();
+        if (defaultStartSet == null || defaultStartSet.getCurrentIds().isEmpty()) {
+            // no limitation: using roots
             return MongoDbAccess.createOneResult(FILTERARGS.OBJECTGROUPS, roots);
-    	}
-    	if (roots.isEmpty()) {
-    		return MongoDbAccess.createOneResult(FILTERARGS.OBJECTGROUPS);
-    	}
+        }
+        if (roots.isEmpty()) {
+            return MongoDbAccess.createOneResult(FILTERARGS.OBJECTGROUPS);
+        }
         @SuppressWarnings("unchecked")
-        FindIterable<ObjectGroup> iterable = (FindIterable<ObjectGroup>) MongoDbHelper.select(VitamCollections.Cobjectgroup, 
-        		MongoDbHelper.queryForAncestorsOrSame(roots, defaultStartSet.getCurrentIds()),
+        final FindIterable<ObjectGroup> iterable =
+            (FindIterable<ObjectGroup>) MongoDbMetadataHelper.select(VitamCollections.Cobjectgroup,
+                MongoDbMetadataHelper.queryForAncestorsOrSame(roots, defaultStartSet.getCurrentIds()),
                 ObjectGroup.OBJECTGROUP_VITAM_PROJECTION);
-        MongoCursor<ObjectGroup> cursor = iterable.iterator();
-        Set<String> newRoots = new HashSet<String>();
+        final MongoCursor<ObjectGroup> cursor = iterable.iterator();
+        final Set<String> newRoots = new HashSet<String>();
         try {
             while (cursor.hasNext()) {
-            	ObjectGroup og = cursor.next();
+                final ObjectGroup og = cursor.next();
                 newRoots.add(og.getId());
             }
         } finally {
@@ -250,35 +250,36 @@ public class DbRequest {
         if (newRoots.isEmpty()) {
             return MongoDbAccess.createOneResult(FILTERARGS.OBJECTGROUPS);
         }
-        if (! newRoots.containsAll(roots)) {
+        if (!newRoots.containsAll(roots)) {
             LOGGER.debug("Not all roots are preserved");
         }
         return MongoDbAccess.createOneResult(FILTERARGS.OBJECTGROUPS, newRoots);
     }
-    
+
     /**
      * Check Unit parents against Roots
+     * 
      * @param current set of result id
      * @param defaultStartSet
      * @return the valid root ids set
      * @throws InvalidParseOperationException
      */
     protected Set<String> checkUnitAgainstRoots(final Set<String> current, final Result defaultStartSet)
-            throws InvalidParseOperationException {
-    	// FIXME: was: || defaultStartSet.getCurrentIds().isEmpty() in order to allow emptyStartSet => default roots
-    	if (defaultStartSet == null) {
-    		// no limitation: using roots
+        throws InvalidParseOperationException {
+        // TODO: was: || defaultStartSet.getCurrentIds().isEmpty() in order to allow emptyStartSet => default roots
+        if (defaultStartSet == null) {
+            // no limitation: using roots
             return current;
-    	}
+        }
         @SuppressWarnings("unchecked")
-        FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbHelper.select(VitamCollections.Cunit, 
-        		MongoDbHelper.queryForAncestorsOrSame(current, defaultStartSet.getCurrentIds()),
-        		MongoDbHelper.ID_PROJECTION);
-        MongoCursor<Unit> cursor = iterable.iterator();
-        Set<String> newRoots = new HashSet<String>();
+        final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper.select(VitamCollections.Cunit,
+            MongoDbMetadataHelper.queryForAncestorsOrSame(current, defaultStartSet.getCurrentIds()),
+            MongoDbMetadataHelper.ID_PROJECTION);
+        final MongoCursor<Unit> cursor = iterable.iterator();
+        final Set<String> newRoots = new HashSet<String>();
         try {
             while (cursor.hasNext()) {
-                Unit unit = cursor.next();
+                final Unit unit = cursor.next();
                 newRoots.add(unit.getId());
             }
         } finally {
@@ -292,33 +293,31 @@ public class DbRequest {
      *
      * @param requestToMongodb
      * @param rank current rank query
-     * @param previous
-     *            previous Result from previous level (except in level == 0
-     *            where it is the subset of valid roots)
+     * @param previous previous Result from previous level (except in level == 0 where it is the subset of valid roots)
      * @return the new Result from this request
      * @throws MetaDataExecutionException
      * @throws IllegalAccessException
      * @throws InstantiationException
-     * @throws InvalidParseOperationException 
+     * @throws InvalidParseOperationException
      */
     protected Result executeQuery(final RequestToAbstract requestToMongodb, final int rank, final Result previous)
-            throws MetaDataExecutionException, InstantiationException,
-            IllegalAccessException, InvalidParseOperationException {
-        Query realQuery = requestToMongodb.getNthQuery(rank);
+        throws MetaDataExecutionException, InstantiationException,
+        IllegalAccessException, InvalidParseOperationException {
+        final Query realQuery = requestToMongodb.getNthQuery(rank);
         if (GlobalDatasDb.PRINT_REQUEST) {
-            String query = realQuery.getCurrentQuery().toString();
+            final String query = realQuery.getCurrentQuery().toString();
             LOGGER.warn("Rank: " + rank + "\n\tPrevious: " + previous + "\n\tRequest: " + query);
         }
-        QUERY type = realQuery.getQUERY();
-        FILTERARGS collectionType = requestToMongodb.model();
+        final QUERY type = realQuery.getQUERY();
+        final FILTERARGS collectionType = requestToMongodb.model();
         if (type == QUERY.PATH) {
-        	// TODO REVIEW why removing this?
+            // TODO REVIEW why removing this?
             // Check if path is compatible with previous
-//        	if (previous.getCurrentIds().isEmpty()) {
-//                previous.clear();
-//        		return MongoDbAccess.createOneResult(collectionType, ((PathQuery) realQuery).getPaths());
-//        	}
-            Set<String> newRoots = checkUnitAgainstRoots(((PathQuery) realQuery).getPaths(), previous);
+            // if (previous.getCurrentIds().isEmpty()) {
+            // previous.clear();
+            // return MongoDbAccess.createOneResult(collectionType, ((PathQuery) realQuery).getPaths());
+            // }
+            final Set<String> newRoots = checkUnitAgainstRoots(((PathQuery) realQuery).getPaths(), previous);
             previous.clear();
             if (newRoots.isEmpty()) {
                 return MongoDbAccess.createOneResult(collectionType);
@@ -328,47 +327,50 @@ public class DbRequest {
         // Not PATH
         int exactDepth = QueryDepthHelper.HELPER.getExactDepth(realQuery);
         if (exactDepth < 0) {
-            exactDepth = GlobalDatasDb.MAXDEPTH;
+            exactDepth = GlobalDatasParser.MAXDEPTH;
         }
-        int relativeDepth = QueryDepthHelper.HELPER.getRelativeDepth(realQuery);
+        final int relativeDepth = QueryDepthHelper.HELPER.getRelativeDepth(realQuery);
         Result result;
         try {
-	        switch (collectionType) {
-	            case UNITS:
-	                if (exactDepth > 0) {
-	                    // Exact Depth request (descending)
-	                	LOGGER.debug("Unit Exact Depth request (descending)");
-	                    result = exactDepthUnitQuery(realQuery, previous, exactDepth);
-	                } else if (relativeDepth != 0) {
-	                    // Relative Depth request (ascending or descending)
-	                	LOGGER.debug("Unit Relative Depth request (ascending or descending)");
-	                    result = relativeDepthUnitQuery(realQuery, previous, relativeDepth);
-	                } else {
-	                    // Current sub level request
-	                	LOGGER.debug("Unit Current sub level request");
-	                    result = sameDepthUnitQuery(realQuery, previous);
-	                }
-	                break;
-	            case OBJECTGROUPS:
-	                // No depth at all
-	            	LOGGER.debug("ObjectGroup No depth at all");
-	                result = objectGroupQuery(realQuery, previous);
-	                break;
-	            case OBJECTS:
-	                // Need to investigate: object is a subelement of objectgroup (_uses.versions.)
-	                // Possibility: request contains full information of path (_uses) so query is similar 
-	                // to ObjectGroup but not result (filtering on Object)
-	            default:
-	                // XXX FXME ???
-	            	throw new MetaDataExecutionException("Cannot execute this operation on the model: " + collectionType);
-	        }
+            switch (collectionType) {
+                case UNITS:
+                    if (exactDepth > 0) {
+                        // Exact Depth request (descending)
+                        LOGGER.debug("Unit Exact Depth request (descending)");
+                        result = exactDepthUnitQuery(realQuery, previous, exactDepth);
+                    } else if (relativeDepth != 0) {
+                        // Relative Depth request (ascending or descending)
+                        LOGGER.debug("Unit Relative Depth request (ascending or descending)");
+                        result = relativeDepthUnitQuery(realQuery, previous, relativeDepth);
+                    } else {
+                        // Current sub level request
+                        LOGGER.debug("Unit Current sub level request");
+                        result = sameDepthUnitQuery(realQuery, previous);
+                    }
+                    break;
+                case OBJECTGROUPS:
+                    // No depth at all
+                    LOGGER.debug("ObjectGroup No depth at all");
+                    result = objectGroupQuery(realQuery, previous);
+                    break;
+                case OBJECTS:
+                    // Need to investigate: object is a subelement of objectgroup (_uses.versions.)
+                    // Possibility: request contains full information of path (_uses) so query is similar
+                    // to ObjectGroup but not result (filtering on Object)
+                default:
+                    // XXX FXME ???
+                    throw new MetaDataExecutionException(
+                        "Cannot execute this operation on the model: " + collectionType);
+            }
         } finally {
             previous.clear();
         }
         return result;
     }
+
     /**
      * Execute one Unit Query using exact Depth
+     * 
      * @param realQuery
      * @param previous
      * @param exactDepth
@@ -376,21 +378,21 @@ public class DbRequest {
      * @throws InvalidParseOperationException
      */
     protected Result exactDepthUnitQuery(Query realQuery, Result previous, int exactDepth)
-    		throws InvalidParseOperationException {
-        Result result = MongoDbAccess.createOneResult(FILTERARGS.UNITS);
-        Bson query = QueryToMongodb.getCommand(realQuery);
-        Bson roots = QueryToMongodb.getRoots(VitamDocument.UP, previous.getCurrentIds());
-        Bson finalQuery = and(query, roots, lte(Unit.MINDEPTH, exactDepth), gte(Unit.MAXDEPTH, exactDepth));
+        throws InvalidParseOperationException {
+        final Result result = MongoDbAccess.createOneResult(FILTERARGS.UNITS);
+        final Bson query = QueryToMongodb.getCommand(realQuery);
+        final Bson roots = QueryToMongodb.getRoots(VitamDocument.UP, previous.getCurrentIds());
+        final Bson finalQuery = and(query, roots, lte(Unit.MINDEPTH, exactDepth), gte(Unit.MAXDEPTH, exactDepth));
         previous.clear();
-        LOGGER.debug("query: "+MongoDbHelper.bsonToString(finalQuery, false));
+        LOGGER.debug("query: " + MongoDbHelper.bsonToString(finalQuery, false));
         @SuppressWarnings("unchecked")
-        FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbHelper.select(
-                MongoDbAccess.VitamCollections.Cunit, finalQuery, Unit.UNIT_VITAM_PROJECTION);
-        MongoCursor<Unit> cursor = iterable.iterator();
+        final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper.select(
+            MongoDbAccess.VitamCollections.Cunit, finalQuery, Unit.UNIT_VITAM_PROJECTION);
+        final MongoCursor<Unit> cursor = iterable.iterator();
         try {
             while (cursor.hasNext()) {
-                Unit unit = cursor.next();
-                String id = unit.getId();
+                final Unit unit = cursor.next();
+                final String id = unit.getId();
                 MongoDbAccess.LRU.put(id, unit);
                 result.addId(id);
             }
@@ -406,71 +408,73 @@ public class DbRequest {
 
     /**
      * Execute one relative Depth Unit Query
+     * 
      * @param realQuery
      * @param previous
      * @param relativeDepth
      * @param notimeout
-     * @return the associated Result 
+     * @return the associated Result
      * @throws InvalidParseOperationException
      */
     protected Result relativeDepthUnitQuery(Query realQuery, Result previous, int relativeDepth)
-    		throws InvalidParseOperationException {
+        throws InvalidParseOperationException {
         Result result = null;
         Bson query = QueryToMongodb.getCommand(realQuery);
         Bson roots = null;
         boolean tocheck = false;
         if (previous.getCurrentIds().isEmpty()) {
-        	// TODO: why removing this
-        	// Change to MAX DEPTH <= relativeDepth
-        	//roots = lte(Unit.MAXDEPTH, relativeDepth);
+            // TODO: why removing this
+            // Change to MAX DEPTH <= relativeDepth
+            // roots = lte(Unit.MAXDEPTH, relativeDepth);
         } else {
-	        if (relativeDepth < 0) {
-	            // Relative parent: previous has future result in their _up
-	            // so future result ids are in previous UNITDEPTHS
-	            Set<String> fathers = aggregateUnitDepths(previous.getCurrentIds(), relativeDepth);
-	            roots = QueryToMongodb.getRoots(Unit.ID, fathers);
-	        } else if (relativeDepth == 0) {
-	            // same level: previous is in IDs of result
-	            roots = QueryToMongodb.getRoots(Unit.ID, previous.getCurrentIds());
-	        } else if (relativeDepth == 1) {
-	            // immediate step: previous is in Unit2Unit of result
-	            roots = QueryToMongodb.getRoots(VitamDocument.UP,
-	                    previous.getCurrentIds());
-	        } else {
-	            // relative depth: previous is in UNITUPS of result
-	            // Will need an extra test on result
-	            roots = QueryToMongodb.getRoots(Unit.UNITUPS, previous.getCurrentIds());
-	            tocheck = true;
-	        }
+            if (relativeDepth < 0) {
+                // Relative parent: previous has future result in their _up
+                // so future result ids are in previous UNITDEPTHS
+                final Set<String> fathers = aggregateUnitDepths(previous.getCurrentIds(), relativeDepth);
+                roots = QueryToMongodb.getRoots(VitamDocument.ID, fathers);
+            } else if (relativeDepth == 0) {
+                // same level: previous is in IDs of result
+                roots = QueryToMongodb.getRoots(VitamDocument.ID, previous.getCurrentIds());
+            } else if (relativeDepth == 1) {
+                // immediate step: previous is in Unit2Unit of result
+                roots = QueryToMongodb.getRoots(VitamDocument.UP,
+                    previous.getCurrentIds());
+            } else {
+                // relative depth: previous is in UNITUPS of result
+                // Will need an extra test on result
+                roots = QueryToMongodb.getRoots(Unit.UNITUPS, previous.getCurrentIds());
+                tocheck = true;
+            }
         }
         if (roots != null) {
             query = QueryToMongodb.getFullCommand(query, roots);
         }
-    	// FIXME REVIEW now query could be null! you need to not use query if null
-        LOGGER.debug("query: "+MongoDbHelper.bsonToString(query, false));
+        // TODO REVIEW now query could be null! you need to not use query if null
+        LOGGER.debug("query: " + MongoDbHelper.bsonToString(query, false));
         result = MongoDbAccess.createOneResult(FILTERARGS.UNITS);
         if (GlobalDatasDb.PRINT_REQUEST) {
             LOGGER.warn("Req1LevelMD: {}", realQuery);
         }
         @SuppressWarnings("unchecked")
-        final FindIterable<Unit> iterable = 
-            (FindIterable<Unit>) MongoDbHelper.select(MongoDbAccess.VitamCollections.Cunit, query, Unit.UNIT_VITAM_PROJECTION);
-        MongoCursor<Unit> cursor = iterable.iterator();
+        final FindIterable<Unit> iterable =
+            (FindIterable<Unit>) MongoDbMetadataHelper.select(MongoDbAccess.VitamCollections.Cunit, query,
+                Unit.UNIT_VITAM_PROJECTION);
+        final MongoCursor<Unit> cursor = iterable.iterator();
         try {
             while (cursor.hasNext()) {
                 final Unit unit = cursor.next();
                 if (tocheck) {
                     // now check for relativeDepth > 1
-                    Map<String, Integer> depths = unit.getDepths();
+                    final Map<String, Integer> depths = unit.getDepths();
                     boolean check = false;
-                    for (String pid : previous.getCurrentIds()) {
-                        Integer depth = depths.get(pid);
+                    for (final String pid : previous.getCurrentIds()) {
+                        final Integer depth = depths.get(pid);
                         if (depth != null && depth <= relativeDepth) {
                             check = true;
                             break;
                         }
                     }
-                    if (! check) {
+                    if (!check) {
                         // ignore since false positive
                         continue;
                     }
@@ -492,29 +496,30 @@ public class DbRequest {
 
     /**
      * Aggregate Unit Depths according to parent relative Depth
+     * 
      * @param ids
      * @param relativeDepth
      * @return the aggregate set of multi level parents for this relativeDepth
      */
     protected Set<String> aggregateUnitDepths(Set<String> ids, int relativeDepth) {
         // Select all items from ids
-        Bson match = match(in(Unit.ID, ids));
+        final Bson match = match(in(VitamDocument.ID, ids));
         // aggregate all UNITDEPTH in one (ignoring depth value)
-        Bson group = group(new BasicDBObject(Unit.ID, "all"),
-                addToSet("deptharray", "$"+Unit.UNITDEPTHS));
-        LOGGER.debug("Depth: "+MongoDbHelper.bsonToString(match, false)+" "+
-        		MongoDbHelper.bsonToString(group, false));
-        List<Bson> pipeline = Arrays.asList(match, group);
+        final Bson group = group(new BasicDBObject(VitamDocument.ID, "all"),
+            addToSet("deptharray", "$" + Unit.UNITDEPTHS));
+        LOGGER.debug("Depth: " + MongoDbHelper.bsonToString(match, false) + " " +
+            MongoDbHelper.bsonToString(group, false));
+        final List<Bson> pipeline = Arrays.asList(match, group);
         @SuppressWarnings("unchecked")
-		AggregateIterable<Unit> aggregateIterable = 
-        		(AggregateIterable<Unit>) MongoDbAccess.VitamCollections.Cunit.getCollection().aggregate(pipeline);
-        Unit aggregate = aggregateIterable.first();
-        Set<String> set = new HashSet<String>();
+        final AggregateIterable<Unit> aggregateIterable =
+            (AggregateIterable<Unit>) MongoDbAccess.VitamCollections.Cunit.getCollection().aggregate(pipeline);
+        final Unit aggregate = aggregateIterable.first();
+        final Set<String> set = new HashSet<String>();
         if (aggregate != null) {
             @SuppressWarnings("unchecked")
-            List<Map<String, Integer>> array = (List<Map<String, Integer>>) aggregate.get("deptharray");
-            for (Map<String, Integer> map : array) {
-                for (String key : map.keySet()) {
+            final List<Map<String, Integer>> array = (List<Map<String, Integer>>) aggregate.get("deptharray");
+            for (final Map<String, Integer> map : array) {
+                for (final String key : map.keySet()) {
                     if (map.get(key) <= relativeDepth) {
                         set.add(key);
                     }
@@ -528,32 +533,32 @@ public class DbRequest {
 
     /**
      * Execute one relative Depth Unit Query
-     * 
+     *
      * @param realQuery
      * @param previous
-     * @return the associated Result 
-     * @throws InvalidParseOperationException 
+     * @return the associated Result
+     * @throws InvalidParseOperationException
      */
     protected Result sameDepthUnitQuery(Query realQuery, Result previous) throws InvalidParseOperationException {
-        Result result = MongoDbAccess.createOneResult(FILTERARGS.UNITS);
-        Bson query = QueryToMongodb.getCommand(realQuery);
+        final Result result = MongoDbAccess.createOneResult(FILTERARGS.UNITS);
+        final Bson query = QueryToMongodb.getCommand(realQuery);
         Bson finalQuery;
         if (previous.getCurrentIds().isEmpty()) {
-        	finalQuery = query;
+            finalQuery = query;
         } else {
-        	Bson roots = QueryToMongodb.getRoots(VitamDocument.UP, previous.getCurrentIds());
-        	finalQuery = and(query, roots);
+            final Bson roots = QueryToMongodb.getRoots(VitamDocument.UP, previous.getCurrentIds());
+            finalQuery = and(query, roots);
         }
         previous.clear();
-        LOGGER.debug("query: "+MongoDbHelper.bsonToString(finalQuery, false));
+        LOGGER.debug("query: " + MongoDbHelper.bsonToString(finalQuery, false));
         @SuppressWarnings("unchecked")
-        FindIterable<Unit> iterable = (FindIterable<Unit>) 
-        	MongoDbHelper.select(MongoDbAccess.VitamCollections.Cunit, finalQuery, Unit.UNIT_VITAM_PROJECTION);
-        MongoCursor<Unit> cursor = iterable.iterator();
+        final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper
+            .select(MongoDbAccess.VitamCollections.Cunit, finalQuery, Unit.UNIT_VITAM_PROJECTION);
+        final MongoCursor<Unit> cursor = iterable.iterator();
         try {
             while (cursor.hasNext()) {
-                Unit unit = cursor.next();
-                String id = unit.getId();
+                final Unit unit = cursor.next();
+                final String id = unit.getId();
                 MongoDbAccess.LRU.put(id, unit);
                 result.addId(id);
             }
@@ -569,28 +574,29 @@ public class DbRequest {
 
     /**
      * Execute one relative Depth ObjectGroup Query
+     * 
      * @param realQuery
-     * @param previous units, Note: only immediate Unit parents are allowed 
-     * @return the associated Result 
-     * @throws InvalidParseOperationException 
+     * @param previous units, Note: only immediate Unit parents are allowed
+     * @return the associated Result
+     * @throws InvalidParseOperationException
      */
     protected Result objectGroupQuery(Query realQuery, Result previous) throws InvalidParseOperationException {
-        Result result = MongoDbAccess.createOneResult(FILTERARGS.OBJECTGROUPS);
-        Bson query = QueryToMongodb.getCommand(realQuery);
+        final Result result = MongoDbAccess.createOneResult(FILTERARGS.OBJECTGROUPS);
+        final Bson query = QueryToMongodb.getCommand(realQuery);
         Bson finalQuery;
         if (previous.getCurrentIds().isEmpty()) {
-        	finalQuery = query;
+            finalQuery = query;
         } else {
-        	Bson roots = QueryToMongodb.getRoots(VitamDocument.UP, previous.getCurrentIds());
-        	finalQuery = and(query, roots);
+            final Bson roots = QueryToMongodb.getRoots(VitamDocument.UP, previous.getCurrentIds());
+            finalQuery = and(query, roots);
         }
         previous.clear();
-        LOGGER.debug("query: "+MongoDbHelper.bsonToString(finalQuery, false));
+        LOGGER.debug("query: " + MongoDbHelper.bsonToString(finalQuery, false));
         @SuppressWarnings("unchecked")
-        FindIterable<ObjectGroup> iterable = (FindIterable<ObjectGroup>) MongoDbHelper.select(
-                MongoDbAccess.VitamCollections.Cobjectgroup, finalQuery, 
-                ObjectGroup.OBJECTGROUP_VITAM_PROJECTION);
-        MongoCursor<ObjectGroup> cursor = iterable.iterator();
+        final FindIterable<ObjectGroup> iterable = (FindIterable<ObjectGroup>) MongoDbMetadataHelper.select(
+            MongoDbAccess.VitamCollections.Cobjectgroup, finalQuery,
+            ObjectGroup.OBJECTGROUP_VITAM_PROJECTION);
+        final MongoCursor<ObjectGroup> cursor = iterable.iterator();
         try {
             while (cursor.hasNext()) {
                 result.addId(cursor.next().getId());
@@ -604,33 +610,34 @@ public class DbRequest {
 
     /**
      * Finalize the queries with last True Select
+     * 
      * @param requestToMongodb
      * @param last
-     * @return the final Result 
+     * @return the final Result
      * @throws InvalidParseOperationException
-     * @throws MetaDataExecutionException 
+     * @throws MetaDataExecutionException
      */
-    protected Result lastSelectFilterProjection(SelectToMongodb requestToMongodb, Result last) 
-    		throws InvalidParseOperationException, MetaDataExecutionException {
-        Bson roots = QueryToMongodb.getRoots(VitamDocument.ID, last.getCurrentIds());
-        Bson projection = requestToMongodb.getFinalProjection();
-        Bson orderBy = requestToMongodb.getFinalOrderBy();
-        int offset = requestToMongodb.getFinalOffset();
-        int limit = requestToMongodb.getFinalLimit();
-        FILTERARGS model = requestToMongodb.model();
-        LOGGER.debug("To Select: "+MongoDbHelper.bsonToString(roots, false)+" "+
-        		(projection != null ? MongoDbHelper.bsonToString(projection, false) : "") +" "+
-        		MongoDbHelper.bsonToString(orderBy, false)+" "+offset+" "+limit);
+    protected Result lastSelectFilterProjection(SelectToMongodb requestToMongodb, Result last)
+        throws InvalidParseOperationException, MetaDataExecutionException {
+        final Bson roots = QueryToMongodb.getRoots(VitamDocument.ID, last.getCurrentIds());
+        final Bson projection = requestToMongodb.getFinalProjection();
+        final Bson orderBy = requestToMongodb.getFinalOrderBy();
+        final int offset = requestToMongodb.getFinalOffset();
+        final int limit = requestToMongodb.getFinalLimit();
+        final FILTERARGS model = requestToMongodb.model();
+        LOGGER.debug("To Select: " + MongoDbHelper.bsonToString(roots, false) + " " +
+            (projection != null ? MongoDbHelper.bsonToString(projection, false) : "") + " " +
+            MongoDbHelper.bsonToString(orderBy, false) + " " + offset + " " + limit);
         switch (model) {
             case UNITS: {
                 @SuppressWarnings("unchecked")
-                FindIterable<Unit> iterable = 
-                    (FindIterable<Unit>) MongoDbHelper.select(MongoDbAccess.VitamCollections.Cunit,
-                            roots, projection, orderBy, offset, limit);
-                MongoCursor<Unit> cursor = iterable.iterator();
+                final FindIterable<Unit> iterable =
+                    (FindIterable<Unit>) MongoDbMetadataHelper.select(MongoDbAccess.VitamCollections.Cunit,
+                        roots, projection, orderBy, offset, limit);
+                final MongoCursor<Unit> cursor = iterable.iterator();
                 try {
                     while (cursor.hasNext()) {
-                    	Unit unit = cursor.next();
+                        final Unit unit = cursor.next();
                         last.addId(unit.getId());
                         last.addFinal(unit);
                     }
@@ -642,13 +649,14 @@ public class DbRequest {
             }
             case OBJECTGROUPS: {
                 @SuppressWarnings("unchecked")
-                FindIterable<ObjectGroup> iterable = 
-                    (FindIterable<ObjectGroup>) MongoDbHelper.select(MongoDbAccess.VitamCollections.Cobjectgroup,
-                            roots, projection, orderBy, offset, limit);
-                MongoCursor<ObjectGroup> cursor = iterable.iterator();
+                final FindIterable<ObjectGroup> iterable =
+                    (FindIterable<ObjectGroup>) MongoDbMetadataHelper.select(
+                        MongoDbAccess.VitamCollections.Cobjectgroup,
+                        roots, projection, orderBy, offset, limit);
+                final MongoCursor<ObjectGroup> cursor = iterable.iterator();
                 try {
                     while (cursor.hasNext()) {
-                    	ObjectGroup og = cursor.next();
+                        final ObjectGroup og = cursor.next();
                         last.addId(og.getId());
                         last.addFinal(og);
                     }
@@ -659,73 +667,76 @@ public class DbRequest {
                 return last;
             }
             case OBJECTS:
-                // XXX FIXME
+                // XXX TODO
             default:
-            	throw new MetaDataExecutionException("Model not supported: " + model);
+                throw new MetaDataExecutionException("Model not supported: " + model);
         }
     }
 
     /**
      * Finalize the queries with last True Update
+     * 
      * @param requestToMongodb
      * @param last
      * @return the final Result
      * @throws InvalidParseOperationException
-     * @throws MetaDataExecutionException 
+     * @throws MetaDataExecutionException
      */
     protected Result lastUpdateFilterProjection(UpdateToMongodb requestToMongodb, Result last)
-    		throws InvalidParseOperationException, MetaDataExecutionException {
-        Bson roots = QueryToMongodb.getRoots(VitamDocument.ID, last.getCurrentIds());
-        Bson update = requestToMongodb.getFinalUpdate();
-        FILTERARGS model = requestToMongodb.model();
-        LOGGER.debug("To Update: "+MongoDbHelper.bsonToString(roots, false)+" "+MongoDbHelper.bsonToString(update, false));
+        throws InvalidParseOperationException, MetaDataExecutionException {
+        final Bson roots = QueryToMongodb.getRoots(VitamDocument.ID, last.getCurrentIds());
+        final Bson update = requestToMongodb.getFinalUpdate();
+        final FILTERARGS model = requestToMongodb.model();
+        LOGGER.debug(
+            "To Update: " + MongoDbHelper.bsonToString(roots, false) + " " + MongoDbHelper.bsonToString(update, false));
         try {
-	        switch (model) {
-	            case UNITS: {
-	                UpdateResult result = MongoDbHelper.update(MongoDbAccess.VitamCollections.Cunit, 
-	                        roots, update, last.getCurrentIds().size());
-	                last.setNbResult(result.getModifiedCount());
-	                return last;
-	            }
-	            case OBJECTGROUPS: {
-	                UpdateResult result = MongoDbHelper.update(MongoDbAccess.VitamCollections.Cobjectgroup, 
-	                        roots, update, last.getCurrentIds().size());
-	                last.setNbResult(result.getModifiedCount());
-	                return last;
-	            }
-	            case OBJECTS:
-	                // XXX FIXME
-	            default:
-	            	throw new MetaDataExecutionException("Model not supported: " + model);
-	        }
-        } catch (MetaDataExecutionException e) {
-        	throw e;
-        } catch (Exception e) {
-        	throw new MetaDataExecutionException("Update concern", e);
+            switch (model) {
+                case UNITS: {
+                    final UpdateResult result = MongoDbMetadataHelper.update(MongoDbAccess.VitamCollections.Cunit,
+                        roots, update, last.getCurrentIds().size());
+                    last.setNbResult(result.getModifiedCount());
+                    return last;
+                }
+                case OBJECTGROUPS: {
+                    final UpdateResult result =
+                        MongoDbMetadataHelper.update(MongoDbAccess.VitamCollections.Cobjectgroup,
+                            roots, update, last.getCurrentIds().size());
+                    last.setNbResult(result.getModifiedCount());
+                    return last;
+                }
+                case OBJECTS:
+                    // XXX TODO
+                default:
+                    throw new MetaDataExecutionException("Model not supported: " + model);
+            }
+        } catch (final MetaDataExecutionException e) {
+            throw e;
+        } catch (final Exception e) {
+            throw new MetaDataExecutionException("Update concern", e);
         }
     }
 
     /**
      * Finalize the queries with last True Insert
+     * 
      * @param requestToMongodb
      * @param last
-     * @return the final Result 
+     * @return the final Result
      * @throws InvalidParseOperationException
-     * @throws MetaDataExecutionException 
-     * @throws MetaDataMaxDepthException 
+     * @throws MetaDataExecutionException
      */
     protected Result lastInsertFilterProjection(InsertToMongodb requestToMongodb, Result last)
-    		throws InvalidParseOperationException, MetaDataExecutionException, MetaDataMaxDepthException {
-    	Document data = requestToMongodb.getFinalData();
-    	LOGGER.debug("To Insert: " + data);
-        FILTERARGS model = requestToMongodb.model();
+        throws InvalidParseOperationException, MetaDataExecutionException {
+        final Document data = requestToMongodb.getFinalData();
+        LOGGER.debug("To Insert: " + data);
+        final FILTERARGS model = requestToMongodb.model();
         try {
             switch (model) {
                 case UNITS: {
-                    Unit unit = new Unit(data);
+                    final Unit unit = new Unit(data);
                     unit.insert();
-                    for (String id : last.getCurrentIds()) {
-                        Unit parentUnit = MongoDbAccess.LRU.get(id);
+                    for (final String id : last.getCurrentIds()) {
+                        final Unit parentUnit = MongoDbAccess.LRU.get(id);
                         if (parentUnit != null) {
                             parentUnit.addUnit(unit);
                         }
@@ -736,10 +747,10 @@ public class DbRequest {
                     return last;
                 }
                 case OBJECTGROUPS: {
-                    ObjectGroup og = new ObjectGroup(data);
+                    final ObjectGroup og = new ObjectGroup(data);
                     og.save();
-                    for (String id : last.getCurrentIds()) {
-                        Unit parentUnit = MongoDbAccess.LRU.get(id);
+                    for (final String id : last.getCurrentIds()) {
+                        final Unit parentUnit = MongoDbAccess.LRU.get(id);
                         if (parentUnit != null) {
                             parentUnit.addObjectGroup(og);
                         }
@@ -750,53 +761,55 @@ public class DbRequest {
                     return last;
                 }
                 case OBJECTS:
-                    // XXX FIXME
+                    // XXX TODO
                 default:
-                	throw new MetaDataExecutionException("Model not supported: " + model);
+                    throw new MetaDataExecutionException("Model not supported: " + model);
             }
-        } catch (MongoWriteException e) {
-        	throw e;
-        } catch (Exception e) {
-        	throw new MetaDataExecutionException("Insert concern", e);
+        } catch (final MongoWriteException e) {
+            throw e;
+        } catch (final Exception e) {
+            throw new MetaDataExecutionException("Insert concern", e);
         }
     }
 
     /**
      * Finalize the queries with last True Delete
+     * 
      * @param requestToMongodb
      * @param last
-     * @return the final Result 
+     * @return the final Result
      * @throws InvalidParseOperationException
-     * @throws MetaDataExecutionException 
+     * @throws MetaDataExecutionException
      */
     protected Result lastDeleteFilterProjection(DeleteToMongodb requestToMongodb, Result last)
-    		throws InvalidParseOperationException, MetaDataExecutionException {
-        Bson roots = QueryToMongodb.getRoots(VitamDocument.ID, last.getCurrentIds());
-        LOGGER.debug("To Delete: "+MongoDbHelper.bsonToString(roots, false));
-        FILTERARGS model = requestToMongodb.model();
+        throws InvalidParseOperationException, MetaDataExecutionException {
+        final Bson roots = QueryToMongodb.getRoots(VitamDocument.ID, last.getCurrentIds());
+        LOGGER.debug("To Delete: " + MongoDbHelper.bsonToString(roots, false));
+        final FILTERARGS model = requestToMongodb.model();
         try {
-	        switch (model) {
-	            case UNITS: {
-	                DeleteResult result = MongoDbHelper.delete(MongoDbAccess.VitamCollections.Cunit, 
-	                        roots, last.getCurrentIds().size());
-	                last.setNbResult(result.getDeletedCount());
-	                return last;
-	            }
-	            case OBJECTGROUPS: {
-	                DeleteResult result = MongoDbHelper.delete(MongoDbAccess.VitamCollections.Cobjectgroup, 
-	                        roots, last.getCurrentIds().size());
-	                last.setNbResult(result.getDeletedCount());
-	                return last;
-	            }
-	            case OBJECTS:
-	                // XXX FIXME
-	            default:
-	            	throw new MetaDataExecutionException("Model not supported: " + model);
-	        }
-        } catch (MetaDataExecutionException e) {
-        	throw e;
-        } catch (Exception e) {
-        	throw new MetaDataExecutionException("Delete concern", e);
+            switch (model) {
+                case UNITS: {
+                    final DeleteResult result = MongoDbMetadataHelper.delete(MongoDbAccess.VitamCollections.Cunit,
+                        roots, last.getCurrentIds().size());
+                    last.setNbResult(result.getDeletedCount());
+                    return last;
+                }
+                case OBJECTGROUPS: {
+                    final DeleteResult result =
+                        MongoDbMetadataHelper.delete(MongoDbAccess.VitamCollections.Cobjectgroup,
+                            roots, last.getCurrentIds().size());
+                    last.setNbResult(result.getDeletedCount());
+                    return last;
+                }
+                case OBJECTS:
+                    // XXX TODO
+                default:
+                    throw new MetaDataExecutionException("Model not supported: " + model);
+            }
+        } catch (final MetaDataExecutionException e) {
+            throw e;
+        } catch (final Exception e) {
+            throw new MetaDataExecutionException("Delete concern", e);
         }
     }
 

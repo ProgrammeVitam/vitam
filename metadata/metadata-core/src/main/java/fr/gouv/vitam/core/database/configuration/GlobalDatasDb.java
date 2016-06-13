@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package fr.gouv.vitam.core.database.configuration;
 
@@ -10,7 +10,7 @@ import fr.gouv.vitam.parser.request.parser.GlobalDatasParser;
 
 /**
  * Default configuration for DB support
- * 
+ *
  *
  */
 public class GlobalDatasDb extends GlobalDatasParser {
@@ -19,8 +19,7 @@ public class GlobalDatasDb extends GlobalDatasParser {
      */
     public static final Set<String> ROOTS = new HashSet<>();
     /**
-     * Should we use filter to select from graph parents, or within request
-     * (filtering seems better)
+     * Should we use filter to select from graph parents, or within request (filtering seems better)
      */
     public static boolean useFilter = true;
     /**
@@ -28,8 +27,7 @@ public class GlobalDatasDb extends GlobalDatasParser {
      */
     public static boolean useFilteredRequest = true;
     /**
-     * Default behavior of ElasticSearch connection (False tends to minimize the
-     * number of concurrent connections)
+     * Default behavior of ElasticSearch connection (False tends to minimize the number of concurrent connections)
      */
     public static boolean useNewNode = false;
     /**
@@ -37,13 +35,11 @@ public class GlobalDatasDb extends GlobalDatasParser {
      */
     public static final String INDEXNAME = "vitamidx";
     /**
-     * Default local address to be used by the client (null means no specific
-     * address)
+     * Default local address to be used by the client (null means no specific address)
      */
     public static String localNetworkAddress = null;
     /**
-     * limit before using ES in 1 level only (set to -1 means use ES at all
-     * time)
+     * limit before using ES in 1 level only (set to -1 means use ES at all time)
      */
     public static long limitES = 10001;
     /**
@@ -59,8 +55,7 @@ public class GlobalDatasDb extends GlobalDatasParser {
      */
     public static final boolean PRINT_REQUEST = false;
     /**
-     * Shall new entries insertion in the ElasticSearch index be in blocking
-     * mode
+     * Shall new entries insertion in the ElasticSearch index be in blocking mode
      */
     public static final boolean BLOCKING = false;
     /**

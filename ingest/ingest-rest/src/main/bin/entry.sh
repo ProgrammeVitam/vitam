@@ -1,0 +1,1 @@
+export JAVA_ENTRYPOINT="ingest-core-${project.version}.jar"

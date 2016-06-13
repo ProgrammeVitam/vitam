@@ -1,38 +1,31 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
- * 
+ *
  * Copyright Vitam (2012, 2015)
  *
- * This software is governed by the CeCILL 2.1 license under French law and
- * abiding by the rules of distribution of free software. You can use, modify
- * and/ or redistribute the software under the terms of the CeCILL license as
- * circulated by CEA, CNRS and INRIA at the following URL
- * "http://www.cecill.info".
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
+ * by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
  *
- * As a counterpart to the access to the source code and rights to copy, modify
- * and redistribute granted by the license, users are provided only with a
- * limited warranty and the software's author, the holder of the economic
- * rights, and the successive licensors have only limited liability.
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
  *
- * In this respect, the user's attention is drawn to the risks associated with
- * loading, using, modifying and/or developing or reproducing the software by
- * the user in light of its specific status of free software, that may mean that
- * it is complicated to manipulate, and that also therefore means that it is
- * reserved for developers and experienced professionals having in-depth
- * computer knowledge. Users are therefore encouraged to load and test the
- * software's suitability as regards their requirements in conditions enabling
- * the security of their systems and/or data to be ensured and, more generally,
- * to use and operate it in the same conditions as regards security.
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
  *
- * The fact that you are presently reading this means that you have had
- * knowledge of the CeCILL license and that you accept its terms.
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you
+ * accept its terms.
  *******************************************************************************/
 package fr.gouv.vitam.api;
 
 import fr.gouv.vitam.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.api.exception.MetaDataMaxDepthException;
 import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
@@ -41,29 +34,21 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
  */
 public interface MetaData {
 
-	// Unit
-	/**
-	 * insert Unit
-	 * 
-     * @param insertRequest as String 
-	 *            { $roots: roots, $query : query, $filter : multi, $data : data}
-	 * 
-	 * @throws InvalidParseOperationException
-	 * 			Throw if json format is not correct
-	 * @throws MetaDataNotFoundException
-	 * 			Throw if parent of this unit is not found
-	 * @throws MetaDataAlreadyExistException
-	 * 			Throw if Unit id already exists
-	 * @throws MetaDataExecutionException
-	 * 			Throw if error occurs when send Unit to database
-     * @throws MetaDataMaxDepthException
-     *          Throw if error occurs when the nested json object depth limit exceeded 
-	 * @throws MetaDataDocumentSizeException 
-	 * 			Throw if Unit size is too big
-	 */
-    // FIXME REVIEW shall add IllegalArgumentException for insertRequest null
+    // Unit
+    /**
+     * insert Unit
+     *
+     * @param insertRequest as String { $roots: roots, $query : query, $filter : multi, $data : data}
+     * 
+     * @throws InvalidParseOperationException Throw if json format is not correct
+     * @throws MetaDataNotFoundException Throw if parent of this unit is not found
+     * @throws MetaDataAlreadyExistException Throw if Unit id already exists
+     * @throws MetaDataExecutionException Throw if error occurs when send Unit to database
+     * @throws MetaDataDocumentSizeException Throw if Unit size is too big
+     */
+    // TODO REVIEW shall add IllegalArgumentException for insertRequest null
     public void insertUnit(String insertRequest) throws InvalidParseOperationException, MetaDataNotFoundException,
-    MetaDataAlreadyExistException, MetaDataExecutionException, MetaDataMaxDepthException, MetaDataDocumentSizeException;
+        MetaDataAlreadyExistException, MetaDataExecutionException, MetaDataDocumentSizeException;
     // TODO REVIEW Select, Update, Delete
-    // FIXME REVIEW Should allow parsed Json as alternative
+    // TODO REVIEW Should allow parsed Json as alternative
 }

@@ -1,35 +1,55 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
- * 
+ *
  * Copyright Vitam (2012, 2015)
  *
- * This software is governed by the CeCILL 2.1 license under French law and
- * abiding by the rules of distribution of free software. You can use, modify
- * and/ or redistribute the software under the terms of the CeCILL license as
- * circulated by CEA, CNRS and INRIA at the following URL
- * "http://www.cecill.info".
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
+ * by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
  *
- * As a counterpart to the access to the source code and rights to copy, modify
- * and redistribute granted by the license, users are provided only with a
- * limited warranty and the software's author, the holder of the economic
- * rights, and the successive licensors have only limited liability.
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
  *
- * In this respect, the user's attention is drawn to the risks associated with
- * loading, using, modifying and/or developing or reproducing the software by
- * the user in light of its specific status of free software, that may mean that
- * it is complicated to manipulate, and that also therefore means that it is
- * reserved for developers and experienced professionals having in-depth
- * computer knowledge. Users are therefore encouraged to load and test the
- * software's suitability as regards their requirements in conditions enabling
- * the security of their systems and/or data to be ensured and, more generally,
- * to use and operate it in the same conditions as regards security.
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
  *
- * The fact that you are presently reading this means that you have had
- * knowledge of the CeCILL license and that you accept its terms.
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you
+ * accept its terms.
  *******************************************************************************/
 package fr.gouv.vitam.parser.request.parser;
 
-import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.*;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.and;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.not;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.or;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.eq;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.exists;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.flt;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.gt;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.gte;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.in;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.isNull;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.lt;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.lte;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.match;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.matchPhrase;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.matchPhrasePrefix;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.missing;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.mlt;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.ne;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.nin;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.path;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.prefix;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.range;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.regex;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.search;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.size;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.term;
+import static fr.gouv.vitam.parser.request.parser.query.QueryParserHelper.wildcard;
 
 import java.util.Map.Entry;
 
@@ -47,20 +67,20 @@ import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.QUERYA
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.SELECTFILTER;
 import fr.gouv.vitam.builder.request.construct.query.Query;
 import fr.gouv.vitam.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.parser.request.construct.query.QueryDepthHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.parser.request.construct.query.QueryDepthHelper;
 
 /**
- * Partial Request Parser (common base): [ {root}, {query}, {filter} ] or {
- * $roots: root, $query : query, $filter : filter }
+ * Partial Request Parser (common base): [ {root}, {query}, {filter} ] or { $roots: root, $query : query, $filter :
+ * filter }
  *
  */
 public abstract class RequestParser {
     private static final VitamLogger LOGGER =
-            VitamLoggerFactory.getInstance(RequestParser.class);
+        VitamLoggerFactory.getInstance(RequestParser.class);
 
     protected VarNameAdapter adapter;
     protected String sourceRequest;
@@ -78,24 +98,24 @@ public abstract class RequestParser {
     protected JsonNode rootNode;
 
     /**
-     * 
+     *
      */
     public RequestParser() {
-        this.request = getNewRequest();
+        request = getNewRequest();
         adapter = new VarNameAdapter();
     }
 
     /**
-     * @param adapter 
-     * 
+     * @param adapter
+     *
      */
     public RequestParser(VarNameAdapter adapter) {
-        this.request = getNewRequest();
+        request = getNewRequest();
         this.adapter = adapter;
     }
 
     /**
-     * 
+     *
      * @return a new Request
      */
     protected abstract Request getNewRequest();
@@ -105,13 +125,13 @@ public abstract class RequestParser {
         if (request != null) {
             request.reset();
         } else {
-            this.request = getNewRequest();
+            request = getNewRequest();
         }
-        this.lastDepth = 0;
-        this.hasFullTextQuery = false;
+        lastDepth = 0;
+        hasFullTextQuery = false;
         if (rootNode == null || rootNode.isMissingNode()) {
             throw new InvalidParseOperationException(
-                    "The current Node is missing(empty): RequestRoot");
+                "The current Node is missing(empty): RequestRoot");
         }
         if (rootNode.isArray()) {
             // should be 3, but each could be empty ( '{}' )
@@ -127,78 +147,73 @@ public abstract class RequestParser {
         } else {
             /*
              * not as array but composite as { $roots: root, $query : query, $filter : filter }
-             */ 
+             */
             rootParse(rootNode.get(GLOBAL.ROOTS.exactToken()));
             queryParse(rootNode.get(GLOBAL.QUERY.exactToken()));
             filterParse(rootNode.get(GLOBAL.FILTER.exactToken()));
         }
     }
 
-   /**
-    *
-    * @param jsonRequest
-    *            containing a parsed JSON as [ {root}, {query}, {filter} ] or {
-    *            $roots: root, $query : query, $filter : filter }
-    * @throws InvalidParseOperationException
-    */
+    /**
+     *
+     * @param jsonRequest containing a parsed JSON as [ {root}, {query}, {filter} ] or { $roots: root, $query : query,
+     *        $filter : filter }
+     * @throws InvalidParseOperationException
+     */
     public abstract void parse(final JsonNode jsonRequest) throws InvalidParseOperationException;
-
-   /**
-    *
-    * @param jsonRequest
-    *            containing a parsed JSON as [ {root}, {query}, {filter} ] or {
-    *            $roots: root, $query : query, $filter : filter }
-    * @throws InvalidParseOperationException
-    */
-    protected void parseJson(final JsonNode jsonRequest) throws InvalidParseOperationException {
-       rootNode = jsonRequest;
-       this.sourceRequest = jsonRequest.toString();
-       internalParse();
-    }
-
-   /**
-    *
-    * @param srcrequest
-    *            containing a JSON as [ {root}, {query}, {filter} ] or {
-    *            $roots: root, $query : query, $filter : filter }
-    * @throws InvalidParseOperationException
-    */
-   public abstract void parse(final String srcrequest) throws InvalidParseOperationException;
 
     /**
      *
-     * @param srcrequest
-     *            containing a JSON as [ {root}, {query}, {filter} ] or {
-     *            $roots: root, $query : query, $filter : filter }
+     * @param jsonRequest containing a parsed JSON as [ {root}, {query}, {filter} ] or { $roots: root, $query : query,
+     *        $filter : filter }
+     * @throws InvalidParseOperationException
+     */
+    protected void parseJson(final JsonNode jsonRequest) throws InvalidParseOperationException {
+        rootNode = jsonRequest;
+        sourceRequest = jsonRequest.toString();
+        internalParse();
+    }
+
+    /**
+     *
+     * @param srcrequest containing a JSON as [ {root}, {query}, {filter} ] or { $roots: root, $query : query, $filter :
+     *        filter }
+     * @throws InvalidParseOperationException
+     */
+    public abstract void parse(final String srcrequest) throws InvalidParseOperationException;
+
+    /**
+     *
+     * @param srcrequest containing a JSON as [ {root}, {query}, {filter} ] or { $roots: root, $query : query, $filter :
+     *        filter }
      * @throws InvalidParseOperationException
      */
     protected void parseString(final String srcrequest) throws InvalidParseOperationException {
-        this.sourceRequest = srcrequest;
+        sourceRequest = srcrequest;
         rootNode = JsonHandler.getFromString(srcrequest);
         internalParse();
     }
 
     /**
-     * 
-     * @param query
-     *            containing only the JSON query part (no filter neither roots)
+     *
+     * @param query containing only the JSON query part (no filter neither roots)
      * @throws InvalidParseOperationException
      */
     protected void parseQueryOnly(final String query)
-            throws InvalidParseOperationException {
+        throws InvalidParseOperationException {
         GlobalDatasParser.sanityRequestCheck(query);
-        this.sourceRequest = query;
+        sourceRequest = query;
         if (request != null) {
             request.reset();
         } else {
-            this.request = getNewRequest();
+            request = getNewRequest();
         }
-        this.lastDepth = 0;
-        this.hasFullTextQuery = false;
+        lastDepth = 0;
+        hasFullTextQuery = false;
         rootNode = JsonHandler.getFromString(query);
         if (rootNode.isMissingNode()) {
             throw new InvalidParseOperationException(
-                    "The current Node is missing(empty): RequestRoot");
+                "The current Node is missing(empty): RequestRoot");
         }
         // Not as array and no filter
         rootParse(JsonHandler.createArrayNode());
@@ -208,12 +223,12 @@ public abstract class RequestParser {
 
     /**
      * Will be used as extra arguments in the first query
-     * 
+     *
      * @param rootNode
      * @throws InvalidParseOperationException
      */
     protected void rootParse(final JsonNode rootNode)
-            throws InvalidParseOperationException {
+        throws InvalidParseOperationException {
         if (rootNode == null) {
             return;
         }
@@ -222,7 +237,7 @@ public abstract class RequestParser {
             request.addRoots((ArrayNode) rootNode);
         } catch (final Exception e) {
             throw new InvalidParseOperationException(
-                    "Parse in error for Roots: " + rootNode, e);
+                "Parse in error for Roots: " + rootNode, e);
         }
     }
 
@@ -230,7 +245,7 @@ public abstract class RequestParser {
      * Filter part
      */
     protected void filterParse(final JsonNode rootNode)
-            throws InvalidParseOperationException {
+        throws InvalidParseOperationException {
         if (rootNode == null) {
             return;
         }
@@ -239,7 +254,7 @@ public abstract class RequestParser {
             request.setFilter(rootNode);
         } catch (final Exception e) {
             throw new InvalidParseOperationException(
-                    "Parse in error for Filter: " + rootNode, e);
+                "Parse in error for Filter: " + rootNode, e);
         }
     }
 
@@ -250,7 +265,7 @@ public abstract class RequestParser {
      * @throws InvalidParseOperationException
      */
     protected void queryParse(final JsonNode rootNode)
-            throws InvalidParseOperationException {
+        throws InvalidParseOperationException {
         if (rootNode == null) {
             return;
         }
@@ -264,8 +279,7 @@ public abstract class RequestParser {
                     analyzeRootQuery(level);
                     if (i == 1 && request.getQueries().get(i).getQUERY() == QUERY.PATH) {
                         throw new InvalidParseOperationException(
-                                "Parse in error for Query since PATH is only allowed as first query: "
-                                        + (i + 1));
+                            "Parse in error for Query since PATH is only allowed as first query: " + (i + 1));
                     }
                     i++;
                 }
@@ -275,21 +289,21 @@ public abstract class RequestParser {
             }
         } catch (final Exception e) {
             throw new InvalidParseOperationException(
-                    "Parse in error for Query: " + rootNode, e);
+                "Parse in error for Query: " + rootNode, e);
         }
     }
 
     /**
-     * { expression, $exactdepth : exactdepth, $depth : /- depth }, $exactdepth
-     * and $depth being optional (mutual exclusive)
+     * { expression, $exactdepth : exactdepth, $depth : /- depth }, $exactdepth and $depth being optional (mutual
+     * exclusive)
      *
      * @param command
      * @throws InvalidParseOperationException
      * @throws InvalidCreateOperationException
      */
     protected void analyzeRootQuery(final JsonNode command)
-            throws InvalidParseOperationException,
-            InvalidCreateOperationException {
+        throws InvalidParseOperationException,
+        InvalidCreateOperationException {
         if (command == null) {
             throw new InvalidParseOperationException("Not correctly parsed");
         }
@@ -301,7 +315,7 @@ public abstract class RequestParser {
         // first verify if exactdepth is set
         if (command.has(QUERYARGS.EXACTDEPTH.exactToken())) {
             final JsonNode jdepth =
-                    ((ObjectNode) command).remove(QUERYARGS.EXACTDEPTH.exactToken());
+                ((ObjectNode) command).remove(QUERYARGS.EXACTDEPTH.exactToken());
             if (jdepth != null) {
                 exactdepth = jdepth.asInt();
                 if (exactdepth == -1) {
@@ -312,7 +326,7 @@ public abstract class RequestParser {
             ((ObjectNode) command).remove(QUERYARGS.DEPTH.exactToken());
         } else if (command.has(QUERYARGS.DEPTH.exactToken())) {
             final JsonNode jdepth =
-                    ((ObjectNode) command).remove(QUERYARGS.DEPTH.exactToken());
+                ((ObjectNode) command).remove(QUERYARGS.DEPTH.exactToken());
             if (jdepth != null) {
                 relativedepth = jdepth.asInt();
                 isDepth = true;
@@ -324,15 +338,15 @@ public abstract class RequestParser {
         }
         // now single element
         final Entry<String, JsonNode> queryItem =
-                JsonHandler.checkUnicity("RootRequest", command);
+            JsonHandler.checkUnicity("RootRequest", command);
         Query query = null;
         if (queryItem.getKey().equalsIgnoreCase(QUERY.PATH.exactToken())) {
             if (isDepth) {
                 throw new InvalidParseOperationException(
-                        "Invalid combined command Depth and Path: " + command);
+                    "Invalid combined command Depth and Path: " + command);
             }
             final int prevDepth = lastDepth;
-            ArrayNode array = (ArrayNode) queryItem.getValue();
+            final ArrayNode array = (ArrayNode) queryItem.getValue();
             query = path(array, adapter);
             lastDepth = query.getExtraInfo();
             LOGGER.debug("Depth step: {}:{}", lastDepth, lastDepth - prevDepth);
@@ -345,9 +359,9 @@ public abstract class RequestParser {
                 lastDepth += relativedepth;
             }
             LOGGER.debug("Depth step: {}:{}:{}:{}:{}", lastDepth, lastDepth - prevDepth,
-                    relativedepth, exactdepth, isDepth);
+                relativedepth, exactdepth, isDepth);
         }
-       QueryDepthHelper.HELPER.setDepths(query.setFullText(isQueryFullText),
+        QueryDepthHelper.HELPER.setDepths(query.setFullText(isQueryFullText),
             exactdepth, relativedepth);
         hasFullTextQuery |= isQueryFullText;
         request.addQueries(query);
@@ -355,16 +369,16 @@ public abstract class RequestParser {
 
     /**
      * Compute the QUERY from command
-     * 
+     *
      * @param queryroot
      * @return the QUERY
      * @throws InvalidParseOperationException
      */
     protected static final QUERY getRequestId(final String queryroot)
-            throws InvalidParseOperationException {
+        throws InvalidParseOperationException {
         if (!queryroot.startsWith("$")) {
             throw new InvalidParseOperationException(
-                    "Incorrect request $command: " + queryroot);
+                "Incorrect request $command: " + queryroot);
         }
         final String command = queryroot.substring(1).toUpperCase();
         QUERY query = null;
@@ -372,14 +386,14 @@ public abstract class RequestParser {
             query = QUERY.valueOf(command);
         } catch (final IllegalArgumentException e) {
             throw new InvalidParseOperationException(
-                    "Invalid request command: " + command, e);
+                "Invalid request command: " + command, e);
         }
         return query;
     }
 
     protected Query[] analyzeArrayCommand(final QUERY query, final JsonNode commands)
-            throws InvalidParseOperationException,
-            InvalidCreateOperationException {
+        throws InvalidParseOperationException,
+        InvalidCreateOperationException {
         if (commands == null) {
             throw new InvalidParseOperationException("Not correctly parsed: " + query);
         }
@@ -391,20 +405,20 @@ public abstract class RequestParser {
             for (final JsonNode subcommand : commands) {
                 // one item
                 final Entry<String, JsonNode> requestItem =
-                        JsonHandler.checkUnicity(query.exactToken(), subcommand);
+                    JsonHandler.checkUnicity(query.exactToken(), subcommand);
                 final Query subquery =
-                        analyzeOneCommand(requestItem.getKey(), requestItem.getValue());
+                    analyzeOneCommand(requestItem.getKey(), requestItem.getValue());
                 queries[nb++] = subquery;
             }
         } else {
             throw new InvalidParseOperationException(
-                    "Boolean operator needs an array of expression: " + commands);
+                "Boolean operator needs an array of expression: " + commands);
         }
         if (query == QUERY.NOT) {
             if (queries.length == 1) {
                 return queries;
             } else {
-                Query[] and = new Query[1];
+                final Query[] and = new Query[1];
                 and[0] = and().add(queries);
                 return and;
             }
@@ -415,7 +429,7 @@ public abstract class RequestParser {
 
     /**
      * Check if the command is allowed using the "standard" database
-     * 
+     *
      * @param query
      * @return true if only valid in "index" database support
      */
@@ -434,8 +448,8 @@ public abstract class RequestParser {
     }
 
     protected Query analyzeOneCommand(final String refCommand, final JsonNode command)
-            throws InvalidParseOperationException,
-            InvalidCreateOperationException {
+        throws InvalidParseOperationException,
+        InvalidCreateOperationException {
         final QUERY query = getRequestId(refCommand);
         isQueryFullText |= isCommandAsFullText(query);
         switch (query) {
@@ -460,6 +474,7 @@ public abstract class RequestParser {
             case SEARCH:
             case SIZE:
                 GlobalDatas.sanityValueCheck(command.toString());
+                break;
             default:
         }
         switch (query) {
@@ -523,15 +538,15 @@ public abstract class RequestParser {
             case GEOWITHIN:
             case NEAR: {
                 throw new InvalidParseOperationException(
-                        "Unimplemented command: " + refCommand);
+                    "Unimplemented command: " + refCommand);
             }
             case PATH: {
                 throw new InvalidParseOperationException(
-                        "Invalid position for command: " + refCommand);
+                    "Invalid position for command: " + refCommand);
             }
             default:
                 throw new InvalidParseOperationException(
-                        "Invalid command: " + refCommand);
+                    "Invalid command: " + refCommand);
         }
     }
 
@@ -572,52 +587,54 @@ public abstract class RequestParser {
      * @return True if the hint contains cache
      */
     public boolean hintCache() {
-        JsonNode jsonNode = request.getFilter().get(SELECTFILTER.HINT.exactToken());
+        final JsonNode jsonNode = request.getFilter().get(SELECTFILTER.HINT.exactToken());
         if (jsonNode == null) {
-        	// default
-        	return false;
+            // default
+            return false;
         }
-        ArrayNode array = (ArrayNode) jsonNode;
-        for (JsonNode node : array) {
+        final ArrayNode array = (ArrayNode) jsonNode;
+        for (final JsonNode node : array) {
             if (ParserTokens.FILTERARGS.CACHE.exactToken().equals(node.asText())) {
                 return true;
             }
         }
         return false;
     }
+
     /**
      * @return True if the hint contains notimeout
      */
     public boolean hintNoTimeout() {
-        JsonNode jsonNode = request.getFilter().get(SELECTFILTER.HINT.exactToken());
+        final JsonNode jsonNode = request.getFilter().get(SELECTFILTER.HINT.exactToken());
         if (jsonNode != null) {
-	        ArrayNode array = (ArrayNode) jsonNode;
-	        for (JsonNode node : array) {
-	            if (ParserTokens.FILTERARGS.NOTIMEOUT.exactToken().equals(node.asText())) {
-	                return true;
-	            }
-	        }
+            final ArrayNode array = (ArrayNode) jsonNode;
+            for (final JsonNode node : array) {
+                if (ParserTokens.FILTERARGS.NOTIMEOUT.exactToken().equals(node.asText())) {
+                    return true;
+                }
+            }
         }
         return false;
     }
+
     /**
      * @return the model between Units/ObjectGroups/Objects (in that order)
      */
     public FILTERARGS model() {
-        JsonNode jsonNode = request.getFilter().get(SELECTFILTER.HINT.exactToken());
+        final JsonNode jsonNode = request.getFilter().get(SELECTFILTER.HINT.exactToken());
         if (jsonNode != null) {
-	        ArrayNode array = (ArrayNode) jsonNode;
-	        for (JsonNode node : array) {
-	            if (FILTERARGS.UNITS.exactToken().equals(node.asText())) {
-	                return FILTERARGS.UNITS;
-	            } else if (FILTERARGS.OBJECTGROUPS.exactToken().equals(node.asText())) {
-	                return FILTERARGS.OBJECTGROUPS;
-	            } else if (FILTERARGS.OBJECTS.exactToken().equals(node.asText())) {
-	                return FILTERARGS.OBJECTS;
-	            }
-	        }
+            final ArrayNode array = (ArrayNode) jsonNode;
+            for (final JsonNode node : array) {
+                if (FILTERARGS.UNITS.exactToken().equals(node.asText())) {
+                    return FILTERARGS.UNITS;
+                } else if (FILTERARGS.OBJECTGROUPS.exactToken().equals(node.asText())) {
+                    return FILTERARGS.OBJECTGROUPS;
+                } else if (FILTERARGS.OBJECTS.exactToken().equals(node.asText())) {
+                    return FILTERARGS.OBJECTS;
+                }
+            }
         }
         return FILTERARGS.UNITS;
     }
-    
+
 }

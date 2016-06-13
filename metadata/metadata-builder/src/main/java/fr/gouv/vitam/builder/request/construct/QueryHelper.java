@@ -1,31 +1,25 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
- * 
+ *
  * Copyright Vitam (2012, 2015)
  *
- * This software is governed by the CeCILL 2.1 license under French law and
- * abiding by the rules of distribution of free software. You can use, modify
- * and/ or redistribute the software under the terms of the CeCILL license as
- * circulated by CEA, CNRS and INRIA at the following URL
- * "http://www.cecill.info".
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
+ * by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
  *
- * As a counterpart to the access to the source code and rights to copy, modify
- * and redistribute granted by the license, users are provided only with a
- * limited warranty and the software's author, the holder of the economic
- * rights, and the successive licensors have only limited liability.
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
  *
- * In this respect, the user's attention is drawn to the risks associated with
- * loading, using, modifying and/or developing or reproducing the software by
- * the user in light of its specific status of free software, that may mean that
- * it is complicated to manipulate, and that also therefore means that it is
- * reserved for developers and experienced professionals having in-depth
- * computer knowledge. Users are therefore encouraged to load and test the
- * software's suitability as regards their requirements in conditions enabling
- * the security of their systems and/or data to be ensured and, more generally,
- * to use and operate it in the same conditions as regards security.
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
  *
- * The fact that you are presently reading this means that you have had
- * knowledge of the CeCILL license and that you accept its terms.
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you
+ * accept its terms.
  *******************************************************************************/
 package fr.gouv.vitam.builder.request.construct;
 
@@ -57,13 +51,12 @@ public class QueryHelper {
 
     /**
      *
-     * @param pathes
-     *            primary list of path in the future PathQuery
+     * @param pathes primary list of path in the future PathQuery
      * @return a PathQuery
      * @throws InvalidCreateOperationException
      */
     public static final PathQuery path(final String... pathes)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new PathQuery(pathes);
     }
 
@@ -102,7 +95,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final CompareQuery eq(final String variableName, final boolean value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new CompareQuery(QUERY.EQ, variableName, value);
     }
 
@@ -114,7 +107,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final CompareQuery eq(final String variableName, final long value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new CompareQuery(QUERY.EQ, variableName, value);
     }
 
@@ -126,7 +119,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final CompareQuery eq(final String variableName, final double value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new CompareQuery(QUERY.EQ, variableName, value);
     }
 
@@ -138,7 +131,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final CompareQuery eq(final String variableName, final String value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new CompareQuery(QUERY.EQ, variableName, value);
     }
 
@@ -150,7 +143,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final CompareQuery eq(final String variableName, final Date value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new CompareQuery(QUERY.EQ, variableName, value);
     }
 
@@ -162,7 +155,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final CompareQuery ne(final String variableName, final boolean value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new CompareQuery(QUERY.NE, variableName, value);
     }
 
@@ -174,7 +167,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final CompareQuery ne(final String variableName, final long value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new CompareQuery(QUERY.NE, variableName, value);
     }
 
@@ -186,7 +179,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final CompareQuery ne(final String variableName, final double value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new CompareQuery(QUERY.NE, variableName, value);
     }
 
@@ -198,7 +191,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final CompareQuery ne(final String variableName, final String value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new CompareQuery(QUERY.NE, variableName, value);
     }
 
@@ -210,7 +203,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final CompareQuery ne(final String variableName, final Date value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new CompareQuery(QUERY.NE, variableName, value);
     }
 
@@ -222,7 +215,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final CompareQuery lt(final String variableName, final boolean value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new CompareQuery(QUERY.LT, variableName, value);
     }
 
@@ -234,7 +227,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final CompareQuery lt(final String variableName, final long value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new CompareQuery(QUERY.LT, variableName, value);
     }
 
@@ -246,7 +239,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final CompareQuery lt(final String variableName, final double value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new CompareQuery(QUERY.LT, variableName, value);
     }
 
@@ -258,7 +251,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final CompareQuery lt(final String variableName, final String value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new CompareQuery(QUERY.LT, variableName, value);
     }
 
@@ -270,7 +263,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final CompareQuery lt(final String variableName, final Date value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new CompareQuery(QUERY.LT, variableName, value);
     }
 
@@ -282,7 +275,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final CompareQuery lte(final String variableName, final boolean value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new CompareQuery(QUERY.LTE, variableName, value);
     }
 
@@ -294,7 +287,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final CompareQuery lte(final String variableName, final long value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new CompareQuery(QUERY.LTE, variableName, value);
     }
 
@@ -306,7 +299,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final CompareQuery lte(final String variableName, final double value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new CompareQuery(QUERY.LTE, variableName, value);
     }
 
@@ -318,7 +311,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final CompareQuery lte(final String variableName, final String value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new CompareQuery(QUERY.LTE, variableName, value);
     }
 
@@ -330,7 +323,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final CompareQuery lte(final String variableName, final Date value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new CompareQuery(QUERY.LTE, variableName, value);
     }
 
@@ -342,7 +335,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final CompareQuery gt(final String variableName, final boolean value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new CompareQuery(QUERY.GT, variableName, value);
     }
 
@@ -354,7 +347,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final CompareQuery gt(final String variableName, final long value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new CompareQuery(QUERY.GT, variableName, value);
     }
 
@@ -366,7 +359,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final CompareQuery gt(final String variableName, final double value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new CompareQuery(QUERY.GT, variableName, value);
     }
 
@@ -378,7 +371,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final CompareQuery gt(final String variableName, final String value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new CompareQuery(QUERY.GT, variableName, value);
     }
 
@@ -390,7 +383,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final CompareQuery gt(final String variableName, final Date value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new CompareQuery(QUERY.GT, variableName, value);
     }
 
@@ -402,7 +395,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final CompareQuery gte(final String variableName, final boolean value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new CompareQuery(QUERY.GTE, variableName, value);
     }
 
@@ -414,7 +407,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final CompareQuery gte(final String variableName, final long value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new CompareQuery(QUERY.GTE, variableName, value);
     }
 
@@ -426,7 +419,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final CompareQuery gte(final String variableName, final double value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new CompareQuery(QUERY.GTE, variableName, value);
     }
 
@@ -438,7 +431,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final CompareQuery gte(final String variableName, final String value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new CompareQuery(QUERY.GTE, variableName, value);
     }
 
@@ -450,7 +443,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final CompareQuery gte(final String variableName, final Date value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new CompareQuery(QUERY.GTE, variableName, value);
     }
 
@@ -462,7 +455,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final CompareQuery size(final String variableName, final long value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new CompareQuery(QUERY.SIZE, variableName, value);
     }
 
@@ -470,11 +463,10 @@ public class QueryHelper {
      *
      * @param variableName
      * @return an ExistsQuery
-     * @throws InvalidCreateOperationException
-     *             using Exists operator
+     * @throws InvalidCreateOperationException using Exists operator
      */
     public static final ExistsQuery exists(final String variableName)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new ExistsQuery(QUERY.EXISTS, variableName);
     }
 
@@ -485,7 +477,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final ExistsQuery missing(final String variableName)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new ExistsQuery(QUERY.MISSING, variableName);
     }
 
@@ -496,7 +488,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final ExistsQuery isNull(final String variableName)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new ExistsQuery(QUERY.ISNULL, variableName);
     }
 
@@ -508,7 +500,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final InQuery in(final String variableName, final boolean... value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new InQuery(QUERY.IN, variableName, value);
     }
 
@@ -520,7 +512,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final InQuery in(final String variableName, final long... value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new InQuery(QUERY.IN, variableName, value);
     }
 
@@ -532,7 +524,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final InQuery in(final String variableName, final double... value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new InQuery(QUERY.IN, variableName, value);
     }
 
@@ -544,7 +536,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final InQuery in(final String variableName, final String... value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new InQuery(QUERY.IN, variableName, value);
     }
 
@@ -556,7 +548,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final InQuery in(final String variableName, final Date... value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new InQuery(QUERY.IN, variableName, value);
     }
 
@@ -568,7 +560,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final InQuery nin(final String variableName, final boolean... value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new InQuery(QUERY.NIN, variableName, value);
     }
 
@@ -580,7 +572,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final InQuery nin(final String variableName, final long... value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new InQuery(QUERY.NIN, variableName, value);
     }
 
@@ -592,7 +584,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final InQuery nin(final String variableName, final double... value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new InQuery(QUERY.NIN, variableName, value);
     }
 
@@ -604,7 +596,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final InQuery nin(final String variableName, final String... value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new InQuery(QUERY.NIN, variableName, value);
     }
 
@@ -616,7 +608,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final InQuery nin(final String variableName, final Date... value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new InQuery(QUERY.NIN, variableName, value);
     }
 
@@ -628,7 +620,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final MatchQuery match(final String variableName, final String value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new MatchQuery(QUERY.MATCH, variableName, value);
     }
 
@@ -640,8 +632,8 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final MatchQuery matchPhrase(final String variableName,
-            final String value)
-            throws InvalidCreateOperationException {
+        final String value)
+        throws InvalidCreateOperationException {
         return new MatchQuery(QUERY.MATCH_PHRASE, variableName, value);
     }
 
@@ -653,8 +645,8 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final MatchQuery matchPhrasePrefix(final String variableName,
-            final String value)
-            throws InvalidCreateOperationException {
+        final String value)
+        throws InvalidCreateOperationException {
         return new MatchQuery(QUERY.MATCH_PHRASE_PREFIX, variableName, value);
     }
 
@@ -666,7 +658,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final MatchQuery prefix(final String variableName, final String value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new MatchQuery(QUERY.PREFIX, variableName, value);
     }
 
@@ -678,7 +670,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final SearchQuery regex(final String variableName, final String value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new SearchQuery(QUERY.REGEX, variableName, value);
     }
 
@@ -690,7 +682,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final SearchQuery search(final String variableName, final String value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new SearchQuery(QUERY.SEARCH, variableName, value);
     }
 
@@ -702,7 +694,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final TermQuery term(final String variableName, final String value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new TermQuery(variableName, value);
     }
 
@@ -714,7 +706,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final TermQuery term(final String variableName, final long value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new TermQuery(variableName, value);
     }
 
@@ -726,7 +718,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final TermQuery term(final String variableName, final double value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new TermQuery(variableName, value);
     }
 
@@ -738,7 +730,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final TermQuery term(final String variableName, final boolean value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new TermQuery(variableName, value);
     }
 
@@ -750,19 +742,18 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final TermQuery term(final String variableName, final Date value)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new TermQuery(variableName, value);
     }
 
     /**
      *
-     * @param variableNameValue
-     *            Map of VariableName of Value
+     * @param variableNameValue Map of VariableName of Value
      * @return a TermQuery
      * @throws InvalidCreateOperationException
      */
     public static final TermQuery term(final Map<String, Object> variableNameValue)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new TermQuery(variableNameValue);
     }
 
@@ -774,8 +765,8 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final WildcardQuery wildcard(final String variableName,
-            final String value)
-            throws InvalidCreateOperationException {
+        final String value)
+        throws InvalidCreateOperationException {
         return new WildcardQuery(variableName, value);
     }
 
@@ -787,7 +778,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final MltQuery flt(final String value, final String... variableName)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new MltQuery(QUERY.FLT, value, variableName);
     }
 
@@ -799,7 +790,7 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final MltQuery mlt(final String value, final String... variableName)
-            throws InvalidCreateOperationException {
+        throws InvalidCreateOperationException {
         return new MltQuery(QUERY.MLT, value, variableName);
     }
 
@@ -814,8 +805,8 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final RangeQuery range(final String variableName, final long min,
-            final boolean includeMin, final long max,
-            final boolean includeMax) throws InvalidCreateOperationException {
+        final boolean includeMin, final long max,
+        final boolean includeMax) throws InvalidCreateOperationException {
         final QUERY rmin = includeMin ? QUERY.GTE : QUERY.GT;
         final QUERY rmax = includeMax ? QUERY.LTE : QUERY.LT;
         return new RangeQuery(variableName, rmin, min, rmax, max);
@@ -832,9 +823,9 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final RangeQuery range(final String variableName, final double min,
-            final boolean includeMin,
-            final double max, final boolean includeMax)
-            throws InvalidCreateOperationException {
+        final boolean includeMin,
+        final double max, final boolean includeMax)
+        throws InvalidCreateOperationException {
         final QUERY rmin = includeMin ? QUERY.GTE : QUERY.GT;
         final QUERY rmax = includeMax ? QUERY.LTE : QUERY.LT;
         return new RangeQuery(variableName, rmin, min, rmax, max);
@@ -851,9 +842,9 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final RangeQuery range(final String variableName, final String min,
-            final boolean includeMin,
-            final String max, final boolean includeMax)
-            throws InvalidCreateOperationException {
+        final boolean includeMin,
+        final String max, final boolean includeMax)
+        throws InvalidCreateOperationException {
         final QUERY rmin = includeMin ? QUERY.GTE : QUERY.GT;
         final QUERY rmax = includeMax ? QUERY.LTE : QUERY.LT;
         return new RangeQuery(variableName, rmin, min, rmax, max);
@@ -870,8 +861,8 @@ public class QueryHelper {
      * @throws InvalidCreateOperationException
      */
     public static final RangeQuery range(final String variableName, final Date min,
-            final boolean includeMin, final Date max,
-            final boolean includeMax) throws InvalidCreateOperationException {
+        final boolean includeMin, final Date max,
+        final boolean includeMax) throws InvalidCreateOperationException {
         final QUERY rmin = includeMin ? QUERY.GTE : QUERY.GT;
         final QUERY rmax = includeMax ? QUERY.LTE : QUERY.LT;
         return new RangeQuery(variableName, rmin, min, rmax, max);

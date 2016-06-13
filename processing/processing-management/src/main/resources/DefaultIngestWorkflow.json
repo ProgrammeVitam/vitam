@@ -1,0 +1,44 @@
+{
+    "id": "DefaultIngestWorkflow",
+    "comment":"Default Ingest Workflow V3",
+    "steps":
+    [
+    {
+    "workerGroupId" :"DefaultWorker",
+        "stepName":"check Seda",
+        "distribution" : {
+        	"kind":"REF",
+        	"element" : "SIP/manifest.xml"
+        	},
+        "actions":[{"action":"checkSeda"}]
+    },
+    {
+    "workerGroupId" :"DefaultWorker",
+        "stepName":"Check Objects Number",
+        "distribution" : {
+        	"kind":"REF",
+        	"element" : "SIP/manifest.xml"
+        	},
+        "actions":[{"action":"CheckObjectsNumber"}]
+    },
+    {
+    "workerGroupId" :"DefaultWorker",
+        "stepName":"Extract Seda",
+        "distribution" : {
+        	"kind":"REF",
+        	"element" : "SIP/manifest.xml"
+        	},
+        "actions":[{"action":"ExtractSeda"}]
+    },
+    {
+    "workerGroupId" :"DefaultWorker",
+        "stepName":"Index seda",
+          "distribution" : {
+        	"kind":"LIST",
+        	"element" : "Units"
+        	},
+        "actions":[{"action":"IndexUnit"}]
+       
+    }
+    ]
+}

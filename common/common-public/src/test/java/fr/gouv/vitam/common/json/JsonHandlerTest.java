@@ -211,7 +211,7 @@ public class JsonHandlerTest {
         } catch (final InvalidParseOperationException e) {// NOSONAR
             // Ignore
         }
-        JsonNode node = JsonHandler.createObjectNode().numberNode(2.0);
+        final JsonNode node = JsonHandler.createObjectNode().numberNode(2.0);
         try {
             JsonHandler.checkUnicity("title", node);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);

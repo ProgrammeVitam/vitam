@@ -29,37 +29,29 @@ package fr.gouv.vitam.common;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.Properties;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+
 /**
- * Property Utility class
+ * Property Utility class <br>
+ * <br>
+ * NOTE for developers: Do not add LOGGER there
  */
 public final class PropertiesUtils {
 
+    private static final String FILE_NOT_FOUND_IN_RESOURCES = "File not found in Resources: ";
+    private static final String ARGUMENTS_MUST_BE_NON_NULL = "Arguments must be non null";
+
     private PropertiesUtils() {
         // Empty
-    }
-
-    /**
-     * Read a properties file and returns the associated Properties
-     *
-     * @param propertiesFile properties file
-     * @return the associated Properties
-     * @throws IOException
-     */
-    public static final Properties readProperties(File propertiesFile) throws IOException {
-        if (propertiesFile == null) {
-            throw new FileNotFoundException("File not found in Resources: " + propertiesFile);
-        }
-        final Properties properties = new Properties();
-        try (InputStream inputStream = new FileInputStream(propertiesFile)) {
-            properties.load(inputStream);
-        }
-        return properties;
     }
 
     /**
@@ -71,38 +63,119 @@ public final class PropertiesUtils {
      */
     public static final File getResourcesFile(String resourcesFile) throws FileNotFoundException {
         if (resourcesFile == null) {
-            throw new FileNotFoundException("File not found in Resources: " + resourcesFile);
+            throw new FileNotFoundException(FILE_NOT_FOUND_IN_RESOURCES + resourcesFile);
         }
         URL url;
         try {
             url = PropertiesUtils.class.getClassLoader().getResource(resourcesFile);
         } catch (final SecurityException e) {// NOSONAR since an exception is thrown
-            throw new FileNotFoundException("File not found in Resources: " + resourcesFile);
+            throw new FileNotFoundException(FILE_NOT_FOUND_IN_RESOURCES + resourcesFile);
         }
         if (url == null) {
-            throw new FileNotFoundException("File not found in Resources: " + resourcesFile);
+            throw new FileNotFoundException(FILE_NOT_FOUND_IN_RESOURCES + resourcesFile);
         }
         File file;
         try {
             file = new File(url.toURI());
-        } catch (URISyntaxException e) { //NOSONAR
+        } catch (final URISyntaxException e) { // NOSONAR
             file = new File(url.getFile().replaceAll("%20", " "));
         }
         if (file.exists()) {
             return file;
         }
-        throw new FileNotFoundException("File not found in Resources: " + resourcesFile);
+        throw new FileNotFoundException(FILE_NOT_FOUND_IN_RESOURCES + resourcesFile);
     }
 
     /**
-     * Read a properties file from resources directory and returns the associated Properties
+     * Get the Path representation from the local path to the Resources directory
      *
-     * @param propertiesResourcesFile properties file from resources directory
+     * @param resourcesFile properties file from resources directory
+     * @return the associated Path
+     * @throws FileNotFoundException
+     */
+    public static final Path getResourcesPath(String resourcesFile) throws FileNotFoundException {
+        return getResourcesFile(resourcesFile).toPath();
+    }
+
+    /**
+     * Get the File associated with this filename, trying in this order: as fullpath, as in Vitam Config Folder, as
+     * Resources file
+     *
+     * @param filename
+     * @return the File if found
+     * @throws FileNotFoundException if not fount
+     */
+    public static final File findFile(String filename) throws FileNotFoundException {
+        // First try as full path
+        File file = new File(filename);
+        try {
+            if (!file.exists()) {
+                // Second try using VitamConfigFolder
+                file = new File(SystemPropertyUtil.getVitamConfigFolder(),
+                    filename);
+                if (!file.exists()) {
+                    // Third try using Resources
+                    file = getResourcesFile(filename);
+                }
+
+            }
+        } catch (final FileNotFoundException e) {// NOSONAR need to rewrite the exception
+            throw new FileNotFoundException("File not found: " + filename);
+        }
+        if (!file.exists()) {
+            throw new FileNotFoundException("File not found: " + filename);
+        }
+        return file;
+    }
+
+    /**
+     * Read a properties file and returns the associated Properties
+     *
+     * @param propertiesFile properties file
      * @return the associated Properties
      * @throws IOException
      */
-    public static final Properties readResourcesProperties(String propertiesResourcesFile) throws IOException {
-        final File propertiesFile = getResourcesFile(propertiesResourcesFile);
-        return readProperties(propertiesFile);
+    public static final Properties readProperties(File propertiesFile) throws IOException {
+        if (propertiesFile == null) {
+            throw new FileNotFoundException(FILE_NOT_FOUND_IN_RESOURCES + propertiesFile);
+        }
+        final Properties properties = new Properties();
+        try (InputStream inputStream = new FileInputStream(propertiesFile)) {
+            properties.load(inputStream);
+        }
+        return properties;
+    }
+
+    /**
+     * Read the Yaml file and return the object read
+     * 
+     * @param yamlFile
+     * @param clasz the class representing the target object
+     * @return the object read
+     * @throws IOException
+     */
+    public static final <C> C readYaml(File yamlFile, Class<C> clasz) throws IOException {
+        if (yamlFile == null || clasz == null) {
+            throw new FileNotFoundException(ARGUMENTS_MUST_BE_NON_NULL);
+        }
+        final FileReader yamlFileReader = new FileReader(yamlFile);
+        final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+        return clasz.cast(mapper.readValue(yamlFileReader, clasz));
+    }
+
+    /**
+     * Read the Yaml file and return the object read
+     * 
+     * @param yamlPath
+     * @param clasz the class representing the target object
+     * @return the object read
+     * @throws IOException
+     */
+    public static final <C> C readYaml(Path yamlPath, Class<C> clasz) throws IOException {
+        if (yamlPath == null || clasz == null) {
+            throw new FileNotFoundException(ARGUMENTS_MUST_BE_NON_NULL);
+        }
+        final File file = yamlPath.toFile();
+        return readYaml(file, clasz);
     }
 }

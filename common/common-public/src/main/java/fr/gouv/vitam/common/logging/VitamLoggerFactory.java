@@ -83,7 +83,7 @@ public abstract class VitamLoggerFactory {
      */
     public static void setDefaultFactory(final VitamLoggerFactory defaultFactory) {
         if (defaultFactory == null) {
-            throw new NullPointerException("defaultFactory");
+            throw new IllegalArgumentException("defaultFactory must not be null");
         }
         VitamLoggerFactory.defaultFactory = defaultFactory;
     }
