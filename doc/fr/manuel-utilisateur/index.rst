@@ -20,6 +20,7 @@ Sommaire
    :maxdepth: 2
 
    introduction.rst
+   ihm_sip_upload.rst
 
 
 ####################################################
