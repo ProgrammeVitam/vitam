@@ -40,6 +40,26 @@ import org.junit.Test;
 
 public class PropertiesUtilsTest {
 
+    @Test
+    public void testBuildPath() {
+        String fictivePath = "/mydir/myfile.txt";
+        File file = PropertiesUtils.fileFromDataFolder(fictivePath);
+        assertTrue(file.getAbsolutePath().startsWith(SystemPropertyUtil.getVitamDataFolder()));
+        assertTrue(file.getAbsolutePath().endsWith(fictivePath));
+        
+        file = PropertiesUtils.fileFromConfigFolder(fictivePath);
+        assertTrue(file.getAbsolutePath().startsWith(SystemPropertyUtil.getVitamConfigFolder()));
+        assertTrue(file.getAbsolutePath().endsWith(fictivePath));
+        
+        file = PropertiesUtils.fileFromLogFolder(fictivePath);
+        assertTrue(file.getAbsolutePath().startsWith(SystemPropertyUtil.getVitamLogFolder()));
+        assertTrue(file.getAbsolutePath().endsWith(fictivePath));
+        
+        file = PropertiesUtils.fileFromTmpFolder(fictivePath);
+        assertTrue(file.getAbsolutePath().startsWith(SystemPropertyUtil.getVitamTmpFolder()));
+        assertTrue(file.getAbsolutePath().endsWith(fictivePath));
+    }
+
     @Test(expected = FileNotFoundException.class)
     public void testReadResourcesPathFileNotFound() throws IOException {
         PropertiesUtils.getResourcesPath("vesR[l}EQ2v6");
