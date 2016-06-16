@@ -111,8 +111,7 @@ public final class PropertiesUtils {
         try {
             if (!file.exists()) {
                 // Second try using VitamConfigFolder
-                file = new File(SystemPropertyUtil.getVitamConfigFolder(),
-                    filename);
+                file = fileFromConfigFolder(filename);
                 if (!file.exists()) {
                     // Third try using Resources
                     file = getResourcesFile(filename);
@@ -126,6 +125,46 @@ public final class PropertiesUtils {
             throw new FileNotFoundException("File not found: " + filename);
         }
         return file;
+    }
+
+    /**
+     * Return a full file path using Config folder as root and subpath as sub paths.
+     * 
+     * @param subpath the subpath under Config folder
+     * @return the full file path (no check on existing is done)
+     */
+    public static final File fileFromConfigFolder(String subpath) {
+        return new File(SystemPropertyUtil.getVitamConfigFolder(), subpath);
+    }
+
+    /**
+     * Return a full file path using Data folder as root and subpath as sub paths.
+     * 
+     * @param subpath the subpath under Data folder
+     * @return the full file path (no check on existing is done)
+     */
+    public static final File fileFromDataFolder(String subpath) {
+        return new File(SystemPropertyUtil.getVitamDataFolder(), subpath);
+    }
+
+    /**
+     * Return a full file path using Log folder as root and subpath as sub paths.
+     * 
+     * @param subpath the subpath under Log folder
+     * @return the full file path (no check on existing is done)
+     */
+    public static final File fileFromLogFolder(String subpath) {
+        return new File(SystemPropertyUtil.getVitamLogFolder(), subpath);
+    }
+
+    /**
+     * Return a full file path using Tmp folder as root and subpath as sub paths.
+     * 
+     * @param subpath the subpath under Tmp folder
+     * @return the full file path (no check on existing is done)
+     */
+    public static final File fileFromTmpFolder(String subpath) {
+        return new File(SystemPropertyUtil.getVitamTmpFolder(), subpath);
     }
 
     /**
