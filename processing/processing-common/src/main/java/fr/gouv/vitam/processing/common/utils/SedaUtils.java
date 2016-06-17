@@ -91,6 +91,7 @@ public class SedaUtils {
     private static final String XML_EXTENSION = ".xml";
     private static final String SEDA_FOLDER = "SIP";
     private static final String BINARY_DATA_OBJECT = "BinaryDataObject";
+    private static final String MESSAGE_IDENTIFIER = "MessageIdentifier";
     private static final String BINARY_DATA_FOLDER = "DataObjects";
     private static final String DATA_OBJECT_GROUPID = "DataObjectGroupId";
     private static final String ARCHIVE_UNIT = "ArchiveUnit";
@@ -215,6 +216,53 @@ public class SedaUtils {
         final String containerId = params.getContainerName();
         final WorkspaceClient client = workspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
         extractSEDAWithWorkspaceClient(client, containerId);
+    }
+
+    /**
+     * get Message Identifier from seda
+     * @param WorkParams parameters of workspace server
+     * @return message id
+     * @throws ProcessingException throw when can't read or extract message id from SEDA
+     */
+    public String getMessageIdentifier(WorkParams params) throws ProcessingException {
+        ParametersChecker.checkParameter("WorkParams is a mandatory parameter", params);
+        final String containerId = params.getContainerName();
+        String messageId = "";
+        final WorkspaceClient client = workspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
+        InputStream xmlFile = null;
+        try {
+            xmlFile = client.getObject(containerId, SEDA_FOLDER + "/" + SEDA_FILE);
+        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
+            LOGGER.error("Manifest.xml Not Found");
+            throw new ProcessingException(e);
+        }
+
+        final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+        XMLEventReader reader = null;
+        final QName messageObjectName = new QName(NAMESPACE_URI, MESSAGE_IDENTIFIER);
+
+        try {
+            reader = xmlInputFactory.createXMLEventReader(xmlFile);
+            while (true) {
+                final XMLEvent event = reader.nextEvent();
+                if (event.isStartElement()) {
+                    final StartElement element = event.asStartElement();
+                    if (element.getName().equals(messageObjectName)) {
+                        messageId = reader.getElementText();
+                        break;
+                    }
+                }
+                if (event.isEndDocument()) {
+                    break;
+                }
+            }
+            reader.close();
+        } catch (final XMLStreamException e) {
+            LOGGER.error("Can not read SEDA", e);
+            throw new ProcessingException(e);
+        } 
+        
+        return messageId;
     }
 
     private void extractSEDAWithWorkspaceClient(WorkspaceClient client, String containerId) throws ProcessingException {

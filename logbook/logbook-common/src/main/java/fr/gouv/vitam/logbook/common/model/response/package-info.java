@@ -25,6 +25,6 @@
  * accept its terms.
  */
 /**
- * 
+ * Model of response from server
  */
 package fr.gouv.vitam.logbook.common.model.response;
