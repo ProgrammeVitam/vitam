@@ -1,0 +1,20 @@
+{
+  "name": "ihm-demo",
+  "description": "IHM demo for Vitam",
+  "version": "0.0.0",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "angular": "1.5.x",
+    "angular-animate": "1.5.x",
+    "angular-mocks": "1.5.x",
+    "angular-resource": "1.5.x",
+    "angular-route": "1.5.x",
+    "bootstrap": "3.3.x",
+    "jquery": "2.2.x",
+    "angular-ui-bootstrap-bower": "0.13.4",
+    "angular-material": "^1.0.9",
+    "angular-file-upload": "^2.3.4",
+    "restangular": "^1.5.2"
+  }
+}
