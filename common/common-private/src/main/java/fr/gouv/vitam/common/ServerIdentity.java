@@ -144,13 +144,25 @@ public final class ServerIdentity implements ServerIdentityInterface {
     }
 
     void defaultServerIdentity() {
+        boolean found = false;
         // Compute name from Hostname
-        if (System.getProperty(OS_NAME).toLowerCase().startsWith(WIN)) {
-            // Just for fun
-            name = System.getenv(COMPUTERNAME);
-        } else {
-            name = System.getenv(HOSTNAME);
-            if (name == null) {
+        try {
+            if (System.getProperty(OS_NAME).toLowerCase().startsWith(WIN)) {
+                // Just for fun
+                name = System.getenv(COMPUTERNAME);
+                found = true;
+            }
+        } catch (Exception e) { //NOSONAR ignore
+            // ignore
+        }
+        if (! found) {
+            try {
+                name = System.getenv(HOSTNAME);
+                found = true;
+            } catch (SecurityException e) {// NOSONAR ignore
+                // ignore
+            }
+            if (! found || name == null) {
                 // Some Unix do return null
                 executeHostnameCommand();
                 if (name == null) {

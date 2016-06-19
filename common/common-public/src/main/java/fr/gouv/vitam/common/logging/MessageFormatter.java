@@ -93,9 +93,6 @@ import fr.gouv.vitam.common.ParametersChecker;
  * Inspired from Netty
  */
 final class MessageFormatter {
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(MessageFormatter.class);
-
     static final char DELIM_START = '{';
     static final char DELIM_STOP = '}';
     static final String DELIM_STR = "{}";
@@ -291,8 +288,8 @@ final class MessageFormatter {
             final String oAsString = o.toString();
             sbuild.append(oAsString);
         } catch (final Throwable t) { // NOSONAR
-            LOGGER.error("SLF4J: Failed toString() invocation on an object of type [" + o.getClass().getName() + ']',
-                t);
+            System.err.println("SLF4J: Failed toString() invocation on an object of type [" //NOSONAR ignore since no logger
+                + o.getClass().getName() + ']' + t.getMessage());
             sbuild.append("[FAILED toString()]");
         }
     }

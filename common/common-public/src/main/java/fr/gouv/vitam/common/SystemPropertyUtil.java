@@ -556,22 +556,32 @@ public final class SystemPropertyUtil {
      */
     public static Platform getOS() {
         if (m_os == null) {
-            final String os = System.getProperty("os.name").toLowerCase();
             m_os = Platform.UNSUPPORTED;
+            String os = "";
+            try {
+                os = System.getProperty("os.name").toLowerCase();
+            } catch (Exception e) {// NOSONAR ignore
+                // ignore
+            }
             if (os.indexOf("win") >= 0) {
-                m_os = Platform.WINDOWS; // Windows
+                m_os = Platform.WINDOWS;
+                // Windows
             }
             if (os.indexOf("mac") >= 0) {
-                m_os = Platform.MAC; // Mac
+                m_os = Platform.MAC;
+                // Mac
             }
             if (os.indexOf("nux") >= 0) {
-                m_os = Platform.UNIX; // Linux
+                m_os = Platform.UNIX;
+                // Linux
             }
             if (os.indexOf("nix") >= 0) {
-                m_os = Platform.UNIX; // Unix
+                m_os = Platform.UNIX;
+                // Unix
             }
             if (os.indexOf("sunos") >= 0) {
-                m_os = Platform.SOLARIS; // Solaris
+                m_os = Platform.SOLARIS; 
+                // Solaris
             }
         }
         return m_os;

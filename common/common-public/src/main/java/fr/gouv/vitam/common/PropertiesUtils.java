@@ -197,9 +197,10 @@ public final class PropertiesUtils {
         if (yamlFile == null || clasz == null) {
             throw new FileNotFoundException(ARGUMENTS_MUST_BE_NON_NULL);
         }
-        final FileReader yamlFileReader = new FileReader(yamlFile);
-        final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-        return clasz.cast(mapper.readValue(yamlFileReader, clasz));
+        try (final FileReader yamlFileReader = new FileReader(yamlFile)) {
+            final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+            return clasz.cast(mapper.readValue(yamlFileReader, clasz));
+        }
     }
 
     /**
