@@ -64,7 +64,7 @@ import fr.gouv.vitam.workspace.common.ParametersChecker;
 import fr.gouv.vitam.workspace.common.WorkspaceMessage;
 
 
-// TODO The name is not clean . It has Impl suffix but is the abstract class . The real implementation is
+// FIXME REVIEW The name is not clean . It has Impl suffix but is the abstract class . The real implementation is
 // FileSystem (which don't have Impl suffix). This has to be XxxxAbstract and provide a Factory to create the right
 // implmentation one.
 /**
@@ -115,7 +115,7 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
             }
 
         } catch (final ContentAddressableStorageAlreadyExistException e) {
-            // TODO REVIEW You already log the same message before throwing the exception
+            // FIXME REVIEW You already log the same message before throwing the exception
             LOGGER.error(e.getMessage());
             throw e;
         } finally {
@@ -139,7 +139,7 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
             }
 
         } catch (final ContentAddressableStorageNotFoundException e) {
-            // TODO REVIEW You already log the same message before throwing the exception
+            // FIXME REVIEW You already log the same message before throwing the exception
             LOGGER.error(e.getMessage());
             throw e;
         } finally {
@@ -176,7 +176,7 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
             }
 
         } catch (final ContentAddressableStorageNotFoundException e) {
-            // TODO REVIEW You already log the same message before throwing the exception
+            // FIXME REVIEW You already log the same message before throwing the exception
             LOGGER.error(e.getMessage());
             throw e;
         } finally {
@@ -234,7 +234,7 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
                 throw new ContentAddressableStorageNotFoundException(
                     ErrorMessage.FOLDER_NOT_FOUND.getMessage() + folderName);
             }
-            // TODO should it be a check of emptyness?
+            // FIXME REVIEW should it be a check of emptyness?
             blobStore.deleteDirectory(containerName, folderName);
 
         } catch (final ContentAddressableStorageNotFoundException e) {
@@ -308,9 +308,8 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
         } finally {
             context.close();
         }
-        // TODO in Commons create an utility methods (among others) that returns a static final true
-        // NullInputStream (static singleton), not a like you did
-        // TODO : The method return an empty InputStream if the object name doesn't exists or if the file is
+        // FIXME REVIEW use from Commons SingletonUtils
+        // FIXME REVIEW : The method return an empty InputStream if the object name doesn't exists or if the file is
         // empty. If the file doesn't exist, it must have a different return value (notfound)
         return new ByteArrayInputStream(new byte[0]);
     }
@@ -331,7 +330,7 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
 
             blobStore.removeBlob(containerName, objectName);
         } catch (final ContentAddressableStorageNotFoundException e) {
-            // TODO REVIEW You already log the same message before throwing the exception
+            // FIXME REVIEW You already log the same message before throwing the exception
             LOGGER.error(e.getMessage());
             throw e;
         } finally {
@@ -384,6 +383,8 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
                 // select BLOB only, not folder nor relative path
                 if (storageMetada.getType().equals(StorageType.BLOB) && storageMetada.getName() != null &&
                     !storageMetada.getName().isEmpty()) {
+                    // FIXME REVIEW the UriUtils does not what is specified: it only removes the first folder, not the
+                    // extension and only for uri with "." in it
                     uriFolderListFromContainer.add(new URI(UriUtils.splitUri(storageMetada.getName())));
                 }
             }
@@ -401,6 +402,7 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
     }
 
 
+    // FIXME REVIEW add folder and rename unzipObject
     @Override
     public void unzipSipObject(String containerName, InputStream inputStreamSipObject)
         throws ContentAddressableStorageException {
@@ -429,7 +431,7 @@ public abstract class ContentAddressableStorageImpl implements ContentAddressabl
      * @param inputStreamSipObject :compressed SIP stream
      * @throws ContentAddressableStorageException
      */
-
+    // FIXME REVIEW add folder
     private void extractZippedInputStreamOnContainer(String containerName, InputStream inputStreamSipObject)
         throws ContentAddressableStorageException {
 

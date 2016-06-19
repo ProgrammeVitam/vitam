@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -37,6 +37,11 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
  *
  */
 public class RangeQuery extends Query {
+    private static final String IS_NOT_A_VALID_COMPARE_QUERY = " is not a valid Compare Query";
+    private static final String CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME =
+        " cannot be updated with empty variable name";
+    private static final String QUERY2 = "Query ";
+
     protected RangeQuery() {
         super();
     }
@@ -58,7 +63,7 @@ public class RangeQuery extends Query {
         super();
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                "Query " + currentQUERY + " cannot be updated with empty variable name");
+                QUERY2 + currentQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -71,7 +76,7 @@ public class RangeQuery extends Query {
                 break;
             default:
                 throw new InvalidCreateOperationException(
-                    "Query " + from + " is not a valid Compare Query");
+                    QUERY2 + from + IS_NOT_A_VALID_COMPARE_QUERY);
         }
         switch (to) {
             case LT:
@@ -79,7 +84,7 @@ public class RangeQuery extends Query {
                 break;
             default:
                 throw new InvalidCreateOperationException(
-                    "Query " + to + " is not a valid Compare Query");
+                    QUERY2 + to + IS_NOT_A_VALID_COMPARE_QUERY);
         }
         final ObjectNode sub = ((ObjectNode) currentObject)
             .putObject(QUERY.RANGE.exactToken()).putObject(variableName.trim());
@@ -105,7 +110,7 @@ public class RangeQuery extends Query {
         super();
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                "Query " + currentQUERY + " cannot be updated with empty variable name");
+                QUERY2 + currentQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -118,7 +123,7 @@ public class RangeQuery extends Query {
                 break;
             default:
                 throw new InvalidCreateOperationException(
-                    "Query " + from + " is not a valid Compare Query");
+                    QUERY2 + from + IS_NOT_A_VALID_COMPARE_QUERY);
         }
         switch (to) {
             case LT:
@@ -126,7 +131,7 @@ public class RangeQuery extends Query {
                 break;
             default:
                 throw new InvalidCreateOperationException(
-                    "Query " + to + " is not a valid Compare Query");
+                    QUERY2 + to + IS_NOT_A_VALID_COMPARE_QUERY);
         }
         final ObjectNode sub = ((ObjectNode) currentObject)
             .putObject(QUERY.RANGE.exactToken()).putObject(variableName.trim());
@@ -152,7 +157,7 @@ public class RangeQuery extends Query {
         super();
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                "Query " + currentQUERY + " cannot be updated with empty variable name");
+                QUERY2 + currentQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -167,7 +172,7 @@ public class RangeQuery extends Query {
                 break;
             default:
                 throw new InvalidCreateOperationException(
-                    "Query " + from + " is not a valid Compare Query");
+                    QUERY2 + from + IS_NOT_A_VALID_COMPARE_QUERY);
         }
         switch (to) {
             case LT:
@@ -175,7 +180,7 @@ public class RangeQuery extends Query {
                 break;
             default:
                 throw new InvalidCreateOperationException(
-                    "Query " + to + " is not a valid Compare Query");
+                    QUERY2 + to + IS_NOT_A_VALID_COMPARE_QUERY);
         }
         final ObjectNode sub = ((ObjectNode) currentObject)
             .putObject(QUERY.RANGE.exactToken()).putObject(variableName.trim());
@@ -201,7 +206,7 @@ public class RangeQuery extends Query {
         super();
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                "Query " + currentQUERY + " cannot be updated with empty variable name");
+                QUERY2 + currentQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -214,7 +219,7 @@ public class RangeQuery extends Query {
                 break;
             default:
                 throw new InvalidCreateOperationException(
-                    "Query " + from + " is not a valid Compare Query");
+                    QUERY2 + from + IS_NOT_A_VALID_COMPARE_QUERY);
         }
         switch (to) {
             case LT:
@@ -222,7 +227,7 @@ public class RangeQuery extends Query {
                 break;
             default:
                 throw new InvalidCreateOperationException(
-                    "Query " + to + " is not a valid Compare Query");
+                    QUERY2 + to + IS_NOT_A_VALID_COMPARE_QUERY);
         }
         final ObjectNode sub = ((ObjectNode) currentObject)
             .putObject(QUERY.RANGE.exactToken()).putObject(variableName.trim());

@@ -73,7 +73,7 @@ public enum DigestType {
      */
 
     public static DigestType fromValue(String v) {
-        for (DigestType c : DigestType.values()) {
+        for (final DigestType c : DigestType.values()) {
             if (c.name.equals(v)) {
                 return c;
             }

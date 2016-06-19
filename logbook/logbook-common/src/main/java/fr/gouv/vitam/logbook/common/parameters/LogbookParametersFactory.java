@@ -57,6 +57,7 @@ import fr.gouv.vitam.common.guid.GUID;
  */
 public class LogbookParametersFactory {
 
+    private static final String NO_PARAMETER_CAN_BE_NULL_OR_EMPTY = "No parameter can be null or empty";
     private static final Set<LogbookParameterName> genericMandatory = new HashSet<>();
 
     static {
@@ -74,19 +75,20 @@ public class LogbookParametersFactory {
     }
 
     /**
-     * Get a new LogbookOperationParamaters object
+     * Get a new Empty LogbookOperationParamaters object
      *
      * @param mandatoryFieldsToAdd set of LogbookParameterName to add to the default mandatory fields, can be null
      * @return the LogbookOperationParameters
      */
-    public static LogbookOperationParameters newLogbookOperationParameters(
+    static LogbookOperationParameters newLogbookOperationParameters(
         Set<LogbookParameterName> mandatoryFieldsToAdd) {
         return new LogbookOperationParameters(
             initLogbookMandatoriesParameters(mandatoryFieldsToAdd));
     }
 
     /**
-     * Get a new LogbookOperationParameters object
+     * Get a new Empty LogbookOperationParameters object. <br>
+     * Use in internal assignment. Not recommended in general usage.
      *
      * @return the LogbookOperationParameters
      */
@@ -115,9 +117,9 @@ public class LogbookParametersFactory {
         String eventType, String eventIdentifierProcess, LogbookTypeProcess eventTypeProcess,
         LogbookOutcome outcome, String outcomeDetailMessage,
         String eventIdentifierRequest) {
-        ParametersChecker.checkParameter("No parameter can be null or empty", eventIdentifier,
+        ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, eventIdentifier,
             eventType, eventIdentifierProcess, outcomeDetailMessage, eventIdentifierRequest);
-        ParametersChecker.checkParameter("No parameter can be null or empty", outcome, eventTypeProcess);
+        ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, outcome, eventTypeProcess);
         final LogbookOperationParameters parameters =
             new LogbookOperationParameters(initLogbookMandatoriesParameters(null));
         return parameters.putParameterValue(LogbookParameterName.eventIdentifier, eventIdentifier)
@@ -147,9 +149,9 @@ public class LogbookParametersFactory {
         String eventType, GUID eventIdentifierProcess, LogbookTypeProcess eventTypeProcess,
         LogbookOutcome outcome, GUID outcomeDetailMessage,
         GUID eventIdentifierRequest) {
-        ParametersChecker.checkParameter("No parameter can be null or empty", eventIdentifier,
+        ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, eventIdentifier,
             eventType, eventIdentifierProcess, outcomeDetailMessage, eventIdentifierRequest);
-        ParametersChecker.checkParameter("No parameter can be null or empty", outcome, eventTypeProcess);
+        ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, outcome, eventTypeProcess);
         final LogbookOperationParameters parameters =
             new LogbookOperationParameters(initLogbookMandatoriesParameters(null));
         return parameters.putParameterValue(LogbookParameterName.eventIdentifier, eventIdentifier.getId())

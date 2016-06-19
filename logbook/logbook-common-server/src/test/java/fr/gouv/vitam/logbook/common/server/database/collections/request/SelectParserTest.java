@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -281,7 +281,7 @@ public class SelectParserTest {
             assertEquals(100,
                 request.getRequest().getFilter().get(SELECTFILTER.OFFSET.exactToken())
                     .asLong());
-            assertEquals(GlobalDatas.limitLoad,
+            assertEquals(GlobalDatas.LIMIT_LOAD,
                 request.getRequest().getFilter().get(SELECTFILTER.LIMIT.exactToken())
                     .asLong());
             // orderBy set through array
@@ -431,7 +431,7 @@ public class SelectParserTest {
     @Test
     public void testInternalParseSelect() throws InvalidParseOperationException {
         final SelectParser request = new SelectParser();
-        final String s = "[ [ 'id0' ], { $path : [ 'id1', 'id2'] }, {$mult : false }, {} ]";
+        final String s = "[ { $path : [ 'id1', 'id2'] }, {$mult : false }, {} ]";
         request.parse(s);
         assertNotNull(request);
     }

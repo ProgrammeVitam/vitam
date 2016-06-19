@@ -43,6 +43,11 @@ public final class SingletonUtils {
     private static final InputStream SINGLETON_INPUTSTREAM = new NullInputStream();
     private static final OutputStream SINGLETON_OUTPUTSTREAM = new VoidOutputStream();
 
+    private SingletonUtils() {
+        // empty
+    }
+
+
     /**
      * Immutable empty byte array
      *
@@ -184,11 +189,6 @@ public final class SingletonUtils {
      */
     public static final OutputStream singletonOutputStream() {
         return SINGLETON_OUTPUTSTREAM;
-    }
-
-
-    private SingletonUtils() {
-        // empty
     }
 
 }

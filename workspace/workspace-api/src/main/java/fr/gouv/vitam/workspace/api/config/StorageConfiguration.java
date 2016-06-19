@@ -31,7 +31,7 @@ package fr.gouv.vitam.workspace.api.config;
  * Represents the service storage settings
  */
 public class StorageConfiguration {
-    // TODO REVIEW Why such a configuration? Should the client be able to change it ? If this is for Filesystem
+    // FIXME REVIEW Why such a configuration? Should the client be able to change it ? If this is for Filesystem
     // implementation, this is not valid for others, right ? This should be in the rest or core package probably or even
     // a filesystem implementation package.
 

@@ -63,7 +63,7 @@ public class LogbookOperationParameters implements LogbookParameters {
      * @param mandatory the mandatories fields Set
      */
     @JsonIgnore
-    public LogbookOperationParameters(final Set<LogbookParameterName> mandatory) {
+    LogbookOperationParameters(final Set<LogbookParameterName> mandatory) {
         mandatoryParameters = mandatory;
     }
 

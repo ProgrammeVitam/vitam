@@ -40,6 +40,8 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import fr.gouv.vitam.common.CharsetUtils;
+
 @SuppressWarnings("javadoc")
 public class LogbackLoggerTest {
     private static final Exception e = new Exception();
@@ -57,7 +59,7 @@ public class LogbackLoggerTest {
                 public void write(final int b) {
                     buf.append((char) b);
                 }
-            }, true, "UTF-8"));
+            }, true, CharsetUtils.UTF_8));
         } catch (final UnsupportedEncodingException e) {
             throw new RuntimeErrorException(new Error(e));
         }

@@ -101,6 +101,10 @@ final class MessageFormatter {
     static final String DELIM_STR = "{}";
     private static final char ESCAPE_CHAR = '\\';
 
+    private MessageFormatter() {
+        // Empty
+    }
+
     /**
      * Performs single argument substitution for the 'messagePattern' passed as parameter.
      * <p/>
@@ -188,12 +192,12 @@ final class MessageFormatter {
 
             if (j == -1) {
                 // no more variables
-                if (i == 0) { // this is a simple string
+                if (i == 0) {
+                    // this is a simple string
                     return new FormattingTuple(messagePattern, argArray,
                         throwableCandidate);
-                } else { // add the tail string which contains no variables and
-                         // return
-                    // the result.
+                } else {
+                    // add the tail string which contains no variables and return the result.
                     sbuild.append(messagePattern.substring(i, messagePattern.length()));
                     return new FormattingTuple(sbuild.toString(), argArray,
                         throwableCandidate);
@@ -201,8 +205,8 @@ final class MessageFormatter {
             } else {
                 if (isEscapedDelimeter(messagePattern, j)) {
                     if (!isDoubleEscaped(messagePattern, j)) {
-                        l--; // DELIM_START was escaped, thus should not be
-                             // incremented
+                        l--;
+                        // DELIM_START was escaped, thus should not be incremented
                         sbuild.append(messagePattern.substring(i, j - 1)).append(DELIM_START);
                         i = j + 1;
                     } else {
@@ -407,9 +411,5 @@ final class MessageFormatter {
             }
         }
         sbuild.append(']');
-    }
-
-    private MessageFormatter() {
-        // Empty
     }
 }

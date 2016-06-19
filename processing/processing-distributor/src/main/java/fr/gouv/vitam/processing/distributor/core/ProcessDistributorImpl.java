@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -48,7 +48,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
  *
  */
 public class ProcessDistributorImpl implements ProcessDistributor {
-
+    // FIXME REVIEW Since build through Factory => protected package for class and constructors
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessDistributorImpl.class);
     private static final String ARCHIVE_UNIT_FOLDER = "Units";
     private static final String ELAPSED_TIME_MESSAGE = "Total elapsed time in execution of method distribute is :";
@@ -70,9 +70,10 @@ public class ProcessDistributorImpl implements ProcessDistributor {
 
     /**
      * Constructor with parameter workerImpl
-     * 
+     *
      * @param workerImpl
      */
+    // FIXME REVIEW check null
     public ProcessDistributorImpl(WorkerImpl workerImpl) {
         final Worker worker1 = workerImpl;
         workers.add(worker1);

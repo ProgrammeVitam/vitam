@@ -47,7 +47,7 @@ public class IndexUnitActionHandler extends ActionHandler {
 
     /**
      * Constructor with parameter SedaUtilsFactory
-     * 
+     *
      * @param factory
      */
     public IndexUnitActionHandler(SedaUtilsFactory factory) {

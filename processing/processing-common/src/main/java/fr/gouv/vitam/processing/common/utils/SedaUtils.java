@@ -83,7 +83,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 public class SedaUtils {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SedaUtils.class);
-
+    // FIXME REVIEW use PropertyUtils tmp folder method
     private static String TMP_FOLDER = "/vitam/data/";
     private static final String NAMESPACE_URI = "fr:gouv:culture:archivesdefrance:seda:v2.0";
     private static final String SEDA_FILE = "manifest.xml";
@@ -114,6 +114,7 @@ public class SedaUtils {
     // Messages for duplicate Uri from SEDA
     private static final String MSG_DUPLICATE_URI_MANIFEST = "Présence d'un URI en doublon dans le bordereau: ";
 
+    // TODO REVIEW Map not HashMap
     private static final HashMap<String, String> objectToGroupMapping = new HashMap<String, String>() {
         private static final long serialVersionUID = 1257583431403626689L;
         {
@@ -121,7 +122,7 @@ public class SedaUtils {
             put(ARCHIVE_UNIT, DATA_OBJECT_REFERENCEID);
         }
     };
-
+    // TODO REVIEW Map not HashMap
     private static final HashMap<String, String> objectToFolderMapping = new HashMap<String, String>() {
         private static final long serialVersionUID = -8520409868569154910L;
 
@@ -268,6 +269,7 @@ public class SedaUtils {
         final String elementGuid = GUIDFactory.newGUID().toString();
         final QName name = startElement.getName();
         int stack = 1;
+        // FIXME REVIEW clean tmpDirectory somewhere ?
         final File tmpFile = new File(tmpDirectory + elementGuid);
         LOGGER.info("Get tmpFile");
 

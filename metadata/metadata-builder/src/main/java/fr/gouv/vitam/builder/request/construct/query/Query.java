@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -40,6 +40,9 @@ import fr.gouv.vitam.common.json.JsonHandler;
  *
  */
 public class Query {
+    private static final String CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME =
+        " cannot be created with empty variable name";
+    private static final String QUERY2 = "Query ";
     /**
      * DATE item
      */
@@ -49,10 +52,22 @@ public class Query {
     protected QUERY currentQUERY;
     protected boolean isFullText = false;
     protected boolean ready;
-    protected int relativedepth = 1;// default is immediate next level
-    protected int exactdepth = 0;// default is to not specify any exact depth (implicit)
+    // default is immediate next level
+    protected int relativedepth = 1;
+    // default is to not specify any exact depth (implicit)
+    protected int exactdepth = 0;
 
     protected int extraInfo;
+
+    /**
+     * Empty constructor
+     */
+    protected Query() {
+        currentQuery = JsonHandler.createObjectNode();
+        currentObject = currentQuery;
+        currentQUERY = null;
+        ready = false;
+    }
 
     protected final void createQueryArray(final QUERY query) {
         currentObject = ((ObjectNode) currentObject).putArray(query.exactToken());
@@ -62,7 +77,7 @@ public class Query {
         throws InvalidCreateOperationException {
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                "Query " + query + " cannot be created with empty variable name");
+                QUERY2 + query + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -77,7 +92,7 @@ public class Query {
         throws InvalidCreateOperationException {
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                "Query " + query + " cannot be created with empty variable name");
+                QUERY2 + query + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -93,7 +108,7 @@ public class Query {
         throws InvalidCreateOperationException {
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                "Query " + query + " cannot be created with empty variable name");
+                QUERY2 + query + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -109,7 +124,7 @@ public class Query {
         throws InvalidCreateOperationException {
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                "Query " + query + " cannot be created with empty variable name");
+                QUERY2 + query + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -126,7 +141,7 @@ public class Query {
         throws InvalidCreateOperationException {
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                "Query " + query + " cannot be created with empty variable name");
+                QUERY2 + query + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -142,7 +157,7 @@ public class Query {
         throws InvalidCreateOperationException {
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                "Query " + query + " cannot be created with empty variable name");
+                QUERY2 + query + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -151,16 +166,6 @@ public class Query {
         }
         currentObject = ((ObjectNode) currentObject).putObject(query.exactToken());
         ((ObjectNode) currentObject).put(variableName.trim(), value);
-    }
-
-    /**
-     * Empty constructor
-     */
-    protected Query() {
-        currentQuery = JsonHandler.createObjectNode();
-        currentObject = currentQuery;
-        currentQUERY = null;
-        ready = false;
     }
 
     /**

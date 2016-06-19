@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -43,7 +43,7 @@ public class WorkParams {
     /**
      * getContainerName
      *
-     * @return : the container name of workparam
+     * @return the container name of workparam
      */
     public String getContainerName() {
         if (containerName == null) {
@@ -133,7 +133,7 @@ public class WorkParams {
     }
 
     /**
-     * @param serverConfiguration the serverConfiguration to set
+     * @param serverConfiguration the serverConfiguration to set TODO REVIEW missing returns
      */
     public WorkParams setServerConfiguration(ServerConfiguration serverConfiguration) {
         this.serverConfiguration = serverConfiguration;
@@ -151,7 +151,7 @@ public class WorkParams {
     }
 
     /**
-     * @param guuid the guuid to set
+     * @param guuid the guuid to set TODO REVIEW missing returns
      */
     public WorkParams setGuuid(String guuid) {
         workerGUID = guuid;

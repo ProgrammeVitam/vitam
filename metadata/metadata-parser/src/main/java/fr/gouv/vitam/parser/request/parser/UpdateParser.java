@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -44,6 +44,7 @@ import fr.gouv.vitam.builder.request.construct.Request;
 import fr.gouv.vitam.builder.request.construct.Update;
 import fr.gouv.vitam.builder.request.construct.action.Action;
 import fr.gouv.vitam.builder.request.construct.configuration.GlobalDatas;
+import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens;
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.GLOBAL;
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.UPDATEACTION;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -54,10 +55,12 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
  *
  */
 public class UpdateParser extends RequestParser {
+    protected static final int ACTIONS_POS = 3;
+
     VarNameUpdateAdapter updateAdapter;
 
     /**
-     *
+     * Empty constructor
      */
     public UpdateParser() {
         super();
@@ -97,6 +100,7 @@ public class UpdateParser extends RequestParser {
      * @throws InvalidParseOperationException
      */
     @Override
+    @Deprecated
     public void parse(final String request) throws InvalidParseOperationException {
         parseString(request);
         internalParseUpdate();
@@ -108,8 +112,8 @@ public class UpdateParser extends RequestParser {
     private void internalParseUpdate() throws InvalidParseOperationException {
         if (rootNode.isArray()) {
             // should be 4, but each could be empty ( '{}' )
-            if (rootNode.size() > 3) {
-                actionParse(rootNode.get(3));
+            if (rootNode.size() > ACTIONS_POS) {
+                actionParse(rootNode.get(ACTIONS_POS));
             }
         } else {
             // not as array but composite as { $roots: root, $query : query,
@@ -130,7 +134,7 @@ public class UpdateParser extends RequestParser {
             return;
         }
         GlobalDatas.sanityParametersCheck(rootNode.toString(),
-            GlobalDatasParser.nbActions);
+            GlobalDatasParser.NB_ACTIONS);
         try {
             for (final JsonNode node : (ArrayNode) rootNode) {
                 Iterator<Entry<String, JsonNode>> iterator = node.fields();
@@ -156,7 +160,7 @@ public class UpdateParser extends RequestParser {
      */
     protected static final UPDATEACTION getUpdateActionId(final String actionroot)
         throws InvalidParseOperationException {
-        if (!actionroot.startsWith("$")) {
+        if (!actionroot.startsWith(ParserTokens.DEFAULT_PREFIX)) {
             throw new InvalidParseOperationException(
                 "Incorrect action $command: " + actionroot);
         }

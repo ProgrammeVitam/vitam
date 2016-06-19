@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -82,6 +82,10 @@ public abstract class RequestParser {
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(RequestParser.class);
 
+    protected static final int ROOT_POS = 0;
+    protected static final int QUERY_POS = 1;
+    protected static final int FILTER_POS = 2;
+
     protected VarNameAdapter adapter;
     protected String sourceRequest;
     protected Request request;
@@ -135,12 +139,12 @@ public abstract class RequestParser {
         }
         if (rootNode.isArray()) {
             // should be 3, but each could be empty ( '{}' )
-            if (rootNode.size() > 0) {
-                rootParse(rootNode.get(0));
-                if (rootNode.size() > 1) {
-                    queryParse(rootNode.get(1));
-                    if (rootNode.size() > 2) {
-                        filterParse(rootNode.get(2));
+            if (rootNode.size() > ROOT_POS) {
+                rootParse(rootNode.get(ROOT_POS));
+                if (rootNode.size() > QUERY_POS) {
+                    queryParse(rootNode.get(QUERY_POS));
+                    if (rootNode.size() > FILTER_POS) {
+                        filterParse(rootNode.get(FILTER_POS));
                     }
                 }
             }
@@ -180,6 +184,7 @@ public abstract class RequestParser {
      *        filter }
      * @throws InvalidParseOperationException
      */
+    @Deprecated
     public abstract void parse(final String srcrequest) throws InvalidParseOperationException;
 
     /**
@@ -188,6 +193,7 @@ public abstract class RequestParser {
      *        filter }
      * @throws InvalidParseOperationException
      */
+    @Deprecated
     protected void parseString(final String srcrequest) throws InvalidParseOperationException {
         sourceRequest = srcrequest;
         rootNode = JsonHandler.getFromString(srcrequest);
@@ -232,7 +238,7 @@ public abstract class RequestParser {
         if (rootNode == null) {
             return;
         }
-        GlobalDatas.sanityParametersCheck(rootNode.toString(), GlobalDatas.nbRoots);
+        GlobalDatas.sanityParametersCheck(rootNode.toString(), GlobalDatas.NB_ROOTS);
         try {
             request.addRoots((ArrayNode) rootNode);
         } catch (final Exception e) {
@@ -249,7 +255,7 @@ public abstract class RequestParser {
         if (rootNode == null) {
             return;
         }
-        GlobalDatas.sanityParametersCheck(rootNode.toString(), GlobalDatas.nbFilters);
+        GlobalDatas.sanityParametersCheck(rootNode.toString(), GlobalDatas.NB_FILTERS);
         try {
             request.setFilter(rootNode);
         } catch (final Exception e) {
@@ -308,9 +314,10 @@ public abstract class RequestParser {
             throw new InvalidParseOperationException("Not correctly parsed");
         }
         isQueryFullText = false;
-        int relativedepth = 1; // default is immediate next level
-        int exactdepth = 0; // default is to not specify any exact exactdepth
-                            // (implicit)
+        // default is immediate next level
+        int relativedepth = 1;
+        // default is to not specify any exact exactdepth (implicit)
+        int exactdepth = 0;
         boolean isDepth = false;
         // first verify if exactdepth is set
         if (command.has(QUERYARGS.EXACTDEPTH.exactToken())) {
@@ -376,7 +383,7 @@ public abstract class RequestParser {
      */
     protected static final QUERY getRequestId(final String queryroot)
         throws InvalidParseOperationException {
-        if (!queryroot.startsWith("$")) {
+        if (!queryroot.startsWith(ParserTokens.DEFAULT_PREFIX)) {
             throw new InvalidParseOperationException(
                 "Incorrect request $command: " + queryroot);
         }
@@ -536,14 +543,12 @@ public abstract class RequestParser {
             case CENTER:
             case GEOINTERSECTS:
             case GEOWITHIN:
-            case NEAR: {
+            case NEAR:
                 throw new InvalidParseOperationException(
                     "Unimplemented command: " + refCommand);
-            }
-            case PATH: {
+            case PATH:
                 throw new InvalidParseOperationException(
                     "Invalid position for command: " + refCommand);
-            }
             default:
                 throw new InvalidParseOperationException(
                     "Invalid command: " + refCommand);
@@ -629,8 +634,6 @@ public abstract class RequestParser {
                     return FILTERARGS.UNITS;
                 } else if (FILTERARGS.OBJECTGROUPS.exactToken().equals(node.asText())) {
                     return FILTERARGS.OBJECTGROUPS;
-                } else if (FILTERARGS.OBJECTS.exactToken().equals(node.asText())) {
-                    return FILTERARGS.OBJECTS;
                 }
             }
         }

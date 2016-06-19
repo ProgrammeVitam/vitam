@@ -43,12 +43,13 @@ import fr.gouv.vitam.processing.common.utils.SedaUtilsFactory;
  */
 public class CheckSedaActionHandler extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckSedaActionHandler.class);
+    // FIXME REVIEW since getId => private
     public static final String HANDLER_ID = "checkSeda";
     private final SedaUtilsFactory sedaUtilsFactory;
 
     /**
      * Constructor with parameter SedaUtilsFactory
-     * 
+     *
      * @param factory
      */
     public CheckSedaActionHandler(SedaUtilsFactory factory) {

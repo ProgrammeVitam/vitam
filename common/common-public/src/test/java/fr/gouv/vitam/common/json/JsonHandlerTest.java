@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.json;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
@@ -96,6 +97,8 @@ public class JsonHandlerTest {
         final JsonNode node4 = JsonHandler.toJsonNode(tc2);
         assertEquals(JsonHandler.prettyPrint(node4), JsonHandler.writeAsString(tc2));
         assertEquals(JsonHandler.prettyPrint(node4), JsonHandler.prettyPrint(tc2));
+        assertEquals(JsonHandler.unprettyPrint(node4), JsonHandler.unprettyPrint(tc2));
+        assertFalse(JsonHandler.prettyPrint(node4).equals(JsonHandler.unprettyPrint(node4)));
         assertEquals("a", JsonHandler.checkUnicity("check", node4).getKey());
         assertEquals("a", JsonHandler.checkLaxUnicity("check", node4).getKey());
         assertEquals(1, JsonHandler.getMapFromString(node4.toString()).size());

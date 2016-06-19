@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -41,10 +41,23 @@ import fr.gouv.vitam.common.json.JsonHandler;
  *
  */
 public class Action {
+    private static final String ACTION2 = "Action ";
+    private static final String CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME =
+        " cannot be created with empty variable name";
     protected ObjectNode currentAction;
     protected JsonNode currentObject;
     protected UPDATEACTION currentUPDATEACTION;
     protected boolean ready;
+
+    /**
+     * Empty constructor
+     */
+    protected Action() {
+        currentAction = JsonHandler.createObjectNode();
+        currentObject = currentAction;
+        currentUPDATEACTION = null;
+        ready = false;
+    }
 
     protected final void createActionArray(final UPDATEACTION action) {
         currentObject = ((ObjectNode) currentObject).putArray(action.exactToken());
@@ -55,7 +68,7 @@ public class Action {
         throws InvalidCreateOperationException {
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                "Action " + action + " cannot be created with empty variable name");
+                ACTION2 + action + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -72,7 +85,7 @@ public class Action {
         throws InvalidCreateOperationException {
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                "Action " + action + " cannot be created with empty variable name");
+                ACTION2 + action + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -104,7 +117,7 @@ public class Action {
         throws InvalidCreateOperationException {
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                "Action " + action + " cannot be created with empty variable name");
+                ACTION2 + action + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -120,7 +133,7 @@ public class Action {
         throws InvalidCreateOperationException {
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                "Action " + action + " cannot be created with empty variable name");
+                ACTION2 + action + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -136,7 +149,7 @@ public class Action {
         throws InvalidCreateOperationException {
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                "Action " + action + " cannot be created with empty variable name");
+                ACTION2 + action + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -153,7 +166,7 @@ public class Action {
         throws InvalidCreateOperationException {
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                "Action " + action + " cannot be created with empty variable name");
+                ACTION2 + action + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -169,7 +182,7 @@ public class Action {
         throws InvalidCreateOperationException {
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                "Action " + action + " cannot be created with empty variable name");
+                ACTION2 + action + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -178,16 +191,6 @@ public class Action {
         }
         currentObject = ((ObjectNode) currentObject).putObject(action.exactToken());
         ((ObjectNode) currentObject).set(variableName.trim(), GlobalDatas.getDate(value));
-    }
-
-    /**
-     * Empty constructor
-     */
-    protected Action() {
-        currentAction = JsonHandler.createObjectNode();
-        currentObject = currentAction;
-        currentUPDATEACTION = null;
-        ready = false;
     }
 
     /**

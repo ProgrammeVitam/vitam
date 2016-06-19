@@ -129,7 +129,7 @@ public final class PropertiesUtils {
 
     /**
      * Return a full file path using Config folder as root and subpath as sub paths.
-     * 
+     *
      * @param subpath the subpath under Config folder
      * @return the full file path (no check on existing is done)
      */
@@ -139,7 +139,7 @@ public final class PropertiesUtils {
 
     /**
      * Return a full file path using Data folder as root and subpath as sub paths.
-     * 
+     *
      * @param subpath the subpath under Data folder
      * @return the full file path (no check on existing is done)
      */
@@ -149,7 +149,7 @@ public final class PropertiesUtils {
 
     /**
      * Return a full file path using Log folder as root and subpath as sub paths.
-     * 
+     *
      * @param subpath the subpath under Log folder
      * @return the full file path (no check on existing is done)
      */
@@ -159,7 +159,7 @@ public final class PropertiesUtils {
 
     /**
      * Return a full file path using Tmp folder as root and subpath as sub paths.
-     * 
+     *
      * @param subpath the subpath under Tmp folder
      * @return the full file path (no check on existing is done)
      */
@@ -187,7 +187,7 @@ public final class PropertiesUtils {
 
     /**
      * Read the Yaml file and return the object read
-     * 
+     *
      * @param yamlFile
      * @param clasz the class representing the target object
      * @return the object read
@@ -204,7 +204,7 @@ public final class PropertiesUtils {
 
     /**
      * Read the Yaml file and return the object read
-     * 
+     *
      * @param yamlPath
      * @param clasz the class representing the target object
      * @return the object read

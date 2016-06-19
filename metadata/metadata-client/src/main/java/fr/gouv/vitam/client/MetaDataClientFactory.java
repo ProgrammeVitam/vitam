@@ -33,9 +33,11 @@ import fr.gouv.vitam.common.ParametersChecker;
  */
 public class MetaDataClientFactory {
     /**
-     * @param server url
+     * @param url server url
      * @return new MetaDataClient
      */
+    // FIXME REVIEW very bad way: you should not ask to the user to pass you the url bu the factory should discover it
+    // (see Logbook client factory)
     public MetaDataClient create(String url) {
         ParametersChecker.checkParameter("Server Url can not be null", url);
         return new MetaDataClient(url);

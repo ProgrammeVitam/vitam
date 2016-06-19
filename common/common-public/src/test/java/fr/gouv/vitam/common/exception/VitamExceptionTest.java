@@ -35,10 +35,9 @@ public class VitamExceptionTest {
 
     @Test
     public void testConstruct() {
-        VitamException vitamException0 = new VitamException();
+        VitamException vitamException0 = new VitamException("");
         VitamException vitamException1 = new VitamException("", vitamException0);
         assertEquals("fr.gouv.vitam.common.exception.VitamException: ", vitamException1.toString());
-        vitamException0 = new VitamException("");
         vitamException1 = new VitamException("", vitamException0, false, false);
         assertEquals("", vitamException1.getMessage());
         vitamException0 = new VitamException("");

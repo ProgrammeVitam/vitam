@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -82,7 +82,7 @@ public class MetaDataImplTest {
 
     @Test(expected = InvalidParseOperationException.class)
     public void givenInsertUnitWhenDuplicateEntryThenThrowMetaDataAlreadyExistException() throws Exception {
-        when(request.execRequest(anyObject(), anyObject())).thenThrow(new InvalidParseOperationException());
+        when(request.execRequest(anyObject(), anyObject())).thenThrow(new InvalidParseOperationException(""));
 
         metaDataImpl = new MetaDataImpl(null, mongoDbAccessFactory, dbRequestFactory);
         metaDataImpl.insertUnit(buildQueryWithOptions("", dataInsert));

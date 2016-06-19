@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.exception;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 
@@ -36,16 +37,15 @@ public class InvalidGuidOperationExceptionTest {
     public void testConstruct() {
         InvalidGuidOperationException invalidGuidOperationException0 = new InvalidGuidOperationException("");
         assertEquals("", invalidGuidOperationException0.getMessage());
-        invalidGuidOperationException0 = new InvalidGuidOperationException();
+        invalidGuidOperationException0 = new InvalidGuidOperationException("");
         InvalidGuidOperationException invalidGuidOperationException1 =
             new InvalidGuidOperationException("XQI03Y6V^", invalidGuidOperationException0, true, true);
         assertEquals("fr.gouv.vitam.common.exception.InvalidGuidOperationException: XQI03Y6V^",
             invalidGuidOperationException1.toString());
-        invalidGuidOperationException0 = new InvalidGuidOperationException();
+        invalidGuidOperationException0 = new InvalidGuidOperationException("");
         invalidGuidOperationException1 = new InvalidGuidOperationException(invalidGuidOperationException0);
-        assertEquals("fr.gouv.vitam.common.exception.InvalidGuidOperationException",
-            invalidGuidOperationException1.getMessage());
-        invalidGuidOperationException0 = new InvalidGuidOperationException();
+        assertNotNull(invalidGuidOperationException1.getMessage());
+        invalidGuidOperationException0 = new InvalidGuidOperationException("");
         invalidGuidOperationException1 =
             new InvalidGuidOperationException("XQI03Y6V^", invalidGuidOperationException0);
         assertEquals("XQI03Y6V^", invalidGuidOperationException1.getMessage());

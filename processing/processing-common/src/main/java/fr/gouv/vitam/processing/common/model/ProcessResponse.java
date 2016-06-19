@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -81,6 +81,7 @@ public class ProcessResponse implements EngineResponse {
     @Override
     public List<String> getMessages() {
         if (messages == null) {
+            // FIXME REVIEW use SingletonUtils
             return new ArrayList<>();
         }
         return messages;
@@ -103,6 +104,7 @@ public class ProcessResponse implements EngineResponse {
 
     public Map<String, List<EngineResponse>> getStepResponses() {
         if (stepResponses == null) {
+            // FIXME REVIEW use SingletonUtils
             return new HashMap<>();
         }
         return stepResponses;
@@ -114,6 +116,7 @@ public class ProcessResponse implements EngineResponse {
      * @param stepResponses the stepResponses to set
      */
     public ProcessResponse setStepResponses(Map<String, List<EngineResponse>> stepResponses) {
+        // FIXME REVIEW check null since assigned after
         if (stepResponses != null && !stepResponses.isEmpty()) {
             stepResponses.forEach((actionKey, responses) -> status = getGlobalProcessStatusCode(responses));
         }

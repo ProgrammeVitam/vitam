@@ -62,6 +62,8 @@ public class UploadResponseDTO {
     public String getFileName() {
         return fileName;
     }
+    // FIXME REVIEW Null Check
+    // FIXME REVIEW Comment
 
     public void setFileName(String fileName) {
         this.fileName = fileName;

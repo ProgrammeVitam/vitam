@@ -34,13 +34,6 @@ public class InvalidGuidOperationException extends VitamException {
     private static final long serialVersionUID = 1191923223282003583L;
 
     /**
-     * Empty Constructor
-     */
-    public InvalidGuidOperationException() {
-        // Empty constructor
-    }
-
-    /**
      * @param arg0
      */
     public InvalidGuidOperationException(final String arg0) {

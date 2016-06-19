@@ -38,6 +38,8 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerException;
  *
  */
 public class BasicVitamServer implements VitamServer {
+    private static final String A_PROBLEM_OCCURRED_WHILE_ATTEMPTING_TO_START_THE_SERVER =
+        "A problem occurred while attempting to start the server";
     private final int port;
     private Handler handler;
     private final Server server;
@@ -71,13 +73,13 @@ public class BasicVitamServer implements VitamServer {
         try {
             getServer().join();
         } catch (final Exception exc) {
-            throw new VitamApplicationServerException("A problem occurred while attempting to start the server", exc);
+            throw new VitamApplicationServerException(A_PROBLEM_OCCURRED_WHILE_ATTEMPTING_TO_START_THE_SERVER, exc);
         }
     }
 
     /**
      * For Junit tests, starts only, not join
-     * 
+     *
      * @throws VitamApplicationServerException
      */
     public void start() throws VitamApplicationServerException {
@@ -87,13 +89,13 @@ public class BasicVitamServer implements VitamServer {
         try {
             getServer().start();
         } catch (final Exception exc) {
-            throw new VitamApplicationServerException("A problem occurred while attempting to start the server", exc);
+            throw new VitamApplicationServerException(A_PROBLEM_OCCURRED_WHILE_ATTEMPTING_TO_START_THE_SERVER, exc);
         }
     }
 
     /**
      * For Junit tests, stops the server
-     * 
+     *
      * @throws VitamApplicationServerException
      */
     public void stop() throws VitamApplicationServerException {
@@ -103,7 +105,7 @@ public class BasicVitamServer implements VitamServer {
         try {
             getServer().stop();
         } catch (final Exception exc) {
-            throw new VitamApplicationServerException("A problem occurred while attempting to start the server", exc);
+            throw new VitamApplicationServerException(A_PROBLEM_OCCURRED_WHILE_ATTEMPTING_TO_START_THE_SERVER, exc);
         }
     }
 

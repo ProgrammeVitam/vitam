@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -29,12 +29,10 @@ import static com.mongodb.client.model.Indexes.hashed;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.bson.BsonDocument;
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
-import org.bson.json.JsonWriterSettings;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -75,6 +73,9 @@ import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
  *
  */
 public final class MongoDbAccessImpl implements MongoDbAccess {
+    private static final String ELEMENT_ALREADY_EXISTS = " (element already exists)";
+    private static final String TIMEOUT_OPERATION = " (timeout operation)";
+    private static final String EXISTS_ISSUE = "Exists issue";
     /**
      * SLICE command to optimize listing
      */
@@ -279,15 +280,11 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
         } catch (final MongoException e) {
             switch (getErrorCategory(e)) {
                 case EXECUTION_TIMEOUT:
-                    throw new LogbookDatabaseException("Exists issue" + " (timeout operation)", e);
+                    throw new LogbookDatabaseException(EXISTS_ISSUE + TIMEOUT_OPERATION, e);
                 case UNCATEGORIZED:
-                    throw new LogbookDatabaseException(
-                        "Exists issue" + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() +
-                            ")",
-                        e);
                 default:
                     throw new LogbookDatabaseException(
-                        "Exists issue" + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() +
+                        EXISTS_ISSUE + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() +
                             ")",
                         e);
             }
@@ -330,12 +327,8 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
         } catch (final MongoException e) {
             switch (getErrorCategory(e)) {
                 case EXECUTION_TIMEOUT:
-                    throw new LogbookDatabaseException("Select issue" + " (timeout operation)", e);
+                    throw new LogbookDatabaseException("Select issue" + TIMEOUT_OPERATION, e);
                 case UNCATEGORIZED:
-                    throw new LogbookDatabaseException(
-                        "Select issue" + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() +
-                            ")",
-                        e);
                 default:
                     throw new LogbookDatabaseException(
                         "Select issue" + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() +
@@ -360,12 +353,8 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
         } catch (final MongoException e) {
             switch (getErrorCategory(e)) {
                 case EXECUTION_TIMEOUT:
-                    throw new LogbookDatabaseException("Select issue" + " (timeout operation)", e);
+                    throw new LogbookDatabaseException("Select issue" + TIMEOUT_OPERATION, e);
                 case UNCATEGORIZED:
-                    throw new LogbookDatabaseException(
-                        "Select issue" + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() +
-                            ")",
-                        e);
                 default:
                     throw new LogbookDatabaseException(
                         "Select issue" + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() +
@@ -449,28 +438,6 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
         return find.iterator();
     }
 
-    private static final JsonWriterSettings JWS = new JsonWriterSettings(true);
-
-    /**
-     * Utility to get Bson to String (Json format)
-     *
-     * @param bson
-     * @param indent if True, output will be indented.
-     * @return the String Json representation of the Bson
-     */
-    public static String bsonToString(Bson bson, boolean indent) {
-        if (bson == null) {
-            return "";
-        }
-        if (indent) {
-            return bson.toBsonDocument(BsonDocument.class,
-                MongoClient.getDefaultCodecRegistry()).toJson(JWS);
-        } else {
-            return bson.toBsonDocument(BsonDocument.class,
-                MongoClient.getDefaultCodecRegistry()).toJson();
-        }
-    }
-
     @Override
     public void createLogbookOperation(LogbookOperationParameters operationItem)
         throws LogbookDatabaseException, LogbookAlreadyExistsException {
@@ -480,14 +447,10 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
         } catch (final MongoException e) {
             switch (getErrorCategory(e)) {
                 case DUPLICATE_KEY:
-                    throw new LogbookAlreadyExistsException(CREATION_ISSUE + " (element already exists)", e);
+                    throw new LogbookAlreadyExistsException(CREATION_ISSUE + ELEMENT_ALREADY_EXISTS, e);
                 case EXECUTION_TIMEOUT:
-                    throw new LogbookDatabaseException(CREATION_ISSUE + " (timeout operation)", e);
+                    throw new LogbookDatabaseException(CREATION_ISSUE + TIMEOUT_OPERATION, e);
                 case UNCATEGORIZED:
-                    throw new LogbookDatabaseException(
-                        CREATION_ISSUE + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() +
-                            ")",
-                        e);
                 default:
                     throw new LogbookDatabaseException(
                         CREATION_ISSUE + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() +
@@ -506,14 +469,10 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
         } catch (final MongoException e) {
             switch (getErrorCategory(e)) {
                 case DUPLICATE_KEY:
-                    throw new LogbookAlreadyExistsException(CREATION_ISSUE + " (element already exists)", e);
+                    throw new LogbookAlreadyExistsException(CREATION_ISSUE + ELEMENT_ALREADY_EXISTS, e);
                 case EXECUTION_TIMEOUT:
-                    throw new LogbookDatabaseException(CREATION_ISSUE + " (timeout operation)", e);
+                    throw new LogbookDatabaseException(CREATION_ISSUE + TIMEOUT_OPERATION, e);
                 case UNCATEGORIZED:
-                    throw new LogbookDatabaseException(
-                        CREATION_ISSUE + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() +
-                            ")",
-                        e);
                 default:
                     throw new LogbookDatabaseException(
                         CREATION_ISSUE + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() +
@@ -538,11 +497,8 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
         } catch (final MongoException e) {
             switch (getErrorCategory(e)) {
                 case EXECUTION_TIMEOUT:
-                    throw new LogbookDatabaseException(UPDATE_ISSUE + " (timeout operation)", e);
+                    throw new LogbookDatabaseException(UPDATE_ISSUE + TIMEOUT_OPERATION, e);
                 case UNCATEGORIZED:
-                    throw new LogbookDatabaseException(
-                        UPDATE_ISSUE + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() + ")",
-                        e);
                 default:
                     throw new LogbookDatabaseException(
                         UPDATE_ISSUE + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() + ")",
@@ -566,11 +522,8 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
         } catch (final MongoException e) {
             switch (getErrorCategory(e)) {
                 case EXECUTION_TIMEOUT:
-                    throw new LogbookDatabaseException(UPDATE_ISSUE + " (timeout operation)", e);
+                    throw new LogbookDatabaseException(UPDATE_ISSUE + TIMEOUT_OPERATION, e);
                 case UNCATEGORIZED:
-                    throw new LogbookDatabaseException(
-                        UPDATE_ISSUE + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() + ")",
-                        e);
                 default:
                     throw new LogbookDatabaseException(
                         UPDATE_ISSUE + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() + ")",
@@ -597,14 +550,10 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
         } catch (final MongoException e) {
             switch (getErrorCategory(e)) {
                 case DUPLICATE_KEY:
-                    throw new LogbookAlreadyExistsException(CREATION_ISSUE + " (element already exists)", e);
+                    throw new LogbookAlreadyExistsException(CREATION_ISSUE + ELEMENT_ALREADY_EXISTS, e);
                 case EXECUTION_TIMEOUT:
-                    throw new LogbookDatabaseException(CREATION_ISSUE + " (timeout operation)", e);
+                    throw new LogbookDatabaseException(CREATION_ISSUE + TIMEOUT_OPERATION, e);
                 case UNCATEGORIZED:
-                    throw new LogbookDatabaseException(
-                        CREATION_ISSUE + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() +
-                            ")",
-                        e);
                 default:
                     throw new LogbookDatabaseException(
                         CREATION_ISSUE + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() +
@@ -632,14 +581,10 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
         } catch (final MongoException e) {
             switch (getErrorCategory(e)) {
                 case DUPLICATE_KEY:
-                    throw new LogbookAlreadyExistsException(CREATION_ISSUE + " (element already exists)", e);
+                    throw new LogbookAlreadyExistsException(CREATION_ISSUE + ELEMENT_ALREADY_EXISTS, e);
                 case EXECUTION_TIMEOUT:
-                    throw new LogbookDatabaseException(CREATION_ISSUE + " (timeout operation)", e);
+                    throw new LogbookDatabaseException(CREATION_ISSUE + TIMEOUT_OPERATION, e);
                 case UNCATEGORIZED:
-                    throw new LogbookDatabaseException(
-                        CREATION_ISSUE + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() +
-                            ")",
-                        e);
                 default:
                     throw new LogbookDatabaseException(
                         CREATION_ISSUE + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() +
@@ -670,11 +615,8 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
         } catch (final MongoException e) {
             switch (getErrorCategory(e)) {
                 case EXECUTION_TIMEOUT:
-                    throw new LogbookDatabaseException(UPDATE_ISSUE + " (timeout operation)", e);
+                    throw new LogbookDatabaseException(UPDATE_ISSUE + TIMEOUT_OPERATION, e);
                 case UNCATEGORIZED:
-                    throw new LogbookDatabaseException(
-                        UPDATE_ISSUE + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() + ")",
-                        e);
                 default:
                     throw new LogbookDatabaseException(
                         UPDATE_ISSUE + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() + ")",
@@ -704,11 +646,8 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
         } catch (final MongoException e) {
             switch (getErrorCategory(e)) {
                 case EXECUTION_TIMEOUT:
-                    throw new LogbookDatabaseException(UPDATE_ISSUE + " (timeout operation)", e);
+                    throw new LogbookDatabaseException(UPDATE_ISSUE + TIMEOUT_OPERATION, e);
                 case UNCATEGORIZED:
-                    throw new LogbookDatabaseException(
-                        UPDATE_ISSUE + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() + ")",
-                        e);
                 default:
                     throw new LogbookDatabaseException(
                         UPDATE_ISSUE + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() + ")",

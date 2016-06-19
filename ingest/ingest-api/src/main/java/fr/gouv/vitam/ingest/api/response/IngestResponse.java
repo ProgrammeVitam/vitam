@@ -31,6 +31,7 @@ import java.util.List;
 
 import fr.gouv.vitam.workspace.api.ContentAddressableStorage;
 
+// TODO REVIEW Comment
 public class IngestResponse {
 
     private String cause;
@@ -41,6 +42,9 @@ public class IngestResponse {
     /*
      * if error occured during any process ( unzip, seda anlysis ..)
      */
+    // FIXME REVIEW Do not use Object but Simple types (Boolean -> boolean, Long -> long, ...)
+    // FIXME REVIEW Null Check
+
     private Boolean errorOccured;
     private Long numberOfNumericalObject;
     // number of elements in the received SIP

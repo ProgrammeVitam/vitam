@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -37,6 +37,8 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
  *
  */
 public class InsertParser extends RequestParser {
+
+    protected static final int DATA_POS = 3;
 
     VarNameInsertAdapter insertAdapter;
 
@@ -81,6 +83,7 @@ public class InsertParser extends RequestParser {
      * @throws InvalidParseOperationException
      */
     @Override
+    @Deprecated
     public void parse(final String request) throws InvalidParseOperationException {
         parseString(request);
         internalParseInsert();
@@ -92,8 +95,8 @@ public class InsertParser extends RequestParser {
     private void internalParseInsert() throws InvalidParseOperationException {
         if (rootNode.isArray()) {
             // should be 4, but each could be empty ( '{}' )
-            if (rootNode.size() > 3) {
-                dataParse(rootNode.get(3));
+            if (rootNode.size() > DATA_POS) {
+                dataParse(rootNode.get(DATA_POS));
             }
         } else {
             // not as array but composite as { $roots: root, $query : query,

@@ -74,9 +74,11 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 @Produces("application/json")
 @javax.ws.rs.ApplicationPath("webresources")
 public class UploadServiceImpl extends AbstractService implements UploadService {
+    // FIXME REVIEW Comment
 
     private static VitamLogger VITAM_LOGGER = VitamLoggerFactory.getInstance(UploadServiceImpl.class);
     private static Logger LOGGER = LoggerFactory.getLogger(UploadServiceImpl.class);
+    // FIXME REVIEW Remove non Vitam Logger and Fix POM
 
 
     private static final String INGEST_MODULE_DIR = "ingest-core";
@@ -162,6 +164,8 @@ public class UploadServiceImpl extends AbstractService implements UploadService 
             final String sPort = properties.getProperty("ingest.core.logbook.port");
             final int port = Integer.parseInt(sPort);
 
+            // TODO REVIEW Debug not info
+
             VITAM_LOGGER.info("call journal...");
             // Récupération de la classe paramètre avec ou sans argument
             parameters = buildLogBookParameters(eventIdentifier, eventType, eventIdentifierProcess,
@@ -222,6 +226,7 @@ public class UploadServiceImpl extends AbstractService implements UploadService 
             final UploadResponseDTO uploadResponseDTO =
                 getUploadResponseDTO(fileDetail.getFileName(), 500, e.getMessage(),
                     "500", "upload failed", "500", "error ingest");
+            // FIXME REVIEW No printStackTrace
             e.printStackTrace();
             response = Response.ok(uploadResponseDTO, "application/json").build();
 
@@ -229,6 +234,7 @@ public class UploadServiceImpl extends AbstractService implements UploadService 
             if (client != null) {
                 client.close();
             }
+            // FIXME REVIEW Never ever returns something in finally
             return response;
         }
     }
@@ -296,6 +302,8 @@ public class UploadServiceImpl extends AbstractService implements UploadService 
         LogbookTypeProcess eventTypeProcess, LogbookOutcome outcome,
         String outcomeDetailMessage, String eventIdentifierRequest) {
         // Récupération de la classe paramètre avec ou sans argument
+        // FIXME REVIEW use correct constructor
+
         final LogbookParameters parameters =
             LogbookParametersFactory.newLogbookOperationParameters(eventIdentifier,
                 eventType, eventIdentifierProcess, eventTypeProcess,

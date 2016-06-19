@@ -1,3 +1,29 @@
+/*******************************************************************************
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ *
+ * contact.vitam@culture.gouv.fr
+ *
+ * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
+ * high volumetry securely and efficiently.
+ *
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
+ * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ *
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
+ *
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
+ *
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
+ * accept its terms.
+ *******************************************************************************/
 package fr.gouv.vitam.client;
 
 import javax.ws.rs.client.Client;
@@ -15,7 +41,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 // TODO REVIEW comment
 // TODO REVIEW missing package-info
-// TODO REVIEW pom.xml : junit + mockito-all + jersey.test => test
 public class MetaDataClient {
 
     private final Client client;
@@ -37,9 +62,9 @@ public class MetaDataClient {
      * @return : response as String
      * @throws InvalidParseOperationException
      */
-    // TODO REVIEW since could be Unit or ObjectGroup, name should reflect this (here Unit)
+    // FIXME REVIEW since could be Unit or ObjectGroup, name should reflect this (here Unit)
     public String insert(String insertQuery) throws InvalidParseOperationException {
-        // TODO REVIEW check null
+        // FIXME REVIEW check null
         final Response response = client.target(url).path("units").request(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .post(Entity.entity(insertQuery, MediaType.APPLICATION_JSON), Response.class);
@@ -62,7 +87,7 @@ public class MetaDataClient {
     /**
      * @return : status of metadata server 200 : server is alive
      */
-    // TODO REVIEW What was required at first was: empty response with code 204
+    // TODO REVIEW See Logbook REST
     public Response status() {
         return client.target(url).path("status").request().get();
     }

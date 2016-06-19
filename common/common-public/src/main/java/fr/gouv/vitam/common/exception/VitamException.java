@@ -33,13 +33,6 @@ public class VitamException extends Exception {
     private static final long serialVersionUID = 1939529482757363926L;
 
     /**
-     * Empty constructor
-     */
-    public VitamException() {
-        // Empty constructor
-    }
-
-    /**
      * @param message associated message
      */
     public VitamException(String message) {

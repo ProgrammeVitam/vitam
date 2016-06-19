@@ -58,9 +58,10 @@ public class ProcessManagementApplication {
 
     private static final String CONFIG_FILE_IS_A_MANDATORY_ARGUMENT = "Config file is a mandatory argument";
 
+    // FIXME REVIEW check null
     /**
      * Start a service of ProcessManagement with the args as config
-     * 
+     *
      * @param args as String
      */
     public static void main(String[] args) {
@@ -75,13 +76,14 @@ public class ProcessManagementApplication {
 
     /**
      * read the configured parameters of lauched server from the file
-     * 
+     *
      * @param arguments : name of configured file
      * @throws RuntimeException
      */
     public void configure(String... arguments) throws RuntimeException {
         if (arguments.length >= 1) {
             try {
+                // FIXME REVIEW Use Common PropertyUtils
                 final FileReader yamlFile = new FileReader(new File(arguments[0]));
                 final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
                 ServerConfiguration configuration = new ServerConfiguration();
@@ -111,7 +113,7 @@ public class ProcessManagementApplication {
 
     /**
      * run a server instance with the configuration and port
-     * 
+     *
      * @param configuration as ServerConfiguration
      * @param serverPort port number of launched server
      * @throws Exception
@@ -135,7 +137,7 @@ public class ProcessManagementApplication {
 
     /**
      * stop the lauched server
-     * 
+     *
      * @throws Exception
      */
     public void stop() throws Exception {

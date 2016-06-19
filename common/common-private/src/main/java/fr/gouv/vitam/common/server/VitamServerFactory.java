@@ -38,6 +38,10 @@ public class VitamServerFactory {
      */
     public static final int DEFAULT_PORT = 8082;
 
+    private VitamServerFactory() {
+        // Empty constructor
+    }
+
     /**
      *
      * @return a VitamServer with the default port

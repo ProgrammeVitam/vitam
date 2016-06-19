@@ -34,13 +34,6 @@ public class LogbookDatabaseException extends LogbookException {
     private static final long serialVersionUID = 7446810988407086170L;
 
     /**
-     * Empty constructor
-     */
-    public LogbookDatabaseException() {
-        // Empty constructor
-    }
-
-    /**
      * @param message associated message
      */
     public LogbookDatabaseException(String message) {

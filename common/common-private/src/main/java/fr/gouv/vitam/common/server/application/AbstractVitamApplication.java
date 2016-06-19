@@ -39,7 +39,7 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 
 /**
  * Abstract implementation of VitamApplication which handle common tasks for all sub-implementation
- * 
+ *
  * @param <A> VitamApplication final class
  * @param <C> VitamApplicationConfiguration final class
  */

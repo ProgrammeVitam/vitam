@@ -29,12 +29,15 @@ package fr.gouv.vitam.ingest.core.exception;
 /**
  * Created by bsui on 12/05/16.
  */
+// FIXME REVIEW Vitam Exception
 public class IngestException extends Exception {
 
     /**
      *
      */
     private static final long serialVersionUID = -7770252753759091537L;
+    // FIXME REVIEW ??
+
     private final String code = "";
 
     /**
@@ -52,4 +55,6 @@ public class IngestException extends Exception {
     public IngestException(String message) {
         super(message);
     }
+    // FIXME REVIEW and others ?
+
 }

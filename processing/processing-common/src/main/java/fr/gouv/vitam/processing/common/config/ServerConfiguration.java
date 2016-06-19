@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -49,6 +49,7 @@ public class ServerConfiguration {
      * @param urlMetada the urlMetada to set
      */
     public ServerConfiguration setUrlMetada(String urlMetada) {
+        // FIXME REVIEW null check
         this.urlMetada = urlMetada;
         return this;
     }
@@ -67,6 +68,7 @@ public class ServerConfiguration {
      * @param urlWorkspace the urlWorkspace to set
      */
     public ServerConfiguration setUrlWorkspace(String urlWorkspace) {
+        // FIXME REVIEW null check
         this.urlWorkspace = urlWorkspace;
         return this;
     }

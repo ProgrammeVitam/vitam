@@ -67,13 +67,13 @@ public class SystemPropertyUtilTest {
         assertTrue(SystemPropertyUtil.isFileEncodingCorrect());
         SystemPropertyUtil.refresh();
         assertTrue(SystemPropertyUtil.isFileEncodingCorrect());
-        String config = SystemPropertyUtil.getVitamConfigFolder();
+        final String config = SystemPropertyUtil.getVitamConfigFolder();
         assertNotNull(config);
-        String data = SystemPropertyUtil.getVitamDataFolder();
+        final String data = SystemPropertyUtil.getVitamDataFolder();
         assertNotNull(data);
-        String log = SystemPropertyUtil.getVitamLogFolder();
+        final String log = SystemPropertyUtil.getVitamLogFolder();
         assertNotNull(log);
-        String tmp = SystemPropertyUtil.getVitamTmpFolder();
+        final String tmp = SystemPropertyUtil.getVitamTmpFolder();
         assertNotNull(tmp);
         SystemPropertyUtil.set(SystemPropertyUtil.VITAM_CONFIG_FOLDER, KEY_VALUE);
         SystemPropertyUtil.set(SystemPropertyUtil.VITAM_DATA_FOLDER, KEY_VALUE);

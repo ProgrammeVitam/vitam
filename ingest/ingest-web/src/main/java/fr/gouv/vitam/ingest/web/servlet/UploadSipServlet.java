@@ -167,6 +167,8 @@ public class UploadSipServlet extends HttpServlet {
                     final boolean isInMemory = fi.isInMemory();
                     final long sizeInBytes = fi.getSize();
                     // Write the file
+                    // FIXME REVIEW So you write the file in the WebApp !!! Why ???
+
                     if (fileName.lastIndexOf("\\") >= 0) {
                         file = new File(filePath + "/" +
                             fileName.substring(fileName.lastIndexOf("\\")));
@@ -196,6 +198,8 @@ public class UploadSipServlet extends HttpServlet {
 
         final WebTarget webTargetUpload =
             clientUpload.target(new URI(properties.getProperty("ingest.web.core.upload.url")));
+
+        // FIXME REVIEW Probably not Multipart ! since only one argument (File)
 
         final MultiPart multiPart = new MultiPart();
         multiPart.setMediaType(MediaType.MULTIPART_FORM_DATA_TYPE);

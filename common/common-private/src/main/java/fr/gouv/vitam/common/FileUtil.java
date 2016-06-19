@@ -43,6 +43,10 @@ public final class FileUtil {
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(FileUtil.class);
 
+    private FileUtil() {
+        // Unused
+    }
+
     /**
      * @param filename
      * @return the content of the file
@@ -136,9 +140,5 @@ public final class FileUtil {
         }
         delereRecursiveInternal(file);
         file.delete();
-    }
-
-    private FileUtil() {
-        // Unused
     }
 }

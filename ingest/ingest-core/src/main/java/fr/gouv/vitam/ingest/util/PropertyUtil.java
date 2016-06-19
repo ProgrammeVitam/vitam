@@ -42,6 +42,8 @@ public class PropertyUtil {
     public static final String PROPERTY_FILE_UPLOAD_DIR = "ingest.core.uploaded.dir";
     private static final String INGEST_MODULE_DIR = "ingest-core";
 
+    // FIXME REVIEW Use Common PropertyUtils
+
     private static PropertyUtil instance;
 
     private PropertyUtil() {}

@@ -62,6 +62,7 @@ import fr.gouv.vitam.workspace.common.ParametersChecker;
 /**
  * Workspace client which calls rest services
  */
+// FIXME REVIEW Since Factory => class and constructors as package protected
 public class WorkspaceClient implements ContentAddressableStorage {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkspaceClient.class);
@@ -75,6 +76,7 @@ public class WorkspaceClient implements ContentAddressableStorage {
      *
      * @param serviceUrl
      */
+    // FIXME REVIEW User should not specify such url: the factory should handle it (see Logbook client)
     public WorkspaceClient(String serviceUrl) {
         this.serviceUrl = serviceUrl + RESOURCE_PATH;
 
@@ -192,7 +194,7 @@ public class WorkspaceClient implements ContentAddressableStorage {
         return Response.Status.OK.getStatusCode() == response.getStatus();
     }
 
-    // TODO REVIEW m=we might change the contract of the implementation later on (POST on /objects/name directly in
+    // FIXME REVIEW change the contract of the implementation later on (POST on /objects/name directly in
     // order to prevent multipart)
     @Override
     public void putObject(String containerName, String objectName, InputStream stream)
@@ -286,6 +288,7 @@ public class WorkspaceClient implements ContentAddressableStorage {
         }
     }
 
+    // FIXME REVIEW add folderName and name to unzipObject
     @Override
     public void unzipSipObject(String containerName, InputStream zipInputStreamSipObject)
         throws ContentAddressableStorageServerException {

@@ -1,26 +1,26 @@
 /**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- * 
+ *
  * consultation-vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
- * 
+ *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
  * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- * 
+ *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
- * 
+ *
  * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- * 
+ *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
@@ -151,7 +151,11 @@ public class DbRequestTest {
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         if (DROP) {
-            MongoDbAccess.reset();
+            for (final VitamCollections col : VitamCollections.values()) {
+                if (col.getCollection() != null) {
+                    col.getCollection().drop();
+                }
+            }
         }
         mongoDbAccess.closeFinal();
         mongod.stop();
@@ -239,7 +243,7 @@ public class DbRequestTest {
             executeRequest(dbRequest, deleteParser);
         } finally {
             // clean
-            VitamCollections.Cunit.getCollection().deleteOne(new Document(VitamDocument.ID, uuid.toString()));
+            VitamCollections.C_UNIT.getCollection().deleteOne(new Document(VitamDocument.ID, uuid.toString()));
         }
     }
 
@@ -326,7 +330,7 @@ public class DbRequestTest {
             executeRequest(dbRequest, requestParser);
         } finally {
             // clean
-            VitamCollections.Cunit.getCollection().deleteOne(new Document(VitamDocument.ID, uuid.toString()));
+            VitamCollections.C_UNIT.getCollection().deleteOne(new Document(VitamDocument.ID, uuid.toString()));
         }
     }
 
@@ -428,7 +432,7 @@ public class DbRequestTest {
             executeRequest(dbRequest, requestParser);
         } finally {
             // clean
-            VitamCollections.Cunit.getCollection().deleteOne(new Document(VitamDocument.ID, uuid.toString()));
+            VitamCollections.C_UNIT.getCollection().deleteOne(new Document(VitamDocument.ID, uuid.toString()));
         }
     }
 
@@ -436,7 +440,7 @@ public class DbRequestTest {
      * Test method for
      * {@link fr.gouv.vitam.database.collections.DbRequest#execRequest(fr.gouv.vitam.request.parser.RequestParser, fr.gouv.vitam.database.collections.Result)}
      * .
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -560,8 +564,8 @@ public class DbRequestTest {
             executeRequest(dbRequest, requestParser);
         } finally {
             // clean
-            VitamCollections.Cunit.getCollection().deleteOne(new Document(VitamDocument.ID, uuid.toString()));
-            VitamCollections.Cunit.getCollection().deleteOne(new Document(VitamDocument.ID, uuid2.toString()));
+            VitamCollections.C_UNIT.getCollection().deleteOne(new Document(VitamDocument.ID, uuid.toString()));
+            VitamCollections.C_UNIT.getCollection().deleteOne(new Document(VitamDocument.ID, uuid2.toString()));
         }
     }
 
@@ -574,12 +578,12 @@ public class DbRequestTest {
 
         requestParser = RequestParserHelper.getParser(createInsertRequestWithUUID(uuid), mongoDbVarNameAdapter);
         executeRequest(dbRequest, requestParser);
-        assertEquals(1, VitamCollections.Cunit.getCollection().count());
+        assertEquals(1, VitamCollections.C_UNIT.getCollection().count());
 
         requestParser =
             RequestParserHelper.getParser(createInsertChild2ParentRequest(uuid2, uuid), mongoDbVarNameAdapter);
         executeRequest(dbRequest, requestParser);
-        assertEquals(2, VitamCollections.Cunit.getCollection().count());
+        assertEquals(2, VitamCollections.C_UNIT.getCollection().count());
     }
 
     /**
@@ -855,7 +859,11 @@ public class DbRequestTest {
 
     @Test
     public void testMongoDbAccess() {
-        MongoDbAccess.reset();
+        for (final VitamCollections col : VitamCollections.values()) {
+            if (col.getCollection() != null) {
+                col.getCollection().drop();
+            }
+        }
         final MongoDatabase db = mongoDbAccess.getMongoDatabase();
         assertEquals(0, db.getCollection("Unit").count());
         assertEquals(0, db.getCollection("Objectgroup").count());
