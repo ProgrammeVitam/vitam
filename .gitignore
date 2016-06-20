@@ -4,6 +4,8 @@ build
 target
 .classpath
 .project
+npm-debug.log
 .settings
+**/node_modules/
 **/evosuite-tests/
 *.retry

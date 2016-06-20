@@ -45,6 +45,12 @@ public class ProcessResponse implements EngineResponse {
      * List of functional messages
      */
     private List<String> messages;
+
+    /**
+     * Message identifier
+     */
+    private String messageId;
+
     /**
      * List of steps 's responses
      *
@@ -150,10 +156,44 @@ public class ProcessResponse implements EngineResponse {
     }
 
     /**
+     * getMessageFromResponse return message id from list of response
+     * @param responses list of step response
+     * @return message id 
+     */
+    public static String getMessageFromResponse(List<EngineResponse> responses) {
+        String messageId = "";
+
+        if (responses != null) {
+            for (final EngineResponse response : responses) {
+                if(!response.getMessageIdentifier().isEmpty()) {
+                    messageId = response.getMessageIdentifier();
+                }
+            }
+        }
+        return messageId;
+    }
+
+    /**
      * implementation of getValue() of EngineResponse API class
      */
     @Override
     public String getValue() {
         return status.value();
+    }
+
+    @Override
+    public String getMessageIdentifier() {
+        if (messageId == null) {
+            return "";
+        }
+        return messageId;
+    }
+
+    @Override
+    public EngineResponse setMessageIdentifier(String message) {
+        if (message == null) {
+            this.messageId = message;
+        }
+        return this;
     }
 }

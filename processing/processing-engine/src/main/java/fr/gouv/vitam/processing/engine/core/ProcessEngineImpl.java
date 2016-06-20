@@ -139,9 +139,13 @@ public class ProcessEngineImpl implements ProcessEngine {
                     final List<EngineResponse> stepResponse =
                         processDistributor.distribute(workParams, step, workflowId);
                     final StatusCode stepStatus = processResponse.getGlobalProcessStatusCode(stepResponse);
+                    final String messageIdentifier = ProcessResponse.getMessageFromResponse(stepResponse);
                     stepsResponses.put(step.getStepName(), stepResponse);
-                    if (stepStatus.equals(StatusCode.FATAL)) {
+                    if (stepStatus.equals(StatusCode.KO)) {
                         break;
+                    }
+                    if (!messageIdentifier.isEmpty()) {
+                        parameters.putParameterValue(LogbookParameterName.objectIdentifierIncome, messageIdentifier);
                     }
 
                     parameters.putParameterValue(LogbookParameterName.eventTypeProcess, stepStatus.value());

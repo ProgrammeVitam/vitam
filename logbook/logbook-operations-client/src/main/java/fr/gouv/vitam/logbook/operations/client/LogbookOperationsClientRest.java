@@ -30,26 +30,32 @@ package fr.gouv.vitam.logbook.operations.client;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.client.StatusMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.helper.LogbookParametersHelper;
 
 /**
@@ -59,6 +65,7 @@ public class LogbookOperationsClientRest implements LogbookClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookOperationsClientRest.class);
     private static final String RESOURCE_PATH = "/logbook/v1";
     private static final String OPERATIONS_URL = "/operations";
+    private static final String OPERATION_ID_URI = "/{id_op}";
     private static final String STATUS = "/status";
     private static final ServerIdentity SERVER_IDENTITY = ServerIdentity.getInstance();
 
@@ -155,5 +162,40 @@ public class LogbookOperationsClientRest implements LogbookClient {
                 LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
                 throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
         }
+    }
+
+    @Override
+    public JsonNode selectOperation(String select) throws LogbookClientException, InvalidParseOperationException {
+        final Response response = client.target(serviceUrl).path(OPERATIONS_URL).request(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON).header("X-Http-Method-Override", "GET")
+                .post(Entity.entity(select, MediaType.APPLICATION_JSON), Response.class);
+        
+        if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+            LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+            throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+        } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
+            LOGGER.error("Illegal Entry Parameter");
+            throw new LogbookClientException("Request procondition failed");
+        }
+        
+        return JsonHandler.getFromString(response.readEntity(String.class));
+    }
+
+    @Override
+    public JsonNode selectOperationbyId(String processId) throws LogbookClientException, InvalidParseOperationException {
+        final Response response = client.target(serviceUrl).path(OPERATIONS_URL + "/" + processId).request()
+            
+            .accept(MediaType.APPLICATION_JSON).header("X-Http-Method-Override", "GET")
+            .post(Entity.entity(LogbookParametersFactory.newLogbookOperationParameters(), MediaType.APPLICATION_JSON), Response.class);
+    
+    if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+        LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+        throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+    } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
+        LOGGER.error("Illegal Entry Parameter" );
+        throw new LogbookClientException("Request procondition failed");
+    }
+  
+    return JsonHandler.getFromString(response.readEntity(String.class));
     }
 }

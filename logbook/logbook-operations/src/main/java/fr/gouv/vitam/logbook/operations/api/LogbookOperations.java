@@ -26,7 +26,13 @@
  */
 package fr.gouv.vitam.logbook.operations.api;
 
+import java.util.List;
+
+import com.fasterxml.jackson.databind.JsonNode;
+
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
@@ -57,5 +63,25 @@ public interface LogbookOperations {
      *         or writing to the database
      */
     void update(LogbookOperationParameters parameters) throws LogbookNotFoundException, LogbookDatabaseException;
+    
+    /**
+     * Select logbook operation entries
+     * 
+     * @param select the select request in format of JsonNode
+     * @return List of the logbook operation
+     * @throws LogbookNotFoundException if no operation selected cannot be found
+     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
+     * @throws InvalidParseOperationException if invalid parse for selecting the operation
+     */
+    List<LogbookOperation> select(JsonNode select) throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException;
 
+    /**
+     * Select logbook operation by the operation's ID
+     * 
+     * @param IdProcess
+     * @return the logbook operation found by the ID
+     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
+     * @throws LogbookNotFoundException if no operation selected cannot be found
+     */
+    LogbookOperation getById(String IdProcess) throws LogbookDatabaseException, LogbookNotFoundException;
 }

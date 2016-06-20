@@ -54,6 +54,18 @@ public interface EngineResponse {
 
     /**
      *
+     * @return message identifier of seda
+     */
+    public String getMessageIdentifier();
+
+    /**
+     *
+     * @param message identifier of seda
+     */
+    public EngineResponse setMessageIdentifier(String message);
+
+    /**
+     *
      * @param messages list of functional error message
      */
     public EngineResponse setMessages(List<String> messages);
