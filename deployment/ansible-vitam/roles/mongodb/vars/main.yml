@@ -1,6 +1,6 @@
 ---
 ## Variables internes au rôle ; à ne pas surcharger par des variables plus globales
-vitam_component: metadata-mongodb
+vitam_component: mongodb
 
 vitam_folder_conf: "{{vitam_folder_root}}/{{vitam_component}}/conf"
 vitam_folder_log: "{{vitam_folder_root}}/{{vitam_component}}/log"

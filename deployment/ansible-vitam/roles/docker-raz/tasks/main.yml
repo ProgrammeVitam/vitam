@@ -7,8 +7,10 @@
     signal=KILL
     state=stopped
   with_items:
+  - "access"
   - "ihm-demo"
   - "ingest"
+  - "ingest-web"
   - "logbook"
   - "metadata"
   - "processing"
@@ -22,8 +24,10 @@
     signal=KILL
     state=stopped
   with_items:
+  - "access"
   - "ihm-demo"
   - "ingest"
+  - "ingest-web"
   - "logbook"
   - "metadata"
   - "processing"
@@ -37,8 +41,10 @@
     signal=KILL
     state=stopped
   with_items:
+  - "access"
   - "ihm-demo"
   - "ingest"
+  - "ingest-web"
   - "logbook"
   - "metadata"
   - "processing"
@@ -54,8 +60,10 @@
     name="{{docker_registry_hostname}}/vitam/{{item}}"
     state=absent
   with_items:
+  - "access"
   - "ihm-demo"
   - "ingest"
+  - "ingest-web"
   - "logbook"
   - "metadata"
   - "processing"
@@ -69,8 +77,10 @@
     name="{{docker_registry_external_hostname}}/vitam/{{item}}"
     state=absent
   with_items:
+  - "access"
   - "ihm-demo"
   - "ingest"
+  - "ingest-web"
   - "logbook"
   - "metadata"
   - "processing"
@@ -84,8 +94,10 @@
     name="{{docker_registry_push_hostname}}/vitam/{{item}}"
     state=absent
   with_items:
+  - "access"
   - "ihm-demo"
   - "ingest"
+  - "ingest-web"
   - "logbook"
   - "metadata"
   - "processing"
@@ -100,8 +112,10 @@
     name="{{item}}-{{vitam_environment}}"
     state=absent
   with_items:
+  - "access"
   - "ihm-demo"
   - "ingest"
+  - "ingest-web"
   - "logbook"
   - "metadata"
   - "processing"
@@ -117,8 +131,10 @@
     image="{{item}}-{{vitam_environment}}"
     state=absent
   with_items:
+  - "access"
   - "ihm-demo"
   - "ingest"
+  - "ingest-web"
   - "logbook"
   - "metadata"
   - "processing"
@@ -131,14 +147,14 @@
 
 - name: delete /opt/vitam directory
   file:
-    path={{item}}
+    path="{{vitam_folder_root}}/{{item}}"
     state=absent
   with_items:
-    - "{{vitam_folder_root}}/ihm-demo/"
-    - "{{ vitam_folder_root }}/ingest/"
-    - "{{ vitam_folder_root }}/logbook/"
-    - "{{ vitam_folder_root }}/metadata/"
-    - "{{ vitam_folder_root }}/processing/"
-    - "{{ vitam_folder_root }}/workspace/"
-
-
+  - "access"
+  - "ihm-demo"
+  - "ingest"
+  - "ingest-web"
+  - "logbook"
+  - "metadata"
+  - "processing"
+  - "workspace"

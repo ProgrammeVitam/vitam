@@ -1,7 +1,7 @@
 ---
 ## Variables internes au rôle ; à ne pas surcharger par des variables plus globales
 vitam_component: "ihm-demo"
-internal_name: "ingest-web"
+internal_name: "ihm-demo"
 
 vitam_folder_conf: "{{vitam_folder_root}}/{{vitam_component}}/conf"
 vitam_folder_log: "{{vitam_folder_root}}/{{vitam_component}}/log"
@@ -12,6 +12,5 @@ vitam_data_ingest_web: "{{vitam_folder_data}}/{{internal_name}}"
 vitam_log_ingest_web: "{{vitam_folder_log}}/{{internal_name}}"
 
 vitam_docker_name: "{{vitam_component}}-{{vitam_environment}}"
-vitam_docker_tag: "latest"
-vitam_docker_port_http: 8101
+vitam_docker_port_http: 8002
 vitam_docker_port_internal: 8082
