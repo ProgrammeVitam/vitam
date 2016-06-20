@@ -34,13 +34,6 @@ public class LogbookClientAlreadyExistsException extends LogbookClientException 
     private static final long serialVersionUID = -832710008443613499L;
 
     /**
-     * Empty constructor
-     */
-    public LogbookClientAlreadyExistsException() {
-        // Empty constructor
-    }
-
-    /**
      * @param message associated message
      */
     public LogbookClientAlreadyExistsException(String message) {

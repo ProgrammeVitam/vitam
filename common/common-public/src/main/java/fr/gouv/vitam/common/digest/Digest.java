@@ -46,6 +46,8 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  * Digest implementation
  */
 public class Digest {
+    private static final String IGNORE = "Ignore";
+
     private static final String ARGUMENT_MUST_NOT_BE_NULL = "Argument must not be null";
 
     private static final VitamLogger LOGGER =
@@ -259,7 +261,7 @@ public class Digest {
             try {
                 inputStream.close();
             } catch (final Exception e) {
-                LOGGER.debug("Ignore", e);
+                LOGGER.debug(IGNORE, e);
                 // ignore
             }
         }
@@ -323,7 +325,7 @@ public class Digest {
             try {
                 fileChannelInputStream.close();
             } catch (final Exception e) {
-                LOGGER.debug("Ignore", e);
+                LOGGER.debug(IGNORE, e);
                 // ignore
             }
         }
@@ -351,7 +353,7 @@ public class Digest {
                 dclone = (MessageDigest) messageDigest.clone();
                 finalized = dclone.digest();
             } catch (final CloneNotSupportedException e) {
-                LOGGER.debug("Ignore", e);
+                LOGGER.debug(IGNORE, e);
                 // ignore
                 finalized = messageDigest.digest();
             }
@@ -370,7 +372,7 @@ public class Digest {
                 dclone = (MessageDigest) messageDigest.clone();
                 finalized = dclone.digest();
             } catch (final CloneNotSupportedException e) {
-                LOGGER.debug("Ignore", e);
+                LOGGER.debug(IGNORE, e);
                 // ignore
                 finalized = messageDigest.digest();
             }

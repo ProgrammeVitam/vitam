@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -59,6 +59,35 @@ public class MongoDbAccess {
     private final MongoDatabase mongoAdmin;
 
     /**
+     * LRU Unit cache (limited to VITAM PROJECTION)
+     */
+    public static final UnitLRU LRU = new UnitLRU();
+
+    /**
+     *
+     * @param mongoClient MongoCliet
+     * @param dbname MongoDB database name
+     * @param recreate True to recreate the index
+     */
+    public MongoDbAccess(MongoClient mongoClient, final String dbname, final boolean recreate) {
+        this.mongoClient = mongoClient;
+        mongoDatabase = mongoClient.getDatabase(dbname);
+        mongoAdmin = mongoClient.getDatabase("admin");
+        VitamCollections.C_UNIT.initialize(mongoDatabase, recreate);
+        VitamCollections.C_OBJECTGROUP.initialize(mongoDatabase, recreate);
+        // Compute roots
+        @SuppressWarnings("unchecked")
+        final FindIterable<Unit> iterable =
+            (FindIterable<Unit>) VitamCollections.C_UNIT.getCollection().find(new Document(VitamDocument.UP, null));
+        iterable.forEach(new Block<Unit>() {
+            @Override
+            public void apply(Unit t) {
+                t.setRoot();
+            }
+        });
+    }
+
+    /**
      * All collections
      *
      */
@@ -66,11 +95,11 @@ public class MongoDbAccess {
         /**
          * Unit Collection
          */
-        Cunit(Unit.class),
+        C_UNIT(Unit.class),
         /**
          * ObjectGroup Collection
          */
-        Cobjectgroup(ObjectGroup.class);
+        C_OBJECTGROUP(ObjectGroup.class);
 
         private final Class<?> clasz;
         private final String name;
@@ -113,11 +142,6 @@ public class MongoDbAccess {
     }
 
     /**
-     * LRU Unit cache (limited to VITAM PROJECTION)
-     */
-    public static final UnitLRU LRU = new UnitLRU();
-
-    /**
      *
      * @return The MongoCLientOptions to apply to MongoClient
      */
@@ -127,30 +151,6 @@ public class MongoDbAccess {
         final CodecRegistry codecRegistry = CodecRegistries.fromRegistries(MongoClient.getDefaultCodecRegistry(),
             CodecRegistries.fromCodecs(unitCodec, objectGroupCodec));
         return MongoClientOptions.builder().codecRegistry(codecRegistry).build();
-    }
-
-    /**
-     *
-     * @param mongoClient MongoCliet
-     * @param dbname MongoDB database name
-     * @param recreate True to recreate the index
-     */
-    public MongoDbAccess(MongoClient mongoClient, final String dbname, final boolean recreate) {
-        this.mongoClient = mongoClient;
-        mongoDatabase = mongoClient.getDatabase(dbname);
-        mongoAdmin = mongoClient.getDatabase("admin");
-        VitamCollections.Cunit.initialize(mongoDatabase, recreate);
-        VitamCollections.Cobjectgroup.initialize(mongoDatabase, recreate);
-        // Compute roots
-        @SuppressWarnings("unchecked")
-        final FindIterable<Unit> iterable =
-            (FindIterable<Unit>) VitamCollections.Cunit.getCollection().find(new Document(VitamDocument.UP, null));
-        iterable.forEach(new Block<Unit>() {
-            @Override
-            public void apply(Unit t) {
-                t.setRoot();
-            }
-        });
     }
 
     /**
@@ -165,21 +165,6 @@ public class MongoDbAccess {
      */
     public final void closeFinal() {
         closeMongoDB();
-    }
-
-    /**
-     * Drop all data and index from MongoDB
-     *
-     * @param model
-     */
-    // TODO REVIEW since model param disappeared => remove it
-    public static void reset() {
-        for (final VitamCollections col : VitamCollections.values()) {
-            if (col.collection != null) {
-                col.collection.drop();
-            }
-        }
-        ensureIndex();
     }
 
     /**
@@ -236,7 +221,7 @@ public class MongoDbAccess {
      * @return the current number of Unit
      */
     public static long getUnitSize() {
-        return VitamCollections.Cunit.collection.count();
+        return VitamCollections.C_UNIT.collection.count();
     }
 
     /**
@@ -244,7 +229,7 @@ public class MongoDbAccess {
      * @return the current number of ObjectGroup
      */
     public static long getObjectGroupSize() {
-        return VitamCollections.Cobjectgroup.collection.count();
+        return VitamCollections.C_OBJECTGROUP.collection.count();
     }
 
     /**
@@ -272,12 +257,11 @@ public class MongoDbAccess {
 
     /**
      * @param type
-     * @param collection
+     * @param set
      * @return a new Result
      */
-    // TODO REVIEW rename argument as set
-    public static Result createOneResult(FILTERARGS type, Set<String> collection) {
-        return new ResultDefault(type, collection);
+    public static Result createOneResult(FILTERARGS type, Set<String> set) {
+        return new ResultDefault(type, set);
     }
 
 }

@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -37,6 +37,9 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
  *
  */
 public class PullAction extends Action {
+    private static final String CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_PULL_ACTION =
+        "Cannot add a set element since this is not a Pull Action: ";
+
     protected PullAction() {
         super();
     }
@@ -149,7 +152,7 @@ public class PullAction extends Action {
         throws InvalidCreateOperationException {
         if (currentUPDATEACTION != UPDATEACTION.PULL) {
             throw new InvalidCreateOperationException(
-                "Cannot add a set element since this is not a Pull Action: " + currentUPDATEACTION);
+                CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_PULL_ACTION + currentUPDATEACTION);
         }
         for (final String val : value) {
             if (val != null && !val.trim().isEmpty()) {
@@ -175,7 +178,7 @@ public class PullAction extends Action {
         throws InvalidCreateOperationException {
         if (currentUPDATEACTION != UPDATEACTION.PULL) {
             throw new InvalidCreateOperationException(
-                "Cannot add a set element since this is not a Pull Action: " + currentUPDATEACTION);
+                CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_PULL_ACTION + currentUPDATEACTION);
         }
         for (final boolean val : value) {
             ((ArrayNode) currentObject).add(val);
@@ -194,7 +197,7 @@ public class PullAction extends Action {
         throws InvalidCreateOperationException {
         if (currentUPDATEACTION != UPDATEACTION.PULL) {
             throw new InvalidCreateOperationException(
-                "Cannot add a set element since this is not a Pull Action: " + currentUPDATEACTION);
+                CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_PULL_ACTION + currentUPDATEACTION);
         }
         for (final long val : value) {
             ((ArrayNode) currentObject).add(val);
@@ -213,7 +216,7 @@ public class PullAction extends Action {
         throws InvalidCreateOperationException {
         if (currentUPDATEACTION != UPDATEACTION.PULL) {
             throw new InvalidCreateOperationException(
-                "Cannot add a set element since this is not a Pull Action: " + currentUPDATEACTION);
+                CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_PULL_ACTION + currentUPDATEACTION);
         }
         for (final double val : value) {
             ((ArrayNode) currentObject).add(val);
@@ -232,7 +235,7 @@ public class PullAction extends Action {
         throws InvalidCreateOperationException {
         if (currentUPDATEACTION != UPDATEACTION.PULL) {
             throw new InvalidCreateOperationException(
-                "Cannot add a set element since this is not a Pull Action: " + currentUPDATEACTION);
+                CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_PULL_ACTION + currentUPDATEACTION);
         }
         for (final Date val : value) {
             ((ArrayNode) currentObject).add(GlobalDatas.getDate(val));

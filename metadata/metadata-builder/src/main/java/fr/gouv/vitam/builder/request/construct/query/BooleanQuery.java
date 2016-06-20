@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -42,15 +42,6 @@ public class BooleanQuery extends Query {
         super();
     }
 
-    @Override
-    public void clean() {
-        super.clean();
-        for (final Query query : queries) {
-            query.clean();
-        }
-        queries.clear();
-    }
-
     /**
      * BooleanQuery constructor
      *
@@ -62,15 +53,23 @@ public class BooleanQuery extends Query {
         switch (booleanQuery) {
             case AND:
             case NOT:
-            case OR: {
+            case OR:
                 createQueryArray(booleanQuery);
                 currentQUERY = booleanQuery;
                 break;
-            }
             default:
                 throw new InvalidCreateOperationException(
                     "Query " + booleanQuery + " is not a Boolean Query");
         }
+    }
+
+    @Override
+    public void clean() {
+        super.clean();
+        for (final Query query : queries) {
+            query.clean();
+        }
+        queries.clear();
     }
 
     /**

@@ -68,6 +68,16 @@ public abstract class VitamLoggerFactory {
     }
 
     /**
+     * @param level
+     */
+    public VitamLoggerFactory(final VitamLogLevel level) {
+        setInternalLogLevel(level);
+        if (currentLevel == null) {
+            setInternalLogLevel(getLevelSpecific());
+        }
+    }
+
+    /**
      * Returns the default factory. The initial default factory is {@link JdkLoggerFactory}.
      *
      * @return the current default Factory
@@ -121,16 +131,6 @@ public abstract class VitamLoggerFactory {
     protected static synchronized void setInternalLogLevel(final VitamLogLevel level) {
         if (level != null) {
             currentLevel = level;
-        }
-    }
-
-    /**
-     * @param level
-     */
-    public VitamLoggerFactory(final VitamLogLevel level) {
-        setInternalLogLevel(level);
-        if (currentLevel == null) {
-            setInternalLogLevel(getLevelSpecific());
         }
     }
 

@@ -59,6 +59,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
  *
  */
 public final class JsonHandler {
+    private static final String OBJECT = "object";
     /**
      * Default JsonFactory
      */
@@ -67,26 +68,39 @@ public final class JsonHandler {
      * Default ObjectMapper
      */
     private static final ObjectMapper OBJECT_MAPPER;
+    /**
+     * Default ObjectMapperUnprettyPrint
+     */
+    private static final ObjectMapper OBJECT_MAPPER_UNPRETTY;
 
     static {
-        OBJECT_MAPPER = new ObjectMapper(JSONFACTORY);
-        OBJECT_MAPPER.registerModule(new JavaTimeModule());
-        OBJECT_MAPPER.setPropertyNamingStrategy(PropertyNamingStrategy.UPPER_CAMEL_CASE);
-        OBJECT_MAPPER.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-        OBJECT_MAPPER.configure(SerializationFeature.INDENT_OUTPUT, true);
-        OBJECT_MAPPER.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
-        OBJECT_MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        OBJECT_MAPPER.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
-        OBJECT_MAPPER.configure(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS, false);
-        OBJECT_MAPPER.configure(SerializationFeature.WRITE_SINGLE_ELEM_ARRAYS_UNWRAPPED,
-            false);
-        OBJECT_MAPPER.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
-        OBJECT_MAPPER.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
-        OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        OBJECT_MAPPER.configure(JsonGenerator.Feature.ESCAPE_NON_ASCII, true);
+        OBJECT_MAPPER = buildObjectMapper();
+        OBJECT_MAPPER_UNPRETTY = buildObjectMapper();
+        OBJECT_MAPPER_UNPRETTY.disable(SerializationFeature.INDENT_OUTPUT);
     }
 
-    private JsonHandler() {}
+    private JsonHandler() {
+        // Empty constructor
+    }
+
+    private static final ObjectMapper buildObjectMapper() {
+        final ObjectMapper objectMapper = new ObjectMapper(JSONFACTORY);
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.UPPER_CAMEL_CASE);
+        objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+        objectMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        objectMapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
+        objectMapper.configure(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS, false);
+        objectMapper.configure(SerializationFeature.WRITE_SINGLE_ELEM_ARRAYS_UNWRAPPED,
+            false);
+        objectMapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
+        objectMapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        objectMapper.configure(JsonGenerator.Feature.ESCAPE_NON_ASCII, true);
+        return objectMapper;
+    }
 
     /**
      * @return the current factory
@@ -198,12 +212,12 @@ public final class JsonHandler {
      * @return the Json representation of the object
      * @throws InvalidParseOperationException
      */
-    public static final String writeAsString(final Object object)
+    public static final JsonNode toJsonNode(final Object object)
         throws InvalidParseOperationException {
         try {
-            ParametersChecker.checkParameter("object", object);
-            return OBJECT_MAPPER.writeValueAsString(object);
-        } catch (final JsonProcessingException | IllegalArgumentException e) {
+            ParametersChecker.checkParameter(OBJECT, object);
+            return OBJECT_MAPPER.readTree(OBJECT_MAPPER.writeValueAsString(object));
+        } catch (final IOException | IllegalArgumentException e) {
             throw new InvalidParseOperationException(e);
         }
     }
@@ -211,15 +225,15 @@ public final class JsonHandler {
     /**
      *
      * @param object
-     * @return the Json representation of the object
+     * @return the Json representation of the object (shall be prettyPrint)
      * @throws InvalidParseOperationException
      */
-    public static final JsonNode toJsonNode(final Object object)
+    public static final String writeAsString(final Object object)
         throws InvalidParseOperationException {
         try {
-            ParametersChecker.checkParameter("object", object);
-            return OBJECT_MAPPER.readTree(OBJECT_MAPPER.writeValueAsString(object));
-        } catch (final IOException | IllegalArgumentException e) {
+            ParametersChecker.checkParameter(OBJECT, object);
+            return OBJECT_MAPPER.writeValueAsString(object);
+        } catch (final JsonProcessingException | IllegalArgumentException e) {
             throw new InvalidParseOperationException(e);
         }
     }
@@ -231,9 +245,23 @@ public final class JsonHandler {
      */
     public static String prettyPrint(Object object) {
         try {
-            ParametersChecker.checkParameter("object", object);
+            ParametersChecker.checkParameter(OBJECT, object);
             return OBJECT_MAPPER.writerWithDefaultPrettyPrinter()
                 .writeValueAsString(object);
+        } catch (final JsonProcessingException | IllegalArgumentException e) {// NOSONAR
+            return "{}";
+        }
+    }
+
+    /**
+     *
+     * @param object
+     * @return the Json representation of the object in UnPretty Print format
+     */
+    public static String unprettyPrint(Object object) {
+        try {
+            ParametersChecker.checkParameter(OBJECT, object);
+            return OBJECT_MAPPER_UNPRETTY.writeValueAsString(object);
         } catch (final JsonProcessingException | IllegalArgumentException e) {// NOSONAR
             return "{}";
         }

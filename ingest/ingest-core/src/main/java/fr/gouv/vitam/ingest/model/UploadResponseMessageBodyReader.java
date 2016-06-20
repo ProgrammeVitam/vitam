@@ -45,6 +45,8 @@ import javax.ws.rs.ext.Providers;
 @Consumes("application/json")
 public class UploadResponseMessageBodyReader implements MessageBodyReader<UploadResponseDTO> {
 
+    // FIXME REVIEW Null Check
+    // FIXME REVIEW Comment
 
     public UploadResponseMessageBodyReader(@Context Providers providers) {}
 

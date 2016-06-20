@@ -40,6 +40,11 @@ import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
  */
 abstract class GUIDAbstract implements GUID {
     /**
+     * ARK header
+     */
+    public static final String ARK = "ark:/";
+
+    /**
      * real GUID
      */
     @JsonIgnore

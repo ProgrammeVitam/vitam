@@ -72,7 +72,6 @@ public class WorkspaceResource {
 
     private final ContentAddressableStorageImpl workspace;
 
-    // TODO REVIEW comment
     /**
      * Constructor used to configure a workspace
      *
@@ -80,7 +79,7 @@ public class WorkspaceResource {
      */
     public WorkspaceResource(StorageConfiguration configuration) {
         super();
-        // TODO this implements directly the Filesystem implementation while it should not! You should have a
+        // FIXME REVIEW this implements directly the Filesystem implementation while it should not! You should have a
         // Factory/Helper to create the right one, ignoring here what is the chosen implementation.
         workspace = new FileSystem(configuration);
         LOGGER.info("init Workspace Resource server");
@@ -94,7 +93,6 @@ public class WorkspaceResource {
     @Path("status")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    // TODO should returns 204
     public Response status() {
         return Response.status(Status.OK).build();
     }
@@ -132,7 +130,7 @@ public class WorkspaceResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteContainer(@PathParam("containerName") String containerName) {
-        // TODO true by default ? SHould not be!
+        // FIXME REVIEW true by default ? SHould not be!
 
         try {
             workspace.deleteContainer(containerName, true);
@@ -250,6 +248,7 @@ public class WorkspaceResource {
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
+    // FIXME REVIEW change to correct API (no FormData)
     public Response putObject(@FormDataParam("object") InputStream stream,
         @FormDataParam("object") FormDataContentDisposition header, @FormDataParam("objectName") String objectName,
         @PathParam("containerName") String containerName) {
@@ -353,6 +352,7 @@ public class WorkspaceResource {
     @PUT
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
+    // FIXME REVIEW change to correct API (no FormData)
     public Response unzipSip(@FormDataParam("object") InputStream stream,
         @FormDataParam("object") FormDataContentDisposition header,
         @PathParam("containerName") String containerName) {

@@ -45,6 +45,8 @@ import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
  * Logbook web application
  */
 public final class LogbookApplication extends AbstractVitamApplication<LogbookApplication, LogbookConfiguration> {
+    private static final String LOGBOOK_APPLICATION_STARTS_ON_DEFAULT_PORT =
+        "LogbookApplication Starts on default port";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookApplication.class);
     private static final String LOGBOOK_CONF_FILE_NAME = "logbook.conf";
 
@@ -85,18 +87,18 @@ public final class LogbookApplication extends AbstractVitamApplication<LogbookAp
                 try {
                     final int port = Integer.parseInt(args[1]);
                     if (port <= 0) {
-                        LOGGER.info("LogbookApplication Starts on default port");
+                        LOGGER.info(LOGBOOK_APPLICATION_STARTS_ON_DEFAULT_PORT);
                         vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
                     } else {
                         LOGGER.info("LogbookApplication Starts on port: " + port);
                         vitamServer = VitamServerFactory.newVitamServer(port);
                     }
                 } catch (final NumberFormatException e) {
-                    LOGGER.info("LogbookApplication Starts on default port");
+                    LOGGER.info(LOGBOOK_APPLICATION_STARTS_ON_DEFAULT_PORT);
                     vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
                 }
             } else {
-                LOGGER.info("LogbookApplication Starts on default port");
+                LOGGER.info(LOGBOOK_APPLICATION_STARTS_ON_DEFAULT_PORT);
                 vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
             }
             final LogbookApplication application = new LogbookApplication();

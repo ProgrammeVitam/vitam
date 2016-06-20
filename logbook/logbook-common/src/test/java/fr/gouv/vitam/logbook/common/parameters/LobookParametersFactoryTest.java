@@ -25,7 +25,7 @@
  * accept its terms.
  */
 
-package fr.gouv.vitam.logbook.common.parameters.helper;
+package fr.gouv.vitam.logbook.common.parameters;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -34,10 +34,6 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.junit.Test;
-
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 
 /**
  * Test parameters factory

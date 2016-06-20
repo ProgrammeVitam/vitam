@@ -33,7 +33,7 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 
 /**
  * VitamApplication Interface
- * 
+ *
  * @param <A> The VitamApplication final class
  */
 public interface VitamApplication<A extends VitamApplication<?>> {

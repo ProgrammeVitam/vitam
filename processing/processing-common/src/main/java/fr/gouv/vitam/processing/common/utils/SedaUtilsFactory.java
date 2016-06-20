@@ -33,7 +33,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
  * SedaUtils Factory to create SedaUtils
  */
 public class SedaUtilsFactory {
-
+    // TODO REVIEW static method or dynamic method ?
     /**
      * @return SedaUtils
      */

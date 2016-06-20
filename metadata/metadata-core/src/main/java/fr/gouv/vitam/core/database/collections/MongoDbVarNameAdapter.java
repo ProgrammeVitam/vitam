@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -24,6 +24,7 @@
 package fr.gouv.vitam.core.database.collections;
 
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens;
+import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.PROJECTIONARGS;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.parser.request.parser.VarNameAdapter;
 
@@ -35,7 +36,9 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
     /**
      * Constructor
      */
-    public MongoDbVarNameAdapter() {}
+    public MongoDbVarNameAdapter() {
+        // Empty constructor
+    }
 
     /**
      * @see ParserTokens.PROJECTIONARGS
@@ -49,21 +52,28 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
         if (newname != null) {
             return newname;
         }
-        if (name.charAt(0) == '#') {
-            switch (name) {
-                case "#id":
-                    return VitamDocument.ID;// Valid for OG
-                case "#dua":
+        if (name.charAt(0) == ParserTokens.DEFAULT_HASH_PREFIX_CHAR) {
+            final PROJECTIONARGS proj = PROJECTIONARGS.parse(name);
+            switch (proj) {
+                case ALL:
+                    break;
+                case DUA:
                     return Unit.APPRAISALRULES;
-                case "#nbunits":
-                    return Unit.NBCHILD;// Valid for OG
-                case "#type":
-                    return VitamDocument.TYPE; // Valid for OG
-                case "#size":
-                    return ObjectGroup.OBJECTSIZE;
-                case "#format":
+                case FORMAT:
                     return ObjectGroup.OBJECTFORMAT;
+                case ID:
+                    // Valid for OG
+                    return VitamDocument.ID;
+                case NBUNITS:
+                    // Valid for OG
+                    return Unit.NBCHILD;
+                case SIZE:
+                    return ObjectGroup.OBJECTSIZE;
+                case TYPE:
+                    // Valid for OG
+                    return VitamDocument.TYPE;
                 default:
+                    break;
             }
         }
         return null;

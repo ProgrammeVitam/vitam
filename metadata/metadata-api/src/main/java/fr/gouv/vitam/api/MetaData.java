@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -39,7 +39,7 @@ public interface MetaData {
      * insert Unit
      *
      * @param insertRequest as String { $roots: roots, $query : query, $filter : multi, $data : data}
-     * 
+     *
      * @throws InvalidParseOperationException Throw if json format is not correct
      * @throws MetaDataNotFoundException Throw if parent of this unit is not found
      * @throws MetaDataAlreadyExistException Throw if Unit id already exists
@@ -50,5 +50,5 @@ public interface MetaData {
     public void insertUnit(String insertRequest) throws InvalidParseOperationException, MetaDataNotFoundException,
         MetaDataAlreadyExistException, MetaDataExecutionException, MetaDataDocumentSizeException;
     // TODO REVIEW Select, Update, Delete
-    // TODO REVIEW Should allow parsed Json as alternative
+    // FIXME REVIEW Change to Json not String
 }

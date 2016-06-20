@@ -54,6 +54,21 @@ final class Log4JLogger extends AbstractVitamLogger {
         traceCapable = isTraceCapable();
     }
 
+    @Override
+    public void timeInfo(String msg) {
+        if (logger.isInfoEnabled()) {
+            logger.info(TIME_TRACE_PREFIX + getMessagePrepend() + msg);
+        }
+    }
+
+    @Override
+    public void timeInfo(String format, Object... arguments) {
+        if (logger.isInfoEnabled()) {
+            final FormattingTuple ft = MessageFormatter.arrayFormat(format, arguments);
+            logger.log(FQCN, Level.INFO, TIME_TRACE_PREFIX + ft.getMessage(), ft.getThrowable());
+        }
+    }
+
     private boolean isTraceCapable() {
         try {
             logger.isTraceEnabled();

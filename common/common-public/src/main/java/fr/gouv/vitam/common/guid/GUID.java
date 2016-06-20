@@ -38,11 +38,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
     property = "@class")
 public interface GUID extends Comparable<GUID> {
     /**
-     * ARK header
-     */
-    public static final String ARK = "ark:/";
-
-    /**
      * @return True if is Worm
      */
     @JsonIgnore

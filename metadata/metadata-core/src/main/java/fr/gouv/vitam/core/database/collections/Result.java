@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -42,7 +42,7 @@ import fr.gouv.vitam.core.database.collections.MongoDbAccess.VitamCollections;
  *
  */
 public abstract class Result {
-    private static final String RESULT = "Result";
+    private static final String RESULT_FIELD = "Result";
 
     /**
      * Current Units in the result
@@ -68,7 +68,7 @@ public abstract class Result {
 
     /**
      * Constructor for empty result
-     * 
+     *
      * @param type
      */
     public Result(FILTERARGS type) {
@@ -77,21 +77,21 @@ public abstract class Result {
 
     /**
      * Constructor from a set, setting the nbResult to the size of Set
-     * 
+     *
      * @param type
      * @param collection
      */
     public Result(FILTERARGS type, Collection<String> collection) {
         this.type = type;
         currentIds.addAll(collection);
-        // TODO: I understand why but not the possible reason of such value?
+        // FIXME REVIEW : I understand why but not the possible reason of such value?
         currentIds.remove("");
         nbResult = currentIds.size();
     }
 
     /**
      * Clear the Result
-     * 
+     *
      * @return this
      */
     public Result clear() {
@@ -129,7 +129,7 @@ public abstract class Result {
 
     /**
      * Ad one Id to CurrentIds
-     * 
+     *
      * @param id
      * @return this
      */
@@ -168,50 +168,52 @@ public abstract class Result {
      */
     public Document getFinal() {
         if (finalResult == null) {
-            finalResult = new Document(RESULT, null);
+            finalResult = new Document(RESULT_FIELD, null);
         }
         return finalResult;
     }
 
     /**
      * Add one document into final result
-     * 
+     *
      * @param document
      */
     public void addFinal(VitamDocument<?> document) {
         if (finalResult == null) {
             finalResult = new Document();
         }
-        BasicDBList result = (BasicDBList) finalResult.get(RESULT);
+        BasicDBList result = (BasicDBList) finalResult.get(RESULT_FIELD);
         if (result == null) {
             result = new BasicDBList();
         }
         result.add(document);
-        finalResult.append(RESULT, result);
+        finalResult.append(RESULT_FIELD, result);
     }
 
     /**
      * Build the array of result
-     * 
+     *
      * @param projection
      */
     public void setFinal(Bson projection) {
         final List<Document> list = new ArrayList<Document>(currentIds.size());
         if (type == FILTERARGS.UNITS) {
             for (final String id : currentIds) {
-                final Unit unit = (Unit) VitamCollections.Cunit.getCollection().find(new Document(VitamDocument.ID, id))
-                    .projection(projection).first();
+                final Unit unit =
+                    (Unit) VitamCollections.C_UNIT.getCollection().find(new Document(VitamDocument.ID, id))
+                        .projection(projection).first();
                 list.add(unit);
             }
         } else if (type == FILTERARGS.OBJECTGROUPS) {
             for (final String id : currentIds) {
                 final ObjectGroup og =
-                    (ObjectGroup) VitamCollections.Cobjectgroup.getCollection().find(new Document(VitamDocument.ID, id))
+                    (ObjectGroup) VitamCollections.C_OBJECTGROUP.getCollection()
+                        .find(new Document(VitamDocument.ID, id))
                         .projection(projection).first();
                 list.add(og);
             }
         }
-        finalResult = new Document(RESULT, list);
+        finalResult = new Document(RESULT_FIELD, list);
     }
 
     @Override

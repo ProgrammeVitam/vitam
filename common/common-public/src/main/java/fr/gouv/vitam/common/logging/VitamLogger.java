@@ -39,6 +39,21 @@ public interface VitamLogger {
     String name();
 
     /**
+     * Time Info
+     *
+     * @param msg
+     */
+    void timeInfo(String msg);
+
+    /**
+     * Time Info
+     *
+     * @param format
+     * @param arguments
+     */
+    void timeInfo(String format, Object... arguments);
+
+    /**
      * Is the logger instance enabled for the TRACE level?
      *
      * @return True if this Logger is enabled for the TRACE level, false otherwise.

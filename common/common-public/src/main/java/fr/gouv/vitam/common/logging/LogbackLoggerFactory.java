@@ -55,6 +55,40 @@ public final class LogbackLoggerFactory extends VitamLoggerFactory {
         seLevelSpecific(currentLevel);
     }
 
+    LogbackLoggerFactory(final boolean failIfNOP) {
+        super(null);
+        // Should be always called with true.
+        assert failIfNOP;
+
+        // SFL4J writes it error messages to System.err. Capture them so that
+        // the user does not see such a message on
+        // the console during automatic detection.
+        final StringBuilder buf = new StringBuilder();
+        final PrintStream err = System.err; // NOSONAR
+        try {
+            System.setErr(new PrintStream(new OutputStream() {
+                @Override
+                public void write(final int b) {
+                    buf.append((char) b);
+                }
+            }, true, "US-ASCII"));
+        } catch (final UnsupportedEncodingException e) {
+            throw new RuntimeErrorException(new Error(e));
+        }
+
+        try {
+            if (LoggerFactory.getILoggerFactory() instanceof NOPLoggerFactory) {
+                throw new NoClassDefFoundError(buf.toString());
+            } else {
+                err.print(buf.toString());
+                err.flush();
+            }
+        } finally {
+            System.setErr(err);
+            seLevelSpecific(currentLevel);
+        }
+    }
+
     @Override
     protected void seLevelSpecific(final VitamLogLevel level) {
         final Logger logger = (Logger) LoggerFactory.getLogger(ROOT); // NOSONAR keep it non static
@@ -84,39 +118,6 @@ public final class LogbackLoggerFactory extends VitamLoggerFactory {
     public VitamLogger newInstance(final String name) {
         final Logger logger = (Logger) LoggerFactory.getLogger(name); // NOSONAR keep it non static
         return new LogbackLogger(logger);
-    }
-
-    LogbackLoggerFactory(final boolean failIfNOP) {
-        super(null);
-        assert failIfNOP; // Should be always called with true.
-
-        // SFL4J writes it error messages to System.err. Capture them so that
-        // the user does not see such a message on
-        // the console during automatic detection.
-        final StringBuilder buf = new StringBuilder();
-        final PrintStream err = System.err; // NOSONAR
-        try {
-            System.setErr(new PrintStream(new OutputStream() {
-                @Override
-                public void write(final int b) {
-                    buf.append((char) b);
-                }
-            }, true, "US-ASCII"));
-        } catch (final UnsupportedEncodingException e) {
-            throw new RuntimeErrorException(new Error(e));
-        }
-
-        try {
-            if (LoggerFactory.getILoggerFactory() instanceof NOPLoggerFactory) {
-                throw new NoClassDefFoundError(buf.toString());
-            } else {
-                err.print(buf.toString());
-                err.flush();
-            }
-        } finally {
-            System.setErr(err);
-            seLevelSpecific(currentLevel);
-        }
     }
 
     @Override

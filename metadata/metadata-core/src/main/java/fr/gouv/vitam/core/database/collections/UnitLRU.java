@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
+import fr.gouv.vitam.common.SingletonUtils;
 import fr.gouv.vitam.common.lru.SynchronizedLruCache;
 import fr.gouv.vitam.core.database.configuration.GlobalDatasDb;
 
@@ -41,7 +42,7 @@ public class UnitLRU implements Map<String, Unit> {
     /**
      * Synchronized LRU cache
      */
-    final SynchronizedLruCache<String, Unit> LRU_UnitCached =
+    final SynchronizedLruCache<String, Unit> LRU_UNIT_CACHED =
         new SynchronizedLruCache<String, Unit>(GlobalDatasDb.MAXLRU, GlobalDatasDb.TTLMS);
 
     /**
@@ -53,19 +54,19 @@ public class UnitLRU implements Map<String, Unit> {
 
     @Override
     public void clear() {
-        LRU_UnitCached.clear();
+        LRU_UNIT_CACHED.clear();
     }
 
     /**
      * Clean the oldest Units from the cache
      */
     public void forceClearOldest() {
-        LRU_UnitCached.forceClearOldest();
+        LRU_UNIT_CACHED.forceClearOldest();
     }
 
     @Override
     public boolean containsKey(Object key) {
-        return LRU_UnitCached.contains((String) key);
+        return LRU_UNIT_CACHED.contains((String) key);
     }
 
     @Override
@@ -80,61 +81,61 @@ public class UnitLRU implements Map<String, Unit> {
 
     /**
      * Load from database if not already in cache. If already in cache, update TTL.
-     * 
+     *
      * @param key
      * @return the associated Unit from Cache (only VITAM PROJECTION)
      */
     @Override
     public Unit get(Object key) {
-        Unit unit = LRU_UnitCached.get((String) key);
+        Unit unit = LRU_UNIT_CACHED.get((String) key);
         if (unit == null) {
-            unit = (Unit) MongoDbMetadataHelper.select(MongoDbAccess.VitamCollections.Cunit,
+            unit = (Unit) MongoDbMetadataHelper.select(MongoDbAccess.VitamCollections.C_UNIT,
                 eq(VitamDocument.ID, key), Unit.UNIT_VITAM_PROJECTION).first();
             if (unit == null) {
                 return null;
             }
-            LRU_UnitCached.put((String) key, unit);
+            LRU_UNIT_CACHED.put((String) key, unit);
         } else {
-            LRU_UnitCached.updateTtl((String) key);
+            LRU_UNIT_CACHED.updateTtl((String) key);
         }
         return unit;
     }
 
     @Override
     public boolean isEmpty() {
-        return LRU_UnitCached.isEmpty();
+        return LRU_UNIT_CACHED.isEmpty();
     }
 
     @Override
     public Set<String> keySet() {
-        return null;
+        return SingletonUtils.singletonSet();
     }
 
     @Override
     public Unit put(String key, Unit value) {
-        LRU_UnitCached.put(key, value);
+        LRU_UNIT_CACHED.put(key, value);
         return value;
     }
 
     @Override
     public void putAll(Map<? extends String, ? extends Unit> map) {
         for (final java.util.Map.Entry<? extends String, ? extends Unit> entry : map.entrySet()) {
-            LRU_UnitCached.put(entry.getKey(), entry.getValue());
+            LRU_UNIT_CACHED.put(entry.getKey(), entry.getValue());
         }
     }
 
     @Override
     public Unit remove(Object key) {
-        return LRU_UnitCached.remove((String) key);
+        return LRU_UNIT_CACHED.remove((String) key);
     }
 
     @Override
     public int size() {
-        return LRU_UnitCached.size();
+        return LRU_UNIT_CACHED.size();
     }
 
     @Override
     public Collection<Unit> values() {
-        return null;
+        return SingletonUtils.singletonList();
     }
 }

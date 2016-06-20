@@ -31,6 +31,7 @@ package fr.gouv.vitam.workspace.api.exception;
 /**
  * Top level Exception for all Workspace Exceptions
  */
+// FIXME REVIEW VitamException
 public class ContentAddressableStorageException extends Exception {
 
 

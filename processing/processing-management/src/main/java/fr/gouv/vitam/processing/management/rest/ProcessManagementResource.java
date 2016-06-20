@@ -60,7 +60,7 @@ public class ProcessManagementResource {
 
     /**
      * ProcessManagementResource : initiate the ProcessManagementResource resources
-     * 
+     *
      * @param configuration
      */
     public ProcessManagementResource(ServerConfiguration configuration) {
@@ -71,7 +71,7 @@ public class ProcessManagementResource {
 
     /**
      * check the status of server
-     * 
+     *
      * @return Response with OK status
      */
     @Path("status")
@@ -84,7 +84,7 @@ public class ProcessManagementResource {
 
     /**
      * Execute the process as a set of operations.
-     * 
+     *
      * @param process as Json of type ProcessingEntry, indicate the container and workflowId
      * @return http response
      */
@@ -102,7 +102,8 @@ public class ProcessManagementResource {
 
         try {
             resp = (ProcessResponse) processManagement.submitWorkflow(workParam, process.getWorkflow());
-        } catch (WorkflowNotFoundException | HandlerNotFoundException e) {// if workflow or handler not found
+        } catch (WorkflowNotFoundException | HandlerNotFoundException e) {
+            // if workflow or handler not found
             LOGGER.error(e.getMessage());
             status = Status.NOT_FOUND;
             return Response.status(status)
@@ -113,7 +114,8 @@ public class ProcessManagementResource {
                         .setMessage(status.getReasonPhrase())
                         .setDescription(status.getReasonPhrase())))
                 .build();
-        } catch (final IllegalArgumentException e) { // if the entry argument if illegal
+        } catch (final IllegalArgumentException e) {
+            // if the entry argument if illegal
             LOGGER.error(e.getMessage());
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
@@ -124,7 +126,8 @@ public class ProcessManagementResource {
                         .setMessage(status.getReasonPhrase())
                         .setDescription(status.getReasonPhrase())))
                 .build();
-        } catch (final ProcessingException e) { // if there is an unauthorized action
+        } catch (final ProcessingException e) {
+            // if there is an unauthorized action
             LOGGER.error(e.getMessage());
             status = Status.UNAUTHORIZED;
             return Response.status(status)

@@ -212,21 +212,21 @@ final class GUIDImplPrivate extends GUIDImpl {
         // 4 bytes - 2 bits = Domain (30)
         int value = tenantId;
         guid[TENANT_POS + 3] = (byte) (value & 0xFF);
-        value >>>= 8;
+        value >>>= BYTE_SIZE;
         guid[TENANT_POS + 2] = (byte) (value & 0xFF);
-        value >>>= 8;
+        value >>>= BYTE_SIZE;
         guid[TENANT_POS + 1] = (byte) (value & 0xFF);
-        value >>>= 8;
+        value >>>= BYTE_SIZE;
         guid[TENANT_POS] = (byte) (value & 0x3F);
 
         // 4 bytes = Worm status + Platform (31)
         value = platformId;
         guid[PLATFORM_POS + 3] = (byte) (value & 0xFF);
-        value >>>= 8;
+        value >>>= BYTE_SIZE;
         guid[PLATFORM_POS + 2] = (byte) (value & 0xFF);
-        value >>>= 8;
+        value >>>= BYTE_SIZE;
         guid[PLATFORM_POS + 1] = (byte) (value & 0xFF);
-        value >>>= 8;
+        value >>>= BYTE_SIZE;
         if (worm) {
             guid[PLATFORM_POS] = (byte) (0x80 | value & 0x7F);
         } else {
@@ -236,32 +236,32 @@ final class GUIDImplPrivate extends GUIDImpl {
         // 3 bytes = -2 bits JVMPID (22)
         value = JVMPID;
         guid[PID_POS + 2] = (byte) (value & 0xFF);
-        value >>>= 8;
+        value >>>= BYTE_SIZE;
         guid[PID_POS + 1] = (byte) (value & 0xFF);
-        value >>>= 8;
+        value >>>= BYTE_SIZE;
         guid[PID_POS] = (byte) (value & 0xFF);
 
         // 6 bytes = timestamp (so up to 8 925 years after Time 0 so year 10
         // 895)
         long lvalue = time;
         guid[TIME_POS + 5] = (byte) (lvalue & 0xFF);
-        lvalue >>>= 8;
+        lvalue >>>= BYTE_SIZE;
         guid[TIME_POS + 4] = (byte) (lvalue & 0xFF);
-        lvalue >>>= 8;
+        lvalue >>>= BYTE_SIZE;
         guid[TIME_POS + 3] = (byte) (lvalue & 0xFF);
-        lvalue >>>= 8;
+        lvalue >>>= BYTE_SIZE;
         guid[TIME_POS + 2] = (byte) (lvalue & 0xFF);
-        lvalue >>>= 8;
+        lvalue >>>= BYTE_SIZE;
         guid[TIME_POS + 1] = (byte) (lvalue & 0xFF);
-        lvalue >>>= 8;
+        lvalue >>>= BYTE_SIZE;
         guid[TIME_POS] = (byte) (lvalue & 0xFF);
 
         // 3 bytes = counter against collision
         value = count;
         guid[COUNTER_POS + 2] = (byte) (value & 0xFF);
-        value >>>= 8;
+        value >>>= BYTE_SIZE;
         guid[COUNTER_POS + 1] = (byte) (value & 0xFF);
-        value >>>= 8;
+        value >>>= BYTE_SIZE;
         guid[COUNTER_POS] = (byte) (value & 0xFF);
 
     }

@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens;
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.QUERY;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
@@ -39,9 +40,11 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 public class VarNameAdapter {
 
     /**
-     * Constructor
+     * Empty Constructor
      */
-    public VarNameAdapter() {}
+    public VarNameAdapter() {
+        // Empty
+    }
 
     /**
      *
@@ -55,7 +58,7 @@ public class VarNameAdapter {
 
     /**
      * Set Vars = Value (Json)
-     * 
+     *
      * @param currentObject
      * @param request
      * @throws InvalidParseOperationException
@@ -75,7 +78,7 @@ public class VarNameAdapter {
 
     /**
      * Set simple Var (no value)
-     * 
+     *
      * @param req
      * @param currentObject
      * @param request
@@ -92,7 +95,7 @@ public class VarNameAdapter {
 
     /**
      * Set an array of Var (no Value)
-     * 
+     *
      * @param array
      * @throws InvalidParseOperationException
      */
@@ -111,7 +114,7 @@ public class VarNameAdapter {
 
     /**
      * Check if no arguments is using any fix '#' Parameter
-     * 
+     *
      * @param request
      * @throws InvalidParseOperationException
      */
@@ -119,7 +122,8 @@ public class VarNameAdapter {
         final Iterator<Entry<String, JsonNode>> iterator = request.fields();
         while (iterator.hasNext()) {
             final Entry<String, JsonNode> entry = iterator.next();
-            if (entry.getKey().charAt(0) == '#' || entry.getValue().asText().charAt(0) == '#') {
+            if (entry.getKey().charAt(0) == ParserTokens.DEFAULT_HASH_PREFIX_CHAR ||
+                entry.getValue().asText().charAt(0) == ParserTokens.DEFAULT_HASH_PREFIX_CHAR) {
                 throw new InvalidParseOperationException(
                     "Parameter using '#' not allowed in Rename action: " + request);
             }

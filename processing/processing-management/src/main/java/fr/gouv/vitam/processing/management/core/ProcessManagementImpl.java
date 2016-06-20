@@ -40,6 +40,7 @@ import fr.gouv.vitam.processing.management.api.ProcessManagement;
 /**
  * ProcessManagementImpl implementation of ProcessManagement API
  */
+// FIXME REVIEW add a factory plus constructor and class as package protected
 public class ProcessManagementImpl implements ProcessManagement {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessManagementImpl.class);
     private final ProcessEngine processEngine;
@@ -47,16 +48,17 @@ public class ProcessManagementImpl implements ProcessManagement {
 
     /**
      * get the server configuration
-     * 
+     *
      * @return serverConfig of type ServerConfiguration
      */
     public ServerConfiguration getServerConfig() {
         return serverConfig;
     }
 
+    // FIXME REVIEW check null
     /**
      * set the server configuration
-     * 
+     *
      * @param serverConfig
      * @return ProcessManagementImpl instance with serverConfig is setted
      */
@@ -67,7 +69,7 @@ public class ProcessManagementImpl implements ProcessManagement {
 
     /**
      * constructor of ProcessManagementImpl
-     * 
+     *
      * @param serverConfig
      */
     public ProcessManagementImpl(ServerConfiguration serverConfig) {

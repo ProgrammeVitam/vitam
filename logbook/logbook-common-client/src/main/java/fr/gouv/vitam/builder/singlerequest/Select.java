@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -120,14 +120,14 @@ public class Select extends Request {
      */
     public final Select setLimitFilter(final JsonNode filterContent) {
         long offset = 0;
-        long limit = GlobalDatas.limitLoad;
+        long limit = GlobalDatas.LIMIT_LOAD;
         if (filterContent.has(SELECTFILTER.LIMIT.exactToken())) {
             /*
              * $limit : n $maxScan: <number> / cursor.limit(n) "filter" : { "limit" : {"value" : n} } ou "from" : start,
              * "size" : n
              */
             limit = filterContent.get(SELECTFILTER.LIMIT.exactToken())
-                .asLong(GlobalDatas.limitLoad);
+                .asLong(GlobalDatas.LIMIT_LOAD);
         }
         if (filterContent.has(SELECTFILTER.OFFSET.exactToken())) {
             /*
@@ -146,7 +146,7 @@ public class Select extends Request {
      */
     public final Select parseLimitFilter(final String filter)
         throws InvalidParseOperationException {
-        GlobalDatas.sanityParametersCheck(filter, GlobalDatas.nbFilters);
+        GlobalDatas.sanityParametersCheck(filter, GlobalDatas.NB_FILTERS);
         final JsonNode rootNode = JsonHandler.getFromString(filter);
         return setLimitFilter(rootNode);
     }
@@ -159,21 +159,7 @@ public class Select extends Request {
      */
     public final Select addOrderByAscFilter(final String... variableNames)
         throws InvalidParseOperationException {
-        if (filter == null) {
-            filter = JsonHandler.createObjectNode();
-        }
-        ObjectNode node = (ObjectNode) filter.get(SELECTFILTER.ORDERBY.exactToken());
-        if (node == null || node.isMissingNode()) {
-            node = filter.putObject(SELECTFILTER.ORDERBY.exactToken());
-        }
-        for (final String var : variableNames) {
-            if (var == null || var.trim().isEmpty()) {
-                continue;
-            }
-            GlobalDatas.sanityParameterCheck(var);
-            node.put(var.trim(), 1);
-        }
-        return this;
+        return addOrderByFilter(1, variableNames);
     }
 
     /**
@@ -183,6 +169,18 @@ public class Select extends Request {
      * @throws InvalidParseOperationException
      */
     public final Select addOrderByDescFilter(final String... variableNames)
+        throws InvalidParseOperationException {
+        return addOrderByFilter(-1, variableNames);
+    }
+
+    /**
+     *
+     * @param way the way of the operation
+     * @param variableNames
+     * @return this Query
+     * @throws InvalidParseOperationException
+     */
+    private final Select addOrderByFilter(final int way, final String... variableNames)
         throws InvalidParseOperationException {
         if (filter == null) {
             filter = JsonHandler.createObjectNode();
@@ -196,7 +194,7 @@ public class Select extends Request {
                 continue;
             }
             GlobalDatas.sanityParameterCheck(var);
-            node.put(var.trim(), -1);
+            node.put(var.trim(), way);
         }
         return this;
     }
@@ -231,7 +229,7 @@ public class Select extends Request {
      */
     public final Select parseOrderByFilter(final String filter)
         throws InvalidParseOperationException {
-        GlobalDatas.sanityParametersCheck(filter, GlobalDatas.nbFilters);
+        GlobalDatas.sanityParametersCheck(filter, GlobalDatas.NB_FILTERS);
         final JsonNode rootNode = JsonHandler.getFromString(filter);
         return addOrderByFilter(rootNode);
     }
@@ -251,24 +249,7 @@ public class Select extends Request {
      */
     public final Select addUsedProjection(final String... variableNames)
         throws InvalidParseOperationException {
-        if (projection == null) {
-            projection = JsonHandler.createObjectNode();
-        }
-        ObjectNode node = (ObjectNode) projection.get(PROJECTION.FIELDS.exactToken());
-        if (node == null || node.isMissingNode()) {
-            node = projection.putObject(PROJECTION.FIELDS.exactToken());
-        }
-        for (final String var : variableNames) {
-            if (var == null || var.trim().isEmpty()) {
-                continue;
-            }
-            GlobalDatas.sanityParameterCheck(var);
-            node.put(var.trim(), 1);
-        }
-        if (node.size() == 0) {
-            projection.remove(PROJECTION.FIELDS.exactToken());
-        }
-        return this;
+        return addXxxProjection(1, variableNames);
     }
 
     /**
@@ -278,6 +259,18 @@ public class Select extends Request {
      * @throws InvalidParseOperationException
      */
     public final Select addUnusedProjection(final String... variableNames)
+        throws InvalidParseOperationException {
+        return addXxxProjection(0, variableNames);
+    }
+
+    /**
+     *
+     * @param way the way of the operation
+     * @param variableNames
+     * @return this Query
+     * @throws InvalidParseOperationException
+     */
+    private final Select addXxxProjection(final int way, final String... variableNames)
         throws InvalidParseOperationException {
         if (projection == null) {
             projection = JsonHandler.createObjectNode();
@@ -291,7 +284,7 @@ public class Select extends Request {
                 continue;
             }
             GlobalDatas.sanityParameterCheck(var);
-            node.put(var.trim(), 0);
+            node.put(var.trim(), way);
         }
         if (node.size() == 0) {
             projection.remove(PROJECTION.FIELDS.exactToken());
@@ -325,7 +318,7 @@ public class Select extends Request {
      */
     public final Select parseProjection(final String projection)
         throws InvalidParseOperationException {
-        GlobalDatas.sanityParametersCheck(projection, GlobalDatas.nbProjections);
+        GlobalDatas.sanityParametersCheck(projection, GlobalDatas.NB_PROJECTIONS);
         final JsonNode rootNode = JsonHandler.getFromString(projection);
         return setProjection(rootNode);
     }

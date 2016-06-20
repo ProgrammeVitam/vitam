@@ -35,7 +35,8 @@ public class InvalidParseOperationExceptionTest {
 
     @Test
     public void testConstruct() {
-        InvalidParseOperationException invalidParseOperationException0 = new InvalidParseOperationException();
+        InvalidParseOperationException invalidParseOperationException0 =
+            new InvalidParseOperationException((String) null);
         assertNull(invalidParseOperationException0.getMessage());
         invalidParseOperationException0 = new InvalidParseOperationException("");
         InvalidParseOperationException invalidParseOperationException1 =

@@ -30,10 +30,10 @@ package fr.gouv.vitam.workspace.client;
  * WorkspaceClient factory for creating workspace client
  */
 public class WorkspaceClientFactory {
-
+    // FIXME REVIEW handle internally the configuration (see Logbook Client)
     /**
      * Create workspace client with server URL
-     * 
+     *
      * @param workspace server Url
      */
     public WorkspaceClient create(String serviceUrl) {

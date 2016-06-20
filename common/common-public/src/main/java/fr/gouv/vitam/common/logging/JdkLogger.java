@@ -38,11 +38,29 @@ final class JdkLogger extends AbstractVitamLogger {
 
     private static final long serialVersionUID = -1767272577989225979L;
 
+    static final String SELF = JdkLogger.class.getName();
+    static final String SUPER = AbstractVitamLogger.class.getName();
+
     final transient Logger logger;// NOSONAR keep it non static
 
     JdkLogger(final Logger logger) {
         super(logger.getName());
         this.logger = logger;
+    }
+
+    @Override
+    public void timeInfo(String msg) {
+        if (isInfoEnabled()) {
+            logger.info(TIME_TRACE_PREFIX + getMessagePrepend() + msg);
+        }
+    }
+
+    @Override
+    public void timeInfo(String format, Object... arguments) {
+        if (isInfoEnabled()) {
+            final FormattingTuple ft = MessageFormatter.arrayFormat(format, arguments);
+            log(SELF, Level.INFO, TIME_TRACE_PREFIX + ft.getMessage(), ft.getThrowable());
+        }
     }
 
     /**
@@ -510,9 +528,6 @@ final class JdkLogger extends AbstractVitamLogger {
         fillCallerData(callerFQCN, record);
         logger.log(record);
     }
-
-    static final String SELF = JdkLogger.class.getName();
-    static final String SUPER = AbstractVitamLogger.class.getName();
 
     /**
      * Fill in caller data if possible.

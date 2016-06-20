@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -41,6 +41,12 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
  *
  */
 public class InQuery extends Query {
+    private static final String IS_NOT_AN_IN_QUERY = " is not an In Query";
+    private static final String QUERY2 = "Query ";
+    private static final String CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME =
+        " cannot be created with empty variable name";
+    private static final String CANNOT_ADD_AN_IN_VALUE_SINCE_THIS_IS_NOT_AN_IN_QUERY =
+        "Cannot add an InValue since this is not an In Query: ";
     protected Set<Boolean> booleanVals;
     protected Set<Long> longVals;
     protected Set<Double> doubleVals;
@@ -48,27 +54,6 @@ public class InQuery extends Query {
 
     protected InQuery() {
         super();
-    }
-
-    @Override
-    public void clean() {
-        super.clean();
-        if (booleanVals != null) {
-            booleanVals.clear();
-        }
-        booleanVals = null;
-        if (longVals != null) {
-            longVals.clear();
-        }
-        longVals = null;
-        if (doubleVals != null) {
-            doubleVals.clear();
-        }
-        doubleVals = null;
-        if (stringVals != null) {
-            stringVals.clear();
-        }
-        stringVals = null;
     }
 
     /**
@@ -84,10 +69,10 @@ public class InQuery extends Query {
         super();
         switch (inQuery) {
             case IN:
-            case NIN: {
+            case NIN:
                 if (variableName == null || variableName.trim().isEmpty()) {
                     throw new InvalidCreateOperationException(
-                        "Query " + inQuery + " cannot be created with empty variable name");
+                        QUERY2 + inQuery + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
                 }
                 try {
                     GlobalDatas.sanityParameterCheck(variableName);
@@ -104,10 +89,9 @@ public class InQuery extends Query {
                 currentQUERY = inQuery;
                 setReady(true);
                 break;
-            }
             default:
                 throw new InvalidCreateOperationException(
-                    "Query " + inQuery + " is not an In Query");
+                    QUERY2 + inQuery + IS_NOT_AN_IN_QUERY);
         }
     }
 
@@ -124,10 +108,10 @@ public class InQuery extends Query {
         super();
         switch (inQuery) {
             case IN:
-            case NIN: {
+            case NIN:
                 if (variableName == null || variableName.trim().isEmpty()) {
                     throw new InvalidCreateOperationException(
-                        "Query " + inQuery + " cannot be created with empty variable name");
+                        QUERY2 + inQuery + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
                 }
                 try {
                     GlobalDatas.sanityParameterCheck(variableName);
@@ -144,10 +128,9 @@ public class InQuery extends Query {
                 currentQUERY = inQuery;
                 setReady(true);
                 break;
-            }
             default:
                 throw new InvalidCreateOperationException(
-                    "Query " + inQuery + " is not an In Query");
+                    QUERY2 + inQuery + IS_NOT_AN_IN_QUERY);
         }
     }
 
@@ -164,10 +147,10 @@ public class InQuery extends Query {
         super();
         switch (inQuery) {
             case IN:
-            case NIN: {
+            case NIN:
                 if (variableName == null || variableName.trim().isEmpty()) {
                     throw new InvalidCreateOperationException(
-                        "Query " + inQuery + " cannot be created with empty variable name");
+                        QUERY2 + inQuery + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
                 }
                 try {
                     GlobalDatas.sanityParameterCheck(variableName);
@@ -185,10 +168,9 @@ public class InQuery extends Query {
                 currentQUERY = inQuery;
                 setReady(true);
                 break;
-            }
             default:
                 throw new InvalidCreateOperationException(
-                    "Query " + inQuery + " is not an In or Search Query");
+                    QUERY2 + inQuery + " is not an In or Search Query");
         }
     }
 
@@ -205,10 +187,10 @@ public class InQuery extends Query {
         super();
         switch (inQuery) {
             case IN:
-            case NIN: {
+            case NIN:
                 if (variableName == null || variableName.trim().isEmpty()) {
                     throw new InvalidCreateOperationException(
-                        "Query " + inQuery + " cannot be created with empty variable name");
+                        QUERY2 + inQuery + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
                 }
                 try {
                     GlobalDatas.sanityParameterCheck(variableName);
@@ -226,10 +208,9 @@ public class InQuery extends Query {
                 currentQUERY = inQuery;
                 setReady(true);
                 break;
-            }
             default:
                 throw new InvalidCreateOperationException(
-                    "Query " + inQuery + " is not an In or Search Query");
+                    QUERY2 + inQuery + " is not an In or Search Query");
         }
     }
 
@@ -246,10 +227,10 @@ public class InQuery extends Query {
         super();
         switch (inQuery) {
             case IN:
-            case NIN: {
+            case NIN:
                 if (variableName == null || variableName.trim().isEmpty()) {
                     throw new InvalidCreateOperationException(
-                        "Query " + inQuery + " cannot be created with empty variable name");
+                        QUERY2 + inQuery + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
                 }
                 try {
                     GlobalDatas.sanityParameterCheck(variableName);
@@ -266,10 +247,9 @@ public class InQuery extends Query {
                 currentQUERY = inQuery;
                 setReady(true);
                 break;
-            }
             default:
                 throw new InvalidCreateOperationException(
-                    "Query " + inQuery + " is not an In Query");
+                    QUERY2 + inQuery + IS_NOT_AN_IN_QUERY);
         }
     }
 
@@ -286,7 +266,7 @@ public class InQuery extends Query {
         super();
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                "Query " + inQuery + " cannot be created with empty variable name");
+                QUERY2 + inQuery + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -295,7 +275,7 @@ public class InQuery extends Query {
         }
         switch (inQuery) {
             case IN:
-            case NIN: {
+            case NIN:
                 final ObjectNode sub =
                     ((ObjectNode) currentObject).putObject(inQuery.exactToken());
                 final ArrayNode array = sub.putArray(variableName.trim());
@@ -313,10 +293,9 @@ public class InQuery extends Query {
                 }
                 currentObject = array;
                 break;
-            }
             default:
                 throw new InvalidCreateOperationException(
-                    "Query " + inQuery + " is not an In Query");
+                    QUERY2 + inQuery + IS_NOT_AN_IN_QUERY);
         }
         currentQUERY = inQuery;
         setReady(true);
@@ -335,7 +314,7 @@ public class InQuery extends Query {
         super();
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                "Query " + inQuery + " cannot be created with empty variable name");
+                QUERY2 + inQuery + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -344,7 +323,7 @@ public class InQuery extends Query {
         }
         switch (inQuery) {
             case IN:
-            case NIN: {
+            case NIN:
                 final ObjectNode sub =
                     ((ObjectNode) currentObject).putObject(inQuery.exactToken());
                 final ArrayNode array = sub.putArray(variableName.trim());
@@ -358,10 +337,9 @@ public class InQuery extends Query {
                 }
                 currentObject = array;
                 break;
-            }
             default:
                 throw new InvalidCreateOperationException(
-                    "Query " + inQuery + " is not an In Query");
+                    QUERY2 + inQuery + IS_NOT_AN_IN_QUERY);
         }
         currentQUERY = inQuery;
         setReady(true);
@@ -380,11 +358,11 @@ public class InQuery extends Query {
         super();
         if (inQuery != QUERY.IN && inQuery != QUERY.NIN) {
             throw new InvalidCreateOperationException(
-                "Query " + inQuery + " is not an In Query");
+                QUERY2 + inQuery + IS_NOT_AN_IN_QUERY);
         }
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                "Query " + currentQUERY + " cannot be created with empty variable name");
+                QUERY2 + currentQUERY + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -419,11 +397,11 @@ public class InQuery extends Query {
         super();
         if (inQuery != QUERY.IN && inQuery != QUERY.NIN) {
             throw new InvalidCreateOperationException(
-                "Query " + inQuery + " is not an In Query");
+                QUERY2 + inQuery + IS_NOT_AN_IN_QUERY);
         }
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                "Query " + currentQUERY + " cannot be created with empty variable name");
+                QUERY2 + currentQUERY + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -459,11 +437,11 @@ public class InQuery extends Query {
         super();
         if (inQuery != QUERY.IN && inQuery != QUERY.NIN) {
             throw new InvalidCreateOperationException(
-                "Query " + inQuery + " is not an In Query");
+                QUERY2 + inQuery + IS_NOT_AN_IN_QUERY);
         }
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                "Query " + currentQUERY + " cannot be created with empty variable name");
+                QUERY2 + currentQUERY + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -485,6 +463,27 @@ public class InQuery extends Query {
         setReady(true);
     }
 
+    @Override
+    public void clean() {
+        super.clean();
+        if (booleanVals != null) {
+            booleanVals.clear();
+        }
+        booleanVals = null;
+        if (longVals != null) {
+            longVals.clear();
+        }
+        longVals = null;
+        if (doubleVals != null) {
+            doubleVals.clear();
+        }
+        doubleVals = null;
+        if (stringVals != null) {
+            stringVals.clear();
+        }
+        stringVals = null;
+    }
+
     /**
      * Add an In Value to an existing In Query
      *
@@ -496,7 +495,7 @@ public class InQuery extends Query {
         throws InvalidCreateOperationException {
         if (currentQUERY != QUERY.IN && currentQUERY != QUERY.NIN) {
             throw new InvalidCreateOperationException(
-                "Cannot add an InValue since this is not an In Query: " + currentQUERY);
+                CANNOT_ADD_AN_IN_VALUE_SINCE_THIS_IS_NOT_AN_IN_QUERY + currentQUERY);
         }
         final ArrayNode array = (ArrayNode) currentObject;
         if (stringVals == null) {
@@ -527,7 +526,7 @@ public class InQuery extends Query {
         throws InvalidCreateOperationException {
         if (currentQUERY != QUERY.IN && currentQUERY != QUERY.NIN) {
             throw new InvalidCreateOperationException(
-                "Cannot add an InValue since this is not an In Query: " + currentQUERY);
+                CANNOT_ADD_AN_IN_VALUE_SINCE_THIS_IS_NOT_AN_IN_QUERY + currentQUERY);
         }
         final ArrayNode array = (ArrayNode) currentObject;
         if (stringVals == null) {
@@ -554,7 +553,7 @@ public class InQuery extends Query {
         throws InvalidCreateOperationException {
         if (currentQUERY != QUERY.IN && currentQUERY != QUERY.NIN) {
             throw new InvalidCreateOperationException(
-                "Cannot add an InValue since this is not an In Query: " + currentQUERY);
+                CANNOT_ADD_AN_IN_VALUE_SINCE_THIS_IS_NOT_AN_IN_QUERY + currentQUERY);
         }
         final ArrayNode array = (ArrayNode) currentObject;
         if (longVals == null) {
@@ -580,7 +579,7 @@ public class InQuery extends Query {
         throws InvalidCreateOperationException {
         if (currentQUERY != QUERY.IN && currentQUERY != QUERY.NIN) {
             throw new InvalidCreateOperationException(
-                "Cannot add an InValue since this is not an In Query: " + currentQUERY);
+                CANNOT_ADD_AN_IN_VALUE_SINCE_THIS_IS_NOT_AN_IN_QUERY + currentQUERY);
         }
         final ArrayNode array = (ArrayNode) currentObject;
         if (doubleVals == null) {
@@ -606,7 +605,7 @@ public class InQuery extends Query {
         throws InvalidCreateOperationException {
         if (currentQUERY != QUERY.IN && currentQUERY != QUERY.NIN) {
             throw new InvalidCreateOperationException(
-                "Cannot add an InValue since this is not an In Query: " + currentQUERY);
+                CANNOT_ADD_AN_IN_VALUE_SINCE_THIS_IS_NOT_AN_IN_QUERY + currentQUERY);
         }
         final ArrayNode array = (ArrayNode) currentObject;
         if (booleanVals == null) {

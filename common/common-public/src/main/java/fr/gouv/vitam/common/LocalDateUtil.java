@@ -38,6 +38,21 @@ import java.util.Date;
  */
 public final class LocalDateUtil {
 
+    private static final int THOUSAND = 1000;
+
+    private LocalDateUtil() {
+        // empty
+    }
+
+    /**
+     *
+     * @param localDateTime
+     * @return the ISO Date Time
+     */
+    public static final String getString(LocalDateTime localDateTime) {
+        return localDateTime.format(DateTimeFormatter.ISO_DATE_TIME);
+    }
+
     /**
      *
      * @return the LocalDateTime now in UTC
@@ -67,7 +82,7 @@ public final class LocalDateUtil {
         if (millis < 0) {
             return LocalDateTime.now(ZoneOffset.UTC);
         }
-        return LocalDateTime.ofEpochSecond(millis / 1000, (int) (millis % 1000 * 1000),
+        return LocalDateTime.ofEpochSecond(millis / THOUSAND, (int) (millis % THOUSAND * THOUSAND),
             ZoneOffset.UTC);
     }
 
@@ -112,10 +127,6 @@ public final class LocalDateUtil {
             return new Date();
         }
         return Date.from(ldt.toInstant(ZoneOffset.UTC));
-    }
-
-    private LocalDateUtil() {
-        // empty
     }
 
 }

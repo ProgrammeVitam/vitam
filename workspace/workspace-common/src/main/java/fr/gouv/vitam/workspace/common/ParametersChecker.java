@@ -34,9 +34,8 @@ import com.google.common.base.Strings;
  *
  */
 public class ParametersChecker {
-
+    // FIXME REVIEW use Common
     // TODO Explicitly add IllegalArgumentException in the signature
-    // TODO comment
     /**
      * throws an IllegalArgumentException in case of there is an error on parameters
      *

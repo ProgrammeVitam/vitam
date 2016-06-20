@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -39,6 +39,14 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
  *
  */
 public class SetAction extends Action {
+    private static final String CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME =
+        " cannot be updated with empty variable name";
+    private static final String CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_SET_ACTION =
+        "Cannot add a set element since this is not a Set Action: ";
+    private static final String CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME2 =
+        " cannot be created with empty variable name";
+    private static final String ACTION = "Action ";
+
     protected SetAction() {
         super();
     }
@@ -144,7 +152,7 @@ public class SetAction extends Action {
         super();
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                "Action " + currentUPDATEACTION + " cannot be created with empty variable name");
+                ACTION + currentUPDATEACTION + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME2);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -171,11 +179,11 @@ public class SetAction extends Action {
         throws InvalidCreateOperationException {
         if (currentUPDATEACTION != UPDATEACTION.SET) {
             throw new InvalidCreateOperationException(
-                "Cannot add a set element since this is not a Set Action: " + currentUPDATEACTION);
+                CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_SET_ACTION + currentUPDATEACTION);
         }
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                "Action " + currentUPDATEACTION + " cannot be updated with empty variable name");
+                ACTION + currentUPDATEACTION + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -199,11 +207,11 @@ public class SetAction extends Action {
         throws InvalidCreateOperationException {
         if (currentUPDATEACTION != UPDATEACTION.SET) {
             throw new InvalidCreateOperationException(
-                "Cannot add a set element since this is not a Set Action: " + currentUPDATEACTION);
+                CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_SET_ACTION + currentUPDATEACTION);
         }
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                "Action " + currentUPDATEACTION + " cannot be updated with empty variable name");
+                ACTION + currentUPDATEACTION + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -226,11 +234,11 @@ public class SetAction extends Action {
         throws InvalidCreateOperationException {
         if (currentUPDATEACTION != UPDATEACTION.SET) {
             throw new InvalidCreateOperationException(
-                "Cannot add a set element since this is not a Set Action: " + currentUPDATEACTION);
+                CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_SET_ACTION + currentUPDATEACTION);
         }
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                "Action " + currentUPDATEACTION + " cannot be updated with empty variable name");
+                ACTION + currentUPDATEACTION + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -253,11 +261,11 @@ public class SetAction extends Action {
         throws InvalidCreateOperationException {
         if (currentUPDATEACTION != UPDATEACTION.SET) {
             throw new InvalidCreateOperationException(
-                "Cannot add a set element since this is not a Set Action: " + currentUPDATEACTION);
+                CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_SET_ACTION + currentUPDATEACTION);
         }
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                "Action " + currentUPDATEACTION + " cannot be updated with empty variable name");
+                ACTION + currentUPDATEACTION + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -280,11 +288,11 @@ public class SetAction extends Action {
         throws InvalidCreateOperationException {
         if (currentUPDATEACTION != UPDATEACTION.SET) {
             throw new InvalidCreateOperationException(
-                "Cannot add a set element since this is not a Set Action: " + currentUPDATEACTION);
+                CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_SET_ACTION + currentUPDATEACTION);
         }
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                "Action " + currentUPDATEACTION + " cannot be updated with empty variable name");
+                ACTION + currentUPDATEACTION + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);

@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -42,8 +42,10 @@ import fr.gouv.vitam.parser.request.parser.VarNameAdapter;
  *
  */
 public class SelectParser extends RequestParser {
+    protected static final int PROJECTION_POS = 2;
+
     /**
-     *
+     * Empty constructor
      */
     public SelectParser() {
         super();
@@ -81,6 +83,7 @@ public class SelectParser extends RequestParser {
      * @throws InvalidParseOperationException
      */
     @Override
+    @Deprecated
     public void parse(final String request) throws InvalidParseOperationException {
         parseString(request);
         internalParseSelect();
@@ -92,8 +95,8 @@ public class SelectParser extends RequestParser {
     private void internalParseSelect() throws InvalidParseOperationException {
         if (rootNode.isArray()) {
             // should be 3, but each could be empty ( '{}' )
-            if (rootNode.size() > 2) {
-                projectionParse(rootNode.get(2));
+            if (rootNode.size() > PROJECTION_POS) {
+                projectionParse(rootNode.get(PROJECTION_POS));
             }
         } else {
             // not as array but composite as { $query : query,
@@ -124,7 +127,7 @@ public class SelectParser extends RequestParser {
         if (rootNode == null) {
             return;
         }
-        GlobalDatas.sanityParametersCheck(rootNode.toString(), GlobalDatas.nbProjections);
+        GlobalDatas.sanityParametersCheck(rootNode.toString(), GlobalDatas.NB_PROJECTIONS);
         try {
             ((Select) request).resetUsageProjection().resetUsedProjection();
             final ObjectNode node = JsonHandler.createObjectNode();
@@ -153,7 +156,7 @@ public class SelectParser extends RequestParser {
             throw new InvalidParseOperationException(
                 "addProjection does not accept null parameters");
         }
-        GlobalDatas.sanityParametersCheck(slice.toString(), GlobalDatas.nbProjections);
+        GlobalDatas.sanityParametersCheck(slice.toString(), GlobalDatas.NB_PROJECTIONS);
         try {
             ObjectNode node = (ObjectNode) ((Select) request).getProjection().get(
                 PROJECTION.FIELDS.exactToken());

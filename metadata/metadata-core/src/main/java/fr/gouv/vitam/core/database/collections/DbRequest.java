@@ -1,3 +1,29 @@
+/*******************************************************************************
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ *
+ * contact.vitam@culture.gouv.fr
+ *
+ * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
+ * high volumetry securely and efficiently.
+ *
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
+ * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ *
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
+ *
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
+ *
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
+ * accept its terms.
+ *******************************************************************************/
 /**
  *
  */
@@ -33,6 +59,7 @@ import fr.gouv.vitam.builder.request.construct.Delete;
 import fr.gouv.vitam.builder.request.construct.Insert;
 import fr.gouv.vitam.builder.request.construct.Request;
 import fr.gouv.vitam.builder.request.construct.Update;
+import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens;
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.FILTERARGS;
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.QUERY;
 import fr.gouv.vitam.builder.request.construct.query.Query;
@@ -58,6 +85,22 @@ import fr.gouv.vitam.parser.request.parser.query.PathQuery;
  * DB Request using MongoDB only
  */
 public class DbRequest {
+    private static final String QUERY2 = "query: ";
+
+    private static final String WHERE_PREVIOUS_RESULT_WAS = "where_previous_result_was: ";
+
+    private static final String FROM2 = "from: ";
+
+    private static final String NO_RESULT_AT_RANK2 = "no_result_at_rank: ";
+
+    private static final String NO_RESULT_TRUE = "no_result: true";
+
+    private static final String WHERE_PREVIOUS_IS = " \n\twhere previous is ";
+
+    private static final String FROM = " from ";
+
+    private static final String NO_RESULT_AT_RANK = "No result at rank: ";
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DbRequest.class);
 
     boolean debug = true;
@@ -65,7 +108,9 @@ public class DbRequest {
     /**
      * Constructor
      */
-    public DbRequest() {}
+    public DbRequest() {
+        // Empty constructor
+    }
 
     /**
      * @param debug If True, in debug mode
@@ -111,12 +156,12 @@ public class DbRequest {
                 result = newResult;
             } else {
                 LOGGER.error(
-                    "No result at rank: " + rank + " from " + requestParser + " \n\twhere previous is " + result);
+                    NO_RESULT_AT_RANK + rank + FROM + requestParser + WHERE_PREVIOUS_IS + result);
                 // XXX TODO should be adapted to have a correct error feedback
                 result = new ResultError(requestParser.model())
-                    .addError(newResult != null ? newResult.getCurrentIds().toString() : "no_result: true")
-                    .addError("no_result_at_rank: " + rank).addError("from: " + requestParser)
-                    .addError("where_previous_result_was: " + result);
+                    .addError(newResult != null ? newResult.getCurrentIds().toString() : NO_RESULT_TRUE)
+                    .addError(NO_RESULT_AT_RANK2 + rank).addError(FROM2 + requestParser)
+                    .addError(WHERE_PREVIOUS_RESULT_WAS + result);
 
                 return result;
             }
@@ -128,16 +173,26 @@ public class DbRequest {
         // Stops if no result (empty)
         for (; !result.getCurrentIds().isEmpty() && rank < maxQuery; rank++) {
             final Result newResult = executeQuery(requestToMongodb, rank, result);
-            if (newResult != null && !newResult.getCurrentIds().isEmpty() && !newResult.isError()) {
+            if (newResult == null) {
+                LOGGER.error(
+                    NO_RESULT_AT_RANK + rank + FROM + requestParser + WHERE_PREVIOUS_IS + result);
+                // XXX TODO should be adapted to have a correct error feedback
+                result = new ResultError(result.type)
+                    .addError(result.getCurrentIds().toString())
+                    .addError(NO_RESULT_AT_RANK2 + rank).addError(FROM2 + requestParser)
+                    .addError(WHERE_PREVIOUS_RESULT_WAS + result);
+                return result;
+            }
+            if (!newResult.getCurrentIds().isEmpty() && !newResult.isError()) {
                 result = newResult;
             } else {
                 LOGGER.error(
-                    "No result at rank: " + rank + " from " + requestParser + " \n\twhere previous is " + result);
+                    NO_RESULT_AT_RANK + rank + FROM + requestParser + WHERE_PREVIOUS_IS + result);
                 // XXX TODO should be adapted to have a correct error feedback
                 result = new ResultError(newResult.type)
-                    .addError(newResult != null ? newResult.getCurrentIds().toString() : "no_result: true")
-                    .addError("no_result_at_rank: " + rank).addError("from: " + requestParser)
-                    .addError("where_previous_result_was: " + result);
+                    .addError(newResult != null ? newResult.getCurrentIds().toString() : NO_RESULT_TRUE)
+                    .addError(NO_RESULT_AT_RANK2 + rank).addError(FROM2 + requestParser)
+                    .addError(WHERE_PREVIOUS_RESULT_WAS + result);
                 return result;
             }
             if (debug) {
@@ -158,12 +213,12 @@ public class DbRequest {
         }
         // others do not allow empty result
         if (result.getCurrentIds().isEmpty()) {
-            LOGGER.error("No result at rank: " + rank + " from " + requestParser + " \n\twhere previous is " + result);
+            LOGGER.error(NO_RESULT_AT_RANK + rank + FROM + requestParser + WHERE_PREVIOUS_IS + result);
             // XXX TODO should be adapted to have a correct error feedback
             result = new ResultError(result.type)
-                .addError(result != null ? result.getCurrentIds().toString() : "no_result: true")
-                .addError("no_result_at_rank: " + rank).addError("from: " + requestParser)
-                .addError("where_previous_result_was: " + result);
+                .addError(result != null ? result.getCurrentIds().toString() : NO_RESULT_TRUE)
+                .addError(NO_RESULT_AT_RANK2 + rank).addError(FROM2 + requestParser)
+                .addError(WHERE_PREVIOUS_RESULT_WAS + result);
             return result;
         }
         if (request instanceof Update) {
@@ -195,7 +250,7 @@ public class DbRequest {
 
     /**
      * Check Unit at startup against Roots
-     * 
+     *
      * @param request
      * @param defaultStartSet
      * @return the valid root ids
@@ -216,7 +271,7 @@ public class DbRequest {
 
     /**
      * Check ObjectGroup at startup against Roots
-     * 
+     *
      * @param request
      * @param defaultStartSet
      * @return the valid root ids
@@ -234,7 +289,7 @@ public class DbRequest {
         }
         @SuppressWarnings("unchecked")
         final FindIterable<ObjectGroup> iterable =
-            (FindIterable<ObjectGroup>) MongoDbMetadataHelper.select(VitamCollections.Cobjectgroup,
+            (FindIterable<ObjectGroup>) MongoDbMetadataHelper.select(VitamCollections.C_OBJECTGROUP,
                 MongoDbMetadataHelper.queryForAncestorsOrSame(roots, defaultStartSet.getCurrentIds()),
                 ObjectGroup.OBJECTGROUP_VITAM_PROJECTION);
         final MongoCursor<ObjectGroup> cursor = iterable.iterator();
@@ -258,7 +313,7 @@ public class DbRequest {
 
     /**
      * Check Unit parents against Roots
-     * 
+     *
      * @param current set of result id
      * @param defaultStartSet
      * @return the valid root ids set
@@ -266,13 +321,14 @@ public class DbRequest {
      */
     protected Set<String> checkUnitAgainstRoots(final Set<String> current, final Result defaultStartSet)
         throws InvalidParseOperationException {
-        // TODO: was: || defaultStartSet.getCurrentIds().isEmpty() in order to allow emptyStartSet => default roots
+        // FIXME REVIEW: was: || defaultStartSet.getCurrentIds().isEmpty() in order to allow emptyStartSet => default
+        // roots
         if (defaultStartSet == null) {
             // no limitation: using roots
             return current;
         }
         @SuppressWarnings("unchecked")
-        final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper.select(VitamCollections.Cunit,
+        final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper.select(VitamCollections.C_UNIT,
             MongoDbMetadataHelper.queryForAncestorsOrSame(current, defaultStartSet.getCurrentIds()),
             MongoDbMetadataHelper.ID_PROJECTION);
         final MongoCursor<Unit> cursor = iterable.iterator();
@@ -311,7 +367,7 @@ public class DbRequest {
         final QUERY type = realQuery.getQUERY();
         final FILTERARGS collectionType = requestToMongodb.model();
         if (type == QUERY.PATH) {
-            // TODO REVIEW why removing this?
+            // FIXME REVIEW why removing this?
             // Check if path is compatible with previous
             // if (previous.getCurrentIds().isEmpty()) {
             // previous.clear();
@@ -353,12 +409,7 @@ public class DbRequest {
                     LOGGER.debug("ObjectGroup No depth at all");
                     result = objectGroupQuery(realQuery, previous);
                     break;
-                case OBJECTS:
-                    // Need to investigate: object is a subelement of objectgroup (_uses.versions.)
-                    // Possibility: request contains full information of path (_uses) so query is similar
-                    // to ObjectGroup but not result (filtering on Object)
                 default:
-                    // XXX FXME ???
                     throw new MetaDataExecutionException(
                         "Cannot execute this operation on the model: " + collectionType);
             }
@@ -370,7 +421,7 @@ public class DbRequest {
 
     /**
      * Execute one Unit Query using exact Depth
-     * 
+     *
      * @param realQuery
      * @param previous
      * @param exactDepth
@@ -384,10 +435,10 @@ public class DbRequest {
         final Bson roots = QueryToMongodb.getRoots(VitamDocument.UP, previous.getCurrentIds());
         final Bson finalQuery = and(query, roots, lte(Unit.MINDEPTH, exactDepth), gte(Unit.MAXDEPTH, exactDepth));
         previous.clear();
-        LOGGER.debug("query: " + MongoDbHelper.bsonToString(finalQuery, false));
+        LOGGER.debug(QUERY2 + MongoDbHelper.bsonToString(finalQuery, false));
         @SuppressWarnings("unchecked")
         final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper.select(
-            MongoDbAccess.VitamCollections.Cunit, finalQuery, Unit.UNIT_VITAM_PROJECTION);
+            MongoDbAccess.VitamCollections.C_UNIT, finalQuery, Unit.UNIT_VITAM_PROJECTION);
         final MongoCursor<Unit> cursor = iterable.iterator();
         try {
             while (cursor.hasNext()) {
@@ -408,7 +459,7 @@ public class DbRequest {
 
     /**
      * Execute one relative Depth Unit Query
-     * 
+     *
      * @param realQuery
      * @param previous
      * @param relativeDepth
@@ -423,7 +474,7 @@ public class DbRequest {
         Bson roots = null;
         boolean tocheck = false;
         if (previous.getCurrentIds().isEmpty()) {
-            // TODO: why removing this
+            // FIXME REVIEW : why removing this
             // Change to MAX DEPTH <= relativeDepth
             // roots = lte(Unit.MAXDEPTH, relativeDepth);
         } else {
@@ -436,7 +487,7 @@ public class DbRequest {
                 // same level: previous is in IDs of result
                 roots = QueryToMongodb.getRoots(VitamDocument.ID, previous.getCurrentIds());
             } else if (relativeDepth == 1) {
-                // immediate step: previous is in Unit2Unit of result
+                // immediate step: previous is in UNIT_TO_UNIT of result
                 roots = QueryToMongodb.getRoots(VitamDocument.UP,
                     previous.getCurrentIds());
             } else {
@@ -449,15 +500,15 @@ public class DbRequest {
         if (roots != null) {
             query = QueryToMongodb.getFullCommand(query, roots);
         }
-        // TODO REVIEW now query could be null! you need to not use query if null
-        LOGGER.debug("query: " + MongoDbHelper.bsonToString(query, false));
+        // FIXME REVIEW now query could be null! you need to not use query if null
+        LOGGER.debug(QUERY2 + MongoDbHelper.bsonToString(query, false));
         result = MongoDbAccess.createOneResult(FILTERARGS.UNITS);
         if (GlobalDatasDb.PRINT_REQUEST) {
             LOGGER.warn("Req1LevelMD: {}", realQuery);
         }
         @SuppressWarnings("unchecked")
         final FindIterable<Unit> iterable =
-            (FindIterable<Unit>) MongoDbMetadataHelper.select(MongoDbAccess.VitamCollections.Cunit, query,
+            (FindIterable<Unit>) MongoDbMetadataHelper.select(MongoDbAccess.VitamCollections.C_UNIT, query,
                 Unit.UNIT_VITAM_PROJECTION);
         final MongoCursor<Unit> cursor = iterable.iterator();
         try {
@@ -496,7 +547,7 @@ public class DbRequest {
 
     /**
      * Aggregate Unit Depths according to parent relative Depth
-     * 
+     *
      * @param ids
      * @param relativeDepth
      * @return the aggregate set of multi level parents for this relativeDepth
@@ -506,13 +557,13 @@ public class DbRequest {
         final Bson match = match(in(VitamDocument.ID, ids));
         // aggregate all UNITDEPTH in one (ignoring depth value)
         final Bson group = group(new BasicDBObject(VitamDocument.ID, "all"),
-            addToSet("deptharray", "$" + Unit.UNITDEPTHS));
+            addToSet("deptharray", ParserTokens.DEFAULT_PREFIX + Unit.UNITDEPTHS));
         LOGGER.debug("Depth: " + MongoDbHelper.bsonToString(match, false) + " " +
             MongoDbHelper.bsonToString(group, false));
         final List<Bson> pipeline = Arrays.asList(match, group);
         @SuppressWarnings("unchecked")
         final AggregateIterable<Unit> aggregateIterable =
-            (AggregateIterable<Unit>) MongoDbAccess.VitamCollections.Cunit.getCollection().aggregate(pipeline);
+            (AggregateIterable<Unit>) MongoDbAccess.VitamCollections.C_UNIT.getCollection().aggregate(pipeline);
         final Unit aggregate = aggregateIterable.first();
         final Set<String> set = new HashSet<String>();
         if (aggregate != null) {
@@ -550,10 +601,10 @@ public class DbRequest {
             finalQuery = and(query, roots);
         }
         previous.clear();
-        LOGGER.debug("query: " + MongoDbHelper.bsonToString(finalQuery, false));
+        LOGGER.debug(QUERY2 + MongoDbHelper.bsonToString(finalQuery, false));
         @SuppressWarnings("unchecked")
         final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper
-            .select(MongoDbAccess.VitamCollections.Cunit, finalQuery, Unit.UNIT_VITAM_PROJECTION);
+            .select(MongoDbAccess.VitamCollections.C_UNIT, finalQuery, Unit.UNIT_VITAM_PROJECTION);
         final MongoCursor<Unit> cursor = iterable.iterator();
         try {
             while (cursor.hasNext()) {
@@ -574,7 +625,7 @@ public class DbRequest {
 
     /**
      * Execute one relative Depth ObjectGroup Query
-     * 
+     *
      * @param realQuery
      * @param previous units, Note: only immediate Unit parents are allowed
      * @return the associated Result
@@ -591,10 +642,10 @@ public class DbRequest {
             finalQuery = and(query, roots);
         }
         previous.clear();
-        LOGGER.debug("query: " + MongoDbHelper.bsonToString(finalQuery, false));
+        LOGGER.debug(QUERY2 + MongoDbHelper.bsonToString(finalQuery, false));
         @SuppressWarnings("unchecked")
         final FindIterable<ObjectGroup> iterable = (FindIterable<ObjectGroup>) MongoDbMetadataHelper.select(
-            MongoDbAccess.VitamCollections.Cobjectgroup, finalQuery,
+            MongoDbAccess.VitamCollections.C_OBJECTGROUP, finalQuery,
             ObjectGroup.OBJECTGROUP_VITAM_PROJECTION);
         final MongoCursor<ObjectGroup> cursor = iterable.iterator();
         try {
@@ -610,7 +661,7 @@ public class DbRequest {
 
     /**
      * Finalize the queries with last True Select
-     * 
+     *
      * @param requestToMongodb
      * @param last
      * @return the final Result
@@ -632,7 +683,7 @@ public class DbRequest {
             case UNITS: {
                 @SuppressWarnings("unchecked")
                 final FindIterable<Unit> iterable =
-                    (FindIterable<Unit>) MongoDbMetadataHelper.select(MongoDbAccess.VitamCollections.Cunit,
+                    (FindIterable<Unit>) MongoDbMetadataHelper.select(MongoDbAccess.VitamCollections.C_UNIT,
                         roots, projection, orderBy, offset, limit);
                 final MongoCursor<Unit> cursor = iterable.iterator();
                 try {
@@ -651,7 +702,7 @@ public class DbRequest {
                 @SuppressWarnings("unchecked")
                 final FindIterable<ObjectGroup> iterable =
                     (FindIterable<ObjectGroup>) MongoDbMetadataHelper.select(
-                        MongoDbAccess.VitamCollections.Cobjectgroup,
+                        MongoDbAccess.VitamCollections.C_OBJECTGROUP,
                         roots, projection, orderBy, offset, limit);
                 final MongoCursor<ObjectGroup> cursor = iterable.iterator();
                 try {
@@ -666,8 +717,6 @@ public class DbRequest {
                 last.setNbResult(last.getCurrentIds().size());
                 return last;
             }
-            case OBJECTS:
-                // XXX TODO
             default:
                 throw new MetaDataExecutionException("Model not supported: " + model);
         }
@@ -675,7 +724,7 @@ public class DbRequest {
 
     /**
      * Finalize the queries with last True Update
-     * 
+     *
      * @param requestToMongodb
      * @param last
      * @return the final Result
@@ -692,20 +741,18 @@ public class DbRequest {
         try {
             switch (model) {
                 case UNITS: {
-                    final UpdateResult result = MongoDbMetadataHelper.update(MongoDbAccess.VitamCollections.Cunit,
+                    final UpdateResult result = MongoDbMetadataHelper.update(MongoDbAccess.VitamCollections.C_UNIT,
                         roots, update, last.getCurrentIds().size());
                     last.setNbResult(result.getModifiedCount());
                     return last;
                 }
                 case OBJECTGROUPS: {
                     final UpdateResult result =
-                        MongoDbMetadataHelper.update(MongoDbAccess.VitamCollections.Cobjectgroup,
+                        MongoDbMetadataHelper.update(MongoDbAccess.VitamCollections.C_OBJECTGROUP,
                             roots, update, last.getCurrentIds().size());
                     last.setNbResult(result.getModifiedCount());
                     return last;
                 }
-                case OBJECTS:
-                    // XXX TODO
                 default:
                     throw new MetaDataExecutionException("Model not supported: " + model);
             }
@@ -718,7 +765,7 @@ public class DbRequest {
 
     /**
      * Finalize the queries with last True Insert
-     * 
+     *
      * @param requestToMongodb
      * @param last
      * @return the final Result
@@ -760,8 +807,6 @@ public class DbRequest {
                     last.setNbResult(1);
                     return last;
                 }
-                case OBJECTS:
-                    // XXX TODO
                 default:
                     throw new MetaDataExecutionException("Model not supported: " + model);
             }
@@ -774,7 +819,7 @@ public class DbRequest {
 
     /**
      * Finalize the queries with last True Delete
-     * 
+     *
      * @param requestToMongodb
      * @param last
      * @return the final Result
@@ -789,20 +834,18 @@ public class DbRequest {
         try {
             switch (model) {
                 case UNITS: {
-                    final DeleteResult result = MongoDbMetadataHelper.delete(MongoDbAccess.VitamCollections.Cunit,
+                    final DeleteResult result = MongoDbMetadataHelper.delete(MongoDbAccess.VitamCollections.C_UNIT,
                         roots, last.getCurrentIds().size());
                     last.setNbResult(result.getDeletedCount());
                     return last;
                 }
                 case OBJECTGROUPS: {
                     final DeleteResult result =
-                        MongoDbMetadataHelper.delete(MongoDbAccess.VitamCollections.Cobjectgroup,
+                        MongoDbMetadataHelper.delete(MongoDbAccess.VitamCollections.C_OBJECTGROUP,
                             roots, last.getCurrentIds().size());
                     last.setNbResult(result.getDeletedCount());
                     return last;
                 }
-                case OBJECTS:
-                    // XXX TODO
                 default:
                     throw new MetaDataExecutionException("Model not supported: " + model);
             }

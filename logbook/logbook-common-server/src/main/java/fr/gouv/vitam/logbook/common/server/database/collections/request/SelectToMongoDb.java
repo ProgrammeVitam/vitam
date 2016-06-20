@@ -102,7 +102,7 @@ public class SelectToMongoDb {
         if (node != null) {
             return node.asInt();
         }
-        return GlobalDatas.limitLoad;
+        return GlobalDatas.LIMIT_LOAD;
     }
 
     /**

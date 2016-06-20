@@ -51,6 +51,20 @@ final class LogbackLogger extends AbstractVitamLogger {
     }
 
     @Override
+    public void timeInfo(String msg) {
+        if (logger.isInfoEnabled()) {
+            logger.info(TIME_TRACE_PREFIX + getMessagePrepend() + msg);
+        }
+    }
+
+    @Override
+    public void timeInfo(String format, Object... arguments) {
+        if (logger.isInfoEnabled()) {
+            logger.info(TIME_TRACE_PREFIX + getMessagePrepend() + format, arguments);
+        }
+    }
+
+    @Override
     public boolean isTraceEnabled() {
         return logger.isTraceEnabled();
     }
