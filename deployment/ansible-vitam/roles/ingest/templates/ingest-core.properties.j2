@@ -2,10 +2,10 @@
 ingest.core.port={{vitam_internal_http_port_web}}
 ingest.core.rest.upload=ingest/upload
 ingest.core.status=ingest/status
-ingest.core.uploaded.dir=/vitam/data/{{internal_name}}
-ingest.core.log.dir=/vitam/log/{{internal_name}}
+ingest.core.uploaded.dir=/vitam/data
+ingest.core.log.dir=/vitam/log
 
-ingest.core.workspace.client.uri=http://vitam-prod-app-10.internet.agri:8201
-ingest.core.processing.uri=http://vitam-prod-app-10.internet.agri:8203
-ingest.core.logbook.server=vitam-prod-app-10.internet.agri
-ingest.core.logbook.port=8204
+ingest.core.workspace.client.uri={{vitam_workspace_baseurl}}
+ingest.core.processing.uri={{vitam_processing_baseurl}}
+ingest.core.logbook.server={{vitam_logbook_host}}
+ingest.core.logbook.port={{vitam_logbook_port}}

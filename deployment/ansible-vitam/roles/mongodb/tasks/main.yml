@@ -30,7 +30,7 @@
     restart_policy: always
     pull: "{{pull_strategy}}"
     ports:
-      - "{{vitam_docker_port_mongodb}}:27017"
+      - "{{vitam_docker_port_mongodb}}:{{vitam_mongodb_port}}"
     volumes: 
       #- "{{vitam_folder_conf}}:/vitam/conf" # TODO: KWA specify custom configuration file
       #- "{{vitam_folder_log}}:/var/log/mongodb" # TODO: KWA verify logging for mongo

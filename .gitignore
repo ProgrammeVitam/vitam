@@ -6,4 +6,4 @@ target
 .project
 .settings
 **/evosuite-tests/
-
+*.retry
