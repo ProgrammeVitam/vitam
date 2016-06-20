@@ -98,6 +98,7 @@ public class LogbookResourceTest {
             .net(new Net(DATABASE_PORT, Network.localhostIsIPv6()))
             .build());
         mongod = mongodExecutable.start();
+
         mongoDbAccess =
             MongoDbAccessFactory.create(
                 new DbConfigurationImpl(DATABASE_HOST, DATABASE_PORT,
@@ -213,5 +214,4 @@ public class LogbookResourceTest {
         assertNotNull(client.status());
         client.close();
     }
-
 }

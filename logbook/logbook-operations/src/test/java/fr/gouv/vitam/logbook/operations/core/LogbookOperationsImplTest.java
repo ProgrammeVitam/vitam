@@ -27,12 +27,14 @@
 package fr.gouv.vitam.logbook.operations.core;
 
 import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.server.MongoDbAccess;
@@ -67,6 +69,13 @@ public class LogbookOperationsImplTest {
         logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
         logbookOperationsImpl.update(logbookParameters);
     }
+    
+    @Test(expected = InvalidParseOperationException.class)
+    public void givenSelectOperationWhenErrorInMongoThenThrowLogbookException() throws Exception {
+        Mockito.doThrow(LogbookDatabaseException.class).when(mongoDbAccess).getLogbookOperations(anyString());
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
+        logbookOperationsImpl.select(null);
+    }
 
     @Test(expected = LogbookAlreadyExistsException.class)
     public void givenCreateOperationWhenOperationAlreadyExistsThenThrowLogbookException() throws Exception {
@@ -82,6 +91,13 @@ public class LogbookOperationsImplTest {
 
         logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
         logbookOperationsImpl.update(logbookParameters);
+    }
+    
+    @Test(expected = InvalidParseOperationException.class)
+    public void givenSelectOperationWhenOperationNotExistsThenThrowLogbookException() throws Exception {
+        Mockito.doThrow(LogbookNotFoundException.class).when(mongoDbAccess).getLogbookOperations(anyString());
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
+        logbookOperationsImpl.select(null);
     }
 
 }

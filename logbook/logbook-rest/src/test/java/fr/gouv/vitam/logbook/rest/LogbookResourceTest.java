@@ -28,12 +28,14 @@ package fr.gouv.vitam.logbook.rest;
 
 import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
+import static com.jayway.restassured.RestAssured.with;
 
 import java.io.FileNotFoundException;
 
 import javax.ws.rs.core.Response.Status;
 
 import org.jhades.JHades;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -65,6 +67,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.MongoDbAccess;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.database.collections.MongoDbAccessFactory;
 
 public class LogbookResourceTest {
@@ -83,12 +86,19 @@ public class LogbookResourceTest {
     private static final String OPERATIONS_URI = "/operations";
     private static final String OPERATION_ID_URI = "/{id_op}";
     private static final String STATUS_URI = "/status";
-
+    
     private static LogbookOperationParameters logbookParametersStart;
     private static LogbookOperationParameters logbookParametersAppend;
     private static LogbookOperationParameters logbookParametersWrongStart;
     private static LogbookOperationParameters logbookParametersWrongAppend;
+    private static LogbookOperationParameters logbookParametersSelect;
+    private static LogbookOperationParameters logbookParametersSelectId;
+    private static final String BODY_TEST = "{$query: {$eq: {\"aa\" : \"vv\" }}, $projection: {}, $filter: {}}";
+    private static final String BODY_QUERY = "{$query: {$eq: {\"evType\" : \"eventTypeValueSelect\"}}, $projection: {}, $filter: {}}";
+    public static String X_HTTP_METHOD_OVERRIDE = "X-HTTP-Method-Override";
 
+
+    
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         // Identify overlapping in particular jsr311
@@ -121,6 +131,7 @@ public class LogbookResourceTest {
         }
 
         final GUID eip = GUIDFactory.newOperationIdGUID(0);
+
         logbookParametersStart = LogbookParametersFactory.newLogbookOperationParameters(
             eip.getId(),
             "eventTypeValue1", eip.getId(), LogbookTypeProcess.INGEST,
@@ -137,6 +148,16 @@ public class LogbookResourceTest {
             GUIDFactory.newOperationIdGUID(0).getId(),
             "eventTypeValue2", GUIDFactory.newOperationIdGUID(0).getId(), LogbookTypeProcess.INGEST,
             LogbookOutcome.OK, "end ingest", "x-request-id");
+
+        logbookParametersSelect = LogbookParametersFactory.newLogbookOperationParameters(
+            eip.getId(),
+            "eventTypeValueSelect", GUIDFactory.newOperationIdGUID(0).getId(), LogbookTypeProcess.INGEST,
+            LogbookOutcome.OK, "start ingest", "x-request-id");
+        
+        logbookParametersSelectId = LogbookParametersFactory.newLogbookOperationParameters(
+            eip.getId(),
+            "eventTypeValueSelectId", GUIDFactory.newOperationIdGUID(0).getId(), LogbookTypeProcess.INGEST,
+            LogbookOutcome.OK, "start ingest", "x-request-id");
     }
 
     @AfterClass
@@ -150,8 +171,8 @@ public class LogbookResourceTest {
         mongoDbAccess.close();
         mongod.stop();
         mongodExecutable.stop();
-    }
 
+    }
 
     @Test
     public final void testOperation() {
@@ -248,12 +269,94 @@ public class LogbookResourceTest {
             .put(OPERATIONS_URI + OPERATION_ID_URI,
                 GUIDFactory.newOperationIdGUID(0).getId())
             .then()
-            .statusCode(Status.BAD_REQUEST.getStatusCode());
+            .statusCode(Status.BAD_REQUEST.getStatusCode());  
     }
-
+    
     @Test
     public final void testGetStatus() {
         get(STATUS_URI).then().statusCode(200);
     }
 
+    @Test
+    public void testErrorSelect() {
+        given()
+            .contentType(ContentType.JSON)
+            .header(X_HTTP_METHOD_OVERRIDE, "ABC")
+            .body(BODY_TEST)
+            .when()
+            .post(OPERATIONS_URI)
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .body(BODY_TEST)
+            .when()
+            .post(OPERATIONS_URI)
+            .then()
+            .statusCode(Status.NOT_FOUND.getStatusCode());
+        
+        given()
+            .contentType(ContentType.JSON)
+            .when()
+            .get(OPERATIONS_URI + OPERATION_ID_URI, "abc")            
+            .then()
+            .statusCode(Status.NOT_FOUND.getStatusCode());
+        
+    }
+
+    @Test
+    public void testOperationSelect() {
+        logbookParametersSelect.putParameterValue(LogbookParameterName.eventDateTime,
+            LocalDateUtil.now().toString());
+        logbookParametersSelect.putParameterValue(LogbookParameterName.agentIdentifier,
+            ServerIdentity.getInstance().getJsonIdentity());
+        with()
+            .contentType(ContentType.JSON)
+            .body(logbookParametersSelect.toString())
+            .when()
+            .post(OPERATIONS_URI + OPERATION_ID_URI,
+                logbookParametersSelect.getParameterValue(
+                    LogbookParameterName.eventIdentifierProcess))
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(BODY_QUERY)
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .when()
+            .post(OPERATIONS_URI)
+            .then()
+            .statusCode(Status.OK.getStatusCode());
+    }
+
+    @Test
+    public void testSelectOperationId() {
+        logbookParametersSelectId.putParameterValue(LogbookParameterName.eventDateTime,
+            LocalDateUtil.now().toString());
+        logbookParametersSelectId.putParameterValue(LogbookParameterName.agentIdentifier,
+            ServerIdentity.getInstance().getJsonIdentity());
+        with()
+            .contentType(ContentType.JSON)
+            .body(logbookParametersSelectId.toString())
+            .when()
+            .post(OPERATIONS_URI + OPERATION_ID_URI,
+                logbookParametersSelectId.getParameterValue(
+                    LogbookParameterName.eventIdentifierProcess))
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
+        
+        given()
+            .contentType(ContentType.JSON)
+            .body(logbookParametersSelectId.toString())
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .pathParam("id_op", logbookParametersSelectId.getParameterValue(LogbookParameterName.eventIdentifierProcess))
+            .when()
+            .post(OPERATIONS_URI + OPERATION_ID_URI, logbookParametersSelectId.getParameterValue(
+                LogbookParameterName.eventIdentifierProcess))
+            .then()
+            .statusCode(Status.OK.getStatusCode());
+    }
 }
