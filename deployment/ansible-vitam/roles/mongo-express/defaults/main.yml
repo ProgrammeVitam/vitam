@@ -1,0 +1,5 @@
+---
+# defaults file for mongo-express
+service_name: mongo-express
+service_port: 8081
+service_context: /mongo-express/

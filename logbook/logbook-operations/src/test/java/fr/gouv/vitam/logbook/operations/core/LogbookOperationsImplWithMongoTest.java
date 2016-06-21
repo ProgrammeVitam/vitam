@@ -26,7 +26,13 @@
  */
 package fr.gouv.vitam.logbook.operations.core;
 
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.exists;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -39,14 +45,20 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
+import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.QUERY;
+import fr.gouv.vitam.builder.request.construct.query.CompareQuery;
+import fr.gouv.vitam.builder.singlerequest.Select;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.MongoDbAccess;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.database.collections.MongoDbAccessFactory;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
@@ -64,7 +76,15 @@ public class LogbookOperationsImplWithMongoTest {
     private static LogbookOperationParameters logbookParametersAppend;
     private static LogbookOperationParameters logbookParametersWrongStart;
     private static LogbookOperationParameters logbookParametersWrongAppend;
-
+    private static LogbookOperationParameters logbookParameters1;
+    private static LogbookOperationParameters logbookParameters2;
+    private static LogbookOperationParameters logbookParameters3;
+    
+    final static GUID eip = GUIDFactory.newOperationIdGUID(0);
+    final static GUID eip1 = GUIDFactory.newOperationIdGUID(2);
+    final static GUID eip2 = GUIDFactory.newOperationIdGUID(2);
+    final static GUID eip3 = GUIDFactory.newOperationIdGUID(3);
+    
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         final MongodStarter starter = MongodStarter.getDefaultInstance();
@@ -77,11 +97,15 @@ public class LogbookOperationsImplWithMongoTest {
             MongoDbAccessFactory.create(
                 new DbConfigurationImpl(DATABASE_HOST, DATABASE_PORT,
                     "vitam-test"));
-        final GUID eip = GUIDFactory.newOperationIdGUID(0);
+        
+        String datestring1 = "2015-01-01";
+        String datestring2 = "2016-12-12";
+        String datestring3 = "1990-10-01";
+        
         logbookParametersStart = LogbookParametersFactory.newLogbookOperationParameters(
             eip.getId(),
             "eventType", eip.getId(), LogbookTypeProcess.INGEST,
-            LogbookOutcome.STARTED, "start ingest", "x-request-id");
+            LogbookOutcome.STARTED, "start ingest", "x-request-id");        
         logbookParametersAppend = LogbookParametersFactory.newLogbookOperationParameters(
             GUIDFactory.newOperationIdGUID(0).getId(),
             "eventType", eip.getId(), LogbookTypeProcess.INGEST,
@@ -94,6 +118,22 @@ public class LogbookOperationsImplWithMongoTest {
             GUIDFactory.newOperationIdGUID(0).getId(),
             "eventType", GUIDFactory.newOperationIdGUID(0).getId(), LogbookTypeProcess.INGEST,
             LogbookOutcome.OK, "end ingest", "x-request-id");
+        
+        logbookParameters1 = LogbookParametersFactory.newLogbookOperationParameters(
+                eip1.getId(),
+                "eventType", eip1.getId(), LogbookTypeProcess.INGEST,
+                LogbookOutcome.STARTED, "start ingest", "x-request-id");
+        logbookParameters1.putParameterValue(LogbookParameterName.eventDateTime, datestring1);
+        logbookParameters2 = LogbookParametersFactory.newLogbookOperationParameters(
+                eip2.getId(),
+                "eventType", eip2.getId(), LogbookTypeProcess.INGEST,
+                LogbookOutcome.STARTED, "start ingest", "x-request-id");
+        logbookParameters2.putParameterValue(LogbookParameterName.eventDateTime, datestring2);
+        logbookParameters3 = LogbookParametersFactory.newLogbookOperationParameters(
+                eip3.getId(),
+                "eventType", eip3.getId(), LogbookTypeProcess.INGEST,
+                LogbookOutcome.STARTED, "start ingest", "x-request-id");
+        logbookParameters3.putParameterValue(LogbookParameterName.eventDateTime, datestring3);
     }
 
     @AfterClass
@@ -108,6 +148,7 @@ public class LogbookOperationsImplWithMongoTest {
         logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
         logbookOperationsImpl.create(logbookParametersStart);
         logbookOperationsImpl.update(logbookParametersAppend);
+        
         try {
             logbookOperationsImpl.create(logbookParametersWrongStart);
             fail("Should failed");
@@ -120,6 +161,47 @@ public class LogbookOperationsImplWithMongoTest {
             logbookOperationsImpl.create(LogbookParametersFactory.newLogbookOperationParameters());
             fail("Should failed");
         } catch (final IllegalArgumentException e) {}
+    }
+    
+    @Test(expected = LogbookNotFoundException.class)
+    public void givenSelectWhenOperationNotExistThenThrowNotFoundException() throws Exception{
+      logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
+      final Select select = new Select();
+      select.setQuery(exists("mavar1"));
+      logbookOperationsImpl.select(JsonHandler.getFromString(select.getFinalSelect().toString()));
+    }
+    
+    @Test
+    public void givenCreateAndSelect() throws Exception {
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
+        logbookOperationsImpl.create(logbookParameters1);
+        logbookOperationsImpl.create(logbookParameters2);
+        logbookOperationsImpl.create(logbookParameters3);
+        
+
+        Select select = new Select();
+        select.setQuery(new CompareQuery(QUERY.EQ, "evId", eip1.toString()));
+        
+        List<LogbookOperation> res1 = new ArrayList<LogbookOperation>();
+        res1 = logbookOperationsImpl.select(select.getFinalSelect());
+        assertNotNull(res1);
+        assertTrue(res1.get(0).containsValue(eip1.getId()));
+        
+        List<LogbookOperation> res2 = new ArrayList<LogbookOperation>();
+        select.setQuery(new CompareQuery(QUERY.EQ, "evType", "eventType"));
+        res2 = logbookOperationsImpl.select(select.getFinalSelect());
+        assertNotNull(res2);
+        assertTrue(res2.get(0).containsValue(eip1.getId()));
+        assertTrue(res2.get(1).containsValue(eip2.getId()));
+        assertTrue(res2.get(2).containsValue(eip3.getId()));
+        
+        List<LogbookOperation> res3 = new ArrayList<LogbookOperation>();
+        select.addOrderByDescFilter("evDateTime");
+        res3 = logbookOperationsImpl.select(select.getFinalSelect());
+        
+        assertTrue(res3.get(0).containsValue("2016-12-12"));
+        assertTrue(res3.get(1).containsValue("2015-01-01"));
+        assertTrue(res3.get(2).containsValue("1990-10-01"));
     }
 
 }

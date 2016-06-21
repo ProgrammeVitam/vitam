@@ -38,7 +38,7 @@ public class LogbookClientExceptionTest {
 
     @Test
     public final void testLogbookClientAlreadyExistsException() {
-        assertEquals(null, new LogbookClientAlreadyExistsException().getMessage());
+        assertEquals(null, new LogbookClientAlreadyExistsException((String) null).getMessage());
         assertEquals("test", new LogbookClientAlreadyExistsException("test").getMessage());
         assertNotNull(new LogbookClientAlreadyExistsException(new Exception()).getCause());
         assertNotNull(new LogbookClientAlreadyExistsException("test", new Exception()).getCause());
@@ -47,7 +47,7 @@ public class LogbookClientExceptionTest {
 
     @Test
     public final void testLogbookClientException() {
-        assertEquals(null, new LogbookClientException().getMessage());
+        assertEquals(null, new LogbookClientException((String) null).getMessage());
         assertEquals("test", new LogbookClientException("test").getMessage());
         assertNotNull(new LogbookClientException(new Exception()).getCause());
         assertNotNull(new LogbookClientException("test", new Exception()).getCause());
@@ -56,7 +56,7 @@ public class LogbookClientExceptionTest {
 
     @Test
     public final void testLogbookClientNotFoundException() {
-        assertEquals(null, new LogbookClientNotFoundException().getMessage());
+        assertEquals(null, new LogbookClientNotFoundException((String) null).getMessage());
         assertEquals("test", new LogbookClientNotFoundException("test").getMessage());
         assertNotNull(new LogbookClientNotFoundException(new Exception()).getCause());
         assertNotNull(new LogbookClientNotFoundException("test", new Exception()).getCause());
@@ -65,7 +65,7 @@ public class LogbookClientExceptionTest {
 
     @Test
     public final void testLogbookClientBadRequestException() {
-        assertEquals(null, new LogbookClientBadRequestException().getMessage());
+        assertEquals(null, new LogbookClientBadRequestException((String) null).getMessage());
         assertEquals("test", new LogbookClientBadRequestException("test").getMessage());
         assertNotNull(new LogbookClientBadRequestException(new Exception()).getCause());
         assertNotNull(new LogbookClientBadRequestException("test", new Exception()).getCause());
@@ -74,7 +74,7 @@ public class LogbookClientExceptionTest {
 
     @Test
     public final void testLogbookClientServerException() {
-        assertEquals(null, new LogbookClientServerException().getMessage());
+        assertEquals(null, new LogbookClientServerException((String) null).getMessage());
         assertEquals("test", new LogbookClientServerException("test").getMessage());
         assertNotNull(new LogbookClientServerException(new Exception()).getCause());
         assertNotNull(new LogbookClientServerException("test", new Exception()).getCause());

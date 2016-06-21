@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -40,6 +40,9 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
  *
  */
 public class MltQuery extends Query {
+    private static final String CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME =
+        " cannot be created with empty variable name";
+    private static final String QUERY2 = "Query ";
     protected Set<String> stringVals;
 
     protected MltQuery() {
@@ -69,7 +72,7 @@ public class MltQuery extends Query {
         super();
         if (value == null || value.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                "Query " + mltQuery + " cannot be created with empty variable name");
+                QUERY2 + mltQuery + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityValueCheck(value);
@@ -78,7 +81,7 @@ public class MltQuery extends Query {
         }
         switch (mltQuery) {
             case FLT:
-            case MLT: {
+            case MLT:
                 final ObjectNode sub =
                     ((ObjectNode) currentObject).putObject(mltQuery.exactToken());
                 final ArrayNode array = sub.putArray(QUERYARGS.FIELDS.exactToken());
@@ -101,10 +104,9 @@ public class MltQuery extends Query {
                 currentObject = array;
                 sub.put(QUERYARGS.LIKE.exactToken(), value);
                 break;
-            }
             default:
                 throw new InvalidCreateOperationException(
-                    "Query " + mltQuery + " is not an MoreLikeThis or In Query");
+                    QUERY2 + mltQuery + " is not an MoreLikeThis or In Query");
         }
         currentQUERY = mltQuery;
         setReady(true);
@@ -130,7 +132,7 @@ public class MltQuery extends Query {
         for (String val : variableName) {
             if (val == null || val.trim().isEmpty()) {
                 throw new InvalidCreateOperationException(
-                    "Query " + currentQUERY + " cannot be updated with empty variable name");
+                    QUERY2 + currentQUERY + " cannot be updated with empty variable name");
             }
             try {
                 GlobalDatas.sanityParameterCheck(val);

@@ -128,6 +128,7 @@ public class LocalDateUtilTest {
     @Test
     public void checkConversion() throws IOException {
         final LocalDateTime ldt = LocalDateUtil.now();
+        assertEquals(ldt.toString(), LocalDateUtil.getString(ldt));
         assertEquals(ldt, LocalDateUtil.fromDate(LocalDateUtil.getDate(ldt)));
         assertNotNull(LocalDateUtil.fromMillis(LocalDateUtil.getMillis(ldt)));
         assertNotNull(LocalDateUtil.getDate(ldt.toString()));

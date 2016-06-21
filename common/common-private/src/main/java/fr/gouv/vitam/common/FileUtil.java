@@ -43,6 +43,10 @@ public final class FileUtil {
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(FileUtil.class);
 
+    private FileUtil() {
+        // Unused
+    }
+
     /**
      * @param filename
      * @return the content of the file
@@ -62,17 +66,15 @@ public final class FileUtil {
         final StringBuilder builder = new StringBuilder();
 
         if (file != null && file.canRead()) {
-            try {
-                final FileInputStream inputStream = new FileInputStream(file);
-                final InputStreamReader reader = new InputStreamReader(inputStream);
-                final BufferedReader buffered = new BufferedReader(reader);
-                String line;
-                while ((line = buffered.readLine()) != null) {
-                    builder.append(line).append('\n');
+            try (final FileInputStream inputStream = new FileInputStream(file)) {
+                try (final InputStreamReader reader = new InputStreamReader(inputStream)) {
+                    try (final BufferedReader buffered = new BufferedReader(reader)) {
+                        String line;
+                        while ((line = buffered.readLine()) != null) {
+                            builder.append(line).append('\n');
+                        }
+                    }
                 }
-                buffered.close();
-                reader.close();
-                inputStream.close();
             } catch (final IOException e) {
                 LOGGER.error(e);
                 throw e;
@@ -94,19 +96,19 @@ public final class FileUtil {
 
         if (file != null && file.canRead() && limit > 0) {
             try {
-                final FileInputStream inputStream = new FileInputStream(file);
-                final InputStreamReader reader = new InputStreamReader(inputStream);
-                final BufferedReader buffered = new BufferedReader(reader);
-                String line;
-                while ((line = buffered.readLine()) != null) {
-                    builder.append(line).append('\n');
-                    if (builder.length() >= limit) {
-                        break;
+                try (final FileInputStream inputStream = new FileInputStream(file)) {
+                    try (final InputStreamReader reader = new InputStreamReader(inputStream)) {
+                        try (final BufferedReader buffered = new BufferedReader(reader)) {
+                            String line;
+                            while ((line = buffered.readLine()) != null) {
+                                builder.append(line).append('\n');
+                                if (builder.length() >= limit) {
+                                    break;
+                                }
+                            }
+                        }
                     }
                 }
-                buffered.close();
-                reader.close();
-                inputStream.close();
             } catch (final IOException e) {
                 LOGGER.error(e);
                 throw e;
@@ -136,9 +138,5 @@ public final class FileUtil {
         }
         delereRecursiveInternal(file);
         file.delete();
-    }
-
-    private FileUtil() {
-        // Unused
     }
 }

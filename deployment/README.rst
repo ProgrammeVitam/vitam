@@ -1,8 +1,16 @@
 Déploiement de VITAM
 ====================
 
-Pour tester le déploiement de VITAM : ``ansible-playbook ansible-vitam/vitam.yml -i environments/hosts.int --check``
+Le fichier d'inventaire est différent selon l'environnement :
 
-Pour le déployer : ``ansible-playbook ansible-vitam/vitam.yml -i environments/hosts.int``
+* hosts.local : pour le déploiement sur un poste de développement
+* hosts.int : pour le déploiement sur l'environnement pic d'intégration
+* hosts.rec : pour le déploiement sur l'environnement pic de recette
 
-Pour une remise à zéro (encore en cours de développement) : ``ansible-playbook ansible-vitam/vitam-raz.yml  -i environments/hosts.int``
+
+Pour tester le déploiement de VITAM : ``ansible-playbook ansible-vitam/vitam.yml -i environments/<fichier d'inventaire> --check``
+
+Pour le déployer : ``ansible-playbook ansible-vitam/vitam.yml -i environments/<fichier d'inventaire>``
+
+Pour une remise à zéro (encore en cours de développement) : ``ansible-playbook ansible-vitam/vitam-raz.yml  -i environments/<fichier d'inventaire>``
+

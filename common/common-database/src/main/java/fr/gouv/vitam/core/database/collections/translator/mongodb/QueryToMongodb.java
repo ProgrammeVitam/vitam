@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -50,6 +50,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.mongodb.BasicDBObject;
 
+import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens;
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.QUERY;
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.RANGEARGS;
 import fr.gouv.vitam.builder.request.construct.query.BooleanQuery;
@@ -65,8 +66,14 @@ import fr.gouv.vitam.parser.request.parser.GlobalDatasParser;
  *
  */
 public class QueryToMongodb {
+    private static final String INVALID_RANGE_REQUEST_COMMAND = "Invalid Range request command: ";
+    private static final String COMMAND_NOT_ALLOWED_WITH_MONGO_DB = "Command not allowed with MongoDB: ";
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(QueryToMongodb.class);
+
+    private QueryToMongodb() {
+        // Empty constructor
+    }
 
     /**
      * @param field
@@ -110,163 +117,238 @@ public class QueryToMongodb {
         switch (req) {
             case AND:
             case NOT:
-            case OR: {
-                // using array of sub queries
-                final BooleanQuery nthrequest = (BooleanQuery) query;
-                final List<Query> sub = nthrequest.getQueries();
-                switch (req) {
-                    case AND:
-                        return and(getCommands(sub));
-                    case NOT:
-                        if (sub.size() == 1) {
-                            return nor(getCommand(sub.get(0)));
-                        }
-                        return nor(and(getCommands(sub)));
-                    case OR:
-                        return or(getCommands(sub));
-                    default:
-                }
-                break;
-            }
+            case OR:
+                return booleanCommand(query, req);
             case EXISTS:
-            case MISSING: {
+            case MISSING:
                 return exists(content.asText(), req == QUERY.EXISTS);
-            }
             case FLT:
-            case MLT: {
-                throw new InvalidParseOperationException(
-                    "Command not allowed with MongoDB: " + req.exactToken());
-            }
+            case MLT:
             case MATCH:
             case MATCH_PHRASE:
             case MATCH_PHRASE_PREFIX:
-            case PREFIX: {
+            case PREFIX:
+            case SEARCH:
                 throw new InvalidParseOperationException(
-                    "Command not allowed with MongoDB: " + req.exactToken());
-            }
+                    COMMAND_NOT_ALLOWED_WITH_MONGO_DB + req.exactToken());
             case NIN:
-            case IN: {
-                final Entry<String, JsonNode> element =
-                    JsonHandler.checkUnicity(req.exactToken(), content);
-                final ArrayNode array = (ArrayNode) element.getValue();
-                final Object[] values = new Object[array.size()];
-                int i = 0;
-                for (final JsonNode node : array) {
-                    values[i++] = GlobalDatasParser.getValue(node);
-                }
-                switch (req) {
-                    case NIN:
-                        return nin(element.getKey(), values);
-                    case IN:
-                        return in(element.getKey(), values);
-                    default:
-                }
-                break;
-            }
-            case RANGE: {
-                final Entry<String, JsonNode> element =
-                    JsonHandler.checkUnicity(req.exactToken(), content);
-                final String var = element.getKey();
-                final BasicDBObject range = new BasicDBObject();
-                for (final Iterator<Entry<String, JsonNode>> iterator =
-                    element.getValue().fields(); iterator.hasNext();) {
-                    final Entry<String, JsonNode> requestItem = iterator.next();
-                    try {
-                        final String key = requestItem.getKey();
-                        if (key.startsWith("$")) {
-                            RANGEARGS.valueOf(key.substring(1).toUpperCase());
-                            range.append(key,
-                                GlobalDatasParser.getValue(requestItem.getValue()));
-                        } else {
-                            throw new InvalidParseOperationException(
-                                "Invalid Range request command: " + requestItem);
-                        }
-                    } catch (final IllegalArgumentException e) {
-                        throw new InvalidParseOperationException(
-                            "Invalid Range request command: " + requestItem, e);
-                    }
-                }
-                return new BasicDBObject(var, range);
-            }
-            case REGEX: {
-                final Entry<String, JsonNode> element =
-                    JsonHandler.checkUnicity(req.exactToken(), content);
-                return regex(element.getKey(), element.getValue().asText());
-            }
-            case TERM: {
-                final Iterator<Entry<String, JsonNode>> iterator = content.fields();
-                final BasicDBObject bson = new BasicDBObject();
-                while (iterator.hasNext()) {
-                    final Entry<String, JsonNode> element = iterator.next();
-                    bson.append(element.getKey(),
-                        GlobalDatasParser.getValue(element.getValue()));
-                }
-                return bson;
-            }
-            case WILDCARD: {
-                final Entry<String, JsonNode> element =
-                    JsonHandler.checkUnicity(req.exactToken(), content);
-                String value = element.getValue().asText();
-                value = value.replace('?', '.').replace("*", ".*");
-                return regex(element.getKey(), value);
-            }
+            case IN:
+                return inCommand(req, content);
+            case RANGE:
+                return rangeCommand(req, content);
+            case REGEX:
+                return regexCommand(req, content);
+            case TERM:
+                return termCommand(content);
+            case WILDCARD:
+                return wildcardCommand(req, content);
             case EQ:
             case GT:
             case GTE:
             case LT:
             case LTE:
-            case NE: {
-                final Entry<String, JsonNode> element =
-                    JsonHandler.checkUnicity(req.exactToken(), content);
-                final Object value = GlobalDatasParser.getValue(element.getValue());
-                switch (req) {
-                    case EQ:
-                        return eq(element.getKey(), value);
-                    case GT:
-                        return gt(element.getKey(), value);
-                    case GTE:
-                        return gte(element.getKey(), value);
-                    case LT:
-                        return lt(element.getKey(), value);
-                    case LTE:
-                        return lte(element.getKey(), value);
-                    case NE:
-                        return ne(element.getKey(), value);
-                    default:
-                }
-                break;
-            }
-            case SEARCH: {
-                throw new InvalidParseOperationException(
-                    "Command not allowed with MongoDB: " + req.exactToken());
-            }
-            case ISNULL: {
-                return new BasicDBObject().append(content.asText(),
-                    new BasicDBObject("$type", BSON.NULL));
-            }
-            case SIZE: {
-                final Entry<String, JsonNode> element =
-                    JsonHandler.checkUnicity(req.exactToken(), content);
-                return size(element.getKey(), element.getValue().asInt());
-            }
+            case NE:
+                return comparatorCommand(req, content);
+            case ISNULL:
+                return isNullCommand(content);
+            case SIZE:
+                return sizeCommand(req, content);
             case GEOMETRY:
             case BOX:
             case POLYGON:
             case CENTER:
             case GEOINTERSECTS:
             case GEOWITHIN:
-            case PATH: {
-                final ArrayNode array = (ArrayNode) content;
-                final String[] values = new String[array.size()];
-                int i = 0;
-                for (final JsonNode node : array) {
-                    values[i++] = node.asText();
-                }
-                return in("_id", values);
-            }
+            case PATH:
+                return pathCommand(content);
             default:
         }
         throw new InvalidParseOperationException("Invalid command: " + req.exactToken());
+    }
+
+    /**
+     * @param content
+     * @return the IsNull Command
+     */
+    private static Bson isNullCommand(final JsonNode content) {
+        return new BasicDBObject().append(content.asText(),
+            new BasicDBObject("$type", BSON.NULL));
+    }
+
+    /**
+     * @param content
+     * @return the Path Command
+     */
+    private static Bson pathCommand(final JsonNode content) {
+        final ArrayNode array = (ArrayNode) content;
+        final String[] values = new String[array.size()];
+        int i = 0;
+        for (final JsonNode node : array) {
+            values[i++] = node.asText();
+        }
+        return in("_id", values);
+    }
+
+    /**
+     * @param req
+     * @param content
+     * @return the Size Command
+     * @throws InvalidParseOperationException
+     */
+    private static Bson sizeCommand(final QUERY req, final JsonNode content) throws InvalidParseOperationException {
+        final Entry<String, JsonNode> element =
+            JsonHandler.checkUnicity(req.exactToken(), content);
+        return size(element.getKey(), element.getValue().asInt());
+    }
+
+    /**
+     * @param req
+     * @param content
+     * @return the Comparator Command
+     * @throws InvalidParseOperationException
+     */
+    private static Bson comparatorCommand(final QUERY req, final JsonNode content)
+        throws InvalidParseOperationException {
+        final Entry<String, JsonNode> element =
+            JsonHandler.checkUnicity(req.exactToken(), content);
+        final Object value = GlobalDatasParser.getValue(element.getValue());
+        switch (req) {
+            case EQ:
+                return eq(element.getKey(), value);
+            case GT:
+                return gt(element.getKey(), value);
+            case GTE:
+                return gte(element.getKey(), value);
+            case LT:
+                return lt(element.getKey(), value);
+            case LTE:
+                return lte(element.getKey(), value);
+            case NE:
+            default:
+                return ne(element.getKey(), value);
+        }
+    }
+
+    /**
+     * @param req
+     * @param content
+     * @return the Wildcard Command
+     * @throws InvalidParseOperationException
+     */
+    private static Bson wildcardCommand(final QUERY req, final JsonNode content) throws InvalidParseOperationException {
+        final Entry<String, JsonNode> element =
+            JsonHandler.checkUnicity(req.exactToken(), content);
+        String value = element.getValue().asText();
+        value = value.replace('?', '.').replace("*", ".*");
+        return regex(element.getKey(), value);
+    }
+
+    /**
+     * @param content
+     * @return the Term Command
+     * @throws InvalidParseOperationException
+     */
+    private static Bson termCommand(final JsonNode content) throws InvalidParseOperationException {
+        final Iterator<Entry<String, JsonNode>> iterator = content.fields();
+        final BasicDBObject bson = new BasicDBObject();
+        while (iterator.hasNext()) {
+            final Entry<String, JsonNode> element = iterator.next();
+            bson.append(element.getKey(),
+                GlobalDatasParser.getValue(element.getValue()));
+        }
+        return bson;
+    }
+
+    /**
+     * @param req
+     * @param content
+     * @return the Regex Command
+     * @throws InvalidParseOperationException
+     */
+    private static Bson regexCommand(final QUERY req, final JsonNode content) throws InvalidParseOperationException {
+        final Entry<String, JsonNode> element =
+            JsonHandler.checkUnicity(req.exactToken(), content);
+        return regex(element.getKey(), element.getValue().asText());
+    }
+
+    /**
+     * @param req
+     * @param content
+     * @return The Range command
+     * @throws InvalidParseOperationException
+     */
+    private static Bson rangeCommand(final QUERY req, final JsonNode content) throws InvalidParseOperationException {
+        final Entry<String, JsonNode> element =
+            JsonHandler.checkUnicity(req.exactToken(), content);
+        final String var = element.getKey();
+        final BasicDBObject range = new BasicDBObject();
+        for (final Iterator<Entry<String, JsonNode>> iterator =
+            element.getValue().fields(); iterator.hasNext();) {
+            final Entry<String, JsonNode> requestItem = iterator.next();
+            try {
+                final String key = requestItem.getKey();
+                if (key.startsWith(ParserTokens.DEFAULT_PREFIX)) {
+                    RANGEARGS.valueOf(key.substring(1).toUpperCase());
+                    range.append(key,
+                        GlobalDatasParser.getValue(requestItem.getValue()));
+                } else {
+                    throw new InvalidParseOperationException(
+                        INVALID_RANGE_REQUEST_COMMAND + requestItem);
+                }
+            } catch (final IllegalArgumentException e) {
+                throw new InvalidParseOperationException(
+                    INVALID_RANGE_REQUEST_COMMAND + requestItem, e);
+            }
+        }
+        return new BasicDBObject(var, range);
+    }
+
+    /**
+     * @param req
+     * @param content
+     * @return the In Command
+     * @throws InvalidParseOperationException
+     */
+    private static Bson inCommand(final QUERY req, final JsonNode content) throws InvalidParseOperationException {
+        final Entry<String, JsonNode> element =
+            JsonHandler.checkUnicity(req.exactToken(), content);
+        final ArrayNode array = (ArrayNode) element.getValue();
+        final Object[] values = new Object[array.size()];
+        int i = 0;
+        for (final JsonNode node : array) {
+            values[i++] = GlobalDatasParser.getValue(node);
+        }
+        switch (req) {
+            case NIN:
+                return nin(element.getKey(), values);
+            case IN:
+            default:
+                return in(element.getKey(), values);
+        }
+    }
+
+    /**
+     * @param query
+     * @param req
+     * @return the Boolean Command
+     * @throws InvalidParseOperationException
+     */
+    private static Bson booleanCommand(final Query query, final QUERY req) throws InvalidParseOperationException {
+        // using array of sub queries
+        final BooleanQuery nthrequest = (BooleanQuery) query;
+        final List<Query> sub = nthrequest.getQueries();
+        switch (req) {
+            case AND:
+                return and(getCommands(sub));
+            case NOT:
+                if (sub.size() == 1) {
+                    return nor(getCommand(sub.get(0)));
+                }
+                return nor(and(getCommands(sub)));
+            case OR:
+            default:
+                return or(getCommands(sub));
+        }
     }
 
     protected static Iterable<Bson> getCommands(final List<Query> queries) {

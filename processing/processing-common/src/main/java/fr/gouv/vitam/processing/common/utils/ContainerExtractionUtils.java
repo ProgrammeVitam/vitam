@@ -39,12 +39,15 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
  * Class Utils to get Objects from a container into the workspace
  */
 public class ContainerExtractionUtils {
-
+    // FIXME REVIEW Use something to clarify globally the Ingest folder organization in one place for all, not in every
+    // class!
+    // Each class then can add extra organization for its own
     private final WorkspaceClientFactory workspaceClientFactory;
     // TODO
     // Retrieve the hard code value for the path of the folder of digital objects
     private static final String DIGITAL_OBJECT_FOLDER_NAME = "SIP";
 
+    // FIXME REVIEW Since build through Factory: use package protected class and constructors for ALL
     /**
      * Constructor that instantiates a workspace client factory
      *

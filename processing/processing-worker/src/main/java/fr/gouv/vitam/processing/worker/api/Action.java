@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -39,7 +39,7 @@ import fr.gouv.vitam.processing.common.model.WorkParams;
 public interface Action {
 
     /**
-     * 
+     *
      * @param params {@link WorkParams}
      * @return Response:response contains a list of functional message and status code
      */

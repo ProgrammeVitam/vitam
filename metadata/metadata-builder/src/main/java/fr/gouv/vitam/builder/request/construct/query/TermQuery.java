@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -39,6 +39,12 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
  *
  */
 public class TermQuery extends Query {
+    private static final String CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME =
+        " cannot be updated with empty variable name";
+    private static final String QUERY2 = "Query ";
+    private static final String CANNOT_ADD_A_TERM_ELEMENT_SINCE_THIS_IS_NOT_A_TERM_QUERY =
+        "Cannot add a term element since this is not a Term Query: ";
+
     protected TermQuery() {
         super();
     }
@@ -158,11 +164,11 @@ public class TermQuery extends Query {
         throws InvalidCreateOperationException {
         if (currentQUERY != QUERY.TERM) {
             throw new InvalidCreateOperationException(
-                "Cannot add a term element since this is not a Term Query: " + currentQUERY);
+                CANNOT_ADD_A_TERM_ELEMENT_SINCE_THIS_IS_NOT_A_TERM_QUERY + currentQUERY);
         }
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                "Query " + currentQUERY + " cannot be updated with empty variable name");
+                QUERY2 + currentQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -186,11 +192,11 @@ public class TermQuery extends Query {
         throws InvalidCreateOperationException {
         if (currentQUERY != QUERY.TERM) {
             throw new InvalidCreateOperationException(
-                "Cannot add a term element since this is not a Term Query: " + currentQUERY);
+                CANNOT_ADD_A_TERM_ELEMENT_SINCE_THIS_IS_NOT_A_TERM_QUERY + currentQUERY);
         }
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                "Query " + currentQUERY + " cannot be updated with empty variable name");
+                QUERY2 + currentQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -213,11 +219,11 @@ public class TermQuery extends Query {
         throws InvalidCreateOperationException {
         if (currentQUERY != QUERY.TERM) {
             throw new InvalidCreateOperationException(
-                "Cannot add a term element since this is not a Term Query: " + currentQUERY);
+                CANNOT_ADD_A_TERM_ELEMENT_SINCE_THIS_IS_NOT_A_TERM_QUERY + currentQUERY);
         }
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                "Query " + currentQUERY + " cannot be updated with empty variable name");
+                QUERY2 + currentQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -240,11 +246,11 @@ public class TermQuery extends Query {
         throws InvalidCreateOperationException {
         if (currentQUERY != QUERY.TERM) {
             throw new InvalidCreateOperationException(
-                "Cannot add a term element since this is not a Term Query: " + currentQUERY);
+                CANNOT_ADD_A_TERM_ELEMENT_SINCE_THIS_IS_NOT_A_TERM_QUERY + currentQUERY);
         }
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                "Query " + currentQUERY + " cannot be updated with empty variable name");
+                QUERY2 + currentQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -267,11 +273,11 @@ public class TermQuery extends Query {
         throws InvalidCreateOperationException {
         if (currentQUERY != QUERY.TERM) {
             throw new InvalidCreateOperationException(
-                "Cannot add a term element since this is not a Term Query: " + currentQUERY);
+                CANNOT_ADD_A_TERM_ELEMENT_SINCE_THIS_IS_NOT_A_TERM_QUERY + currentQUERY);
         }
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                "Query " + currentQUERY + " cannot be updated with empty variable name");
+                QUERY2 + currentQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);

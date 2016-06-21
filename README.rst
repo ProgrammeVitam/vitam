@@ -33,18 +33,19 @@ Pour construire la documentation, il est nécessaire d'avoir les pré-requis sui
 Build
 -----
 
-Ensuite, la commande à lancer est ``make <format de sortie> DOC=<nom de la documentation>``, avec ``format de sortie`` :
+Ensuite, la commande à lancer est ``make <format de sortie> MODULE=<nom de la documentation>``, avec ``format de sortie`` :
 
 * html
 * latexpdf
 
-Le résultat est disponible dans le dossier ``doc/fr/<format de sortie>/target/<format de sortie>``
+Le module par défaut est la documentation globale ``MODULE=.``
+Le résultat est disponible dans le dossier ``MODULE/doc/fr/target/<format de sortie>``
 
 Par exemple : 
 
-        make html DOC=archi-fonctionnelle
+        make html MODULE=workspace
 
 Nettoyage
 ---------
 
-Pour supprimer les documents cibles, la commande est la suivante : ``make clean DOC=<nom de la documentation>``
+Pour supprimer les documents cibles, la commande est la suivante : ``make clean MODULE=<nom de la documentation>``

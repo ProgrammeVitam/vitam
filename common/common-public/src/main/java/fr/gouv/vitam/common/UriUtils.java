@@ -35,21 +35,24 @@ public final class UriUtils {
     private static final String POINT = ".";
     private static final String SLASH = "/";
 
+    private UriUtils() {
+        // Empty constructor
+    }
+
     /**
      * Removes the extension file and the root folder
+     *
+     * FIXME REVIEW does not what it says
      *
      * @param uriString
      * @return a URI path
      */
     public static String splitUri(String uriString) {
-        String splitedString = null;
-        try {
-            if (uriString.contains(SLASH) && uriString.contains(POINT)) {
-                final String[] uriWithoutRootFolderTable = uriString.split(SLASH, 2);
-                splitedString = uriWithoutRootFolderTable[1];
-            }
-        } catch (final Exception e) {
-            // TODO: handle exception
+        String splitedString;
+        if (uriString != null && uriString.contains(SLASH) && uriString.contains(POINT)) {
+            final String[] uriWithoutRootFolderTable = uriString.split(SLASH, 2);
+            splitedString = uriWithoutRootFolderTable[1];
+        } else {
             splitedString = "";
         }
         return splitedString;

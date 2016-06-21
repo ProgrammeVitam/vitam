@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -74,6 +74,9 @@ import fr.gouv.vitam.parser.request.parser.VarNameAdapter;
  *
  */
 public abstract class RequestParser {
+    protected static final int QUERY_POS = 0;
+    protected static final int FILTER_POS = 1;
+
     protected VarNameAdapter adapter;
     protected String sourceRequest;
     protected Request request;
@@ -121,10 +124,10 @@ public abstract class RequestParser {
         }
         if (rootNode.isArray()) {
             // should be 2, but each could be empty ( '{}' )
-            if (rootNode.size() > 0) {
-                queryParse(rootNode.get(1));
-                if (rootNode.size() > 1) {
-                    filterParse(rootNode.get(2));
+            if (rootNode.size() > QUERY_POS) {
+                queryParse(rootNode.get(QUERY_POS));
+                if (rootNode.size() > FILTER_POS) {
+                    filterParse(rootNode.get(FILTER_POS));
                 }
             }
         } else {
@@ -160,6 +163,7 @@ public abstract class RequestParser {
      *        filter }
      * @throws InvalidParseOperationException
      */
+    @Deprecated
     public abstract void parse(final String srcrequest) throws InvalidParseOperationException;
 
     /**
@@ -168,6 +172,7 @@ public abstract class RequestParser {
      *        filter }
      * @throws InvalidParseOperationException
      */
+    @Deprecated
     protected void parseString(final String srcrequest) throws InvalidParseOperationException {
         sourceRequest = srcrequest;
         rootNode = JsonHandler.getFromString(srcrequest);
@@ -207,7 +212,7 @@ public abstract class RequestParser {
         if (rootNode == null) {
             return;
         }
-        GlobalDatas.sanityParametersCheck(rootNode.toString(), GlobalDatas.nbFilters);
+        GlobalDatas.sanityParametersCheck(rootNode.toString(), GlobalDatas.NB_FILTERS);
         try {
             request.setFilter(rootNode);
         } catch (final Exception e) {
@@ -276,7 +281,7 @@ public abstract class RequestParser {
      */
     protected static final QUERY getRequestId(final String queryroot)
         throws InvalidParseOperationException {
-        if (!queryroot.startsWith("$")) {
+        if (!queryroot.startsWith(ParserTokens.DEFAULT_PREFIX)) {
             throw new InvalidParseOperationException(
                 "Incorrect request $command: " + queryroot);
         }
@@ -436,14 +441,12 @@ public abstract class RequestParser {
             case CENTER:
             case GEOINTERSECTS:
             case GEOWITHIN:
-            case NEAR: {
+            case NEAR:
                 throw new InvalidParseOperationException(
                     "Unimplemented command: " + refCommand);
-            }
-            case PATH: {
+            case PATH:
                 throw new InvalidParseOperationException(
                     "Invalid position for command: " + refCommand);
-            }
             default:
                 throw new InvalidParseOperationException(
                     "Invalid command: " + refCommand);

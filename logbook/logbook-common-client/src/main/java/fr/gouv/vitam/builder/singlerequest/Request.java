@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -139,7 +139,7 @@ public abstract class Request {
      */
     public final Request parseHintFilter(final String filter)
         throws InvalidParseOperationException {
-        GlobalDatas.sanityParametersCheck(filter, GlobalDatas.nbFilters);
+        GlobalDatas.sanityParametersCheck(filter, GlobalDatas.NB_FILTERS);
         final JsonNode rootNode = JsonHandler.getFromString(filter);
         return addHintFilter(rootNode);
     }
@@ -164,7 +164,7 @@ public abstract class Request {
      */
     public final Request parseFilter(final String filter)
         throws InvalidParseOperationException {
-        GlobalDatas.sanityParametersCheck(filter, GlobalDatas.nbFilters);
+        GlobalDatas.sanityParametersCheck(filter, GlobalDatas.NB_FILTERS);
         final JsonNode filterContent = JsonHandler.getFromString(filter);
         return setFilter(filterContent);
     }

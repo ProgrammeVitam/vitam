@@ -34,13 +34,6 @@ public class LogbookClientNotFoundException extends LogbookClientException {
     private static final long serialVersionUID = -8759869194114350122L;
 
     /**
-     * Empty constructor
-     */
-    public LogbookClientNotFoundException() {
-        // Empty constructor
-    }
-
-    /**
      * @param message associated message
      */
     public LogbookClientNotFoundException(String message) {

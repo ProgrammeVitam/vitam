@@ -34,13 +34,6 @@ public class LogbookAlreadyExistsException extends LogbookException {
     private static final long serialVersionUID = -3342087827012002382L;
 
     /**
-     * Empty constructor
-     */
-    public LogbookAlreadyExistsException() {
-        // Empty constructor
-    }
-
-    /**
      * @param message associated message
      */
     public LogbookAlreadyExistsException(String message) {

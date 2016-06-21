@@ -33,7 +33,7 @@
     restart_policy: always
     pull: "{{pull_strategy}}"
     ports:
-      - "{{vitam_docker_port_http}}:8082"
+      - "{{vitam_docker_port_http}}:{{vitam_docker_port_internal}}"
     volumes: 
       - "{{vitam_folder_conf}}:/vitam/conf"
       - "{{vitam_folder_log}}:/vitam/log"

@@ -46,6 +46,7 @@ import fr.gouv.vitam.ingest.util.PropertyUtil;
 /**
  * Created by bsui on 17/05/16.
  */
+// FIXME REVIEW Comment
 public class MainUpload {
 
     private static VitamLogger VITAM_LOGGER = VitamLoggerFactory.getInstance(MainUpload.class);
@@ -53,6 +54,8 @@ public class MainUpload {
     private static final String INGEST_MODULE_DIR = "ingest-core";
     private static Properties properties = null;
     private static Server server;
+
+    // FIXME REVIEW Use same logic than Logbook
 
     public static void main(String[] args) throws IOException, IngestException {
 
@@ -66,6 +69,8 @@ public class MainUpload {
         }
 
         final String port = properties.getProperty("ingest.core.port");
+
+        // FIXME REVIEW Dead code
 
         /*
          * ServletContextHandler servletContext = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);

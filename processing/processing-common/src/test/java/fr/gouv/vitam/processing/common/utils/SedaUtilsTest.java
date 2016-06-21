@@ -128,6 +128,15 @@ public class SedaUtilsTest {
         utils = new SedaUtilsFactory().create(workspaceFactory, null);
         assertFalse(utils.checkSedaValidation(params));
     }
+    
+    @Test
+    public void givenSedaHasMessageIdWhengetMessageIdThenReturnCorrect() throws Exception {
+        when(workspaceClient.getObject(params.getGuuid(), "SIP/manifest.xml")).thenReturn(seda);
+        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
+
+        utils = new SedaUtilsFactory().create(workspaceFactory, null);
+        assertEquals("MessageIdentifier0", utils.getMessageIdentifier(params));
+    }
 
     @Test
     public void givenCorrectArchiveUnitWhenConvertToJsonThenOK()

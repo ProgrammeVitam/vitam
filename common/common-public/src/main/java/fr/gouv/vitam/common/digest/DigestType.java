@@ -66,4 +66,18 @@ public enum DigestType {
     public String getName() {
         return name;
     }
+
+    /**
+     * @param v
+     * @return the enum type based on String representation
+     */
+
+    public static DigestType fromValue(String v) {
+        for (final DigestType c : DigestType.values()) {
+            if (c.name.equals(v)) {
+                return c;
+            }
+        }
+        throw new IllegalArgumentException(v);
+    }
 }

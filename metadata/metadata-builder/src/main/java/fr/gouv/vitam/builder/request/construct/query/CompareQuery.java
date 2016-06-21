@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -33,6 +33,9 @@ import fr.gouv.vitam.builder.request.exception.InvalidCreateOperationException;
  *
  */
 public class CompareQuery extends Query {
+    private static final String IS_NOT_AN_COMPARE_QUERY = " is not an Compare Query";
+    private static final String QUERY = "Query ";
+
     protected CompareQuery() {
         super();
     }
@@ -56,15 +59,14 @@ public class CompareQuery extends Query {
             case LT:
             case LTE:
             case NE:
-            case SIZE: {
+            case SIZE:
                 createQueryVariableValue(compareQuery, variableName, value);
                 currentQUERY = compareQuery;
                 setReady(true);
                 break;
-            }
             default:
                 throw new InvalidCreateOperationException(
-                    "Query " + compareQuery + " is not an Compare Query");
+                    QUERY + compareQuery + IS_NOT_AN_COMPARE_QUERY);
         }
     }
 
@@ -86,15 +88,14 @@ public class CompareQuery extends Query {
             case GTE:
             case LT:
             case LTE:
-            case NE: {
+            case NE:
                 createQueryVariableValue(compareQuery, variableName, value);
                 currentQUERY = compareQuery;
                 setReady(true);
                 break;
-            }
             default:
                 throw new InvalidCreateOperationException(
-                    "Query " + compareQuery + " is not an Compare Query");
+                    QUERY + compareQuery + IS_NOT_AN_COMPARE_QUERY);
         }
     }
 
@@ -116,15 +117,14 @@ public class CompareQuery extends Query {
             case GTE:
             case LT:
             case LTE:
-            case NE: {
+            case NE:
                 createQueryVariableValue(compareQuery, variableName, value);
                 currentQUERY = compareQuery;
                 setReady(true);
                 break;
-            }
             default:
                 throw new InvalidCreateOperationException(
-                    "Query " + compareQuery + " is not an Compare Query");
+                    QUERY + compareQuery + IS_NOT_AN_COMPARE_QUERY);
         }
     }
 
@@ -146,15 +146,14 @@ public class CompareQuery extends Query {
             case GTE:
             case LT:
             case LTE:
-            case NE: {
+            case NE:
                 createQueryVariableValue(compareQuery, variableName, value);
                 currentQUERY = compareQuery;
                 setReady(true);
                 break;
-            }
             default:
                 throw new InvalidCreateOperationException(
-                    "Query " + compareQuery + " is not an Compare Query");
+                    QUERY + compareQuery + IS_NOT_AN_COMPARE_QUERY);
         }
     }
 
@@ -176,15 +175,14 @@ public class CompareQuery extends Query {
             case GTE:
             case LT:
             case LTE:
-            case NE: {
+            case NE:
                 createQueryVariableValue(compareQuery, variableName, value);
                 currentQUERY = compareQuery;
                 setReady(true);
                 break;
-            }
             default:
                 throw new InvalidCreateOperationException(
-                    "Query " + compareQuery + " is not an Compare Query");
+                    QUERY + compareQuery + IS_NOT_AN_COMPARE_QUERY);
         }
     }
 }

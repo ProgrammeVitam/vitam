@@ -40,7 +40,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
  *
  */
 public interface ContentAddressableStorage {
-    // TODO should see null checking variable as IllegalArgumentException explicitely
+    // TODO REVIEW should see null checking variable as IllegalArgumentException explicitely
 
     // Container
     /**
@@ -95,13 +95,8 @@ public interface ContentAddressableStorage {
      *
      * @param containerName name of container
      */
-    // TODO change name to isExistingContainer(String containeNname)
+    // FIXME REVIEW change name to isExistingContainer(String containeNname)
     public boolean containerExists(String containerName);
-
-
-    // TODO REVIEW Might be interesting to not have only String but a way to know if it is a Folder or an Object: either
-    // create a structure (model) or a String with a convention (using first part as F# O# or whatever)
-    // Set<? extends String> list(String fullPath)
 
     // folder (or directory)
 
@@ -135,7 +130,7 @@ public interface ContentAddressableStorage {
      * @param containerName container where the folder resides
      * @param folderName full path to the folder
      */
-    // TODO change name to isExistingFolder(String containeNname, String folderName)
+    // FIXME REVIEW change name to isExistingFolder(String containeNname, String folderName)
     boolean folderExists(String containerName, String folderName);
 
     // Object
@@ -187,7 +182,7 @@ public interface ContentAddressableStorage {
      * @param containerName container where the object resides
      * @param objectName fully qualified name relative to the container.
      */
-    // TODO change name to isExistingObject(String containeNname, String objectName)
+    // FIXME REVIEW change name to isExistingObject(String containeNname, String objectName)
 
     public boolean objectExists(String containerName, String objectName);
 
@@ -214,6 +209,8 @@ public interface ContentAddressableStorage {
      * @throws ContentAddressableStorageAlreadyExistException Thrown when creating a container while it already exists
      * @throws ContentAddressableStorageException Thrown when get action failed due some other failure
      */
+    // FIXME REVIEW MUST be unzipObject not unzipSipObject = it is a generic method => must add too a folder name (for
+    // SIP = "SIP")
     public void unzipSipObject(String containerName, InputStream sipObject)
         throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageException;
 

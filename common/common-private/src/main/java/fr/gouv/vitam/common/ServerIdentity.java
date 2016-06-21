@@ -107,6 +107,13 @@ public final class ServerIdentity implements ServerIdentityInterface {
      */
     private static final Pattern MACHINE_ID_PATTERN = Pattern.compile("^(?:[0-9a-fA-F][:-]?){4,8}$");
     private static final int MACHINE_ID_LEN = 4;
+    private static final int BYTE_LENGTH = 8;
+    private static final int MAC_SIZE = 3;
+    private static final int MACHINE_VALUE_PAIR = 2;
+    private static final int HEXA_BASE = 16;
+    private static final int MINIMAL_ADDRESS_LENGTH = 6;
+    private static final int MULTICAST_VALUE = 1;
+    private static final int GLOBAL_ADDRESS_VALUE = 1;
 
     private static final ServerIdentity SERVER_IDENTITY = new ServerIdentity();
     private String name;
@@ -137,32 +144,29 @@ public final class ServerIdentity implements ServerIdentityInterface {
     }
 
     void defaultServerIdentity() {
+        boolean found = false;
         // Compute name from Hostname
-        if (System.getProperty(OS_NAME).toLowerCase().startsWith(WIN)) {
-            // Just for fun
-            name = System.getenv(COMPUTERNAME);
-        } else {
-            name = System.getenv(HOSTNAME);
-            if (name == null) {
+        try {
+            if (System.getProperty(OS_NAME).toLowerCase().startsWith(WIN)) {
+                // Just for fun
+                name = System.getenv(COMPUTERNAME);
+                found = true;
+            }
+        } catch (Exception e) { //NOSONAR ignore
+            // ignore
+        }
+        if (! found) {
+            try {
+                name = System.getenv(HOSTNAME);
+                found = true;
+            } catch (SecurityException e) {// NOSONAR ignore
+                // ignore
+            }
+            if (! found || name == null) {
                 // Some Unix do return null
-                Process proc;
-                try {
-                    proc = Runtime.getRuntime().exec(HOSTNAME_CMD);
-                    try (InputStream stream = proc.getInputStream()) {
-                        try (Scanner scanner = new Scanner(stream)) {
-                            name = scanner.useDelimiter("\\A").hasNext() ? scanner.next() : "";
-                        }
-                    }
-                } catch (final IOException e) {// NOSONAR ignore
-                    // ignore since will be checked just after
-                }
+                executeHostnameCommand();
                 if (name == null) {
-                    // Warning since it could return the real IP
-                    try {
-                        name = InetAddress.getLocalHost().getHostName();
-                    } catch (final UnknownHostException e) {// NOSONAR ignore
-                        name = UNKNOWN_HOSTNAME;
-                    }
+                    getHostnameThroughInetAddress();
                 }
             }
         }
@@ -170,6 +174,39 @@ public final class ServerIdentity implements ServerIdentityInterface {
         role = UNKNOWN_ROLE;
         platformId = macAddress(macAddress());
         initializeCommentFormat();
+    }
+
+    /**
+     * Get the Hostname through InetAddess
+     */
+    private void getHostnameThroughInetAddress() {
+        // Warning since it could return the real IP
+        try {
+            name = InetAddress.getLocalHost().getHostName();
+        } catch (final UnknownHostException e) {// NOSONAR ignore
+            name = UNKNOWN_HOSTNAME;
+        }
+    }
+
+    /**
+     * Execute the Hostname Command
+     */
+    private void executeHostnameCommand() {
+        Process proc = null;
+        try {
+            proc = Runtime.getRuntime().exec(HOSTNAME_CMD);
+            try (InputStream stream = proc.getInputStream()) {
+                try (Scanner scanner = new Scanner(stream)) {
+                    name = scanner.useDelimiter("\\A").hasNext() ? scanner.next() : "";
+                }
+            }
+        } catch (final IOException e) {// NOSONAR ignore
+            // ignore since will be checked just after
+        } finally {
+            if (proc != null) {
+                proc.destroy();
+            }
+        }
     }
 
     /**
@@ -424,9 +461,9 @@ public final class ServerIdentity implements ServerIdentityInterface {
         if (i < 0) {
             i = 0;
         }
-        macl |= (mac[i++] & 0x7F) << 3 * 8;
+        macl |= (mac[i++] & 0x7F) << MAC_SIZE * BYTE_LENGTH;
         for (int j = 1; i < mac.length; i++, j++) {
-            macl |= (mac[i] & 0xFF) << (3 - j) * 8;
+            macl |= (mac[i] & 0xFF) << (MAC_SIZE - j) * BYTE_LENGTH;
         }
         return macl;
     }
@@ -435,10 +472,10 @@ public final class ServerIdentity implements ServerIdentityInterface {
         // Strip separators.
         final String value = valueSource.replaceAll("[:-]", "");
 
-        final byte[] machineId = new byte[4];
-        int i = value.length() / 2;
-        for (int j = 0; i < value.length() && j < 4; i += 2, j++) {
-            machineId[j] = (byte) Integer.parseInt(value.substring(i, i + 2), 16);
+        final byte[] machineId = new byte[MACHINE_ID_LEN];
+        int i = value.length() / MACHINE_VALUE_PAIR;
+        for (int j = 0; i < value.length() && j < MACHINE_ID_LEN; i += MACHINE_VALUE_PAIR, j++) {
+            machineId[j] = (byte) Integer.parseInt(value.substring(i, i + MACHINE_VALUE_PAIR), HEXA_BASE);
         }
         return machineId;
     }
@@ -503,11 +540,9 @@ public final class ServerIdentity implements ServerIdentityInterface {
             } else if (res == 0) {
                 // Two MAC addresses are of pretty much same quality.
                 res = compareAddresses(bestInetAddr, inetAddr);
-                if (res < 0) {
-                    // Found a MAC address with better INET address.
-                    replace = true;
-                } else if (res == 0 && bestMacAddr.length < macAddr.length) {
-                    // Cannot tell the difference. Choose the longer one.
+                if (res < 0 || res == 0 && bestMacAddr.length < macAddr.length) {
+                    // if res < 0: Found a MAC address with better INET address.
+                    // Else: Cannot tell the difference. Choose the longer one.
                     replace = true;
                 }
             }
@@ -531,7 +566,7 @@ public final class ServerIdentity implements ServerIdentityInterface {
             return 1;
         }
         // Must be EUI-48 or longer.
-        if (candidate.length < 6) {
+        if (candidate.length < MINIMAL_ADDRESS_LENGTH) {
             return 1;
         }
         // Must not be filled with only 0 and 1.
@@ -546,12 +581,12 @@ public final class ServerIdentity implements ServerIdentityInterface {
             return 1;
         }
         // Must not be a multicast address
-        if ((candidate[0] & 1) != 0) {
+        if ((candidate[0] & MULTICAST_VALUE) != 0) {
             return 1;
         }
         // Prefer globally unique address.
-        if ((current[0] & 2) == 0) {
-            if ((candidate[0] & 2) == 0) {
+        if ((current[0] & GLOBAL_ADDRESS_VALUE) == 0) {
+            if ((candidate[0] & GLOBAL_ADDRESS_VALUE) == 0) {
                 // Both current and candidate are globally unique addresses.
                 return 0;
             } else {
@@ -559,7 +594,7 @@ public final class ServerIdentity implements ServerIdentityInterface {
                 return 1;
             }
         } else {
-            if ((candidate[0] & 2) == 0) {
+            if ((candidate[0] & GLOBAL_ADDRESS_VALUE) == 0) {
                 // Only candidate is globally unique.
                 return -1;
             } else {

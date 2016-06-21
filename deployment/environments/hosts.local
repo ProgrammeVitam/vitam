@@ -2,42 +2,51 @@
 
 [hosts:children]
 hosts-ihm-demo
-hosts-metadata-mongodb
+hosts-mongodb
 hosts-logbook
 hosts-metadata
 hosts-workspace
 hosts-ingest
 
 [hosts-ihm-demo]
-#localhost
+{{local_docker0_ip}}
+
+[hosts-ingest-web]
+{{local_docker0_ip}}
+
+[hosts-mongo-express]
+{{local_docker0_ip}}
 
 [hosts-ingest]
-#localhost
+{{local_docker0_ip}}
+
+[hosts-access]
+{{local_docker0_ip}}
 
 [hosts-metadata]
-localhost
+{{local_docker0_ip}}
 
 [hosts-logbook]
-localhost
+{{local_docker0_ip}}
 
 [hosts-workspace]
-localhost
+{{local_docker0_ip}}
 
 [hosts-processing]
-localhost
+{{local_docker0_ip}}
 
-[hosts-metadata-mongodb]
-localhost
+[hosts-mongodb]
+{{local_docker0_ip}}
+
 
 [hosts:vars]
 ansible_become=true
 ansible_connection=local
 vitam_environment=local
 docker_registry_hostname=docker.programmevitam.fr
-vitam_mongodb_host=172.17.0.1
-vitam_logbook_host=172.17.0.1
-vitam_logbook_port=8204
 vitam_folder_permission=0775
 vitam_conf_permission=0775
 pull_strategy=missing
 local_user={{ansible_user_id}}
+
+local_docker0_ip=172.17.0.1

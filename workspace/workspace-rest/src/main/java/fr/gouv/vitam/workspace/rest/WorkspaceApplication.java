@@ -56,7 +56,6 @@ public class WorkspaceApplication {
 
     private static final String CONFIG_FILE_IS_A_MANDATORY_ARGUMENT = "Config file is a mandatory argument";
 
-    // TODO REVIEW comment
     /**
      * runs the application
      *
@@ -80,9 +79,7 @@ public class WorkspaceApplication {
      */
 
     public void configure(String... arguments) throws RuntimeException {
-        // TODO define a vitam config
-        // TODO REVIEW If you use a YAML file, why use a variable number of parameters
-        // TODO REVIEW The host on which the server will listen must be specified (to prevent from listen on 0.0.0.0)
+        // FIXME REVIEW Use configuration as in Logbook REST
         if (arguments.length >= 1) {
             try {
                 final FileReader yamlFile = new FileReader(new File(arguments[0]));
@@ -118,7 +115,7 @@ public class WorkspaceApplication {
      * @param configuration Storage Configuration
      * @throws Exception Thrown if something goes wrong
      */
-    // TODO Don't throw Exception
+    // FIXME REVIEW Don't throw Exception
     public static void run(StorageConfiguration configuration, int serverPort) throws Exception {
 
         final ResourceConfig resourceConfig = new ResourceConfig();
@@ -137,7 +134,7 @@ public class WorkspaceApplication {
 
     }
 
-    // TODO Don't throw Exception
+    // FIXME REVIEW Don't throw Exception
     /**
      * stop a workspace server
      *

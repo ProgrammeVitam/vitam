@@ -10,6 +10,10 @@
   roles:
   - ihm-demo
 
+- hosts: hosts-ingest-web
+  roles:
+  - ingest-web
+
 - hosts: hosts-workspace
   roles:
     - workspace
@@ -30,6 +34,16 @@
   roles:
     - ingest
 
-- hosts: hosts-metadata-mongodb
+- hosts: hosts-mongodb
   roles:
-  - metadata-mongodb
+    - mongodb
+
+- hosts: hosts-access
+  roles:
+    - access
+
+- hosts: hosts-mongo-express
+  roles: 
+    - mongo-express
+  tags: 
+    - mongo-express

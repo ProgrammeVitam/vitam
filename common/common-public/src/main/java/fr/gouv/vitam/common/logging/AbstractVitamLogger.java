@@ -45,6 +45,8 @@ public abstract class AbstractVitamLogger implements VitamLogger, Serializable {
 
     private static final String EXCEPTION_MESSAGE = "Unexpected exception:";
 
+    static final String TIME_TRACE_PREFIX = "[TIMEINFO] ";
+
     private final String name;
 
     private static boolean initialized = false;

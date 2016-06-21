@@ -37,6 +37,7 @@ import java.util.Properties;
 public final class SystemPropertyUtil {
     // Since logger could be not available yet, one must not declare there a Logger
 
+    private static final String USING_THE_DEFAULT_VALUE = "using the default value: ";
     /**
      * Default File encoding field
      */
@@ -44,13 +45,40 @@ public final class SystemPropertyUtil {
     /**
      * Property Vitam Config Folder
      */
-    private static final String VITAM_CONFIG_FOLDER = "vitam.config.folder";
+    protected static final String VITAM_CONFIG_FOLDER = "vitam.config.folder";
+    /**
+     * Property Vitam Data Folder
+     */
+    protected static final String VITAM_DATA_FOLDER = "vitam.data.folder";
+    /**
+     * Property Vitam Log Folder
+     */
+    protected static final String VITAM_LOG_FOLDER = "vitam.log.folder";
+    /**
+     * Property Vitam Tmp Folder
+     */
+    protected static final String VITAM_TMP_FOLDER = "vitam.tmp.folder";
     /**
      * Default Vitam Config Folder
      */
     private static final String VITAM_CONFIG_FOLDER_DEFAULT = "/vitam/conf";
+    /**
+     * Default Vitam Config Folder
+     */
+    private static final String VITAM_DATA_FOLDER_DEFAULT = "/vitam/data";
+    /**
+     * Default Vitam Config Folder
+     */
+    private static final String VITAM_LOG_FOLDER_DEFAULT = "/vitam/log";
+    /**
+     * Default Vitam Config Folder
+     */
+    // TODO change to /vitam/tmp when configured on the PIC
+    private static final String VITAM_TMP_FOLDER_DEFAULT = "/vitam/data/tmp";
 
     private static final Properties PROPS = new Properties();
+
+    private static Platform m_os = null;
 
     // Retrieve all system properties at once so that there's no need to deal
     // with
@@ -61,6 +89,10 @@ public final class SystemPropertyUtil {
     // just because of less verbose logging.
     static {
         refresh();
+    }
+
+    private SystemPropertyUtil() {
+        // Unused
     }
 
     /**
@@ -124,6 +156,39 @@ public final class SystemPropertyUtil {
             return get(VITAM_CONFIG_FOLDER);
         }
         return VITAM_CONFIG_FOLDER_DEFAULT;
+    }
+
+    /**
+     *
+     * @return the VitamDataFolder path
+     */
+    public static String getVitamDataFolder() {
+        if (contains(VITAM_DATA_FOLDER)) {
+            return get(VITAM_DATA_FOLDER);
+        }
+        return VITAM_DATA_FOLDER_DEFAULT;
+    }
+
+    /**
+     *
+     * @return the VitamLogFolder path
+     */
+    public static String getVitamLogFolder() {
+        if (contains(VITAM_LOG_FOLDER)) {
+            return get(VITAM_LOG_FOLDER);
+        }
+        return VITAM_LOG_FOLDER_DEFAULT;
+    }
+
+    /**
+     *
+     * @return the VitamTmpFolder path
+     */
+    public static String getVitamTmpFolder() {
+        if (contains(VITAM_TMP_FOLDER)) {
+            return get(VITAM_TMP_FOLDER);
+        }
+        return VITAM_TMP_FOLDER_DEFAULT;
     }
 
     /**
@@ -201,7 +266,7 @@ public final class SystemPropertyUtil {
         }
 
         System.err.println("Unable to parse the boolean system property '" + key + "':" + value + " - " + // NOSONAR
-            "using the default value: " + def);
+            USING_THE_DEFAULT_VALUE + def);
 
         return def;
     }
@@ -234,7 +299,7 @@ public final class SystemPropertyUtil {
         }
 
         System.err.println("Unable to parse the integer system property '" + key + "':" + value + " - " + // NOSONAR
-            "using the default value: " + def);
+            USING_THE_DEFAULT_VALUE + def);
 
         return def;
     }
@@ -267,7 +332,7 @@ public final class SystemPropertyUtil {
         }
 
         System.err.println("Unable to parse the long integer system property '" + key + "':" + value + " - " + // NOSONAR
-            "using the default value: " + def);
+            USING_THE_DEFAULT_VALUE + def);
 
         return def;
     }
@@ -280,10 +345,13 @@ public final class SystemPropertyUtil {
      * @param def
      * @return the property value. {@code def} if there's no such property or if an access to the specified property is
      *         not allowed.
-     * @throws IllegalArgumentException key null
+     * @throws IllegalArgumentException key or def null
      */
     public static String getAndSet(String key, String def) {
         ParametersChecker.checkParameter("Key", key);
+        if (def == null) {
+            throw new IllegalArgumentException("Def cannot be null");
+        }
         if (!PROPS.containsKey(key)) {
             System.setProperty(key, def);
             refresh();
@@ -358,10 +426,13 @@ public final class SystemPropertyUtil {
      * @param key
      * @param def
      * @return the ancient value.
-     * @throws IllegalArgumentException key null
+     * @throws IllegalArgumentException key or def null
      */
     public static String set(String key, String def) {
         ParametersChecker.checkParameter("Key", key);
+        if (def == null) {
+            throw new IllegalArgumentException("Def cannot be null");
+        }
         String old = null;
         if (PROPS.containsKey(key)) {
             old = PROPS.getProperty(key);
@@ -429,6 +500,21 @@ public final class SystemPropertyUtil {
     }
 
     /**
+     * Remove the key of the Java system property with the specified {@code key}.
+     *
+     * @param key
+     * @throws IllegalArgumentException key null
+     */
+    public static void clear(String key) {
+        ParametersChecker.checkParameter("Key", key);
+        if (PROPS.containsKey(key)) {
+            PROPS.remove(key);
+        }
+        System.clearProperty(key);
+        refresh();
+    }
+
+    /**
      * Print to System.out the content of the properties
      *
      * @param out the output stream to be used
@@ -465,29 +551,37 @@ public final class SystemPropertyUtil {
         UNSUPPORTED
     }
 
-    private static Platform m_os = null;
-
     /**
      * @return the Platform
      */
     public static Platform getOS() {
         if (m_os == null) {
-            final String os = System.getProperty("os.name").toLowerCase();
             m_os = Platform.UNSUPPORTED;
+            String os = "";
+            try {
+                os = System.getProperty("os.name").toLowerCase();
+            } catch (Exception e) {// NOSONAR ignore
+                // ignore
+            }
             if (os.indexOf("win") >= 0) {
-                m_os = Platform.WINDOWS; // Windows
+                m_os = Platform.WINDOWS;
+                // Windows
             }
             if (os.indexOf("mac") >= 0) {
-                m_os = Platform.MAC; // Mac
+                m_os = Platform.MAC;
+                // Mac
             }
             if (os.indexOf("nux") >= 0) {
-                m_os = Platform.UNIX; // Linux
+                m_os = Platform.UNIX;
+                // Linux
             }
             if (os.indexOf("nix") >= 0) {
-                m_os = Platform.UNIX; // Unix
+                m_os = Platform.UNIX;
+                // Unix
             }
             if (os.indexOf("sunos") >= 0) {
-                m_os = Platform.SOLARIS; // Solaris
+                m_os = Platform.SOLARIS; 
+                // Solaris
             }
         }
         return m_os;
@@ -519,9 +613,5 @@ public final class SystemPropertyUtil {
      */
     public static boolean isSolaris() {
         return getOS() == Platform.SOLARIS;
-    }
-
-    private SystemPropertyUtil() {
-        // Unused
     }
 }

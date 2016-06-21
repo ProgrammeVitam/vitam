@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -30,7 +30,26 @@ package fr.gouv.vitam.builder.request.construct.configuration;
  */
 public class ParserTokens {
 
-    private static final String DEFAULT_PREFIX = "$";
+    /**
+     * Default prefix for command
+     */
+    public static final String DEFAULT_PREFIX = "$";
+    /**
+     * Default prefix for command
+     */
+    public static final char DEFAULT_PREFIX_CHAR = '$';
+    /**
+     * Default prefix for internal variable
+     */
+    public static final String DEFAULT_HASH_PREFIX = "#";
+    /**
+     * Default prefix for internal variable
+     */
+    public static final char DEFAULT_HASH_PREFIX_CHAR = '#';
+
+    private ParserTokens() {
+        // Empty constructor
+    }
 
     /**
      * @formatter:off For a Select :<br>
@@ -85,8 +104,7 @@ public class ParserTokens {
          * Constructor Add DEFAULT_PREFIX before the exactToken ($+exactToken)
          */
         private GLOBAL(String realName) {
-            // TODO REVIEW no toLowerCase() since already set through realName
-            exactToken = DEFAULT_PREFIX + realName.toLowerCase();
+            exactToken = DEFAULT_PREFIX + realName;
         }
 
         /**
@@ -288,8 +306,7 @@ public class ParserTokens {
          * Constructor Add DEFAULT_PREFIX before the exactToken ($+exactToken)
          */
         private QUERY(String realName) {
-            // TODO REVIEW no toLowerCase() since already set through realName
-            exactToken = DEFAULT_PREFIX + realName.toLowerCase();
+            exactToken = DEFAULT_PREFIX + realName;
         }
 
         /**
@@ -333,8 +350,7 @@ public class ParserTokens {
          * Constructor Add DEFAULT_PREFIX before the exactToken ($+exactToken)
          */
         private SELECTFILTER(String realName) {
-            // TODO REVIEW no toLowerCase() since already set through realName
-            exactToken = DEFAULT_PREFIX + realName.toLowerCase();
+            exactToken = DEFAULT_PREFIX + realName;
         }
 
         /**
@@ -365,8 +381,7 @@ public class ParserTokens {
          * Constructor Add DEFAULT_PREFIX before the exactToken ($+exactToken)
          */
         private PROJECTION(String realName) {
-            // TODO REVIEW no toLowerCase() since already set through realName
-            exactToken = DEFAULT_PREFIX + realName.toLowerCase();
+            exactToken = DEFAULT_PREFIX + realName;
         }
 
         /**
@@ -425,8 +440,7 @@ public class ParserTokens {
          * Constructor Add DEFAULT_PREFIX before the exactToken ($+exactToken)
          */
         private QUERYARGS(String realName) {
-            // TODO REVIEW no toLowerCase() since already set through realName
-            exactToken = DEFAULT_PREFIX + realName.toLowerCase();
+            exactToken = DEFAULT_PREFIX + realName;
         }
 
         /**
@@ -466,8 +480,7 @@ public class ParserTokens {
          * Constructor Add DEFAULT_PREFIX before the exactToken ($+exactToken)
          */
         private RANGEARGS(String realName) {
-            // TODO REVIEW no toLowerCase() since already set through realName
-            exactToken = DEFAULT_PREFIX + realName.toLowerCase();
+            exactToken = DEFAULT_PREFIX + realName;
         }
 
         /**
@@ -514,14 +527,14 @@ public class ParserTokens {
          */
         TYPE("type");
 
+        private static final String NOT_FOUND = "Not found";
         private final String exactToken;
 
         /**
-         * Constructor Add DEFAULT_PREFIX before the exactToken ($+exactToken)
+         * Constructor Add DEFAULT_HASH_PREFIX before the exactToken (#+exactToken)
          */
         private PROJECTIONARGS(String realName) {
-            // TODO REVIEW no toLowerCase() since already set through realName
-            exactToken = "#" + realName.toLowerCase();
+            exactToken = DEFAULT_HASH_PREFIX + realName;
         }
 
         /**
@@ -534,13 +547,35 @@ public class ParserTokens {
         /**
          *
          * @param name
+         * @return the corresponding PROJECTIONARGS
+         * @throws IllegalArgumentException if not found
+         */
+        public static final PROJECTIONARGS parse(String name) {
+            if (name == null || name.isEmpty()) {
+                throw new IllegalArgumentException(NOT_FOUND);
+            }
+            if (name.charAt(0) == ParserTokens.DEFAULT_HASH_PREFIX_CHAR) {
+                try {
+                    return PROJECTIONARGS.valueOf(name.substring(1).toUpperCase());
+                } catch (final Exception e) {
+                    throw new IllegalArgumentException(NOT_FOUND, e);
+                }
+            }
+            throw new IllegalArgumentException(NOT_FOUND);
+        }
+
+        /**
+         *
+         * @param name
          * @return True if this value is not allowed on set (insert, update)
          */
         public static boolean notAllowedOnSet(String name) {
-            if (name.charAt(0) == '#') {
+            if (name == null || name.isEmpty()) {
+                return false;
+            }
+            if (name.charAt(0) == ParserTokens.DEFAULT_HASH_PREFIX_CHAR) {
                 try {
-                    // TODO REVIEW incorrect since tolowercase compared to real name
-                    final PROJECTIONARGS proj = PROJECTIONARGS.valueOf(name.substring(1));
+                    final PROJECTIONARGS proj = PROJECTIONARGS.valueOf(name.substring(1).toUpperCase());
                     switch (proj) {
                         case ALL:
                         case FORMAT:
@@ -550,7 +585,7 @@ public class ParserTokens {
                             return true;
                         default:
                     }
-                } catch (final Exception e) {
+                } catch (final Exception e) {// NOSONAR
                     // Ignore
                 }
             }
@@ -582,20 +617,15 @@ public class ParserTokens {
         /**
          * Query concerns ObjectGroups
          */
-        OBJECTGROUPS("objectgroups"),
-        /**
-         * Query concerns Objects
-         */
-        OBJECTS("objects");
+        OBJECTGROUPS("objectgroups");
 
         private final String exactToken;
 
         /**
-         * Constructor Add DEFAULT_PREFIX before the exactToken ($+exactToken)
+         * Constructor
          */
         private FILTERARGS(String realName) {
-            // TODO REVIEW no toLowerCase() since already set through realName
-            exactToken = realName.toLowerCase();
+            exactToken = realName;
         }
 
         /**
@@ -689,8 +719,7 @@ public class ParserTokens {
          * Constructor Add DEFAULT_PREFIX before the exactToken ($+exactToken)
          */
         private UPDATEACTION(String realName) {
-            // TODO REVIEW no toLowerCase() since already set through realName
-            exactToken = DEFAULT_PREFIX + realName.toLowerCase();
+            exactToken = DEFAULT_PREFIX + realName;
         }
 
         /**
@@ -716,8 +745,7 @@ public class ParserTokens {
          * Constructor Add DEFAULT_PREFIX before the exactToken ($+exactToken)
          */
         private UPDATEACTIONARGS(String realName) {
-            // TODO REVIEW no toLowerCase() since already set through realName
-            exactToken = DEFAULT_PREFIX + realName.toLowerCase();
+            exactToken = DEFAULT_PREFIX + realName;
         }
 
         /**
@@ -745,8 +773,7 @@ public class ParserTokens {
          * Constructor Add DEFAULT_PREFIX before the exactToken ($+exactToken)
          */
         private MULTIFILTER(String realName) {
-            // TODO REVIEW no toLowerCase() since already set through realName
-            exactToken = DEFAULT_PREFIX + realName.toLowerCase();
+            exactToken = DEFAULT_PREFIX + realName;
         }
 
         /**

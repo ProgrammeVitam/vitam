@@ -46,9 +46,9 @@ public class Entry {
      */
     @JsonCreator
     public Entry(@JsonProperty("name") String name) {
-        // TODO REVIEW useful super() ?
+        // FIXME REVIEW useful super() ?
         super();
-        // TODO check null ?
+        // FIXME REVIEW check null ?
         this.name = name;
     }
 

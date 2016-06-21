@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -47,7 +47,7 @@ import fr.gouv.vitam.core.database.collections.MongoDbAccess.VitamCollections;
 
 /**
  * ObjectGroup:<br>
- * 
+ *
  * @formatter:off { MD technique globale (exemple GPS), _id : UUID, _dom : domainId (tenant), _type:
  *                audio|video|document|text|image|..., _up : [ UUIDUnit1, UUIDUnit2, ... ], _nb : nb objects, _uses : [
  *                { strategy : conservationId, versions : [ { // Object _version : rank, _creadate : date, _id:
@@ -129,7 +129,7 @@ public class ObjectGroup extends VitamDocument<ObjectGroup> {
     public static final String STORAGEDIGEST = COPIES + "." + "digest";
 
     private static final BasicDBObject[] indexes = {
-        new BasicDBObject(VitamLinks.Unit2ObjectGroup.field2to1, 1),
+        new BasicDBObject(VitamLinks.UNIT_TO_OBJECTGROUP.field2to1, 1),
         new BasicDBObject(DOMID, 1),
         new BasicDBObject(STRATEGY, 1),
         new BasicDBObject(VERSION, 1),
@@ -151,12 +151,12 @@ public class ObjectGroup extends VitamDocument<ObjectGroup> {
      * Object subclass
      */
     public static class ObjectItem {
-        String _id;
+        String id;
         long size;
         Digest digest;
-        int _version;
-        Date _creadate;
-        List<Copy> _copies;
+        int version;
+        Date creadate;
+        List<Copy> copies;
         /**
          * @formatter:off Among them: formatIdentification{formatLitteral, mimeType}, fileInfo{filename,
          *                creatingApplicationName, creationApplicationVersion, dateCreatedByApplication, creatingOs,
@@ -186,7 +186,7 @@ public class ObjectGroup extends VitamDocument<ObjectGroup> {
 
     /**
      * Constructor from Json
-     * 
+     *
      * @param content
      */
     public ObjectGroup(JsonNode content) {
@@ -195,7 +195,7 @@ public class ObjectGroup extends VitamDocument<ObjectGroup> {
 
     /**
      * Constructor from Document
-     * 
+     *
      * @param content
      */
     public ObjectGroup(Document content) {
@@ -204,7 +204,7 @@ public class ObjectGroup extends VitamDocument<ObjectGroup> {
 
     /**
      * Constructor from Json as Text
-     * 
+     *
      * @param content
      */
     public ObjectGroup(String content) {
@@ -221,13 +221,13 @@ public class ObjectGroup extends VitamDocument<ObjectGroup> {
 
     @Override
     protected VitamCollections getVitamCollections() {
-        return MongoDbAccess.VitamCollections.Cobjectgroup;
+        return MongoDbAccess.VitamCollections.C_OBJECTGROUP;
     }
 
     @SuppressWarnings("unchecked")
     @Override
     protected MongoCollection<ObjectGroup> getCollection() {
-        return (MongoCollection<ObjectGroup>) MongoDbAccess.VitamCollections.Cobjectgroup.getCollection();
+        return (MongoCollection<ObjectGroup>) MongoDbAccess.VitamCollections.C_OBJECTGROUP.getCollection();
     }
 
     /**
@@ -255,7 +255,8 @@ public class ObjectGroup extends VitamDocument<ObjectGroup> {
         BasicDBObject update = null;
         if (vt != null) {
             final List<BasicDBObject> list = new ArrayList<>();
-            BasicDBObject updAddToSet = MongoDbMetadataHelper.updateLinks(this, vt, VitamLinks.Unit2ObjectGroup, false);
+            BasicDBObject updAddToSet =
+                MongoDbMetadataHelper.updateLinks(this, vt, VitamLinks.UNIT_TO_OBJECTGROUP, false);
             if (updAddToSet != null) {
                 list.add(updAddToSet);
             }
@@ -276,7 +277,7 @@ public class ObjectGroup extends VitamDocument<ObjectGroup> {
             }
             return true;
         } else {
-            MongoDbMetadataHelper.updateLinks(this, null, VitamLinks.Unit2ObjectGroup, false);
+            MongoDbMetadataHelper.updateLinks(this, null, VitamLinks.UNIT_TO_OBJECTGROUP, false);
         }
         return false;
     }
@@ -312,9 +313,9 @@ public class ObjectGroup extends VitamDocument<ObjectGroup> {
     @SuppressWarnings("unchecked")
     public List<String> getFathersUnitIds(final boolean remove) {
         if (remove) {
-            return (List<String>) remove(VitamLinks.Unit2ObjectGroup.field2to1);
+            return (List<String>) remove(VitamLinks.UNIT_TO_OBJECTGROUP.field2to1);
         } else {
-            return (List<String>) this.get(VitamLinks.Unit2ObjectGroup.field2to1);
+            return (List<String>) this.get(VitamLinks.UNIT_TO_OBJECTGROUP.field2to1);
         }
     }
 
@@ -324,7 +325,7 @@ public class ObjectGroup extends VitamDocument<ObjectGroup> {
      * @param all If true, all items are cleaned
      */
     public final void cleanStructure(final boolean all) {
-        remove(VitamLinks.Unit2ObjectGroup.field2to1);
+        remove(VitamLinks.UNIT_TO_OBJECTGROUP.field2to1);
         remove(ID);
         if (all) {
             remove(NB_COPY);
@@ -347,13 +348,13 @@ public class ObjectGroup extends VitamDocument<ObjectGroup> {
     protected static void addIndexes() {
         // if not set, Unit and Tree are worst
         for (final BasicDBObject index : indexes) {
-            MongoDbAccess.VitamCollections.Cobjectgroup.getCollection().createIndex(index);
+            MongoDbAccess.VitamCollections.C_OBJECTGROUP.getCollection().createIndex(index);
         }
     }
 
     protected static void dropIndexes() {
         for (final BasicDBObject index : indexes) {
-            MongoDbAccess.VitamCollections.Cobjectgroup.getCollection().dropIndex(index);
+            MongoDbAccess.VitamCollections.C_OBJECTGROUP.getCollection().dropIndex(index);
         }
     }
 }

@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -26,26 +26,27 @@ package fr.gouv.vitam.api.config;
 /**
  * MetaDataConfiguration contains database access informations
  */
-// TODO REVIEW should be final
+// FIXME REVIEW should be final
 public class MetaDataConfiguration {
 
     private String host;
     private int port;
     private String dbName;
-    // TODO REVIEW this is incorrect since we will have multiple collection: this does not used the logic of collections
+    // FIXME REVIEW this is incorrect since we will have multiple collection: this does not used the logic of
+    // collections
     // managed by MongoDbAccess (checking index and correct CODECs)
     private String collectionName;
 
     /**
      * MetaDataConfiguration constructor
-     * 
+     *
      * @param host database server IP address
      * @param port database server port
      * @param dbName database name
      * @param collectionName database collection name
      */
     public MetaDataConfiguration(String host, int port, String dbName, String collectionName) {
-        // TODO REVIEW do not allow null values and throw IllegalArgumentException
+        // FIXME REVIEW do not allow null values and throw IllegalArgumentException
         this.host = host;
         this.port = port;
         this.dbName = dbName;
@@ -55,7 +56,6 @@ public class MetaDataConfiguration {
     /**
      * MetaDataConfiguration empty constructor for YAMLFactory
      */
-    // TODO: Could protected be working?
     public MetaDataConfiguration() {}
 
     /**

@@ -93,13 +93,14 @@ import fr.gouv.vitam.common.ParametersChecker;
  * Inspired from Netty
  */
 final class MessageFormatter {
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(MessageFormatter.class);
-
     static final char DELIM_START = '{';
     static final char DELIM_STOP = '}';
     static final String DELIM_STR = "{}";
     private static final char ESCAPE_CHAR = '\\';
+
+    private MessageFormatter() {
+        // Empty
+    }
 
     /**
      * Performs single argument substitution for the 'messagePattern' passed as parameter.
@@ -188,12 +189,12 @@ final class MessageFormatter {
 
             if (j == -1) {
                 // no more variables
-                if (i == 0) { // this is a simple string
+                if (i == 0) {
+                    // this is a simple string
                     return new FormattingTuple(messagePattern, argArray,
                         throwableCandidate);
-                } else { // add the tail string which contains no variables and
-                         // return
-                    // the result.
+                } else {
+                    // add the tail string which contains no variables and return the result.
                     sbuild.append(messagePattern.substring(i, messagePattern.length()));
                     return new FormattingTuple(sbuild.toString(), argArray,
                         throwableCandidate);
@@ -201,8 +202,8 @@ final class MessageFormatter {
             } else {
                 if (isEscapedDelimeter(messagePattern, j)) {
                     if (!isDoubleEscaped(messagePattern, j)) {
-                        l--; // DELIM_START was escaped, thus should not be
-                             // incremented
+                        l--;
+                        // DELIM_START was escaped, thus should not be incremented
                         sbuild.append(messagePattern.substring(i, j - 1)).append(DELIM_START);
                         i = j + 1;
                     } else {
@@ -287,8 +288,8 @@ final class MessageFormatter {
             final String oAsString = o.toString();
             sbuild.append(oAsString);
         } catch (final Throwable t) { // NOSONAR
-            LOGGER.error("SLF4J: Failed toString() invocation on an object of type [" + o.getClass().getName() + ']',
-                t);
+            System.err.println("SLF4J: Failed toString() invocation on an object of type [" //NOSONAR ignore since no logger
+                + o.getClass().getName() + ']' + t.getMessage());
             sbuild.append("[FAILED toString()]");
         }
     }
@@ -407,9 +408,5 @@ final class MessageFormatter {
             }
         }
         sbuild.append(']');
-    }
-
-    private MessageFormatter() {
-        // Empty
     }
 }

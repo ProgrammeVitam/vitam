@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -45,6 +45,12 @@ public class ProcessResponse implements EngineResponse {
      * List of functional messages
      */
     private List<String> messages;
+
+    /**
+     * Message identifier
+     */
+    private String messageId;
+
     /**
      * List of steps 's responses
      *
@@ -81,6 +87,7 @@ public class ProcessResponse implements EngineResponse {
     @Override
     public List<String> getMessages() {
         if (messages == null) {
+            // FIXME REVIEW use SingletonUtils
             return new ArrayList<>();
         }
         return messages;
@@ -103,6 +110,7 @@ public class ProcessResponse implements EngineResponse {
 
     public Map<String, List<EngineResponse>> getStepResponses() {
         if (stepResponses == null) {
+            // FIXME REVIEW use SingletonUtils
             return new HashMap<>();
         }
         return stepResponses;
@@ -114,6 +122,7 @@ public class ProcessResponse implements EngineResponse {
      * @param stepResponses the stepResponses to set
      */
     public ProcessResponse setStepResponses(Map<String, List<EngineResponse>> stepResponses) {
+        // FIXME REVIEW check null since assigned after
         if (stepResponses != null && !stepResponses.isEmpty()) {
             stepResponses.forEach((actionKey, responses) -> status = getGlobalProcessStatusCode(responses));
         }
@@ -147,10 +156,44 @@ public class ProcessResponse implements EngineResponse {
     }
 
     /**
+     * getMessageFromResponse return message id from list of response
+     * @param responses list of step response
+     * @return message id 
+     */
+    public static String getMessageFromResponse(List<EngineResponse> responses) {
+        String messageId = "";
+
+        if (responses != null) {
+            for (final EngineResponse response : responses) {
+                if(!response.getMessageIdentifier().isEmpty()) {
+                    messageId = response.getMessageIdentifier();
+                }
+            }
+        }
+        return messageId;
+    }
+
+    /**
      * implementation of getValue() of EngineResponse API class
      */
     @Override
     public String getValue() {
         return status.value();
+    }
+
+    @Override
+    public String getMessageIdentifier() {
+        if (messageId == null) {
+            return "";
+        }
+        return messageId;
+    }
+
+    @Override
+    public EngineResponse setMessageIdentifier(String message) {
+        if (message == null) {
+            this.messageId = message;
+        }
+        return this;
     }
 }

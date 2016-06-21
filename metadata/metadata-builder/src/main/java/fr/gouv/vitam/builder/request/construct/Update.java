@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -135,7 +135,7 @@ public class Update extends Request {
      */
     public final ObjectNode getFinalUpdate() {
         final ObjectNode node = getFinal();
-        if (actions != null && actions.size() > 0) {
+        if (actions != null && !actions.isEmpty()) {
             final ArrayNode array = JsonHandler.createArrayNode();
             for (final Action action : actions) {
                 array.add(action.getCurrentAction());

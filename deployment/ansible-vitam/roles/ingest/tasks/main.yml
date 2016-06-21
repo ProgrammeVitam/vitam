@@ -11,15 +11,12 @@
   - "{{vitam_folder_conf}}"
   - "{{vitam_folder_log}}"
   - "{{vitam_folder_data}}"
-  - "{{vitam_conf_ingest_core}}"
-  - "{{vitam_data_ingest_core}}"
-  - "{{vitam_log_ingest_core}}"
 
 
-- name: Deploy configuration files in {{vitam_conf_ingest_core}}
+- name: Deploy configuration files in {{vitam_folder_conf}}
   template:
     src="{{item}}.j2"
-    dest="{{vitam_conf_ingest_core}}/{{item}}"
+    dest="{{vitam_folder_conf}}/{{item}}"
     owner={{local_user}}
     group=vitam mode={{vitam_conf_permission}}
   notify: restart container

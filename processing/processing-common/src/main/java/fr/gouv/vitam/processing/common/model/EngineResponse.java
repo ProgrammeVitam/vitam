@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -25,6 +25,7 @@ package fr.gouv.vitam.processing.common.model;
 
 import java.util.List;
 
+// TODO REVIEW comment
 public interface EngineResponse {
 
     /**
@@ -50,6 +51,18 @@ public interface EngineResponse {
      * @return list of functional error message
      */
     public List<String> getMessages();
+
+    /**
+     *
+     * @return message identifier of seda
+     */
+    public String getMessageIdentifier();
+
+    /**
+     *
+     * @param message identifier of seda
+     */
+    public EngineResponse setMessageIdentifier(String message);
 
     /**
      *

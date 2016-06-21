@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.builder.request.construct.query.Query;
 import fr.gouv.vitam.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
@@ -44,7 +45,7 @@ public class GlobalDatas {
     /**
      * Default limit for loading result
      */
-    public static final int limitLoad = 10000;
+    public static final int LIMIT_LOAD = 10000;
     /**
      * Default limit for Value (sanity check)
      */
@@ -56,19 +57,23 @@ public class GlobalDatas {
     /**
      * Default limit for number of roots
      */
-    public static final int nbRoots = 1000;
+    public static final int NB_ROOTS = 1000;
     /**
      * Default limit for number of filters
      */
-    public static final int nbFilters = 10;
+    public static final int NB_FILTERS = 10;
     /**
      * Default limit for number of projections
      */
-    public static final int nbProjections = 1000;
+    public static final int NB_PROJECTIONS = 1000;
     /**
      * True means commands are to be written using '$' as prefix
      */
     public static final boolean COMMAND_DOLLAR = true;
+
+    protected GlobalDatas() {
+        // empty
+    }
 
     /**
      * Check the String if conforms to sanity check
@@ -123,16 +128,13 @@ public class GlobalDatas {
         sanityCheck(arg, limitParameter * multipleParams);
     }
 
-    protected GlobalDatas() {
-        // empty
-    }
-
     /**
      * @param date
      * @return the corresponding Date in Json format
+     * @throws IllegalArgumentException if date is null
      */
     public static final ObjectNode getDate(final Date date) {
-        // TODO REVIEW should check null
+        ParametersChecker.checkParameter("Date cannot be null", date);
         return JsonHandler.createObjectNode().put(Query.DATE,
             LocalDateUtil.fromDate(date).toString());
     }
@@ -173,13 +175,14 @@ public class GlobalDatas {
 
     /**
      * Check the Variable name if conforms to sanity check
-     * 
+     *
      * @param arg
      * @throws InvalidParseOperationException if the sanity check is in error
+     * @throws IllegalArgumentException if arg is null
      */
     public static final void sanityVariableNameCheck(String arg)
         throws InvalidParseOperationException {
-        // TODO REVIEW should check null
+        ParametersChecker.checkParameter("Arg cannot be null", arg);
         if (arg.charAt(0) == '#') {
             throw new InvalidParseOperationException("Variable name cannot be a protected one (starting with '#'");
         }

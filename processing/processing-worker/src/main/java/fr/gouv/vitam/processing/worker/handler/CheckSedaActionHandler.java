@@ -31,6 +31,7 @@ import java.io.IOException;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.model.StatusCode;
@@ -43,12 +44,13 @@ import fr.gouv.vitam.processing.common.utils.SedaUtilsFactory;
  */
 public class CheckSedaActionHandler extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckSedaActionHandler.class);
+    // FIXME REVIEW since getId => private
     public static final String HANDLER_ID = "checkSeda";
     private final SedaUtilsFactory sedaUtilsFactory;
 
     /**
      * Constructor with parameter SedaUtilsFactory
-     * 
+     *
      * @param factory
      */
     public CheckSedaActionHandler(SedaUtilsFactory factory) {
@@ -73,15 +75,21 @@ public class CheckSedaActionHandler extends ActionHandler {
         final SedaUtils sedaUtils = sedaUtilsFactory.create();
 
         boolean result = true;
+        String messageId = "";
         try {
             result = sedaUtils.checkSedaValidation(params);
+            messageId = sedaUtils.getMessageIdentifier(params);
         } catch (final IOException e) {
             LOGGER.error("checkSedaActionHandler IOException");
             response.setStatus(StatusCode.FATAL);
+        } catch (ProcessingException e) {
+            LOGGER.error("getMessageIdentifier ProcessingException");
+            response.setStatus(StatusCode.FATAL);
         }
 
-        if (result == true) {
+        if (result) {
             response.setStatus(StatusCode.OK);
+            response.setMessageIdentifier(messageId);
         } else {
             response.setStatus(StatusCode.KO);
         }

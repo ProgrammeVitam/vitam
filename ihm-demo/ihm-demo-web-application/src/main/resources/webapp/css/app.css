@@ -1,0 +1,99 @@
+body {
+  padding: 20px;
+}
+
+h1 {
+  border-bottom: 2px solid gray;
+  border-top: 2px solid gray;
+  text-align: center;
+}
+
+hr {
+    display: block;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    margin-left: auto;
+    margin-right: auto;
+    border-style: inset;
+    border-width: 1px;
+}
+
+label{
+  white-space: nowrap;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.btn-form{
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.grad1 {
+  background: lightblue; /* For browsers that do not support gradients */
+}
+
+.unit-form{
+    background: white;
+    padding-top: 10px;
+}
+
+.simple-field{
+  padding-bottom: 5px;
+  padding-top: 2px;
+  padding-left: 2px;
+  height:10px;
+}
+
+.complex-field{
+  padding-bottom: 2px;
+  padding-top: 2px;
+}
+
+.specs {
+  clear: both;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.specs dt {
+  font-weight: bold;
+}
+
+.specs > li {
+  display: inline-block;
+  vertical-align: top;
+  width: 200px;
+}
+
+.specs > li > span {
+  font-size: 1.2em;
+  font-weight: bold;
+}
+.title-form{
+  font-weight: bold;
+}
+
+.orderResult {
+  border-collapse: collapse;
+}
+
+.orderResult th {
+  border-bottom: 1px solid;
+}
+.orderResult td, .orderResult th {
+  border-left: 1px solid;
+  padding: 5px 10px;
+}
+.orderResult td:first-child, .orderResult th:first-child {
+  border-left: none;
+}
+
+.sortorder:after {
+  content: '\25b2';   // BLACK UP-POINTING TRIANGLE
+}
+.sortorder.reverse:after {
+  content: '\25bc';   // BLACK DOWN-POINTING TRIANGLE
+}

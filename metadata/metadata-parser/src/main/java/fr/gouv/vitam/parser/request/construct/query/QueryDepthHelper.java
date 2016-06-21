@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -34,11 +34,13 @@ public class QueryDepthHelper extends Query {
      */
     public static final QueryDepthHelper HELPER = new QueryDepthHelper();
 
-    private QueryDepthHelper() {}
+    private QueryDepthHelper() {
+        // Empty constructor
+    }
 
     /**
      * For Parsing operation
-     * 
+     *
      * @param query
      * @param exactDepth
      * @param relativeDepth
@@ -49,7 +51,7 @@ public class QueryDepthHelper extends Query {
 
     /**
      * For Execute operation
-     * 
+     *
      * @param query
      * @return the exact depth
      */
@@ -59,7 +61,7 @@ public class QueryDepthHelper extends Query {
 
     /**
      * For Execute operation
-     * 
+     *
      * @param query
      * @return the relative depth
      */

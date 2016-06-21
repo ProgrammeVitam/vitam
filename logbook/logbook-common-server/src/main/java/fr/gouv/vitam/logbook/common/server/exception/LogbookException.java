@@ -36,13 +36,6 @@ public class LogbookException extends VitamException {
     private static final long serialVersionUID = 4065509976806112481L;
 
     /**
-     * Empty constructor
-     */
-    public LogbookException() {
-        // Empty constructor
-    }
-
-    /**
      * @param message associated message
      */
     public LogbookException(String message) {

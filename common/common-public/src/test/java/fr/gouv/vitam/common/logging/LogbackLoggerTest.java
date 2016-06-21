@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.common.logging;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -148,7 +149,7 @@ public class LogbackLoggerTest {
     @Test
     public void testIsErrorEnabled() {
         VitamLoggerFactory.setDefaultFactory(new LogbackLoggerFactory(VitamLogLevel.ERROR));
-        final VitamLogger logger = VitamLoggerFactory.getInstance("foo");
+        VitamLogger logger = VitamLoggerFactory.getInstance("foo");
         assertTrue(logger.isErrorEnabled());
         buf.setLength(0);
         logger.error("a");
@@ -162,8 +163,42 @@ public class LogbackLoggerTest {
         logger.error("", new Object(), new Object(), new Object());
         logger.error(new Throwable("a"));
         buf.setLength(0);
-        logger.isEnabled(VitamLogLevel.ERROR);
-        logger.isEnabled(VitamLogLevel.TRACE);
+        assertTrue(logger.isEnabled(VitamLogLevel.ERROR));
+
+        // Check varous calls
+        logger.trace(new Throwable("a"));
+        logger.debug(new Throwable("a"));
+        logger.info(new Throwable("a"));
+        logger.warn(new Throwable("a"));
+        logger.log(VitamLogLevel.TRACE, "text", new Throwable("a"));
+        logger.log(VitamLogLevel.DEBUG, "text", new Throwable("a"));
+        logger.log(VitamLogLevel.INFO, "text", new Throwable("a"));
+        logger.log(VitamLogLevel.WARN, "text", new Throwable("a"));
+        logger.log(VitamLogLevel.TRACE, "text");
+        logger.log(VitamLogLevel.DEBUG, "text");
+        logger.log(VitamLogLevel.INFO, "text");
+        logger.log(VitamLogLevel.WARN, "text");
+        logger.log(VitamLogLevel.TRACE, new Throwable("a"));
+        logger.log(VitamLogLevel.DEBUG, new Throwable("a"));
+        logger.log(VitamLogLevel.INFO, new Throwable("a"));
+        logger.log(VitamLogLevel.WARN, new Throwable("a"));
+        logger.log(VitamLogLevel.TRACE, "text", new Object());
+        logger.log(VitamLogLevel.DEBUG, "text", new Object());
+        logger.log(VitamLogLevel.INFO, "text", new Object());
+        logger.log(VitamLogLevel.WARN, "text", new Object());
+        logger.log(VitamLogLevel.TRACE, "text", new Object(), new Object());
+        logger.log(VitamLogLevel.DEBUG, "text", new Object(), new Object());
+        logger.log(VitamLogLevel.INFO, "text", new Object(), new Object());
+        logger.log(VitamLogLevel.WARN, "text", new Object(), new Object());
+        logger.log(VitamLogLevel.TRACE, "text", new Object(), new Object(), new Object());
+        logger.log(VitamLogLevel.DEBUG, "text", new Object(), new Object(), new Object());
+        logger.log(VitamLogLevel.INFO, "text", new Object(), new Object(), new Object());
+        logger.log(VitamLogLevel.WARN, "text", new Object(), new Object(), new Object());
+        assertTrue(buf.length() == 0);
+
+        VitamLoggerFactory.setDefaultFactory(new LogbackLoggerFactory(VitamLogLevel.TRACE));
+        logger = VitamLoggerFactory.getInstance("foo");
+        assertTrue(logger.isEnabled(VitamLogLevel.TRACE));
 
         // Check varous calls
         logger.trace(new Throwable("a"));
@@ -200,6 +235,8 @@ public class LogbackLoggerTest {
         logger.log(VitamLogLevel.INFO, "text", new Object(), new Object(), new Object());
         logger.log(VitamLogLevel.WARN, "text", new Object(), new Object(), new Object());
         logger.log(VitamLogLevel.ERROR, "text", new Object(), new Object(), new Object());
+        assertTrue(buf.length() > 0);
+        buf.setLength(0);
         try {
             ((LogbackLogger) logger).readResolve();
         } catch (final ObjectStreamException e1) { // NOSONAR
@@ -208,6 +245,37 @@ public class LogbackLoggerTest {
         AbstractVitamLogger.simpleClassName(LogbackLoggerTest.class);
         AbstractVitamLogger.simpleClassName(new Object());
         AbstractVitamLogger.getMessagePrepend();
+    }
+
+
+    @Test
+    public void testTimeTrace() {
+        VitamLoggerFactory.setDefaultFactory(new LogbackLoggerFactory(VitamLogLevel.INFO));
+        VitamLogger logger = VitamLoggerFactory.getInstance("foo");
+        assertTrue(logger.isInfoEnabled());
+        buf.setLength(0);
+        logger.timeInfo("a");
+        assertTrue(buf.indexOf(AbstractVitamLogger.TIME_TRACE_PREFIX) > 0);
+        buf.setLength(0);
+        logger.timeInfo("", new Object());
+        assertTrue(buf.indexOf(AbstractVitamLogger.TIME_TRACE_PREFIX) > 0);
+        buf.setLength(0);
+        logger.timeInfo("", new Object(), new Object());
+        assertTrue(buf.indexOf(AbstractVitamLogger.TIME_TRACE_PREFIX) > 0);
+        buf.setLength(0);
+        logger.timeInfo("", new Object(), new Object(), new Object());
+        assertTrue(buf.indexOf(AbstractVitamLogger.TIME_TRACE_PREFIX) > 0);
+        buf.setLength(0);
+        VitamLoggerFactory.setDefaultFactory(new LogbackLoggerFactory(VitamLogLevel.WARN));
+        logger = VitamLoggerFactory.getInstance("foo");
+        assertFalse(logger.isInfoEnabled());
+        buf.setLength(0);
+        logger.timeInfo("a");
+        assertFalse(buf.indexOf(AbstractVitamLogger.TIME_TRACE_PREFIX) > 0);
+        buf.setLength(0);
+        logger.timeInfo("", new Object());
+        assertFalse(buf.indexOf(AbstractVitamLogger.TIME_TRACE_PREFIX) > 0);
+        buf.setLength(0);
     }
 
 }

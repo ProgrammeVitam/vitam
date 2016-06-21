@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.logbook.operations.client;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -35,6 +36,7 @@ import java.util.Set;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
@@ -45,6 +47,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookClientFactory.LogbookClien
  * Test for logbook operation client
  */
 public class LogbookOperationsClientMockTest {
+    private static final String request = "{ $query: {} }, $projection: {}, $filter: {} }";
 
     @Test
     public void createTest() {
@@ -155,4 +158,18 @@ public class LogbookOperationsClientMockTest {
         logbookParamaters.putParameterValue(LogbookParameterName.objectIdentifierIncome,
             LogbookParameterName.objectIdentifierIncome.name());
     }
+    
+    @Test
+    public void selectTest() throws LogbookClientException, InvalidParseOperationException {
+        LogbookClientFactory.setConfiguration(LogbookClientType.MOCK_OPERATIONS, null, 0);
+
+        final LogbookClient client =
+            LogbookClientFactory.getInstance().getLogbookOperationClient();
+        assertEquals("aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaz", 
+            client.selectOperation(request).get("result").get(1).get("_id").asText());
+        assertEquals("aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq", 
+            client.selectOperationbyId("eventIdentifier").get("result").get("_id").asText());
+    }
+    
+    
 }

@@ -1,0 +1,4 @@
+---
+# vars file for mongo-express
+vitam_docker_port_http: 8081
+vitam_docker_port_internal: 8081

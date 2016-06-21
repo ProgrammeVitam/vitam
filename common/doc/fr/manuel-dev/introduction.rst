@@ -73,6 +73,42 @@ SyetemPropertyUtil
 
 Cet utilitaire propose quelques méthodes pour manipuler les Propritétés héritées du Système, notamment celle déduites de "-Dxxxx" dans la ligne de commande Java.
 
+Il intègre notamment :
+- String getVitamConfigFolder()
+- String getVitamDataFolder()
+- String getVitamLogFolder()
+- String getVitamTmpFolder()
+
+Les répertoires sont par défaut :
+- Config = /vitam/conf
+- Data = /vitam/data
+- Log = /vitam/log
+- Tmp = /vitam/data/tmp
+
+Ils peuvent être dynamiquement surchargés par une option au lancement du programme Java :
+- -Dvitam.config.folder=/path
+- -Dvitam.data.folder=/path
+- -Dvitam.log.folder=/path
+- -Dvitam.tmp.folder=/path
+
+PropertiesUtils
+===============
+
+Cet utilitaire propose quelques méthodes pour manipuler des fichiers de propriétés et notamment dans le répertoire Resources.
+
+Il intègre notamment :
+- File getResourcesFile(String resourcesFile) qui retourne un File se situant dans "resources (classpath) /resourcesFile"
+- File findFile(String filename) qui retourne un File se situant dans l'ordre
+
+  - Chemin complet donné par resourcesFile
+  - Chemin complet donné par ConfigFolder + resourcesFile
+  - Chemin complet dans resources (classpath) /resourcesFile
+  
+- File fileFromConfigFolder(String subpath) qui retourne un File se situant dans "ConfigFolder + subpath" (non checké)
+- File fileFromDataFolder(String subpath) qui retourne un File se situant dans "DataFolder + subpath" (non checké)
+- File fileFromLogFolder(String subpath) qui retourne un File se situant dans "LogFolder + subpath" (non checké)
+- File fileFromTmpFolder(String subpath) qui retourne un File se situant dans "TmpFolder + subpath" (non checké)
+
 BaseXXX
 =======
 
@@ -87,11 +123,6 @@ ParametersChecker
 =================
 
 Cet utilitaire propose quelques méthodes pour gérer la validité des arguments dans les méthodes.
-
-PropertiesUtils
-===============
-
-Cet utilitaire propose quelques méthodes pour manipuler des fichiers de propriétés et notamment dans le répertoire Resources.
 
 SingletonUtil
 =============

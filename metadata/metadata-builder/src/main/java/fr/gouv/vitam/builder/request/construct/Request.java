@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -162,7 +162,7 @@ public abstract class Request {
      */
     public final Request parseHintFilter(final String filter)
         throws InvalidParseOperationException {
-        GlobalDatas.sanityParametersCheck(filter, GlobalDatas.nbFilters);
+        GlobalDatas.sanityParametersCheck(filter, GlobalDatas.NB_FILTERS);
         final JsonNode rootNode = JsonHandler.getFromString(filter);
         return addHintFilter(rootNode);
     }
@@ -187,7 +187,7 @@ public abstract class Request {
      */
     public final Request parseFilter(final String filter)
         throws InvalidParseOperationException {
-        GlobalDatas.sanityParametersCheck(filter, GlobalDatas.nbFilters);
+        GlobalDatas.sanityParametersCheck(filter, GlobalDatas.NB_FILTERS);
         final JsonNode filterContent = JsonHandler.getFromString(filter);
         return setFilter(filterContent);
     }
@@ -244,7 +244,7 @@ public abstract class Request {
      * @throws InvalidParseOperationException
      */
     public final Request parseRoots(String roots) throws InvalidParseOperationException {
-        GlobalDatas.sanityParametersCheck(roots, GlobalDatas.nbRoots);
+        GlobalDatas.sanityParametersCheck(roots, GlobalDatas.NB_ROOTS);
         try {
             final ArrayNode rootNode = (ArrayNode) JsonHandler.getFromString(roots);
             return addRoots(rootNode);
@@ -260,7 +260,7 @@ public abstract class Request {
      */
     protected final ObjectNode getFinal() {
         final ObjectNode node = JsonHandler.createObjectNode();
-        if (roots != null && roots.size() > 0) {
+        if (roots != null && !roots.isEmpty()) {
             final ArrayNode array = node.putArray(GLOBAL.ROOTS.exactToken());
             for (final String val : roots) {
                 array.add(val);
@@ -268,7 +268,7 @@ public abstract class Request {
         } else {
             node.putArray(GLOBAL.ROOTS.exactToken());
         }
-        if (queries != null && queries.size() > 0) {
+        if (queries != null && !queries.isEmpty()) {
             final ArrayNode array = JsonHandler.createArrayNode();
             for (final Query query : queries) {
                 array.add(query.getCurrentQuery());

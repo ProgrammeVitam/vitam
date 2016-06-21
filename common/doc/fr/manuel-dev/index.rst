@@ -21,6 +21,8 @@ Sommaire
 
    introduction.rst
    GUID.rst
+   Digest.rst
+   Logger.rst
 
 
 ##############

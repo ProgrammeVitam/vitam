@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -40,7 +40,6 @@ import fr.gouv.vitam.parser.request.parser.InsertParser;
 /**
  * MetaDataImpl implements a MetaData interface
  */
-// TODO REVIEW should be final
 public class MetaDataImpl implements MetaData {
 
     private final DbRequestFactory dbRequestFactory;
@@ -50,15 +49,16 @@ public class MetaDataImpl implements MetaData {
      *
      * @param configuration of mongoDB access
      */
-    // TODO REVIEW should be private and adding public static final Metadata newMetadata(...) calling this private
+    // FIXME REVIEW should be private and adding public static final Metadata newMetadata(...) calling this private
     // constructor
     public MetaDataImpl(MetaDataConfiguration configuration, MongoDbAccessFactory mongoDbAccessFactory,
         DbRequestFactory dbRequestFactory) {
         mongoDbAccessFactory.create(configuration);
-        // TODO REVIEW should check null
+        // FIXME REVIEW should check null
         this.dbRequestFactory = dbRequestFactory;
     }
 
+    // FIXME REVIEW should take a json as input
     @Override
     public void insertUnit(String insertRequest) throws InvalidParseOperationException {
         Result result = null;

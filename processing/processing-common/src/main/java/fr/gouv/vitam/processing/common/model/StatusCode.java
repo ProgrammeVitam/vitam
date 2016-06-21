@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -33,6 +33,7 @@ public enum StatusCode {
     /**
      * OK : indicates the successful without warning
      */
+    // TODO REVIEW: since enum and String is the same, remove String
     OK("OK"),
 
     /**
@@ -56,6 +57,7 @@ public enum StatusCode {
      * SUBMITTED : indicates that the workflow or the action handler or the process has been submitted
      */
     SUBMITTED("SUBMITTED");
+    // TODO REVIEW reorder item from OK to FATAL
 
     private String value;
 

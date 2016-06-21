@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -52,9 +52,11 @@ import fr.gouv.vitam.processing.engine.api.ProcessEngine;
  * ProcessEngineImpl class manages the context and call a process distributor
  *
  */
+// FIXME REVIEW since build through Factory => class and constructor as package protected
 public class ProcessEngineImpl implements ProcessEngine {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessEngineImpl.class);
     private static LogbookClient client = LogbookClientFactory.getInstance().getLogbookOperationClient();
+    // FIXME REVIEW: you should not use this method but the one with full mandatory parameters
     LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters();
 
     private static final String RUNTIME_EXCEPTION_MESSAGE =
@@ -69,10 +71,11 @@ public class ProcessEngineImpl implements ProcessEngine {
 
     /**
      * setWorkflow : populate a workflow to the pool of workflow
-     * 
+     *
      * @param workflowId as String
      * @throws WorkflowNotFoundException
      */
+    // FIXME REVIEW check null
     public void setWorkflow(String workflowId) throws WorkflowNotFoundException {
         poolWorkflows.put(workflowId, ProcessPopulator.populate(workflowId));
     }
@@ -136,9 +139,13 @@ public class ProcessEngineImpl implements ProcessEngine {
                     final List<EngineResponse> stepResponse =
                         processDistributor.distribute(workParams, step, workflowId);
                     final StatusCode stepStatus = processResponse.getGlobalProcessStatusCode(stepResponse);
+                    final String messageIdentifier = ProcessResponse.getMessageFromResponse(stepResponse);
                     stepsResponses.put(step.getStepName(), stepResponse);
-                    if (stepStatus.equals(StatusCode.FATAL)) {
+                    if (stepStatus.equals(StatusCode.KO)) {
                         break;
+                    }
+                    if (!messageIdentifier.isEmpty()) {
+                        parameters.putParameterValue(LogbookParameterName.objectIdentifierIncome, messageIdentifier);
                     }
 
                     parameters.putParameterValue(LogbookParameterName.eventTypeProcess, stepStatus.value());

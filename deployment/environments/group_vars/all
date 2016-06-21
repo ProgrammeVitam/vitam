@@ -1,3 +1,42 @@
 ---
 vitam_folder_root: /opt/vitam
 docker_registry_httponly: yes
+vitam_docker_tag: latest
+
+
+# Internal components communication configuration
+
+vitam_logbook_host: "{{ groups['hosts-logbook'][0] }}"
+vitam_logbook_port: 8204
+vitam_logbook_baseurl: "http://{{vitam_logbook_host}}:{{vitam_logbook_port}}"
+
+
+vitam_access_host: "{{ groups['hosts-access'][0] }}"
+vitam_access_port: 8101
+vitam_access_baseurl: "http://{{vitam_access_host}}:{{vitam_access_port}}"
+
+
+vitam_ingest_host: "{{ groups['hosts-ingest'][0] }}"
+vitam_ingest_port: 8100
+vitam_ingest_baseurl: "http://{{vitam_ingest_host}}:{{vitam_ingest_port}}"
+
+
+vitam_metadata_host: "{{ groups['hosts-metadata'][0] }}"
+vitam_metadata_port: 8200
+vitam_metadata_baseurl: "http://{{vitam_metadata_host}}:{{vitam_metadata_port}}"
+
+
+vitam_workspace_host: "{{ groups['hosts-workspace'][0] }}"
+vitam_workspace_port: 8201
+vitam_workspace_baseurl: "http://{{vitam_workspace_host}}:{{vitam_workspace_port}}"
+
+
+vitam_processing_host: "{{ groups['hosts-processing'][0] }}"
+vitam_processing_port: 8203
+vitam_processing_baseurl: "http://{{vitam_processing_host}}:{{vitam_processing_port}}"
+
+
+vitam_mongodb_host: vitam-prod-app-14.internet.agri
+vitam_mongodb_port: 27017
+
+

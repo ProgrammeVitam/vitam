@@ -133,4 +133,18 @@ public class Log4JLoggerTest {
 
     }
 
+    @Test
+    public void testTimeTrace() {
+        VitamLoggerFactory.setDefaultFactory(new Log4JLoggerFactory(VitamLogLevel.INFO));
+        final VitamLogger logger = VitamLoggerFactory.getInstance("foo");
+        assertTrue(logger.isInfoEnabled());
+        buf.setLength(0);
+        logger.timeInfo("a");
+        buf.setLength(0);
+        logger.timeInfo("", new Object());
+        logger.timeInfo("", new Object(), new Object());
+        logger.timeInfo("", new Object(), new Object(), new Object());
+        buf.setLength(0);
+    }
+
 }

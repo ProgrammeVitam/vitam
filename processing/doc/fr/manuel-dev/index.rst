@@ -1,5 +1,9 @@
 .. Processing Module Documentation master file.
 
+###########
+|doc_title|
+###########
+
 Processing Module
 ##############################
 

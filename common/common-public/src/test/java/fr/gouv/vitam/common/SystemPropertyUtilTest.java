@@ -28,6 +28,7 @@ package fr.gouv.vitam.common;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -53,6 +54,44 @@ public class SystemPropertyUtilTest {
     private static final long KEY_LVALUE = 2L;
     private static final boolean KEY_BVALUE = true;
 
+
+    @Test
+    public final void testSystemPropertyDefault() {
+        SystemPropertyUtil.refresh();
+        assertTrue(SystemPropertyUtil.isFileEncodingCorrect());
+        SystemPropertyUtil.set(SystemPropertyUtil.FILE_ENCODING, "UTF-16");
+        assertTrue(SystemPropertyUtil.isFileEncodingCorrect());
+        SystemPropertyUtil.set(SystemPropertyUtil.FILE_ENCODING, CharsetUtils.UTF_8);
+        assertTrue(SystemPropertyUtil.isFileEncodingCorrect());
+        SystemPropertyUtil.clear(SystemPropertyUtil.FILE_ENCODING);
+        assertTrue(SystemPropertyUtil.isFileEncodingCorrect());
+        SystemPropertyUtil.refresh();
+        assertTrue(SystemPropertyUtil.isFileEncodingCorrect());
+        final String config = SystemPropertyUtil.getVitamConfigFolder();
+        assertNotNull(config);
+        final String data = SystemPropertyUtil.getVitamDataFolder();
+        assertNotNull(data);
+        final String log = SystemPropertyUtil.getVitamLogFolder();
+        assertNotNull(log);
+        final String tmp = SystemPropertyUtil.getVitamTmpFolder();
+        assertNotNull(tmp);
+        SystemPropertyUtil.set(SystemPropertyUtil.VITAM_CONFIG_FOLDER, KEY_VALUE);
+        SystemPropertyUtil.set(SystemPropertyUtil.VITAM_DATA_FOLDER, KEY_VALUE);
+        SystemPropertyUtil.set(SystemPropertyUtil.VITAM_LOG_FOLDER, KEY_VALUE);
+        SystemPropertyUtil.set(SystemPropertyUtil.VITAM_TMP_FOLDER, KEY_VALUE);
+        assertFalse(SystemPropertyUtil.getVitamConfigFolder().equals(config));
+        assertFalse(SystemPropertyUtil.getVitamDataFolder().equals(data));
+        assertFalse(SystemPropertyUtil.getVitamLogFolder().equals(log));
+        assertFalse(SystemPropertyUtil.getVitamTmpFolder().equals(tmp));
+        SystemPropertyUtil.set(SystemPropertyUtil.VITAM_CONFIG_FOLDER, config);
+        SystemPropertyUtil.set(SystemPropertyUtil.VITAM_DATA_FOLDER, data);
+        SystemPropertyUtil.set(SystemPropertyUtil.VITAM_LOG_FOLDER, log);
+        SystemPropertyUtil.set(SystemPropertyUtil.VITAM_TMP_FOLDER, tmp);
+        assertTrue(SystemPropertyUtil.getVitamConfigFolder().equals(config));
+        assertTrue(SystemPropertyUtil.getVitamDataFolder().equals(data));
+        assertTrue(SystemPropertyUtil.getVitamLogFolder().equals(log));
+        assertTrue(SystemPropertyUtil.getVitamTmpFolder().equals(tmp));
+    }
 
     @Test
     public final void testSystemPropertyString() {

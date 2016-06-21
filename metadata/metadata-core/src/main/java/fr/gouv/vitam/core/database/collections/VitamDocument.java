@@ -1,7 +1,7 @@
 /*******************************************************************************
  * This file is part of Vitam Project.
  *
- * Copyright Vitam (2012, 2015)
+ * Copyright Vitam (2012, 2016)
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL license as circulated
@@ -83,7 +83,7 @@ public abstract class VitamDocument<E> extends Document {
 
     /**
      * Constructor from Json
-     * 
+     *
      * @param content
      */
     public VitamDocument(JsonNode content) {
@@ -93,7 +93,7 @@ public abstract class VitamDocument<E> extends Document {
 
     /**
      * Constructor from Document
-     * 
+     *
      * @param content
      */
     public VitamDocument(Document content) {
@@ -103,7 +103,7 @@ public abstract class VitamDocument<E> extends Document {
 
     /**
      * Constructor from Json as text
-     * 
+     *
      * @param content
      */
     public VitamDocument(String content) {
@@ -130,7 +130,7 @@ public abstract class VitamDocument<E> extends Document {
             final int domainId = GUIDReader.getGUID(getId()).getTenantId();
             append(DOMID, domainId);
         } catch (final InvalidGuidOperationException e) {
-            // TODO REVIEW Auto-generated catch block
+            // FIXME REVIEW Auto-generated catch block
             e.printStackTrace();
         }
         return this;
@@ -167,14 +167,14 @@ public abstract class VitamDocument<E> extends Document {
 
     /**
      * To be called after any automatic load or loadFromJson to update HashMap values.
-     * 
+     *
      * @return this
      */
     public abstract VitamDocument<?> getAfterLoad();
 
     /**
      * To be called before any collection.insert() or update if HashMap values is changed.
-     * 
+     *
      * @return this
      */
     public abstract VitamDocument<?> putBeforeSave();
@@ -193,7 +193,7 @@ public abstract class VitamDocument<E> extends Document {
 
     /**
      * Save the object. Implementation should call putBeforeSave before the real save operation (insert or update)
-     * 
+     *
      * @return this
      */
     public abstract VitamDocument<E> save() throws MongoWriteException, MongoWriteConcernException, MongoException;
@@ -259,7 +259,7 @@ public abstract class VitamDocument<E> extends Document {
 
     /**
      * Force the save (insert) of this document (no putBeforeSave done)
-     * 
+     *
      * @return this
      */
     protected final VitamDocument<E> forceSave()
@@ -270,7 +270,7 @@ public abstract class VitamDocument<E> extends Document {
 
     /**
      * Delete the current object
-     * 
+     *
      * @return this
      */
     public final VitamDocument<E> delete() throws MongoWriteException, MongoWriteConcernException, MongoException {

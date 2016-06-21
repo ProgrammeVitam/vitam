@@ -37,6 +37,11 @@ import fr.gouv.vitam.logbook.common.server.MongoDbAccess;
  * Factory to get MongoDbAccess for Logbook
  */
 public final class MongoDbAccessFactory {
+
+    private MongoDbAccessFactory() {
+        // empty
+    }
+
     /**
      * Creation of one MongoDbAccess
      *
@@ -52,9 +57,5 @@ public final class MongoDbAccessFactory {
                 configuration.getDbPort()),
                 MongoDbAccessImpl.getMongoClientOptions()),
             configuration.getDbName(), true);
-    }
-
-    private MongoDbAccessFactory() {
-        // empty
     }
 }

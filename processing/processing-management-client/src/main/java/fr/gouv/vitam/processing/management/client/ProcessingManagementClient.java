@@ -53,7 +53,7 @@ public class ProcessingManagementClient {
     private final String url;
     private static final String RESOURCE_PATH = "/processing/api/v0.0.3";
 
-
+    // FIXME REVIEW user should not specified the url, the factory should handle this directly (see Logbook client)
     /**
      * @param url of metadata server
      */
