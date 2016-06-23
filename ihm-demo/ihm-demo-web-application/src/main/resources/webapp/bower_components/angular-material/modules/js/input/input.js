@@ -2,7 +2,7 @@
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v1.0.9
+ * v1.1.0-rc4-master-f9738f5
  */
 (function( window, angular, undefined ){
 "use strict";
@@ -78,6 +78,17 @@ angular.module('material.components.input', [
  * </hljs>
  */
 function mdInputContainerDirective($mdTheming, $parse) {
+
+  var INPUT_TAGS = ['INPUT', 'TEXTAREA', 'SELECT', 'MD-SELECT'];
+
+  var LEFT_SELECTORS = INPUT_TAGS.reduce(function(selectors, isel) {
+    return selectors.concat(['md-icon ~ ' + isel, '.md-icon ~ ' + isel]);
+  }, []).join(",");
+
+  var RIGHT_SELECTORS = INPUT_TAGS.reduce(function(selectors, isel) {
+    return selectors.concat([isel + ' ~ md-icon', isel + ' ~ .md-icon']);
+  }, []).join(",");
+
   ContainerCtrl.$inject = ["$scope", "$element", "$attrs", "$animate"];
   return {
     restrict: 'E',
@@ -85,9 +96,15 @@ function mdInputContainerDirective($mdTheming, $parse) {
     controller: ContainerCtrl
   };
 
-  function postLink(scope, element, attr) {
+  function postLink(scope, element) {
     $mdTheming(element);
-    if (element.find('md-icon').length) element.addClass('md-has-icon');
+
+    // Check for both a left & right icon
+    var leftIcon = element[0].querySelector(LEFT_SELECTORS);
+    var rightIcon = element[0].querySelector(RIGHT_SELECTORS);
+
+    if (leftIcon) { element.addClass('md-icon-left'); }
+    if (rightIcon) { element.addClass('md-icon-right'); }
   }
 
   function ContainerCtrl($scope, $element, $attrs, $animate) {
@@ -131,7 +148,7 @@ function labelDirective() {
     restrict: 'E',
     require: '^?mdInputContainer',
     link: function(scope, element, attr, containerCtrl) {
-      if (!containerCtrl || attr.mdNoFloat || element.hasClass('md-container-ignore')) return;
+      if (!containerCtrl || attr.mdNoFloat || element.hasClass('_md-container-ignore')) return;
 
       containerCtrl.label = element;
       scope.$on('$destroy', function() {
@@ -151,16 +168,25 @@ function labelDirective() {
  * You can use any `<input>` or `<textarea>` element as a child of an `<md-input-container>`. This
  * allows you to build complex forms for data entry.
  *
+ * When the input is required and uses a floating label, then the label will automatically contain
+ * an asterisk (`*`).<br/>
+ * This behavior can be disabled by using the `md-no-asterisk` attribute.
+ *
  * @param {number=} md-maxlength The maximum number of characters allowed in this input. If this is
  *   specified, a character counter will be shown underneath the input.<br/><br/>
  *   The purpose of **`md-maxlength`** is exactly to show the max length counter text. If you don't
  *   want the counter text and only need "plain" validation, you can use the "simple" `ng-maxlength`
- *   or maxlength attributes.
+ *   or maxlength attributes.<br/><br/>
+ *   **Note:** Only valid for text/string inputs (not numeric).
+ *
  * @param {string=} aria-label Aria-label is required when no label is present.  A warning message
  *   will be logged in the console if not present.
  * @param {string=} placeholder An alternative approach to using aria-label when the label is not
  *   PRESENT. The placeholder text is copied to the aria-label attribute.
  * @param md-no-autogrow {boolean=} When present, textareas will not grow automatically.
+ * @param md-no-asterisk {boolean=} When present, an asterisk will not be appended to the inputs floating label
+ * @param md-no-resize {boolean=} Disables the textarea resize handle.
+ * @param {number=} max-rows The maximum amount of rows for a textarea.
  * @param md-detect-hidden {boolean=} When present, textareas will be sized properly when they are
  *   revealed after being hidden. This is off by default for performance reasons because it
  *   guarantees a reflow every digest cycle.
@@ -246,9 +272,21 @@ function labelDirective() {
  * error animation effects. Therefore, it is *not* advised to use the Layout system inside of the
  * `<md-input-container>` tags. Instead, use relative or absolute positioning.
  *
+ *
+ * <h3>Textarea directive</h3>
+ * The `textarea` element within a `md-input-container` has the following specific behavior:
+ * - By default the `textarea` grows as the user types. This can be disabled via the `md-no-autogrow`
+ * attribute.
+ * - If a `textarea` has the `rows` attribute, it will treat the `rows` as the minimum height and will
+ * continue growing as the user types. For example a textarea with `rows="3"` will be 3 lines of text
+ * high initially. If no rows are specified, the directive defaults to 1.
+ * - If you wan't a `textarea` to stop growing at a certain point, you can specify the `max-rows` attribute.
+ * - The textarea's bottom border acts as a handle which users can drag, in order to resize the element vertically.
+ * Once the user has resized a `textarea`, the autogrowing functionality becomes disabled. If you don't want a
+ * `textarea` to be resizeable by the user, you can add the `md-no-resize` attribute.
  */
 
-function inputTextareaDirective($mdUtil, $window, $mdAria) {
+function inputTextareaDirective($mdUtil, $window, $mdAria, $timeout, $mdGesture) {
   return {
     restrict: 'E',
     require: ['^?mdInputContainer', '?ngModel'],
@@ -261,6 +299,8 @@ function inputTextareaDirective($mdUtil, $window, $mdAria) {
     var hasNgModel = !!ctrls[1];
     var ngModelCtrl = ctrls[1] || $mdUtil.fakeNgModel();
     var isReadonly = angular.isDefined(attr.readonly);
+    var mdNoAsterisk = $mdUtil.parseAttributeBoolean(attr.mdNoAsterisk);
+
 
     if (!containerCtrl) return;
     if (attr.type === 'hidden') {
@@ -270,6 +310,8 @@ function inputTextareaDirective($mdUtil, $window, $mdAria) {
       throw new Error("<md-input-container> can only have *one* <input>, <textarea> or <md-select> child element!");
     }
     containerCtrl.input = element;
+
+    setupAttributeWatchers();
 
     // Add an error spacer div after our input to provide space for the char counter and any ng-messages
     var errorsSpacer = angular.element('<div class="md-errors-spacer">');
@@ -345,6 +387,16 @@ function inputTextareaDirective($mdUtil, $window, $mdAria) {
       return arg;
     }
 
+    function setupAttributeWatchers() {
+      if (containerCtrl.label) {
+        attr.$observe('required', function (value) {
+          // We don't need to parse the required value, it's always a boolean because of angular's
+          // required directive.
+          containerCtrl.label.toggleClass('md-required', value && !mdNoAsterisk);
+        });
+      }
+    }
+
     function inputCheckValue() {
       // An input's value counts if its length > 0,
       // or if the input's validity state says it has bad input (eg string in a number input)
@@ -352,96 +404,174 @@ function inputTextareaDirective($mdUtil, $window, $mdAria) {
     }
 
     function setupTextarea() {
-      if (angular.isDefined(element.attr('md-no-autogrow'))) {
-        return;
-      }
+      var isAutogrowing = !attr.hasOwnProperty('mdNoAutogrow');
 
-      var node = element[0];
-      var container = containerCtrl.element[0];
+      attachResizeHandle();
 
-      var min_rows = NaN;
-      var lineHeight = null;
-      // can't check if height was or not explicity set,
+      if (!isAutogrowing) return;
+
+      // Can't check if height was or not explicity set,
       // so rows attribute will take precedence if present
-      if (node.hasAttribute('rows')) {
-        min_rows = parseInt(node.getAttribute('rows'));
+      var minRows = attr.hasOwnProperty('rows') ? parseInt(attr.rows) : NaN;
+      var maxRows = attr.hasOwnProperty('maxRows') ? parseInt(attr.maxRows) : NaN;
+      var lineHeight = null;
+      var node = element[0];
+
+      // This timeout is necessary, because the browser needs a little bit
+      // of time to calculate the `clientHeight` and `scrollHeight`.
+      $timeout(function() {
+        $mdUtil.nextTick(growTextarea);
+      }, 10, false);
+
+      // We could leverage ngModel's $parsers here, however it
+      // isn't reliable, because Angular trims the input by default,
+      // which means that growTextarea won't fire when newlines and
+      // spaces are added.
+      element.on('input', growTextarea);
+
+      // We should still use the $formatters, because they fire when
+      // the value was changed from outside the textarea.
+      if (hasNgModel) {
+        ngModelCtrl.$formatters.push(formattersListener);
       }
 
-      var onChangeTextarea = $mdUtil.debounce(growTextarea, 1);
-
-      function pipelineListener(value) {
-        onChangeTextarea();
-        return value;
+      if (!minRows) {
+        element.attr('rows', 1);
       }
 
-      if (ngModelCtrl) {
-        ngModelCtrl.$formatters.push(pipelineListener);
-        ngModelCtrl.$viewChangeListeners.push(pipelineListener);
-      } else {
-        onChangeTextarea();
-      }
-      element.on('keydown input', onChangeTextarea);
-
-      if (isNaN(min_rows)) {
-        element.attr('rows', '1');
-
-        element.on('scroll', onScroll);
-      }
-
-      angular.element($window).on('resize', onChangeTextarea);
-
-      scope.$on('$destroy', function() {
-        angular.element($window).off('resize', onChangeTextarea);
-      });
+      angular.element($window).on('resize', growTextarea);
+      scope.$on('$destroy', disableAutogrow);
 
       function growTextarea() {
-        // sets the md-input-container height to avoid jumping around
-        container.style.height = container.offsetHeight + 'px';
-
         // temporarily disables element's flex so its height 'runs free'
-        element.addClass('md-no-flex');
+        element
+          .attr('rows', 1)
+          .css('height', 'auto')
+          .addClass('md-no-flex');
 
-        if (isNaN(min_rows)) {
-          node.style.height = "auto";
-          node.scrollTop = 0;
-          var height = getHeight();
-          if (height) node.style.height = height + 'px';
-        } else {
-          node.setAttribute("rows", 1);
+        var height = getHeight();
 
-          if (!lineHeight) {
-            node.style.minHeight = '0';
-
-            lineHeight = element.prop('clientHeight');
-
-            node.style.minHeight = null;
-          }
-
-          var rows = Math.min(min_rows, Math.round(node.scrollHeight / lineHeight));
-          node.setAttribute("rows", rows);
-          node.style.height = lineHeight * rows + "px";
+        if (!lineHeight) {
+          // offsetHeight includes padding which can throw off our value
+          lineHeight = element.css('padding', 0).prop('offsetHeight');
+          element.css('padding', null);
         }
 
-        // reset everything back to normal
-        element.removeClass('md-no-flex');
-        container.style.height = 'auto';
+        if (minRows && lineHeight) {
+          height = Math.max(height, lineHeight * minRows);
+        }
+
+        if (maxRows && lineHeight) {
+          var maxHeight = lineHeight * maxRows;
+
+          if (maxHeight < height) {
+            element.attr('md-no-autogrow', '');
+            height = maxHeight;
+          } else {
+            element.removeAttr('md-no-autogrow');
+          }
+        }
+
+        if (lineHeight) {
+          element.attr('rows', Math.round(height / lineHeight));
+        }
+
+        element
+          .css('height', height + 'px')
+          .removeClass('md-no-flex');
       }
 
       function getHeight() {
-        var line = node.scrollHeight - node.offsetHeight;
-        return node.offsetHeight + (line > 0 ? line : 0);
+        var offsetHeight = node.offsetHeight;
+        var line = node.scrollHeight - offsetHeight;
+        return offsetHeight + Math.max(line, 0);
       }
 
-      function onScroll(e) {
-        node.scrollTop = 0;
-        // for smooth new line adding
-        var line = node.scrollHeight - node.offsetHeight;
-        var height = node.offsetHeight + line;
-        node.style.height = height + 'px';
+      function formattersListener(value) {
+        $mdUtil.nextTick(growTextarea);
+        return value;
+      }
+
+      function disableAutogrow() {
+        if (!isAutogrowing) return;
+
+        isAutogrowing = false;
+        angular.element($window).off('resize', growTextarea);
+        element
+          .attr('md-no-autogrow', '')
+          .off('input', growTextarea);
+
+        if (hasNgModel) {
+          var listenerIndex = ngModelCtrl.$formatters.indexOf(formattersListener);
+
+          if (listenerIndex > -1) {
+            ngModelCtrl.$formatters.splice(listenerIndex, 1);
+          }
+        }
+      }
+
+      function attachResizeHandle() {
+        if (attr.hasOwnProperty('mdNoResize')) return;
+
+        var handle = angular.element('<div class="md-resize-handle"></div>');
+        var isDragging = false;
+        var dragStart = null;
+        var startHeight = 0;
+        var container = containerCtrl.element;
+        var dragGestureHandler = $mdGesture.register(handle, 'drag', { horizontal: false });
+
+        element.after(handle);
+        handle.on('mousedown', onMouseDown);
+
+        container
+          .on('$md.dragstart', onDragStart)
+          .on('$md.drag', onDrag)
+          .on('$md.dragend', onDragEnd);
+
+        scope.$on('$destroy', function() {
+          handle
+            .off('mousedown', onMouseDown)
+            .remove();
+
+          container
+            .off('$md.dragstart', onDragStart)
+            .off('$md.drag', onDrag)
+            .off('$md.dragend', onDragEnd);
+
+          dragGestureHandler();
+          handle = null;
+          container = null;
+          dragGestureHandler = null;
+        });
+
+        function onMouseDown(ev) {
+          ev.preventDefault();
+          isDragging = true;
+          dragStart = ev.clientY;
+          startHeight = parseFloat(element.css('height')) || element.prop('offsetHeight');
+        }
+
+        function onDragStart(ev) {
+          if (!isDragging) return;
+          ev.preventDefault();
+          disableAutogrow();
+          container.addClass('md-input-resized');
+        }
+
+        function onDrag(ev) {
+          if (!isDragging) return;
+          element.css('height', startHeight + (ev.pointer.y - dragStart) + 'px');
+        }
+
+        function onDragEnd(ev) {
+          if (!isDragging) return;
+          isDragging = false;
+          container.removeClass('md-input-resized');
+        }
       }
 
       // Attach a watcher to detect when the textarea gets shown.
-      if (angular.isDefined(element.attr('md-detect-hidden'))) {
+      if (attr.hasOwnProperty('mdDetectHidden')) {
 
         var handleHiddenChange = function() {
           var wasHidden = false;
@@ -467,7 +597,7 @@ function inputTextareaDirective($mdUtil, $window, $mdAria) {
     }
   }
 }
-inputTextareaDirective.$inject = ["$mdUtil", "$window", "$mdAria"];
+inputTextareaDirective.$inject = ["$mdUtil", "$window", "$mdAria", "$timeout", "$mdGesture"];
 
 function mdMaxlengthDirective($animate, $mdUtil) {
   return {
@@ -606,7 +736,7 @@ placeholderDirective.$inject = ["$log"];
  *
  * </hljs>
  */
-function mdSelectOnFocusDirective() {
+function mdSelectOnFocusDirective($timeout) {
 
   return {
     restrict: 'A',
@@ -616,18 +746,44 @@ function mdSelectOnFocusDirective() {
   function postLink(scope, element, attr) {
     if (element[0].nodeName !== 'INPUT' && element[0].nodeName !== "TEXTAREA") return;
 
-    element.on('focus', onFocus);
+    var preventMouseUp = false;
+
+    element
+      .on('focus', onFocus)
+      .on('mouseup', onMouseUp);
 
     scope.$on('$destroy', function() {
-      element.off('focus', onFocus);
+      element
+        .off('focus', onFocus)
+        .off('mouseup', onMouseUp);
     });
 
     function onFocus() {
-      // Use HTMLInputElement#select to fix firefox select issues
-      element[0].select();
+      preventMouseUp = true;
+
+      $timeout(function() {
+        // Use HTMLInputElement#select to fix firefox select issues.
+        // The debounce is here for Edge's sake, otherwise the selection doesn't work.
+        element[0].select();
+
+        // This should be reset from inside the `focus`, because the event might
+        // have originated from something different than a click, e.g. a keyboard event.
+        preventMouseUp = false;
+      }, 1, false);
+    }
+
+    // Prevents the default action of the first `mouseup` after a focus.
+    // This is necessary, because browsers fire a `mouseup` right after the element
+    // has been focused. In some browsers (Firefox in particular) this can clear the
+    // selection. There are examples of the problem in issue #7487.
+    function onMouseUp(event) {
+      if (preventMouseUp) {
+        event.preventDefault();
+      }
     }
   }
 }
+mdSelectOnFocusDirective.$inject = ["$timeout"];
 
 var visibilityDirectives = ['ngIf', 'ngShow', 'ngHide', 'ngSwitchWhen', 'ngSwitchDefault'];
 function ngMessagesDirective() {
@@ -670,16 +826,43 @@ function ngMessageDirective($mdUtil) {
     priority: 100
   };
 
-  function compile(element) {
-    var inputContainer = $mdUtil.getClosest(element, "md-input-container");
+  function compile(tElement) {
+    if (!isInsideInputContainer(tElement)) {
 
-    // If we are not a child of an input container, don't do anything
-    if (!inputContainer) return;
+      // When the current element is inside of a document fragment, then we need to check for an input-container
+      // in the postLink, because the element will be later added to the DOM and is currently just in a temporary
+      // fragment, which causes the input-container check to fail.
+      if (isInsideFragment()) {
+        return function (scope, element) {
+          if (isInsideInputContainer(element)) {
+            // Inside of the postLink function, a ngMessage directive will be a comment element, because it's
+            // currently hidden. To access the shown element, we need to use the element from the compile function.
+            initMessageElement(tElement);
+          }
+        };
+      }
+    } else {
+      initMessageElement(tElement);
+    }
 
-    // Add our animation class
-    element.toggleClass('md-input-message-animation', true);
+    function isInsideFragment() {
+      var nextNode = tElement[0];
+      while (nextNode = nextNode.parentNode) {
+        if (nextNode.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+          return true;
+        }
+      }
+      return false;
+    }
 
-    return {};
+    function isInsideInputContainer(element) {
+      return !!$mdUtil.getClosest(element, "md-input-container");
+    }
+
+    function initMessageElement(element) {
+      // Add our animation class
+      element.toggleClass('md-input-message-animation', true);
+    }
   }
 }
 ngMessageDirective.$inject = ["$mdUtil"];
@@ -697,7 +880,7 @@ function mdInputInvalidMessagesAnimation($q, $animateCss) {
     }
 
     // NOTE: We do not need the removeClass method, because the message ng-leave animation will fire
-  }
+  };
 }
 mdInputInvalidMessagesAnimation.$inject = ["$q", "$animateCss"];
 
@@ -816,10 +999,8 @@ function getInputElement(element) {
 
 function getMessagesElement(element) {
   var input = getInputElement(element);
-  var selector = 'ng-messages,data-ng-messages,x-ng-messages,' +
-    '[ng-messages],[data-ng-messages],[x-ng-messages]';
 
-  return angular.element(input[0].querySelector(selector));
+  return angular.element(input[0].querySelector('.md-input-messages-animation'));
 }
 
 })(window, window.angular);

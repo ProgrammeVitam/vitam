@@ -2365,6 +2365,9 @@ $md-calendar-height:
   padding: 0;
   border: none;
 
+  // Prevent issues if somebody is applying box-sizing: border-box; eveywhere.
+  box-sizing: content-box;
+
   // The left / right padding is applied to the cells instead of the wrapper
   // because we want the header background and the month dividing border to
   // extend the entire width of the calendar.
@@ -2463,6 +2466,10 @@ md-calendar {
   font-size: $md-calendar-month-label-font-size;
   font-weight: 500; // Roboto Medium
   @include rtl(padding, 0 0 0 $md-calendar-side-padding + $md-calendar-month-label-padding, rtl-value( 0 0 0 $md-calendar-side-padding + $md-calendar-month-label-padding));
+
+  md-calendar-month &:not(.md-calendar-month-label-disabled) {
+    cursor: pointer;
+  }
 }
 
 // Table containing the day-of-the-week header.
@@ -2494,10 +2501,12 @@ md-calendar {
   }
 
   // Explicitly set vertical-align to avoid conflicting with popular CSS resets. When
-  // vertical-align:baseline is set, month headers are misaligned.
+  // vertical-align:baseline is set, month headers are misaligned. Also reset the box-sizing,
+  // in case the user set it to border-box.
   // http://meyerweb.com/eric/tools/css/reset/
   tbody, td, tr {
     vertical-align: middle;
+    box-sizing: content-box;
   }
 }
 
@@ -3293,6 +3302,8 @@ $icon-top-offset: ($icon-offset - $input-padding-top - $input-border-width-focus
 
 $icon-float-focused-top: -8px !default;
 
+$input-resize-handle-height: 10px !default;
+
 md-input-container {
   @include pie-clearfix();
   display: inline-block;
@@ -3313,6 +3324,16 @@ md-input-container {
 
     // Ensure the element always takes up space, even if empty
     min-width: 1px;
+  }
+
+  .md-resize-handle {
+    position: absolute;
+    bottom: $input-error-height - $input-border-width-default * 2;
+    left: 0;
+    height: $input-resize-handle-height;
+    background: transparent;
+    width: 100%;
+    cursor: ns-resize;
   }
 
   > md-icon {
@@ -3357,14 +3378,10 @@ md-input-container {
       -ms-flex-preferred-size: auto; //IE fix
     }
 
-    &._md-textarea-scrollable,
-    &[md-no-autogrow] {
-      overflow: auto;
-    }
-
     // The height usually gets set to 1 line by `.md-input`.
     &[md-no-autogrow] {
       height: auto;
+      overflow: auto;
     }
   }
 
@@ -3568,7 +3585,8 @@ md-input-container {
 
   // Use wide border in error state or in focused state
   &.md-input-focused .md-input,
-  .md-input.ng-invalid.ng-dirty {
+  .md-input.ng-invalid.ng-dirty,
+  &.md-input-resized .md-input {
     padding-bottom: 0; // Increase border width by 1px, decrease padding by 1
     border-width: 0 0 $input-border-width-focused 0;
   }
@@ -3972,8 +3990,17 @@ md-list-item {
       display: flex;
       align-items: center;
 
-      height: 100%;
+      // The secondary container is now static and needs to be aligned at the end of its parent.
+      // - Using an absolute position will cause much issues with the overflow.
+      // - Using a flex-filler, which pushes the container to the end of the parent is working
+      //   but breaks the users list-item layout.
+      // Using margin auto to move them to the end of the list item is more elegant, because it has
+      // a lower priority than the flex filler and isn't introducing overflow issues again.
+      // The margin on the top is also important to align multiple secondary items vertical correctly.
       margin: auto;
+
+      @include rtl(margin-right, 0, auto);
+      @include rtl(margin-left, auto, 0);
 
       .md-button, .md-icon-button {
         &:last-of-type {
@@ -4024,7 +4051,7 @@ md-list-item {
         overflow: hidden;
 
         &.md-offset {
-        @include rtl-prop(margin-left, margin-right, $list-item-primary-width);
+          @include rtl-prop(margin-left, margin-right, $list-item-primary-width);
         }
 
         h3 {
@@ -5674,6 +5701,18 @@ md-slider {
       }
     }
   }
+  &[md-invert] {
+    &:not([md-vertical]) ._md-track-fill {
+      left: auto;
+      right: 0;
+    }
+    &[md-vertical] {
+      ._md-track-fill {
+        bottom: auto;
+        top: 0;
+      }
+    }
+  }
 }
 
 md-slider-container {
@@ -6446,6 +6485,15 @@ md-toast {
       top: 0;
     }
 
+    // Support for RTL alignment
+    &._md-start {
+      @include rtl-prop(left, right, 0);
+    }
+
+    &._md-end {
+      @include rtl-prop(right, left, 0);
+    }
+
     /*
    * When the toast doesn't take up the whole screen,
    * make it rotate when the user swipes it away
@@ -6872,6 +6920,12 @@ $virtual-repeat-scrollbar-width: 16px !default;
 @media screen and (-ms-high-contrast: active) {
   md-whiteframe {
     border: 1px solid #fff;
+  }
+}
+
+@media print {
+  md-whiteframe, [md-whiteframe] {
+    background-color: #ffffff;
   }
 }
 

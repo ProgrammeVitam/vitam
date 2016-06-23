@@ -2,7 +2,7 @@
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v1.0.9
+ * v1.1.0-rc4-master-f9738f5
  */
 goog.provide('ng.material.components.menuBar');
 goog.require('ng.material.components.menu');
@@ -56,8 +56,8 @@ MenuBarController.prototype.init = function() {
 
   deregisterFns.push(this.$rootScope.$on('$mdMenuOpen', function(event, el) {
     if (self.getMenus().indexOf(el[0]) != -1) {
-      $element[0].classList.add('md-open');
-      el[0].classList.add('md-open');
+      $element[0].classList.add('_md-open');
+      el[0].classList.add('_md-open');
       self.currentlyOpenMenu = el.controller('mdMenu');
       self.currentlyOpenMenu.registerContainerProxy(self.handleKeyDown);
       self.enableOpenOnHover();
@@ -67,8 +67,8 @@ MenuBarController.prototype.init = function() {
   deregisterFns.push(this.$rootScope.$on('$mdMenuClose', function(event, el, opts) {
     var rootMenus = self.getMenus();
     if (rootMenus.indexOf(el[0]) != -1) {
-      $element[0].classList.remove('md-open');
-      el[0].classList.remove('md-open');
+      $element[0].classList.remove('_md-open');
+      el[0].classList.remove('_md-open');
     }
 
     if ($element[0].contains(el[0])) {
@@ -96,8 +96,8 @@ MenuBarController.prototype.init = function() {
 };
 
 MenuBarController.prototype.setKeyboardMode = function(enabled) {
-  if (enabled) this.$element[0].classList.add('md-keyboard-mode');
-  else this.$element[0].classList.remove('md-keyboard-mode');
+  if (enabled) this.$element[0].classList.add('_md-keyboard-mode');
+  else this.$element[0].classList.remove('_md-keyboard-mode');
 };
 
 MenuBarController.prototype.enableOpenOnHover = function() {
@@ -252,7 +252,7 @@ MenuBarController.prototype.getFocusedMenuIndex = function() {
 MenuBarController.prototype.getOpenMenuIndex = function() {
   var menus = this.getMenus();
   for (var i = 0; i < menus.length; ++i) {
-    if (menus[i].classList.contains('md-open')) return i;
+    if (menus[i].classList.contains('_md-open')) return i;
   }
   return -1;
 };
@@ -378,7 +378,7 @@ function MenuBarDirective($mdUtil, $mdTheming) {
           }
           var contentEls = $mdUtil.nodesToArray(menuEl.querySelectorAll('md-menu-content'));
           angular.forEach(contentEls, function(contentEl) {
-            contentEl.classList.add('md-menu-bar-menu');
+            contentEl.classList.add('_md-menu-bar-menu');
             contentEl.classList.add('md-dense');
             if (!contentEl.hasAttribute('width')) {
               contentEl.setAttribute('width', 5);
@@ -387,7 +387,8 @@ function MenuBarDirective($mdUtil, $mdTheming) {
         }
       });
 
-      return function postLink(scope, el, attrs, ctrl) {
+      return function postLink(scope, el, attr, ctrl) {
+        el.addClass('_md');     // private md component indicator for styling
         $mdTheming(scope, el);
         ctrl.init();
       };
@@ -526,12 +527,14 @@ angular
   .directive('mdMenuItem', MenuItemDirective);
 
  /* ngInject */
-function MenuItemDirective() {
+function MenuItemDirective($mdUtil) {
   return {
     require: ['mdMenuItem', '?ngModel'],
     priority: 210, // ensure that our post link runs after ngAria
     compile: function(templateEl, templateAttrs) {
-      if (templateAttrs.type == 'checkbox' || templateAttrs.type == 'radio') {
+
+      // Note: This allows us to show the `check` icon for the md-menu-bar items.
+      if (isInsideMenuBar() && (templateAttrs.type == 'checkbox' || templateAttrs.type == 'radio')) {
         var text = templateEl[0].textContent;
         var buttonEl = angular.element('<md-button type="button"></md-button>');
             buttonEl.html(text);
@@ -546,7 +549,7 @@ function MenuItemDirective() {
         angular.forEach(['ng-disabled'], moveAttrToButton);
 
       } else {
-        setDefault('role', 'menuitem', templateEl[0].querySelector('md-button,button,a'));
+        setDefault('role', 'menuitem', templateEl[0].querySelector('md-button, button, a'));
       }
 
 
@@ -573,9 +576,14 @@ function MenuItemDirective() {
           templateEl[0].removeAttribute(attr);
         }
       }
+
+      function isInsideMenuBar() {
+        return !!$mdUtil.getClosest(templateEl, 'md-menu-bar', true);
+      }
     },
     controller: 'MenuItemController'
   };
 }
+MenuItemDirective.$inject = ["$mdUtil"];
 
 ng.material.components.menuBar = angular.module("material.components.menuBar");
