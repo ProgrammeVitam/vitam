@@ -8,5 +8,6 @@ angular.module('ihm.demo', [
   'core',
   'archiveSearch',
   'angularFileUpload',
-  'ngMaterial'
+  'ngMaterial',
+  'archive.unit'
 ]);

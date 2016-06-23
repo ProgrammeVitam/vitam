@@ -29,4 +29,19 @@ angular.module('archiveSearch').controller('ArchiveUnitSearchController', ['$sco
       });
     }
   }
+
+
+  // Display Selected Archive unit form
+  $scope.displayArchiveUnitForm = function displayArchiveUnitForm(archiveId){
+  }
+
+
+  // Mock response
+  $scope.showResult=true;
+  $scope.totalResult = 10;
+  $scope.archiveRes =  [ {"_id":"ID1", "Title":"Archive1", "Date":"2016-01-01"},
+  {"_id":"ID2", "Title":"Archive2", "Date":"2016-01-01"},
+  {"_id":"ID3", "Title":"Archive3", "Date":"2016-01-01"}];
+
+
 }]);

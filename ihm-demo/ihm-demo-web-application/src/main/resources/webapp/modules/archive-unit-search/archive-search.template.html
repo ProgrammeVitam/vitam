@@ -38,14 +38,11 @@
           </tr>
         </thead>
         <tbody ng-if="showResult && totalResult>0">
-          <tr ng-repeat="result in archiveUnitsSearchResult | orderBy:orderByField:reverseSort">
+          <tr ng-click="displayArchiveUnitForm(result._id)" ng-repeat="result in archiveRes | orderBy:orderByField:reverseSort">
             <th>{{$index + 1}}</th>
             <td>{{result._id}}</td>
             <td>{{result.Title}}</td>
             <td>{{result.TransactedDate}}</td>
-            <!-- <td>{{result._id}}</td>
-            <td>{{result.Title}}</td>
-            <td>{{result.TransactedDate}}</td> -->
           </tr>
         </tbody>
       </table>

@@ -18,8 +18,8 @@ angular.
 	          templateUrl: "views/upload-sip.html",
 	          controller: "uploadController"
 	      }).
-	      when('/form/:archiveId', {
-	    	  template: '<form-archive></form-archive>'
+	      when('/archiveunit/:archiveId', {
+	    	  template: '<archive-unit></archive-unit>'
 	      }).
 	      otherwise('/uploadSIP');
     }
