@@ -1,12 +1,12 @@
 angular.module('core')
   .constant('IHM_BASE_URL', '/vitam/ihm-demo/api')
   /*ihmDemoCLient create a configured http client*/
-    .factory('ihmDemoFactory', ['$http', function($http, IHM_BASE_URL) {
+     .factory('ihmDemoFactory', ['$http','IHM_BASE_URL', function($http, IHM_BASE_URL) {
 
     var dataFactory = {};
 
     dataFactory.searchArchiveUnits = function (criteria) {
-        return $http.post(IHM_BASE_URL + '/archivesearch/units');
+        return $http.post(IHM_BASE_URL + '/archivesearch/units', criteria);
     };
 
     return dataFactory;
