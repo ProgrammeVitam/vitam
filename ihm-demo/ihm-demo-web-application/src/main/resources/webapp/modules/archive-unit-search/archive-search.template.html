@@ -1,41 +1,44 @@
-<div class="container-fluid unit-form">
-    <div class="col-md-12">
-      <form class="form-horizontal">
-        <div class="form-group">
-          <label for="titleCriteria" class="col-sm-2 control-label">Titre</label>
-          <div class="col-sm-10">
-            <input type="text" class="form-control" id="titleCriteria" ng-model="titleCriteria" placeholder="Critère de recherche par titre">
-          </div>
+<div class="archiveSearchPage">
+  <section layout="column" layout-sm="column" layout-align="center center"  layout-wrap="" >
+    <md-input-container class="md-icon-float md-block">
+      <!-- Use floating label instead of placeholder -->
+      <label>Titre</label>
+      <md-icon md-svg-src="images/ic_search_black_24px.svg" class="titre" ng-click="getSearchResult(titleCriteria)"></md-icon>
+      <input ng-model="titleCriteria" type="text">
+      <md-icon md-svg-src="images/ic_clear_black_24px.svg" class="titre" ng-click="titleCriteria='';showResult=false; error=false;"></md-icon>
+    </md-input-container>
 
-        </div>
-        <div class="form-group">
-          <div class="col-sm-offset-2 col-sm-10">
-            <button class="btn btn-default" ng-click="getSearchResult(titleCriteria)">Rechercher</button>
-          </div>
-        </div>
-      </form>
-      <hr>
+    <button ng-if="showResult" class="btn btn-primary" type="button">
+      Résultats <span class="badge">{{totalResult}}</span>
+    </button>
+    <button ng-if="error" class="btn btn-danger" type="button">
+      Une erreur est survernue lors de la recherche. Veuillez contacter votre administrateur!
+    </button>
+  </section>
 
-      <div ng-if="showResult">
-        Total des résultats : {{totalResult}}
-      </div>
-
-      <div ng-if="showResult==false">
-        Aucun résultat trouvé
-      </div>
-
-      <div class="table-responsive">
-        <table class="table table-hover">
+  <div class="archiveSearchResult">
+    <div class="table-responsive ">
+      <table class="table table-hover">
         <thead>
           <tr>
             <th>#</th>
-            <th>ID</th>
-            <th>Titre</th>
-            <th>Date</th>
+            <th><a href="" ng-click="orderByField='id'; reverseSort = !reverseSort">ID</a>
+              <span ng-show="orderByField == 'id' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+              <span ng-show="orderByField == 'id' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
+            </th>
+            <th>
+              <a href="" ng-click="orderByField='title'; reverseSort = !reverseSort">Titre</a>
+              <span ng-show="orderByField == 'title' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+              <span ng-show="orderByField == 'title' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
+            </th>
+            <th><a href="" ng-click="orderByField='date'; reverseSort = !reverseSort">Transaction Date</a>
+              <span ng-show="orderByField == 'date' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+              <span ng-show="orderByField == 'date' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
+            </th>
           </tr>
         </thead>
-        <tbody ng-if="showResult">
-          <tr ng-repeat="result in archiveUnitsSearchResult">
+        <tbody ng-if="showResult && totalResult>0">
+          <tr ng-click="displayArchiveUnitForm(result._id)" ng-repeat="result in archiveRes | orderBy:orderByField:reverseSort">
             <th>{{$index + 1}}</th>
             <td>{{result._id}}</td>
             <td>{{result.Title}}</td>
@@ -44,37 +47,5 @@
         </tbody>
       </table>
     </div>
-
-
-
-      <!-- <div ng-controller="OrderSearchResultController">
-        <pre>Sort by = {{propertyName}}; reverse = {{reverse}}</pre>
-        <hr/>
-        <button ng-click="propertyName = null; reverse = false">Set to unsorted</button>
-        <hr/>
-        <table class="orderResult">
-          <tr>
-            <th>
-              <button ng-click="sortBy('id')">Id</button>
-              <span class="sortorder" ng-show="propertyName === 'id'" ng-class="{reverse: reverse}"></span>
-            </th>
-            <th>
-              <button ng-click="sortBy('title')">Title</button>
-              <span class="sortorder" ng-show="propertyName === 'title'" ng-class="{reverse: reverse}"></span>
-            </th>
-            <th>
-              <button ng-click="sortBy('date')">Date</button>
-              <span class="sortorder" ng-show="propertyName === 'date'" ng-class="{reverse: reverse}"></span>
-            </th>
-          </tr>
-          <tr ng-repeat="result in searchResults | orderBy:propertyName:reverse">
-            <td>{{result.id}}</td>
-            <td>{{result.title}}</td>
-            <td>{{result.date}}</td>
-          </tr>
-        </table>
-      </div> -->
-
-
-    </div>
+  </div>
 </div>
