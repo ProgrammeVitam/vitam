@@ -241,7 +241,7 @@
 					<version>2.19.1</version>
 					<configuration>
 						<forkMode>always</forkMode>
-						<argLine>-Xmx2048m ${coverageAgent}</argLine>
+						<argLine>-Xmx2048m -Dvitam.tmp.folder=/tmp ${coverageAgent}</argLine>
 					</configuration>
 				</plugin>
 				<plugin>

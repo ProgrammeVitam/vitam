@@ -25,7 +25,10 @@ package fr.gouv.vitam.processing.common.model;
 
 import java.util.List;
 
-// TODO REVIEW comment
+
+/**
+ * Model of Response from worker 
+ */
 public interface EngineResponse {
 
     /**

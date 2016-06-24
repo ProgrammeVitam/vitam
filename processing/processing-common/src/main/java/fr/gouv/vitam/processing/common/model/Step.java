@@ -23,11 +23,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.common.model;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import fr.gouv.vitam.common.SingletonUtils;
 
 /**
  * Step Object in process workflow
@@ -42,11 +43,13 @@ public class Step {
     @JsonProperty("actions")
     private List<Action> actions;
 
-    // TODO REVIEW comment
+    /**
+     * getActions
+     * @return
+     */
     public List<Action> getActions() {
         if (actions == null) {
-            // FIXME REVIEW Use SingletonUtils
-            return new ArrayList<>();
+            return SingletonUtils.singletonList();
         }
         return actions;
     }

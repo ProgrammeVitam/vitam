@@ -39,14 +39,15 @@ import java.io.InputStream;
 
 import javax.xml.stream.XMLStreamException;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import fr.gouv.vitam.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.client.MetaDataClient;
 import fr.gouv.vitam.client.MetaDataClientFactory;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.WorkParams;
@@ -62,8 +63,8 @@ public class SedaUtilsTest {
 
     private static final String SIP = "sip1.xml";
     private static final String OBJ = "obj";
-    private static final String TMP = "/tmp/";
     private static final String ARCHIVE_UNIT = "archiveUnit.xml";
+    private static final String OBJECT_GROUP = "objectGroup.json";
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceFactory;
     private MetaDataClient metadataClient;
@@ -71,8 +72,10 @@ public class SedaUtilsTest {
     private final InputStream seda = Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP);
     private final InputStream archiveUnit =
         Thread.currentThread().getContextClassLoader().getResourceAsStream(ARCHIVE_UNIT);
+    private final InputStream objectGroup =
+        Thread.currentThread().getContextClassLoader().getResourceAsStream(OBJECT_GROUP);
+    private final InputStream errorExample = new ByteArrayInputStream("test".getBytes());
     private SedaUtils utils;
-    private String tmp = "";
     private final WorkParams params = new WorkParams()
         .setGuuid(OBJ)
         .setContainerName(OBJ)
@@ -82,17 +85,10 @@ public class SedaUtilsTest {
 
     @Before
     public void setUp() {
-        tmp = SedaUtils.getTmpFolder();
-        SedaUtils.setTmpFolder(TMP);
         workspaceClient = mock(WorkspaceClient.class);
         workspaceFactory = mock(WorkspaceClientFactory.class);
         metadataClient = mock(MetaDataClient.class);
         metadataFactory = mock(MetaDataClientFactory.class);
-    }
-
-    @After
-    public void tearDown() {
-        SedaUtils.setTmpFolder(tmp);
     }
 
     @Test
@@ -103,8 +99,9 @@ public class SedaUtilsTest {
         when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
         utils = new SedaUtilsFactory().create(workspaceFactory, null);
         utils.extractSEDA(params);
-        assertEquals(utils.getBinaryDataObjectIdToGuid().size(), 1);
-        assertEquals(utils.getBinaryDataObjectIdToGroupId().size(), 0);
+        assertEquals(utils.getBinaryDataObjectIdToGuid().size(), 4);
+        assertEquals(utils.getBinaryDataObjectIdToGroupId().size(), 4);
+        assertEquals(utils.getObjectGroupIdToBinaryDataObjectId().size(), 1);
         assertEquals(utils.getUnitIdToGuid().size(), 1);
         assertEquals(utils.getUnitIdToGroupId().size(), 1);
     }
@@ -135,11 +132,11 @@ public class SedaUtilsTest {
         when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
 
         utils = new SedaUtilsFactory().create(workspaceFactory, null);
-        assertEquals("MessageIdentifier0", utils.getMessageIdentifier(params));
+        assertEquals("Entrée_avec_groupe_d_objet", utils.getMessageIdentifier(params));
     }
 
     @Test
-    public void givenCorrectArchiveUnitWhenConvertToJsonThenOK()
+    public void givenCorrectArchiveUnitWhenIndexUnitThenOK()
         throws Exception {
         when(metadataClient.insert(anyObject())).thenReturn("");
         when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
@@ -149,6 +146,112 @@ public class SedaUtilsTest {
 
         utils.indexArchiveUnit(params);
     }
+    
+    @Test(expected = ProcessingException.class)
+    public void givenArchiveUnitWrongFormatWhenIndexUnitThenOK()
+        throws Exception {
+        when(metadataClient.insert(anyObject())).thenReturn("");
+        when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
+        when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(errorExample);
+        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
+        utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
+
+        utils.indexArchiveUnit(params);
+    }
+    
+    @Test(expected = ProcessingException.class)
+    public void givenArchiveUnitWrongFormatWhenIndexUnitWithMetadataThenOK()
+        throws Exception {
+        when(metadataClient.insert(anyObject())).thenThrow(new InvalidParseOperationException(""));
+        when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
+        when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(archiveUnit);
+        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
+        utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
+
+        utils.indexArchiveUnit(params);
+    }
+    
+    @Test(expected = ProcessingException.class)
+    public void givenCreateArchiveUnitErrorWhenIndexUnitThenThrowError()
+        throws Exception {
+        when(metadataClient.insert(anyObject())).thenReturn("");
+        when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
+        when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(null);
+        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
+        utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
+
+        utils.indexArchiveUnit(params);
+    }
+    
+    @Test(expected = ProcessingException.class)
+    public void givenNotExistArchiveUnitWhenIndexUnitThenThrowError()
+        throws Exception {
+        when(metadataClient.insert(anyObject())).thenReturn("");
+        when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
+        when(workspaceClient.getObject(anyObject(), anyObject())).thenThrow(new MetaDataExecutionException(""));
+        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
+        utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
+
+        utils.indexArchiveUnit(params);
+    }
+    
+    @Test(expected = ProcessingException.class)
+    public void givenGetArchiveUnitErrorWhenIndexUnitThenThrowError()
+        throws Exception {
+        when(metadataClient.insert(anyObject())).thenReturn("");
+        when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
+        when(workspaceClient.getObject(anyObject(), anyObject())).thenThrow(new ContentAddressableStorageServerException(""));
+        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
+        utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
+
+        utils.indexArchiveUnit(params);
+    }
+    
+    @Test
+    public void givenCorrectObjectGroupWhenIndexObjectGroupThenOK()
+        throws Exception {
+        when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
+        when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(objectGroup);
+        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
+        utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
+
+        utils.indexObjectGroup(params);
+    }
+    
+    @Test(expected = ProcessingException.class)
+    public void givenCorrectObjectGroupWhenIndexObjectGroupThenThrowError()
+        throws Exception {
+        when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
+        when(workspaceClient.getObject(anyObject(), anyObject())).thenThrow(new ContentAddressableStorageServerException(""));
+        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
+        
+        utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
+        utils.indexObjectGroup(params);
+    }
+    
+    @Test(expected = ProcessingException.class)
+    public void givenCreateObjectGroupErrorWhenIndexObjectGroupThenThrowError()
+        throws Exception {
+        when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
+        when(workspaceClient.getObject(anyObject(), anyObject())).thenThrow(new MetaDataExecutionException(""));
+        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
+        
+        utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
+        utils.indexObjectGroup(params);
+    }
+    
+    @Test(expected = ProcessingException.class)
+    public void givenNotExistObjectGroupWhenIndexObjectGroupThenThrowError()
+        throws Exception {
+        when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
+        when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(null);
+        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
+        
+        utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
+        utils.indexObjectGroup(params);
+        
+    }
+
 
 }
 

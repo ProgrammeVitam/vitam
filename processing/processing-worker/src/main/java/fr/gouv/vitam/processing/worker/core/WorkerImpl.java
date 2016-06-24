@@ -44,6 +44,7 @@ import fr.gouv.vitam.processing.worker.handler.ActionHandler;
 import fr.gouv.vitam.processing.worker.handler.CheckObjectsNumberActionHandler;
 import fr.gouv.vitam.processing.worker.handler.CheckSedaActionHandler;
 import fr.gouv.vitam.processing.worker.handler.ExtractSedaActionHandler;
+import fr.gouv.vitam.processing.worker.handler.IndexObjectGroupActionHandler;
 import fr.gouv.vitam.processing.worker.handler.IndexUnitActionHandler;
 
 
@@ -95,6 +96,7 @@ public class WorkerImpl implements Worker {
          */
         actions.put(ExtractSedaActionHandler.getId(), new ExtractSedaActionHandler(new SedaUtilsFactory()));
         actions.put(IndexUnitActionHandler.getId(), new IndexUnitActionHandler(new SedaUtilsFactory()));
+        actions.put(IndexObjectGroupActionHandler.getId(), new IndexObjectGroupActionHandler(new SedaUtilsFactory()));
         actions.put(CheckSedaActionHandler.getId(), new CheckSedaActionHandler(new SedaUtilsFactory()));
         actions.put(CheckObjectsNumberActionHandler.getId(),
             new CheckObjectsNumberActionHandler(new SedaUtilsFactory(), new ContainerExtractionUtilsFactory()));
