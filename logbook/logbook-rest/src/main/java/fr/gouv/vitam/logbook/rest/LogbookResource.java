@@ -248,6 +248,7 @@ public class LogbookResource {
      * 
      * @param query DSL as String
      * @return Response containt the list of loglook operation
+     * @throws InvalidParseOperationException 
      * @throws LogbookException
      * @throws LogbookNotFoundException
      * @throws IOException
@@ -299,7 +300,7 @@ public class LogbookResource {
 
     /**
      * @param query as JsonNode
-     * @param xhttpOverride, header parameter indicate that we use POST with X-HTTP-Method-Override,
+     * @param xhttpOverride header parameter indicate that we use POST with X-HTTP-Method-Override,
      * @return Response of SELECT query with POST method
      * @throws LogbookException
      * @throws InvalidParseOperationException

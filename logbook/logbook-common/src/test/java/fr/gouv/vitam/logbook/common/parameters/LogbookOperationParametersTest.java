@@ -120,34 +120,33 @@ public class LogbookOperationParametersTest {
         assertEquals("incorrect", params.getParameterValue(LogbookParameterName.eventTypeProcess));
         assertEquals(null, params.getParameterValue(LogbookParameterName.eventDateTime));
         final GUID aa = GUIDFactory.newOperationIdGUID(0);
-        final GUID bb = GUIDFactory.newOperationIdGUID(0);
         final GUID cc = GUIDFactory.newOperationIdGUID(0);
         LogbookParametersFactory.newLogbookOperationParameters(aa, "aa", aa,
-            LogbookTypeProcess.AUDIT, LogbookOutcome.STARTED, bb, cc);
+            LogbookTypeProcess.AUDIT, LogbookOutcome.STARTED, "Informative Message", cc);
         try {
             LogbookParametersFactory.newLogbookOperationParameters(aa, "", aa,
-                LogbookTypeProcess.AUDIT, LogbookOutcome.STARTED, bb, cc);
+                LogbookTypeProcess.AUDIT, LogbookOutcome.STARTED, "Informative Message", cc);
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
         }
         try {
             LogbookParametersFactory.newLogbookOperationParameters(aa, "aa", null,
-                LogbookTypeProcess.AUDIT, LogbookOutcome.STARTED, bb, cc);
+                LogbookTypeProcess.AUDIT, LogbookOutcome.STARTED, "Informative Message", cc);
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
         }
         try {
             LogbookParametersFactory.newLogbookOperationParameters(aa, "aa", aa,
-                LogbookTypeProcess.AUDIT, null, bb, cc);
+                LogbookTypeProcess.AUDIT, null, "Informative Message", cc);
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
         }
         try {
             LogbookParametersFactory.newLogbookOperationParameters(aa, "aa", aa,
-                null, LogbookOutcome.STARTED, bb, cc);
+                null, LogbookOutcome.STARTED, "Informative Message", cc);
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore

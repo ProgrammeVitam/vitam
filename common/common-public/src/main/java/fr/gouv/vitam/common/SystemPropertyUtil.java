@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.common;
 
+import java.io.File;
 import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.nio.charset.Charset;
@@ -136,6 +137,11 @@ public final class SystemPropertyUtil {
                             e1.getMessage());
                 System.err.println("Currently file.encoding is: " + get(FILE_ENCODING)); // NOSONAR
             }
+        }
+        String tmpFolder = getVitamTmpFolder();
+        File tmpDirectory = new File(tmpFolder);
+        if (! tmpDirectory.isDirectory()) {
+            tmpDirectory.mkdirs();
         }
     }
 

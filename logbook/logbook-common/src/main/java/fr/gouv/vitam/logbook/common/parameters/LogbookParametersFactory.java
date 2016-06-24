@@ -147,7 +147,7 @@ public class LogbookParametersFactory {
      */
     public static LogbookOperationParameters newLogbookOperationParameters(GUID eventIdentifier,
         String eventType, GUID eventIdentifierProcess, LogbookTypeProcess eventTypeProcess,
-        LogbookOutcome outcome, GUID outcomeDetailMessage,
+        LogbookOutcome outcome, String outcomeDetailMessage,
         GUID eventIdentifierRequest) {
         ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, eventIdentifier,
             eventType, eventIdentifierProcess, outcomeDetailMessage, eventIdentifierRequest);
@@ -159,7 +159,7 @@ public class LogbookParametersFactory {
             .putParameterValue(LogbookParameterName.eventIdentifierProcess, eventIdentifierProcess.getId())
             .setTypeProcess(eventTypeProcess)
             .setStatus(outcome)
-            .putParameterValue(LogbookParameterName.outcomeDetailMessage, outcomeDetailMessage.getId())
+            .putParameterValue(LogbookParameterName.outcomeDetailMessage, outcomeDetailMessage)
             .putParameterValue(LogbookParameterName.eventIdentifierRequest, eventIdentifierRequest.getId());
     }
 

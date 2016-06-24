@@ -14,6 +14,7 @@
 	<modules>
 		<module>common-public</module>
 		<module>common-private</module>
-    <module>common-database</module>
-  </modules>
+	    <module>common-database</module>
+    	<module>common-junit</module>
+	</modules>
 </project>
