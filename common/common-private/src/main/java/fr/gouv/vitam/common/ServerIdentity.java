@@ -147,7 +147,7 @@ public final class ServerIdentity implements ServerIdentityInterface {
         boolean found = false;
         // Compute name from Hostname
         try {
-            if (System.getProperty(OS_NAME).toLowerCase().startsWith(WIN)) {
+            if (SystemPropertyUtil.get(OS_NAME).toLowerCase().startsWith(WIN)) {
                 // Just for fun
                 name = System.getenv(COMPUTERNAME);
                 found = true;
