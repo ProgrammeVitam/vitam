@@ -46,7 +46,7 @@ public class RequestResponse {
 
     /**
      * RequestResponse constructor
-     * 
+     *
      * @param query the query of type JsonNode which will be setted for RequestResponse
      */
     public RequestResponse setQuery(JsonNode query) {

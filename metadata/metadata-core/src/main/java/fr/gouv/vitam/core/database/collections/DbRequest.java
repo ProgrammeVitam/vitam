@@ -47,6 +47,7 @@ import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import com.mongodb.BasicDBObject;
+import com.mongodb.MongoException;
 import com.mongodb.MongoWriteException;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
@@ -54,7 +55,9 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 
+import fr.gouv.vitam.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.api.exception.MetaDataExecutionException;
+import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.builder.request.construct.Delete;
 import fr.gouv.vitam.builder.request.construct.Insert;
 import fr.gouv.vitam.builder.request.construct.Request;
@@ -129,23 +132,21 @@ public class DbRequest {
      * @throws InstantiationException
      * @throws MetaDataExecutionException
      * @throws InvalidParseOperationException
+     * @throws MetaDataAlreadyExistException 
+     * @throws MetaDataNotFoundException 
      */
     public Result execRequest(final RequestParser requestParser, final Result defaultStartSet)
         throws InstantiationException, IllegalAccessException, MetaDataExecutionException,
-        InvalidParseOperationException {
+        InvalidParseOperationException, MetaDataAlreadyExistException, MetaDataNotFoundException {
         final Request request = requestParser.getRequest();
         final RequestToAbstract requestToMongodb = RequestToMongodb.getRequestToMongoDb(requestParser);
         final int maxQuery = request.getNbQueries();
         Result roots;
-        switch (requestParser.model()) {
-            case OBJECTGROUPS:
-                roots = checkObjectGroupStartupRoots(requestParser, defaultStartSet);
-                break;
-            case UNITS:
-                roots = checkUnitStartupRoots(requestParser, defaultStartSet);
-                break;
-            default:
-                throw new MetaDataExecutionException("Model not yet requestable: " + requestParser.model());
+        if (requestParser.model() == FILTERARGS.UNITS) {
+            roots = checkUnitStartupRoots(requestParser, defaultStartSet);
+        } else {
+            // OBJECTGROUPS:
+            roots = checkObjectGroupStartupRoots(requestParser, defaultStartSet);
         }
         Result result = roots;
         int rank = 0;
@@ -321,9 +322,8 @@ public class DbRequest {
      */
     protected Set<String> checkUnitAgainstRoots(final Set<String> current, final Result defaultStartSet)
         throws InvalidParseOperationException {
-        // FIXME REVIEW: was: || defaultStartSet.getCurrentIds().isEmpty() in order to allow emptyStartSet => default
         // roots
-        if (defaultStartSet == null) {
+        if (defaultStartSet == null || defaultStartSet.getCurrentIds().isEmpty()) {
             // no limitation: using roots
             return current;
         }
@@ -367,12 +367,11 @@ public class DbRequest {
         final QUERY type = realQuery.getQUERY();
         final FILTERARGS collectionType = requestToMongodb.model();
         if (type == QUERY.PATH) {
-            // FIXME REVIEW why removing this?
             // Check if path is compatible with previous
-            // if (previous.getCurrentIds().isEmpty()) {
-            // previous.clear();
-            // return MongoDbAccess.createOneResult(collectionType, ((PathQuery) realQuery).getPaths());
-            // }
+            if (previous.getCurrentIds().isEmpty()) {
+                previous.clear();
+                return MongoDbAccess.createOneResult(collectionType, ((PathQuery) realQuery).getPaths());
+            }
             final Set<String> newRoots = checkUnitAgainstRoots(((PathQuery) realQuery).getPaths(), previous);
             previous.clear();
             if (newRoots.isEmpty()) {
@@ -388,30 +387,25 @@ public class DbRequest {
         final int relativeDepth = QueryDepthHelper.HELPER.getRelativeDepth(realQuery);
         Result result;
         try {
-            switch (collectionType) {
-                case UNITS:
-                    if (exactDepth > 0) {
-                        // Exact Depth request (descending)
-                        LOGGER.debug("Unit Exact Depth request (descending)");
-                        result = exactDepthUnitQuery(realQuery, previous, exactDepth);
-                    } else if (relativeDepth != 0) {
-                        // Relative Depth request (ascending or descending)
-                        LOGGER.debug("Unit Relative Depth request (ascending or descending)");
-                        result = relativeDepthUnitQuery(realQuery, previous, relativeDepth);
-                    } else {
-                        // Current sub level request
-                        LOGGER.debug("Unit Current sub level request");
-                        result = sameDepthUnitQuery(realQuery, previous);
-                    }
-                    break;
-                case OBJECTGROUPS:
-                    // No depth at all
-                    LOGGER.debug("ObjectGroup No depth at all");
-                    result = objectGroupQuery(realQuery, previous);
-                    break;
-                default:
-                    throw new MetaDataExecutionException(
-                        "Cannot execute this operation on the model: " + collectionType);
+            if (collectionType == FILTERARGS.UNITS) {
+                if (exactDepth > 0) {
+                    // Exact Depth request (descending)
+                    LOGGER.debug("Unit Exact Depth request (descending)");
+                    result = exactDepthUnitQuery(realQuery, previous, exactDepth);
+                } else if (relativeDepth != 0) {
+                    // Relative Depth request (ascending or descending)
+                    LOGGER.debug("Unit Relative Depth request (ascending or descending)");
+                    result = relativeDepthUnitQuery(realQuery, previous, relativeDepth);
+                } else {
+                    // Current sub level request
+                    LOGGER.debug("Unit Current sub level request");
+                    result = sameDepthUnitQuery(realQuery, previous);
+                }
+            } else {
+                // OBJECTGROUPS
+                // No depth at all
+                LOGGER.debug("ObjectGroup No depth at all");
+                result = objectGroupQuery(realQuery, previous);
             }
         } finally {
             previous.clear();
@@ -474,9 +468,8 @@ public class DbRequest {
         Bson roots = null;
         boolean tocheck = false;
         if (previous.getCurrentIds().isEmpty()) {
-            // FIXME REVIEW : why removing this
             // Change to MAX DEPTH <= relativeDepth
-            // roots = lte(Unit.MAXDEPTH, relativeDepth);
+            roots = lte(Unit.MAXDEPTH, relativeDepth);
         } else {
             if (relativeDepth < 0) {
                 // Relative parent: previous has future result in their _up
@@ -500,7 +493,6 @@ public class DbRequest {
         if (roots != null) {
             query = QueryToMongodb.getFullCommand(query, roots);
         }
-        // FIXME REVIEW now query could be null! you need to not use query if null
         LOGGER.debug(QUERY2 + MongoDbHelper.bsonToString(query, false));
         result = MongoDbAccess.createOneResult(FILTERARGS.UNITS);
         if (GlobalDatasDb.PRINT_REQUEST) {
@@ -679,47 +671,42 @@ public class DbRequest {
         LOGGER.debug("To Select: " + MongoDbHelper.bsonToString(roots, false) + " " +
             (projection != null ? MongoDbHelper.bsonToString(projection, false) : "") + " " +
             MongoDbHelper.bsonToString(orderBy, false) + " " + offset + " " + limit);
-        switch (model) {
-            case UNITS: {
-                @SuppressWarnings("unchecked")
-                final FindIterable<Unit> iterable =
-                    (FindIterable<Unit>) MongoDbMetadataHelper.select(MongoDbAccess.VitamCollections.C_UNIT,
-                        roots, projection, orderBy, offset, limit);
-                final MongoCursor<Unit> cursor = iterable.iterator();
-                try {
-                    while (cursor.hasNext()) {
-                        final Unit unit = cursor.next();
-                        last.addId(unit.getId());
-                        last.addFinal(unit);
-                    }
-                } finally {
-                    cursor.close();
+        if (model == FILTERARGS.UNITS) {
+            @SuppressWarnings("unchecked")
+            final FindIterable<Unit> iterable =
+                (FindIterable<Unit>) MongoDbMetadataHelper.select(MongoDbAccess.VitamCollections.C_UNIT,
+                    roots, projection, orderBy, offset, limit);
+            final MongoCursor<Unit> cursor = iterable.iterator();
+            try {
+                while (cursor.hasNext()) {
+                    final Unit unit = cursor.next();
+                    last.addId(unit.getId());
+                    last.addFinal(unit);
                 }
-                last.setNbResult(last.getCurrentIds().size());
-                return last;
+            } finally {
+                cursor.close();
             }
-            case OBJECTGROUPS: {
-                @SuppressWarnings("unchecked")
-                final FindIterable<ObjectGroup> iterable =
-                    (FindIterable<ObjectGroup>) MongoDbMetadataHelper.select(
-                        MongoDbAccess.VitamCollections.C_OBJECTGROUP,
-                        roots, projection, orderBy, offset, limit);
-                final MongoCursor<ObjectGroup> cursor = iterable.iterator();
-                try {
-                    while (cursor.hasNext()) {
-                        final ObjectGroup og = cursor.next();
-                        last.addId(og.getId());
-                        last.addFinal(og);
-                    }
-                } finally {
-                    cursor.close();
-                }
-                last.setNbResult(last.getCurrentIds().size());
-                return last;
-            }
-            default:
-                throw new MetaDataExecutionException("Model not supported: " + model);
+            last.setNbResult(last.getCurrentIds().size());
+            return last;
         }
+        // OBJECTGROUPS:
+        @SuppressWarnings("unchecked")
+        final FindIterable<ObjectGroup> iterable =
+            (FindIterable<ObjectGroup>) MongoDbMetadataHelper.select(
+                MongoDbAccess.VitamCollections.C_OBJECTGROUP,
+                roots, projection, orderBy, offset, limit);
+        final MongoCursor<ObjectGroup> cursor = iterable.iterator();
+        try {
+            while (cursor.hasNext()) {
+                final ObjectGroup og = cursor.next();
+                last.addId(og.getId());
+                last.addFinal(og);
+            }
+        } finally {
+            cursor.close();
+        }
+        last.setNbResult(last.getCurrentIds().size());
+        return last;
     }
 
     /**
@@ -739,23 +726,18 @@ public class DbRequest {
         LOGGER.debug(
             "To Update: " + MongoDbHelper.bsonToString(roots, false) + " " + MongoDbHelper.bsonToString(update, false));
         try {
-            switch (model) {
-                case UNITS: {
-                    final UpdateResult result = MongoDbMetadataHelper.update(MongoDbAccess.VitamCollections.C_UNIT,
-                        roots, update, last.getCurrentIds().size());
-                    last.setNbResult(result.getModifiedCount());
-                    return last;
-                }
-                case OBJECTGROUPS: {
-                    final UpdateResult result =
-                        MongoDbMetadataHelper.update(MongoDbAccess.VitamCollections.C_OBJECTGROUP,
-                            roots, update, last.getCurrentIds().size());
-                    last.setNbResult(result.getModifiedCount());
-                    return last;
-                }
-                default:
-                    throw new MetaDataExecutionException("Model not supported: " + model);
+            if (model == FILTERARGS.UNITS) {
+                final UpdateResult result = MongoDbMetadataHelper.update(MongoDbAccess.VitamCollections.C_UNIT,
+                    roots, update, last.getCurrentIds().size());
+                last.setNbResult(result.getModifiedCount());
+                return last;
             }
+            // OBJECTGROUPS:
+            final UpdateResult result =
+                MongoDbMetadataHelper.update(MongoDbAccess.VitamCollections.C_OBJECTGROUP,
+                    roots, update, last.getCurrentIds().size());
+            last.setNbResult(result.getModifiedCount());
+            return last;
         } catch (final MetaDataExecutionException e) {
             throw e;
         } catch (final Exception e) {
@@ -770,50 +752,65 @@ public class DbRequest {
      * @param last
      * @return the final Result
      * @throws InvalidParseOperationException
+     * @throws MetaDataAlreadyExistException
      * @throws MetaDataExecutionException
+     * @throws MetaDataNotFoundException 
      */
     protected Result lastInsertFilterProjection(InsertToMongodb requestToMongodb, Result last)
-        throws InvalidParseOperationException, MetaDataExecutionException {
+        throws InvalidParseOperationException, MetaDataAlreadyExistException, MetaDataExecutionException, MetaDataNotFoundException {
         final Document data = requestToMongodb.getFinalData();
         LOGGER.debug("To Insert: " + data);
         final FILTERARGS model = requestToMongodb.model();
         try {
-            switch (model) {
-                case UNITS: {
-                    final Unit unit = new Unit(data);
-                    unit.insert();
-                    for (final String id : last.getCurrentIds()) {
-                        final Unit parentUnit = MongoDbAccess.LRU.get(id);
-                        if (parentUnit != null) {
-                            parentUnit.addUnit(unit);
-                        }
-                    }
-                    last.clear();
-                    last.addId(unit.getId());
-                    last.setNbResult(1);
-                    return last;
+            if (model == FILTERARGS.UNITS) {
+                final Unit unit = new Unit(data);
+                if (MongoDbMetadataHelper.exists(VitamCollections.C_UNIT, unit.getId())) {
+                    // Should not exist
+                    throw new MetaDataAlreadyExistException("Unit already exists: " + unit.getId());
                 }
-                case OBJECTGROUPS: {
-                    final ObjectGroup og = new ObjectGroup(data);
-                    //TODO : use og.save() of the next version
-                    og.insert();
-                    for (final String id : last.getCurrentIds()) {
-                        final Unit parentUnit = MongoDbAccess.LRU.get(id);
-                        if (parentUnit != null) {
-                            parentUnit.addObjectGroup(og);
-                        }
+                unit.save();
+                for (final String id : last.getCurrentIds()) {
+                    final Unit parentUnit = MongoDbAccess.LRU.get(id);
+                    if (parentUnit != null) {
+                        parentUnit.addUnit(unit);
+                    } else {
+                        LOGGER.debug("Cannot find parent: " + id);
+                        throw new MetaDataNotFoundException("Cannot find Parent: " + id);
                     }
-                    last.clear();
-                    last.addId(og.getId());
-                    last.setNbResult(1);
-                    return last;
                 }
-                default:
-                    throw new MetaDataExecutionException("Model not supported: " + model);
+                last.clear();
+                last.addId(unit.getId());
+                last.setNbResult(1);
+                return last;
             }
+            // OBJECTGROUPS:
+            final ObjectGroup og = new ObjectGroup(data);
+            if (MongoDbMetadataHelper.exists(VitamCollections.C_OBJECTGROUP, og.getId())) {
+                // Should not exist
+                throw new MetaDataAlreadyExistException("ObjectGroup already exists: " + og.getId());
+            }
+            if (last.getCurrentIds().isEmpty() && og.getFathersUnitIds(false).isEmpty()) {
+                // Must not be
+                LOGGER.debug("No Unit parent defined");
+                throw new MetaDataNotFoundException("No Unit parent defined");
+            }
+            og.save();
+            for (final String id : last.getCurrentIds()) {
+                final Unit parentUnit = MongoDbAccess.LRU.get(id);
+                if (parentUnit != null) {
+                    parentUnit.addObjectGroup(og);
+                } else {
+                    LOGGER.debug("Cannot find parent: " + id);
+                    throw new MetaDataNotFoundException("Cannot find Parent: " + id);
+                }
+            }
+            last.clear();
+            last.addId(og.getId());
+            last.setNbResult(1);
+            return last;
         } catch (final MongoWriteException e) {
             throw e;
-        } catch (final Exception e) {
+        } catch (final MongoException e) {
             throw new MetaDataExecutionException("Insert concern", e);
         }
     }
@@ -833,23 +830,18 @@ public class DbRequest {
         LOGGER.debug("To Delete: " + MongoDbHelper.bsonToString(roots, false));
         final FILTERARGS model = requestToMongodb.model();
         try {
-            switch (model) {
-                case UNITS: {
-                    final DeleteResult result = MongoDbMetadataHelper.delete(MongoDbAccess.VitamCollections.C_UNIT,
-                        roots, last.getCurrentIds().size());
-                    last.setNbResult(result.getDeletedCount());
-                    return last;
-                }
-                case OBJECTGROUPS: {
-                    final DeleteResult result =
-                        MongoDbMetadataHelper.delete(MongoDbAccess.VitamCollections.C_OBJECTGROUP,
-                            roots, last.getCurrentIds().size());
-                    last.setNbResult(result.getDeletedCount());
-                    return last;
-                }
-                default:
-                    throw new MetaDataExecutionException("Model not supported: " + model);
+            if (model == FILTERARGS.UNITS) {
+                final DeleteResult result = MongoDbMetadataHelper.delete(MongoDbAccess.VitamCollections.C_UNIT,
+                    roots, last.getCurrentIds().size());
+                last.setNbResult(result.getDeletedCount());
+                return last;
             }
+            // OBJECTGROUPS:
+            final DeleteResult result =
+                MongoDbMetadataHelper.delete(MongoDbAccess.VitamCollections.C_OBJECTGROUP,
+                    roots, last.getCurrentIds().size());
+            last.setNbResult(result.getDeletedCount());
+            return last;
         } catch (final MetaDataExecutionException e) {
             throw e;
         } catch (final Exception e) {

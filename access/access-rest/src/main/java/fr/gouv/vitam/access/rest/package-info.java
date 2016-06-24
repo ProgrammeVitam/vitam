@@ -23,6 +23,6 @@
  *******************************************************************************/
 
 /**
- * Package Access Rest 
+ * Package Access Rest
  */
 package fr.gouv.vitam.access.rest;

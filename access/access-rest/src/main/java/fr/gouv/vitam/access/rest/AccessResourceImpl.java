@@ -40,7 +40,6 @@ import fr.gouv.vitam.access.common.exception.AccessExecutionException;
 import fr.gouv.vitam.access.config.AccessConfiguration;
 import fr.gouv.vitam.access.core.AccessModuleImpl;
 import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
-import fr.gouv.vitam.api.exception.MetaDataException;
 import fr.gouv.vitam.api.exception.MetadataInvalidSelectException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -66,7 +65,7 @@ public class AccessResourceImpl implements AccessResource {
     private AccessModule accessModule;
 
     /**
-     * 
+     *
      * @param configuration to associate with AccessResourceImpl
      */
     public AccessResourceImpl(AccessConfiguration configuration) {
@@ -85,6 +84,7 @@ public class AccessResourceImpl implements AccessResource {
     /**
      * get units list by query
      */
+    @Override
     @POST
     @Path("/units")
     public Response getUnits(String requestDsl,

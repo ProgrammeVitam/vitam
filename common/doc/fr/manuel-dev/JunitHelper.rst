@@ -1,5 +1,5 @@
-JunitFindAvailablePort
-######################
+JunitHelper
+###########
 
 MongoDb or Web Server Junit Support
 ***********************************
@@ -8,12 +8,17 @@ Si dans un Junit, il est nécessaire d'activer un service utilisant un port, et 
 
 .. code-block:: java
   
+  
+      private static JunitHelper junitHelper;
+      private static int databasePort;
+      private static int serverPort;
+      
       // dans le @BeforeClass
-      // Créer un objet JunitFindAvailablePort
-      JunitFindAvailablePort junitFindAvailablePort = new JunitFindAvailablePort();
+      // Créer un objet JunitHelper
+      junitHelper = new JunitHelper();
       
       // Pour MongoDB (exemple)
-      int databasePort = junitFindAvailablePort.findAvailablePort();
+      databasePort = junitHelper.findAvailablePort();
       final MongodStarter starter = MongodStarter.getDefaultInstance();
       // On utilise le port
       mongodExecutable = starter.prepare(new MongodConfigBuilder()
@@ -28,7 +33,8 @@ Si dans un Junit, il est nécessaire d'activer un service utilisant un port, et 
           MongoDbAccessFactory.create(
               new DbConfigurationImpl(DATABASE_HOST, databasePort,
                   "vitam-test"));
-          serverPort = junitFindAvailablePort.findAvailablePort();
+      // On alloue un port pour le serveur Web
+      serverPort = junitHelper.findAvailablePort();
           
       // On lit le fichier de configuration par défaut présent dans le src/test/resources
       File logbook = PropertiesUtils.findFile(LOGBOOK_CONF);
@@ -38,10 +44,7 @@ Si dans un Junit, il est nécessaire d'activer un service utilisant un port, et 
       realLogbook.setDbPort(databasePort);
       // On sauvegarde le fichier (dans un nouveau fichier différent) (static File)
       newLogbookConf = File.createTempFile("test", LOGBOOK_CONF, logbook.getParentFile());
-      try (FileOutputStream outputStream = new FileOutputStream(newLogbookConf)) {
-          final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-          mapper.writeValue(outputStream, realLogbook);
-      }
+      PropertiesUtils.writeYaml(newLogbookConf, realLogbook);
       
       // On utilise le port pour RestAssured
       RestAssured.port = serverPort;
@@ -68,9 +71,11 @@ Si dans un Junit, il est nécessaire d'activer un service utilisant un port, et 
          LOGGER.error(e);
      }
      mongoDbAccess.close();
+     junitHelper.releasePort(serverPort);
      // On arrête MongoDb
      mongod.stop();
      mongodExecutable.stop();
+     junitHelper.releasePort(databasePort);
      // On efface le fichier temporaire
      newLogbookConf.delete();
      

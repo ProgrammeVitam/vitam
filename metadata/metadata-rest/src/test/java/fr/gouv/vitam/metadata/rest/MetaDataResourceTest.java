@@ -60,6 +60,7 @@ import fr.gouv.vitam.api.model.RequestResponseOK;
 import fr.gouv.vitam.api.model.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.core.database.collections.MongoDbAccess;
 import fr.gouv.vitam.parser.request.parser.GlobalDatasParser;
 
@@ -70,10 +71,9 @@ public class MetaDataResourceTest {
         "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\"," + "\"data\": \"data2\" }";
     private static final String DATA3 =
         "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaz\"," + "\"data\": \"data3\" }";
-    
+
     private static final String DATA_URI = "/metadata/v1";
     private static final String DATABASE_NAME = "vitam-test";
-    private static final int DATABASE_PORT = 12345;
     private static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
 
@@ -85,9 +85,9 @@ public class MetaDataResourceTest {
             "          { $nin : { 'mavar5' : ['maval2', true] } } ] " + "   } " + "]}";
 
     private static final String SERVER_HOST = "localhost";
-
-    // TODO REVIEW Magic number ?
-    private static final int SERVER_PORT = 2700;
+    private static JunitHelper junitHelper;
+    private static int databasePort;
+    private static int serverPort;
 
     private static final String buildDSLWithOptions(String query, String data) {
         return "{ $roots : [ '' ], $query : [ " + query + " ], $data : " + data + " }";
@@ -116,24 +116,34 @@ public class MetaDataResourceTest {
     public static void setUpBeforeClass() throws Exception {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
+        junitHelper = new JunitHelper();
+        databasePort = junitHelper.findAvailablePort();
 
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .version(Version.Main.PRODUCTION)
-            .net(new Net(DATABASE_PORT, Network.localhostIsIPv6()))
+            .net(new Net(databasePort, Network.localhostIsIPv6()))
             .build());
         mongod = mongodExecutable.start();
 
-        final MetaDataConfiguration configuration = new MetaDataConfiguration(SERVER_HOST, DATABASE_PORT, DATABASE_NAME);
-        MetaDataApplication.run(configuration, SERVER_PORT);
-        RestAssured.port = SERVER_PORT;
+        final MetaDataConfiguration configuration = new MetaDataConfiguration(SERVER_HOST, databasePort, DATABASE_NAME);
+        serverPort = junitHelper.findAvailablePort();
+        MetaDataApplication.run(configuration, serverPort);
+        RestAssured.port = serverPort;
         RestAssured.basePath = DATA_URI;
     }
 
     @AfterClass
     public static void tearDownAfterClass() {
+        try {
+            MetaDataApplication.stop();
+        } catch (Exception e) {
+            // ignore
+        }
         mongod.stop();
         mongodExecutable.stop();
+        junitHelper.releasePort(databasePort);
+        junitHelper.releasePort(serverPort);
     }
 
     @After
@@ -279,32 +289,37 @@ public class MetaDataResourceTest {
             .body(equalTo(generateResponseErrorFromStatus(Status.BAD_REQUEST)))
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
-    
+
     @Test
     public void givenInsertObjectGroupWithIdDuplicatedThenReturnErrorConflict() throws Exception {
         with()
             .contentType(ContentType.JSON)
             .body(buildDSLWithOptions("", DATA)).when()
+            .post("/units").then()
+            .statusCode(Status.CREATED.getStatusCode());
+        with()
+            .contentType(ContentType.JSON)
+            .body(buildDSLWithOptions(QUERY_PATH, DATA2)).when()
             .post("/objectgroups").then()
             .statusCode(Status.CREATED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions("", DATA)).when()
+            .body(buildDSLWithOptions(QUERY_PATH, DATA2)).when()
             .post("/objectgroups").then()
             .body(equalTo(generateResponseErrorFromStatus(Status.CONFLICT)))
             .statusCode(Status.CONFLICT.getStatusCode());
-    }    
+    }
 
-    @Test    
+    @Test
     public void givenInsertObjectGroupWithNoParentThenReturnErrorNotFound() throws Exception {
         given()
             .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions(QUERY_PATH, DATA3)).when()
+            .body(buildDSLWithOptions("", DATA3)).when()
             .post("/objectgroups").then()
             .body(equalTo(generateResponseErrorFromStatus(Status.NOT_FOUND)))
             .statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
-  
+
 }

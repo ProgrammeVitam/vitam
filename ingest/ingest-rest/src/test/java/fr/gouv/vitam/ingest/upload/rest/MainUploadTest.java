@@ -36,30 +36,30 @@ import org.mockito.Spy;
  * Tests the class MainUpload
  */
 public class MainUploadTest {
-	
-	@Spy
-	private MainUpload mainUpload;
+
+    @Spy
+    private MainUpload mainUpload;
 
 
-	@Before
-	public void setUp() {
+    @Before
+    public void setUp() {
 
-	}
-
-	@After
-	public void tearDown() throws Exception {
-		mainUpload.getServer().stop();
-	}
-
-	@Ignore("To implement")
-	@Test(expected = Exception.class)
-    public void givenEmptyPort_WhenConfigureApplication_ThenRaiseAnException() throws Exception {
-		mainUpload.serverStarting((Integer) null);
     }
-	
-	@Ignore("To implement")
-	@Test
+
+    @After
+    public void tearDown() throws Exception {
+        MainUpload.getServer().stop();
+    }
+
+    @Ignore("To implement")
+    @Test(expected = Exception.class)
+    public void givenEmptyPort_WhenConfigureApplication_ThenRaiseAnException() throws Exception {
+        MainUpload.serverStarting((Integer) null);
+    }
+
+    @Ignore("To implement")
+    @Test
     public void givenPort_WhenConfigureApplication_ThenServerStartedOK() throws Exception {
-		mainUpload.serverStarting(8080);
+        MainUpload.serverStarting(8080);
     }
 }

@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -40,7 +40,7 @@ public class AccessConfigurationTest {
 
     @Test
     public final void givenAccessConfiguration_WithNullAttributes_WhenInstanciate_ThenReturnTrue() {
-        AccessConfiguration accessConfiguration = new AccessConfiguration();
+        final AccessConfiguration accessConfiguration = new AccessConfiguration();
         assertEquals(null, accessConfiguration.getUrlMetaData());
     }
 
@@ -51,7 +51,7 @@ public class AccessConfigurationTest {
 
     @Test
     public final void givenAccessConfiguration_whenInstanciateAnsSetsAttributes_ThenReturnTrue() {
-        AccessConfiguration accessConfiguration = new AccessConfiguration();
+        final AccessConfiguration accessConfiguration = new AccessConfiguration();
         accessConfiguration.setUrlMetaData(urlMetaData);
         assertEquals(urlMetaData, accessConfiguration.getUrlMetaData());
     }

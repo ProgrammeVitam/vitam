@@ -39,11 +39,14 @@ public interface AccessModule {
      * select Unit
      *
      * @param selectRequest as String { $query : query}
-     *
+     * @return the result of the select on Unit
+     * @throws IllegalArgumentException
      * @throws InvalidParseOperationException Throw if json format is not correct
      * @throws AccessExecutionException Throw if error occurs when send Unit to database
      * @throws MetadataInvalidSelectException if error occurs when search Unit from database
      * @throws MetaDataDocumentSizeException if unit is too big when send Unit to database
      */
-    public JsonNode selectUnit(String selectRequest) throws IllegalArgumentException, InvalidParseOperationException, AccessExecutionException, MetadataInvalidSelectException, MetaDataDocumentSizeException;
+    public JsonNode selectUnit(String selectRequest)
+        throws IllegalArgumentException, InvalidParseOperationException, AccessExecutionException,
+        MetadataInvalidSelectException, MetaDataDocumentSizeException;
 }

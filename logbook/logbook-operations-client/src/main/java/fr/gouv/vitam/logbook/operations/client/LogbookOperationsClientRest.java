@@ -65,7 +65,6 @@ public class LogbookOperationsClientRest implements LogbookClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookOperationsClientRest.class);
     private static final String RESOURCE_PATH = "/logbook/v1";
     private static final String OPERATIONS_URL = "/operations";
-    private static final String OPERATION_ID_URI = "/{id_op}";
     private static final String STATUS = "/status";
     private static final ServerIdentity SERVER_IDENTITY = ServerIdentity.getInstance();
 

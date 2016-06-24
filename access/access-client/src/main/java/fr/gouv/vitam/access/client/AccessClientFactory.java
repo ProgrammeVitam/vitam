@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -38,10 +38,10 @@ import fr.gouv.vitam.common.server.application.configuration.ClientConfiguration
 
 /**
  * Access client factory<br>
- * 
+ *
  * Used to create access client : if configuration file does not exist {@value 'access-client.conf'}},<br>
  * mock access client will be returned
- * 
+ *
  */
 public final class AccessClientFactory {
     /**
@@ -53,7 +53,7 @@ public final class AccessClientFactory {
     private static final AccessClientFactory ACCESS_CLIENT_FACTORY = new AccessClientFactory();
 
     private String server = "localhost";
-    private int port = VitamServerFactory.DEFAULT_PORT;
+    private int port = VitamServerFactory.getDefaultPort();
 
     private AccessClientFactory() {
         changeConfigurationFile(CONFIGURATION_FILENAME);

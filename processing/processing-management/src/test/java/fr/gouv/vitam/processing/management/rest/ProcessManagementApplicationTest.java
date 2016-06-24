@@ -26,16 +26,43 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.rest;
 
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
+
+import fr.gouv.vitam.common.junit.JunitHelper;
 
 public class ProcessManagementApplicationTest {
 
     private ProcessManagementApplication application;
+    private static JunitHelper junitHelper;
+    private static int port;
+
+    @BeforeClass
+    public static void setUpBeforeClass() throws Exception {
+        junitHelper = new JunitHelper();
+        port = junitHelper.findAvailablePort();
+    }
+
+    @AfterClass
+    public static void shutdownAfterClass() {
+        junitHelper.releasePort(port);
+    }
 
     @Before
     public void setup() throws Exception {
         application = new ProcessManagementApplication();
+    }
+    
+    @After
+    public void end() {
+        try {
+            ProcessManagementApplication.stop();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -50,7 +77,7 @@ public class ProcessManagementApplicationTest {
 
     @Test
     public void givenFileExistsWhenConfigureApplicationThenRunServer() throws Exception {
-        application.configure("src/test/resources/processing.conf", "8090");
+        application.configure("src/test/resources/processing.conf", Integer.toString(port));
     }
 
 }

@@ -54,9 +54,9 @@ import fr.gouv.vitam.logbook.operations.client.LogbookClientFactory;
  */
 @Path("/")
 public class WebApplicationResource {
-    
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WebApplicationResource.class);
-    
+
     /**
      * @param search criteria
      * @return Response
@@ -67,11 +67,11 @@ public class WebApplicationResource {
     public Response getArchiveSearchResult(String criteria) {
         ParametersChecker.checkParameter("Search criteria payload is mandatory", criteria);
         try {
-            Map<String, String> criteriaMap = JsonHandler.getMapStringFromString(criteria);
-            String preparedQueryDsl = CreateDSLClient.createSelectDSLQuery(criteriaMap);
+            final Map<String, String> criteriaMap = JsonHandler.getMapStringFromString(criteria);
+            final String preparedQueryDsl = CreateDSLClient.createSelectDSLQuery(criteriaMap);
 
             // TODO Call Access Module
-            JsonNode searchResult = JsonHandler.createObjectNode();
+            final JsonNode searchResult = JsonHandler.createObjectNode();
             return Response.status(Status.OK).entity(searchResult).build();
         } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
@@ -81,7 +81,7 @@ public class WebApplicationResource {
     /**
      * @param search options
      * @return Response
-     * @throws InvalidParseOperationException 
+     * @throws InvalidParseOperationException
      */
     @POST
     @Path("/logbook/operations")
@@ -91,42 +91,43 @@ public class WebApplicationResource {
         JsonNode result = JsonHandler.getFromString("{}");
         String query = "";
         try {
-            Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
+            final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
             query = CreateDSLClient.createSelectDSLQuery(optionsMap);
-            LogbookClient logbookClient = LogbookClientFactory.getInstance().getLogbookOperationClient();
+            final LogbookClient logbookClient = LogbookClientFactory.getInstance().getLogbookOperationClient();
             result = logbookClient.selectOperation(query);
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error("Bad request Exception ", e);
             return Response.status(Status.BAD_REQUEST).build();
-        } catch (LogbookClientException e) {
+        } catch (final LogbookClientException e) {
             LOGGER.error("Logbook Client NOT FOUND Exception ", e);
             return Response.status(Status.NOT_FOUND).build();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error("INTERNAL SERVER ERROR", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
         return Response.status(Status.OK).entity(result).build();
     }
-    
+
     /**
      * @param operationId id of operation
      * @param search options
      * @return Response
-     * @throws InvalidParseOperationException 
+     * @throws InvalidParseOperationException
      */
     @POST
     @Path("/logbook/operations/{idOperation}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getLogbookResultById(@PathParam("idOperation") String operationId, String options) throws InvalidParseOperationException {
+    public Response getLogbookResultById(@PathParam("idOperation") String operationId, String options)
+        throws InvalidParseOperationException {
         ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
         JsonNode result = JsonHandler.getFromString("{}");
         try {
-            LogbookClient logbookClient = LogbookClientFactory.getInstance().getLogbookOperationClient();
+            final LogbookClient logbookClient = LogbookClientFactory.getInstance().getLogbookOperationClient();
             result = logbookClient.selectOperationbyId(operationId);
-        } catch (LogbookClientException e) {
+        } catch (final LogbookClientException e) {
             LOGGER.error("Logbook Client NOT FOUND Exception ", e);
             return Response.status(Status.NOT_FOUND).build();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error("INTERNAL SERVER ERROR", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }

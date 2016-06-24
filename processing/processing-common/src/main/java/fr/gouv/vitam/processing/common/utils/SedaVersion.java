@@ -28,38 +28,34 @@ package fr.gouv.vitam.processing.common.utils;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-
 /**
- * The class SedaVersion used to get the list the version from the file version.conf 
+ * The class SedaVersion used to get the list the version from the file version.conf
  */
 public class SedaVersion {
-    
+
     /**
      * @return List<String> list of version for file version.conf
      * @throws IOException
      */
-    public static final List<String> fileVersionList(File file) throws IOException{
-        List<String> versionList = new ArrayList<String>();
-        
-        FileReader fr = new FileReader(file);
-        BufferedReader br = new BufferedReader(fr);
+    public static final List<String> fileVersionList(File file) throws IOException {
+        final List<String> versionList = new ArrayList<String>();
+
+        final FileReader fr = new FileReader(file);
+        final BufferedReader br = new BufferedReader(fr);
         String line = null;
-        
-        while ((line = br.readLine()) != null){
+
+        while ((line = br.readLine()) != null) {
             versionList.add(line);
         }
-        
+
         br.close();
         fr.close();
-        
+
         return versionList;
     }
 

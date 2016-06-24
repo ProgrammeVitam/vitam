@@ -39,30 +39,31 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
  * Client to create DSL request
- * 
+ *
  */
 public class CreateDSLClient {
-    
+
     private static final String EVENT_TYPE_PROCESS = "evTypeProc";
     private static final String DEFAULT_EVENT_TYPE_PROCESS = "INGEST";
     private static final String OBJECT_IDENTIFIER_INCOME = "obIdIn";
     private static final String ORDER_BY = "orderby";
+
     /**
      * generate the DSL query after receiving the search criteria
-     * 
-     * 
+     *
+     *
      * @param searchCriteriaMap
-     * @return  DSL request
+     * @return DSL request
      * @throws InvalidParseOperationException
      * @throws InvalidCreateOperationException
      */
     public static String createSelectDSLQuery(Map<String, String> searchCriteriaMap)
         throws InvalidParseOperationException, InvalidCreateOperationException {
         final Select select = new Select();
-        BooleanQuery query = and();
-        for (Entry<String, String> entry : searchCriteriaMap.entrySet()) {
-            String searchKeys = entry.getKey();
-            String searchValue = entry.getValue();
+        final BooleanQuery query = and();
+        for (final Entry<String, String> entry : searchCriteriaMap.entrySet()) {
+            final String searchKeys = entry.getKey();
+            final String searchValue = entry.getValue();
             switch (searchKeys) {
                 case ORDER_BY:
                     select.addOrderByAscFilter(searchValue);
@@ -75,7 +76,7 @@ public class CreateDSLClient {
                 case OBJECT_IDENTIFIER_INCOME:
                     query.add(eq("events.obIdIn", searchValue));
                     break;
-                    
+
                 default:
                     query.add(eq(searchKeys, searchValue));
 

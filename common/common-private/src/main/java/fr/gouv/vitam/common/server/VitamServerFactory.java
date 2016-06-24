@@ -33,10 +33,11 @@ import fr.gouv.vitam.common.ParametersChecker;
  * Vitam Server factory for REST server
  */
 public class VitamServerFactory {
+    private static final int DEFAULT_PORT = 8082;
     /**
      * Default Server REST port
      */
-    public static final int DEFAULT_PORT = 8082;
+    private static int defaultPort = DEFAULT_PORT;
 
     private VitamServerFactory() {
         // Empty constructor
@@ -47,7 +48,27 @@ public class VitamServerFactory {
      * @return a VitamServer with the default port
      */
     public static VitamServer newVitamServerOnDefaultPort() {
-        return newVitamServer(DEFAULT_PORT);
+        return newVitamServer(defaultPort);
+    }
+
+    /**
+     * Set a new Default Port
+     * 
+     * @param port
+     * @throws IllegalArgumentException if port <= 0
+     */
+    public static void setDefaultPort(int port) {
+        ParametersChecker.checkValue("Port", port, 1);
+        defaultPort = port;
+    }
+
+    /**
+     * Get the Default Port
+     * 
+     * @return the default current port
+     */
+    public static int getDefaultPort() {
+        return defaultPort;
     }
 
     /**

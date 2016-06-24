@@ -27,7 +27,7 @@ import java.util.List;
 
 
 /**
- * Model of Response from worker 
+ * Model of Response from worker
  */
 public interface EngineResponse {
 

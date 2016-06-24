@@ -45,6 +45,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.VitamServerFactory;
 
 
 /**
@@ -53,7 +54,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 public class ServerApplication {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ServerApplication.class);
-    private static final int DEFAULT_PORT_START = 8082;
     private static final String DEFAULT_WEB_APP_CONTEXT = "/vitam/ihm-demo/api";
     private static final String DEFAULT_STATIC_CONTENT = "webapp";
     private static Server server;
@@ -65,7 +65,7 @@ public class ServerApplication {
      */
     public static void main(String[] args) throws URISyntaxException {
         try {
-            String configFile = args.length >= 1 ? args[0] : null;
+            final String configFile = args.length >= 1 ? args[0] : null;
             new ServerApplication().configure(configFile);
             server.join();
         } catch (final Exception e) {
@@ -78,7 +78,7 @@ public class ServerApplication {
         try {
 
             WebApplicationConfig configuration = new WebApplicationConfig();
-            
+
             if (configFile != null) {
                 // Get configuration parameters from Configuration File
                 final FileReader yamlFile = new FileReader(configFile);
@@ -87,7 +87,7 @@ public class ServerApplication {
             } else {
                 // Set default parameters
                 configuration.setDefaultContext(DEFAULT_WEB_APP_CONTEXT);
-                configuration.setPort(DEFAULT_PORT_START);
+                configuration.setPort(VitamServerFactory.getDefaultPort());
                 configuration.setVirtualHosts(new String[] {});
                 configuration.setStaticContent(DEFAULT_STATIC_CONTENT);
             }
@@ -102,7 +102,7 @@ public class ServerApplication {
 
     /**
      * run a server instance with the configuration
-     * 
+     *
      * @param configuration as WebApplicationConfig
      * @throws Exception
      */
@@ -112,7 +112,7 @@ public class ServerApplication {
         final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(new WebApplicationResource());
         final ServletContainer servletContainer = new ServletContainer(resourceConfig);
-        ServletHolder restResourceHolder = new ServletHolder(servletContainer);
+        final ServletHolder restResourceHolder = new ServletHolder(servletContainer);
 
         final ServletContextHandler restResourceContext = new ServletContextHandler(ServletContextHandler.SESSIONS);
         restResourceContext.setContextPath(configuration.getDefaultContext());
@@ -128,7 +128,7 @@ public class ServerApplication {
         staticContentHandler.setResourceBase(webAppDir.toURI().toString());
 
         // Set Handlers (Static content and REST API)
-        HandlerList handlerList = new HandlerList();
+        final HandlerList handlerList = new HandlerList();
         handlerList.setHandlers(new Handler[] {staticContentHandler, restResourceContext, new DefaultHandler()});
 
         server.setHandler(handlerList);

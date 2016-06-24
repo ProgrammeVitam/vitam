@@ -49,14 +49,17 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.glassfish.jersey.test.TestProperties;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.ingest.model.UploadResponseDTO;
 
 /**
@@ -68,6 +71,19 @@ public class UploadSipTest extends JerseyTest {
 
     private Client client;
     private WebTarget webTarget;
+    private static JunitHelper junitHelper;
+    private static int port;
+
+    @BeforeClass
+    public static void setUpBeforeClass() throws Exception {
+        junitHelper = new JunitHelper();
+        port = junitHelper.findAvailablePort();
+    }
+
+    @AfterClass
+    public static void shutdownAfterClass() {
+        junitHelper.releasePort(port);
+    }
 
     @Before
     public void before() throws Exception {
@@ -86,7 +102,7 @@ public class UploadSipTest extends JerseyTest {
         enable(TestProperties.DUMP_ENTITY);
         enable(TestProperties.CONTAINER_FACTORY);
         enable(TestProperties.CONTAINER_PORT);
-        set(TestProperties.CONTAINER_PORT, "8082");
+        set(TestProperties.CONTAINER_PORT, Integer.toString(port));
         final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.packages("fr.gouv.vitam.ingest.upload");
         resourceConfig.register(JacksonFeature.class);
@@ -112,11 +128,11 @@ public class UploadSipTest extends JerseyTest {
 
     private Response processUploadSip(String sipFile) throws URISyntaxException, FileNotFoundException {
         final Client clientUpload = ClientBuilder.newBuilder()
-                // .register(UploadResponseMessageBodyReader.class)
-                // .register(StatusResponseMessageBodyReader.class)
-                // .register(StatusRequestMessageBodyWriter.class)
-                .register(MultiPartFeature.class)
-                .build();
+            // .register(UploadResponseMessageBodyReader.class)
+            // .register(StatusResponseMessageBodyReader.class)
+            // .register(StatusRequestMessageBodyWriter.class)
+            .register(MultiPartFeature.class)
+            .build();
         final WebTarget webTargetUpload = clientUpload.target(new URI(getBaseUri() + "ingest/v1/upload"));
 
         final MultiPart multiPart = new MultiPart();
@@ -128,7 +144,7 @@ public class UploadSipTest extends JerseyTest {
         multiPart.bodyPart(filePart);
 
         final Builder builder = webTargetUpload
-                .request(MediaType.APPLICATION_JSON_TYPE);
+            .request(MediaType.APPLICATION_JSON_TYPE);
         final Entity entity = Entity.entity(multiPart, multiPart.getMediaType());
         final Response response = builder.post(entity);
 

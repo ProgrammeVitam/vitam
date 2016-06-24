@@ -27,7 +27,9 @@ import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -40,10 +42,11 @@ import fr.gouv.vitam.client.MetaDataClient;
 import fr.gouv.vitam.client.MetaDataClientFactory;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.junit.JunitHelper;
 
 public class AccessModuleImplTest {
 
-    private static final String HOST = "http:\\localhost:8082";
+    private static String HOST = "http:\\localhost:";
 
     private AccessConfiguration conf;
 
@@ -53,10 +56,24 @@ public class AccessModuleImplTest {
 
     private MetaDataClient metaDataClient;
 
+    private static JunitHelper junitHelper;
+    private static int serverPort;
 
 
     private static final String QUERY =
         "{ \"$queries\": [{ \"$path\": \"aaaaa\" }],\"$filter\": { },\"$projection\": {}}";
+
+    @BeforeClass
+    public static void setUpBeforeClass() throws Exception {
+        junitHelper = new JunitHelper();
+        serverPort = junitHelper.findAvailablePort();
+        HOST += serverPort;
+    }
+
+    @AfterClass
+    public static void tearDownAfterClass() {
+        junitHelper.releasePort(serverPort);
+    }
 
     @Before
     public void setUp() {

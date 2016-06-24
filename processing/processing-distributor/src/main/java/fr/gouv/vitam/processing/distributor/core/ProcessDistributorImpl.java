@@ -98,7 +98,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                     responses.add(errorResponse);
                 } else {
                     for (final URI objectUri : objectsList) {
-                        if (availableWorkers.size() == 0) {
+                        if (availableWorkers.isEmpty()) {
                             LOGGER.info(errorResponse.getStatus().toString());
                             responses.add(errorResponse);
                             break;

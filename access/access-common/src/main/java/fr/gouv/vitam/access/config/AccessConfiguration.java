@@ -51,7 +51,7 @@ public class AccessConfiguration {
 
     /**
      * getter UrlMetaData
-     * 
+     *
      * @return -url MetaData for type String
      */
     public String getUrlMetaData() {
@@ -60,7 +60,7 @@ public class AccessConfiguration {
 
     /**
      * setter UrlMetaData
-     * 
+     *
      * @param urlMetaData
      */
     public AccessConfiguration setUrlMetaData(String urlMetaData) {

@@ -26,10 +26,11 @@
  */
 package fr.gouv.vitam.ingest.upload.rest;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Properties;
+
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -39,12 +40,14 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.Properties;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.VitamServerFactory;
+
 /**
- * 
+ *
  * Class that runs application server
  *
  */
@@ -53,22 +56,23 @@ public class MainUpload {
     private static VitamLogger VITAM_LOGGER = VitamLoggerFactory.getInstance(MainUpload.class);
     private static Properties properties = null;
     private static Server server;
-    private static final String DEFAULT_PORT = "8082";
     private static final String PROPERTIES_FILE = "ingest-rest.properties";
 
     /**
      * main method that runs a server
+     * 
      * @param args
      * @throws IOException
      * @throws VitamException
      */
     // FIXME REVIEW Use same logic than Logbook
-    //TODO Peut être intéressant d'imprimer la stack trace pour avoir l'information complète de l'erreur avant exit ?
+    // TODO Peut être intéressant d'imprimer la stack trace pour avoir l'information complète de l'erreur avant exit ?
     public static void main(String[] args) throws IOException, VitamException {
 
         MainUpload.serverInitialisation(args);
-        final String port = properties!=null ? properties.getProperty("ingest.core.port"):DEFAULT_PORT;
-        
+        final String port = properties != null ? properties.getProperty("ingest.core.port")
+            : Integer.toString(VitamServerFactory.getDefaultPort());
+
         try {
             MainUpload.serverStarting(Integer.parseInt(port));
             MainUpload.serverJoin();
@@ -89,7 +93,7 @@ public class MainUpload {
                     file = PropertiesUtils.fileFromConfigFolder(PROPERTIES_FILE);
                 }
 
-                FileInputStream fis = new FileInputStream(file);
+                final FileInputStream fis = new FileInputStream(file);
                 properties = new Properties();
                 properties.load(fis);
             } catch (final IOException e) {
@@ -102,6 +106,7 @@ public class MainUpload {
 
     /**
      * runs a server
+     * 
      * @param serverPort
      * @throws Exception
      */
@@ -132,9 +137,9 @@ public class MainUpload {
 
 
 
-
     /**
      * getter for server
+     * 
      * @return Server
      */
     public static Server getServer() {
@@ -143,6 +148,7 @@ public class MainUpload {
 
     /**
      * stops a started server
+     * 
      * @throws Exception
      */
     public static void stopServer() throws Exception {

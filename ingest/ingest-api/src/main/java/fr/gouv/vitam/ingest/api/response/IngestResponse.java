@@ -48,7 +48,7 @@ public class IngestResponse {
     // number of elements in the received SIP
     private Long numberOfElements;
 
-    private List<String> guidNumObjList = new ArrayList<>();
+    private final List<String> guidNumObjList = new ArrayList<>();
 
     /**
      * @return the numberOfElements in a received SIP
@@ -180,11 +180,11 @@ public class IngestResponse {
 
     /**
      * Setter GuidNumObjList
-     * 
+     *
      * @param guidNumObjList
      */
     public IngestResponse setGuidNumObjList(List<String> guidNumObjList) {
-        if( guidNumObjList!=null && !guidNumObjList.isEmpty() ) {
+        if (guidNumObjList != null && !guidNumObjList.isEmpty()) {
             this.guidNumObjList.addAll(guidNumObjList);
         }
         return this;

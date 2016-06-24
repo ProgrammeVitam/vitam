@@ -41,22 +41,26 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.core.database.collections.MongoDbAccess;
 
 public class MongoDbAccessFactoryTest {
 
     private static final String DATABASE_HOST = "localhost";
-    private static final int DATABASE_PORT = 12345;
     static MongoDbAccess mongoDbAccess;
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
+    private static JunitHelper junitHelper;
+    private static int port;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         final MongodStarter starter = MongodStarter.getDefaultInstance();
+        junitHelper = new JunitHelper();
+        port = junitHelper.findAvailablePort();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .version(Version.Main.PRODUCTION)
-            .net(new Net(DATABASE_PORT, Network.localhostIsIPv6()))
+            .net(new Net(port, Network.localhostIsIPv6()))
             .build());
         mongod = mongodExecutable.start();
     }
@@ -68,12 +72,13 @@ public class MongoDbAccessFactoryTest {
     public static void tearDownAfterClass() throws Exception {
         mongod.stop();
         mongodExecutable.stop();
+        junitHelper.releasePort(port);
     }
 
     @Test
     public void testCreateFn() {
         mongoDbAccess = new MongoDbAccessFactory()
-            .create(new MetaDataConfiguration(DATABASE_HOST, DATABASE_PORT, "vitam-test"));
+            .create(new MetaDataConfiguration(DATABASE_HOST, port, "vitam-test"));
         assertNotNull(mongoDbAccess);
         assertEquals("vitam-test", mongoDbAccess.getMongoDatabase().getName());
         mongoDbAccess.closeFinal();

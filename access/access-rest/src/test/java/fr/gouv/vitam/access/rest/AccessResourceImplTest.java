@@ -58,6 +58,7 @@ import fr.gouv.vitam.common.server.VitamServer;
 public class AccessResourceImplTest extends JerseyTest {
 
 
+    private static final String X_HTTP_METHOD_OVERRIDE = "X-Http-Method-Override";
     // URI
     private static final String ACCESS_CONF = "access.conf";
     private static final String ACCESS_RESOURCE_URI = "access/v1";
@@ -65,7 +66,6 @@ public class AccessResourceImplTest extends JerseyTest {
     private static final String ACCESS_UNITS_URI = "/units";
 
     private static final int ASSURD_SERVER_PORT = 8187;
-
 
     private static VitamServer vitamServer;
 
@@ -87,7 +87,6 @@ public class AccessResourceImplTest extends JerseyTest {
 
     // LOGGER
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessResourceImplTest.class);
-
 
 
     @BeforeClass
@@ -157,7 +156,7 @@ public class AccessResourceImplTest extends JerseyTest {
     // Status
     /**
      * Tests the state of the access service API by get
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -169,7 +168,7 @@ public class AccessResourceImplTest extends JerseyTest {
     // Error cases
     /**
      * Test if the request is inconsistent
-     * 
+     *
      * @throws Exception
      */
     @Ignore("To implement")
@@ -179,26 +178,26 @@ public class AccessResourceImplTest extends JerseyTest {
 
     /**
      * Checks if the send parameter doesn't have Json format
-     * 
+     *
      * @throws Exception
      */
     @Test
     public void givenStartedServer_WhenRequestNotJson_ThenReturnError_UnsupportedMediaType() throws Exception {
         given()
-            .contentType(ContentType.XML).header("X-HTTP-Method-Override", "GET")
+            .contentType(ContentType.XML).header(X_HTTP_METHOD_OVERRIDE, "GET")
             .body(buildDSLWithOptions(QUERY_TEST, DATA2))
             .when().post(ACCESS_UNITS_URI).then().statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
     }
 
     /**
      * Checks if the send parameter is a bad request
-     * 
+     *
      * @throws Exception
      */
     @Test
     public void givenStartedServer_WhenBadRequest_ThenReturnError_BadRequest() throws Exception {
         given()
-            .contentType(ContentType.JSON).header("X-HTTP-Method-Override", "GET")
+            .contentType(ContentType.JSON).header(X_HTTP_METHOD_OVERRIDE, "GET")
             .body(buildDSLWithOptions(QUERY_TEST, DATA2))
             .when().post(ACCESS_UNITS_URI).then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
@@ -206,7 +205,7 @@ public class AccessResourceImplTest extends JerseyTest {
     @Test
     public void givenStartedServer_When_BadRequest_ThenReturnError_BadRequest() throws Exception {
         given()
-            .contentType(ContentType.JSON).header("X-HTTP-Method-Override", "GET")
+            .contentType(ContentType.JSON).header(X_HTTP_METHOD_OVERRIDE, "GET")
             .body(buildDSLWithOptions(QUERY_TEST, DATA2))
             .when().post(ACCESS_UNITS_URI).then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
@@ -214,7 +213,7 @@ public class AccessResourceImplTest extends JerseyTest {
     @Test
     public void givenStartedServer_When_Empty_Http_Get_ThenReturnError_METHOD_NOT_ALLOWED() throws Exception {
         given()
-            .contentType(ContentType.JSON).header("X-HTTP-Method-Override", "ABC")
+            .contentType(ContentType.JSON).header(X_HTTP_METHOD_OVERRIDE, "ABC")
             .body(buildDSLWithOptions(QUERY_TEST, DATA2))
             .when().post(ACCESS_UNITS_URI).then().statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
     }

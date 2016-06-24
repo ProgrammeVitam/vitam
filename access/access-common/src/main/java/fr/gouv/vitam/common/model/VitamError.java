@@ -47,7 +47,7 @@ public final class VitamError {
      * RequestResponseError constructor <br>
      * <br>
      * null is not allowed errors will be initialized with an immutable empty list
-     * 
+     *
      *
      * @param code the code used to identify this error object
      **/
@@ -185,8 +185,8 @@ public final class VitamError {
 
     /**
      * @return the errors list of the VitamError object
-     * 
-     * 
+     *
+     *
      */
     public List<VitamError> getErrors() {
         return errors;

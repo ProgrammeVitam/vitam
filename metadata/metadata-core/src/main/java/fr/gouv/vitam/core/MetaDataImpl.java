@@ -65,6 +65,8 @@ public final class MetaDataImpl implements MetaData {
      * MetaDataImpl constructor
      *
      * @param configuration of mongoDB access
+     * @param mongoDbAccessFactory 
+     * @param dbRequestFactory 
      */
     // FIXME REVIEW should be private and adding public static final Metadata newMetadata(...) calling this private
     // constructor
@@ -92,6 +94,8 @@ public final class MetaDataImpl implements MetaData {
             throw e;
         } catch (InstantiationException | IllegalAccessException e) {
             throw new MetaDataExecutionException(e);
+        } catch (final MetaDataAlreadyExistException e) {
+            throw e;
         } catch (final MongoWriteException e) {
             throw new MetaDataAlreadyExistException(e);
         }
@@ -171,6 +175,10 @@ public final class MetaDataImpl implements MetaData {
             LOGGER.error(e);
             throw new MetaDataExecutionException(e);
         } catch (final IllegalAccessException e) {
+            LOGGER.error(e);
+            throw new MetaDataExecutionException(e);
+        } catch (MetaDataAlreadyExistException | MetaDataNotFoundException e) {
+            // Should not happen there
             LOGGER.error(e);
             throw new MetaDataExecutionException(e);
         }

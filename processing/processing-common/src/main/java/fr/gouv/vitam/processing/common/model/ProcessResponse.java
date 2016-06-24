@@ -157,15 +157,16 @@ public class ProcessResponse implements EngineResponse {
 
     /**
      * getMessageFromResponse return message id from list of response
+     * 
      * @param responses list of step response
-     * @return message id 
+     * @return message id
      */
     public static String getMessageFromResponse(List<EngineResponse> responses) {
         String messageId = "";
 
         if (responses != null) {
             for (final EngineResponse response : responses) {
-                if(!response.getMessageIdentifier().isEmpty()) {
+                if (!response.getMessageIdentifier().isEmpty()) {
                     messageId = response.getMessageIdentifier();
                 }
             }
@@ -192,7 +193,7 @@ public class ProcessResponse implements EngineResponse {
     @Override
     public EngineResponse setMessageIdentifier(String message) {
         if (message != null) {
-            this.messageId = message;
+            messageId = message;
         }
         return this;
     }

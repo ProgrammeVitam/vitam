@@ -35,7 +35,7 @@ import fr.gouv.vitam.access.api.AccessResource;
 
 /**
  * Using the Mock Class in order to simulate Access Client Resource if config file does not exist
- * 
+ *
  */
 @Path("/accessMock")
 @Consumes("application/json")
@@ -54,6 +54,7 @@ public class AccessResourceMock implements AccessResource {
     /**
      * get status
      */
+    @Override
     @GET
     @Path("/status")
     public Response getStatus() {
@@ -63,6 +64,7 @@ public class AccessResourceMock implements AccessResource {
     /**
      * get units list
      */
+    @Override
     @POST
     @Path("/units")
     public Response getUnits(String requestDsl, @HeaderParam("X-HTTP-Method-Override") String headerParam) {

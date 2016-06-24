@@ -12,46 +12,46 @@ import java.net.ServerSocket;
 
 import org.junit.Test;
 
-import fr.gouv.vitam.common.junit.JunitFindAvailablePort;
-
-public class JunitFindAvailablePortTest {
+public class JunitHelperTest {
 
     @Test
     public void testArgumentError() throws Throwable {
-        JunitFindAvailablePort junitFindAvailablePort0 = new JunitFindAvailablePort();
+        final JunitHelper junitFindAvailablePort0 = new JunitHelper();
         try {
             junitFindAvailablePort0.isListeningOn("znN>", -4608);
             fail("Expecting exception: IllegalArgumentException");
-        } catch (IllegalArgumentException e) {}
+        } catch (final IllegalArgumentException e) {}
         try {
             junitFindAvailablePort0.isListeningOn("znN>", 65536);
             fail("Expecting exception: IllegalArgumentException");
 
-        } catch (IllegalArgumentException e) {}
+        } catch (final IllegalArgumentException e) {}
         try {
             junitFindAvailablePort0.isListeningOn(-4608);
             fail("Expecting exception: IllegalArgumentException");
 
-        } catch (IllegalArgumentException e) {}
+        } catch (final IllegalArgumentException e) {}
         try {
             junitFindAvailablePort0.isListeningOn(65536);
             fail("Expecting exception: IllegalArgumentException");
 
-        } catch (IllegalArgumentException e) {}
+        } catch (final IllegalArgumentException e) {}
         assertFalse(junitFindAvailablePort0.isListeningOn("znN>", 1025));
     }
 
     @Test
     public void testActivatePort() throws Throwable {
-        JunitFindAvailablePort junitFindAvailablePort0 = new JunitFindAvailablePort();
+        final JunitHelper junitFindAvailablePort0 = new JunitHelper();
         int port = junitFindAvailablePort0.findAvailablePort();
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             serverSocket.setReuseAddress(true);
             assertTrue(junitFindAvailablePort0.isListeningOn(port));
             assertTrue(junitFindAvailablePort0.isListeningOn(null, port));
         }
+        junitFindAvailablePort0.releasePort(port);
         port = junitFindAvailablePort0.findAvailablePort();
         assertFalse(junitFindAvailablePort0.isListeningOn(port));
         assertFalse(junitFindAvailablePort0.isListeningOn(null, port));
+        junitFindAvailablePort0.releasePort(port);
     }
 }

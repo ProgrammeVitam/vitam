@@ -40,7 +40,7 @@ public class RequestResponseErrorTest {
 
     @Test
     public final void givenAccessConfiguration_WithNullAttributes_WhenInstanciate_ThenReturnTrue() {
-        RequestResponseError requestResponseError = new RequestResponseError();
+        final RequestResponseError requestResponseError = new RequestResponseError();
         assertThat(requestResponseError.getError()).isNull();
         assertThat(requestResponseError.getQuery()).isNull();
     }
@@ -51,7 +51,7 @@ public class RequestResponseErrorTest {
         final String json = "{\"objects\" : [\"One\", \"Two\", \"Three\"]}";
         query = new ObjectMapper().readTree(json).get("objects");
         error = new VitamError(0);
-        RequestResponseError requestResponseError = new RequestResponseError();
+        final RequestResponseError requestResponseError = new RequestResponseError();
         requestResponseError.setQuery(query);
         requestResponseError.setError(error);
         assertThat(requestResponseError.getQuery()).isNotNull();

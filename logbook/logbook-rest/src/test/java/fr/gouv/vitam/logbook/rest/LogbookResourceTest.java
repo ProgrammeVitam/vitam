@@ -31,7 +31,6 @@ import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.with;
 
 import java.io.File;
-import java.io.FileOutputStream;
 
 import javax.ws.rs.core.Response.Status;
 
@@ -40,8 +39,6 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
@@ -58,7 +55,7 @@ import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.junit.JunitFindAvailablePort;
+import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.BasicVitamServer;
@@ -100,7 +97,7 @@ public class LogbookResourceTest {
     private static final String BODY_TEST = "{$query: {$eq: {\"aa\" : \"vv\" }}, $projection: {}, $filter: {}}";
     private static final String BODY_QUERY = "{$query: {$eq: {\"evType\" : \"eventTypeValueSelect\"}}, $projection: {}, $filter: {}}";
     public static String X_HTTP_METHOD_OVERRIDE = "X-HTTP-Method-Override";
-
+    private static JunitHelper junitHelper;
 
     
     @BeforeClass
@@ -108,16 +105,13 @@ public class LogbookResourceTest {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
 
-        JunitFindAvailablePort junitFindAvailablePort = new JunitFindAvailablePort();
-        databasePort = junitFindAvailablePort.findAvailablePort();
+        junitHelper = new JunitHelper();
+        databasePort = junitHelper.findAvailablePort();
         File logbook = PropertiesUtils.findFile(LOGBOOK_CONF);
         LogbookConfiguration realLogbook = PropertiesUtils.readYaml(logbook, LogbookConfiguration.class);
         realLogbook.setDbPort(databasePort);
         newLogbookConf = File.createTempFile("test", LOGBOOK_CONF, logbook.getParentFile());
-        try (FileOutputStream outputStream = new FileOutputStream(newLogbookConf)) {
-            final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-            mapper.writeValue(outputStream, realLogbook);
-        }
+        PropertiesUtils.writeYaml(newLogbookConf, realLogbook);
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .version(Version.Main.PRODUCTION)
@@ -128,7 +122,7 @@ public class LogbookResourceTest {
             MongoDbAccessFactory.create(
                 new DbConfigurationImpl(DATABASE_HOST, databasePort,
                     "vitam-test"));
-        serverPort = junitFindAvailablePort.findAvailablePort();
+        serverPort = junitHelper.findAvailablePort();
 
         RestAssured.port = serverPort;
         RestAssured.basePath = REST_URI;
@@ -180,9 +174,11 @@ public class LogbookResourceTest {
             LOGGER.error(e);
         }
         mongoDbAccess.close();
+        junitHelper.releasePort(serverPort);
         mongod.stop();
         mongodExecutable.stop();
         newLogbookConf.delete();
+        junitHelper.releasePort(databasePort);
     }
 
     @Test

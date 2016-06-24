@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -34,22 +34,22 @@ import java.util.List;
 import org.junit.Test;
 
 /**
- * 
+ *
  */
 public class IngestResponseTest {
-    private String cause = "cause";
-    private String message = "message";
-    private String containerGuid = "containerGuid";
-    private String sedaGuid = "sedaGUid";
-    private Boolean errorOccured = Boolean.TRUE;
-    private Long numberOfNumericalObject = 1L;
-    private Long numberOfElements = 1L;
+    private final String cause = "cause";
+    private final String message = "message";
+    private final String containerGuid = "containerGuid";
+    private final String sedaGuid = "sedaGUid";
+    private final Boolean errorOccured = Boolean.TRUE;
+    private final Long numberOfNumericalObject = 1L;
+    private final Long numberOfElements = 1L;
 
-    private List<String> guidNumObjList = new ArrayList<>();
+    private final List<String> guidNumObjList = new ArrayList<>();
 
     @Test
     public void givenIngestResponseNotNull_whenInstantiateWithNotAttributes_thenReturnTrue() {
-        IngestResponse ingestResponse = new IngestResponse();
+        final IngestResponse ingestResponse = new IngestResponse();
 
         assertThat(ingestResponse.getCause()).isNullOrEmpty();
         assertThat(ingestResponse.getContainerGuid()).isNullOrEmpty();
@@ -65,7 +65,7 @@ public class IngestResponseTest {
 
     @Test
     public void givenIngestResponseNotNull_whenInstantiateWithAttributes_thenReturnTrue() {
-        IngestResponse ingestResponse = new IngestResponse();
+        final IngestResponse ingestResponse = new IngestResponse();
 
         ingestResponse.setCause(cause).setMessage(message).setContainerGuid(containerGuid).setSedaGuid(sedaGuid)
             .setErrorOccured(errorOccured).setNumberOfNumericalObject(numberOfNumericalObject)

@@ -37,7 +37,7 @@ public class UploadResponseDTOTest {
     @Test
     public final void test() {
 
-        UploadResponseDTO uploadResponseDTO = new UploadResponseDTO();
+        final UploadResponseDTO uploadResponseDTO = new UploadResponseDTO();
         assertNull(uploadResponseDTO.getEngineCode());
         assertNull(uploadResponseDTO.getEngineStatus());
         assertNull(uploadResponseDTO.getFileName());

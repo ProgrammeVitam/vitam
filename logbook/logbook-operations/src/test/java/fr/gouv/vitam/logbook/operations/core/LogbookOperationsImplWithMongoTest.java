@@ -51,6 +51,7 @@ import fr.gouv.vitam.builder.singlerequest.Select;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
@@ -66,10 +67,11 @@ import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 public class LogbookOperationsImplWithMongoTest {
 
     private static final String DATABASE_HOST = "localhost";
-    private static final int DATABASE_PORT = 12346;
     static MongoDbAccess mongoDbAccess;
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
+    private static JunitHelper junitHelper;
+    private static int port;
 
     private LogbookOperationsImpl logbookOperationsImpl;
     private static LogbookOperationParameters logbookParametersStart;
@@ -88,14 +90,16 @@ public class LogbookOperationsImplWithMongoTest {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         final MongodStarter starter = MongodStarter.getDefaultInstance();
+        junitHelper = new JunitHelper();
+        port = junitHelper.findAvailablePort();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .version(Version.Main.PRODUCTION)
-            .net(new Net(DATABASE_PORT, Network.localhostIsIPv6()))
+            .net(new Net(port, Network.localhostIsIPv6()))
             .build());
         mongod = mongodExecutable.start();
         mongoDbAccess =
             MongoDbAccessFactory.create(
-                new DbConfigurationImpl(DATABASE_HOST, DATABASE_PORT,
+                new DbConfigurationImpl(DATABASE_HOST, port,
                     "vitam-test"));
         
         String datestring1 = "2015-01-01";
@@ -103,13 +107,12 @@ public class LogbookOperationsImplWithMongoTest {
         String datestring3 = "1990-10-01";
         
         logbookParametersStart = LogbookParametersFactory.newLogbookOperationParameters(
-            eip.getId(),
-            "eventType", eip.getId(), LogbookTypeProcess.INGEST,
-            LogbookOutcome.STARTED, "start ingest", "x-request-id");        
+            eip, "eventType", eip, LogbookTypeProcess.INGEST,
+            LogbookOutcome.STARTED, "start ingest", eip);        
         logbookParametersAppend = LogbookParametersFactory.newLogbookOperationParameters(
-            GUIDFactory.newOperationIdGUID(0).getId(),
-            "eventType", eip.getId(), LogbookTypeProcess.INGEST,
-            LogbookOutcome.OK, "end ingest", "x-request-id");
+            GUIDFactory.newOperationIdGUID(0),
+            "eventType", eip, LogbookTypeProcess.INGEST,
+            LogbookOutcome.OK, "end ingest", eip);
         logbookParametersWrongStart = LogbookParametersFactory.newLogbookOperationParameters(
             eip.getId(),
             "eventType", eip.getId(), LogbookTypeProcess.INGEST,
@@ -141,6 +144,7 @@ public class LogbookOperationsImplWithMongoTest {
         mongoDbAccess.close();
         mongod.stop();
         mongodExecutable.stop();
+        junitHelper.releasePort(port);
     }
 
     @Test

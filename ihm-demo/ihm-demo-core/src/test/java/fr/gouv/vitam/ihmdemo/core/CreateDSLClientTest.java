@@ -22,23 +22,24 @@ public class CreateDSLClientTest {
         "\tFilter: {\"$limit\":10000,\"$orderby\":{\"date\":1}}\n" +
         "\tRoots: []\n" +
         "\tProjection: {}\n" +
-        "\tLastLevel: 1";   
-	@Test
-	public void testSearchCriteriaQueries() throws InvalidCreateOperationException, InvalidParseOperationException {
+        "\tLastLevel: 1";
 
-		HashMap<String, String> myHashMap = new HashMap<String, String>();
-		myHashMap.put("title", "Archive2");
-		myHashMap.put("date", "2006-03-05");
-		myHashMap.put("orderby", "date");
-		myHashMap.put("obIdIn", "name");
-		myHashMap.put("INGEST", "date");
+    @Test
+    public void testSearchCriteriaQueries() throws InvalidCreateOperationException, InvalidParseOperationException {
 
-		String request = CreateDSLClient.createSelectDSLQuery(myHashMap);
-		assertNotNull(request);
-		final SelectParser request2 = new SelectParser();
-		request2.parse(request);
-		assertEquals(result, request2.toString());
+        final HashMap<String, String> myHashMap = new HashMap<String, String>();
+        myHashMap.put("title", "Archive2");
+        myHashMap.put("date", "2006-03-05");
+        myHashMap.put("orderby", "date");
+        myHashMap.put("obIdIn", "name");
+        myHashMap.put("INGEST", "date");
 
-	}
+        final String request = CreateDSLClient.createSelectDSLQuery(myHashMap);
+        assertNotNull(request);
+        final SelectParser request2 = new SelectParser();
+        request2.parse(request);
+        assertEquals(result, request2.toString());
+
+    }
 
 }

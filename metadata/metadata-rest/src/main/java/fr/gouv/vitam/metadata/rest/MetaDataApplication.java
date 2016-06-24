@@ -42,13 +42,13 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import fr.gouv.vitam.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.VitamServerFactory;
 
 /**
  * MetaData web server application
  */
 public class MetaDataApplication {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetaDataApplication.class);
-    private static final int DEFAULT_PORT = 8082;
 
     private static Server server;
     private MetaDataConfiguration configuration;
@@ -87,12 +87,12 @@ public class MetaDataApplication {
                 final FileReader yamlFile = new FileReader(new File(arguments[0]));
                 final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
                 configuration = mapper.readValue(yamlFile, MetaDataConfiguration.class);
-                int serverPort = DEFAULT_PORT;
+                int serverPort = VitamServerFactory.getDefaultPort();
 
                 if (arguments.length >= 2) {
                     serverPort = Integer.parseInt(arguments[1]);
                     if (serverPort <= 0) {
-                        serverPort = DEFAULT_PORT;
+                        serverPort = VitamServerFactory.getDefaultPort();
                     }
                 }
                 run(configuration, serverPort);
@@ -130,6 +130,16 @@ public class MetaDataApplication {
         server = new Server(serverPort);
         server.setHandler(context);
         server.start();
+    }
+    
+    /**
+     * Stops the server
+     * @throws Exception
+     */
+    public static void stop() throws Exception {
+        if (server.isStarted()) {
+            server.stop();
+        }
     }
 
 }

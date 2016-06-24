@@ -59,7 +59,7 @@ public class AccessModuleBean {
 
     /**
      * Setter RequestDsl
-     * 
+     *
      * @param requestDsl - return type String
      */
     public AccessModuleBean setRequestDsl(String requestDsl) {
@@ -80,7 +80,7 @@ public class AccessModuleBean {
      * @param xRequestId -return GUID
      */
     public AccessModuleBean setxRequestId(GUID xRequestId) {
-        this.requestId = xRequestId;
+        requestId = xRequestId;
         return this;
     }
 }
