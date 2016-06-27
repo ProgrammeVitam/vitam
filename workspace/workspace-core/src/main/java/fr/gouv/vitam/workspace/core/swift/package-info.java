@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- *
+ * 
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -24,40 +24,8 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.workspace.core;
-
-import java.util.Properties;
-
-import org.jclouds.ContextBuilder;
-import org.jclouds.blobstore.BlobStoreContext;
-import org.jclouds.filesystem.reference.FilesystemConstants;
-
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
-
 
 /**
- * FileSystemMock implements a Content Addressable Storage that stores objects on the file system.
+ * This package contains Swift implementation
  */
-public class FileSystem extends ContentAddressableStorageImpl {
-
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(FileSystem.class);
-
-    /**
-     * @param configuration to associate with the FileSystem
-     */
-    public FileSystem(StorageConfiguration configuration) {
-        super(configuration);
-    }
-
-    @Override
-    public BlobStoreContext getContext(StorageConfiguration configuration) {
-        final Properties props = new Properties();
-        props.setProperty(FilesystemConstants.PROPERTY_BASEDIR, configuration.getStoragePath());
-        LOGGER.info("Get File System Context");
-        return ContextBuilder.newBuilder("filesystem").overrides(props).buildView(BlobStoreContext.class);
-
-    }
-
-}
+package fr.gouv.vitam.workspace.core.swift;

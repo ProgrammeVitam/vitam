@@ -66,6 +66,8 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookClientFactory;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 
@@ -87,6 +89,8 @@ public class UploadServiceImpl extends AbstractService implements UploadService 
     private static final String URI_PROCESSING = "ingest.core.processing.uri";
     private static final String URL_WORKSPACE = "workspace.client.url";
     private Properties properties = null;
+    
+    private static final String SIP_FOLDER = "SIP";
 
     public UploadServiceImpl() throws IngestException {
 
@@ -244,12 +248,14 @@ public class UploadServiceImpl extends AbstractService implements UploadService 
      * @param Url
      * @param containerName
      * @param uploadedInputStream
+     * @throws ContentAddressableStorageAlreadyExistException 
      */
     private void runOperation(String Url, String containerName, InputStream uploadedInputStream)
-        throws ContentAddressableStorageServerException {
+        throws ContentAddressableStorageServerException, ContentAddressableStorageAlreadyExistException, ContentAddressableStorageNotFoundException {
         // call workspace
         final WorkspaceClient workspaceClient = new WorkspaceClient(Url);
-        workspaceClient.unzipSipObject(containerName, uploadedInputStream);
+        workspaceClient.createContainer(containerName);
+        workspaceClient.unzipObject(containerName,SIP_FOLDER, uploadedInputStream);
     }
 
     /**

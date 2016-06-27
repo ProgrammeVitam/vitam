@@ -24,7 +24,20 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-/**
- * This package contains Workspace implementation
- */
-package fr.gouv.vitam.workspace.core;
+package fr.gouv.vitam.workspace.api.exception;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import org.junit.Test;
+
+public class ContentAddressableStorageNotFoundExceptionTest {
+    
+    @Test
+    public void testContentAddressableStorageNotFoundExceptionThrowable() throws Exception {
+        assertEquals(null, new ContentAddressableStorageNotFoundException((String) null).getMessage());
+        assertEquals("test", new ContentAddressableStorageNotFoundException("test").getMessage());
+        assertNotNull(new ContentAddressableStorageNotFoundException(new Exception()).getCause());
+        assertNotNull(new ContentAddressableStorageNotFoundException("test", new Exception()).getCause());
+    }
+}

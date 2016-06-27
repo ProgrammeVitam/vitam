@@ -95,7 +95,7 @@ public class WorkspaceClientContainerTest extends WorkspaceClientTest {
 
         @HEAD
         @Path("{containerName}")
-        public Response containerExists(@PathParam("containerName") String containerName) {
+        public Response isExistingContainer(@PathParam("containerName") String containerName) {
             return expectedResponse.head();
         }
     }
@@ -163,24 +163,24 @@ public class WorkspaceClientContainerTest extends WorkspaceClientTest {
     // check existence
     @Test(expected = IllegalArgumentException.class)
     public void givenNullParamWhenCheckContainerExistenceThenRaiseAnException() {
-        client.containerExists(null);
+        client.isExistingContainer(null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void givenEmptyParamWhenCheckContainerExistenceThenRaiseAnException() {
-        client.containerExists("");
+        client.isExistingContainer("");
     }
 
     @Test
     public void givenContainerAlreadyExistsWhenCheckContainerExistenceThenReturnTrue() {
         when(mock.head()).thenReturn(Response.status(Status.OK).build());
-        assertTrue(client.containerExists(CONTAINER_NAME));
+        assertTrue(client.isExistingContainer(CONTAINER_NAME));
     }
 
     @Test
     public void givenContainerAlreadyExistsWhenCheckContainerExistenceThenReturnFalse() {
         when(mock.head()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        assertFalse(client.containerExists(CONTAINER_NAME));
+        assertFalse(client.isExistingContainer(CONTAINER_NAME));
     }
 
 }

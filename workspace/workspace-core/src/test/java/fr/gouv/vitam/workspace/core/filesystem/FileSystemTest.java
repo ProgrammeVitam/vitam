@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.workspace.core;
+package fr.gouv.vitam.workspace.core.filesystem;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -40,18 +40,23 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.digest.Digest;
+import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.common.ParametersChecker;
+import fr.gouv.vitam.workspace.core.ContentAddressableStorageAbstract;
+import fr.gouv.vitam.workspace.core.filesystem.FileSystem;
+
 
 public class FileSystemTest {
 
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
 
-    private ContentAddressableStorageImpl workspace;
+    private ContentAddressableStorageAbstract workspace;
     private File tempDir;
     private static final String CONTAINER_NAME = "myContainer";
     private static final String FOLDER_NAME = "myFolder";
@@ -60,7 +65,8 @@ public class FileSystemTest {
     private static final String SIP_CONTAINER = "sipContainer";
     private static final String SIP_FOLDER = "SIP";
     private static final String CONTENT_FOLDER = "Content";
-    private static final String MANIFEST_NAME = "sip/manifest.xml";
+    private static final String MANIFEST_NAME = "manifest.xml";
+    private static final DigestType ALGO = DigestType.MD5;
 
     @Before
     public void setup() throws IOException {
@@ -73,14 +79,14 @@ public class FileSystemTest {
     // Container
     @Test
     public void givenContainerNotFoundWhenCheckContainerExistenceThenRetunFalse() {
-        assertFalse(workspace.containerExists(CONTAINER_NAME));
+        assertFalse(workspace.isExistingContainer(CONTAINER_NAME));
     }
 
     @Test
     public void givenContainerAlreadyExistsWhenCheckContainerExistenceThenRetunFalse()
         throws ContentAddressableStorageAlreadyExistException {
         workspace.createContainer(CONTAINER_NAME);
-        assertTrue(workspace.containerExists(CONTAINER_NAME));
+        assertTrue(workspace.isExistingContainer(CONTAINER_NAME));
     }
 
     @Test(expected = ContentAddressableStorageException.class)
@@ -89,7 +95,7 @@ public class FileSystemTest {
         workspace.createContainer(CONTAINER_NAME);
 
         workspace.createContainer(CONTAINER_NAME);
-        assertFalse(workspace.containerExists(CONTAINER_NAME));
+        assertFalse(workspace.isExistingContainer(CONTAINER_NAME));
     }
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
@@ -108,7 +114,7 @@ public class FileSystemTest {
     public void givenContainerNotFoundWhenCreateContainerThenOK()
         throws ContentAddressableStorageAlreadyExistException {
         workspace.createContainer(CONTAINER_NAME);
-        assertTrue(workspace.containerExists(CONTAINER_NAME));
+        assertTrue(workspace.isExistingContainer(CONTAINER_NAME));
     }
 
     @Test
@@ -117,7 +123,7 @@ public class FileSystemTest {
         workspace.createContainer(CONTAINER_NAME);
 
         workspace.deleteContainer(CONTAINER_NAME);
-        assertFalse(workspace.containerExists(CONTAINER_NAME));
+        assertFalse(workspace.isExistingContainer(CONTAINER_NAME));
     }
 
     @Test
@@ -126,7 +132,7 @@ public class FileSystemTest {
         workspace.createContainer(CONTAINER_NAME);
 
         workspace.purgeContainer(CONTAINER_NAME);
-        assertTrue(workspace.containerExists(CONTAINER_NAME));
+        assertTrue(workspace.isExistingContainer(CONTAINER_NAME));
     }
 
     @Test
@@ -136,15 +142,15 @@ public class FileSystemTest {
         workspace.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"));
 
         workspace.purgeContainer(CONTAINER_NAME);
-        assertTrue(workspace.containerExists(CONTAINER_NAME));
-        assertFalse(workspace.objectExists(CONTAINER_NAME, OBJECT_NAME));
+        assertTrue(workspace.isExistingContainer(CONTAINER_NAME));
+        assertFalse(workspace.isExistingObject(CONTAINER_NAME, OBJECT_NAME));
     }
 
     // Folder
 
     @Test
     public void givenFolderNotFoundWhenCheckContainerExistenceThenRetunFalse() {
-        assertFalse(workspace.folderExists(CONTAINER_NAME, FOLDER_NAME));
+        assertFalse(workspace.isExistingFolder(CONTAINER_NAME, FOLDER_NAME));
     }
 
     @Test
@@ -153,7 +159,7 @@ public class FileSystemTest {
         workspace.createContainer(CONTAINER_NAME);
         workspace.createFolder(CONTAINER_NAME, FOLDER_NAME);
 
-        assertTrue(workspace.folderExists(CONTAINER_NAME, FOLDER_NAME));
+        assertTrue(workspace.isExistingFolder(CONTAINER_NAME, FOLDER_NAME));
     }
 
     @Test(expected = ContentAddressableStorageException.class)
@@ -191,7 +197,7 @@ public class FileSystemTest {
         workspace.createContainer(CONTAINER_NAME);
 
         workspace.createFolder(CONTAINER_NAME, FOLDER_NAME);
-        assertTrue(workspace.folderExists(CONTAINER_NAME, FOLDER_NAME));
+        assertTrue(workspace.isExistingFolder(CONTAINER_NAME, FOLDER_NAME));
     }
 
     @Test
@@ -201,14 +207,14 @@ public class FileSystemTest {
         workspace.createFolder(CONTAINER_NAME, FOLDER_NAME);
 
         workspace.deleteFolder(CONTAINER_NAME, FOLDER_NAME);
-        assertFalse(workspace.folderExists(CONTAINER_NAME, FOLDER_NAME));
+        assertFalse(workspace.isExistingFolder(CONTAINER_NAME, FOLDER_NAME));
     }
 
     // Object
 
     @Test
     public void givenObjectNotFoundWhenCheckObjectExistenceThenRetunFalse() {
-        assertFalse(workspace.objectExists(CONTAINER_NAME, OBJECT_NAME));
+        assertFalse(workspace.isExistingObject(CONTAINER_NAME, OBJECT_NAME));
     }
 
     @Test
@@ -217,7 +223,7 @@ public class FileSystemTest {
         workspace.createContainer(CONTAINER_NAME);
         workspace.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"));
 
-        assertTrue(workspace.objectExists(CONTAINER_NAME, OBJECT_NAME));
+        assertTrue(workspace.isExistingObject(CONTAINER_NAME, OBJECT_NAME));
     }
 
     @Test
@@ -281,28 +287,54 @@ public class FileSystemTest {
         workspace.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"));
 
         workspace.deleteObject(CONTAINER_NAME, OBJECT_NAME);
-        assertFalse(workspace.objectExists(CONTAINER_NAME, OBJECT_NAME));
+        assertFalse(workspace.isExistingObject(CONTAINER_NAME, OBJECT_NAME));
+    }
+    
+    
+    @Test(expected = ContentAddressableStorageNotFoundException.class)
+    public void givenContainerNotFoundWhenComputeObjectDigestThenRaiseAnException()
+        throws ContentAddressableStorageException {
+        workspace.computeObjectDigest(CONTAINER_NAME, OBJECT_NAME, ALGO);
+    }
+
+    @Test(expected = ContentAddressableStorageNotFoundException.class)
+    public void givenObjectNotFoundWhenComputeObjectDigestThenRaiseAnException() throws ContentAddressableStorageException {
+        workspace.createContainer(CONTAINER_NAME);
+
+        workspace.computeObjectDigest(CONTAINER_NAME, OBJECT_NAME, ALGO);
+    }
+    
+    @Test
+    public void givenObjectAlreadyExistsWhenWhenComputeObjectDigestThenOK() throws ContentAddressableStorageException, IOException {
+        workspace.createContainer(CONTAINER_NAME);
+        workspace.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"));
+        
+       String messageDigest= workspace.computeObjectDigest(CONTAINER_NAME, OBJECT_NAME, ALGO);
+       Digest digest = new Digest(ALGO);
+       digest.update(getInputStream("file1.pdf"));
+     
+       assertTrue(messageDigest.equals(digest.toString()));
     }
 
     // Check Path parameters (containerName,folder, objectName)
     @Test(expected = IllegalArgumentException.class)
     public void givenNullParamWhenCreateContainerThenRaiseAnException() {
-        ParametersChecker.checkParamater("Null Param", null);
+        ParametersChecker.checkParameter("Null Param", null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void givenEmptyParamWhenCreateContainerThenRaiseAnException() {
-        ParametersChecker.checkParamater("Empty Param", "");
+        ParametersChecker.checkParameter("Empty Param", "");
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void givenNullParamWhenCreateFolderThenRaiseAnException() {
-        ParametersChecker.checkParamater("Null Param", CONTAINER_NAME, null);
+        ParametersChecker.checkParameter("Null Param", CONTAINER_NAME, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void givenEmptyParamWhenCreateFolderOThenRaiseAnException() {
-        ParametersChecker.checkParamater("Empty Param", CONTAINER_NAME, "");
+        ParametersChecker.checkParameter("Empty Param", CONTAINER_NAME, "");
     }
 
     private InputStream getInputStream(String file) throws IOException {
@@ -347,29 +379,40 @@ public class FileSystemTest {
         assertThat(workspace.getListUriDigitalObjectFromFolder(SIP_CONTAINER, SIP_FOLDER)).hasSize(3);
     }
 
-
-    @Test
-    public void given_ZipInputStream_when_Finish_Then_ObjectExistsOnContainer() throws IOException, Exception {
-        workspace.unzipSipObject(CONTAINER_NAME, getInputStream("sip.zip"));
-        assertTrue(workspace.objectExists(CONTAINER_NAME, MANIFEST_NAME));
+    @Test(expected = ContentAddressableStorageNotFoundException.class)
+    public void givenContainerNotFoundWhenUnzipObjectThenRaiseAnException()
+        throws IOException, Exception {
+        
+        workspace.unzipObject(CONTAINER_NAME, SIP_FOLDER, getInputStream("sip.zip"));
     }
-
+    
     @Test(expected = ContentAddressableStorageAlreadyExistException.class)
-    public void givenZipInputStream_containerName_exists_when_Extracting_Then_RaiseAnException()
+    public void givenFolderAlreadyExisitsWhenUnzipObjectThenRaiseAnException()
         throws IOException, Exception {
         workspace.createContainer(CONTAINER_NAME);
-        workspace.unzipSipObject(CONTAINER_NAME, getInputStream("sip.zip"));
-        assertTrue(workspace.objectExists(CONTAINER_NAME, OBJECT_NAME));
+        workspace.createFolder(CONTAINER_NAME, SIP_FOLDER);
+        
+        workspace.unzipObject(CONTAINER_NAME, SIP_FOLDER, getInputStream("sip.zip"));
     }
-
+    
     @Test(expected = ContentAddressableStorageException.class)
-    public void given_EmptyParam_When_UnzipSip_Then_RaiseAnException() throws Exception {
-        workspace.unzipSipObject(CONTAINER_NAME, null);
+    public void givenNullInputStreamWhenUnzipObjectThenRaiseAnException()
+        throws IOException, Exception {
+        workspace.createContainer(CONTAINER_NAME);
+        
+        workspace.unzipObject(CONTAINER_NAME, SIP_FOLDER, null);
+    }
+    
+    @Test
+    public void givenContainerAlreadyExisitsWhenUnzipObjectThenOk()
+        throws IOException, Exception {
+        workspace.createContainer(CONTAINER_NAME);
+        workspace.unzipObject(CONTAINER_NAME, SIP_FOLDER, getInputStream("sip.zip"));
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void given_EmptyContainerNameParam_When_UnzipSip_Then_RaiseAnException() throws Exception {
-        workspace.unzipSipObject(null, null);
+    public void givenEmptyContainerNameParamWhenUnzipSipThenRaiseAnException() throws Exception {
+        workspace.unzipObject(null,null, null);
     }
 
 }

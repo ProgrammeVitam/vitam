@@ -1,4 +1,4 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,8 +23,32 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-/**
- * This package contains Workspace implementation
  */
-package fr.gouv.vitam.workspace.core;
+package fr.gouv.vitam.workspace.common;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+
+import org.junit.Test;
+
+public class UriUtilsTest {
+
+    private final String uriName = "SIP/content/lenovo.html";
+    private final String uriNull = null;
+
+    @Test
+    public void givenUriWhenSplitThenReturnUriStringNotBlankTrue() {
+        final String splitedString = UriUtils.splitUri(uriName);
+        assertNotNull(splitedString);
+        assertNotEquals("", splitedString);
+    }
+
+
+    @Test
+    public void givenNullUriWhenSplitThenRaiseAnException() {
+        final String splitedString = UriUtils.splitUri(uriNull);
+        assertNotNull(splitedString);
+        assertEquals("", splitedString);
+    }
+}

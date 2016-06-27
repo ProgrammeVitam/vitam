@@ -1,4 +1,4 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,38 +23,21 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
-package fr.gouv.vitam.common;
+ *******************************************************************************/
+package fr.gouv.vitam.workspace.api.exception;
 
-/**
- * Class Utils that extracts a uri from a path
- *
- */
-public final class UriUtils {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
-    private static final String POINT = ".";
-    private static final String SLASH = "/";
+import org.junit.Test;
 
-    private UriUtils() {
-        // Empty constructor
-    }
+public class ContentAddressableStorageAlreadyExistExceptionTest {
 
-    /**
-     * Removes the extension file and the root folder
-     *
-     * FIXME REVIEW does not what it says
-     *
-     * @param uriString
-     * @return a URI path
-     */
-    public static String splitUri(String uriString) {
-        String splitedString;
-        if (uriString != null && uriString.contains(SLASH) && uriString.contains(POINT)) {
-            final String[] uriWithoutRootFolderTable = uriString.split(SLASH, 2);
-            splitedString = uriWithoutRootFolderTable[1];
-        } else {
-            splitedString = "";
-        }
-        return splitedString;
+    @Test
+    public final void testContentAddressableStorageAlreadyExistExceptionThrowable() {
+        assertEquals(null, new ContentAddressableStorageAlreadyExistException((String) null).getMessage());
+        assertEquals("test", new ContentAddressableStorageAlreadyExistException("test").getMessage());
+        assertNotNull(new ContentAddressableStorageAlreadyExistException(new Exception()).getCause());
+        assertNotNull(new ContentAddressableStorageAlreadyExistException("test", new Exception()).getCause());
     }
 }
