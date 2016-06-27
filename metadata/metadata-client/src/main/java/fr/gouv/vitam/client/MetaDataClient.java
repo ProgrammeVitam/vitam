@@ -33,19 +33,36 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.apache.commons.lang.StringUtils;
+
+import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.api.exception.MetadataInvalidSelectException;
+import fr.gouv.vitam.builder.request.construct.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
-// TODO REVIEW comment
-// TODO REVIEW missing package-info
+/**
+ * MetaData client,contains same methods for select, insert,update and delete the units or/and objects group
+ */
 public class MetaDataClient {
 
     private final Client client;
     private final String url;
     private static final String RESOURCE_PATH = "/metadata/v1";
+
+    private static final String SELECT_UNITS_QUERY_NULL = "Select units query is null";
+    private static final String INSERT_UNITS_QUERY_NULL = "Insert units query is null";
+
+    private static final String ELAPSED_TIME_MESSAGE =
+        "MetaDataClient / Total elapsed time in execution of method";
+    private static final VitamLogger LOGGER =
+        VitamLoggerFactory.getInstance(MetaDataClient.class);
 
 
     /**
@@ -58,13 +75,15 @@ public class MetaDataClient {
     }
 
     /**
-     * @param query as String
+     * @param query as String <br>
+     *        null is not allowed
      * @return : response as String
      * @throws InvalidParseOperationException
      */
-    // FIXME REVIEW since could be Unit or ObjectGroup, name should reflect this (here Unit)
-    public String insert(String insertQuery) throws InvalidParseOperationException {
-        // FIXME REVIEW check null
+    public String insertUnit(String insertQuery) throws InvalidParseOperationException {
+        if (StringUtils.isEmpty(insertQuery)) {
+            throw new IllegalArgumentException(INSERT_UNITS_QUERY_NULL);
+        }
         final Response response = client.target(url).path("units").request(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .post(Entity.entity(insertQuery, MediaType.APPLICATION_JSON), Response.class);
@@ -92,4 +111,40 @@ public class MetaDataClient {
         return client.target(url).path("status").request().get();
     }
 
+    /**
+     * Search units by select query (DSL)
+     * 
+     * @param query : select query {@link Select} as String <br>
+     *        Null is not allowed
+     * @return Json object {$hint:{},$result:[{},{}]}
+     * @throws MetaDataExecutionException thrown when internal Server Error (fatal technical exception thrown)
+     * @throws InvalidParseOperationException
+     * @throws MetaDataDocumentSizeException thrown when Query document Size is Too Large
+     * @throws MetadataInvalidSelectException thrown when invalid select query (reference {@link Select})
+     */
+    public JsonNode selectUnits(String selectQuery)
+        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
+        MetadataInvalidSelectException {
+
+        if (StringUtils.isEmpty(selectQuery)) {
+            throw new MetadataInvalidSelectException(SELECT_UNITS_QUERY_NULL);
+        }
+        long time = System.currentTimeMillis();
+        final Response response =
+            client.target(url).path("units").request(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON).header("X-HTTP-Method-Override", "GET")
+                .post(Entity.entity(selectQuery, MediaType.APPLICATION_JSON), Response.class);
+
+        if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+            throw new MetaDataExecutionException("Internal Server Error");
+        } else if (response.getStatus() == Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode()) {
+            throw new MetaDataDocumentSizeException("Document Size is Too Large");
+        } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
+            throw new InvalidParseOperationException("Invalid Parse Operation");
+        } else if (response.getStatus() == Status.NOT_ACCEPTABLE.getStatusCode()) {
+            throw new MetadataInvalidSelectException("Invalid select query");
+        }
+        LOGGER.info(ELAPSED_TIME_MESSAGE + "selectUnits :" + ((System.currentTimeMillis() - time) / 1000) + "s");
+        return response.readEntity(JsonNode.class);
+    }
 }

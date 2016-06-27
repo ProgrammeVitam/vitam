@@ -51,26 +51,17 @@ public class PropertyUtil {
     public static Properties loadProperties() throws IOException {
         Properties properties;
         final InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(PROPERTIES_FILE);
-
-        if (is != null) {
-            properties = new Properties();
-            properties.load(is);
-        } else {
-            throw new FileNotFoundException("property file " + PROPERTIES_FILE + " not found in classpth");
-        }
+        properties = new Properties();
+        properties.load(is);
         return properties;
     }
 
     public static Properties loadProperties(String propertiesFile, String moduleDir) throws IOException {
         Properties properties;
 
-        final InputStream is = new FileInputStream(PROPERTY_FILES_DIR + "/" + moduleDir + "/" + propertiesFile);
-        if (is != null) {
-            properties = new Properties();
-            properties.load(is);
-        } else {
-            throw new FileNotFoundException("property file " + PROPERTIES_FILE + " not found in classpth");
-        }
+        final InputStream is = new FileInputStream(PROPERTY_FILES_DIR + "/" + propertiesFile);
+        properties = new Properties();
+        properties.load(is);
         return properties;
     }
 }

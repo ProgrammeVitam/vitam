@@ -31,6 +31,9 @@ import java.io.InputStream;
 
 import javax.ws.rs.core.Response;
 
+import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 
 import fr.gouv.vitam.ingest.core.exception.IngestException;
@@ -47,7 +50,7 @@ public interface UploadService {
      * @throws IOException, if inputstream is null
      */
     public Response uploadSipAsStream(InputStream uploadedInputStream, FormDataContentDisposition fileDetail)
-        throws IngestException;
+            throws IngestException, LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException, LogbookClientServerException;
 
 
     /**

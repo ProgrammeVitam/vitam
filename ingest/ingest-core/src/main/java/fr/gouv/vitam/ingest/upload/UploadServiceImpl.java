@@ -41,8 +41,6 @@ import javax.ws.rs.core.Response;
 
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.util.concurrent.AbstractService;
 
@@ -78,9 +76,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 public class UploadServiceImpl extends AbstractService implements UploadService {
     // FIXME REVIEW Comment
 
-    private static VitamLogger VITAM_LOGGER = VitamLoggerFactory.getInstance(UploadServiceImpl.class);
-    private static Logger LOGGER = LoggerFactory.getLogger(UploadServiceImpl.class);
-    // FIXME REVIEW Remove non Vitam Logger and Fix POM
+    private static final VitamLogger VITAM_LOGGER = VitamLoggerFactory.getInstance(UploadServiceImpl.class);
 
 
     private static final String INGEST_MODULE_DIR = "ingest-core";
@@ -89,7 +85,7 @@ public class UploadServiceImpl extends AbstractService implements UploadService 
     private static final String URI_PROCESSING = "ingest.core.processing.uri";
     private static final String URL_WORKSPACE = "workspace.client.url";
     private Properties properties = null;
-    
+
     private static final String SIP_FOLDER = "SIP";
 
     public UploadServiceImpl() throws IngestException {
@@ -128,7 +124,9 @@ public class UploadServiceImpl extends AbstractService implements UploadService 
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     public Response uploadSipAsStream(@FormDataParam("file") InputStream uploadedInputStream,
-        @FormDataParam("file") FormDataContentDisposition fileDetail) throws IngestException {
+        @FormDataParam("file") FormDataContentDisposition fileDetail)
+        throws IngestException, LogbookClientNotFoundException, LogbookClientBadRequestException,
+        LogbookClientServerException {
 
         if (uploadedInputStream == null || fileDetail == null) {
             VITAM_LOGGER.error("input stream null");
@@ -149,9 +147,7 @@ public class UploadServiceImpl extends AbstractService implements UploadService 
             // guid generated for the container in the workspace
             final GUID guid = GUIDFactory.newOperationIdGUID(tenantId);
 
-            if (guid != null) {
-                containerName = guid.getId();
-            }
+            containerName = guid.getId();
             if (properties != null) {
                 VITAM_LOGGER.info(properties.getProperty(URI_WORKSPACE));
                 Url = properties.getProperty(URI_WORKSPACE);
@@ -159,13 +155,13 @@ public class UploadServiceImpl extends AbstractService implements UploadService 
 
             final String eventIdentifier = GUIDFactory.newOperationIdGUID(tenantId).getId(); // Event GUID
             final String eventType = "Process_SIP_unitary"; // Event Type
-            final String eventIdentifierProcess = guid.getId(); // Event Identifier Process
+            final String eventIdentifierProcess = guid != null ? guid.getId() : ""; // Event Identifier Process
             final LogbookTypeProcess eventTypeProcess = LogbookTypeProcess.INGEST; // Event Type Process
             final LogbookOutcome outcome = LogbookOutcome.STARTED; // Outcome: status
             final String outcomeDetailMessage = "SIP entry : " + fileDetail.getFileName(); // Outcome detail message
-            final String eventIdentifierRequest = guid.getId(); // X-Request-Id
-            final String server = properties.getProperty("ingest.core.logbook.server");
-            final String sPort = properties.getProperty("ingest.core.logbook.port");
+            final String eventIdentifierRequest = guid != null ? guid.getId() : ""; // X-Request-Id
+            final String server = properties != null ? properties.getProperty("ingest.core.logbook.server") : "";
+            final String sPort = properties != null ? properties.getProperty("ingest.core.logbook.port") : "";
             final int port = Integer.parseInt(sPort);
 
             // TODO REVIEW Debug not info
@@ -230,17 +226,14 @@ public class UploadServiceImpl extends AbstractService implements UploadService 
             final UploadResponseDTO uploadResponseDTO =
                 getUploadResponseDTO(fileDetail.getFileName(), 500, e.getMessage(),
                     "500", "upload failed", "500", "error ingest");
-            // FIXME REVIEW No printStackTrace
-            e.printStackTrace();
             response = Response.ok(uploadResponseDTO, "application/json").build();
 
         } finally {
             if (client != null) {
                 client.close();
             }
-            // FIXME REVIEW Never ever returns something in finally
-            return response;
         }
+        return response;
     }
 
     /**
@@ -248,14 +241,15 @@ public class UploadServiceImpl extends AbstractService implements UploadService 
      * @param Url
      * @param containerName
      * @param uploadedInputStream
-     * @throws ContentAddressableStorageAlreadyExistException 
+     * @throws ContentAddressableStorageAlreadyExistException
      */
     private void runOperation(String Url, String containerName, InputStream uploadedInputStream)
-        throws ContentAddressableStorageServerException, ContentAddressableStorageAlreadyExistException, ContentAddressableStorageNotFoundException {
+        throws ContentAddressableStorageServerException, ContentAddressableStorageAlreadyExistException,
+        ContentAddressableStorageNotFoundException {
         // call workspace
         final WorkspaceClient workspaceClient = new WorkspaceClient(Url);
         workspaceClient.createContainer(containerName);
-        workspaceClient.unzipObject(containerName,SIP_FOLDER, uploadedInputStream);
+        workspaceClient.unzipObject(containerName, SIP_FOLDER, uploadedInputStream);
     }
 
     /**

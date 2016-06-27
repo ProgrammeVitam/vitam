@@ -28,6 +28,7 @@ package fr.gouv.vitam.metadata.rest;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -42,6 +43,7 @@ import fr.gouv.vitam.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.api.exception.MetadataInvalidSelectException;
 import fr.gouv.vitam.api.model.RequestResponseError;
 import fr.gouv.vitam.api.model.RequestResponseOK;
 import fr.gouv.vitam.api.model.VitamError;
@@ -61,7 +63,11 @@ public class UnitResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(UnitResource.class);
     private final MetaDataImpl metaDataImpl;
 
-    // TODO: comment
+    /**
+     * UnitResource constructor
+     * 
+     * @param configuration {@link MetaDataConfiguration}
+     */
     public UnitResource(MetaDataConfiguration configuration) {
         // FIXME REVIEW should not create the implementation directly but using the method as constructor
         metaDataImpl = new MetaDataImpl(configuration, new MongoDbAccessFactory(), DbRequest::new);
@@ -79,13 +85,31 @@ public class UnitResource {
     }
 
     /**
-     * Create unit with json request
+     * Insert or Select unit with json request
      */
+
     @Path("units")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response insertUnit(String insertRequest) {
+    public Response insertOrSelectUnit(String request, @HeaderParam("X-Http-Method-Override") String xhttpOverride) {
+
+        if (xhttpOverride != null) {
+            if ("GET".equals(xhttpOverride)) {
+                return selectUnitsByQuery(request);
+            }
+
+        } else {
+            return insertUnit(request);
+        }
+        return Response.status(Status.METHOD_NOT_ALLOWED).build();
+
+    }
+
+    /**
+     * Create unit with json request
+     */
+    private Response insertUnit(String insertRequest) {
         Status status;
         JsonNode queryJson;
         try {
@@ -156,4 +180,43 @@ public class UnitResource {
             .build();
     }
 
+    /**
+     * select units list by query
+     * 
+     * @param selectRequest
+     * @return
+     */
+    private Response selectUnitsByQuery(String selectRequest) {
+        Status status;
+        JsonNode jsonResultNode;
+        try {
+            jsonResultNode = metaDataImpl.selectUnitsByQuery(selectRequest);
+
+        } catch (MetadataInvalidSelectException e) {
+            LOGGER.error(e.getMessage());
+            status = Status.NOT_ACCEPTABLE;
+            return Response.status(status)
+                .entity(new RequestResponseError().setError(
+                    new VitamError(status.getStatusCode())
+                        .setContext("ACCESS")
+                        .setState("code_vitam")
+                        .setMessage(status.getReasonPhrase())
+                        .setDescription(status.getReasonPhrase())))
+                .build();
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error(e.getMessage());
+            status = Status.BAD_REQUEST;
+            return Response.status(status)
+                .entity(new RequestResponseError().setError(
+                    new VitamError(status.getStatusCode())
+                        .setContext("ACCESS")
+                        .setState("code_vitam")
+                        .setMessage(status.getReasonPhrase())
+                        .setDescription(status.getReasonPhrase())))
+                .build();
+
+        }
+
+        return Response.status(Status.FOUND).entity(jsonResultNode).build();
+    }
 }

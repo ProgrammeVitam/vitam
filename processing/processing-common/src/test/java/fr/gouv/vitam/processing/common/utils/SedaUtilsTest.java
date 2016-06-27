@@ -125,7 +125,7 @@ public class SedaUtilsTest {
         utils = new SedaUtilsFactory().create(workspaceFactory, null);
         assertFalse(utils.checkSedaValidation(params));
     }
-    
+
     @Test
     public void givenSedaHasMessageIdWhengetMessageIdThenReturnCorrect() throws Exception {
         when(workspaceClient.getObject(params.getGuuid(), "SIP/manifest.xml")).thenReturn(seda);
@@ -138,7 +138,7 @@ public class SedaUtilsTest {
     @Test
     public void givenCorrectArchiveUnitWhenIndexUnitThenOK()
         throws Exception {
-        when(metadataClient.insert(anyObject())).thenReturn("");
+        when(metadataClient.insertUnit(anyObject())).thenReturn("");
         when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(archiveUnit);
         when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
@@ -146,11 +146,11 @@ public class SedaUtilsTest {
 
         utils.indexArchiveUnit(params);
     }
-    
+
     @Test(expected = ProcessingException.class)
     public void givenArchiveUnitWrongFormatWhenIndexUnitThenOK()
         throws Exception {
-        when(metadataClient.insert(anyObject())).thenReturn("");
+        when(metadataClient.insertUnit(anyObject())).thenReturn("");
         when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(errorExample);
         when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
@@ -158,11 +158,11 @@ public class SedaUtilsTest {
 
         utils.indexArchiveUnit(params);
     }
-    
+
     @Test(expected = ProcessingException.class)
     public void givenArchiveUnitWrongFormatWhenIndexUnitWithMetadataThenOK()
         throws Exception {
-        when(metadataClient.insert(anyObject())).thenThrow(new InvalidParseOperationException(""));
+        when(metadataClient.insertUnit(anyObject())).thenThrow(new InvalidParseOperationException(""));
         when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(archiveUnit);
         when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
@@ -170,11 +170,11 @@ public class SedaUtilsTest {
 
         utils.indexArchiveUnit(params);
     }
-    
+
     @Test(expected = ProcessingException.class)
     public void givenCreateArchiveUnitErrorWhenIndexUnitThenThrowError()
         throws Exception {
-        when(metadataClient.insert(anyObject())).thenReturn("");
+        when(metadataClient.insertUnit(anyObject())).thenReturn("");
         when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(null);
         when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
@@ -182,11 +182,11 @@ public class SedaUtilsTest {
 
         utils.indexArchiveUnit(params);
     }
-    
+
     @Test(expected = ProcessingException.class)
     public void givenNotExistArchiveUnitWhenIndexUnitThenThrowError()
         throws Exception {
-        when(metadataClient.insert(anyObject())).thenReturn("");
+        when(metadataClient.insertUnit(anyObject())).thenReturn("");
         when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
         when(workspaceClient.getObject(anyObject(), anyObject())).thenThrow(new MetaDataExecutionException(""));
         when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
@@ -194,19 +194,20 @@ public class SedaUtilsTest {
 
         utils.indexArchiveUnit(params);
     }
-    
+
     @Test(expected = ProcessingException.class)
     public void givenGetArchiveUnitErrorWhenIndexUnitThenThrowError()
         throws Exception {
-        when(metadataClient.insert(anyObject())).thenReturn("");
+        when(metadataClient.insertUnit(anyObject())).thenReturn("");
         when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
-        when(workspaceClient.getObject(anyObject(), anyObject())).thenThrow(new ContentAddressableStorageServerException(""));
+        when(workspaceClient.getObject(anyObject(), anyObject()))
+            .thenThrow(new ContentAddressableStorageServerException(""));
         when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
         utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
 
         utils.indexArchiveUnit(params);
     }
-    
+
     @Test
     public void givenCorrectObjectGroupWhenIndexObjectGroupThenOK()
         throws Exception {
@@ -217,39 +218,40 @@ public class SedaUtilsTest {
 
         utils.indexObjectGroup(params);
     }
-    
+
     @Test(expected = ProcessingException.class)
     public void givenCorrectObjectGroupWhenIndexObjectGroupThenThrowError()
         throws Exception {
         when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
-        when(workspaceClient.getObject(anyObject(), anyObject())).thenThrow(new ContentAddressableStorageServerException(""));
+        when(workspaceClient.getObject(anyObject(), anyObject()))
+            .thenThrow(new ContentAddressableStorageServerException(""));
         when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
-        
+
         utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
         utils.indexObjectGroup(params);
     }
-    
+
     @Test(expected = ProcessingException.class)
     public void givenCreateObjectGroupErrorWhenIndexObjectGroupThenThrowError()
         throws Exception {
         when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
         when(workspaceClient.getObject(anyObject(), anyObject())).thenThrow(new MetaDataExecutionException(""));
         when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
-        
+
         utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
         utils.indexObjectGroup(params);
     }
-    
+
     @Test(expected = ProcessingException.class)
     public void givenNotExistObjectGroupWhenIndexObjectGroupThenThrowError()
         throws Exception {
         when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(null);
         when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
-        
+
         utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
         utils.indexObjectGroup(params);
-        
+
     }
 
 

@@ -53,8 +53,8 @@ public class IngestWebApp {
     private static String PROPERTIES_FILE = "ingest-web.properties";
     private static String INGEST_WEB_PORT = "ingest.web.port";
     private static String INGEST_WEB_CONTEXT = "ingest.web.context";
-    private static String INGEST_WEB_PORT_DEFAULT = "8080";
-    private static String INGEST_WEB_CONTEXT_DEFAULT = "ingest";
+    private static String INGEST_WEB_PORT_DEFAULT = "8082";
+    private static String INGEST_WEB_CONTEXT_DEFAULT = "ingest-web";
     private static final String INGEST_MODULE_DIR = "ingest-web";
     private static Properties properties = null;
 
@@ -73,8 +73,8 @@ public class IngestWebApp {
         final int iPort = Integer.parseInt(port == null ? INGEST_WEB_PORT_DEFAULT : port);
         final Server server = new Server(iPort);
 
-        final String contextWeb = !StringUtils.isBlank((String) properties.get(INGEST_WEB_CONTEXT))
-            ? (String) properties.get(INGEST_WEB_CONTEXT) : INGEST_WEB_CONTEXT_DEFAULT;
+        final String webContext = properties!=null ? properties.getProperty(INGEST_WEB_CONTEXT) : INGEST_WEB_CONTEXT_DEFAULT;
+        final String contextWeb = !StringUtils.isBlank(webContext) ? webContext : INGEST_WEB_CONTEXT_DEFAULT;
 
         final WebAppContext webcontext = new WebAppContext();
         webcontext.setContextPath("/" + contextWeb);

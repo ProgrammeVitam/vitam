@@ -1,5 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>fr.gouv.vitam</groupId>
 	<artifactId>parent</artifactId>
@@ -18,6 +19,7 @@
 
 	<modules>
 		<module>common</module>
+		<module>access</module>
 		<module>ingest</module>
 		<module>processing</module>
 		<module>logbook</module>
@@ -38,8 +40,8 @@
 		<connection>scm:git:https://dev.programmevitam.fr/gitlab/vitam/vitam.git</connection>
 		<developerConnection>scm:git:https://dev.programmevitam.fr/gitlab/vitam/vitam.git</developerConnection>
 		<url>https://dev.programmevitam.fr/gitlab/vitam/vitam.git</url>
-	  <tag>HEAD</tag>
-  </scm>
+		<tag>HEAD</tag>
+	</scm>
 
 	<!-- Définition de l'url de l'intégration continue du projet -->
 	<ciManagement>
@@ -150,10 +152,9 @@
 		<profile>
 			<id>pic</id>
 			<properties>
-				<vitam.docker.registry.push>vitam-prod-app-6.internet.agri:8082</vitam.docker.registry.push>		
+				<vitam.docker.registry.push>vitam-prod-app-6.internet.agri:8082</vitam.docker.registry.push>
 			</properties>
 		</profile>
-
 	</profiles>
 
 	<build>
@@ -283,11 +284,11 @@
 						<skipDockerBuild>true</skipDockerBuild> <!-- Skip build by default -->
 						<skipDockerTag>true</skipDockerTag> <!-- Skip tag by default -->
 						<imageTags>
-				           <imageTag>${project.version}</imageTag>
-				           <imageTag>latest</imageTag>
-				        </imageTags>
-				        <forceTags>true</forceTags> <!-- Allow to build the same docker name twice on the build machine -->
-				        <useConfigFile>true</useConfigFile> <!-- Use credentials of ~/.docker/config.json -->
+							<imageTag>${project.version}</imageTag>
+							<imageTag>latest</imageTag>
+						</imageTags>
+						<forceTags>true</forceTags> <!-- Allow to build the same docker name twice on the build machine -->
+						<useConfigFile>true</useConfigFile> <!-- Use credentials of ~/.docker/config.json -->
 					</configuration>
 				</plugin>
 				<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
@@ -337,7 +338,8 @@
 					<version>2.2</version>
 				</plugin>
 				<plugin>
-					<!-- SCM plugin ; set as using jgit for git (essentially for the release plugin) -->
+					<!-- SCM plugin ; set as using jgit for git (essentially for the release 
+						plugin) -->
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-scm-plugin</artifactId>
 					<version>1.9.4</version>
@@ -355,7 +357,8 @@
 					</dependencies>
 				</plugin>
 				<plugin>
-					<!-- Release the current project - updating the POM and tagging in the SCM. -->
+					<!-- Release the current project - updating the POM and tagging in the 
+						SCM. -->
 					<artifactId>maven-release-plugin</artifactId>
 					<version>2.5.3</version>
 					<configuration>
@@ -447,9 +450,9 @@
 				<version>${jackson.version}</version>
 			</dependency>
 			<dependency>
-			    <groupId>org.json</groupId>
-			    <artifactId>json</artifactId>
-			    <version>${org.json.version}</version>
+				<groupId>org.json</groupId>
+				<artifactId>json</artifactId>
+				<version>${org.json.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.google.guava</groupId>
@@ -462,9 +465,9 @@
 				<version>${commons-io.version}</version>
 			</dependency>
 			<dependency>
-			    <groupId>commons-lang</groupId>
-			    <artifactId>commons-lang</artifactId>
-			    <version>${commons-lang.version}</version>
+				<groupId>commons-lang</groupId>
+				<artifactId>commons-lang</artifactId>
+				<version>${commons-lang.version}</version>
 			</dependency>
 
 			<dependency>
@@ -487,12 +490,12 @@
 				<groupId>org.glassfish.jersey.containers</groupId>
 				<artifactId>jersey-container-jetty-http</artifactId>
 				<version>${jersey.version}</version>
-			    <exclusions>
-			        <exclusion>
-			            <groupId>org.eclipse.jetty</groupId>
-			            <artifactId>jetty-util</artifactId>
-			        </exclusion>
-			    </exclusions>
+				<exclusions>
+					<exclusion>
+						<groupId>org.eclipse.jetty</groupId>
+						<artifactId>jetty-util</artifactId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 			<dependency>
 				<groupId>org.glassfish.jersey.media</groupId>
@@ -526,22 +529,22 @@
 				<artifactId>jetty-servlet</artifactId>
 				<version>${jetty.version}</version>
 			</dependency>
-			 <dependency>
-	            <groupId>org.eclipse.jetty</groupId>
-	            <artifactId>jetty-webapp</artifactId>
-	            <version>${jetty.version}</version>
-	        </dependency>
-			
+			<dependency>
+				<groupId>org.eclipse.jetty</groupId>
+				<artifactId>jetty-webapp</artifactId>
+				<version>${jetty.version}</version>
+			</dependency>
+
 			<dependency>
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-io</artifactId>
 				<version>${commons-io.version}</version>
 			</dependency>
 			<dependency>
-	            <groupId>javax.servlet</groupId>
-	            <artifactId>javax.servlet-api</artifactId>
-	            <version>${javax.servlet.version}</version>
-	        </dependency>
+				<groupId>javax.servlet</groupId>
+				<artifactId>javax.servlet-api</artifactId>
+				<version>${javax.servlet.version}</version>
+			</dependency>
 
 			<!-- ########################## Logger ########################## -->
 
@@ -651,6 +654,18 @@
 				<version>${jersey.version}</version>
 				<scope>test</scope>
 			</dependency>
+			<dependency>
+				<groupId>org.glassfish.jersey.test-framework</groupId>
+				<artifactId>jersey-test-framework-core</artifactId>
+				<version>${jersey.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+            <groupId>org.glassfish.jersey.containers</groupId>
+            <artifactId>jersey-container-servlet</artifactId>
+            <version>${jersey.version}</version>
+            <scope>test</scope>
+        </dependency>
 			<dependency>
 				<groupId>de.flapdoodle.embed</groupId>
 				<artifactId>de.flapdoodle.embed.mongo</artifactId>

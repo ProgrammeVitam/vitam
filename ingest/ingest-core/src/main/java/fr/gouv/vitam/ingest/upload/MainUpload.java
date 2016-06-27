@@ -89,7 +89,6 @@ public class MainUpload {
 
 
         try {
-            new MainUpload();
             MainUpload.run(Integer.parseInt(port));
             server.join();
         } catch (final Exception e) {

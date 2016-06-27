@@ -1,15 +1,45 @@
 Introduction
-############
+*******************
 
-But de cette documentation
---------------------------
+Présentation
+------------
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec faucibus, lacus a efficitur tempor, nulla felis bibendum dolor, a mollis risus justo eget libero. Pellentesque leo eros, accumsan id fringilla at, aliquet vel odio. Aliquam a turpis a metus iaculis ullamcorper in eget quam. Integer ut volutpat elit, ac suscipit ligula. Praesent non mauris sem. Donec convallis nisl ac odio luctus, sed feugiat odio faucibus. Vivamus bibendum, erat vel euismod feugiat, metus ligula fermentum nunc, sed sagittis velit enim non quam. Donec sit amet nunc porttitor, consectetur sapien id, dictum enim. Phasellus ut dolor eu dui mollis suscipit. Aenean et mauris at arcu tincidunt mattis. Curabitur rutrum sapien erat, id blandit augue luctus in.
+|  *Parent package:* **fr.gouv.vitam**
+|  *Package proposition:* **fr.gouv.vitam.metadata**
 
-Ut quis massa at ante tempor malesuada. Vestibulum in tincidunt mauris. Cras lobortis sit amet lacus sit amet mattis. Curabitur a dui suscipit, tempus ex sed, consectetur mauris. In hac habitasse platea dictumst. Pellentesque dignissim lobortis risus viverra cursus. Suspendisse in turpis odio. Donec elementum risus hendrerit, porta dolor ac, mollis augue. Interdum et malesuada fames ac ante ipsum primis in faucibus. Ut suscipit rhoncus elit, non pulvinar libero pellentesque et. Aenean mattis ipsum ullamcorper dui congue, non tempor velit faucibus. Vivamus at erat elit.
+Itération 4
+-----------
+4 sous-modules pour le metadata. Dans metadata (parent).
 
-Integer vel rhoncus tortor, vitae maximus nunc. Nullam tempus varius convallis. Praesent lobortis, nulla vitae eleifend suscipit, mi augue feugiat velit, quis rhoncus magna metus at ante. Morbi scelerisque est nec semper condimentum. Vestibulum vestibulum gravida velit, at scelerisque orci scelerisque sed. Maecenas vitae lorem dictum, egestas magna id, pellentesque metus. Vestibulum quam justo, tincidunt in est sit amet, venenatis blandit quam. Proin pellentesque leo id convallis egestas. Integer eros urna, lobortis in suscipit vitae, pharetra a enim.
+| - vitam-metadata-api :  Classes et exception communes aux différents modules
+| - vitam-metadata-builder: module pour creer les objets des réquetes select, update,insert etc..
+| - vitam-metadata-client: module client pour metadata (units, groupe d'objets ...)
+| - vitam-metadata-parser : module client pour parser les réqutes Jsons.
 
-Proin nec est ac lectus imperdiet cursus. Curabitur ac dolor in ipsum rutrum laoreet. Sed tempor erat vitae neque vestibulum dapibus. Etiam magna massa, mattis at erat eu, auctor egestas velit. Nulla ut pretium mi. Etiam nibh mauris, commodo id efficitur sit amet, sagittis eget nisi. Duis a tellus in arcu cursus consectetur nec a orci. Maecenas a hendrerit justo. In ante purus, sagittis id scelerisque venenatis, commodo ut dui. Morbi ac arcu ut nibh egestas convallis. Interdum et malesuada fames ac ante ipsum primis in faucibus. Donec sed molestie turpis. Mauris magna sapien, consequat at massa id, sagittis mollis nulla. Phasellus nec tellus hendrerit, hendrerit quam sit amet, dignissim quam. Vivamus ultricies interdum massa nec porttitor.
+Modules - packages
+------------------
 
-Fusce pretium pretium lectus eu laoreet. Integer eget nibh eget purus molestie finibus. Quisque id erat dignissim, suscipit ipsum eget, laoreet eros. Aliquam erat volutpat. Etiam aliquam arcu eget eleifend tincidunt. Morbi vel sodales massa. Curabitur quis consequat lorem. In hac habitasse platea dictumst. Aliquam erat volutpat.
+|  metadata
+|     /metadata-api
+|        fr.gouv.vitam.api
+|        fr.gouv.vitam.config
+|        fr.gouv.vitam.exception
+|        fr.gouv.vitam.model
+|     /metadata-builder
+|        fr.gouv.vitam.builder.request
+|        	fr.gouv.vitam.builder.request.construct
+|        		fr.gouv.vitam.builder.request.construct.action
+|        		fr.gouv.vitam.builder.request.construct.configuration
+|        		fr.gouv.vitam.builder.request.construct.query
+|        	fr.gouv.vitam.builder.request.exception
+|       
+|     /metadata-client
+|       fr.gouv.vitam.client
+|     /metadata-parser
+|     fr.gouv.vitam.parser.request
+|     	fr.gouv.vitam.parser.request.construct.query
+|     	fr.gouv.vitam.parser.request.parser
+|     /metadata-rest
+|     fr.gouv.vitam.metadata.rest
+|    
+

@@ -187,7 +187,6 @@ public class UploadSipServlet extends HttpServlet {
             out.println("</html>");
         } catch (final Exception ex) {
             VITAM_LOGGER.error("error upload sip", ex);
-            ex.printStackTrace();
         }
     }
 

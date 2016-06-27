@@ -23,6 +23,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.core;
 
+import org.apache.commons.lang.StringUtils;
+
+import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.MongoWriteException;
 
 import fr.gouv.vitam.api.MetaData;
@@ -31,18 +34,31 @@ import fr.gouv.vitam.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.api.exception.MetadataInvalidSelectException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.core.database.collections.MongoDbVarNameAdapter;
 import fr.gouv.vitam.core.database.collections.Result;
+import fr.gouv.vitam.core.utils.UnitsJsonUtils;
 import fr.gouv.vitam.parser.request.parser.GlobalDatasParser;
 import fr.gouv.vitam.parser.request.parser.InsertParser;
+import fr.gouv.vitam.parser.request.parser.RequestParser;
+import fr.gouv.vitam.parser.request.parser.SelectParser;
 
 /**
  * MetaDataImpl implements a MetaData interface
  */
-public class MetaDataImpl implements MetaData {
+public final class MetaDataImpl implements MetaData {
 
     private final DbRequestFactory dbRequestFactory;
+
+
+    private static final VitamLogger LOGGER =
+        VitamLoggerFactory.getInstance(MetaDataImpl.class);
+
+    private static final String MUST_BE_SELECT_PARSER = "Must be select request type when searching metadata";
+    private static final String REQUEST_IS_NULL = "Request select is null or is empty";
 
     /**
      * MetaDataImpl constructor
@@ -86,5 +102,55 @@ public class MetaDataImpl implements MetaData {
         }
 
     }
+
+    @Override
+    public JsonNode selectUnitsByQuery(String selectQuery)
+        throws MetaDataExecutionException, InvalidParseOperationException, MetadataInvalidSelectException,
+        MetaDataDocumentSizeException {
+        LOGGER.info("MetaDataImpl / Begin selectUnitsByQuery ...");
+        LOGGER.debug("MetaDataImpl /selectUnitsByQuery/ selectQuery: " + selectQuery);
+
+        Result result = null;
+        JsonNode jsonNodeResponse;
+        if (StringUtils.isEmpty(selectQuery)) {
+            throw new MetadataInvalidSelectException(REQUEST_IS_NULL);
+        }
+        try {
+            // sanity check:InvalidParseOperationException will be thrown if request select invalid or size is too large
+            GlobalDatasParser.sanityRequestCheck(selectQuery);
+        } catch (InvalidParseOperationException eInvalidParseOperationException) {
+            throw new MetaDataDocumentSizeException(eInvalidParseOperationException);
+        }
+
+
+        // parse Select request
+        RequestParser selectRequest = new SelectParser();
+        selectRequest.parse(selectQuery);
+        // check query type: must be instance of Select
+        if (!(selectRequest instanceof SelectParser)) {
+            throw new MetadataInvalidSelectException(MUST_BE_SELECT_PARSER);
+        }
+
+        try {
+            result = dbRequestFactory.create().execRequest(selectRequest, result);
+            jsonNodeResponse = UnitsJsonUtils.populateJSONObjectResponse(result, selectRequest);
+
+        } catch (final MetaDataExecutionException e) {
+            LOGGER.error(e);
+            throw e;
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(e);
+            throw e;
+        } catch (final InstantiationException e) {
+            LOGGER.error(e);
+            throw new MetaDataExecutionException(e);
+        } catch (final IllegalAccessException e) {
+            LOGGER.error(e);
+            throw new MetaDataExecutionException(e);
+        }
+        return jsonNodeResponse;
+    }
+
+
 
 }

@@ -52,7 +52,7 @@ import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 public class InsertMetaDataClientTest extends JerseyTest {
-    private static final String QUERY = "";
+    private static final String QUERY = "{}";
     private static final String url = "http://localhost:8082";
     private static final MetaDataClient client = new MetaDataClient(url);
 
@@ -87,30 +87,35 @@ public class InsertMetaDataClientTest extends JerseyTest {
     @Test(expected = MetaDataNotFoundException.class)
     public void givenParentNotFoundRequestWhenInsertThenReturnNotFound() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.insert(QUERY);
+        client.insertUnit(QUERY);
     }
 
     @Test(expected = MetaDataAlreadyExistException.class)
     public void givenUnitAlreadyExistsWhenInsertThenReturnConflict() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.CONFLICT).build());
-        client.insert(QUERY);
+        client.insertUnit(QUERY);
     }
 
     @Test(expected = MetaDataDocumentSizeException.class)
     public void givenEntityTooLargeRequestWhenInsertThenReturnRequestEntityTooLarge() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.REQUEST_ENTITY_TOO_LARGE).build());
-        client.insert(QUERY);
+        client.insertUnit(QUERY);
     }
 
     @Test(expected = MetaDataExecutionException.class)
     public void shouldRaiseExceptionWhenExecution() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        client.insert(QUERY);
+        client.insertUnit(QUERY);
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void givenInvalidRequestWhenInsertThenReturnBadRequest() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        client.insert(QUERY);
+        client.insertUnit(QUERY);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void given_emptyRequest_When_Insert_ThenReturn_BadRequest() throws Exception {
+        client.insertUnit("");
     }
 }

@@ -129,7 +129,7 @@
                     <skipDockerTag>false</skipDockerTag>
                     <!-- Images specification -->
                     <baseImage>${vitam.docker.registry.pull}/${vitam.docker.baseimage}</baseImage>
-                    <imageName>${vitam.docker.registry.push}/vitam/ihm-demo</imageName>
+                    <imageName>${vitam.docker.registry.push}/vitam/ingest-web</imageName>
                     <!-- copy the service's jar file from target into the root directory
                     of the image -->
                     <resources>
