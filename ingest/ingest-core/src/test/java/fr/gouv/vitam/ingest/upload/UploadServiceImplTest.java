@@ -87,7 +87,7 @@ public class UploadServiceImplTest {
     @Ignore
     public void givenWorkspaceNotExistWhenUploadSipAsStreamThenReturnKO() throws IOException, Exception {
         Mockito.doThrow(new ContentAddressableStorageServerException("")).when(workspaceClient)
-            .unzipSipObject(anyObject(), anyObject());
+            .unzipObject(anyObject(), anyObject(), anyObject());
         final Response response = uploadServiceImpl.uploadSipAsStream(getInputStream("SIP_bordereau_avec_objet_OK.zip"),
             formDataContentDisposition, "SIP");
         assertThat(response).isNotNull();

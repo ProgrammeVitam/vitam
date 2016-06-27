@@ -1,4 +1,4 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,34 +23,21 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
-package fr.gouv.vitam.workspace.common;
+ *******************************************************************************/
+package fr.gouv.vitam.workspace.api.exception;
 
-import com.google.common.base.Strings;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
-/**
- * Workspace Checker Parameters
- *
- *
- */
-public class ParametersChecker {
-    // FIXME REVIEW use Common
-    // TODO Explicitly add IllegalArgumentException in the signature
-    /**
-     * throws an IllegalArgumentException in case of there is an error on parameters
-     *
-     * @param errorMessage
-     * @param parameters
-     */
-    public static final void checkParamater(String errorMessage, String... parameters) {
-        if (parameters == null) {
-            throw new IllegalArgumentException(errorMessage);
-        }
-        for (final String parameter : parameters) {
-            if (Strings.isNullOrEmpty(parameter)) {
-                throw new IllegalArgumentException(errorMessage);
-            }
-        }
+import org.junit.Test;
+
+public class ContentAddressableStorageServerExceptionTest {
+
+    @Test
+    public void testContentAddressableStorageServerExceptionThrowable() throws Exception {
+        assertEquals(null, new ContentAddressableStorageServerException((String) null).getMessage());
+        assertEquals("test", new ContentAddressableStorageServerException("test").getMessage());
+        assertNotNull(new ContentAddressableStorageServerException(new Exception()).getCause());
+        assertNotNull(new ContentAddressableStorageServerException("test", new Exception()).getCause());
     }
-
 }

@@ -102,7 +102,7 @@ public class WorkspaceClientFolderTest extends WorkspaceClientTest {
 
         @HEAD
         @Path("{containerName}/folders/{folderName}")
-        public Response containerExists(@PathParam("containerName") String containerName,
+        public Response isExistingFolder(@PathParam("containerName") String containerName,
             @PathParam("folderName") String folderName) {
 
             return expectedResponse.head();
@@ -181,24 +181,24 @@ public class WorkspaceClientFolderTest extends WorkspaceClientTest {
     // check existence
     @Test(expected = IllegalArgumentException.class)
     public void givenNullParamWhenCheckFolderExistenceThenRaiseAnException() {
-        client.folderExists(CONTAINER_NAME, null);
+        client.isExistingFolder(CONTAINER_NAME, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void givenEmptyParamWhenCheckFolderExistenceThenRaiseAnException() {
-        client.folderExists(CONTAINER_NAME, "");
+        client.isExistingFolder(CONTAINER_NAME, "");
     }
 
     @Test
     public void givenFolderAlreadyExistsWhenCheckFolderExistenceThenReturnTrue() {
         when(mock.head()).thenReturn(Response.status(Status.OK).build());
-        assertTrue(client.folderExists(CONTAINER_NAME, FOLDER_NAME));
+        assertTrue(client.isExistingFolder(CONTAINER_NAME, FOLDER_NAME));
     }
 
     @Test
     public void givenFolderAlreadyExistsWhenCheckFolderExistenceThenReturnFalse() {
         when(mock.head()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        assertFalse(client.folderExists(CONTAINER_NAME, FOLDER_NAME));
+        assertFalse(client.isExistingFolder(CONTAINER_NAME, FOLDER_NAME));
     }
 
     // get URI list

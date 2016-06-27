@@ -31,13 +31,13 @@ import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.with;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 
 import javax.ws.rs.core.Response.Status;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -45,6 +45,8 @@ import org.junit.rules.TemporaryFolder;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
+import fr.gouv.vitam.common.digest.Digest;
+import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
 import fr.gouv.vitam.workspace.common.Entry;
 
@@ -60,8 +62,12 @@ public class WorkspaceResourceTest {
 
     private static final String CONTAINER_NAME = "myContainer";
     private static final String FOLDER_NAME = "myFolder";
+    private static final String FOLDER_SIP = "SIP";
     private static final String OBJECT_NAME = "myObject";
     private static final String FAKE_FOLDER_NAME = "fakeFolderName";
+    public static final String X_DIGEST_ALGORITHM  = "X-digest-algorithm";
+    public static final String ALGO="MD5";
+    public static final String X_DIGEST="X-digest";
 
     private InputStream stream = null;
 
@@ -230,7 +236,6 @@ public class WorkspaceResourceTest {
 
     }
 
-    @Ignore
     @Test
     public void givenObjectAlreadyExistsWhenDeleteObjectThenReturnNotContent() {
 
@@ -252,8 +257,15 @@ public class WorkspaceResourceTest {
         given().then().statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .head("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME);
     }
+    
+    @Test
+    public void givenObjectNotFoundWhenComputeDigestThenReturnNotFound() {
+        given().header(X_DIGEST_ALGORITHM, ALGO)
+        .when()
+            .head("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
+            .then().statusCode(Status.NOT_FOUND.getStatusCode());
+    }
 
-    @Ignore
     @Test
     public void givenObjectNotFoundWhenDeleteObjectThenReturnNotFound() {
         given().then().statusCode(Status.NOT_FOUND.getStatusCode()).when()
@@ -273,6 +285,28 @@ public class WorkspaceResourceTest {
 
         given().then().statusCode(Status.OK.getStatusCode()).when()
             .head("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME);
+
+    }
+    
+    @Test
+    public void givenObjectAlreadyExistsWhenComputeDigestThenReturnOk() throws IOException {
+
+        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("file1.pdf");
+
+        with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
+            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
+
+        with().multiPart("objectName", OBJECT_NAME).multiPart("object", OBJECT_NAME, stream).then()
+            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/objects");
+
+        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("file1.pdf");
+        Digest digest = new Digest(DigestType.fromValue(ALGO));
+        digest.update(stream);
+        
+        given().header(X_DIGEST_ALGORITHM, ALGO)
+            .when()
+            .head("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
+            .then().statusCode(Status.OK.getStatusCode()).header(X_DIGEST, digest.toString());
 
     }
 
@@ -299,58 +333,83 @@ public class WorkspaceResourceTest {
 
     // unzip
     @Test
-    public void given_ZipImput_When_Unzip_ThenReturnOK() {
+    public void givenZipImputWhenUnzipThenReturnOK() {
 
         stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("sip.zip");
-
-        given().multiPart("objectName", OBJECT_NAME).multiPart("object", OBJECT_NAME, stream).then()
-            .statusCode(Status.CREATED.getStatusCode()).when().put("/containers/" + CONTAINER_NAME + "/objects");
-
-    }
-
-    // unzip
-    @Test()
-    public void given_Container_AlreadyExist_When_Unzipping_Object_ThenReturn_Conflict() {
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("sip.zip");
-
+        
         with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
-
-        given().multiPart("objectName", OBJECT_NAME).multiPart("object", OBJECT_NAME, stream).then()
-            .statusCode(Status.CONFLICT.getStatusCode()).when().put("/containers/" + CONTAINER_NAME + "/objects");
+        .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
+        
+        given().contentType(ContentType.BINARY).body(stream)
+        .then().statusCode(Status.CREATED.getStatusCode()).when().put("/containers/" + CONTAINER_NAME + "/folders/"+FOLDER_SIP);
 
     }
 
+    @Test()
+    public void givenContainerNotFoundWhenUnzippingObjectThenReturnNotFound() {
+        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("sip.zip");
+        
+        given().contentType(ContentType.BINARY).body(stream)
+        .then().statusCode(Status.NOT_FOUND.getStatusCode()).when().put("/containers/" + CONTAINER_NAME + "/folders/"+FOLDER_SIP);
+
+
+    }
+    
+    @Test()
+    public void givenFolderAlreadyExistsWhenUnzippingObjectThenReturnConflict() {
+        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("sip.zip");
+        
+        with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
+        .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
+        
+        with().contentType(ContentType.JSON).body(new Entry(FOLDER_SIP)).then()
+            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/folders");
+
+        
+        given().contentType(ContentType.BINARY).body(stream)
+        .then().statusCode(Status.CONFLICT.getStatusCode()).when().put("/containers/" + CONTAINER_NAME + "/folders/"+FOLDER_SIP);
+
+
+    }
+    
     // uriList
-    // @Test
-    public void given_ContainerName_FolderName_When_finding_ThenReturn_ok() {
+    @Test
+    public void givenEmptyFolderWhenfindingThenReturnNoContent() {
         stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("file1.pdf");
 
         with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
             .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
 
-        with().multiPart("objectName", OBJECT_NAME)
-            .multiPart("object", FOLDER_NAME + File.separator + OBJECT_NAME, stream).then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/objects");
+        given().contentType(ContentType.JSON).body(new Entry(FOLDER_NAME)).then()
+            .statusCode(Status.NO_CONTENT.getStatusCode()).when()
+            .get("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_NAME);
 
+    }
+
+    @Test
+    public void givenNotEmptyFolderWhenfindingThenReturnOk() {
+        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("file1.pdf");
+
+        with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
+            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
+        
+      
+        with().multiPart("objectName", FOLDER_NAME + "/"+OBJECT_NAME).multiPart("object", FOLDER_NAME + "/"+OBJECT_NAME, stream).then()
+        .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/objects");
+
+        
         given().contentType(ContentType.JSON).body(new Entry(FOLDER_NAME)).then()
             .statusCode(Status.OK.getStatusCode()).when()
             .get("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_NAME);
 
     }
 
-
-    // uriList
+    
     @Test
-    public void given_ContainerName_FolderNameNotExist_When_finding_ThenReturn_NoContent() {
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("file1.pdf");
-
+    public void givenContainerNameFolderNameNotExistWhenfindingThenReturn_NoContent() {
+       
         with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
             .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
-
-        with().multiPart("objectName", FOLDER_NAME + File.separator + OBJECT_NAME)
-            .multiPart("object", FOLDER_NAME + File.separator + OBJECT_NAME, stream).then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/objects");
 
         given().contentType(ContentType.JSON).body(new Entry(FOLDER_NAME)).then()
             .statusCode(Status.NO_CONTENT.getStatusCode()).when()

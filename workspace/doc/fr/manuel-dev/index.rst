@@ -20,7 +20,7 @@ Sommaire
    :maxdepth: 2
 
    introduction.rst
-   logbook.rst
+   workspace.rst
 
 
 ##############

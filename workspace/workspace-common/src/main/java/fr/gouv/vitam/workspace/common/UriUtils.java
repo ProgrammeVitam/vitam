@@ -24,31 +24,37 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.common;
+package fr.gouv.vitam.workspace.common;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
+/**
+ * Class Utils that extracts a uri from a path
+ *
+ */
+public final class UriUtils {
 
-import org.junit.Test;
+    private static final String POINT = ".";
+    private static final String SLASH = "/";
 
-public class UriUtilsTest {
-
-    private final String uriName = "SIP/content/lenovo.html";
-    private final String uriNull = null;
-
-    @Test
-    public void givenUriWhenSplitThenReturnUriStringNotBlankTrue() {
-        final String splitedString = UriUtils.splitUri(uriName);
-        assertNotNull(splitedString);
-        assertNotEquals("", splitedString);
+    private UriUtils() {
+        // Empty constructor
     }
 
-
-    @Test
-    public void givenNullUriWhenSplitThenRaiseAnException() {
-        final String splitedString = UriUtils.splitUri(uriNull);
-        assertNotNull(splitedString);
-        assertEquals("", splitedString);
+    /**
+     * Removes the extension file and the root folder
+     *
+     * FIXME REVIEW does not what it says
+     *
+     * @param uriString
+     * @return a URI path
+     */
+    public static String splitUri(String uriString) {
+        String splitedString;
+        if (uriString != null && uriString.contains(SLASH) && uriString.contains(POINT)) {
+            final String[] uriWithoutRootFolderTable = uriString.split(SLASH, 2);
+            splitedString = uriWithoutRootFolderTable[1];
+        } else {
+            splitedString = "";
+        }
+        return splitedString;
     }
 }

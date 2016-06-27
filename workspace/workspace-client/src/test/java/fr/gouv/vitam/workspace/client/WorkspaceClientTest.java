@@ -49,6 +49,10 @@ public abstract class WorkspaceClientTest extends JerseyTest {
         Response delete();
 
         Response head();
+        
+        Response headContainer();
+        
+        Response headFolder();
 
         Response get();
 
