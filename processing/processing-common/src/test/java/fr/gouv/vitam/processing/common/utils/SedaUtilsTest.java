@@ -26,17 +26,22 @@
  */
 package fr.gouv.vitam.processing.common.utils;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 
 import org.junit.Before;
@@ -254,6 +259,37 @@ public class SedaUtilsTest {
 
     }
 
+    @Test
+    public void givenManifestWhenGetInfoThenGetVersionList()
+            throws FileNotFoundException, XMLStreamException, URISyntaxException{
+        XMLInputFactory factory = XMLInputFactory.newInstance();
+        XMLEventReader evenReader = factory.createXMLEventReader(
+                new FileReader("src/test/resources/sip.xml"));
+        List<String> versionList = new ArrayList<String>();
+        
+        utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
+        versionList = utils.manifestVersionList(evenReader);
+        assertEquals(5, versionList.size());
+        assertTrue(versionList.contains("PhysicalMaster"));
+        assertTrue(versionList.contains("BinaryMaster"));
+        assertTrue(versionList.contains("Diffusion"));
+        assertTrue(versionList.contains("Thumbnail"));
+        assertTrue(versionList.contains("TextContent"));
+    }
+    
+    @Test
+    public void givenCompareVersionList() throws IOException, XMLStreamException, URISyntaxException{
+        utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
+
+        XMLInputFactory factory = XMLInputFactory.newInstance();
+        XMLEventReader evenReader = factory.createXMLEventReader(
+                new FileReader("src/test/resources/sip.xml"));
+        assertEquals(0, utils.compareVersionList(evenReader).size());
+        
+        evenReader = factory.createXMLEventReader(
+                new FileReader("src/test/resources/sip-with-wrong-version.xml"));
+        assertEquals(1, utils.compareVersionList(evenReader).size());
+    }
 
 }
 
