@@ -56,7 +56,6 @@ public class ExtractObjectNumSedaTest {
     public TemporaryFolder tempFolder = new TemporaryFolder();
 
     private static final String SIP = "sip1.xml";
-    private static final String TMP = "/tmp/";
     private WorkspaceClient client;
     private WorkspaceClientFactory factory;
     private final InputStream seda = Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP);
@@ -67,7 +66,6 @@ public class ExtractObjectNumSedaTest {
 
     @Before
     public void setUp() {
-        SedaUtils.setTmpFolder(TMP);
         client = mock(WorkspaceClient.class);
         factory = mock(WorkspaceClientFactory.class);
     }

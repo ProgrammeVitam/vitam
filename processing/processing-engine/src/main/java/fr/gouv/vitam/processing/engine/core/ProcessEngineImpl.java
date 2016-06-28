@@ -45,14 +45,13 @@ import fr.gouv.vitam.processing.common.model.WorkFlow;
 import fr.gouv.vitam.processing.common.model.WorkParams;
 import fr.gouv.vitam.processing.common.utils.ProcessPopulator;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
-import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImpl;
+import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImplFactory;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
 
 /**
  * ProcessEngineImpl class manages the context and call a process distributor
  *
  */
-// FIXME REVIEW since build through Factory => class and constructor as package protected
 public class ProcessEngineImpl implements ProcessEngine {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessEngineImpl.class);
     private static LogbookClient client = LogbookClientFactory.getInstance().getLogbookOperationClient();
@@ -75,16 +74,16 @@ public class ProcessEngineImpl implements ProcessEngine {
      * @param workflowId as String
      * @throws WorkflowNotFoundException
      */
-    // FIXME REVIEW check null
     public void setWorkflow(String workflowId) throws WorkflowNotFoundException {
+        ParametersChecker.checkParameter("workflowId is a mandatory parameter", workflowId);
         poolWorkflows.put(workflowId, ProcessPopulator.populate(workflowId));
     }
 
     /**
      * ProcessEngineImpl constructor populate also the workflow to the pool of workflow
      */
-    public ProcessEngineImpl() {
-        processDistributor = new ProcessDistributorImpl();
+    protected ProcessEngineImpl() {
+        processDistributor = new ProcessDistributorImplFactory().create();
         poolWorkflows = new HashMap<>();
         try {
             setWorkflow("DefaultIngestWorkflow");
@@ -141,7 +140,7 @@ public class ProcessEngineImpl implements ProcessEngine {
                     final StatusCode stepStatus = processResponse.getGlobalProcessStatusCode(stepResponse);
                     final String messageIdentifier = ProcessResponse.getMessageFromResponse(stepResponse);
                     stepsResponses.put(step.getStepName(), stepResponse);
-                    if (stepStatus.equals(StatusCode.KO)) {
+                    if (stepStatus.equals(StatusCode.KO) || stepStatus.equals(StatusCode.FATAL)) {
                         break;
                     }
                     if (!messageIdentifier.isEmpty()) {

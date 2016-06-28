@@ -31,6 +31,7 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -38,6 +39,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventFactory;
@@ -54,7 +56,9 @@ import javax.xml.stream.events.XMLEvent;
 import org.xml.sax.SAXException;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.io.CharStreams;
 
 import de.odysseus.staxon.json.JsonXMLConfig;
 import de.odysseus.staxon.json.JsonXMLConfigBuilder;
@@ -64,6 +68,7 @@ import fr.gouv.vitam.builder.request.construct.Insert;
 import fr.gouv.vitam.client.MetaDataClient;
 import fr.gouv.vitam.client.MetaDataClientFactory;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -83,64 +88,51 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 public class SedaUtils {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SedaUtils.class);
-    // FIXME REVIEW use PropertyUtils tmp folder method
-    private static String TMP_FOLDER = "/vitam/data/";
     private static final String NAMESPACE_URI = "fr:gouv:culture:archivesdefrance:seda:v2.0";
     private static final String SEDA_FILE = "manifest.xml";
     private static final String SEDA_VALIDATION_FILE = "seda-2.0-main.xsd";
     private static final String XML_EXTENSION = ".xml";
+    private static final String JSON_EXTENSION = ".json";
     private static final String SEDA_FOLDER = "SIP";
     private static final String BINARY_DATA_OBJECT = "BinaryDataObject";
     private static final String MESSAGE_IDENTIFIER = "MessageIdentifier";
-    private static final String BINARY_DATA_FOLDER = "DataObjects";
+    private static final String OBJECT_GROUP = "ObjectGroup";
     private static final String DATA_OBJECT_GROUPID = "DataObjectGroupId";
     private static final String ARCHIVE_UNIT = "ArchiveUnit";
     private static final String ARCHIVE_UNIT_FOLDER = "Units";
+    private static final String BINARY_MASTER = "BinaryMaster";
+    private static final String FILE_INFO = "FileInfo";
+    private static final String METADATA = "Metadata";
     private static final String DATA_OBJECT_REFERENCEID = "DataObjectReferenceId";
+    private static final String DATA_OBJECT_GROUP_REFERENCEID = "DataObjectGroupReferenceId";
     private static final String TAG_URI = "Uri";
     private static final String MSG_PARSING_BDO = "Parsing Binary Data Object";
     private static final String STAX_PROPERTY_PREFIX_OUTPUT_SIDE = "javax.xml.stream.isRepairingNamespaces";
+    private static final String TAG_CONTENT = "Content";
+    private static final String TAG_MANAGEMENT = "Management";
 
     private final Map<String, String> binaryDataObjectIdToGuid;
     private final Map<String, String> objectGroupIdToGuid;
     private final Map<String, String> unitIdToGuid;
 
-    private final Map<String, String> binaryDataObjectIdToGroupId;
+    private final Map<String, String> binaryDataObjectIdToObjectGroupId;
+    private final Map<String, List<String>> objectGroupIdToBinaryDataObjectId;
     private final Map<String, String> unitIdToGroupId;
 
-    private final String tmpDirectory;
     private final WorkspaceClientFactory workspaceClientFactory;
     private final MetaDataClientFactory metaDataClientFactory;
 
     // Messages for duplicate Uri from SEDA
     private static final String MSG_DUPLICATE_URI_MANIFEST = "Présence d'un URI en doublon dans le bordereau: ";
 
-    // TODO REVIEW Map not HashMap
-    private static final HashMap<String, String> objectToGroupMapping = new HashMap<String, String>() {
-        private static final long serialVersionUID = 1257583431403626689L;
-        {
-            put(BINARY_DATA_OBJECT, DATA_OBJECT_GROUPID);
-            put(ARCHIVE_UNIT, DATA_OBJECT_REFERENCEID);
-        }
-    };
-    // TODO REVIEW Map not HashMap
-    private static final HashMap<String, String> objectToFolderMapping = new HashMap<String, String>() {
-        private static final long serialVersionUID = -8520409868569154910L;
-
-        {
-            put(BINARY_DATA_OBJECT, BINARY_DATA_FOLDER);
-            put(ARCHIVE_UNIT, ARCHIVE_UNIT_FOLDER);
-        }
-    };
-
     protected SedaUtils(WorkspaceClientFactory workspaceFactory, MetaDataClientFactory metaDataFactory) {
         ParametersChecker.checkParameter("workspaceFactory is a mandatory parameter", workspaceFactory);
         binaryDataObjectIdToGuid = new HashMap<String, String>();
         objectGroupIdToGuid = new HashMap<String, String>();
+        objectGroupIdToBinaryDataObjectId = new HashMap<String, List<String>>();
         unitIdToGuid = new HashMap<String, String>();
-        binaryDataObjectIdToGroupId = new HashMap<String, String>();
+        binaryDataObjectIdToObjectGroupId = new HashMap<String, String>();
         unitIdToGroupId = new HashMap<String, String>();
-        tmpDirectory = TMP_FOLDER + GUIDFactory.newGUID().toString();
         workspaceClientFactory = workspaceFactory;
         metaDataClientFactory = metaDataFactory;
     }
@@ -150,29 +142,17 @@ public class SedaUtils {
     }
 
     /**
-     * Get temporary folder
-     *
-     * @return folder name as String
-     */
-    public static String getTmpFolder() {
-        return TMP_FOLDER;
-    }
-
-
-    /**
-     * Set the temporary folder
-     *
-     * @param tmp as String
-     */
-    public static void setTmpFolder(String tmp) {
-        TMP_FOLDER = tmp;
-    }
-
-    /**
      * @return Map<String, String> reflects BinaryDataObject and File(GUID)
      */
     public Map<String, String> getBinaryDataObjectIdToGuid() {
         return binaryDataObjectIdToGuid;
+    }
+
+    /**
+     * @return Map<String, String> reflects relation ObjectGroupId and BinaryDataObjectId
+     */
+    public Map<String, List<String>> getObjectGroupIdToBinaryDataObjectId() {
+        return objectGroupIdToBinaryDataObjectId;
     }
 
     /**
@@ -193,7 +173,7 @@ public class SedaUtils {
      * @return Map<String, String> reflects BinaryDataObject and ObjectGroup
      */
     public Map<String, String> getBinaryDataObjectIdToGroupId() {
-        return binaryDataObjectIdToGroupId;
+        return binaryDataObjectIdToObjectGroupId;
     }
 
     /**
@@ -261,7 +241,7 @@ public class SedaUtils {
             LOGGER.error("Can not read SEDA", e);
             throw new ProcessingException(e);
         } 
-        
+
         return messageId;
     }
 
@@ -291,9 +271,10 @@ public class SedaUtils {
                 final XMLEvent event = reader.nextEvent();
                 if (event.isStartElement()) {
                     final StartElement element = event.asStartElement();
-                    if (element.getName().equals(unitName) || element.getName().equals(dataObjectName)) {
-                        writeToWorkspace(client, containerId, reader, element,
-                            objectToGroupMapping.get(element.getName().getLocalPart()));
+                    if (element.getName().equals(unitName)) {
+                        writeArchiveUnitToWorkspace(client, containerId, reader, element);
+                    } else if (element.getName().equals(dataObjectName)) {
+                        writeBinaryDataObjectInLocal(reader, element);
                     }
                 }
                 if (event.isEndDocument()) {
@@ -301,31 +282,32 @@ public class SedaUtils {
                 }
             }
             reader.close();
+            checkArchiveUnitIdReference();
+            saveObjectGroupsToWorkspace(client, containerId);
         } catch (final XMLStreamException e) {
             LOGGER.error("Can not read SEDA");
             throw new ProcessingException(e);
         }
     }
 
-    private void writeToWorkspace(WorkspaceClient client, String containerId, XMLEventReader reader,
-        StartElement startElement,
-        String groupName) throws ProcessingException {
+    private File extractArchiveUnitToLocalFile(String elementGuid, XMLEventReader reader,
+        StartElement startElement) throws ProcessingException {
 
         final XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
         final XMLEventFactory eventFactory = XMLEventFactory.newInstance();
         final String elementID = ((Attribute) startElement.getAttributes().next()).getValue();
-        final String elementGuid = GUIDFactory.newGUID().toString();
         final QName name = startElement.getName();
         int stack = 1;
-        // FIXME REVIEW clean tmpDirectory somewhere ?
-        final File tmpFile = new File(tmpDirectory + elementGuid);
-        LOGGER.info("Get tmpFile");
-
+        final File tmpFile = PropertiesUtils.fileFromTmpFolder(GUIDFactory.newGUID().toString() + elementGuid);
         XMLEventWriter writer;
         try {
             tmpFile.createNewFile();
             writer = xmlOutputFactory.createXMLEventWriter(new FileWriter(tmpFile));
-            getAdaptMap(name.getLocalPart()).put(elementID, elementGuid);
+            unitIdToGuid.put(elementID, elementGuid);
+            
+            // add an empty objectgroup to each archive unit
+            unitIdToGroupId.put(elementID, "");
+            
             // Create new startElement for object with new guid
             writer.add(eventFactory.createStartElement("", NAMESPACE_URI, startElement.getName().getLocalPart()));
             writer.add(eventFactory.createAttribute("id", elementGuid));
@@ -345,26 +327,21 @@ public class SedaUtils {
                         }
                     }
                 }
-                if (event.isStartElement() && event.asStartElement().getName().getLocalPart() == groupName) {
+                if (event.isStartElement() && event.asStartElement().getName().getLocalPart() == DATA_OBJECT_GROUP_REFERENCEID) {
                     final String groupGuid = GUIDFactory.newGUID().toString();
                     final String groupId = reader.getElementText();
-                    getAdaptMap(groupName).put(elementID, groupId);
+                    unitIdToGroupId.put(elementID, groupId);
                     // Create new startElement for group with new guid
-                    writer.add(eventFactory.createStartElement("", NAMESPACE_URI, groupName));
+                    writer.add(eventFactory.createStartElement("", NAMESPACE_URI, DATA_OBJECT_GROUP_REFERENCEID));
                     writer.add(eventFactory.createCharacters(groupGuid));
-                    writer.add(eventFactory.createEndElement("", NAMESPACE_URI, groupName));
+                    writer.add(eventFactory.createEndElement("", NAMESPACE_URI, DATA_OBJECT_GROUP_REFERENCEID));
                 } else {
                     writer.add(event);
                 }
 
             }
+            reader.close();
             writer.close();
-            if (tmpFile != null) {
-                client.putObject(containerId,
-                    objectToFolderMapping.get(name.getLocalPart()) + "/" + elementGuid + XML_EXTENSION,
-                    new FileInputStream(tmpFile));
-                tmpFile.delete();
-            }
         } catch (final XMLStreamException e) {
             LOGGER.error("Can not extract Object from SEDA XMLStreamException");
             throw new ProcessingException(e);
@@ -374,29 +351,213 @@ public class SedaUtils {
         } catch (final Exception e) {
             LOGGER.error(e.getMessage());
             throw new ProcessingException(e);
+        } 
+        return tmpFile;
+    }
+
+    private void writeArchiveUnitToWorkspace(WorkspaceClient client, String containerId, XMLEventReader reader,
+        StartElement startElement) throws ProcessingException {
+        final String elementGuid = GUIDFactory.newGUID().toString();
+
+        try {
+            File tmpFile = extractArchiveUnitToLocalFile(elementGuid, reader, startElement);
+            if (tmpFile != null) {
+                client.putObject(containerId, ARCHIVE_UNIT_FOLDER + "/" + elementGuid + XML_EXTENSION,
+                    new FileInputStream(tmpFile));
+                tmpFile.delete();
+            }
+        } catch (final ProcessingException e) {
+            LOGGER.error("Can not extract Object from SEDA XMLStreamException", e);
+            throw e;
+        } catch (final IOException e) {
+            LOGGER.error("Can not extract Object from SEDA IOException " + elementGuid, e);
+            throw new ProcessingException(e);
+        } catch (ContentAddressableStorageServerException e) {
+            LOGGER.error("Can not write to workspace ", e);
+            throw new ProcessingException(e);
         }
     }
 
-    private Map<String, String> getAdaptMap(String element) {
-        Map<String, String> result = null;
-        switch (element) {
-            case BINARY_DATA_OBJECT:
-                result = binaryDataObjectIdToGuid;
-                break;
-            case ARCHIVE_UNIT:
-                result = unitIdToGuid;
-                break;
-            case DATA_OBJECT_GROUPID:
-                result = binaryDataObjectIdToGroupId;
-                break;
-            case DATA_OBJECT_REFERENCEID:
-                result = unitIdToGroupId;
-                break;
-            default:
-                break;
+    private void checkArchiveUnitIdReference() throws ProcessingException {
+        for (Entry<String, String> entry : unitIdToGroupId.entrySet()) {
+            if (objectGroupIdToGuid.get(entry.getValue()) == null) {
+                String groupId = binaryDataObjectIdToObjectGroupId.get(entry.getValue());
+                if (groupId == null || groupId != "") {
+                    throw new ProcessingException("Archive Unit reference Id is not correct");
+                }
+            }
+        }
+    }
+
+    private void writeBinaryDataObjectInLocal(XMLEventReader reader,
+        StartElement startElement) throws ProcessingException {
+        final String elementGuid = GUIDFactory.newGUID().toString();
+        final File tmpFile = PropertiesUtils.fileFromTmpFolder(elementGuid + ".json");
+        final XMLEventFactory eventFactory = XMLEventFactory.newInstance();
+        final JsonXMLConfig config = new JsonXMLConfigBuilder().build();
+        try {
+            FileWriter tmpFileWriter = new FileWriter(tmpFile);
+
+            final XMLEventWriter writer = new JsonXMLOutputFactory(config).createXMLEventWriter(tmpFileWriter);
+
+            final Iterator<?> it = startElement.getAttributes();
+            String binaryOjectId = "";
+            if (it.hasNext()) {
+                binaryOjectId = ((Attribute) it.next()).getValue();
+                binaryDataObjectIdToGuid.put(binaryOjectId, elementGuid);
+                binaryDataObjectIdToObjectGroupId.put(binaryOjectId, "");
+                writer.add(eventFactory.createStartDocument());
+                writer.add(eventFactory.createStartElement("", "", startElement.getName().getLocalPart()));
+                writer.add(eventFactory.createStartElement("", "", "_id"));
+                writer.add(eventFactory.createCharacters(binaryOjectId));
+                writer.add(eventFactory.createEndElement("", "", "_id"));
+            }
+            while (true) {
+                boolean writable = true;
+                final XMLEvent event = reader.nextEvent();
+                if (event.isEndElement()) {
+                    final EndElement end = event.asEndElement();
+                    if (end.getName().getLocalPart() == BINARY_DATA_OBJECT) {
+                        writer.add(event);
+                        writer.add(eventFactory.createEndDocument());
+                        break;
+                    }
+                }
+
+                if (event.isStartElement()) {
+                    String localPart = event.asStartElement().getName().getLocalPart();
+                    if (localPart == DATA_OBJECT_GROUPID) {
+                        final String groupGuid = GUIDFactory.newGUID().toString();
+                        final String groupId = reader.getElementText();
+                        binaryDataObjectIdToObjectGroupId.put(binaryOjectId, groupId);
+                        objectGroupIdToGuid.put(groupId, groupGuid);
+
+                        List<String> binaryOjectList = new ArrayList<String>();
+                        binaryOjectList.add(binaryOjectId);
+                        objectGroupIdToBinaryDataObjectId.put(groupId, binaryOjectList);
+
+                        // Create new startElement for group with new guid
+                        writer.add(eventFactory.createStartElement("", "", DATA_OBJECT_GROUPID));
+                        writer.add(eventFactory.createCharacters(groupGuid));
+                        writer.add(eventFactory.createEndElement("", "", DATA_OBJECT_GROUPID));
+                    } else if (localPart == DATA_OBJECT_GROUP_REFERENCEID) {
+                        final String groupId = reader.getElementText();
+                        binaryDataObjectIdToObjectGroupId.put(binaryOjectId, groupId);
+                        objectGroupIdToBinaryDataObjectId.get(groupId).add(binaryOjectId);
+
+                        // Create new startElement for group with new guid
+                        writer.add(eventFactory.createStartElement("", "", DATA_OBJECT_GROUPID));
+                        writer.add(eventFactory.createCharacters(objectGroupIdToGuid.get(groupId)));
+                        writer.add(eventFactory.createEndElement("", "", DATA_OBJECT_GROUPID));
+                    } else if (localPart == "Uri") {
+                        reader.getElementText();
+                    } else {
+                        writer.add(eventFactory.createStartElement("", "", localPart));
+                    }
+                    
+                    writable = false;
+                } 
+
+                if (writable) { 
+                    writer.add(event);
+                }
+            }
+            reader.close();
+            writer.close();
+            tmpFileWriter.close();
+        } catch (final XMLStreamException e) {
+            LOGGER.debug("Can not read input stream");
+            throw new ProcessingException(e);
+        } catch (final IOException e) {
+            LOGGER.debug("Closing stream error");
+            throw new ProcessingException(e);
         }
 
-        return result;
+    }
+
+    private void completeBinaryObjectToObjectGroupMap() {
+        for (String key: binaryDataObjectIdToObjectGroupId.keySet()) {
+            if (binaryDataObjectIdToObjectGroupId.get(key) == "") {
+                List<String> binaryOjectList = new ArrayList<String>();
+                binaryOjectList.add(key);
+                objectGroupIdToBinaryDataObjectId.put(GUIDFactory.newGUID().toString(), binaryOjectList);
+            }
+        }
+    }
+
+    private void saveObjectGroupsToWorkspace(WorkspaceClient client, String containerId) throws ProcessingException {
+
+        completeBinaryObjectToObjectGroupMap();
+
+        for (Entry<String, List<String>> entry : objectGroupIdToBinaryDataObjectId.entrySet()) {
+            ObjectNode objectGroup = JsonHandler.createObjectNode();
+            ObjectNode fileInfo = JsonHandler.createObjectNode();
+            String objectGroupType = "";
+            String objectGroupGuid = objectGroupIdToGuid.get(entry.getKey());
+            final File tmpFile = PropertiesUtils.fileFromTmpFolder(objectGroupGuid + JSON_EXTENSION);
+
+            try {
+                FileWriter tmpFileWriter = new FileWriter(tmpFile);
+                Map<String, ArrayList<JsonNode>> categoryMap = new HashMap<String, ArrayList<JsonNode>>();
+                objectGroup.put("_id", objectGroupGuid);
+                objectGroup.put("_tenantId", 0);
+                for (String id : entry.getValue()) {
+                    File binaryObjectFile = PropertiesUtils.fileFromTmpFolder(binaryDataObjectIdToGuid.get(id) + JSON_EXTENSION);
+                    JsonNode binaryNode = JsonHandler
+                        .getFromFile(binaryObjectFile)
+                        .get("BinaryDataObject");
+                    String nodeCategory = binaryNode.get("DataObjectVersion").asText();
+                    ArrayList<JsonNode> nodeCategoryArray = categoryMap.get(nodeCategory);
+                    if (nodeCategoryArray == null) {
+                        nodeCategoryArray = new ArrayList<JsonNode>();
+                        nodeCategoryArray.add(binaryNode);
+                    } else {
+                        nodeCategoryArray.add(binaryNode);
+                    }
+                    categoryMap.put(nodeCategory, nodeCategoryArray);
+                    if (BINARY_MASTER.equals(nodeCategory)) {
+                        fileInfo = (ObjectNode) binaryNode.get(FILE_INFO);
+                        objectGroupType = binaryNode.get(METADATA).fieldNames().next();
+                    }
+                    binaryObjectFile.delete();
+                }
+
+                objectGroup.put("_type", objectGroupType);
+                objectGroup.set("FileInfo", fileInfo);
+                ObjectNode qualifiersNode =  getObjectGroupQualifiers(categoryMap);
+                objectGroup.set("_qualifiers", qualifiersNode);
+                tmpFileWriter.write(objectGroup.toString());
+                tmpFileWriter.close();
+                
+                client.putObject(containerId, OBJECT_GROUP + "/" + objectGroupGuid + JSON_EXTENSION, new FileInputStream(tmpFile));
+                tmpFile.delete(); 
+            } catch (final InvalidParseOperationException e) {
+                LOGGER.error("Can not parse ObjectGroup", e);
+                throw new ProcessingException(e);
+            } catch (final IOException e) {
+                LOGGER.error("Can not write to tmp folder ", e);
+                throw new ProcessingException(e);
+            } catch (ContentAddressableStorageServerException e) {
+                LOGGER.error("Workspace exception ", e);
+                throw new ProcessingException(e);
+            } 
+        }
+
+    }
+
+    private ObjectNode getObjectGroupQualifiers(Map<String, ArrayList<JsonNode>> categoryMap) {
+        ObjectNode qualifierObject = JsonHandler.createObjectNode();
+        for (Entry<String, ArrayList<JsonNode>> entry : categoryMap.entrySet()) {
+            ObjectNode binaryNode = JsonHandler.createObjectNode();
+            binaryNode.put("nb", entry.getValue().size());
+            ArrayNode arrayNode = JsonHandler.createArrayNode();
+            for (JsonNode node : entry.getValue()) {
+                arrayNode.add(node);
+            }
+            binaryNode.set("versions", arrayNode);
+            qualifierObject.set(entry.getKey(), binaryNode);
+        }
+        return qualifierObject;
     }
 
     /**
@@ -485,21 +646,66 @@ public class SedaUtils {
         }
 
     }
+    
+    /**
+     * The function is used for retrieving ObjectGroup in workspace and use metadata client to index ObjectGroup
+     * 
+     * @param params work parameters
+     * @throws ProcessingException when error in execution
+     */
+    public void indexObjectGroup(WorkParams params) throws ProcessingException {
+        ParametersChecker.checkParameter("Work parameters is a mandatory parameter", params);
 
+        final String containerId = params.getContainerName();
+        final String objectName = params.getObjectName();
+        ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
+        ParametersChecker.checkParameter("ObjectName id is a mandatory parameter", objectName);
+
+        final WorkspaceClient workspaceClient =
+            workspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
+        final MetaDataClient metadataClient =
+            metaDataClientFactory.create(params.getServerConfiguration().getUrlMetada());
+        InputStream input = null;
+        try {
+            input = workspaceClient.getObject(containerId, OBJECT_GROUP + "/" + objectName);
+
+            if (input != null) {
+                String inputStreamString = CharStreams.toString(new InputStreamReader(input, "UTF-8"));
+                final JsonNode json = JsonHandler.getFromString(inputStreamString);
+                Insert insertRequest = new Insert().addData((ObjectNode) json);
+                //metadataClient.insertObjectGroup(insertRequest.getFinalInsert().toString());
+            } else {
+                LOGGER.error("Object group not found");
+                throw new ProcessingException("Object group not found");
+            }
+ 
+
+        } catch (final MetaDataExecutionException e) {
+            LOGGER.debug("Metadata Server Error", e);
+            throw new ProcessingException(e);
+        } catch (InvalidParseOperationException | IOException e) {
+            LOGGER.debug("Json wrong format", e);
+            throw new ProcessingException(e);
+        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
+            LOGGER.debug("Workspace Server Error", e);
+            throw new ProcessingException(e);
+        }
+
+    }
 
     private JsonNode convertArchiveUnitToJson(InputStream input, String containerId, String objectName)
         throws InvalidParseOperationException, ProcessingException {
         ParametersChecker.checkParameter("Input stream is a mandatory parameter", input);
         ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
         ParametersChecker.checkParameter("ObjectName id is a mandatory parameter", objectName);
-        final File tmpFile = new File(TMP_FOLDER + objectName);
+        final File tmpFile = PropertiesUtils.fileFromTmpFolder(GUIDFactory.newGUID().toString());
         FileWriter tmpFileWriter = null;
         final XMLEventFactory eventFactory = XMLEventFactory.newInstance();
         final JsonXMLConfig config = new JsonXMLConfigBuilder()
             .build();
         JsonNode data = null;
         try {
-            tmpFileWriter = new FileWriter(tmpFile);
+            tmpFileWriter = new FileWriter(tmpFile); 
             final XMLEventReader reader = XMLInputFactory.newInstance().createXMLEventReader(input);
 
             final XMLEventWriter writer = new JsonXMLOutputFactory(config).createXMLEventWriter(tmpFileWriter);
@@ -511,7 +717,7 @@ public class SedaUtils {
                     final StartElement startElement = event.asStartElement();
                     final Iterator<?> it = startElement.getAttributes();
 
-                    if (it.hasNext()) {
+                    if (it.hasNext() && startElement.getName().getLocalPart() != TAG_CONTENT) {
                         writer.add(eventFactory.createStartElement("", "", startElement.getName().getLocalPart()));
 
                         if (startElement.getName().getLocalPart() == ARCHIVE_UNIT) {
@@ -522,11 +728,11 @@ public class SedaUtils {
                         eventWritable = false;
                     }
 
-                    if (startElement.getName().getLocalPart() == "Content") {
+                    if (startElement.getName().getLocalPart() == TAG_CONTENT) {
                         eventWritable = false;
                     }
 
-                    if (startElement.getName().getLocalPart() == "Management") {
+                    if (startElement.getName().getLocalPart() == TAG_MANAGEMENT) {
                         writer.add(eventFactory.createStartElement("", "", "_mgt"));
                         eventWritable = false;
                     }

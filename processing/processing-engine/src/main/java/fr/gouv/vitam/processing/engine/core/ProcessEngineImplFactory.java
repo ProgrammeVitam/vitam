@@ -35,10 +35,8 @@ public class ProcessEngineImplFactory {
      * @return ProcessEngineImpl object created
      * @throws WorkflowNotFoundException
      */
-    // FIXME REVIEW check null
-    public ProcessEngineImpl create(String workflow) throws WorkflowNotFoundException {
+    public ProcessEngineImpl create() throws WorkflowNotFoundException {
         final ProcessEngineImpl processImpl = new ProcessEngineImpl();
-        processImpl.setWorkflow(workflow);
         return processImpl;
     }
 }
