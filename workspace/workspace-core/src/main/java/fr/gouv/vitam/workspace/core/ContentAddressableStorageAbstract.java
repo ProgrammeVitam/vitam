@@ -477,8 +477,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
                 IOUtils.copy(zInputStream, fileOutputStream);
                 // put object on container Guid
                 
-                final String[] fullPath = zipEntry.getName().split(File.separator, 2);
-                putObject(containerName, folderName+File.separator+fullPath[1], new FileInputStream(tempFile));
+                putObject(containerName, folderName + File.separator + zipEntry.getName(), new FileInputStream(tempFile));
                 
                 // close outpuStram
                 fileOutputStream.close();
