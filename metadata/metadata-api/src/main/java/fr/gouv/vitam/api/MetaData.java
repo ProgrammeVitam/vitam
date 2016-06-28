@@ -23,10 +23,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.api;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.api.exception.MetadataInvalidSelectException;
+import fr.gouv.vitam.builder.request.construct.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
@@ -49,6 +53,24 @@ public interface MetaData {
     // TODO REVIEW shall add IllegalArgumentException for insertRequest null
     public void insertUnit(String insertRequest) throws InvalidParseOperationException, MetaDataNotFoundException,
         MetaDataAlreadyExistException, MetaDataExecutionException, MetaDataDocumentSizeException;
-    // TODO REVIEW Select, Update, Delete
-    // FIXME REVIEW Change to Json not String
+    // TODO REVIEW Update, Delete
+    // TODO REVIEW Should allow parsed Json as alternative
+
+
+    /**
+     * Search UNITs by Select {@link Select}Query
+     *
+     * @param selectQuery
+     * @return JsonNode {$hits{},$context{},$result:[{}....{}],} <br>
+     *         $context will be added later (Access)</br>
+     *         $result array of units(can be empty)
+     * @throws InvalidParseOperationException Thrown when json format is not correct
+     * @throws MetadataInvalidSelectException Thrown when json format is correct but is not select
+     * @throws MetaDataExecutionException Throw if error occurs when send Unit to database
+     * @throws MetaDataDocumentSizeException Throw if Unit size is too big
+     * 
+     */
+    public JsonNode selectUnitsByQuery(String selectQuery)
+        throws InvalidParseOperationException, MetadataInvalidSelectException, MetaDataExecutionException,
+        MetaDataDocumentSizeException;
 }

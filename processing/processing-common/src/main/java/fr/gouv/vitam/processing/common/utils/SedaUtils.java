@@ -628,7 +628,7 @@ public class SedaUtils {
             if (input != null) {
                 final JsonNode json = convertArchiveUnitToJson(input, containerId, objectName).get(ARCHIVE_UNIT);
                 final String insertRequest = new Insert().addData((ObjectNode) json).getFinalInsert().toString();
-                metadataClient.insert(insertRequest);
+                metadataClient.insertUnit(insertRequest);
             } else {
                 LOGGER.error("Archive unit not found");
                 throw new ProcessingException("Archive unit not found");
