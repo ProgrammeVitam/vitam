@@ -35,6 +35,7 @@
 package fr.gouv.vitam.processing.management.client;
 
 import static com.jayway.restassured.RestAssured.get;
+import static org.junit.Assert.assertFalse;
 
 import java.io.InputStream;
 
@@ -155,6 +156,7 @@ public class ProcessingIntegrationTest {
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;        
         processingClient =  new ProcessingManagementClient(PROCESSING_URL);
-        processingClient.executeVitamProcess(CONTAINER_NAME, WORFKLOW_NAME); 
+        String s =processingClient.executeVitamProcess(CONTAINER_NAME, WORFKLOW_NAME);
+        assertFalse(s.contains("FATAL"));
      }
 }
