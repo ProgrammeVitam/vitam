@@ -90,9 +90,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 public class SedaUtils {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SedaUtils.class);
-    // FIXME REVIEW use PropertyUtils tmp folder method
-    //private static String TMP_FOLDER = "/vitam/data/";
-    private static String File_CONF = "vitam/conf/version.conf";
+    private static String File_CONF = "version.conf";
     private static final String NAMESPACE_URI = "fr:gouv:culture:archivesdefrance:seda:v2.0";
     private static final String SEDA_FILE = "manifest.xml";
     private static final String SEDA_VALIDATION_FILE = "seda-2.0-main.xsd";
@@ -928,7 +926,7 @@ public class SedaUtils {
      * check if the version list of the manifest.xml in workspace is valid
      * 
      * @param params
-     * @return true/false
+     * @return list of unsupported version
      * @throws ProcessingException
      * @throws IOException
      * @throws URISyntaxException
@@ -959,7 +957,7 @@ public class SedaUtils {
 
         try {
             reader = xmlInputFactory.createXMLEventReader(xmlFile);
-            invalidVersionList = compareVersionList(reader);
+            invalidVersionList = compareVersionList(reader, File_CONF);
             reader.close();
         } catch (final XMLStreamException e) {
             LOGGER.error("Can not read SEDA");
@@ -1050,14 +1048,16 @@ public class SedaUtils {
      * compare if the version list of manifest.xml is included in or equal to the version list of version.conf
      * 
      * @param evenReader
-     * @return true/false
+     * @return list of unsupported version
      * @throws IOException
      * @throws XMLStreamException
      * @throws URISyntaxException
      */
-    public List<String> compareVersionList(XMLEventReader evenReader) 
+    public List<String> compareVersionList(XMLEventReader evenReader, String fileConf) 
             throws IOException, XMLStreamException, URISyntaxException{
-        List<String> fileVersionList = SedaVersion.fileVersionList(File_CONF);
+        
+        File file = PropertiesUtils.findFile(fileConf);
+        List<String> fileVersionList = SedaVersion.fileVersionList(file);
         List<String> manifestVersionList = manifestVersionList(evenReader);
         List<String> invalidVersionList = new ArrayList<String>();
         

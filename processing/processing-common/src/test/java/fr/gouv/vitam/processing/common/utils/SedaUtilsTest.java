@@ -284,11 +284,11 @@ public class SedaUtilsTest {
         XMLInputFactory factory = XMLInputFactory.newInstance();
         XMLEventReader evenReader = factory.createXMLEventReader(
                 new FileReader("src/test/resources/sip.xml"));
-        assertEquals(0, utils.compareVersionList(evenReader).size());
+        assertEquals(0, utils.compareVersionList(evenReader, "src/test/resources/version.conf").size());
         
         evenReader = factory.createXMLEventReader(
                 new FileReader("src/test/resources/sip-with-wrong-version.xml"));
-        assertEquals(1, utils.compareVersionList(evenReader).size());
+        assertEquals(1, utils.compareVersionList(evenReader, "src/test/resources/version.conf").size());
     }
 
 }
