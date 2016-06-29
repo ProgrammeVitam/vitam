@@ -25,17 +25,7 @@
  * accept its terms.
  */
 
-'use strict';
-
-// Define the `ihm-demo` module
-angular.module('ihm.demo', [
-  'ngAnimate',
-  'ui.bootstrap',
-  'ngRoute',
-  'core',
-  'archiveSearch',
-  'angularFileUpload',
-  'ngMaterial',
-  'archive.unit',
-  'vAccordion'
+angular.module('core').controller('mainViewController', ['$scope', '$location', 'IHM_URLS', function($scope, $location, IHM_URLS){
+  $scope.showMenuBar = !$location.url().toString().startsWith(IHM_URLS.ARCHIVE_DETAILS_URL);
+}
 ]);

@@ -8,9 +8,9 @@
   <link rel="stylesheet" href="css/styles.css" />
   <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css" />
   <link rel="stylesheet" href="bower_components/angular-material/angular-material.min.css">
+  <link rel="stylesheet" href="bower_components/v-accordion/dist/v-accordion.css" />
 
   <script src="bower_components/jquery/dist/jquery.js"></script>
-
   <script src="bower_components/angular/angular.js"></script>
   <script src="bower_components/angular-aria/angular-aria.min.js"></script>
   <script src="bower_components/angular-material/angular-material.min.js"></script>
@@ -23,6 +23,7 @@
   <script src="bower_components/lodash/dist/lodash.min.js"></script>
   <script src="bower_components/restangular/dist/restangular.min.js"></script>
   <script src="bower_components/angular-messages/angular-messages.js"></script>
+  <script src="bower_components/v-accordion/dist/v-accordion.js"></script>
 
   <script src="modules/parent/app.module.js"></script>
   <script src="modules/parent/app.config.js"></script>
@@ -31,11 +32,11 @@
 
   <script src="modules/core/core.module.js"></script>
   <script src="modules/core/ihm-demo-factory.js"></script>
+  <script src="modules/core/main.controller.js"></script>
 
   <script src="modules/archive-unit-search/archive-search.module.js"></script>
   <script src="modules/archive-unit-search/archive-search.controller.js"></script>
   <script src="modules/archive-unit-search/archive-search.component.js"></script>
-
 
   <script src="modules/archive-unit/archive-unit.module.js"></script>
   <script src="modules/archive-unit/archive-unit.controller.js"></script>
@@ -43,10 +44,9 @@
 
 </head>
 
-<body>
-
+<body ng-controller='mainViewController'>
   <!-- Menu -->
-  <md-toolbar class="md-menu-toolbar">
+  <md-toolbar class="md-menu-toolbar" ng-if="showMenuBar">
     <div layout="row">
       <md-toolbar-filler layout layout-align="center center">
         <md-icon md-svg-icon="call:chat"></md-icon>
@@ -63,8 +63,12 @@
   </md-toolbar>
 
   <!-- View -->
-  <div class="page-container">
+  <div class="page-container" ng-if="showMenuBar">
     <div ng-view class="page"></div>
   </div>
+  <div class="view-container" ng-if="!showMenuBar">
+        <div ng-view class="view-frame"></div>
+  </div>
+
 </body>
 </html>

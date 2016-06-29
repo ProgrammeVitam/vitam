@@ -25,7 +25,12 @@
  * accept its terms.
  */
 
-angular.module('archiveSearch').controller('ArchiveUnitSearchController', ['$scope','ihmDemoFactory','$window', function($scope, ihmDemoFactory, $window ) {
+angular.module('archiveSearch')
+ .constant('ARCHIVE_SEARCH_MODULE_CONST', {
+   'ARCHIVE_FORM_ALREADY_OPENED' : 'Le formulaire de l\'Archive Unit sélectionnée est déjà ouvert.'
+ })
+ .controller('ArchiveUnitSearchController', ['$scope','ihmDemoFactory','$window', '$mdToast', 'ARCHIVE_SEARCH_MODULE_CONST',
+          function($scope, ihmDemoFactory, $window, $mdToast, ARCHIVE_SEARCH_MODULE_CONST) {
 
   // Archive Units Search Result
   $scope.archiveUnitsSearchResult;
@@ -58,10 +63,65 @@ angular.module('archiveSearch').controller('ArchiveUnitSearchController', ['$sco
   }
 
   // Display Selected Archive unit form
-  $scope.displayArchiveUnitForm = function displayArchiveUnitForm(archiveId){
-    $window.open('#!/archiveunit/' + archiveId, '_blank');
-  }
 
+  //******** Toast diplayed only if the archive unit is already opened ********* //
+  var last = {
+      bottom: false,
+      top: true,
+      left: false,
+      right: true
+    };
+  $scope.toastPosition = angular.extend({},last);
+  $scope.getToastPosition = function() {
+    sanitizePosition();
+    return Object.keys($scope.toastPosition)
+      .filter(function(pos) { return $scope.toastPosition[pos]; })
+      .join(' ');
+  };
+  function sanitizePosition() {
+    var current = $scope.toastPosition;
+    if ( current.bottom && last.top ) current.top = false;
+    if ( current.top && last.bottom ) current.bottom = false;
+    if ( current.right && last.left ) current.left = false;
+    if ( current.left && last.right ) current.right = false;
+    last = angular.extend({},current);
+  }
+  $scope.showSimpleToast = function() {
+    var pinTo = $scope.getToastPosition();
+    $mdToast.show(
+      $mdToast.simple()
+        .textContent(ARCHIVE_SEARCH_MODULE_CONST.ARCHIVE_FORM_ALREADY_OPENED)
+        .position(pinTo )
+        .hideDelay(3000)
+    );
+  };
+  // **************************************************************************** //
+
+
+  $scope.openedArchiveId=[];
+  $scope.openedArchiveWindowRef=[];
+  $scope.displayArchiveUnitForm = function displayArchiveUnitForm(archiveId){
+
+    var archiveUnitwindow;
+    var archiveUnitwindowIndex = $scope.openedArchiveId.indexOf(archiveId);
+
+    if(archiveUnitwindowIndex !== -1){
+      archiveUnitwindow = $scope.openedArchiveWindowRef[archiveUnitwindowIndex];
+
+      // Show Toast to indicate that the archive unit form is already opened
+      $scope.showSimpleToast();
+
+    }else{
+      archiveUnitwindow = $window.open('#!/archiveunit/' + archiveId);
+
+      // add a close listener to the window so that the
+      archiveUnitwindow.onbeforeunload = function(){
+        $scope.openedArchiveId.splice(archiveUnitwindowIndex, 1);
+      }
+      $scope.openedArchiveId.push(archiveId);
+      $scope.openedArchiveWindowRef.push(archiveUnitwindow);
+    }
+  }
 
   // ******************* Mock response *************** //
   $scope.showResult=true;
