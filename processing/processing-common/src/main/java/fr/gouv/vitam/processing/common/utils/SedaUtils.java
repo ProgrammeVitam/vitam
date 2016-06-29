@@ -26,8 +26,10 @@
  */
 package fr.gouv.vitam.processing.common.utils;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -88,6 +90,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 public class SedaUtils {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SedaUtils.class);
+    private static String File_CONF = "version.conf";
     private static final String NAMESPACE_URI = "fr:gouv:culture:archivesdefrance:seda:v2.0";
     private static final String SEDA_FILE = "manifest.xml";
     private static final String SEDA_VALIDATION_FILE = "seda-2.0-main.xsd";
@@ -106,6 +109,9 @@ public class SedaUtils {
     private static final String DATA_OBJECT_REFERENCEID = "DataObjectReferenceId";
     private static final String DATA_OBJECT_GROUP_REFERENCEID = "DataObjectGroupReferenceId";
     private static final String TAG_URI = "Uri";
+    private static final String TAG_SIZE = "Size";
+    private static final String TAG_DIGEST = "MessageDigest";
+    private static final String TAG_VERSION = "DataObjectVersion";
     private static final String MSG_PARSING_BDO = "Parsing Binary Data Object";
     private static final String STAX_PROPERTY_PREFIX_OUTPUT_SIDE = "javax.xml.stream.isRepairingNamespaces";
     private static final String TAG_CONTENT = "Content";
@@ -941,6 +947,157 @@ public class SedaUtils {
         if (extractUriResponse.getUriListManifest().contains(new URI(uriString))) {
             extractUriResponse.getMessages().add(SedaUtils.MSG_DUPLICATE_URI_MANIFEST + uriString);
         }
+    }
+    
+    
+    /**
+     * check if the version list of the manifest.xml in workspace is valid
+     * 
+     * @param params
+     * @return list of unsupported version
+     * @throws ProcessingException
+     * @throws IOException
+     * @throws URISyntaxException
+     */
+    public List<String> checkSupportedBinaryObjectVersion(WorkParams params) throws ProcessingException, IOException, URISyntaxException {
+        ParametersChecker.checkParameter("WorkParams is a mandatory parameter", params);
+        final String containerId = params.getContainerName();
+        final WorkspaceClient client = workspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
+        return isSedaVersionValid(client, containerId);
+    }
+    
+    private List<String> isSedaVersionValid(WorkspaceClient client, 
+        String containerId)throws ProcessingException, IOException, URISyntaxException {
+        ParametersChecker.checkParameter("WorkspaceClient is a mandatory parameter", client);
+        ParametersChecker.checkParameter("ContainerId is a mandatory parameter", containerId);
+
+        InputStream xmlFile = null;
+        List<String> invalidVersionList = new ArrayList<String>();
+        try {
+            xmlFile = client.getObject(containerId, SEDA_FOLDER + "/" + SEDA_FILE);
+        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
+            LOGGER.error("Manifest.xml Not Found");
+            throw new ProcessingException(e);
+        }
+
+        final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+        XMLEventReader reader = null;
+
+        try {
+            reader = xmlInputFactory.createXMLEventReader(xmlFile);
+            invalidVersionList = compareVersionList(reader, File_CONF);
+            reader.close();
+        } catch (final XMLStreamException e) {
+            LOGGER.error("Can not read SEDA");
+            throw new ProcessingException(e);
+        }
+        
+        return invalidVersionList;
+    }
+    
+    private SedaUtilInfo getBinaryObjectInfo(XMLEventReader evenReader)
+            throws XMLStreamException, URISyntaxException{
+        SedaUtilInfo sedaUtilInfo = new SedaUtilInfo();
+        BinaryObjectInfo binaryObjectInfo = new BinaryObjectInfo();
+        while (evenReader.hasNext()) {
+            XMLEvent event = evenReader.nextEvent();
+
+            if (event.isStartElement()) {
+                StartElement startElement = event.asStartElement();
+                
+                if (startElement.getName().getLocalPart() == BINARY_DATA_OBJECT) {
+                    event = evenReader.nextEvent();
+                    Iterator<Attribute> attributes = startElement.getAttributes();
+                    final String id = attributes.next().getValue();
+                    binaryObjectInfo.setId(id);
+                    
+                    while (evenReader.hasNext()) {
+                        event = evenReader.nextEvent();
+                        if (event.isStartElement()) {
+                            startElement = event.asStartElement();
+                             
+                            String tag = startElement.getName().getLocalPart();
+                            if (tag == TAG_URI) {
+                                final String uri = evenReader.getElementText();
+                                binaryObjectInfo.setUri(new URI(uri));
+                            }
+                            
+                            if (tag == TAG_VERSION) {
+                                final String version = evenReader.getElementText();
+                                binaryObjectInfo.setVersion(version);
+                            }
+                            
+                            if (tag == TAG_DIGEST) {
+                                final String messageDigest = evenReader.getElementText();
+                                binaryObjectInfo.setMessageDigest(messageDigest);
+                            }
+                            
+                            if (tag == TAG_SIZE) {
+                                final int size = Integer.parseInt(evenReader.getElementText());
+                                binaryObjectInfo.setSize(size);
+                            }
+                        }
+                        
+                        if (event.isEndElement() && event.asEndElement().getName().getLocalPart() == BINARY_DATA_OBJECT) {
+                            sedaUtilInfo.setBinaryObjectMap(binaryObjectInfo);
+                            binaryObjectInfo = new BinaryObjectInfo();
+                            break;
+                        }
+                        
+                    }
+                }
+            }
+        }
+        return sedaUtilInfo;
+    }
+    
+    /**
+     * @param evenReader XMLEventReader for the file manifest.xml
+     * @return List<String> list of version for file manifest.xml
+     * @throws XMLStreamException
+     * @throws URISyntaxException
+     */
+    public List<String> manifestVersionList(XMLEventReader evenReader) 
+            throws XMLStreamException, URISyntaxException{
+        List<String> versionList = new ArrayList<String>();
+        SedaUtilInfo sedaUtilInfo = getBinaryObjectInfo(evenReader);
+        Map<String, BinaryObjectInfo> binaryObjectMap = sedaUtilInfo.getBinaryObjectMap();
+        
+        for (String mapKey : binaryObjectMap.keySet()) {
+            if (!versionList.contains(binaryObjectMap.get(mapKey).getVersion())){
+                versionList.add(binaryObjectMap.get(mapKey).getVersion());
+            }
+        }
+        
+        return versionList;
+    }
+    
+    /**
+     * compare if the version list of manifest.xml is included in or equal to the version list of version.conf
+     * 
+     * @param evenReader
+     * @return list of unsupported version
+     * @throws IOException
+     * @throws XMLStreamException
+     * @throws URISyntaxException
+     */
+    public List<String> compareVersionList(XMLEventReader evenReader, String fileConf) 
+            throws IOException, XMLStreamException, URISyntaxException{
+        
+        File file = PropertiesUtils.findFile(fileConf);
+        List<String> fileVersionList = SedaVersion.fileVersionList(file);
+        List<String> manifestVersionList = manifestVersionList(evenReader);
+        List<String> invalidVersionList = new ArrayList<String>();
+        
+        for (String s : manifestVersionList){
+            if (!fileVersionList.contains(s)){
+                LOGGER.info(s + ": invalid version");
+                invalidVersionList.add(s);
+            } else {
+                LOGGER.info(s + ": valid version");
+            }
+        }
+        return invalidVersionList;
     }
 
 }
