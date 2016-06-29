@@ -5,6 +5,25 @@ md-dialog{
     margin: auto
 }
 
+v-accordion{
+  padding-bottom: 10px;
+  border: 2px solid #2196F3;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  margin-top: 10px;
+}
+
+v-pane-content{
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+v-pane-header{
+  padding-left: 10px;
+  font-weight:bold;
+  background-color: #cfdbee;
+  font-size: 15px;
+}
 
 .buttondemoBasicUsage section {
   background: white;
