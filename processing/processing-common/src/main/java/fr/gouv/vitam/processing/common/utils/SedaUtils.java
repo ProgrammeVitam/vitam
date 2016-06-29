@@ -1065,8 +1065,7 @@ public class SedaUtils {
             if (!fileVersionList.contains(s)){
                 LOGGER.info(s + ": invalid version");
                 invalidVersionList.add(s);
-            }
-            else {
+            } else {
                 LOGGER.info(s + ": valid version");
             }
         }
