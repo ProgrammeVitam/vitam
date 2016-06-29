@@ -156,7 +156,7 @@ public class ProcessingIntegrationTest {
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;        
         processingClient =  new ProcessingManagementClient(PROCESSING_URL);
-        String s =processingClient.executeVitamProcess(CONTAINER_NAME, WORFKLOW_NAME);
+        String s = processingClient.executeVitamProcess(CONTAINER_NAME, WORFKLOW_NAME);
         assertFalse(s.contains("FATAL"));
      }
 }

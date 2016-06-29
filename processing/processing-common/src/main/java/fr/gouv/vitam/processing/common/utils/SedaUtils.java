@@ -110,6 +110,7 @@ public class SedaUtils {
     private static final String STAX_PROPERTY_PREFIX_OUTPUT_SIDE = "javax.xml.stream.isRepairingNamespaces";
     private static final String TAG_CONTENT = "Content";
     private static final String TAG_MANAGEMENT = "Management";
+    private static final String TAG_OG = "_og";
 
     private final Map<String, String> binaryDataObjectIdToGuid;
     private final Map<String, String> objectGroupIdToGuid;
@@ -118,6 +119,7 @@ public class SedaUtils {
     private final Map<String, String> binaryDataObjectIdToObjectGroupId;
     private final Map<String, List<String>> objectGroupIdToBinaryDataObjectId;
     private final Map<String, String> unitIdToGroupId;
+    private final Map<String, List<String>> objectGroupIdToUnitId;
 
     private final WorkspaceClientFactory workspaceClientFactory;
     private final MetaDataClientFactory metaDataClientFactory;
@@ -132,6 +134,7 @@ public class SedaUtils {
         objectGroupIdToBinaryDataObjectId = new HashMap<String, List<String>>();
         unitIdToGuid = new HashMap<String, String>();
         binaryDataObjectIdToObjectGroupId = new HashMap<String, String>();
+        objectGroupIdToUnitId = new HashMap<String, List<String>>();
         unitIdToGroupId = new HashMap<String, String>();
         workspaceClientFactory = workspaceFactory;
         metaDataClientFactory = metaDataFactory;
@@ -298,6 +301,7 @@ public class SedaUtils {
         final String elementID = ((Attribute) startElement.getAttributes().next()).getValue();
         final QName name = startElement.getName();
         int stack = 1;
+        String groupGuid = "";
         final File tmpFile = PropertiesUtils.fileFromTmpFolder(GUIDFactory.newGUID().toString() + elementGuid);
         XMLEventWriter writer;
         try {
@@ -322,15 +326,29 @@ public class SedaUtils {
                     if (end.getName().equals(name)) {
                         stack--;
                         if (stack == 0) {
+                            // Create objectgroup reference id
+                            writer.add(eventFactory.createStartElement("", "", TAG_OG));
+                            writer.add(eventFactory.createCharacters(groupGuid));
+                            writer.add(eventFactory.createEndElement("", "", TAG_OG));
+                            
                             writer.add(event);
                             break;
                         }
                     }
                 }
                 if (event.isStartElement() && event.asStartElement().getName().getLocalPart() == DATA_OBJECT_GROUP_REFERENCEID) {
-                    final String groupGuid = GUIDFactory.newGUID().toString();
+                    groupGuid = GUIDFactory.newGUID().toString();
                     final String groupId = reader.getElementText();
                     unitIdToGroupId.put(elementID, groupId);
+                    if (objectGroupIdToUnitId.get(groupId) == null) {
+                        ArrayList<String> archiveUnitList = new ArrayList<String>();
+                        archiveUnitList.add(elementID);
+                        objectGroupIdToUnitId.put(groupId, archiveUnitList);
+                    } else {
+                        List<String> archiveUnitList = objectGroupIdToUnitId.get(groupId);
+                        archiveUnitList.add(elementID);
+                        objectGroupIdToUnitId.put(groupId, archiveUnitList);
+                    }
                     // Create new startElement for group with new guid
                     writer.add(eventFactory.createStartElement("", NAMESPACE_URI, DATA_OBJECT_GROUP_REFERENCEID));
                     writer.add(eventFactory.createCharacters(groupGuid));
@@ -417,7 +435,7 @@ public class SedaUtils {
                 final XMLEvent event = reader.nextEvent();
                 if (event.isEndElement()) {
                     final EndElement end = event.asEndElement();
-                    if (end.getName().getLocalPart() == BINARY_DATA_OBJECT) {
+                    if (end.getName().getLocalPart() == BINARY_DATA_OBJECT) {                        
                         writer.add(event);
                         writer.add(eventFactory.createEndDocument());
                         break;
@@ -492,6 +510,7 @@ public class SedaUtils {
         for (Entry<String, List<String>> entry : objectGroupIdToBinaryDataObjectId.entrySet()) {
             ObjectNode objectGroup = JsonHandler.createObjectNode();
             ObjectNode fileInfo = JsonHandler.createObjectNode();
+            ArrayNode unitParent = JsonHandler.createArrayNode();
             String objectGroupType = "";
             String objectGroupGuid = objectGroupIdToGuid.get(entry.getKey());
             final File tmpFile = PropertiesUtils.fileFromTmpFolder(objectGroupGuid + JSON_EXTENSION);
@@ -521,11 +540,16 @@ public class SedaUtils {
                     }
                     binaryObjectFile.delete();
                 }
+                
+                for (String objectGroupId : objectGroupIdToUnitId.get(entry.getKey())) {
+                    unitParent.add(unitIdToGuid.get(objectGroupId));
+                }
 
                 objectGroup.put("_type", objectGroupType);
                 objectGroup.set("FileInfo", fileInfo);
                 ObjectNode qualifiersNode =  getObjectGroupQualifiers(categoryMap);
                 objectGroup.set("_qualifiers", qualifiersNode);
+                objectGroup.set("_up", unitParent);
                 tmpFileWriter.write(objectGroup.toString());
                 tmpFileWriter.close();
                 
@@ -716,11 +740,11 @@ public class SedaUtils {
                 if (event.isStartElement()) {
                     final StartElement startElement = event.asStartElement();
                     final Iterator<?> it = startElement.getAttributes();
+                    String tag = startElement.getName().getLocalPart();
+                    if (it.hasNext() && tag != TAG_CONTENT) {
+                        writer.add(eventFactory.createStartElement("", "", tag));
 
-                    if (it.hasNext() && startElement.getName().getLocalPart() != TAG_CONTENT) {
-                        writer.add(eventFactory.createStartElement("", "", startElement.getName().getLocalPart()));
-
-                        if (startElement.getName().getLocalPart() == ARCHIVE_UNIT) {
+                        if (tag == ARCHIVE_UNIT) {
                             writer.add(eventFactory.createStartElement("", "", "#id"));
                             writer.add(eventFactory.createCharacters(((Attribute) it.next()).getValue()));
                             writer.add(eventFactory.createEndElement("", "", "#id"));
@@ -728,11 +752,15 @@ public class SedaUtils {
                         eventWritable = false;
                     }
 
-                    if (startElement.getName().getLocalPart() == TAG_CONTENT) {
+                    if (tag == TAG_CONTENT) {
                         eventWritable = false;
                     }
+                    
+                    if (tag == TAG_OG) {
+                        contentWritable = true;
+                    }
 
-                    if (startElement.getName().getLocalPart() == TAG_MANAGEMENT) {
+                    if (tag == TAG_MANAGEMENT) {
                         writer.add(eventFactory.createStartElement("", "", "_mgt"));
                         eventWritable = false;
                     }
