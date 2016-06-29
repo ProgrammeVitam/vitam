@@ -135,6 +135,7 @@ public class ProcessEngineImpl implements ProcessEngine {
                         StatusCode.SUBMITTED.value());
                     client.update(parameters);
 
+                    workParams.setCurrentStep(step.getStepName());
                     final List<EngineResponse> stepResponse =
                         processDistributor.distribute(workParams, step, workflowId);
                     final StatusCode stepStatus = processResponse.getGlobalProcessStatusCode(stepResponse);

@@ -37,6 +37,9 @@ import java.util.List;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 
+/**
+ * The class SedaVersion used to get the list the version from the file version.conf 
+ */
 public class SedaVersion {
     
     /**

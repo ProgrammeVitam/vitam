@@ -56,6 +56,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.WorkParams;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -69,6 +70,7 @@ public class SedaUtilsTest {
     private static final String SIP = "sip1.xml";
     private static final String OBJ = "obj";
     private static final String ARCHIVE_UNIT = "archiveUnit.xml";
+    private static final String DIGESTMESSAGE = "ZGVmYXVsdA==";
     private static final String OBJECT_GROUP = "objectGroup.json";
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceFactory;
@@ -289,6 +291,17 @@ public class SedaUtilsTest {
         evenReader = factory.createXMLEventReader(
                 new FileReader("src/test/resources/sip-with-wrong-version.xml"));
         assertEquals(1, utils.compareVersionList(evenReader, "src/test/resources/version.conf").size());
+    }
+    
+    @Test
+    public void givenCompareDigestMessage() throws FileNotFoundException, XMLStreamException, URISyntaxException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, ContentAddressableStorageException{
+        utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
+        when(workspaceClient.computeObjectDigest(anyObject(), anyObject(), anyObject())).thenReturn(DIGESTMESSAGE);
+        
+        XMLInputFactory factory = XMLInputFactory.newInstance();
+        XMLEventReader evenReader = factory.createXMLEventReader(
+                new FileReader("src/test/resources/sip.xml"));
+        utils.compareDigestMessage(evenReader, workspaceClient);
     }
 
 }
