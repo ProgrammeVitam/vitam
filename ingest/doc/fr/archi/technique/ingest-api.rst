@@ -1,7 +1,7 @@
 ingest-api
 ############
 
-Contient les API permettant de uploader un SIP
+Ce module contient les API permettant d'uploader un SIP.
 
 packages : 
 	 - fr.gouv.vitam.ingest.api.ipload\UploadService.java

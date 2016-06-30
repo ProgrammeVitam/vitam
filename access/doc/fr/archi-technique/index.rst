@@ -1,19 +1,14 @@
-###########
-|doc_title|
-###########
-.. caution::
+######################
+Architecture Technique
+######################
 
-   Cette documentation est un travail en cours ; elle est susceptible de changer de manière conséquente.
+.. toctree::
+   :maxdepth: 2
 
-   Règles à respecter :
+   introduction.rst
+   access-api.rst
+   access-client.rst
+   access-common.rst
+   access-core.rst
+   access-rest.rst
 
-      * noms de fichiers / dossiers : tout en minuscule
-      * les tables des matières dans un fichier _toc.rst à la racine du dossier correspondant
-
-########
-Sommaire
-########
-
-##############
-Index & Tables
-##############

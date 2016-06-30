@@ -1,27 +1,29 @@
 Access-rest
-#######
+***********
 
 Présentation
-###########
+************
 
-API REST appelées par le client access interne
+API REST appelées par le client access interne 
 
 Packages:
 **********
 
-fr.gouv.vitam.access.config : contient lers paramètres de configurations du service web d'application.
+fr.gouv.vitam.access.config : contient les paramètres de configurations du service web d'application.
 fr.gouv.vitam.access.model : classes métiers, classes implémentant le pattern DTO... .
 fr.gouv.vitam.access.rest : classes de lancement du serveur d'application et du controlleur REST.
-
 
 fr.gouv.vitam.access.rest
 *************************
 
+Rest API
+--------
+
+| https://vitam/access/v1/units
 
 -AccessApplication.java
 
-classe de démarrage du serveur d'applicaton.
-
+classe de démarrage du serveur d'application.
 
 .. code-block:: java
 
@@ -43,7 +45,7 @@ classe controlleur REST
 
 la classe contient actuellement une méthode : 
 -getUnits()
-//TODO (future itération , ajouter méthode modification des métadonnées ?)
+//TODO (future itération , ajouter la méthode de modification des métadonnées ?)
  
  
  .. code-block:: java
