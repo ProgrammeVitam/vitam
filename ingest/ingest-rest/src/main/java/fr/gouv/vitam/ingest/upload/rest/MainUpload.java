@@ -63,6 +63,7 @@ public class MainUpload {
      * @throws VitamException
      */
     // FIXME REVIEW Use same logic than Logbook
+    //TODO Peut être intéressant d'imprimer la stack trace pour avoir l'information complète de l'erreur avant exit ?
     public static void main(String[] args) throws IOException, VitamException {
 
         final int iPort = MainUpload.serverInitialisation();

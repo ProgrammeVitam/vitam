@@ -146,6 +146,7 @@ public class UploadServiceImpl implements UploadService {
 
         if (uploadedInputStream == null || fileDetail == null) {
             VITAM_LOGGER.error("input stream null");
+            //TODO  commentaire à variabiliser (FR/EN)
             throw new VitamException("error input stream");
         }
 
@@ -313,6 +314,9 @@ public class UploadServiceImpl implements UploadService {
     }
 
 
+
+    //TODO ???? Le Factory le fait pour toi !! Cela me semble incorrect!
+    //TODO Supprimer parameters car tu ne l'utilises pas (et donc dans le property les paramètres associés).
     private LogbookClient logbookInitialisation(final GUID ingestGuid, final GUID containerGUID, int tenantId) throws LogbookClientNotFoundException,
             LogbookClientServerException, LogbookClientAlreadyExistsException, LogbookClientBadRequestException {
 
