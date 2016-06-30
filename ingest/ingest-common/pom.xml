@@ -5,22 +5,16 @@
     <parent>
         <groupId>fr.gouv.vitam</groupId>
         <artifactId>ingest</artifactId>
-		<version>0.5.0-SNAPSHOT</version>
+        <version>0.5.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>fr.gouv.vitam</groupId>
-    <artifactId>ingest-model</artifactId>
+    <artifactId>ingest-common</artifactId>
 
     <dependencies>
         <dependency>
             <groupId>fr.gouv.vitam</groupId>
-            <artifactId>ingest-common</artifactId>
+            <artifactId>common-public</artifactId>
             <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>${commons-lang3}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -29,9 +23,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.glassfish.jersey.core</groupId>
-            <artifactId>jersey-server</artifactId>
-            <version>${jersey.version}</version>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${commons-lang3}</version>
         </dependency>
     </dependencies>
 
