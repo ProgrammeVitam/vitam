@@ -24,8 +24,8 @@ export default function __identity($parse, FileUploader, FileDrop) {
 
             object.getOptions = $parse(attributes.options).bind(object, scope);
             object.getFilters = () => attributes.filters;
-        }
-    };
+        };
+}
 
 
 }

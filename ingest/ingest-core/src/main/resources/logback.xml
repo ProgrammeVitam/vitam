@@ -9,14 +9,14 @@
     </appender>
 
     <appender name="NOTIFICATION" class="ch.qos.logback.core.FileAppender">
-        <file>/vitam/log/ingest-core/notification.log</file>
+        <file>/vitam/log/ingest-core-notification.log</file>
         <encoder>
             <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{5} - %msg%n</pattern>
         </encoder>
     </appender>
 
     <appender name="INGEST-CORE" class="ch.qos.logback.core.FileAppender">
-        <file>/vitam/log/ingest-core/ingest-core.log</file>
+        <file>/vitam/log/ingest-core.log</file>
         <encoder>
             <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{5} - %msg%n</pattern>
         </encoder>

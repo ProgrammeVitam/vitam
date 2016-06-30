@@ -29,9 +29,10 @@ package fr.gouv.vitam.ingest.api.response;
 import java.util.ArrayList;
 import java.util.List;
 
-import fr.gouv.vitam.workspace.api.ContentAddressableStorage;
 
-// TODO REVIEW Comment
+/**
+ * Class Ingest Reponse
+ */
 public class IngestResponse {
 
     private String cause;
@@ -42,14 +43,10 @@ public class IngestResponse {
     /*
      * if error occured during any process ( unzip, seda anlysis ..)
      */
-    // FIXME REVIEW Do not use Object but Simple types (Boolean -> boolean, Long -> long, ...)
-    // FIXME REVIEW Null Check
-
     private Boolean errorOccured;
     private Long numberOfNumericalObject;
     // number of elements in the received SIP
     private Long numberOfElements;
-    private ContentAddressableStorage storageService;
 
     private List<String> guidNumObjList = new ArrayList<>();
 
@@ -158,44 +155,52 @@ public class IngestResponse {
         return this;
     }
 
-    /**
-     * get the container which contains the unzipped file from the received SIP
-     *
-     * @return the storageService
-     */
-    public ContentAddressableStorage getStorageService() {
-        return storageService;
-    }
 
     /**
-     *
-     * @param storageService the storageService to set
+     * @return the numberOfElements in a received SIP
      */
-    public IngestResponse setStorageService(ContentAddressableStorage storageService) {
-        this.storageService = storageService;
-        return this;
-    }
-
     public Long getNumberOfNumericalObject() {
         return numberOfNumericalObject;
     }
 
-    public void setNumberOfNumericalObject(Long numberOfNumericalObject) {
+    /**
+     * @param numberOfNumericalObject
+     */
+    public IngestResponse setNumberOfNumericalObject(Long numberOfNumericalObject) {
         this.numberOfNumericalObject = numberOfNumericalObject;
+        return this;
     }
 
+    /**
+     * @return list of String
+     */
     public List<String> getGuidNumObjList() {
         return guidNumObjList;
     }
 
-    public void setGuidNumObjList(List<String> guidNumObjList) {
-        this.guidNumObjList = guidNumObjList;
+    /**
+     * Setter GuidNumObjList
+     * 
+     * @param guidNumObjList
+     */
+    public IngestResponse setGuidNumObjList(List<String> guidNumObjList) {
+        if( guidNumObjList!=null && !guidNumObjList.isEmpty() ) {
+            this.guidNumObjList.addAll(guidNumObjList);
+        }
+        return this;
     }
 
-    public void addGuidNumericObject(String guid) {
+    /**
+     * @param guid
+     */
+    public IngestResponse addGuidNumericObject(String guid) {
         guidNumObjList.add(guid);
+        return this;
     }
 
+    /**
+     * @return listGuid such as String
+     */
     public String getListGuidObjectAsString() {
         return guidNumObjList.toString();
     }

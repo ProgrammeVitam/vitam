@@ -590,8 +590,9 @@ this.extend = function(l, r)
 
 this.descend = function(prototypeParent, childProperties)
 {
-    function protoSetter() {};
-    protoSetter.prototype = prototypeParent;
+  function protoSetter() {
+  }
+  protoSetter.prototype = prototypeParent;
     var newOb = new protoSetter();
     for (var n in childProperties)
         newOb[n] = childProperties[n];
@@ -820,9 +821,8 @@ function addEntityMapToList(ccode, entity)
         reverse[list]=reverse[list] || {};
         reverse[list]['&' + entity + ';'] = ch;
     }
-};
-
-var e = addEntityMapToList,
+}
+  var e = addEntityMapToList,
     white = 'whitespace',
     text = 'text',
     attr = 'attributes',
@@ -912,9 +912,8 @@ function getEscapeRegexp(direction, lists)
         re = entityConversionRegexes[direction][name] = escapeEntitiesRegEx[direction](list);
     }
     return re;
-};
-
-function createSimpleEscape(name, direction)
+}
+  function createSimpleEscape(name, direction)
 {
     return function(value)
     {
@@ -930,9 +929,8 @@ function createSimpleEscape(name, direction)
                 }
                );
     };
-};
-
-function escapeGroupsForEntities(str, lists)
+}
+  function escapeGroupsForEntities(str, lists)
 {
     lists = [].concat(lists);
     var re = getEscapeRegexp('normal', lists),
@@ -978,9 +976,8 @@ function escapeGroupsForEntities(str, lists)
         ri++;
     }
     return results;
-};
-
-this.escapeGroupsForEntities = escapeGroupsForEntities;
+}
+  this.escapeGroupsForEntities = escapeGroupsForEntities;
 
 
 function unescapeEntities(str, lists)
@@ -1013,9 +1010,7 @@ function unescapeEntities(str, lists)
         ri++;
     }
     return results.join('') || '';
-};
-
-
+}
 // ************************************************************************************************
 // String escaping
 
@@ -1072,8 +1067,8 @@ function escapeHTMLAttribute(value)
                 return quot;
         }
         return "?";
-    };
-    var apos = "&#39;", quot = "&quot;", around = '"';
+    }
+  var apos = "&#39;", quot = "&quot;", around = '"';
     if( value.indexOf('"') == -1 ) {
         quot = '"';
         apos = "'";
@@ -1103,8 +1098,8 @@ function escapeHTML(value)
                 return "&quot;";
         }
         return "?";
-    };
-    return String(value).replace(/[<>&"']/g, replaceChars);
+    }
+  return String(value).replace(/[<>&"']/g, replaceChars);
 }
 
 this.escapeHTML = escapeHTML;
@@ -3393,19 +3388,16 @@ function onOperaTabBlur(e)
 {
     if (this.lastKey == 9)
       this.focus();
-};
-
-function onOperaTabKeyDown(e)
+}
+  function onOperaTabKeyDown(e)
 {
     this.lastKey = e.keyCode;
-};
-
-function onOperaTabFocus(e)
+}
+  function onOperaTabFocus(e)
 {
     this.lastKey = null;
-};
-
-this.fixOperaTabKey = function(el)
+}
+  this.fixOperaTabKey = function(el)
 {
     el.onfocus = onOperaTabFocus;
     el.onblur = onOperaTabBlur;
@@ -7205,9 +7197,8 @@ Firebug.Panel =
             } else {
                 return (curPos + index + 1) % allLocs.length;
             }
-        };
-
-        for (var next = 0; next < allLocs.length - 1; next++)
+        }
+      for (var next = 0; next < allLocs.length - 1; next++)
         {
             var object = allLocs[transformIndex(next)];
 
@@ -8554,9 +8545,9 @@ append(Menu,
 // Status Bar
 
 /**@class*/
-function StatusBar(){};
-
-StatusBar.prototype = extend(Controller, {
+function StatusBar() {
+}
+  StatusBar.prototype = extend(Controller, {
 
 });
 
@@ -12515,27 +12506,27 @@ var store = (function(){
 		localStorageName = 'localStorage',
 		globalStorageName = 'globalStorage',
 		namespace = '__firebug__storejs__',
-		storage
+		storage;
 
-	api.disabled = false
-	api.set = function(key, value) {}
-	api.get = function(key) {}
-	api.remove = function(key) {}
-	api.clear = function() {}
+	api.disabled = false;
+	api.set = function(key, value) {};
+	api.get = function(key) {};
+	api.remove = function(key) {};
+	api.clear = function() {};
 	api.transact = function(key, transactionFn) {
-		var val = api.get(key)
+		var val = api.get(key);
 		if (typeof val == 'undefined') { val = {} }
-		transactionFn(val)
+		transactionFn(val);
 		api.set(key, val)
-	}
+	};
 
 	api.serialize = function(value) {
 		return JSON.stringify(value)
-	}
+	};
 	api.deserialize = function(value) {
 		if (typeof value != 'string') { return undefined }
 		return JSON.parse(value)
-	}
+	};
 
 	// Functions to encapsulate questionable FireFox 3.6.13 behavior
 	// when about.config::dom.storage.enabled === false
@@ -12551,51 +12542,51 @@ var store = (function(){
 	}
 
 	if (isLocalStorageNameSupported()) {
-		storage = win[localStorageName]
-		api.set = function(key, val) { storage.setItem(key, api.serialize(val)) }
-		api.get = function(key) { return api.deserialize(storage.getItem(key)) }
-		api.remove = function(key) { storage.removeItem(key) }
+		storage = win[localStorageName];
+		api.set = function(key, val) { storage.setItem(key, api.serialize(val)) };
+		api.get = function(key) { return api.deserialize(storage.getItem(key)) };
+		api.remove = function(key) { storage.removeItem(key) };
 		api.clear = function() { storage.clear() }
 
 	} else if (isGlobalStorageNameSupported()) {
-		storage = win[globalStorageName][win.location.hostname]
-		api.set = function(key, val) { storage[key] = api.serialize(val) }
-		api.get = function(key) { return api.deserialize(storage[key] && storage[key].value) }
-		api.remove = function(key) { delete storage[key] }
+		storage = win[globalStorageName][win.location.hostname];
+		api.set = function(key, val) { storage[key] = api.serialize(val) };
+		api.get = function(key) { return api.deserialize(storage[key] && storage[key].value) };
+		api.remove = function(key) { delete storage[key] };
 		api.clear = function() { for (var key in storage ) { delete storage[key] } }
 
 	} else if (doc.documentElement.addBehavior) {
-		var storage = doc.createElement('div')
+		var storage = doc.createElement('div');
 		function withIEStorage(storeFunction) {
 			return function() {
-				var args = Array.prototype.slice.call(arguments, 0)
-				args.unshift(storage)
+				var args = Array.prototype.slice.call(arguments, 0);
+				args.unshift(storage);
 				// See http://msdn.microsoft.com/en-us/library/ms531081(v=VS.85).aspx
 				// and http://msdn.microsoft.com/en-us/library/ms531424(v=VS.85).aspx
 				// TODO: xxxpedro doc.body is not always available so we must use doc.documentElement.
 				// We need to make sure this change won't affect the behavior of this library.
-				doc.documentElement.appendChild(storage)
-				storage.addBehavior('#default#userData')
-				storage.load(localStorageName)
-				var result = storeFunction.apply(api, args)
-				doc.documentElement.removeChild(storage)
+				doc.documentElement.appendChild(storage);
+				storage.addBehavior('#default#userData');
+				storage.load(localStorageName);
+				var result = storeFunction.apply(api, args);
+				doc.documentElement.removeChild(storage);
 				return result
 			}
 		}
 		api.set = withIEStorage(function(storage, key, val) {
-			storage.setAttribute(key, api.serialize(val))
+			storage.setAttribute(key, api.serialize(val));
 			storage.save(localStorageName)
-		})
+		});
 		api.get = withIEStorage(function(storage, key) {
 			return api.deserialize(storage.getAttribute(key))
-		})
+		});
 		api.remove = withIEStorage(function(storage, key) {
-			storage.removeAttribute(key)
+			storage.removeAttribute(key);
 			storage.save(localStorageName)
-		})
+		});
 		api.clear = withIEStorage(function(storage) {
-			var attributes = storage.XMLDocument.documentElement.attributes
-			storage.load(localStorageName)
+			var attributes = storage.XMLDocument.documentElement.attributes;
+			storage.load(localStorageName);
 			for (var i=0, attr; attr = attributes[i]; i++) {
 				storage.removeAttribute(attr.name)
 			}
@@ -12604,7 +12595,7 @@ var store = (function(){
 	}
 
 	try {
-		api.set(namespace, namespace)
+		api.set(namespace, namespace);
 		if (api.get(namespace) != namespace) { api.disabled = true }
 		api.remove(namespace)
 	} catch(e) {
@@ -14405,8 +14396,8 @@ FBL.DomplateTag.prototype =
                         return "&quot;";
                 }
                 return "?";
-            };
-            return String(value).replace(/[<>&"']/g, replaceChars);
+            }
+          return String(value).replace(/[<>&"']/g, replaceChars);
         }
 
         function __loop__(iter, outputs, fn)
@@ -16135,7 +16126,7 @@ this.Element = domplate(Firebug.Rep,
 
                  // we must check if the attribute is specified otherwise IE will show them
                  if (!attr.specified || attr.nodeName && attr.nodeName.indexOf("firebug-") != -1)
-                    continue;
+
                  else if (attr.nodeName == "id")
                     idAttr = attr;
                  else if (attr.nodeName == "class")
@@ -18586,7 +18577,7 @@ var getDefaultEditor = function getDefaultEditor(panel)
     }
 
     return defaultEditor;
-}
+};
 
 /**
  * An outsider is the first element matching the stepper element that
@@ -18606,23 +18597,23 @@ var getOutsider = function getOutsider(element, group, stepper)
     while (isAncestor(next, group) || isGroupInsert(next, parentGroup));
 
     return next;
-}
+};
 
 var isGroupInsert = function isGroupInsert(next, group)
 {
     return (!group || isAncestor(next, group))
         && (hasClass(next, "insertBefore") || hasClass(next, "insertAfter"));
-}
+};
 
 var getNextOutsider = function getNextOutsider(element, group)
 {
     return getOutsider(element, group, bind(getNextByClass, FBL, "editable"));
-}
+};
 
 var getPreviousOutsider = function getPreviousOutsider(element, group)
 {
     return getOutsider(element, group, bind(getPreviousByClass, FBL, "editable"));
-}
+};
 
 var getInlineParent = function getInlineParent(element)
 {
@@ -18640,12 +18631,12 @@ var getInlineParent = function getInlineParent(element)
             lastInline = element;
     }
     return null;
-}
+};
 
 var insertTab = function insertTab()
 {
     insertTextIntoElement(currentEditor.input, Firebug.Editor.tabCharacter);
-}
+};
 
 // ************************************************************************************************
 
@@ -19213,7 +19204,7 @@ var layoutInterval = 300;
 var indentWidth = 18;
 
 var cacheSession = null;
-var contexts = new Array();
+var contexts = [];
 var panelName = "net";
 var maxQueueRequests = 500;
 //var panelBar1 = $("fbPanelBar1"); // chrome not available at startup
@@ -21393,7 +21384,7 @@ Firebug.JSONViewerModel = extend(Firebug.Module,
 
     parseJSON: function(file)
     {
-        var jsonString = new String(file.responseText);
+        var jsonString = String(file.responseText);
         ///return parseJSONString(jsonString, "http://" + file.request.originalURI.host);
         return parseJSONString(jsonString);
     }
@@ -22041,7 +22032,7 @@ Firebug.ConsoleListener =
 
 // ************************************************************************************************
 
-Firebug.ConsolePanel = function () {} // XXjjb attach Firebug so this panel can be extended.
+Firebug.ConsolePanel = function () {}; // XXjjb attach Firebug so this panel can be extended.
 
 //TODO: xxxpedro
 //Firebug.ConsolePanel.prototype = extend(Firebug.ActivablePanel,
@@ -23611,7 +23602,7 @@ var FirebugConsoleHandler = function FirebugConsoleHandler(context, win)
     function getStackLink()
     {
         // TODO: xxxpedro console2
-        return;
+
         //return FBL.getFrameSourceLink(getComponentsStackDump());
     }
 
@@ -24510,9 +24501,9 @@ Firebug.registerModule(Firebug.HTML);
 // ************************************************************************************************
 // HTML Panel
 
-function HTMLPanel(){};
-
-HTMLPanel.prototype = extend(Firebug.Panel,
+function HTMLPanel() {
+  }
+  HTMLPanel.prototype = extend(Firebug.Panel,
 {
     name: "HTML",
     title: "HTML",
@@ -24763,9 +24754,8 @@ function onListMouseOut(e)
           FBL.Firebug.Inspector.hideBoxModel();
           hoverElement = null;
       }
-};
-
-var hoverElement = null;
+}
+  var hoverElement = null;
 var hoverElementTS = 0;
 
 Firebug.HTML.onListMouseMove = function onListMouseMove(e)
@@ -25911,9 +25901,8 @@ var processAllStyleSheets = function(doc, styleSheetIterator)
                 styleSheetIterator(doc, importedStyleSheet);
             }
         }
-    };
-
-    if (FBTrace.DBG_CSS)
+    }
+  if (FBTrace.DBG_CSS)
     {
         FBTrace.sysout("FBL.processAllStyleSheets", "all stylesheet rules processed in " + (new Date().getTime() - start) + "ms");
     }
@@ -27000,7 +26989,7 @@ Firebug.CSSStyleSheetPanel.prototype = extend(Firebug.SourceBoxPanel,
                 //var name = m[1], value = m[2], important = !!m[3];
                 if (m[2])
                     this.addProperty(m[1], m[2], !!m[3], false, inheritMode, props);
-            };
+            }
         }
 
         return props;
@@ -28839,9 +28828,9 @@ Firebug.registerModule(Firebug.Script);
 // ************************************************************************************************
 // Script Panel
 
-function ScriptPanel(){};
-
-ScriptPanel.prototype = extend(Firebug.Panel,
+function ScriptPanel() {
+  }
+  ScriptPanel.prototype = extend(Firebug.Panel,
 {
     name: "Script",
     title: "Script",
@@ -28874,9 +28863,8 @@ ScriptPanel.prototype = extend(Firebug.Panel,
 
             option.appendChild(Firebug.chrome.document.createTextNode(fileName));
             selectNode.appendChild(option);
-        };
-
-        this.toolButtonsNode.appendChild(selectNode);
+        }
+      this.toolButtonsNode.appendChild(selectNode);
     },
 
     initialize: function()
@@ -30678,9 +30666,9 @@ Firebug.registerModule(Firebug.DOM);
 
 var lastHighlightedObject;
 
-function DOMSidePanel(){};
-
-DOMSidePanel.prototype = extend(Firebug.DOMBasePanel.prototype,
+function DOMSidePanel() {
+  }
+  DOMSidePanel.prototype = extend(Firebug.DOMBasePanel.prototype,
 {
     selectRow: function(row, target)
     {
@@ -30939,17 +30927,15 @@ this.writeRow = function(message, className)
 function appendText(object, html)
 {
     html.push(escapeHTML(objectToString(object)));
-};
-
-function getTimestamp()
+}
+  function getTimestamp()
 {
     var now = new Date();
     var ms = "" + (now.getMilliseconds() / 1000).toFixed(3);
     ms = ms.substr(2);
 
     return now.toLocaleTimeString() + "." + ms;
-};
-
+}
 //*************************************************************************************************
 
 var HTMLtoEntity =
@@ -30964,13 +30950,11 @@ var HTMLtoEntity =
 function replaceChars(ch)
 {
     return HTMLtoEntity[ch];
-};
-
-function escapeHTML(value)
+}
+  function escapeHTML(value)
 {
     return (value+"").replace(/[<>&"']/g, replaceChars);
-};
-
+}
 //*************************************************************************************************
 
 function objectToString(object)
@@ -30983,8 +30967,7 @@ function objectToString(object)
     {
         return null;
     }
-};
-
+}
 // ************************************************************************************************
 }).apply(FBL.FBTrace);
 
@@ -31018,9 +31001,9 @@ Firebug.registerModule(Firebug.Trace);
 // ************************************************************************************************
 // FBTrace Panel
 
-function TracePanel(){};
-
-TracePanel.prototype = extend(Firebug.Panel,
+function TracePanel() {
+  }
+  TracePanel.prototype = extend(Firebug.Panel,
 {
     name: "Trace",
     title: "Trace",

@@ -5,4 +5,12 @@ Architecture Technique
 .. toctree::
    :maxdepth: 2
 
-   introduction.rst
+########
+Sommaire
+########
+  	introduction.rst
+   	ingest-api.rst
+   	ingest-core.rst
+    ingest-model.rst
+    ingest-rest.rst
+ 

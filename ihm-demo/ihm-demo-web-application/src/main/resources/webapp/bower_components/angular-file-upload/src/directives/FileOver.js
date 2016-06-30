@@ -21,8 +21,8 @@ export default function __identity(FileUploader, FileOver) {
             });
 
             object.getOverClass = () => attributes.overClass || object.overClass;
-        }
-    };
+        };
+}
 
 
 }
