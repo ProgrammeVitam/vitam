@@ -128,7 +128,7 @@ public class UploadServiceImplTest {
         Assertions.assertThat(response.getStatus()).isEqualTo(200);
         assertThat(response.getEntity()).isInstanceOf(UploadResponseDTO.class);
         UploadResponseDTO uploadResponseDTO = (UploadResponseDTO) response.getEntity();
-        assertThat(uploadResponseDTO.getVitamStatus()).isEqualTo("workspace failed");
+        assertThat(uploadResponseDTO.getVitamStatus()).isEqualTo("upload failed");
     }
     
     @Test
