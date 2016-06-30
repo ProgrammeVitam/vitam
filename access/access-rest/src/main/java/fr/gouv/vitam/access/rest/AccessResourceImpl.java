@@ -40,7 +40,7 @@ import fr.gouv.vitam.access.common.exception.AccessExecutionException;
 import fr.gouv.vitam.access.config.AccessConfiguration;
 import fr.gouv.vitam.access.core.AccessModuleImpl;
 import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
-import fr.gouv.vitam.api.exception.MetaDataExecutionException;
+import fr.gouv.vitam.api.exception.MetaDataException;
 import fr.gouv.vitam.api.exception.MetadataInvalidSelectException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -136,9 +136,9 @@ public class AccessResourceImpl implements AccessResource {
                         .setMessage(status.getReasonPhrase())
                         .setDescription(status.getReasonPhrase())))
                 .build();
-        } catch (final MetaDataExecutionException e) {
+        } catch (final AccessExecutionException e) {
             LOGGER.error(e.getMessage(), e);
-            status = Status.INTERNAL_SERVER_ERROR;
+            status = Status.METHOD_NOT_ALLOWED;
             return Response.status(status)
                 .entity(new RequestResponseError().setError(
                     new VitamError(status.getStatusCode())
@@ -147,9 +147,9 @@ public class AccessResourceImpl implements AccessResource {
                         .setMessage(status.getReasonPhrase())
                         .setDescription(status.getReasonPhrase())))
                 .build();
-        } catch (final AccessExecutionException e) {
+        } catch (final Exception e) {
             LOGGER.error(e.getMessage(), e);
-            status = Status.METHOD_NOT_ALLOWED;
+            status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
                 .entity(new RequestResponseError().setError(
                     new VitamError(status.getStatusCode())

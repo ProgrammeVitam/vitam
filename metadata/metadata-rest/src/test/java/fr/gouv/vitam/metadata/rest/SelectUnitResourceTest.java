@@ -63,7 +63,6 @@ public class SelectUnitResourceTest {
     private static final String DATA2 =
         "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\"," + "\"data\": \"data2\" }";
     private static final String DATA_URI = "/metadata/v1";
-    private static final String DATABASE_COLLECTIONS = "Units";
     private static final String DATABASE_NAME = "vitam-test";
     private static final int DATABASE_PORT = 12345;
     private static MongodExecutable mongodExecutable;
@@ -99,8 +98,7 @@ public class SelectUnitResourceTest {
             .build());
         mongod = mongodExecutable.start();
 
-        final MetaDataConfiguration configuration = new MetaDataConfiguration(SERVER_HOST, DATABASE_PORT, DATABASE_NAME,
-            DATABASE_COLLECTIONS);
+        final MetaDataConfiguration configuration = new MetaDataConfiguration(SERVER_HOST, DATABASE_PORT, DATABASE_NAME);
         MetaDataApplication.run(configuration, SERVER_PORT);
         RestAssured.port = SERVER_PORT;
         RestAssured.basePath = DATA_URI;

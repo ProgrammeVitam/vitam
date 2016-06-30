@@ -38,7 +38,9 @@ public class RequestResponseError extends RequestResponse {
      * @return the error of the RequestResponseError
      */
     public VitamError getError() {
-        // FIXME REVIEW do not return null but empty
+        if (error == null) {
+            return new VitamError(500);
+        }
         return error;
     }
 

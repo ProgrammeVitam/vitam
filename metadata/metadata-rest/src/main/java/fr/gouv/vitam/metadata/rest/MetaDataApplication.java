@@ -55,7 +55,12 @@ public class MetaDataApplication {
 
     private static final String CONFIG_FILE_IS_A_MANDATORY_ARGUMENT = "Config file is a mandatory argument";
 
-    // TODO: comment
+    /**
+     * Start a service of MetaData with the args as config
+     *
+     * @param args as String array
+     */
+
     public static void main(String[] args) {
         try {
             new MetaDataApplication().configure(args);
@@ -67,7 +72,13 @@ public class MetaDataApplication {
 
     }
 
-    // TODO: comment and probably protected
+
+    /**
+     * read the configured parameters of lauched server from the file
+     *
+     * @param arguments : name of configured file
+     * @throws Exception
+     */
     public void configure(String... arguments) throws Exception {
         // FIXME REVIEW define a real vitam config (see Logbook)
 
@@ -98,11 +109,18 @@ public class MetaDataApplication {
 
     }
 
-    // TODO: comment and probably protected
+    /**
+     * run a server instance with the configuration and port
+     *
+     * @param configuration as MetaDataConfiguration
+     * @param serverPort port number of launched server
+     * @throws Exception
+     */
+
     public static void run(MetaDataConfiguration configuration, int serverPort) throws Exception {
         final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(JacksonFeature.class);
-        resourceConfig.register(new UnitResource(configuration));
+        resourceConfig.register(new MetaDataResource(configuration));
 
         final ServletContainer servletContainer = new ServletContainer(resourceConfig);
         final ServletHolder sh = new ServletHolder(servletContainer);

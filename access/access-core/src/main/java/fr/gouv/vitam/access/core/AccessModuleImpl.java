@@ -84,9 +84,11 @@ public class AccessModuleImpl implements AccessModule {
      * @param selectRequest as String { $query : query}
      * @throws InvalidParseOperationException Throw if json format is not correct
      * @throws AccessExecutionException Throw if error occurs when send Unit to database
+     * @throws MetadataInvalidSelectException 
+     * @throws MetaDataDocumentSizeException 
      */
     public JsonNode selectUnit(String selectRequest)
-        throws IllegalArgumentException, InvalidParseOperationException, AccessExecutionException {
+        throws IllegalArgumentException, InvalidParseOperationException, AccessExecutionException, MetadataInvalidSelectException, MetaDataDocumentSizeException {
 
         if (StringUtils.isBlank(selectRequest)) {
             throw new IllegalArgumentException("the request is blank");
@@ -121,7 +123,7 @@ public class AccessModuleImpl implements AccessModule {
             throw e;
         } catch (MetaDataExecutionException e) {
             LOGGER.error("metadata execution problem", e);
-            throw e;
+            throw new AccessExecutionException(e);
         } catch (IllegalArgumentException e) {
             LOGGER.error("illegal argument", e);
             throw e;

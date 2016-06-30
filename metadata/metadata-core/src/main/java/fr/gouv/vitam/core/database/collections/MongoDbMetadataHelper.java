@@ -243,15 +243,13 @@ public class MongoDbMetadataHelper {
      * @return the Filter condition to find if ancestorIds are ancestors of targetIds or equals to targetIds
      */
     public static final Bson queryForAncestorsOrSame(Set<String> targetIds, Set<String> ancestorIds) {
-        // FIXME REVIEW you change massively the code and the algorithm: it was
-        // Filters.or(Filters.and(Filters.in(VitamDocument.ID, targetIds), Filters.in(VitamDocument.ID, ancestorIds)),
-        // Filters.and(Filters.in(VitamDocument.ID, targetIds), Filters.in(VitamDocument.UP, ancestorIds)));
         ancestorIds.addAll(targetIds);
-        // FIXME REVIEW : I understand why but not the possible reason of such value?
+        // TODO understand why it add empty string
         ancestorIds.remove("");
         final int size = ancestorIds.size();
         if (size > 0) {
-            return Filters.in(VitamDocument.ID, ancestorIds);
+            return Filters.or(Filters.and(Filters.in(VitamDocument.ID, targetIds), Filters.in(VitamDocument.ID, ancestorIds)),
+                Filters.and(Filters.in(VitamDocument.ID, targetIds), Filters.in(VitamDocument.UP, ancestorIds)));
         }
         return new BasicDBObject();
     }

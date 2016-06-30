@@ -23,6 +23,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.core;
 
+
 import org.apache.commons.lang.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -35,6 +36,7 @@ import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.api.exception.MetadataInvalidSelectException;
+import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -52,7 +54,6 @@ import fr.gouv.vitam.parser.request.parser.SelectParser;
 public final class MetaDataImpl implements MetaData {
 
     private final DbRequestFactory dbRequestFactory;
-
 
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(MetaDataImpl.class);
@@ -74,13 +75,11 @@ public final class MetaDataImpl implements MetaData {
         this.dbRequestFactory = dbRequestFactory;
     }
 
-    // FIXME REVIEW should take a json as input
     @Override
-    public void insertUnit(String insertRequest) throws InvalidParseOperationException {
+    public void insertUnit(JsonNode insertRequest) throws InvalidParseOperationException, MetaDataDocumentSizeException, MetaDataExecutionException, MetaDataAlreadyExistException, MetaDataNotFoundException {
         Result result = null;
         try {
-            // Refactor to throw MetaDataDocumentSizeException
-            GlobalDatasParser.sanityRequestCheck(insertRequest);
+            GlobalDatasParser.sanityRequestCheck(insertRequest.toString());
         } catch (final InvalidParseOperationException e) {
             throw new MetaDataDocumentSizeException(e);
         }
@@ -100,7 +99,34 @@ public final class MetaDataImpl implements MetaData {
         if (result.isError()) {
             throw new MetaDataNotFoundException("Parents not found");
         }
+    }
 
+    @Override
+    public void insertObjectGroup(JsonNode objectGroupRequest) throws InvalidParseOperationException, MetaDataDocumentSizeException, MetaDataExecutionException, MetaDataAlreadyExistException, MetaDataNotFoundException {
+        Result result = null;
+
+        try {
+            GlobalDatasParser.sanityRequestCheck(objectGroupRequest.toString());
+        } catch (final InvalidParseOperationException e) {
+            throw new MetaDataDocumentSizeException(e);
+        }
+
+        try {
+            InsertParser insertParser = new InsertParser(new MongoDbVarNameAdapter());
+            insertParser.parse(objectGroupRequest);            
+            insertParser.getRequest().addHintFilter(ParserTokens.FILTERARGS.OBJECTGROUPS.exactToken());
+            result = dbRequestFactory.create().execRequest(insertParser, result);
+        } catch (final InvalidParseOperationException e) {
+            throw e;
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new MetaDataExecutionException(e);
+        } catch (final MongoWriteException e) {
+            throw new MetaDataAlreadyExistException(e);
+        }
+
+        if (result.isError()) {
+            throw new MetaDataNotFoundException("Parents not found");
+        }
     }
 
     @Override

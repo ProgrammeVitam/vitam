@@ -61,14 +61,17 @@ import fr.gouv.vitam.api.model.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.core.database.collections.MongoDbAccess;
+import fr.gouv.vitam.parser.request.parser.GlobalDatasParser;
 
-public class UnitResourceTest {
+public class MetaDataResourceTest {
     private static final String DATA =
         "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", " + "\"data\": \"data1\" }";
     private static final String DATA2 =
         "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\"," + "\"data\": \"data2\" }";
+    private static final String DATA3 =
+        "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaz\"," + "\"data\": \"data3\" }";
+    
     private static final String DATA_URI = "/metadata/v1";
-    private static final String DATABASE_COLLECTIONS = "Units";
     private static final String DATABASE_NAME = "vitam-test";
     private static final int DATABASE_PORT = 12345;
     private static MongodExecutable mongodExecutable;
@@ -121,8 +124,7 @@ public class UnitResourceTest {
             .build());
         mongod = mongodExecutable.start();
 
-        final MetaDataConfiguration configuration = new MetaDataConfiguration(SERVER_HOST, DATABASE_PORT, DATABASE_NAME,
-            DATABASE_COLLECTIONS);
+        final MetaDataConfiguration configuration = new MetaDataConfiguration(SERVER_HOST, DATABASE_PORT, DATABASE_NAME);
         MetaDataApplication.run(configuration, SERVER_PORT);
         RestAssured.port = SERVER_PORT;
         RestAssured.basePath = DATA_URI;
@@ -140,7 +142,7 @@ public class UnitResourceTest {
     }
 
     /**
-     * Test status endpoint
+     * Test status endpointgivenInsertObjectGroupWithBodyIsNotCorrectThenReturnErrorBadRequest
      *
      */
     @Test
@@ -180,7 +182,7 @@ public class UnitResourceTest {
     }
 
     @Test
-    public void givenInsertUnitWithQueryPATHWhenParentFoundThenReturnCreated() throws Exception {
+    public void givenInsertUnitWithQueryPathWhenParentFoundThenReturnCreated() throws Exception {
         with()
             .contentType(ContentType.JSON)
             .body(buildDSLWithOptions("", DATA)).when()
@@ -245,12 +247,15 @@ public class UnitResourceTest {
 
     @Test
     public void shouldReturnErrorRequestBadRequestIfDocumentIsTooLarge() throws Exception {
+        int limitRequest = GlobalDatasParser.limitRequest;
+        GlobalDatasParser.limitRequest = 99;
         given()
             .contentType(ContentType.JSON)
             .body(buildDSLWithOptions("", createJsonStringWithDepth(100))).when()
             .post("/units").then()
-            .body(equalTo(generateResponseErrorFromStatus(Status.BAD_REQUEST)))
-            .statusCode(Status.BAD_REQUEST.getStatusCode());
+            .body(equalTo(generateResponseErrorFromStatus(Status.REQUEST_ENTITY_TOO_LARGE)))
+            .statusCode(Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode());
+        GlobalDatasParser.limitRequest = limitRequest;
     }
 
     @Test
@@ -264,4 +269,42 @@ public class UnitResourceTest {
             .statusCode(Status.CREATED.getStatusCode());
     }
 
+    // Test object group
+    @Test
+    public void givenInsertObjectGroupWithBodyIsNotCorrectThenReturnErrorBadRequest() throws Exception {
+        given()
+            .contentType(ContentType.JSON)
+            .body(buildDSLWithOptions("invalid", DATA)).when()
+            .post("/objectgroups").then()
+            .body(equalTo(generateResponseErrorFromStatus(Status.BAD_REQUEST)))
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
+    }
+    
+    @Test
+    public void givenInsertObjectGroupWithIdDuplicatedThenReturnErrorConflict() throws Exception {
+        with()
+            .contentType(ContentType.JSON)
+            .body(buildDSLWithOptions("", DATA)).when()
+            .post("/objectgroups").then()
+            .statusCode(Status.CREATED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(buildDSLWithOptions("", DATA)).when()
+            .post("/objectgroups").then()
+            .body(equalTo(generateResponseErrorFromStatus(Status.CONFLICT)))
+            .statusCode(Status.CONFLICT.getStatusCode());
+    }    
+
+    @Test    
+    public void givenInsertObjectGroupWithNoParentThenReturnErrorNotFound() throws Exception {
+        given()
+            .contentType(ContentType.JSON)
+            .body(buildDSLWithOptions(QUERY_PATH, DATA3)).when()
+            .post("/objectgroups").then()
+            .body(equalTo(generateResponseErrorFromStatus(Status.NOT_FOUND)))
+            .statusCode(Status.NOT_FOUND.getStatusCode());
+    }
+
+  
 }

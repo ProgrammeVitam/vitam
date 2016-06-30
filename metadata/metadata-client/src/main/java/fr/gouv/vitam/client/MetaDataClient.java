@@ -43,6 +43,7 @@ import fr.gouv.vitam.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.api.exception.MetadataInvalidSelectException;
 import fr.gouv.vitam.builder.request.construct.Select;
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -79,11 +80,16 @@ public class MetaDataClient {
      *        null is not allowed
      * @return : response as String
      * @throws InvalidParseOperationException
+     * @throws MetaDataExecutionException 
+     * @throws MetaDataNotFoundException 
+     * @throws MetaDataAlreadyExistException 
+     * @throws MetaDataDocumentSizeException 
      */
-    public String insertUnit(String insertQuery) throws InvalidParseOperationException {
+    public String insertUnit(String insertQuery) throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException, MetaDataAlreadyExistException, MetaDataDocumentSizeException {
         if (StringUtils.isEmpty(insertQuery)) {
             throw new IllegalArgumentException(INSERT_UNITS_QUERY_NULL);
         }
+        
         final Response response = client.target(url).path("units").request(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .post(Entity.entity(insertQuery, MediaType.APPLICATION_JSON), Response.class);
@@ -144,7 +150,40 @@ public class MetaDataClient {
         } else if (response.getStatus() == Status.NOT_ACCEPTABLE.getStatusCode()) {
             throw new MetadataInvalidSelectException("Invalid select query");
         }
+
         LOGGER.info(ELAPSED_TIME_MESSAGE + "selectUnits :" + ((System.currentTimeMillis() - time) / 1000) + "s");
         return response.readEntity(JsonNode.class);
     }
+
+    /**
+     * @param insertQuery as String
+     * @return response as String contains the request result
+     * @throws InvalidParseOperationException
+     * @throws MetaDataExecutionException 
+     * @throws MetaDataNotFoundException 
+     * @throws MetaDataAlreadyExistException 
+     * @throws MetaDataDocumentSizeException 
+     */
+    public String insertObjectGroup(String insertQuery) throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException, MetaDataAlreadyExistException, MetaDataDocumentSizeException {
+        ParametersChecker.checkParameter("Insert Request is a mandatory parameter", insertQuery);
+        
+        final Response response = client.target(url).path("objectgroups").request(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .post(Entity.entity(insertQuery, MediaType.APPLICATION_JSON), Response.class);
+
+        if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+            throw new MetaDataExecutionException("Internal Server Error");
+        } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+            throw new MetaDataNotFoundException("Not Found Exception");
+        } else if (response.getStatus() == Status.CONFLICT.getStatusCode()) {
+            throw new MetaDataAlreadyExistException("Data Already Exists");
+        } else if (response.getStatus() == Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode()) {
+            throw new MetaDataDocumentSizeException("Document Size is Too Large");
+        } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
+            throw new InvalidParseOperationException("Invalid Parse Operation");
+        }
+
+        return response.readEntity(String.class);
+    }
+    
 }

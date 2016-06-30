@@ -51,6 +51,7 @@ import static fr.gouv.vitam.builder.request.construct.VitamFieldsHelper.all;
 import static fr.gouv.vitam.builder.request.construct.VitamFieldsHelper.id;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 
 import java.util.Arrays;
@@ -64,6 +65,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.MongoClient;
@@ -83,6 +85,9 @@ import fr.gouv.vitam.builder.request.construct.Delete;
 import fr.gouv.vitam.builder.request.construct.Insert;
 import fr.gouv.vitam.builder.request.construct.Select;
 import fr.gouv.vitam.builder.request.construct.Update;
+import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens;
+import fr.gouv.vitam.builder.request.construct.query.ExistsQuery;
+import fr.gouv.vitam.builder.request.construct.query.Query;
 import fr.gouv.vitam.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -124,8 +129,8 @@ public class DbRequestTest {
     static MongodExecutable mongodExecutable;
     static MongoClient mongoClient;
     static MongoDbVarNameAdapter mongoDbVarNameAdapter;
-    static MongodProcess mongod;
-
+    static MongodProcess mongod; 
+    
     /**
      * @throws java.lang.Exception
      */
@@ -162,6 +167,7 @@ public class DbRequestTest {
         mongodExecutable.stop();
     }
 
+    
     /**
      * Test method for
      * {@link fr.gouv.vitam.database.collections.DbRequest#execRequest(fr.gouv.vitam.request.parser.RequestParser, fr.gouv.vitam.database.collections.Result)}
@@ -174,11 +180,11 @@ public class DbRequestTest {
         try {
             final DbRequest dbRequest = new DbRequest();
             // INSERT
-            final String insertRequestString = createInsertRequestWithUUID(uuid);
+            final JsonNode insertRequest = createInsertRequestWithUUID(uuid);
             // Now considering insert request and parsing it as in Data Server (POST command)
             final InsertParser insertParser = new InsertParser(mongoDbVarNameAdapter);
             try {
-                insertParser.parse(insertRequestString);
+                insertParser.parse(insertRequest);
             } catch (final InvalidParseOperationException e) {
                 e.printStackTrace();
                 fail(e.getMessage());
@@ -260,11 +266,11 @@ public class DbRequestTest {
             final DbRequest dbRequest = new DbRequest();
             RequestParser requestParser = null;
             // INSERT
-            final String insertRequestString = createInsertRequestWithUUID(uuid);
+            final JsonNode insertRequest = createInsertRequestWithUUID(uuid);
             // Now considering insert request and parsing it as in Data Server (POST command)
             try {
                 requestParser =
-                    RequestParserHelper.getParser(insertRequestString, mongoDbVarNameAdapter);
+                    RequestParserHelper.getParser(insertRequest, mongoDbVarNameAdapter);
             } catch (final InvalidParseOperationException e) {
                 e.printStackTrace();
                 fail(e.getMessage());
@@ -348,11 +354,11 @@ public class DbRequestTest {
             final DbRequest dbRequest = new DbRequest();
             RequestParser requestParser = null;
             // INSERT
-            final String insertRequestString = createInsertRequestWithUUID(uuid);
+            final JsonNode insertRequest = createInsertRequestWithUUID(uuid);
             // Now considering insert request and parsing it as in Data Server (POST command)
             try {
                 requestParser =
-                    RequestParserHelper.getParser(insertRequestString, mongoDbVarNameAdapter);
+                    RequestParserHelper.getParser(insertRequest, mongoDbVarNameAdapter);
             } catch (final InvalidParseOperationException e) {
                 e.printStackTrace();
                 fail(e.getMessage());
@@ -453,16 +459,16 @@ public class DbRequestTest {
             RequestParser requestParser = null;
 
             // INSERT
-            String insertRequestString = createInsertRequestWithUUID(uuid);
+            JsonNode insertRequest = createInsertRequestWithUUID(uuid);
             // Now considering insert request and parsing it as in Data Server (POST command)
-            requestParser = RequestParserHelper.getParser(insertRequestString, mongoDbVarNameAdapter);
+            requestParser = RequestParserHelper.getParser(insertRequest, mongoDbVarNameAdapter);
             LOGGER.debug("InsertParser: {}", requestParser);
             // Now execute the request
             executeRequest(dbRequest, requestParser);
 
-            insertRequestString = createInsertChild2ParentRequest(uuid2, uuid);
+            insertRequest = createInsertChild2ParentRequest(uuid2, uuid);
             // Now considering insert request and parsing it as in Data Server (POST command)
-            requestParser = RequestParserHelper.getParser(insertRequestString, mongoDbVarNameAdapter);
+            requestParser = RequestParserHelper.getParser(insertRequest, mongoDbVarNameAdapter);
             LOGGER.debug("InsertParser: {}", requestParser);
             // Now execute the request
             executeRequest(dbRequest, requestParser);
@@ -679,7 +685,7 @@ public class DbRequestTest {
      * @param uuid
      * @return
      */
-    private String createInsertRequestWithUUID(GUID uuid) {
+    private JsonNode createInsertRequestWithUUID(GUID uuid) {
         // INSERT
         final List<String> list = Arrays.asList("val1", "val2");
         final ObjectNode data = JsonHandler.createObjectNode().put(id(), uuid.toString())
@@ -701,25 +707,25 @@ public class DbRequestTest {
         // Create Insert command as in Internal Vitam Modules
         final Insert insert = new Insert();
         insert.addData(data);
-        final String insertRequestString = insert.getFinalInsert().toString();
-        LOGGER.debug("InsertString: " + insertRequestString);
-        return insertRequestString;
+        LOGGER.debug("InsertString: " + insert.getFinalInsert().toString());
+        return insert.getFinalInsert();
     }
 
+    
+        
     /**
      * @param uuid child
      * @param uuid2 parent
      * @return
      */
-    private String createInsertChild2ParentRequest(GUID child, GUID parent) throws Exception {
+    private JsonNode createInsertChild2ParentRequest(GUID child, GUID parent) throws Exception {
         final ObjectNode data = JsonHandler.createObjectNode().put(id(), child.toString())
             .put(TITLE, VALUE_MY_TITLE + "2").put(DESCRIPTION, "Ma description2")
             .put(CREATED_DATE, "" + LocalDateUtil.now()).put(MY_INT, 10);
         final Insert insert = new Insert();
         insert.addData(data).addQueries(exists("Title"));
-        final String insertRequestString = insert.getFinalInsert().toString();
-        LOGGER.debug("InsertString: " + insertRequestString);
-        return insertRequestString;
+        LOGGER.debug("InsertString: " + insert.getFinalInsert().toString());
+        return insert.getFinalInsert();
     }
 
     /**
@@ -833,10 +839,8 @@ public class DbRequestTest {
     public void testResult() throws Exception {
         final DbRequest dbRequest = new DbRequest();
         final GUID uuid = GUIDFactory.newUnitGUID(tenantId);
-        final String insertRequestString = createInsertRequestWithUUID(uuid);
+        final JsonNode insertRequest = createInsertRequestWithUUID(uuid);
         final InsertParser insertParser = new InsertParser(mongoDbVarNameAdapter);
-        insertParser.parse(insertRequestString);
-
         LOGGER.debug("InsertParser: {}", insertParser);
         final Result result = dbRequest.execRequest(insertParser, null);
         assertEquals("Document{{Result=null}}", result.getFinal().toString());
@@ -870,4 +874,82 @@ public class DbRequestTest {
         mongoDbAccess = new MongoDbAccess(mongoClient, "vitam-test", CREATE);
         assertNotNull(mongoDbAccess.toString());
     }
+    
+    private ObjectNode createInsertRequestGO(GUID uuid) throws InvalidParseOperationException {
+        // Create Insert command as in Internal Vitam Modules
+        Insert insert = new Insert();   
+        insert.resetFilter();
+        insert.addHintFilter(ParserTokens.FILTERARGS.OBJECTGROUPS.exactToken());
+        JsonNode json = JsonHandler.getFromString("{\"_id\":\""  + uuid + "\", \"_qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description\" : \"Test\"}}, \"title\":\"title1\"}");
+        insert.addData((ObjectNode)json);        
+        final ObjectNode insertRequest = insert.getFinalInsert();
+        LOGGER.debug("InsertString: " + insertRequest);
+        return insertRequest;
+    }
+
+    @Test
+    public void testInsertGORequest() throws Exception {
+        final GUID uuid = GUIDFactory.newUnitGUID(tenantId);        
+        final DbRequest dbRequest = new DbRequest();
+        RequestParser requestParser = new InsertParser(mongoDbVarNameAdapter);        
+        requestParser.parse(createInsertRequestGO(uuid));
+        executeRequest(dbRequest, requestParser);
+        assertEquals(1, VitamCollections.C_OBJECTGROUP.getCollection().count());
+    }
+    
+
+    @Test
+    public void testUnitParentForlastInsertFilterProjection() throws Exception {
+        final DbRequest dbRequest = new DbRequest();
+        
+        final GUID uuid = GUIDFactory.newUnitGUID(tenantId);
+        final GUID uuidUnit = GUIDFactory.newUnitGUID(123456);
+        
+        final JsonNode insertRequest = createInsertRequestWithUUID(uuidUnit);
+        final InsertParser insertParser = new InsertParser(mongoDbVarNameAdapter);
+        try {
+            insertParser.parse(insertRequest);
+        } catch (final InvalidParseOperationException e) {
+            fail(e.getMessage());
+        }
+        executeRequest(dbRequest, insertParser);
+        
+        Insert insert = new Insert();   
+        insert.resetFilter();
+        insert.addHintFilter(ParserTokens.FILTERARGS.OBJECTGROUPS.exactToken());
+        insert.addRoots(uuidUnit.toString());
+        ObjectNode json = (ObjectNode)JsonHandler.getFromString("{\"_id\":\""  + uuid + "\",\"_up\":[\"" +  uuidUnit + "\"], \"_qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description\" : \"Test\"}}, \"title\":\"title1\"}");        
+        insert.addData((ObjectNode)json);        
+        final ObjectNode insertNode = insert.getFinalInsert();
+
+        RequestParser requestParser = new InsertParser(mongoDbVarNameAdapter);        
+        requestParser.parse(insertNode);        
+        executeRequest(dbRequest, requestParser);        
+        assertFalse(requestParser.getRequest().getRoots().isEmpty());
+    }   
+    
+    @Test
+    public void testRequestWithObjectGroupQuery() throws Exception {
+        final DbRequest dbRequest = new DbRequest();        
+        final GUID uuid = GUIDFactory.newUnitGUID(tenantId);
+        final GUID uuidParent = GUIDFactory.newUnitGUID(123456);
+        Insert insert = new Insert();   
+        insert.addHintFilter(ParserTokens.FILTERARGS.OBJECTGROUPS.exactToken());                      
+        ExistsQuery queryExists = exists("title");
+                
+        ObjectNode json = (ObjectNode)JsonHandler.getFromString("{\"_id\":\""  + uuid + "\", \"_qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description\" : \"Test\"}}, \"title\":\"title1\"}");
+        ObjectNode json1 = (ObjectNode)JsonHandler.getFromString("{\"_id\":\""  + uuidParent + "\", \"_qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description1\" : \"Test\"}}, \"title\":\"title1\"}");        
+        insert.addData((ObjectNode)json);        
+        ObjectNode insertRequestString = insert.getFinalInsert();
+        RequestParser requestParser = new InsertParser(mongoDbVarNameAdapter);     
+        requestParser.parse(insertRequestString);        
+        executeRequest(dbRequest, requestParser);
+        
+        insert.addQueries(queryExists);
+        insert.addData((ObjectNode)json1);
+        insertRequestString = insert.getFinalInsert();
+        RequestParser requestParser1 = new InsertParser(mongoDbVarNameAdapter);
+        requestParser1.parse(insertRequestString);         
+        executeRequest(dbRequest, requestParser1);
+    }           
 }

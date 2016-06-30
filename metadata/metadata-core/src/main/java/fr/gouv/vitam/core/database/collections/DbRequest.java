@@ -795,7 +795,8 @@ public class DbRequest {
                 }
                 case OBJECTGROUPS: {
                     final ObjectGroup og = new ObjectGroup(data);
-                    og.save();
+                    //TODO : use og.save() of the next version
+                    og.insert();
                     for (final String id : last.getCurrentIds()) {
                         final Unit parentUnit = MongoDbAccess.LRU.get(id);
                         if (parentUnit != null) {

@@ -26,15 +26,17 @@
  *******************************************************************************/
 package fr.gouv.vitam.client;
 
-import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.function.Supplier;
 
-import javax.ws.rs.GET;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Application;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -43,8 +45,14 @@ import org.glassfish.jersey.test.JerseyTest;
 import org.glassfish.jersey.test.TestProperties;
 import org.junit.Test;
 
-public class StatusMetaDataClientTest extends JerseyTest {
+import fr.gouv.vitam.api.exception.MetaDataAlreadyExistException;
+import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
+import fr.gouv.vitam.api.exception.MetaDataExecutionException;
+import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
+public class InsertObjectGroupsMetaDataClientTest extends JerseyTest {
+    private static final String QUERY = "QUERY";
     private static final String HOST = "http://localhost";
     private static final int PORT = 8082;
     private static final MetaDataClient client = new MetaDataClient(HOST + ":" + PORT);
@@ -57,28 +65,53 @@ public class StatusMetaDataClientTest extends JerseyTest {
         enable(TestProperties.DUMP_ENTITY);
         forceSet(TestProperties.CONTAINER_PORT, Integer.toString(PORT));
         mock = mock(Supplier.class);
-        return new ResourceConfig().registerInstances(new MyUnitsResource(mock));
+        return new ResourceConfig().registerInstances(new MyObjectGroupsResource(mock));
     }
 
     @Path("/metadata/v1")
-    public static class MyUnitsResource {
+    public static class MyObjectGroupsResource {
         private final Supplier<Response> expectedResponse;
 
-        public MyUnitsResource(Supplier<Response> expectedResponse) {
+        public MyObjectGroupsResource(Supplier<Response> expectedResponse) {
             this.expectedResponse = expectedResponse;
         }
 
-        @Path("status")
-        @GET
-        public Response status(String url) {
-            return Response.status(Status.OK).build();
+        @Path("objectgroups")
+        @POST
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response insertObjectGroups(String insertRequest) {
+            return expectedResponse.get();
         }
     }
 
-    @Test
-    public void shouldGetStatusOK() {
-        when(mock.get()).thenReturn(Response.status(Status.OK).build());
-        final Response response = client.status();
-        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+    @Test(expected = MetaDataNotFoundException.class)
+    public void givenParentNotFoundRequestWhenInsertObjectGroupsThenReturnNotFound() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        client.insertObjectGroup(QUERY);
+    }
+
+    @Test(expected = MetaDataAlreadyExistException.class)
+    public void givenUnitAlreadyExistsWhenInsertObjectGroupsThenReturnConflict() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.CONFLICT).build());
+        client.insertObjectGroup(QUERY);
+    }
+
+    @Test(expected = MetaDataDocumentSizeException.class)
+    public void givenEntityTooLargeRequestWhenInsertObjectGroupsThenReturnRequestEntityTooLarge() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.REQUEST_ENTITY_TOO_LARGE).build());
+        client.insertObjectGroup(QUERY);
+    }
+
+    @Test(expected = MetaDataExecutionException.class)
+    public void givenRequestWhenInsertObjectGroupAndUnavailableServerThenReturnInternaServerError() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        client.insertObjectGroup(QUERY);
+    }
+
+    @Test(expected = InvalidParseOperationException.class)
+    public void givenInvalidRequestWhenInsertObjectGroupsThenReturnBadRequest() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+        client.insertObjectGroup(QUERY);
     }
 }

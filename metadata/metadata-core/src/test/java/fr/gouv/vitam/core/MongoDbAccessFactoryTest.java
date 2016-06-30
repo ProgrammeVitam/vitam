@@ -73,7 +73,7 @@ public class MongoDbAccessFactoryTest {
     @Test
     public void testCreateFn() {
         mongoDbAccess = new MongoDbAccessFactory()
-            .create(new MetaDataConfiguration(DATABASE_HOST, DATABASE_PORT, "vitam-test", "Unit"));
+            .create(new MetaDataConfiguration(DATABASE_HOST, DATABASE_PORT, "vitam-test"));
         assertNotNull(mongoDbAccess);
         assertEquals("vitam-test", mongoDbAccess.getMongoDatabase().getName());
         mongoDbAccess.closeFinal();
