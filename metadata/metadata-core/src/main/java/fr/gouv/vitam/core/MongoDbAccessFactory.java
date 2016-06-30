@@ -32,8 +32,17 @@ import com.mongodb.ServerAddress;
 import fr.gouv.vitam.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.core.database.collections.MongoDbAccess;
 
+/**
+ * Factory to get MongoDbAccess for Metadata
+ */
 public class MongoDbAccessFactory {
-    // FIXME REVIEW no collection as argument
+    /**
+     * Creation of one MongoDbAccess
+     *
+     * @param configuration as MetaDataConfiguration
+     * @return the MongoDbAccess
+     */
+
     public MongoDbAccess create(MetaDataConfiguration configuration) {
         return new MongoDbAccess(
             new MongoClient(new ServerAddress(

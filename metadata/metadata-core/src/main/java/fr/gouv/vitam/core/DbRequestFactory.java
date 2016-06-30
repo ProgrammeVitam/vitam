@@ -28,9 +28,16 @@ package fr.gouv.vitam.core;
 
 import fr.gouv.vitam.core.database.collections.DbRequest;
 
+
+/**
+ * Factory to get DbRequest
+ */
 @FunctionalInterface
 public interface DbRequestFactory {
 
+    /**
+     * Creation of an DbRequest
+     */    
     public DbRequest create();
 
 }
