@@ -52,7 +52,7 @@ public class AccessResourceTest {
     private static final String ACCESS_CONF = "access.conf";
     private static VitamServer vitamServer;
     private static final String DATABASE_HOST = "";
-    private static final int SERVER_PORT = 8101;
+    private static final int SERVER_PORT = 8102;
 
 
     @BeforeClass
