@@ -12,7 +12,7 @@ let {
 export default function __identity($compile, FileDirective) {
     
     
-    return class FileSelect extends FileDirective {
+     class FileSelect extends FileDirective {
         /**
          * Creates instance of {FileSelect} object
          * @param {Object} options
@@ -71,7 +71,7 @@ export default function __identity($compile, FileDirective) {
             }
         }
     }
-}
+};
 
 
 __identity.$inject = [

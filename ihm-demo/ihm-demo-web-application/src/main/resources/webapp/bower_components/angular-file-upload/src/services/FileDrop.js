@@ -13,7 +13,7 @@ let {
 export default function __identity(FileDirective) {
     
     
-    return class FileDrop extends FileDirective {
+     class FileDrop extends FileDirective {
         /**
          * Creates instance of {FileDrop} object
          * @param {Object} options
@@ -116,7 +116,7 @@ export default function __identity(FileDirective) {
             item.removeOverClass();
         }
     }
-}
+};
 
 
 __identity.$inject = [

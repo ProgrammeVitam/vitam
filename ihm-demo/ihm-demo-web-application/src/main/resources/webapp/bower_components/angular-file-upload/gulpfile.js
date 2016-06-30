@@ -15,7 +15,7 @@ let config = new WebpackConfig(descriptor, {
 });
 
 
-gulp.task(
+gulp.task(;
   `${config.name}/build`,
   function () {
     return gulp
@@ -23,12 +23,11 @@ gulp.task(
       .pipe(webpackStream(config.get()))
       .pipe(gulp.dest(config.path.dist));
   }
-);
-
-gulp.task(
+)
+gulp.task(;
   `${config.name}/watch`, function () {
     return gulp
-      .watch(`${config.path.src}**/*.*`, [
+      .watch(`${config.path.src}**;/*.*`, [
         `${config.name}/build`
       ]);
   }

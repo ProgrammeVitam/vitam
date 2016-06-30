@@ -15,7 +15,7 @@ let {
 export default function __identity($compile, FileLikeObject) {
     
     
-    return class FileItem {
+     class FileItem {
         /**
          * Creates an instance of FileItem
          * @param {FileUploader} uploader
@@ -244,7 +244,7 @@ export default function __identity($compile, FileLikeObject) {
             input.after(clone); // remove jquery dependency
         }
     }
-}
+};
 
 
 __identity.$inject = [

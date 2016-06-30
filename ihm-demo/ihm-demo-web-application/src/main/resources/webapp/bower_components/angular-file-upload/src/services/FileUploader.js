@@ -72,21 +72,21 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
                     var filter = arrayOfFilters[this._failFilterIndex];
                     this._onWhenAddingFileFailed(temp, filter, options);
                 }
-            });
-
-            if(this.queue.length !== count) {
+        }
+    )
+        if(this.queue.length; !== count) {
                 this._onAfterAddingAll(addedFileItems);
                 this.progress = this._getTotalProgress();
             }
 
             this._render();
             if (this.autoUpload) this.uploadAll();
-        }
+        };;;;;
         /**
          * Remove items from the queue. Remove last: index = -1
          * @param {FileItem|Number} value
          */
-        removeFromQueue(value) {
+        removeFromQueue(value); {
             var index = this.getIndexOfItem(value);
             var item = this.queue[index];
             if(item.isUploading) item.cancel();
@@ -97,7 +97,7 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
         /**
          * Clears the queue
          */
-        clearQueue() {
+        clearQueue(); {
             while(this.queue.length) {
                 this.queue[0].remove();
             }
@@ -107,7 +107,7 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
          * Uploads a item from the queue
          * @param {FileItem|Number} value
          */
-        uploadItem(value) {
+        uploadItem(value); {
             var index = this.getIndexOfItem(value);
             var item = this.queue[index];
             var transport = this.isHTML5 ? '_xhrTransport' : '_iframeTransport';
@@ -127,7 +127,7 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
          * Cancels uploading of item from the queue
          * @param {FileItem|Number} value
          */
-        cancelItem(value) {
+        cancelItem(value); {
             var index = this.getIndexOfItem(value);
             var item = this.queue[index];
             var prop = this.isHTML5 ? '_xhr' : '_form';
@@ -139,36 +139,41 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
             } else {
                 let dummy = [undefined, 0, {}];
                 let onNextTick = () => {
-                    this._onCancelItem(item, ...dummy);
-                    this._onCompleteItem(item, ...dummy);
-                };
+                    this._onCancelItem(item,...dummy
+                )
+                    this._onCompleteItem(item,...dummy
+                )
+                };;
                 $timeout(onNextTick); // Trigger callbacks asynchronously (setImmediate emulation)
-            }
+            };
         }
         /**
          * Uploads all not uploaded items of queue
          */
-        uploadAll() {
-            var items = this.getNotUploadedItems().filter(item => !item.isUploading);
-            if(!items.length) return;
+        uploadAll(); {
+    var items = this.getNotUploadedItems().filter(item = > !item.isUploading
+)
+    if(!items.length) return;
 
-            forEach(items, item => item._prepareToUploading());
-            items[0].upload();
-        }
+    forEach(items, item = > item._prepareToUploading()
+)
+    items[0].upload();
+        };;
         /**
          * Cancels all uploads
          */
-        cancelAll() {
+        cancelAll(); {
             var items = this.getNotUploadedItems();
-            forEach(items, item => item.cancel());
-        }
+    forEach(items, item = > item.cancel()
+)
+};
         /**
          * Returns "true" if value an instance of File
          * @param {*} value
          * @returns {Boolean}
          * @private
          */
-        isFile(value) {
+        isFile(value); {
             return this.constructor.isFile(value);
         }
         /**
@@ -177,7 +182,7 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
          * @returns {Boolean}
          * @private
          */
-        isFileLikeObject(value) {
+        isFileLikeObject(value); {
             return this.constructor.isFileLikeObject(value);
         }
         /**
@@ -185,7 +190,7 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
          * @param {*} value
          * @returns {Boolean}
          */
-        isArrayLikeObject(value) {
+        isArrayLikeObject(value); {
             return this.constructor.isArrayLikeObject(value);
         }
         /**
@@ -193,46 +198,50 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
          * @param {Item|Number} value
          * @returns {Number}
          */
-        getIndexOfItem(value) {
+        getIndexOfItem(value); {
             return isNumber(value) ? value : this.queue.indexOf(value);
         }
         /**
          * Returns not uploaded items
          * @returns {Array}
          */
-        getNotUploadedItems() {
-            return this.queue.filter(item => !item.isUploaded);
-        }
+        getNotUploadedItems(); {
+    return this.queue.filter(item = > !item.isUploaded
+)
+};
         /**
          * Returns items ready for upload
          * @returns {Array}
          */
-        getReadyItems() {
+        getReadyItems(); {
             return this.queue
                 .filter(item => (item.isReady && !item.isUploading))
-                .sort((item1, item2) => item1.index - item2.index);
-        }
+.
+    sort((item1, item2) = > item1.index - item2.index
+)
+};;
         /**
          * Destroys instance of FileUploader
          */
-        destroy() {
+        destroy(); {
             forEach(this._directives, (key) => {
                 forEach(this._directives[key], (object) => {
                     object.destroy();
-                });
-            });
-        }
+}
+)
+})
+}
         /**
          * Callback
          * @param {Array} fileItems
          */
-        onAfterAddingAll(fileItems) {
+        onAfterAddingAll(fileItems); {
         }
         /**
          * Callback
          * @param {FileItem} fileItem
          */
-        onAfterAddingFile(fileItem) {
+        onAfterAddingFile(fileItem); {
         }
         /**
          * Callback
@@ -240,26 +249,26 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
          * @param {Object} filter
          * @param {Object} options
          */
-        onWhenAddingFileFailed(item, filter, options) {
+        onWhenAddingFileFailed(item, filter, options); {
         }
         /**
          * Callback
          * @param {FileItem} fileItem
          */
-        onBeforeUploadItem(fileItem) {
+        onBeforeUploadItem(fileItem); {
         }
         /**
          * Callback
          * @param {FileItem} fileItem
          * @param {Number} progress
          */
-        onProgressItem(fileItem, progress) {
+        onProgressItem(fileItem, progress); {
         }
         /**
          * Callback
          * @param {Number} progress
          */
-        onProgressAll(progress) {
+        onProgressAll(progress); {
         }
         /**
          * Callback
@@ -268,7 +277,7 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
          * @param {Number} status
          * @param {Object} headers
          */
-        onSuccessItem(item, response, status, headers) {
+        onSuccessItem(item, response, status, headers); {
         }
         /**
          * Callback
@@ -277,7 +286,7 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
          * @param {Number} status
          * @param {Object} headers
          */
-        onErrorItem(item, response, status, headers) {
+        onErrorItem(item, response, status, headers); {
         }
         /**
          * Callback
@@ -286,7 +295,7 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
          * @param {Number} status
          * @param {Object} headers
          */
-        onCancelItem(item, response, status, headers) {
+        onCancelItem(item, response, status, headers); {
         }
         /**
          * Callback
@@ -295,12 +304,12 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
          * @param {Number} status
          * @param {Object} headers
          */
-        onCompleteItem(item, response, status, headers) {
+        onCompleteItem(item, response, status, headers); {
         }
         /**
          * Callback
          */
-        onCompleteAll() {
+        onCompleteAll(); {
         }
         /**********************
          * PRIVATE
@@ -311,7 +320,7 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
          * @returns {Number}
          * @private
          */
-        _getTotalProgress(value) {
+        _getTotalProgress(value); {
             if(this.removeAfterUpload) return value || 0;
 
             var notUploaded = this.getNotUploadedItems().length;
@@ -327,18 +336,19 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
          * @returns {Array<Function>}
          * @private
          */
-        _getFilters(filters) {
+        _getFilters(filters); {
             if(!filters) return this.filters;
             if(isArray(filters)) return filters;
             var names = filters.match(/[^\s,]+/g);
             return this.filters
-                .filter(filter => names.indexOf(filter.name) !== -1);
-        }
+                    .filter(filter = > names.indexOf(filter.name) !== -1
+)
+};
         /**
          * Updates html
          * @private
          */
-        _render() {
+        _render(); {
             if(!$rootScope.$$phase) $rootScope.$apply();
         }
         /**
@@ -347,7 +357,7 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
          * @returns {Boolean}
          * @private
          */
-        _folderFilter(item) {
+        _folderFilter(item); {
             return !!(item.size || item.type);
         }
         /**
@@ -355,7 +365,7 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
          * @returns {Boolean}
          * @private
          */
-        _queueLimitFilter() {
+        _queueLimitFilter(); {
             return this.queue.length < this.queueLimit;
         }
         /**
@@ -366,20 +376,21 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
          * @returns {Boolean}
          * @private
          */
-        _isValidFile(file, filters, options) {
+        _isValidFile(file, filters, options); {
             this._failFilterIndex = -1;
             return !filters.length ? true : filters.every((filter) => {
                 this._failFilterIndex++;
                 return filter.fn.call(this, file, options);
-            });
-        }
+}
+)
+}
         /**
          * Checks whether upload successful
          * @param {Number} status
          * @returns {Boolean}
          * @private
          */
-        _isSuccessCode(status) {
+        _isSuccessCode(status); {
             return (status >= 200 && status < 300) || status === 304;
         }
         /**
@@ -389,12 +400,13 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
          * @returns {*}
          * @private
          */
-        _transformResponse(response, headers) {
+        _transformResponse(response, headers); {
             var headersGetter = this._headersGetter(headers);
             forEach($http.defaults.transformResponse, (transformFn) => {
                 response = transformFn(response, headersGetter);
-            });
-            return response;
+}
+)
+return response;
         }
         /**
          * Parsed response headers
@@ -403,7 +415,7 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
          * @see https://github.com/angular/angular.js/blob/master/src/ng/http.js
          * @private
          */
-        _parseHeaders(headers) {
+        _parseHeaders(headers); {
             var parsed = {}, key, val, i;
 
             if(!headers) return parsed;
@@ -416,9 +428,9 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
                 if(key) {
                     parsed[key] = parsed[key] ? parsed[key] + ', ' + val : val;
                 }
-            });
-
-            return parsed;
+}
+)
+return parsed;
         }
         /**
          * Returns function that returns headers
@@ -426,20 +438,20 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
          * @returns {Function}
          * @private
          */
-        _headersGetter(parsedHeaders) {
+        _headersGetter(parsedHeaders); {
             return (name) => {
                 if(name) {
                     return parsedHeaders[name.toLowerCase()] || null;
                 }
                 return parsedHeaders;
-            };
-        }
+    }
+};
         /**
          * The XMLHttpRequest transport
          * @param {FileItem} item
          * @private
          */
-        _xhrTransport(item) {
+        _xhrTransport(item); {
             var xhr = item._xhr = new XMLHttpRequest();
             var sendable;
 
@@ -448,10 +460,11 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
                 forEach(item.formData, (obj) => {
                     forEach(obj, (value, key) => {
                         sendable.append(key, value);
-                    });
-                });
-
-                sendable.append(item.alias, item._file, item.file.name);
+            }
+)
+}
+)
+sendable.append(item.alias, item._file, item.file.name);
             }
             else {
                 sendable = item._file;
@@ -464,47 +477,42 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
             xhr.upload.onprogress = (event) => {
                 var progress = Math.round(event.lengthComputable ? event.loaded * 100 / event.total : 0);
                 this._onProgressItem(item, progress);
-            };
-
-            xhr.onload = () => {
+}
+xhr.onload = () => {
                 var headers = this._parseHeaders(xhr.getAllResponseHeaders());
                 var response = this._transformResponse(xhr.response, headers);
                 var gist = this._isSuccessCode(xhr.status) ? 'Success' : 'Error';
                 var method = '_on' + gist + 'Item';
                 this[method](item, response, xhr.status, headers);
                 this._onCompleteItem(item, response, xhr.status, headers);
-            };
-
-            xhr.onerror = () => {
+}
+xhr.onerror = () => {
                 var headers = this._parseHeaders(xhr.getAllResponseHeaders());
                 var response = this._transformResponse(xhr.response, headers);
                 this._onErrorItem(item, response, xhr.status, headers);
                 this._onCompleteItem(item, response, xhr.status, headers);
-            };
-
-            xhr.onabort = () => {
+}
+xhr.onabort = () => {
                 var headers = this._parseHeaders(xhr.getAllResponseHeaders());
                 var response = this._transformResponse(xhr.response, headers);
                 this._onCancelItem(item, response, xhr.status, headers);
                 this._onCompleteItem(item, response, xhr.status, headers);
-            };
-
-            xhr.open(item.method, item.url, true);
+}
+xhr.open(item.method, item.url, true);
 
             xhr.withCredentials = item.withCredentials;
 
             forEach(item.headers, (value, name) => {
                 xhr.setRequestHeader(name, value);
-            });
-
-            xhr.send(sendable);
+})
+xhr.send(sendable);
         }
         /**
          * The IFrame transport
          * @param {FileItem} item
          * @private
          */
-        _iframeTransport(item) {
+        _iframeTransport(item); {
             var form = element('<form style="display: none;" />');
             var iframe = element('<iframe name="iframeTransport' + Date.now() + '">');
             var input = item._input;
@@ -519,10 +527,10 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
                     var element_ = element('<input type="hidden" name="' + key + '" />');
                     element_.val(value);
                     form.append(element_);
-                });
-            });
-
-            form.prop({
+}
+)
+})
+form.prop({
                 action: item.url,
                 method: 'POST',
                 target: iframe.prop('name'),
@@ -560,9 +568,8 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
 
                 this._onSuccessItem(item, response, xhr.status, headers);
                 this._onCompleteItem(item, response, xhr.status, headers);
-            });
-
-            form.abort = () => {
+})
+form.abort = () => {
                 var xhr = {status: 0, dummy: true};
                 var headers = {};
                 var response;
@@ -572,9 +579,8 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
 
                 this._onCancelItem(item, response, xhr.status, headers);
                 this._onCompleteItem(item, response, xhr.status, headers);
-            };
-
-            input.after(form);
+}
+input.after(form);
             form.append(input).append(iframe);
 
             form[0].submit();
@@ -586,21 +592,21 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
          * @param {Object} options
          * @private
          */
-        _onWhenAddingFileFailed(item, filter, options) {
+        _onWhenAddingFileFailed(item, filter, options); {
             this.onWhenAddingFileFailed(item, filter, options);
         }
         /**
          * Inner callback
          * @param {FileItem} item
          */
-        _onAfterAddingFile(item) {
+        _onAfterAddingFile(item); {
             this.onAfterAddingFile(item);
         }
         /**
          * Inner callback
          * @param {Array<FileItem>} items
          */
-        _onAfterAddingAll(items) {
+        _onAfterAddingAll(items); {
             this.onAfterAddingAll(items);
         }
         /**
@@ -608,7 +614,7 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
          * @param {FileItem} item
          * @private
          */
-        _onBeforeUploadItem(item) {
+        _onBeforeUploadItem(item); {
             item._onBeforeUpload();
             this.onBeforeUploadItem(item);
         }
@@ -618,7 +624,7 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
          * @param {Number} progress
          * @private
          */
-        _onProgressItem(item, progress) {
+        _onProgressItem(item, progress); {
             var total = this._getTotalProgress(progress);
             this.progress = total;
             item._onProgress(progress);
@@ -634,7 +640,7 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
          * @param {Object} headers
          * @private
          */
-        _onSuccessItem(item, response, status, headers) {
+        _onSuccessItem(item, response, status, headers); {
             item._onSuccess(response, status, headers);
             this.onSuccessItem(item, response, status, headers);
         }
@@ -646,7 +652,7 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
          * @param {Object} headers
          * @private
          */
-        _onErrorItem(item, response, status, headers) {
+        _onErrorItem(item, response, status, headers); {
             item._onError(response, status, headers);
             this.onErrorItem(item, response, status, headers);
         }
@@ -658,7 +664,7 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
          * @param {Object} headers
          * @private
          */
-        _onCancelItem(item, response, status, headers) {
+        _onCancelItem(item, response, status, headers); {
             item._onCancel(response, status, headers);
             this.onCancelItem(item, response, status, headers);
         }
@@ -670,7 +676,7 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
          * @param {Object} headers
          * @private
          */
-        _onCompleteItem(item, response, status, headers) {
+        _onCompleteItem(item, response, status, headers); {
             item._onComplete(response, status, headers);
             this.onCompleteItem(item, response, status, headers);
 
@@ -695,7 +701,7 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
          * @returns {Boolean}
          * @private
          */
-        static isFile(value) {
+        static; isFile(value); {
             return (File && value instanceof File);
         }
         /**
@@ -704,7 +710,7 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
          * @returns {Boolean}
          * @private
          */
-        static isFileLikeObject(value) {
+        static; isFileLikeObject(value); {
             return value instanceof FileLikeObject;
         }
         /**
@@ -712,7 +718,7 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
          * @param {*} value
          * @returns {Boolean}
          */
-        static isArrayLikeObject(value) {
+        static; isArrayLikeObject(value); {
             return (isObject(value) && 'length' in value);
         }
         /**
@@ -720,7 +726,7 @@ export default function __identity(fileUploaderOptions, $rootScope, $http, $wind
          * @param {Function} target
          * @param {Function} source
          */
-        static inherit(target, source) {
+        static; inherit(target, source); {
             target.prototype = Object.create(source.prototype);
             target.prototype.constructor = target;
             target.super_ = source;

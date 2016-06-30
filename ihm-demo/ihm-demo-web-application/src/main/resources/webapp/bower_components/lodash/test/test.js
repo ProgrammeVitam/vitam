@@ -7225,7 +7225,8 @@
       var array = [{ 'a': 1 }, { 'b': 2 }, { 'c': 3 }],
           expected = { 'a': isDefaults ? 0 : 1, 'b': 2, 'c': 3 };
 
-      function fn() {};
+      function fn() {
+      }
       fn.a = array[0];
       fn.b = array[1];
       fn.c = array[2];
@@ -15136,7 +15137,7 @@
 
       function Foo() {}
 
-      var values = [new Foo, new Boolean, new Date, Foo, new Number, new String, new RegExp],
+      var values = [new Foo, Boolean, new Date, Foo, Number, String, new RegExp],
           expected = lodashStable.map(values, stubTrue);
 
       var actual = lodashStable.map(values, function(value) {
