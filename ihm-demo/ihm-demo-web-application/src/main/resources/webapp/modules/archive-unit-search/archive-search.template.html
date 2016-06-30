@@ -12,7 +12,7 @@
       Résultats <span class="badge">{{totalResult}}</span>
     </button>
     <button ng-if="error" class="btn btn-danger" type="button">
-      Une erreur est survernue lors de la recherche. Veuillez contacter votre administrateur!
+      {{errorMessage}}
     </button>
   </section>
 
@@ -38,7 +38,7 @@
           </tr>
         </thead>
         <tbody ng-if="showResult && totalResult>0">
-          <tr ng-click="displayArchiveUnitForm(result._id)" ng-repeat="result in archiveRes | orderBy:orderByField:reverseSort">
+          <tr ng-click="displayArchiveUnitForm(result._id)" ng-repeat="result in archiveUnitsSearchResult | orderBy:orderByField:reverseSort">
             <th>{{$index + 1}}</th>
             <td>{{result._id}}</td>
             <td>{{result.Title}}</td>

@@ -27,12 +27,17 @@
 
 angular.module('archiveSearch')
  .constant('ARCHIVE_SEARCH_MODULE_CONST', {
-   'ARCHIVE_FORM_ALREADY_OPENED' : 'Le formulaire de l\'Archive Unit sélectionnée est déjà ouvert.'
+   'ARCHIVE_FORM_ALREADY_OPENED' : 'Le formulaire de l\'Archive Unit sélectionnée est déjà ouvert.',
+   'ARCHIVE_DETAILS_PATH': '#!/archiveunit/',
+   'SEARCH_ERROR_MSG': 'Une erreur est survernue lors de la recherche. Veuillez contacter votre administrateur!',
+   'ARCHIVE_SEARCH_ERROR_MSG': 'Une erreur est survernue lors de la recherche de l\'unit. Veuillez contacter votre administrateur!',
+   'ARCHIVE_NOT_FOUND_MSG': 'L\'archive unit sélectionnée est introuvable.',
+   'SEARCH_RESULT_INVALID': 'La réponse reçue est invalide. Impossible d\'afficher le résultat de la recherche.'
  })
- .controller('ArchiveUnitSearchController', ['$scope','ihmDemoFactory','$window', '$mdToast', 'ARCHIVE_SEARCH_MODULE_CONST',
-          function($scope, ihmDemoFactory, $window, $mdToast, ARCHIVE_SEARCH_MODULE_CONST) {
+ .controller('ArchiveUnitSearchController', ['$scope','ihmDemoFactory','$window', '$mdToast', 'ARCHIVE_SEARCH_MODULE_CONST', 'archiveDetailsService',
+          function($scope, ihmDemoFactory, $window, $mdToast, ARCHIVE_SEARCH_MODULE_CONST, archiveDetailsService) {
 
-  // Archive Units Search Result
+  // *****************  Archive Units Search Result  ********************** //
   $scope.archiveUnitsSearchResult;
   var criteriaSearch = {};
   $scope.getSearchResult = function getSearchResult(titleCriteria){
@@ -41,28 +46,37 @@ angular.module('archiveSearch')
       // Build title criteria and default selection
       criteriaSearch.Title = titleCriteria;
       criteriaSearch.projection_transactdate = "TransactedDate";
-      criteriaSearch.projection_id = "_id";
+      criteriaSearch.projection_id = "#id";
       criteriaSearch.projection_title = "Title";
       criteriaSearch.orderby = "TransactedDate";
 
       ihmDemoFactory.searchArchiveUnits(criteriaSearch)
       .then(function (response) {
-        $scope.status = 'Retrieved Archive Units!';
-        $scope.archiveUnitsSearchResult = response.data.$result;
-        $scope.showResult=true;
-        $scope.error=false;
 
-        // Set Total result
-        $scope.totalResult = response.data.$hits.total;
+        if(response.data.$result == null || response.data.$result == undefined ||
+          response.data.$hint == null || response.data.$hint == undefined){
+            $scope.error=true;
+            $scope.showResult=false;
+            $scope.errorMessage = ARCHIVE_SEARCH_MODULE_CONST.SEARCH_RESULT_INVALID;
+        }else{
+          $scope.archiveUnitsSearchResult = response.data.$result;
+          $scope.showResult=true;
+          $scope.error=false;
+
+          // Set Total result
+          $scope.totalResult = response.data.$hint.total;
+        }
+
       }, function (error) {
-        $scope.status = 'Error retrieving archive units! ' + error.message;
+        console.log('Error retrieving archive units! ' + error.message);
         $scope.error=true;
         $scope.showResult=false;
+        $scope.errorMessage = ARCHIVE_SEARCH_MODULE_CONST.SEARCH_ERROR_MSG;
       });
     }
   }
+  // *************************************************************************** //
 
-  // Display Selected Archive unit form
 
   //******** Toast diplayed only if the archive unit is already opened ********* //
   var last = {
@@ -98,37 +112,83 @@ angular.module('archiveSearch')
   // **************************************************************************** //
 
 
+  // Display Selected Archive unit form
   $scope.openedArchiveId=[];
   $scope.openedArchiveWindowRef=[];
+  $scope.archiveDetailsConfig = null;
   $scope.displayArchiveUnitForm = function displayArchiveUnitForm(archiveId){
 
-    var archiveUnitwindow;
-    var archiveUnitwindowIndex = $scope.openedArchiveId.indexOf(archiveId);
+    var openArchiveDetailsWindow = function(data){
+      // Start form diplaying
+      var archiveUnitwindow;
+      var archiveUnitwindowIndex = $scope.openedArchiveId.indexOf(archiveId);
+      if (archiveUnitwindowIndex !== -1) {
+        archiveUnitwindow = $scope.openedArchiveWindowRef[archiveUnitwindowIndex];
 
-    if(archiveUnitwindowIndex !== -1){
-      archiveUnitwindow = $scope.openedArchiveWindowRef[archiveUnitwindowIndex];
+        // Show Toast to indicate that the archive unit form is already opened
+        $scope.showSimpleToast();
+      } else {
+        archiveUnitwindow = $window.open(ARCHIVE_SEARCH_MODULE_CONST.ARCHIVE_DETAILS_PATH + archiveId);
+        archiveUnitwindow.data = data;
+        archiveUnitwindow.dataConfig = $scope.archiveDetailsConfig;
 
-      // Show Toast to indicate that the archive unit form is already opened
-      $scope.showSimpleToast();
-
-    }else{
-      archiveUnitwindow = $window.open('#!/archiveunit/' + archiveId);
-
-      // add a close listener to the window so that the
-      archiveUnitwindow.onbeforeunload = function(){
-        $scope.openedArchiveId.splice(archiveUnitwindowIndex, 1);
+        // add a close listener to the window to update $scope.openedArchiveId content
+        archiveUnitwindow.onbeforeunload = function(){
+          $scope.openedArchiveId.splice(archiveUnitwindowIndex, 1);
+        }
+        $scope.openedArchiveId.push(archiveId);
+        $scope.openedArchiveWindowRef.push(archiveUnitwindow);
       }
-      $scope.openedArchiveId.push(archiveId);
-      $scope.openedArchiveWindowRef.push(archiveUnitwindow);
+    };
+
+
+    var displayFormCallBack = function (data) {
+      var isArchiveFound = Object.keys(data).length > 0;
+      if(!isArchiveFound){
+        // Diplay Not found message
+        console.log('Archive unit not found');
+        $scope.error=true;
+        $scope.showResult=false;
+        $scope.errorMessage = ARCHIVE_SEARCH_MODULE_CONST.ARCHIVE_NOT_FOUND_MSG;
+      }
+
+      // Archive unit found
+      // Get Archive Details configuration only once
+      if($scope.archiveDetailsConfig == null || $scope.archiveDetailsConfig == undefined){
+        $scope.archiveDetailsConfig = archiveDetailsService.getArchiveUnitDetailsConfig();
+        ihmDemoFactory.getArchiveUnitDetailsConfig()
+        .then(function (response) {
+          $scope.archiveDetailsConfig = response.data;
+          openArchiveDetailsWindow(data);
+        }, function (error) {
+          console.log(ARCHIVE_UNIT_MODULE_CONST.CONFIG_FILE_NOT_FOUND_MSG);
+          $scope.archiveDetailsConfig = {};
+          openArchiveDetailsWindow(data);
+        });
+      }else{
+          openArchiveDetailsWindow(data);
+      }
+    };
+
+
+    var failureCallback = function(errorMsg){
+      // Display error message
+      console.log(errorMsg);
+      $scope.errorMessage = ARCHIVE_SEARCH_MODULE_CONST.ARCHIVE_SEARCH_ERROR_MSG;
     }
+
+    // Find archive unit details
+    archiveDetailsService.findArchiveUnitDetails(archiveId, displayFormCallBack, failureCallback);
   }
 
+
+
   // ******************* Mock response *************** //
-  $scope.showResult=true;
-  $scope.totalResult = 10;
-  $scope.archiveRes =  [ {"_id":"1", "Title":"Archive1", "Date":"2016-01-01"},
-  {"_id":"1", "Title":"Archive2", "Date":"2016-01-01"},
-  {"_id":"2", "Title":"Archive3", "Date":"2016-01-01"}];
+  // $scope.showResult=true;
+  // $scope.totalResult = 10;
+  // $scope.archiveRes =  [ {"_id":"1", "Title":"Archive1", "Date":"2016-01-01"},
+  // {"_id":"1", "Title":"Archive2", "Date":"2016-01-01"},
+  // {"_id":"2", "Title":"Archive3", "Date":"2016-01-01"}];
   // ************************************************ //
 
 

@@ -26,6 +26,6 @@
  */
 
 angular.module('core').controller('mainViewController', ['$scope', '$location', 'IHM_URLS', function($scope, $location, IHM_URLS){
-  $scope.showMenuBar = !$location.url().toString().startsWith(IHM_URLS.ARCHIVE_DETAILS_URL);
+  $scope.showMenuBar = !$location.url().toString().startsWith(IHM_URLS.ARCHIVE_DETAILS_PATH);
 }
 ]);
