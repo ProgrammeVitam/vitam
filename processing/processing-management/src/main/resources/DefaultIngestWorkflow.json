@@ -32,12 +32,22 @@
     },
     {
     "workerGroupId" :"DefaultWorker",
-        "stepName":"Index seda",
+        "stepName":"Index Unit",
           "distribution" : {
         	"kind":"LIST",
         	"element" : "Units"
         	},
         "actions":[{"action":"IndexUnit"}]
+       
+    },
+    {
+    "workerGroupId" :"DefaultWorker",
+        "stepName":"Index ObjectGroup",
+          "distribution" : {
+        	"kind":"LIST",
+        	"element" : "ObjectGroup"
+        	},
+        "actions":[{"action":"IndexObjectGroup"}]
        
     }
     ]

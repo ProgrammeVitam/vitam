@@ -76,7 +76,7 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
             response.setStatus(StatusCode.FATAL);
         }
 
-        LOGGER.info("IndexObjectGroupActionHandler response: ", response.getStatus().value());
+        LOGGER.info("IndexObjectGroupActionHandler response: " + response.getStatus().value());
         return response;
     }
 

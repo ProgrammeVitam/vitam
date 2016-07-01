@@ -191,7 +191,7 @@ public class ProcessResponse implements EngineResponse {
 
     @Override
     public EngineResponse setMessageIdentifier(String message) {
-        if (message == null) {
+        if (message != null) {
             this.messageId = message;
         }
         return this;

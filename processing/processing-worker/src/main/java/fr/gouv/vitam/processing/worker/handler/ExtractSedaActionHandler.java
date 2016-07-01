@@ -76,7 +76,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             response.setStatus(StatusCode.FATAL);
         }
 
-        LOGGER.info("ExtractSedaActionHandler response: ", response.getStatus().value());
+        LOGGER.info("ExtractSedaActionHandler response: " + response.getStatus().value());
         return response;
     }
 
