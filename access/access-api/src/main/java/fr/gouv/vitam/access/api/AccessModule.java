@@ -24,7 +24,10 @@
 package fr.gouv.vitam.access.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.access.common.exception.AccessExecutionException;
+import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
+import fr.gouv.vitam.api.exception.MetadataInvalidSelectException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
@@ -39,6 +42,8 @@ public interface AccessModule {
      *
      * @throws InvalidParseOperationException Throw if json format is not correct
      * @throws AccessExecutionException Throw if error occurs when send Unit to database
+     * @throws MetadataInvalidSelectException if error occurs when search Unit from database
+     * @throws MetaDataDocumentSizeException if unit is too big when send Unit to database
      */
-    public JsonNode selectUnit(String selectRequest) throws IllegalArgumentException, InvalidParseOperationException, AccessExecutionException;
+    public JsonNode selectUnit(String selectRequest) throws IllegalArgumentException, InvalidParseOperationException, AccessExecutionException, MetadataInvalidSelectException, MetaDataDocumentSizeException;
 }

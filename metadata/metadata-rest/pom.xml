@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
@@ -26,14 +27,14 @@
 			<artifactId>jersey-container-servlet-core</artifactId>
 		</dependency>
 		<dependency>
-		    <groupId>org.glassfish.jersey.containers</groupId>
-		    <artifactId>jersey-container-jetty-http</artifactId>
-		    <exclusions>
-		        <exclusion>
-		            <groupId>org.eclipse.jetty</groupId>
-		            <artifactId>jetty-util</artifactId>
-		        </exclusion>
-		    </exclusions>
+			<groupId>org.glassfish.jersey.containers</groupId>
+			<artifactId>jersey-container-jetty-http</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.eclipse.jetty</groupId>
+					<artifactId>jetty-util</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.glassfish.jersey.media</groupId>
@@ -74,13 +75,8 @@
 			<scope>test</scope>
 		</dependency>
 
-		<!-- 
-		<dependency>
-			<groupId>org.testcontainers</groupId>
-			<artifactId>testcontainers</artifactId>
-			<scope>test</scope>
-		</dependency>
-		 -->
+		<!-- <dependency> <groupId>org.testcontainers</groupId> <artifactId>testcontainers</artifactId> 
+			<scope>test</scope> </dependency> -->
 	</dependencies>
 
 	<build>
@@ -105,28 +101,28 @@
 					</execution>
 				</executions>
 			</plugin>
-			
+
 			<plugin>
-			    <artifactId>maven-resources-plugin</artifactId>
-			    <executions>
-			      <execution>
-			        <id>copy-resources</id>
-			        <phase>validate</phase>
-			        <goals>
-			          <goal>copy-resources</goal>
-			        </goals>
-			        <configuration>
-			          <outputDirectory>${project.build.directory}/bin</outputDirectory>
-			          <resources>
-			            <resource>
-			                <directory>src/main/bin</directory>
-			                <filtering>true</filtering>
-			            </resource>
-			          </resources>
-			        </configuration>
-			      </execution>
-			    </executions>
-			  </plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy-resources</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/bin</outputDirectory>
+							<resources>
+								<resource>
+									<directory>src/main/bin</directory>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -146,9 +142,9 @@
 				<artifactId>docker-maven-plugin</artifactId>
 				<configuration>
 					<!-- Activate docker build -->
-					<skipDockerBuild>false</skipDockerBuild> 
+					<skipDockerBuild>false</skipDockerBuild>
 					<skipDockerTag>false</skipDockerTag>
-				    <!-- Images specification -->
+					<!-- Images specification -->
 					<baseImage>${vitam.docker.registry.pull}/${vitam.docker.baseimage}</baseImage>
 					<imageName>${vitam.docker.registry.push}/vitam/metadata</imageName>
 					<!-- copy the service's jar file from target into the root directory 

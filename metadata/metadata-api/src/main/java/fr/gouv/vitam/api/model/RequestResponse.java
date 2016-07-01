@@ -28,19 +28,22 @@ package fr.gouv.vitam.api.model;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.json.JsonHandler;
+
 /**
  * Meta-data RequestResponse class contains request query
  *
  */
-// FIXME REVIEW should be abstract
-public class RequestResponse {
+public abstract class RequestResponse {
     private JsonNode query;
 
     /**
      * @return the query as JsonNode of Response
      */
     public JsonNode getQuery() {
-        // FIXME REVIEW not return null but empty Json
+        if (query == null) {
+            return JsonHandler.createObjectNode();
+        }
         return query;
     }
 

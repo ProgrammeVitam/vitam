@@ -26,12 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.api.exception;
 
+import fr.gouv.vitam.common.exception.VitamException;
+
 /**
- * MetaDataException metadata error
+ * MetaDataException the father of all metadata exception
  */
-public class MetaDataException extends RuntimeException {
-    // TODO REVIEW specify that this exception is the general one (father of all exception)
-    // FIXME REVIEW Should not be a RuntimeException but a VitamException since it must be catch (checked)
+public class MetaDataException extends VitamException {
     /**
     *
     */

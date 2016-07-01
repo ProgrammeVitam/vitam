@@ -26,8 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.api.model;
 
-import java.util.ArrayList;
 import java.util.List;
+
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.SingletonUtils;
 
 /**
  * Meta-data RequestResponseOK class contains hits and result objects
@@ -35,25 +37,15 @@ import java.util.List;
  */
 public class RequestResponseOK extends RequestResponse {
     private DatabaseCursor hits;
-    // FIXME REVIEW should be List<String> as declaration side
-    private ArrayList<String> results;
-
-    /**
-     * Empty RequestResponseError constructor
-     *
-     **/
-    public RequestResponseOK() {
-        // FIXME REVIEW choose either assigning an empty ArrayList (explicit empty static final List), either keeping
-        // this List (and therefore add "add" method and change "set" method to clean and addAll): my preference would
-        // go to fix static final empty list
-        results = new ArrayList<>();
-    }
+    private List<String> results;
 
     /**
      * @return the hits of RequestResponseOK object
      */
     public DatabaseCursor getHits() {
-        // FIXME REVIEW do not return null but empty
+        if (hits == null) {
+            return new DatabaseCursor(0, 0, 0);
+        }
         return hits;
     }
 
@@ -62,6 +54,7 @@ public class RequestResponseOK extends RequestResponse {
      * @return RequestReponseOK with the hits are setted
      */
     public RequestResponseOK setHits(DatabaseCursor hits) {
+        ParametersChecker.checkParameter("DatabaseCursor of result is a mandatory parameter", hits);
         this.hits = hits;
         return this;
     }
@@ -73,6 +66,9 @@ public class RequestResponseOK extends RequestResponse {
      * @return the RequestReponseOK with the hits are setted
      */
     public RequestResponseOK setHits(int total, int offset, int limit) {
+        ParametersChecker.checkParameter("Total of result is a mandatory parameter", total);
+        ParametersChecker.checkParameter("Offset of result is a mandatory parameter", offset);
+        ParametersChecker.checkParameter("Limit of result is a mandatory parameter", limit);
         hits = new DatabaseCursor(total, offset, limit);
         return this;
     }
@@ -81,6 +77,9 @@ public class RequestResponseOK extends RequestResponse {
      * @return the result of RequestResponse as a list of String
      */
     public List<String> getResults() {
+        if (results == null) {
+            return SingletonUtils.singletonList();
+        }
         return results;
     }
 
@@ -89,16 +88,9 @@ public class RequestResponseOK extends RequestResponse {
      * @return the RequestReponseOK with the result is setted
      */
     public RequestResponseOK setResults(List<String> results) {
-        // FIXME REVIEW You cannot cast to ArrayList since argument is a List (could be whatever)
-        this.results = (ArrayList<String>) results;
+        ParametersChecker.checkParameter("List of result is a mandatory parameter", results);
+        this.results = results;
         return this;
     }
 
-    /**
-     * @return the RequestResponseOK object
-     */
-    // FIXME REVIEW what is the purpose?
-    public RequestResponseOK build() {
-        return this;
-    }
 }

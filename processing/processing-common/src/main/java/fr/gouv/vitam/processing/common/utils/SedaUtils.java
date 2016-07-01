@@ -26,10 +26,8 @@
  */
 package fr.gouv.vitam.processing.common.utils;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -65,7 +63,7 @@ import com.google.common.io.CharStreams;
 import de.odysseus.staxon.json.JsonXMLConfig;
 import de.odysseus.staxon.json.JsonXMLConfigBuilder;
 import de.odysseus.staxon.json.JsonXMLOutputFactory;
-import fr.gouv.vitam.api.exception.MetaDataExecutionException;
+import fr.gouv.vitam.api.exception.MetaDataException;
 import fr.gouv.vitam.builder.request.construct.Insert;
 import fr.gouv.vitam.client.MetaDataClient;
 import fr.gouv.vitam.client.MetaDataClientFactory;
@@ -670,7 +668,7 @@ public class SedaUtils {
         } catch (final InvalidParseOperationException e) {
             LOGGER.debug("Archive unit json invalid");
             throw new ProcessingException(e);
-        } catch (final MetaDataExecutionException e) {
+        } catch (final MetaDataException e) {
             LOGGER.debug("Internal Server Error");
             throw new ProcessingException(e);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
@@ -706,14 +704,14 @@ public class SedaUtils {
                 String inputStreamString = CharStreams.toString(new InputStreamReader(input, "UTF-8"));
                 final JsonNode json = JsonHandler.getFromString(inputStreamString);
                 Insert insertRequest = new Insert().addData((ObjectNode) json);
-                //metadataClient.insertObjectGroup(insertRequest.getFinalInsert().toString());
+                metadataClient.insertObjectGroup(insertRequest.getFinalInsert().toString());
             } else {
                 LOGGER.error("Object group not found");
                 throw new ProcessingException("Object group not found");
             }
  
 
-        } catch (final MetaDataExecutionException e) {
+        } catch (final MetaDataException e) {
             LOGGER.debug("Metadata Server Error", e);
             throw new ProcessingException(e);
         } catch (InvalidParseOperationException | IOException e) {

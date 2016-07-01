@@ -51,10 +51,12 @@ import fr.gouv.vitam.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
-public class InsertMetaDataClientTest extends JerseyTest {
-    private static final String QUERY = "{}";
-    private static final String url = "http://localhost:8082";
-    private static final MetaDataClient client = new MetaDataClient(url);
+
+public class InsertUnitMetaDataClientTest extends JerseyTest {
+    private static final String QUERY = "QUERY";
+    private static final String HOST = "http://localhost";
+    private static final int PORT = 8082;
+    private static final MetaDataClient client = new MetaDataClient(HOST + ":" + PORT);
 
     Supplier<Response> mock;
 
@@ -62,7 +64,7 @@ public class InsertMetaDataClientTest extends JerseyTest {
     protected Application configure() {
         enable(TestProperties.LOG_TRAFFIC);
         enable(TestProperties.DUMP_ENTITY);
-        forceSet(TestProperties.CONTAINER_PORT, "8082");
+        forceSet(TestProperties.CONTAINER_PORT, Integer.toString(PORT));
         mock = mock(Supplier.class);
         return new ResourceConfig().registerInstances(new MyUnitsResource(mock));
     }

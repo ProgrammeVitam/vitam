@@ -89,7 +89,7 @@ public class AccessModuleImplTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void given_test_AccessExecutionException()
-        throws IllegalArgumentException, AccessExecutionException, InvalidParseOperationException {
+        throws Exception {
         when(metaDataClientFactory.create(HOST)).thenReturn(metaDataClient);
         Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient).selectUnits(QUERY);
         accessModuleImpl = new AccessModuleImpl(conf);
@@ -134,7 +134,7 @@ public class AccessModuleImplTest {
 
 
 
-    @Test(expected = MetaDataExecutionException.class)
+    @Test(expected = AccessExecutionException.class)
     public void given_DSL_When_select_units_ThenThrows_MetaDataExecutionException()
         throws Exception {
         when(metaDataClient.selectUnits(anyObject())).thenReturn(JsonHandler.createObjectNode());

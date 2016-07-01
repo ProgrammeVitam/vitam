@@ -50,11 +50,8 @@ public interface MetaData {
      * @throws MetaDataExecutionException Throw if error occurs when send Unit to database
      * @throws MetaDataDocumentSizeException Throw if Unit size is too big
      */
-    // TODO REVIEW shall add IllegalArgumentException for insertRequest null
-    public void insertUnit(String insertRequest) throws InvalidParseOperationException, MetaDataNotFoundException,
+    public void insertUnit(JsonNode insertRequest) throws InvalidParseOperationException, IllegalArgumentException, MetaDataNotFoundException,
         MetaDataAlreadyExistException, MetaDataExecutionException, MetaDataDocumentSizeException;
-    // TODO REVIEW Update, Delete
-    // TODO REVIEW Should allow parsed Json as alternative
 
 
     /**
@@ -73,4 +70,17 @@ public interface MetaData {
     public JsonNode selectUnitsByQuery(String selectQuery)
         throws InvalidParseOperationException, MetadataInvalidSelectException, MetaDataExecutionException,
         MetaDataDocumentSizeException;
+
+    /**
+     * @param objectRequest as JsonNode { $roots: roots, $query : query, $filter : multi, $data : data}
+     *
+     * @throws InvalidParseOperationException Throw if json format is not correct
+     * @throws MetaDataNotFoundException Throw if parent of this unit is not found
+     * @throws MetaDataAlreadyExistException Throw if Unit id already exists
+     * @throws MetaDataExecutionException Throw if error occurs when send Unit to database
+     * @throws MetaDataDocumentSizeException Throw if Unit size is too big
+     */
+    void insertObjectGroup(JsonNode objectRequest) throws InvalidParseOperationException, MetaDataNotFoundException,
+    MetaDataAlreadyExistException, MetaDataExecutionException, MetaDataDocumentSizeException;
+
 }

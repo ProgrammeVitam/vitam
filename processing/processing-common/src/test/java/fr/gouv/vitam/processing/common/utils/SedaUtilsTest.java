@@ -193,9 +193,8 @@ public class SedaUtilsTest {
     @Test(expected = ProcessingException.class)
     public void givenNotExistArchiveUnitWhenIndexUnitThenThrowError()
         throws Exception {
-        when(metadataClient.insertUnit(anyObject())).thenReturn("");
+        when(metadataClient.insertUnit(anyObject())).thenThrow(new MetaDataExecutionException(""));
         when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
-        when(workspaceClient.getObject(anyObject(), anyObject())).thenThrow(new MetaDataExecutionException(""));
         when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
         utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
 
@@ -241,8 +240,8 @@ public class SedaUtilsTest {
     @Test(expected = ProcessingException.class)
     public void givenCreateObjectGroupErrorWhenIndexObjectGroupThenThrowError()
         throws Exception {
+        when(metadataClient.insertObjectGroup(anyObject())).thenThrow(new MetaDataExecutionException(""));
         when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
-        when(workspaceClient.getObject(anyObject(), anyObject())).thenThrow(new MetaDataExecutionException(""));
         when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
 
         utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
