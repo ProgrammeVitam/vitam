@@ -72,7 +72,7 @@
       {length: Math.pow(2, 53)},
       {length: null},
       {length: -2},
-      {length: Number(15)}
+      {length: new Number(15)}
     ];
 
     assert.expect(tricks.length * (functions.length + reducers.length + 4));
@@ -834,7 +834,7 @@
     assert.equal(func(1, 2, 3, 4), 4, 'can test the size of the arguments object');
 
     assert.equal(_.size('hello'), 5, 'can compute the size of a string literal');
-    assert.equal(_.size(String('hello')), 5, 'can compute the size of string object');
+    assert.equal(_.size(new String('hello')), 5, 'can compute the size of string object');
 
     assert.equal(_.size(null), 0, 'handles nulls');
     assert.equal(_.size(0), 0, 'handles numbers');

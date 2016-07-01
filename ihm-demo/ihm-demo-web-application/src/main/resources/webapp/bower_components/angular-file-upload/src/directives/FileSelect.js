@@ -23,8 +23,8 @@ export default function __identity($parse, FileUploader, FileSelect) {
 
             object.getOptions = $parse(attributes.options).bind(object, scope);
             object.getFilters = () => attributes.filters;
-        };
-}
+        }
+    };
 
 
 }

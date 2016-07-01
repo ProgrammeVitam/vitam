@@ -78,8 +78,7 @@ angular.module('ngMaterial-mock', [
       var ngFlush = $delegate.flush;
       $delegate.flush = function() {
         try      { ngFlush();  }
-        catch (e) {
-        }
+        catch(e) { ;           }
       };
 
       return $delegate;

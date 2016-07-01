@@ -55,17 +55,17 @@ class WebpackConfig {
           // http://stackoverflow.com/a/34018909
           include: /\.min\.js$/
         }),
-        new webpack.BannerPlugin(;
+        new webpack.BannerPlugin(
           `/*\n` +
           ` ${this.name} v${this.version}\n` +
           ` ${this.homepage}\n` +
           `*/\n`
           , {
-            true,
-                raw: true
-          };)
+            entryOnly: true,
+            raw: true
+          })
       ]
-    };;
+    };
   }
 }
 

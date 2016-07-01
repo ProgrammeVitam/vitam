@@ -1978,4 +1978,5 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ }
 /******/ ])
 });
+;
 //# sourceMappingURL=angular-file-upload.js.map
