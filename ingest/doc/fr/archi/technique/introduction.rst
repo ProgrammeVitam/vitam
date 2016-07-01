@@ -1,5 +1,5 @@
 Introduction
-############
+***********
 
 Présentation
 ------------
@@ -7,9 +7,10 @@ Présentation
 |  *Parent package:* **fr.gouv.vitam**
 |  *Package proposition:* **fr.gouv.vitam.ingest**
 
-Itération 
+
+Itération 4
 -----------
-4 modules pour l'ingest.
+modules pour l'ingest.
 
 | - vitam-ingest-api :  Classes d'interface communes aux différents modules.
 | - vitam-ingest-core : module lié au module rest d'ingest.
