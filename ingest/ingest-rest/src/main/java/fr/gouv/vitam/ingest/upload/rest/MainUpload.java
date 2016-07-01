@@ -66,10 +66,11 @@ public class MainUpload {
     //TODO Peut être intéressant d'imprimer la stack trace pour avoir l'information complète de l'erreur avant exit ?
     public static void main(String[] args) throws IOException, VitamException {
 
-        final int iPort = MainUpload.serverInitialisation();
-
+        MainUpload.serverInitialisation(args);
+        final String port = properties!=null ? properties.getProperty("ingest.core.port"):DEFAULT_PORT;
+        
         try {
-            MainUpload.serverStarting(iPort);
+            MainUpload.serverStarting(Integer.parseInt(port));
             MainUpload.serverJoin();
 
         } catch (final Exception e) {
@@ -78,30 +79,25 @@ public class MainUpload {
         }
     }
 
-    protected static int serverInitialisation() throws VitamException {
+    protected static void serverInitialisation(String[] args) throws VitamException {
         if (properties == null) {
             try {
-                File file = PropertiesUtils.getResourcesFile(PROPERTIES_FILE);
+                File file;
+                if (args.length > 1) {
+                    file = new File(args[0]);
+                } else {
+                    file = PropertiesUtils.fileFromConfigFolder(PROPERTIES_FILE);
+                }
+
                 FileInputStream fis = new FileInputStream(file);
                 properties = new Properties();
                 properties.load(fis);
             } catch (final IOException e) {
                 VITAM_LOGGER.error(e.getMessage());
-                throw new VitamException("loading properties ingest-web.properties failed");
+                throw new VitamException("loading properties ingest-rest.properties failed");
             }
         }
 
-        final String port = properties!=null ? properties.getProperty("ingest.core.port"):DEFAULT_PORT;
-
-        int iPort = -1;
-        try {
-            iPort = Integer.parseInt(port);
-        } catch (NumberFormatException nfe) {
-            VITAM_LOGGER.error(nfe.getMessage(), nfe);
-            throw new VitamException(nfe.getMessage(), nfe);
-        }
-
-        return iPort;
     }
 
     /**
@@ -109,13 +105,13 @@ public class MainUpload {
      * @param serverPort
      * @throws Exception
      */
-    protected static void serverStarting(int serverPort) throws Exception {
+    protected static void serverStarting(int port) throws Exception {
         final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(JacksonFeature.class);
         resourceConfig.register(MultiPartFeature.class);
         resourceConfig.register(MOXyJsonProvider.class);
-        resourceConfig.register(new UploadServiceImpl());
-        resourceConfig.packages("fr.gouv.vitam.ingest.upload");
+        resourceConfig.register(new UploadServiceImpl(properties));
+        resourceConfig.packages("fr.gouv.vitam.ingest.upload.rest");
 
         final ServletContainer servletContainer = new ServletContainer(resourceConfig);
         final ServletHolder sh = new ServletHolder(servletContainer);
@@ -123,7 +119,7 @@ public class MainUpload {
 
         context.setContextPath("/");
         context.addServlet(sh, "/*");
-        server = new Server(serverPort);
+        server = new Server(port);
         server.setHandler(context);
         server.start();
     }
