@@ -14,7 +14,7 @@ let {
 export default function __identity() {
     
     
-     class FileLikeObject {
+    return class FileLikeObject {
         /**
          * Creates an instance of FileLikeObject
          * @param {File|HTMLInputElement|Object} fileOrInput
@@ -50,4 +50,4 @@ export default function __identity() {
             this.name = object.name;
         }
     }
-};
+}

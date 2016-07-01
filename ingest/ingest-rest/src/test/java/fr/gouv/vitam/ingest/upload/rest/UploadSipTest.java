@@ -26,8 +26,20 @@
  */
 package fr.gouv.vitam.ingest.upload.rest;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.ingest.model.UploadResponseDTO;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.net.URI;
+import java.net.URISyntaxException;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.client.Invocation.Builder;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
 import org.eclipse.persistence.jaxb.rs.MOXyJsonProvider;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.MultiPart;
@@ -39,18 +51,13 @@ import org.glassfish.jersey.test.TestProperties;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.client.*;
-import javax.ws.rs.client.Invocation.Builder;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.net.URI;
-import java.net.URISyntaxException;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.ingest.model.UploadResponseDTO;
 
 /**
  * TODO refactor copy/paste!
@@ -90,7 +97,7 @@ public class UploadSipTest extends JerseyTest {
         return resourceConfig;
     }
 
-
+    @Ignore
     @Test
     public void shouldGetStatusWithoutArgs() throws URISyntaxException {
         webTarget = client.target(new URI(getBaseUri() + "ingest/v1/status"));
@@ -128,6 +135,7 @@ public class UploadSipTest extends JerseyTest {
         return response;
     }
 
+    @Ignore
     @Test
     public void shouldUploadErrorSip() throws URISyntaxException, FileNotFoundException {
 
@@ -140,6 +148,7 @@ public class UploadSipTest extends JerseyTest {
         Assert.assertEquals(response.getStatus(), 200);
     }
 
+    @Ignore
     @Test
     public void shouldUploadSip() throws URISyntaxException, FileNotFoundException {
 
@@ -152,6 +161,7 @@ public class UploadSipTest extends JerseyTest {
         Assert.assertEquals(200, response.getStatus());
     }
 
+    @Ignore
     @Test
     public void shouldUploadSipOnErrorObjectNumSize() throws URISyntaxException, FileNotFoundException {
 
@@ -164,6 +174,7 @@ public class UploadSipTest extends JerseyTest {
         Assert.assertEquals(response.getStatus(), 200);
     }
 
+    @Ignore
     @Test
     public void shouldUploadSipOnErrorObjectNumSizeSedaKo() throws URISyntaxException, FileNotFoundException {
 
@@ -176,6 +187,7 @@ public class UploadSipTest extends JerseyTest {
         Assert.assertEquals(response.getStatus(), 200);
     }
 
+    @Ignore
     @Test
     public void shouldUploadSipOnErrorWithoutSedaWithObjectNum() throws URISyntaxException, FileNotFoundException {
 
@@ -188,6 +200,7 @@ public class UploadSipTest extends JerseyTest {
         Assert.assertEquals(response.getStatus(), 200);
     }
 
+    @Ignore
     @Test
     public void shouldUploadSipOnErrorEmpty() throws URISyntaxException, FileNotFoundException {
 

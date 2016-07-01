@@ -26,7 +26,21 @@
  */
 package fr.gouv.vitam.ingest.upload.rest;
 
-import fr.gouv.vitam.common.PropertiesUtils;
+import java.io.InputStream;
+import java.util.Properties;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
+import org.glassfish.jersey.media.multipart.FormDataParam;
+
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -40,7 +54,11 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsExceptio
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.logbook.common.parameters.*;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -49,17 +67,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExi
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
-import org.glassfish.jersey.media.multipart.FormDataParam;
-
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
 
 /**
  * UploadServiceImpl implements UploadService
@@ -74,9 +81,6 @@ public class UploadServiceImpl implements UploadService {
 
     private static VitamLogger VITAM_LOGGER = VitamLoggerFactory.getInstance(UploadServiceImpl.class);
 
-    private static final String URI_WORKSPACE = "ingest.core.workspace.client.uri";
-    private static final String URI_PROCESSING = "ingest.core.processing.uri";
-    private static final String PROPERTIES_FILE = "ingest-rest.properties";
     private static final String FOLDER_SIP = "SIP";
     private Properties properties = null;
 
@@ -89,44 +93,19 @@ public class UploadServiceImpl implements UploadService {
      * Empty constructor
      * @throws VitamException
      */
-    public UploadServiceImpl() throws VitamException {
-
-        if (properties == null) {
-            try {
-                File file = PropertiesUtils.getResourcesFile(PROPERTIES_FILE);
-                FileInputStream fis = new FileInputStream(file);
-                properties = new Properties();
-                properties.load(fis);
-            } catch (final IOException e) {
-                VITAM_LOGGER.error(e.getMessage());
-                throw new VitamException("loading properties ingest-web.properties failed");
-            }
-        }
+    public UploadServiceImpl(Properties properties) throws VitamException {
+        this.properties = properties;
     }
 
     /**
-     * @throws VitamException if loading properties ingest-web.properties failed
+     * @throws VitamException if loading properties ingest-rest.properties failed
      */
-    public UploadServiceImpl(LogbookClient logbookClient, ProcessingManagementClient processingManagementClient, WorkspaceClient wksClient) throws VitamException {
+    public UploadServiceImpl(LogbookClient logbookClient, ProcessingManagementClient processingManagementClient, 
+        WorkspaceClient wksClient, Properties properties) throws VitamException {
         logBookClient = logbookClient;
         processingClient = processingManagementClient;
         workspaceClient = wksClient;
-
-        loadProperties();
-    }
-
-    private void loadProperties() throws VitamException {
-        if (properties == null) {
-            try {
-                File file = PropertiesUtils.getResourcesFile(PROPERTIES_FILE);
-                FileInputStream fis = new FileInputStream(file);
-                properties = new Properties();
-                properties.load(fis);
-            } catch (final IOException e) {
-                VITAM_LOGGER.error(e.getMessage());
-                throw new VitamException("loading properties ingest-web.properties failed");
-            }
-        }
+        this.properties = properties;
     }
 
     /**
@@ -182,8 +161,6 @@ public class UploadServiceImpl implements UploadService {
             final UploadResponseDTO uploadResponseDTO = UploadSipHelper.getUploadResponseDTO(fileDetail.getFileName(), 200, "success",
                     "201", "success", "200", "success");
             response = Response.ok(uploadResponseDTO, "application/json").build();
-
-            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
 
         } catch (final ContentAddressableStorageServerException e) {
 
@@ -246,9 +223,8 @@ public class UploadServiceImpl implements UploadService {
             String workspaceProtocol = properties.getProperty("ingest.core.workspace.client.protocol");
             String workspaceHost = properties.getProperty("ingest.core.workspace.client.host");
             String workspacePort =  properties.getProperty("ingest.core.workspace.client.port");
-            String workspaceUri =  properties.getProperty("ingest.core.workspace.client.uri");
 
-            uri = workspaceProtocol + "://" + workspaceHost  + ":" + workspacePort + "/" + workspaceUri;
+            uri = workspaceProtocol + "://" + workspaceHost  + ":" + workspacePort;
         }
         return uri;
     }
@@ -257,12 +233,11 @@ public class UploadServiceImpl implements UploadService {
         String uri = "";
 
         if(properties!=null) {
-            String processingProtocol = properties.getProperty("ingest.core.processing.protocol");
-            String processingHost = properties.getProperty("ingest.core.processing.host");
-            String processingPort =  properties.getProperty("ingest.core.processing.port");
-            String processingUri =  properties.getProperty("ingest.core.processing.uri");
+            String processingProtocol = properties.getProperty("ingest.core.processing.client.protocol");
+            String processingHost = properties.getProperty("ingest.core.processing.client.host");
+            String processingPort =  properties.getProperty("ingest.core.processing.client.port");
 
-            uri = processingProtocol + "://" + processingHost  + ":" + processingPort + "/" + processingUri;
+            uri = processingProtocol + "://" + processingHost  + ":" + processingPort;
         }
 
         return uri;
@@ -286,10 +261,7 @@ public class UploadServiceImpl implements UploadService {
         }
         if(!workspaceClient.isExistingContainer(containerName)) {
             workspaceClient.createContainer(containerName);
-
-            if(workspaceClient.isExistingFolder(containerName, FOLDER_SIP)) {
-                workspaceClient.unzipObject(containerName, FOLDER_SIP, uploadedInputStream);
-            }
+            workspaceClient.unzipObject(containerName, FOLDER_SIP, uploadedInputStream);
         }
 
         VITAM_LOGGER.info(" -> push stream to workspace finished");
@@ -322,7 +294,7 @@ public class UploadServiceImpl implements UploadService {
 
         final GUID eventIdentifier = ingestGuid;                                        // Event GUID
         final String eventType = "Process_SIP_unitary";                                 // Event Type
-        final GUID eventIdentifierProcess = ingestGuid;                                 // Event Identifier Process
+        final GUID eventIdentifierProcess = containerGUID;                                 // Event Identifier Process
         final GUID eventIdentifierRequest = ingestGuid;                                 // X-Request-Id
         final GUID outcomeDetailMessage = ingestGuid;                                   //"SIP entry : " + fileDetail.getFileName();  // Outcome detail message
 

@@ -76,7 +76,7 @@ public class IndexUnitActionHandler extends ActionHandler {
             response.setStatus(StatusCode.FATAL);
         }
 
-        LOGGER.info("IndexUnitActionHandler response: ", response.getStatus().value());
+        LOGGER.info("IndexUnitActionHandler response: " + response.getStatus().value());
         return response;
     }
 

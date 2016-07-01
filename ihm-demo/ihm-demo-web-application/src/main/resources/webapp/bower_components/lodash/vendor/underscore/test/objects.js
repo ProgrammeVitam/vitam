@@ -44,7 +44,7 @@
     a.a = a;
     assert.deepEqual(_.allKeys(a), ['1', 'a'], 'is not fooled by sparse arrays with additional properties');
 
-    _.each([null, void 0, 1, 'a', true, NaN, {}, [], Number(5), new Date(0)], function(val) {
+    _.each([null, void 0, 1, 'a', true, NaN, {}, [], new Number(5), new Date(0)], function(val) {
       assert.deepEqual(_.allKeys(val), []);
     });
 
@@ -333,48 +333,48 @@
 
     // String object and primitive comparisons.
     assert.ok(_.isEqual('Curly', 'Curly'), 'Identical string primitives are equal');
-    assert.ok(_.isEqual(String('Curly'), String('Curly')), 'String objects with identical primitive values are equal');
-    assert.ok(_.isEqual(String('Curly'), 'Curly'), 'String primitives and their corresponding object wrappers are equal');
-    assert.ok(_.isEqual('Curly', String('Curly')), 'Commutative equality is implemented for string objects and primitives');
+    assert.ok(_.isEqual(new String('Curly'), new String('Curly')), 'String objects with identical primitive values are equal');
+    assert.ok(_.isEqual(new String('Curly'), 'Curly'), 'String primitives and their corresponding object wrappers are equal');
+    assert.ok(_.isEqual('Curly', new String('Curly')), 'Commutative equality is implemented for string objects and primitives');
 
     assert.ok(!_.isEqual('Curly', 'Larry'), 'String primitives with different values are not equal');
-    assert.ok(!_.isEqual(String('Curly'), String('Larry')), 'String objects with different primitive values are not equal');
-    assert.ok(!_.isEqual(String('Curly'), {toString: function(){ return 'Curly'; }}), 'String objects and objects with a custom `toString` method are not equal');
+    assert.ok(!_.isEqual(new String('Curly'), new String('Larry')), 'String objects with different primitive values are not equal');
+    assert.ok(!_.isEqual(new String('Curly'), {toString: function(){ return 'Curly'; }}), 'String objects and objects with a custom `toString` method are not equal');
 
     // Number object and primitive comparisons.
     assert.ok(_.isEqual(75, 75), 'Identical number primitives are equal');
-    assert.ok(_.isEqual(Number(75), Number(75)), 'Number objects with identical primitive values are equal');
-    assert.ok(_.isEqual(75, Number(75)), 'Number primitives and their corresponding object wrappers are equal');
-    assert.ok(_.isEqual(Number(75), 75), 'Commutative equality is implemented for number objects and primitives');
-    assert.ok(!_.isEqual(Number(0), -0), '`new Number(0)` and `-0` are not equal');
-    assert.ok(!_.isEqual(0, Number(-0)), 'Commutative equality is implemented for `new Number(0)` and `-0`');
+    assert.ok(_.isEqual(new Number(75), new Number(75)), 'Number objects with identical primitive values are equal');
+    assert.ok(_.isEqual(75, new Number(75)), 'Number primitives and their corresponding object wrappers are equal');
+    assert.ok(_.isEqual(new Number(75), 75), 'Commutative equality is implemented for number objects and primitives');
+    assert.ok(!_.isEqual(new Number(0), -0), '`new Number(0)` and `-0` are not equal');
+    assert.ok(!_.isEqual(0, new Number(-0)), 'Commutative equality is implemented for `new Number(0)` and `-0`');
 
-    assert.ok(!_.isEqual(Number(75), Number(63)), 'Number objects with different primitive values are not equal');
-    assert.ok(!_.isEqual(Number(63), {valueOf: function(){ return 63; }}), 'Number objects and objects with a `valueOf` method are not equal');
+    assert.ok(!_.isEqual(new Number(75), new Number(63)), 'Number objects with different primitive values are not equal');
+    assert.ok(!_.isEqual(new Number(63), {valueOf: function(){ return 63; }}), 'Number objects and objects with a `valueOf` method are not equal');
 
     // Comparisons involving `NaN`.
     assert.ok(_.isEqual(NaN, NaN), '`NaN` is equal to `NaN`');
-    assert.ok(_.isEqual(Number(NaN), NaN), 'Object(`NaN`) is equal to `NaN`');
+    assert.ok(_.isEqual(new Number(NaN), NaN), 'Object(`NaN`) is equal to `NaN`');
     assert.ok(!_.isEqual(61, NaN), 'A number primitive is not equal to `NaN`');
-    assert.ok(!_.isEqual(Number(79), NaN), 'A number object is not equal to `NaN`');
+    assert.ok(!_.isEqual(new Number(79), NaN), 'A number object is not equal to `NaN`');
     assert.ok(!_.isEqual(Infinity, NaN), '`Infinity` is not equal to `NaN`');
 
     // Boolean object and primitive comparisons.
     assert.ok(_.isEqual(true, true), 'Identical boolean primitives are equal');
-    assert.ok(_.isEqual(Boolean, Boolean), 'Boolean objects with identical primitive values are equal');
-    assert.ok(_.isEqual(true, Boolean(true)), 'Boolean primitives and their corresponding object wrappers are equal');
-    assert.ok(_.isEqual(Boolean(true), true), 'Commutative equality is implemented for booleans');
-    assert.ok(!_.isEqual(Boolean(true), Boolean), 'Boolean objects with different primitive values are not equal');
+    assert.ok(_.isEqual(new Boolean, new Boolean), 'Boolean objects with identical primitive values are equal');
+    assert.ok(_.isEqual(true, new Boolean(true)), 'Boolean primitives and their corresponding object wrappers are equal');
+    assert.ok(_.isEqual(new Boolean(true), true), 'Commutative equality is implemented for booleans');
+    assert.ok(!_.isEqual(new Boolean(true), new Boolean), 'Boolean objects with different primitive values are not equal');
 
     // Common type coercions.
-    assert.ok(!_.isEqual(Boolean(false), true), '`new Boolean(false)` is not equal to `true`');
+    assert.ok(!_.isEqual(new Boolean(false), true), '`new Boolean(false)` is not equal to `true`');
     assert.ok(!_.isEqual('75', 75), 'String and number primitives with like values are not equal');
-    assert.ok(!_.isEqual(Number(63), String(63)), 'String and number objects with like values are not equal');
+    assert.ok(!_.isEqual(new Number(63), new String(63)), 'String and number objects with like values are not equal');
     assert.ok(!_.isEqual(75, '75'), 'Commutative equality is implemented for like string and number values');
     assert.ok(!_.isEqual(0, ''), 'Number and string primitives with like values are not equal');
     assert.ok(!_.isEqual(1, true), 'Number and boolean primitives with like values are not equal');
-    assert.ok(!_.isEqual(Boolean(false), Number(0)), 'Boolean and number objects with like values are not equal');
-    assert.ok(!_.isEqual(false, String('')), 'Boolean primitives and string objects with like values are not equal');
+    assert.ok(!_.isEqual(new Boolean(false), new Number(0)), 'Boolean and number objects with like values are not equal');
+    assert.ok(!_.isEqual(false, new String('')), 'Boolean primitives and string objects with like values are not equal');
     assert.ok(!_.isEqual(12564504e5, new Date(2009, 9, 25)), 'Dates and their corresponding numeric primitive values are not equal');
 
     // Dates.
@@ -413,8 +413,8 @@
     assert.ok(_.isEqual([/Moe/g, new Date(2009, 9, 25)], [/Moe/g, new Date(2009, 9, 25)]), 'Arrays containing equivalent elements are equal');
 
     // Multi-dimensional arrays.
-    var a = [Number(47), false, 'Larry', /Moe/, new Date(2009, 11, 13), ['running', 'biking', String('programming')], {a: 47}];
-    var b = [Number(47), false, 'Larry', /Moe/, new Date(2009, 11, 13), ['running', 'biking', String('programming')], {a: 47}];
+    var a = [new Number(47), false, 'Larry', /Moe/, new Date(2009, 11, 13), ['running', 'biking', new String('programming')], {a: 47}];
+    var b = [new Number(47), false, 'Larry', /Moe/, new Date(2009, 11, 13), ['running', 'biking', new String('programming')], {a: 47}];
     assert.ok(_.isEqual(a, b), 'Arrays containing nested arrays and objects are recursively compared');
 
     // Overwrite the methods defined in ES 5.1 section 15.4.4.
@@ -448,30 +448,30 @@
 
     // `A` contains nested objects and arrays.
     a = {
-      name: String('Moe Howard'),
-      age: Number(77),
+      name: new String('Moe Howard'),
+      age: new Number(77),
       stooge: true,
       hobbies: ['acting'],
       film: {
         name: 'Sing a Song of Six Pants',
         release: new Date(1947, 9, 30),
-        stars: [String('Larry Fine'), 'Shemp Howard'],
-        minutes: Number(16),
+        stars: [new String('Larry Fine'), 'Shemp Howard'],
+        minutes: new Number(16),
         seconds: 54
       }
     };
 
     // `B` contains equivalent nested objects and arrays.
     b = {
-      name: String('Moe Howard'),
-      age: Number(77),
+      name: new String('Moe Howard'),
+      age: new Number(77),
       stooge: true,
       hobbies: ['acting'],
       film: {
         name: 'Sing a Song of Six Pants',
         release: new Date(1947, 9, 30),
-        stars: [String('Larry Fine'), 'Shemp Howard'],
-        minutes: Number(16),
+        stars: [new String('Larry Fine'), 'Shemp Howard'],
+        minutes: new Number(16),
         seconds: 54
       }
     };
@@ -487,8 +487,8 @@
     (a = []).push(a);
     (b = []).push(b);
     assert.ok(_.isEqual(a, b), 'Arrays containing circular references are equal');
-    a.push(String('Larry'));
-    b.push(String('Larry'));
+    a.push(new String('Larry'));
+    b.push(new String('Larry'));
     assert.ok(_.isEqual(a, b), 'Arrays containing circular references and equivalent properties are equal');
     a.push('Shemp');
     b.push('Curly');
@@ -509,8 +509,8 @@
     a.def = 75;
     b.def = 75;
     assert.ok(_.isEqual(a, b), 'Objects containing circular references and equivalent properties are equal');
-    a.def = Number(75);
-    b.def = Number(63);
+    a.def = new Number(75);
+    b.def = new Number(63);
     assert.ok(!_.isEqual(a, b), 'Objects containing circular references and different properties are not equal');
 
     // More circular objects #767.
@@ -528,8 +528,8 @@
     a[0].def = 'Larry';
     b[0].def = 'Larry';
     assert.ok(_.isEqual(a, b), 'Cyclic structures containing equivalent properties are equal');
-    a[0].def = String('Larry');
-    b[0].def = String('Curly');
+    a[0].def = new String('Larry');
+    b[0].def = new String('Curly');
     assert.ok(!_.isEqual(a, b), 'Cyclic structures containing different properties are not equal');
 
     // Complex Circular References.
@@ -627,7 +627,7 @@
     assert.ok(!_.isObject('string'), 'and not string');
     assert.ok(!_.isObject(12), 'and not number');
     assert.ok(!_.isObject(true), 'and not boolean');
-    assert.ok(_.isObject(String('string')), 'but new String()');
+    assert.ok(_.isObject(new String('string')), 'but new String()');
   });
 
   QUnit.test('isArray', function(assert) {
@@ -637,7 +637,7 @@
   });
 
   QUnit.test('isString', function(assert) {
-    var obj = String('I am a string object');
+    var obj = new String('I am a string object');
     if (testElement) {
       assert.ok(!_.isString(testElement), 'an element is not a string');
     }
@@ -825,7 +825,7 @@
     assert.ok(_.isFinite('12'), 'Numeric strings are numbers');
     assert.ok(!_.isFinite('1a'), 'Non numeric strings are not numbers');
     assert.ok(!_.isFinite(''), 'Empty strings are not numbers');
-    var obj = Number(5);
+    var obj = new Number(5);
     assert.ok(_.isFinite(obj), 'Number instances can be finite');
     assert.ok(_.isFinite(0), '0 is finite');
     assert.ok(_.isFinite(123), 'Ints are finite');
@@ -841,9 +841,9 @@
     assert.ok(!_.isNaN(void 0), 'undefined is not NaN');
     assert.ok(!_.isNaN(null), 'null is not NaN');
     assert.ok(!_.isNaN(0), '0 is not NaN');
-    assert.ok(!_.isNaN(Number(0)), 'wrapped 0 is not NaN');
+    assert.ok(!_.isNaN(new Number(0)), 'wrapped 0 is not NaN');
     assert.ok(_.isNaN(NaN), 'but NaN is');
-    assert.ok(_.isNaN(Number(NaN)), 'wrapped NaN is still NaN');
+    assert.ok(_.isNaN(new Number(NaN)), 'wrapped NaN is still NaN');
   });
 
   QUnit.test('isNull', function(assert) {

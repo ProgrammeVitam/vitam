@@ -94,7 +94,7 @@ public class CheckSedaActionHandler extends ActionHandler {
             response.setStatus(StatusCode.KO);
         }
 
-        LOGGER.info("checkSedaActionHandler response: ", response.getStatus().value());
+        LOGGER.info("checkSedaActionHandler response: " + response.getStatus().value());
 
         return response;
     }
