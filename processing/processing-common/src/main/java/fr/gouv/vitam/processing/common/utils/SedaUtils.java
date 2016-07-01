@@ -71,6 +71,7 @@ import fr.gouv.vitam.client.MetaDataClient;
 import fr.gouv.vitam.client.MetaDataClientFactory;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -78,6 +79,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.WorkParams;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -97,6 +99,7 @@ public class SedaUtils {
     private static final String XML_EXTENSION = ".xml";
     private static final String JSON_EXTENSION = ".json";
     private static final String SEDA_FOLDER = "SIP";
+    private static final String CONTENT_FOLDER = "content";
     private static final String BINARY_DATA_OBJECT = "BinaryDataObject";
     private static final String MESSAGE_IDENTIFIER = "MessageIdentifier";
     private static final String OBJECT_GROUP = "ObjectGroup";
@@ -1098,6 +1101,80 @@ public class SedaUtils {
             }
         }
         return invalidVersionList;
+    }
+    
+    /**
+     * check the conformity of the binary object
+     * 
+     * @param params
+     * @return List<String> list of the invalid digest message
+     * @throws ProcessingException
+     * @throws URISyntaxException
+     * @throws ContentAddressableStorageNotFoundException
+     * @throws ContentAddressableStorageServerException
+     * @throws ContentAddressableStorageException
+     */
+    public List<String> checkConformityBinaryObject(WorkParams params) throws ProcessingException, URISyntaxException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, ContentAddressableStorageException{
+        ParametersChecker.checkParameter("WorkParams is a mandatory parameter", params);
+        final String containerId = params.getContainerName();
+        final WorkspaceClient client = workspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
+
+        InputStream xmlFile = null;
+        List<String> digestMessageInvalidList = new ArrayList<String>();
+        try {
+            xmlFile = client.getObject(containerId, SEDA_FOLDER + "/" + SEDA_FILE);
+        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
+            LOGGER.error("Manifest.xml Not Found");
+            throw new ProcessingException(e);
+        }
+
+        final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+        XMLEventReader reader = null;
+
+        try {
+            reader = xmlInputFactory.createXMLEventReader(xmlFile);
+            digestMessageInvalidList = compareDigestMessage(reader, client);
+            reader.close();
+        } catch (final XMLStreamException e) {
+            LOGGER.error("Can not read SEDA");
+            throw new ProcessingException(e);
+        }
+        return digestMessageInvalidList;
+    }
+    
+    /**
+     * compare the digest message between the manifest.xml and related uri content in workspace container
+     * 
+     * @param evenReader
+     * @param client
+     * @return List<String> list of the invalid digest message
+     * @throws XMLStreamException
+     * @throws URISyntaxException
+     * @throws ContentAddressableStorageNotFoundException
+     * @throws ContentAddressableStorageServerException
+     * @throws ContentAddressableStorageException
+     */
+    public List<String> compareDigestMessage(XMLEventReader evenReader, WorkspaceClient client) 
+        throws XMLStreamException, URISyntaxException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, ContentAddressableStorageException{
+        SedaUtilInfo sedaUtilInfo = getBinaryObjectInfo(evenReader);
+        Map<String, BinaryObjectInfo> binaryObjectMap = sedaUtilInfo.getBinaryObjectMap();
+        List<String> digestMessageInvalidList = new ArrayList<String>();
+        
+        for (String mapKey : binaryObjectMap.keySet()) {
+            String uri = binaryObjectMap.get(mapKey).getUri().toString();
+            String digestMessageManifest = binaryObjectMap.get(mapKey).getMessageDigest();
+            DigestType algo = binaryObjectMap.get(mapKey).getAlgo();
+            String digestMessage = client.computeObjectDigest(mapKey, SEDA_FOLDER + "/" + CONTENT_FOLDER + "/" + uri, algo);
+            
+            if(digestMessage != digestMessageManifest){
+                LOGGER.info("Binary object Digest Message Invalid : " + uri );
+                digestMessageInvalidList.add(digestMessageManifest);
+            } else {
+                LOGGER.info("Binary Object Digest Message Valid : " + uri);
+            }            
+        }
+        
+        return digestMessageInvalidList;
     }
 
 }

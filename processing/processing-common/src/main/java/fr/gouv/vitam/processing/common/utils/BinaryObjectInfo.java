@@ -29,6 +29,7 @@ package fr.gouv.vitam.processing.common.utils;
 import java.net.URI;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.digest.DigestType;
 
 /**
  * The class BinaryObjectInfo is stored all information of the BinaryDataObject
@@ -39,7 +40,8 @@ public final class BinaryObjectInfo {
     private URI uri;
     private String messageDigest;
     private int size;
-    
+    private DigestType algo;
+
     /**
      * @return id
      */
@@ -49,10 +51,12 @@ public final class BinaryObjectInfo {
 
     /**
      * @param id the id of the binary data to set
+     * @return BinaryObjectInfo
      */
-    public void setId(String id) {
+    public BinaryObjectInfo setId(String id) {
         ParametersChecker.checkParameter("id is a mandatory parameter", id);
         this.id = id;
+        return this;
     }
     
     /**
@@ -64,10 +68,12 @@ public final class BinaryObjectInfo {
     
     /**
      * @param version the version of the binary data to set
+     * @return BinaryObjectInfo
      */
-    public void setVersion(String version) {
+    public BinaryObjectInfo setVersion(String version) {
         ParametersChecker.checkParameter("version is a mandatory parameter", version);
         this.version = version;
+        return this;
     }
     
     /**
@@ -79,10 +85,12 @@ public final class BinaryObjectInfo {
     
     /**
      * @param uri the uri of the binary data to set
+     * @return BinaryObjectInfo
      */
-    public void setUri(URI uri) {
+    public BinaryObjectInfo setUri(URI uri) {
         ParametersChecker.checkParameter("uri is a mandatory parameter", uri);
         this.uri = uri;
+        return this;
     }
     
     /**
@@ -94,10 +102,12 @@ public final class BinaryObjectInfo {
     
     /**
      * @param messageDigest the message digest of the binary data to set
+     * @return BinaryObjectInfo
      */
-    public void setMessageDigest(String messageDigest) {
+    public BinaryObjectInfo setMessageDigest(String messageDigest) {
         ParametersChecker.checkParameter("messageDigest is a mandatory parameter", messageDigest);
         this.messageDigest = messageDigest;
+        return this;
     }
     
     /**
@@ -109,10 +119,30 @@ public final class BinaryObjectInfo {
     
     /**
      * @param size the size of the binary data to set
+     * @return BinaryObjectInfo
      */
-    public void setSize(int size) {
+    public BinaryObjectInfo setSize(int size) {
         ParametersChecker.checkParameter("size is a mandatory parameter", size);
         this.size = size;
+        return this;
+    }
+    
+    /**
+     * @return DigestType
+     */
+    public DigestType getAlgo() {
+        return algo;
+    }
+
+    
+    /**
+     * @param algo
+     * @return BinaryObjectInfo
+     */
+    public BinaryObjectInfo setAlgo(String algo) {
+        ParametersChecker.checkParameter("algo is a mandatory parameter", algo);
+        this.algo = DigestType.fromValue(algo);
+        return this;
     }
 
 }
