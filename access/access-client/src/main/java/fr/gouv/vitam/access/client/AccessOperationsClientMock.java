@@ -26,7 +26,11 @@
  */
 package fr.gouv.vitam.access.client;
 
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.access.common.exception.AccessClientNotFoundException;
 import fr.gouv.vitam.access.common.exception.AccessClientServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -53,8 +57,14 @@ public class AccessOperationsClientMock implements AccessClient {
     }
 
     @Override
-    public JsonNode selectUnits(String selectQuery) throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException {
+    public JsonNode selectUnits(String selectQuery)
+        throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException {
         logInformation(SELECT, selectQuery);
         return JsonHandler.createObjectNode();
+    }
+
+    @Override
+    public Response status() {
+        return Response.status(Status.OK).build();
     }
 }

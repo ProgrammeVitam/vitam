@@ -39,7 +39,7 @@ public class RequestResponseTest {
 
     @Test
     public final void givenAccessConfiguration_WithNullAttributes_WhenInstanciate_ThenReturnTrue() {
-        RequestResponse requestResponse = new RequestResponse();
+        final RequestResponse requestResponse = new RequestResponse();
         assertThat(requestResponse.getQuery()).isNull();
     }
 
@@ -48,7 +48,7 @@ public class RequestResponseTest {
         throws JsonProcessingException, IOException {
         final String json = "{\"objects\" : [\"One\", \"Two\", \"Three\"]}";
         query = new ObjectMapper().readTree(json).get("objects");
-        RequestResponse requestResponse = new RequestResponse();
+        final RequestResponse requestResponse = new RequestResponse();
         requestResponse.setQuery(query);
         assertThat(requestResponse.getQuery()).isNotNull();
     }

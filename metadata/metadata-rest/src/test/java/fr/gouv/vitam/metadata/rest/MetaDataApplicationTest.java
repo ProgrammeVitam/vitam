@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.rest;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.junit.AfterClass;
@@ -39,20 +40,26 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
+import fr.gouv.vitam.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.junit.JunitHelper;
 
 public class MetaDataApplicationTest {
-
-    private static int DATABASE_PORT = 45678;
+    private static final String METADATA_CONF = "metadata.conf";
     private static MongodExecutable mongodExecutable;
     private final MetaDataApplication application = new MetaDataApplication();
     static MongodProcess mongod;
+    private static JunitHelper junitHelper;
+    private static int port;
 
     @BeforeClass
-    public static void setUp() throws IOException {
+    public static void setUpBeforeClass() throws Exception {
         final MongodStarter starter = MongodStarter.getDefaultInstance();
+        junitHelper = new JunitHelper();
+        port = junitHelper.findAvailablePort();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .version(Version.Main.PRODUCTION)
-            .net(new Net(DATABASE_PORT, Network.localhostIsIPv6()))
+            .net(new Net(port, Network.localhostIsIPv6()))
             .build());
         mongod = mongodExecutable.start();
     }
@@ -61,6 +68,7 @@ public class MetaDataApplicationTest {
     public static void tearDownAfterClass() {
         mongod.stop();
         mongodExecutable.stop();
+        junitHelper.releasePort(port);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -75,11 +83,25 @@ public class MetaDataApplicationTest {
 
     @Test
     public void givenFileExistsWhenConfigureApplicationThenRunServer() throws Exception {
-        application.configure("src/test/resources/metadata.conf", "8088");
+        File conf = PropertiesUtils.findFile(METADATA_CONF);
+        MetaDataConfiguration config = PropertiesUtils.readYaml(conf, MetaDataConfiguration.class);
+        config.setPort(port);
+        File newConf = File.createTempFile("test", METADATA_CONF, conf.getParentFile());
+        PropertiesUtils.writeYaml(newConf, config);
+        int serverPort = junitHelper.findAvailablePort();
+        application.configure(newConf.getAbsolutePath(), Integer.toString(serverPort));
+        newConf.delete();
+        junitHelper.releasePort(serverPort);
     }
 
     @Test
     public void givenPortNegativeWhenConfigureApplicationThenUseDefaultPortToRunServer() throws Exception {
-        application.configure("src/test/resources/metadata.conf", "-12");
+        File conf = PropertiesUtils.findFile(METADATA_CONF);
+        MetaDataConfiguration config = PropertiesUtils.readYaml(conf, MetaDataConfiguration.class);
+        config.setPort(port);
+        File newConf = File.createTempFile("test", METADATA_CONF, conf.getParentFile());
+        PropertiesUtils.writeYaml(newConf, config);
+        application.configure(newConf.getAbsolutePath(), "-12");
+        newConf.delete();
     }
 }

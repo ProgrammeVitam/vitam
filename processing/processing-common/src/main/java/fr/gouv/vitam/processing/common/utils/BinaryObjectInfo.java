@@ -58,14 +58,14 @@ public final class BinaryObjectInfo {
         this.id = id;
         return this;
     }
-    
+
     /**
      * @return version
      */
     public String getVersion() {
         return version;
     }
-    
+
     /**
      * @param version the version of the binary data to set
      * @return BinaryObjectInfo
@@ -75,14 +75,14 @@ public final class BinaryObjectInfo {
         this.version = version;
         return this;
     }
-    
+
     /**
      * @return uri
      */
     public URI getUri() {
         return uri;
     }
-    
+
     /**
      * @param uri the uri of the binary data to set
      * @return BinaryObjectInfo
@@ -92,14 +92,14 @@ public final class BinaryObjectInfo {
         this.uri = uri;
         return this;
     }
-    
+
     /**
      * @return messageDigest
      */
     public String getMessageDigest() {
         return messageDigest;
     }
-    
+
     /**
      * @param messageDigest the message digest of the binary data to set
      * @return BinaryObjectInfo
@@ -109,14 +109,14 @@ public final class BinaryObjectInfo {
         this.messageDigest = messageDigest;
         return this;
     }
-    
+
     /**
      * @return size
      */
     public int getSize() {
         return size;
     }
-    
+
     /**
      * @param size the size of the binary data to set
      * @return BinaryObjectInfo
@@ -126,7 +126,7 @@ public final class BinaryObjectInfo {
         this.size = size;
         return this;
     }
-    
+
     /**
      * @return DigestType
      */
@@ -134,7 +134,7 @@ public final class BinaryObjectInfo {
         return algo;
     }
 
-    
+
     /**
      * @param algo
      * @return BinaryObjectInfo

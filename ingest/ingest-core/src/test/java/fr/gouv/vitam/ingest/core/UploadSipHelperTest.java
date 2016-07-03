@@ -49,16 +49,16 @@ public class UploadSipHelperTest {
     @Test
     public void shouldUploadSipHelper() {
 
-        String message = "success";
-        String engineStatus = "success";
-        String fileName = "Test";
-        String vitamCode = "201";
-        String vitamStatus = "success";
-        Integer httpCode = 200;
-        String engineCode = "success";
+        final String message = "success";
+        final String engineStatus = "success";
+        final String fileName = "Test";
+        final String vitamCode = "201";
+        final String vitamStatus = "success";
+        final Integer httpCode = 200;
+        final String engineCode = "success";
 
         final UploadResponseDTO uploadResponseDTO = UploadSipHelper.getUploadResponseDTO(fileName, httpCode, message,
-                vitamCode, vitamStatus, engineCode, engineStatus);
+            vitamCode, vitamStatus, engineCode, engineStatus);
 
         Assert.assertNotNull(uploadResponseDTO);
 

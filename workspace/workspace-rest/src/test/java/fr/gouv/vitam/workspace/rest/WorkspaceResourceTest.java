@@ -37,7 +37,10 @@ import java.io.InputStream;
 import javax.ws.rs.core.Response.Status;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -47,6 +50,7 @@ import com.jayway.restassured.http.ContentType;
 
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
 import fr.gouv.vitam.workspace.common.Entry;
 
@@ -57,7 +61,6 @@ public class WorkspaceResourceTest {
 
     private WorkspaceApplication workspaceApplication;
 
-    private static final int SERVER_PORT = 8083;
     private static final String RESOURCE_URI = "/workspace/v1";
 
     private static final String CONTAINER_NAME = "myContainer";
@@ -68,8 +71,21 @@ public class WorkspaceResourceTest {
     public static final String X_DIGEST_ALGORITHM  = "X-digest-algorithm";
     public static final String ALGO="MD5";
     public static final String X_DIGEST="X-digest";
+    private static JunitHelper junitHelper;
+    private static int port;
 
     private InputStream stream = null;
+
+    @BeforeClass
+    public static void setUpBeforeClass() throws Exception {
+        junitHelper = new JunitHelper();
+        port = junitHelper.findAvailablePort();
+    }
+
+    @AfterClass
+    public static void shutdownAfterClass() {
+        junitHelper.releasePort(port);
+    }
 
     @Before
     public void setup() throws Exception {
@@ -77,8 +93,8 @@ public class WorkspaceResourceTest {
         final File tempDir = tempFolder.newFolder();
         configuration.setStoragePath(tempDir.getCanonicalPath());
         workspaceApplication = new WorkspaceApplication();
-        WorkspaceApplication.run(configuration, SERVER_PORT);
-        RestAssured.port = SERVER_PORT;
+        WorkspaceApplication.run(configuration, port);
+        RestAssured.port = port;
         RestAssured.basePath = RESOURCE_URI;
     }
 
@@ -352,7 +368,6 @@ public class WorkspaceResourceTest {
         given().contentType(ContentType.BINARY).body(stream)
         .then().statusCode(Status.NOT_FOUND.getStatusCode()).when().put("/containers/" + CONTAINER_NAME + "/folders/"+FOLDER_SIP);
 
-
     }
     
     @Test()
@@ -365,10 +380,8 @@ public class WorkspaceResourceTest {
         with().contentType(ContentType.JSON).body(new Entry(FOLDER_SIP)).then()
             .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/folders");
 
-        
         given().contentType(ContentType.BINARY).body(stream)
         .then().statusCode(Status.CONFLICT.getStatusCode()).when().put("/containers/" + CONTAINER_NAME + "/folders/"+FOLDER_SIP);
-
 
     }
     

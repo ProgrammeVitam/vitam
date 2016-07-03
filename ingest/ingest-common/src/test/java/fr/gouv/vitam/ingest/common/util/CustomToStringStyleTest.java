@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -26,17 +26,17 @@
  */
 package fr.gouv.vitam.ingest.common.util;
 
-import org.junit.Test;
-
 import java.util.Date;
 
+import org.junit.Test;
+
 /**
- * 
+ *
  */
 public class CustomToStringStyleTest {
     private StringBuffer buffer;
-    private String fieldName = "fieldName";
-    private Object value = new Date();
+    private final String fieldName = "fieldName";
+    private final Object value = new Date();
 
     public CustomToStringStyle customToStringStyle;
 

@@ -41,7 +41,7 @@ public class RequestResponseOKTest {
 
     @Test
     public final void givenAccessConfiguration_WithNullAttributes_WhenInstanciate_ThenReturnTrue() {
-        RequestResponseOK requestResponseOK = new RequestResponseOK();
+        final RequestResponseOK requestResponseOK = new RequestResponseOK();
         assertThat(requestResponseOK.getQuery()).isNull();
         assertThat(requestResponseOK.getResults()).isNullOrEmpty();
     }
@@ -52,7 +52,7 @@ public class RequestResponseOKTest {
         results = new ArrayList<>();
         final String json = "{\"objects\" : [\"One\", \"Two\", \"Three\"]}";
         query = new ObjectMapper().readTree(json).get("objects");
-        RequestResponseOK requestResponseOK = new RequestResponseOK();
+        final RequestResponseOK requestResponseOK = new RequestResponseOK();
         requestResponseOK.setQuery(query);
         requestResponseOK.addAllResults(results);
         assertThat(requestResponseOK.getQuery()).isNotNull();

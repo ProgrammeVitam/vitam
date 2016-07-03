@@ -32,6 +32,7 @@ import static org.hamcrest.Matchers.equalTo;
 
 import javax.ws.rs.core.Response.Status;
 
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -43,27 +44,41 @@ import com.jayway.restassured.http.ContentType;
 
 import fr.gouv.vitam.api.model.RequestResponseError;
 import fr.gouv.vitam.api.model.VitamError;
+import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 
 public class ProcessManagementResourceTest {
 
-    private static final int SERVER_PORT = 1234;
     private static final String DATA_URI = "/processing/api/v0.0.3";
     private static final String NOT_EXITS_WORKFLOW_ID = "workflowJSONv3";
     private static final String EXITS_WORKFLOW_ID = "workflowJSONv2";
     private static final String URL_METADATA = "http://localhost:8086";
     private static final String URL_WORKSPACE = "http://localhost:8084";
     private static final String CONTAINER_NAME = "sipContainer";
+    private static JunitHelper junitHelper;
+    private static int port;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        junitHelper = new JunitHelper();
+        port = junitHelper.findAvailablePort();
         final ServerConfiguration configuration = new ServerConfiguration();
         configuration.setUrlMetada(URL_METADATA);
         configuration.setUrlWorkspace(URL_WORKSPACE);
-        ProcessManagementApplication.run(configuration, SERVER_PORT);
-        RestAssured.port = SERVER_PORT;
+        ProcessManagementApplication.run(configuration, port);
+        RestAssured.port = port;
         RestAssured.basePath = DATA_URI;
+    }
+
+    @AfterClass
+    public static void shutdownAfterClass() {
+        try {
+            ProcessManagementApplication.stop();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        junitHelper.releasePort(port);
     }
 
     /**

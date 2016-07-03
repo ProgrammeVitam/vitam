@@ -55,7 +55,6 @@ public class AccessApplication extends AbstractVitamApplication<AccessApplicatio
 
     private static Server server;
     private AccessConfiguration configuration;
-    private static final int DEFAULT_PORT = 8082;
     private static final String CONFIG_FILE_IS_A_MANDATORY_ARGUMENT = "Config file is a mandatory argument";
 
     /**
@@ -67,7 +66,7 @@ public class AccessApplication extends AbstractVitamApplication<AccessApplicatio
 
     /**
      * runs AccessApplication server app
-     * 
+     *
      * @param args
      */
     public static void main(String[] args) {
@@ -164,7 +163,7 @@ public class AccessApplication extends AbstractVitamApplication<AccessApplicatio
 
     /**
      * read the configured parameters of launched server from the file
-     * 
+     *
      * @param arguments : name of configured file
      * @throws RuntimeException
      */
@@ -175,19 +174,19 @@ public class AccessApplication extends AbstractVitamApplication<AccessApplicatio
                 final FileReader yamlFile = new FileReader(new File(arguments[0]));
                 final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
                 configuration = mapper.readValue(yamlFile, AccessConfiguration.class);
-                int serverPort = DEFAULT_PORT;
+                int serverPort = VitamServerFactory.getDefaultPort();
 
                 if (arguments.length >= 2) {
                     serverPort = Integer.parseInt(arguments[1]);
                     if (serverPort <= 0) {
-                        serverPort = DEFAULT_PORT;
+                        serverPort = VitamServerFactory.getDefaultPort();
                     }
                 }
                 run(configuration, serverPort);
 
             } catch (final Exception e) {
                 LOGGER.error(e.getMessage(), e);
-                throw new RuntimeException(e.getMessage());
+                throw e;
             }
 
         } else {

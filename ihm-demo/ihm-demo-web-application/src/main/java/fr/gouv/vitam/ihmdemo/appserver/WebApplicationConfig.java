@@ -29,7 +29,7 @@ package fr.gouv.vitam.ihmdemo.appserver;
 import fr.gouv.vitam.common.ParametersChecker;
 
 /**
- * Web Application Configuration class 
+ * Web Application Configuration class
  */
 public class WebApplicationConfig {
 

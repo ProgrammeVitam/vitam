@@ -47,15 +47,15 @@ public final class RequestResponseOK extends RequestResponse {
 
     /**
      * Add list of results
-     * 
+     *
      * @param results list
      * @return RequestResponseOK with mutable results list of String
      */
     public RequestResponseOK addAllResults(List<String> resultList) {
-        if (this.results == null || this.results.isEmpty()) {
-            this.results = new ArrayList<>();
+        if (results == null || results.isEmpty()) {
+            results = new ArrayList<>();
         }
-        this.results.addAll(resultList);
+        results.addAll(resultList);
         return this;
     }
 

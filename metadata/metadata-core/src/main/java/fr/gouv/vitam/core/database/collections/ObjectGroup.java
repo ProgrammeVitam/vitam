@@ -24,9 +24,7 @@
 package fr.gouv.vitam.core.database.collections;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import org.bson.BSONObject;
 import org.bson.Document;
@@ -34,11 +32,10 @@ import org.bson.Document;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoException;
-import com.mongodb.MongoWriteConcernException;
-import com.mongodb.MongoWriteException;
 import com.mongodb.client.MongoCollection;
 
-import fr.gouv.vitam.common.digest.Digest;
+import fr.gouv.vitam.api.exception.MetaDataExecutionException;
+import fr.gouv.vitam.common.SingletonUtils;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDObjectType;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -141,38 +138,6 @@ public class ObjectGroup extends VitamDocument<ObjectGroup> {
         new BasicDBObject(STRATEGY, 1).append(VERSION, 1)};
 
     /**
-     * Copy subclass
-     */
-    public static class Copy {
-        String sid;
-        String storageDigest;
-    }
-    /**
-     * Object subclass
-     */
-    public static class ObjectItem {
-        String id;
-        long size;
-        Digest digest;
-        int version;
-        Date creadate;
-        List<Copy> copies;
-        /**
-         * @formatter:off Among them: formatIdentification{formatLitteral, mimeType}, fileInfo{filename,
-         *                creatingApplicationName, creationApplicationVersion, dateCreatedByApplication, creatingOs,
-         *                creatingOsVersion, lastModified}, metadata{according to Text, Document, Image, Audio, Video,
-         *                ...), othermetadata(whatever)
-         *
-         *                or
-         *
-         *                physicalId, physicalDimensions(width, height, depth, shape, diameter, length, thickness,
-         *                weight, numberOfPage), other(whatever)
-         * @formatter:on
-         */
-        Map<String, Object> md;
-    }
-
-    /**
      * Total number of copies
      */
     private int nbCopy;
@@ -239,7 +204,7 @@ public class ObjectGroup extends VitamDocument<ObjectGroup> {
     }
 
     @Override
-    public ObjectGroup save() throws MongoWriteException, MongoWriteConcernException, MongoException {
+    public ObjectGroup save() throws MetaDataExecutionException {
         putBeforeSave();
         if (updated()) {
             return this;
@@ -249,14 +214,14 @@ public class ObjectGroup extends VitamDocument<ObjectGroup> {
     }
 
     @Override
-    protected boolean updated() throws MongoWriteException, MongoWriteConcernException, MongoException {
+    protected boolean updated() throws MetaDataExecutionException {
         final ObjectGroup vt =
             (ObjectGroup) MongoDbMetadataHelper.findOneNoAfterLoad(getVitamCollections(), getId());
         BasicDBObject update = null;
         if (vt != null) {
             final List<BasicDBObject> list = new ArrayList<>();
             BasicDBObject updAddToSet =
-                MongoDbMetadataHelper.updateLinks(this, vt, VitamLinks.UNIT_TO_OBJECTGROUP, false);
+                MongoDbMetadataHelper.updateLinkset(this, vt, VitamLinks.UNIT_TO_OBJECTGROUP, false);
             if (updAddToSet != null) {
                 list.add(updAddToSet);
             }
@@ -277,7 +242,7 @@ public class ObjectGroup extends VitamDocument<ObjectGroup> {
             }
             return true;
         } else {
-            MongoDbMetadataHelper.updateLinks(this, null, VitamLinks.UNIT_TO_OBJECTGROUP, false);
+            MongoDbMetadataHelper.updateLinkset(this, null, VitamLinks.UNIT_TO_OBJECTGROUP, false);
         }
         return false;
     }
@@ -312,11 +277,16 @@ public class ObjectGroup extends VitamDocument<ObjectGroup> {
      */
     @SuppressWarnings("unchecked")
     public List<String> getFathersUnitIds(final boolean remove) {
+        List<String> list;
         if (remove) {
-            return (List<String>) remove(VitamLinks.UNIT_TO_OBJECTGROUP.field2to1);
+            list = (List<String>) remove(VitamLinks.UNIT_TO_OBJECTGROUP.field2to1);
         } else {
-            return (List<String>) this.get(VitamLinks.UNIT_TO_OBJECTGROUP.field2to1);
+            list = (List<String>) this.get(VitamLinks.UNIT_TO_OBJECTGROUP.field2to1);
         }
+        if (list == null) {
+            return SingletonUtils.singletonList();
+        }
+        return list;
     }
 
     /**

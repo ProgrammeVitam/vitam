@@ -53,6 +53,7 @@ import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.core.database.collections.translator.mongodb.MongoDbHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
@@ -67,22 +68,25 @@ import fr.gouv.vitam.logbook.common.server.MongoDbAccess;
 public class MongoDbAccessFactoryTest {
 
     private static final String DATABASE_HOST = "localhost";
-    private static final int DATABASE_PORT = 12346;
     static MongoDbAccess mongoDbAccess;
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
+    private static JunitHelper junitHelper;
+    private static int port;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         final MongodStarter starter = MongodStarter.getDefaultInstance();
+        junitHelper = new JunitHelper();
+        port = junitHelper.findAvailablePort();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .version(Version.Main.PRODUCTION)
-            .net(new Net(DATABASE_PORT, Network.localhostIsIPv6()))
+            .net(new Net(port, Network.localhostIsIPv6()))
             .build());
         mongod = mongodExecutable.start();
         mongoDbAccess =
             MongoDbAccessFactory.create(
-                new DbConfigurationImpl(DATABASE_HOST, DATABASE_PORT,
+                new DbConfigurationImpl(DATABASE_HOST, port,
                     "vitam-test"));
     }
 
@@ -91,6 +95,7 @@ public class MongoDbAccessFactoryTest {
         mongoDbAccess.close();
         mongod.stop();
         mongodExecutable.stop();
+        junitHelper.releasePort(port);
     }
 
     @Test

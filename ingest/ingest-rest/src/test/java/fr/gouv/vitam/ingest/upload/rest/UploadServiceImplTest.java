@@ -66,11 +66,11 @@ public class UploadServiceImplTest {
     private ProcessingManagementClient processingClient;
     private LogbookClient logbookClient;
     private LogbookParameters parameters;
-    private Properties properties = new Properties();
+    private final Properties properties = new Properties();
 
     @Before
     public void setUp() throws Exception {
-        InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream("test.properties");
+        final InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream("test.properties");
         properties.load(is);
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
@@ -106,7 +106,7 @@ public class UploadServiceImplTest {
     @Test
     public void givenWorkspaceNotExistWhenUploadSipAsStreamThenReturnKO() throws Exception {
         Mockito.doThrow(new ContentAddressableStorageServerException("")).when(workspaceClient)
-        .unzipObject(Matchers.anyObject(), Matchers.anyObject(),  Matchers.anyObject());
+            .unzipObject(Matchers.anyObject(), Matchers.anyObject(), Matchers.anyObject());
         final Response response = uploadServiceImpl.uploadSipAsStream(getInputStream("SIP_bordereau_avec_objet_OK.zip"),
             formDataContentDisposition, "SIP");
         Assertions.assertThat(response).isNotNull();
@@ -122,21 +122,24 @@ public class UploadServiceImplTest {
 
     @Ignore
     @Test
-    public void givenWorkspaceContentAddressableStorageAlreadyExistException_whenUploadSipAsStream_thenRaiseAnException_ContentAddressableStorageAlreadyExistException() throws Exception {
+    public void givenWorkspaceContentAddressableStorageAlreadyExistException_whenUploadSipAsStream_thenRaiseAnException_ContentAddressableStorageAlreadyExistException()
+        throws Exception {
         when(parameters.putParameterValue(anyObject(), anyObject())).thenReturn(parameters);
         Mockito.doReturn(false).when(workspaceClient).isExistingContainer(anyObject());
-        Mockito.doThrow(new ContentAddressableStorageServerException("")).when(workspaceClient).unzipObject(anyObject(), anyObject(), anyObject());
+        Mockito.doThrow(new ContentAddressableStorageServerException("")).when(workspaceClient).unzipObject(anyObject(),
+            anyObject(), anyObject());
         final Response response = uploadServiceImpl.uploadSipAsStream(getInputStream("SIP_bordereau_avec_objet_OK.zip"),
             formDataContentDisposition, "SIP");
         Assertions.assertThat(response).isNotNull();
         Assertions.assertThat(response.getStatus()).isEqualTo(200);
         assertThat(response.getEntity()).isInstanceOf(UploadResponseDTO.class);
-        UploadResponseDTO uploadResponseDTO = (UploadResponseDTO) response.getEntity();
+        final UploadResponseDTO uploadResponseDTO = (UploadResponseDTO) response.getEntity();
         assertThat(uploadResponseDTO.getVitamStatus()).isEqualTo("upload failed");
     }
 
     @Test
-    public void givenLogBookUnavailable_whenUploadSipAsStream_thenRaiseAnException_LogbookClientNotFoundException() throws Exception {
+    public void givenLogBookUnavailable_whenUploadSipAsStream_thenRaiseAnException_LogbookClientNotFoundException()
+        throws Exception {
 
         Mockito.doThrow(new LogbookClientNotFoundException("")).when(logbookClient).update(anyObject());
         final Response response = uploadServiceImpl.uploadSipAsStream(getInputStream("SIP_bordereau_avec_objet_OK.zip"),
@@ -144,20 +147,22 @@ public class UploadServiceImplTest {
         Assertions.assertThat(response).isNotNull();
         Assertions.assertThat(response.getStatus()).isEqualTo(200);
         assertThat(response.getEntity()).isInstanceOf(UploadResponseDTO.class);
-        UploadResponseDTO uploadResponseDTO = (UploadResponseDTO) response.getEntity();
+        final UploadResponseDTO uploadResponseDTO = (UploadResponseDTO) response.getEntity();
         assertThat(uploadResponseDTO.getVitamStatus()).isEqualTo("upload failed");
     }
 
     @Test
-    public void givenProcessUnavailable_whenUploadSipAsStream_thenRaiseAnException_ProcessingException() throws Exception {
+    public void givenProcessUnavailable_whenUploadSipAsStream_thenRaiseAnException_ProcessingException()
+        throws Exception {
 
-        Mockito.doThrow(new ProcessingException("")).when(processingClient).executeVitamProcess(anyObject(), anyObject());
+        Mockito.doThrow(new ProcessingException("")).when(processingClient).executeVitamProcess(anyObject(),
+            anyObject());
         final Response response = uploadServiceImpl.uploadSipAsStream(getInputStream("SIP_bordereau_avec_objet_OK.zip"),
             formDataContentDisposition, "SIP");
         Assertions.assertThat(response).isNotNull();
         Assertions.assertThat(response.getStatus()).isEqualTo(200);
         assertThat(response.getEntity()).isInstanceOf(UploadResponseDTO.class);
-        UploadResponseDTO uploadResponseDTO = (UploadResponseDTO) response.getEntity();
+        final UploadResponseDTO uploadResponseDTO = (UploadResponseDTO) response.getEntity();
         assertThat(uploadResponseDTO.getVitamStatus()).isEqualTo("upload failed");
     }
 

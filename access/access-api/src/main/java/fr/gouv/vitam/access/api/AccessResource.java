@@ -32,7 +32,7 @@ import javax.ws.rs.core.Response;
 public interface AccessResource {
     /**
      * gets archive units with Json query
-     * 
+     *
      * @param requestDsl generated query by DSK, null not allowed
      * @param headerParam X-HTTP-Method-Override header
      * @return a archive unit result list

@@ -35,6 +35,10 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class UnitRequestDTO implements Serializable {
 
 
+    /**
+     *
+     */
+    private static final long serialVersionUID = -5548063526597112032L;
     @FormParam("queryDsl")
     private String queryDsl;
 
@@ -48,7 +52,7 @@ public class UnitRequestDTO implements Serializable {
     }
 
     /**
-     * 
+     *
      * @param queryDsl to associate with UnitRequestDTO
      */
     public UnitRequestDTO(String queryDsl) {
@@ -56,7 +60,7 @@ public class UnitRequestDTO implements Serializable {
     }
 
     /**
-     * 
+     *
      * @return a query dsl
      */
     public String getQueryDsl() {
@@ -65,7 +69,7 @@ public class UnitRequestDTO implements Serializable {
 
     /**
      * setter for a queryDsl
-     * 
+     *
      * @param queryDsl
      */
     public void setQueryDsl(String queryDsl) {

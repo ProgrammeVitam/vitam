@@ -63,7 +63,10 @@ import com.google.common.io.CharStreams;
 import de.odysseus.staxon.json.JsonXMLConfig;
 import de.odysseus.staxon.json.JsonXMLConfigBuilder;
 import de.odysseus.staxon.json.JsonXMLOutputFactory;
+import fr.gouv.vitam.api.exception.MetaDataAlreadyExistException;
+import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.api.exception.MetaDataException;
+import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.builder.request.construct.Insert;
 import fr.gouv.vitam.client.MetaDataClient;
 import fr.gouv.vitam.client.MetaDataClientFactory;
@@ -210,6 +213,7 @@ public class SedaUtils {
 
     /**
      * get Message Identifier from seda
+     * 
      * @param WorkParams parameters of workspace server
      * @return message id
      * @throws ProcessingException throw when can't read or extract message id from SEDA
@@ -250,7 +254,7 @@ public class SedaUtils {
         } catch (final XMLStreamException e) {
             LOGGER.error("Can not read SEDA", e);
             throw new ProcessingException(e);
-        } 
+        }
 
         return messageId;
     }
@@ -315,10 +319,10 @@ public class SedaUtils {
             tmpFile.createNewFile();
             writer = xmlOutputFactory.createXMLEventWriter(new FileWriter(tmpFile));
             unitIdToGuid.put(elementID, elementGuid);
-            
+
             // add an empty objectgroup to each archive unit
             unitIdToGroupId.put(elementID, "");
-            
+
             // Create new startElement for object with new guid
             writer.add(eventFactory.createStartElement("", NAMESPACE_URI, startElement.getName().getLocalPart()));
             writer.add(eventFactory.createAttribute("id", elementGuid));
@@ -337,22 +341,23 @@ public class SedaUtils {
                             writer.add(eventFactory.createStartElement("", "", TAG_OG));
                             writer.add(eventFactory.createCharacters(groupGuid));
                             writer.add(eventFactory.createEndElement("", "", TAG_OG));
-                            
+
                             writer.add(event);
                             break;
                         }
                     }
                 }
-                if (event.isStartElement() && event.asStartElement().getName().getLocalPart() == DATA_OBJECT_GROUP_REFERENCEID) {
+                if (event.isStartElement() &&
+                    event.asStartElement().getName().getLocalPart() == DATA_OBJECT_GROUP_REFERENCEID) {
                     groupGuid = GUIDFactory.newGUID().toString();
                     final String groupId = reader.getElementText();
                     unitIdToGroupId.put(elementID, groupId);
                     if (objectGroupIdToUnitId.get(groupId) == null) {
-                        ArrayList<String> archiveUnitList = new ArrayList<String>();
+                        final ArrayList<String> archiveUnitList = new ArrayList<String>();
                         archiveUnitList.add(elementID);
                         objectGroupIdToUnitId.put(groupId, archiveUnitList);
                     } else {
-                        List<String> archiveUnitList = objectGroupIdToUnitId.get(groupId);
+                        final List<String> archiveUnitList = objectGroupIdToUnitId.get(groupId);
                         archiveUnitList.add(elementID);
                         objectGroupIdToUnitId.put(groupId, archiveUnitList);
                     }
@@ -376,7 +381,7 @@ public class SedaUtils {
         } catch (final Exception e) {
             LOGGER.error(e.getMessage());
             throw new ProcessingException(e);
-        } 
+        }
         return tmpFile;
     }
 
@@ -385,11 +390,13 @@ public class SedaUtils {
         final String elementGuid = GUIDFactory.newGUID().toString();
 
         try {
-            File tmpFile = extractArchiveUnitToLocalFile(elementGuid, reader, startElement);
+            final File tmpFile = extractArchiveUnitToLocalFile(elementGuid, reader, startElement);
             if (tmpFile != null) {
                 client.putObject(containerId, ARCHIVE_UNIT_FOLDER + "/" + elementGuid + XML_EXTENSION,
                     new FileInputStream(tmpFile));
-                tmpFile.delete();
+                if (!tmpFile.delete()) {
+                    LOGGER.warn("File could not be deleted");
+                }
             }
         } catch (final ProcessingException e) {
             LOGGER.error("Can not extract Object from SEDA XMLStreamException", e);
@@ -397,16 +404,16 @@ public class SedaUtils {
         } catch (final IOException e) {
             LOGGER.error("Can not extract Object from SEDA IOException " + elementGuid, e);
             throw new ProcessingException(e);
-        } catch (ContentAddressableStorageServerException e) {
+        } catch (final ContentAddressableStorageServerException e) {
             LOGGER.error("Can not write to workspace ", e);
             throw new ProcessingException(e);
         }
     }
 
     private void checkArchiveUnitIdReference() throws ProcessingException {
-        for (Entry<String, String> entry : unitIdToGroupId.entrySet()) {
+        for (final Entry<String, String> entry : unitIdToGroupId.entrySet()) {
             if (objectGroupIdToGuid.get(entry.getValue()) == null) {
-                String groupId = binaryDataObjectIdToObjectGroupId.get(entry.getValue());
+                final String groupId = binaryDataObjectIdToObjectGroupId.get(entry.getValue());
                 if (groupId == null || groupId != "") {
                     throw new ProcessingException("Archive Unit reference Id is not correct");
                 }
@@ -421,7 +428,7 @@ public class SedaUtils {
         final XMLEventFactory eventFactory = XMLEventFactory.newInstance();
         final JsonXMLConfig config = new JsonXMLConfigBuilder().build();
         try {
-            FileWriter tmpFileWriter = new FileWriter(tmpFile);
+            final FileWriter tmpFileWriter = new FileWriter(tmpFile);
 
             final XMLEventWriter writer = new JsonXMLOutputFactory(config).createXMLEventWriter(tmpFileWriter);
 
@@ -442,7 +449,7 @@ public class SedaUtils {
                 final XMLEvent event = reader.nextEvent();
                 if (event.isEndElement()) {
                     final EndElement end = event.asEndElement();
-                    if (end.getName().getLocalPart() == BINARY_DATA_OBJECT) {                        
+                    if (end.getName().getLocalPart() == BINARY_DATA_OBJECT) {
                         writer.add(event);
                         writer.add(eventFactory.createEndDocument());
                         break;
@@ -450,14 +457,14 @@ public class SedaUtils {
                 }
 
                 if (event.isStartElement()) {
-                    String localPart = event.asStartElement().getName().getLocalPart();
+                    final String localPart = event.asStartElement().getName().getLocalPart();
                     if (localPart == DATA_OBJECT_GROUPID) {
                         final String groupGuid = GUIDFactory.newGUID().toString();
                         final String groupId = reader.getElementText();
                         binaryDataObjectIdToObjectGroupId.put(binaryOjectId, groupId);
                         objectGroupIdToGuid.put(groupId, groupGuid);
 
-                        List<String> binaryOjectList = new ArrayList<String>();
+                        final List<String> binaryOjectList = new ArrayList<String>();
                         binaryOjectList.add(binaryOjectId);
                         objectGroupIdToBinaryDataObjectId.put(groupId, binaryOjectList);
 
@@ -479,11 +486,11 @@ public class SedaUtils {
                     } else {
                         writer.add(eventFactory.createStartElement("", "", localPart));
                     }
-                    
-                    writable = false;
-                } 
 
-                if (writable) { 
+                    writable = false;
+                }
+
+                if (writable) {
                     writer.add(event);
                 }
             }
@@ -501,9 +508,9 @@ public class SedaUtils {
     }
 
     private void completeBinaryObjectToObjectGroupMap() {
-        for (String key: binaryDataObjectIdToObjectGroupId.keySet()) {
+        for (final String key : binaryDataObjectIdToObjectGroupId.keySet()) {
             if (binaryDataObjectIdToObjectGroupId.get(key) == "") {
-                List<String> binaryOjectList = new ArrayList<String>();
+                final List<String> binaryOjectList = new ArrayList<String>();
                 binaryOjectList.add(key);
                 objectGroupIdToBinaryDataObjectId.put(GUIDFactory.newGUID().toString(), binaryOjectList);
             }
@@ -514,25 +521,26 @@ public class SedaUtils {
 
         completeBinaryObjectToObjectGroupMap();
 
-        for (Entry<String, List<String>> entry : objectGroupIdToBinaryDataObjectId.entrySet()) {
-            ObjectNode objectGroup = JsonHandler.createObjectNode();
+        for (final Entry<String, List<String>> entry : objectGroupIdToBinaryDataObjectId.entrySet()) {
+            final ObjectNode objectGroup = JsonHandler.createObjectNode();
             ObjectNode fileInfo = JsonHandler.createObjectNode();
-            ArrayNode unitParent = JsonHandler.createArrayNode();
+            final ArrayNode unitParent = JsonHandler.createArrayNode();
             String objectGroupType = "";
-            String objectGroupGuid = objectGroupIdToGuid.get(entry.getKey());
+            final String objectGroupGuid = objectGroupIdToGuid.get(entry.getKey());
             final File tmpFile = PropertiesUtils.fileFromTmpFolder(objectGroupGuid + JSON_EXTENSION);
 
             try {
-                FileWriter tmpFileWriter = new FileWriter(tmpFile);
-                Map<String, ArrayList<JsonNode>> categoryMap = new HashMap<String, ArrayList<JsonNode>>();
+                final FileWriter tmpFileWriter = new FileWriter(tmpFile);
+                final Map<String, ArrayList<JsonNode>> categoryMap = new HashMap<String, ArrayList<JsonNode>>();
                 objectGroup.put("_id", objectGroupGuid);
                 objectGroup.put("_tenantId", 0);
-                for (String id : entry.getValue()) {
-                    File binaryObjectFile = PropertiesUtils.fileFromTmpFolder(binaryDataObjectIdToGuid.get(id) + JSON_EXTENSION);
-                    JsonNode binaryNode = JsonHandler
+                for (final String id : entry.getValue()) {
+                    final File binaryObjectFile =
+                        PropertiesUtils.fileFromTmpFolder(binaryDataObjectIdToGuid.get(id) + JSON_EXTENSION);
+                    final JsonNode binaryNode = JsonHandler
                         .getFromFile(binaryObjectFile)
                         .get("BinaryDataObject");
-                    String nodeCategory = binaryNode.get("DataObjectVersion").asText();
+                    final String nodeCategory = binaryNode.get("DataObjectVersion").asText();
                     ArrayList<JsonNode> nodeCategoryArray = categoryMap.get(nodeCategory);
                     if (nodeCategoryArray == null) {
                         nodeCategoryArray = new ArrayList<JsonNode>();
@@ -545,44 +553,49 @@ public class SedaUtils {
                         fileInfo = (ObjectNode) binaryNode.get(FILE_INFO);
                         objectGroupType = binaryNode.get(METADATA).fieldNames().next();
                     }
-                    binaryObjectFile.delete();
+                    if (!binaryObjectFile.delete()) {
+                        LOGGER.warn("File could not be deleted");
+                    }
                 }
-                
-                for (String objectGroupId : objectGroupIdToUnitId.get(entry.getKey())) {
+
+                for (final String objectGroupId : objectGroupIdToUnitId.get(entry.getKey())) {
                     unitParent.add(unitIdToGuid.get(objectGroupId));
                 }
 
                 objectGroup.put("_type", objectGroupType);
                 objectGroup.set("FileInfo", fileInfo);
-                ObjectNode qualifiersNode =  getObjectGroupQualifiers(categoryMap);
+                final ObjectNode qualifiersNode = getObjectGroupQualifiers(categoryMap);
                 objectGroup.set("_qualifiers", qualifiersNode);
                 objectGroup.set("_up", unitParent);
                 tmpFileWriter.write(objectGroup.toString());
                 tmpFileWriter.close();
-                
-                client.putObject(containerId, OBJECT_GROUP + "/" + objectGroupGuid + JSON_EXTENSION, new FileInputStream(tmpFile));
-                tmpFile.delete(); 
+
+                client.putObject(containerId, OBJECT_GROUP + "/" + objectGroupGuid + JSON_EXTENSION,
+                    new FileInputStream(tmpFile));
+                if (!tmpFile.delete()) {
+                    LOGGER.warn("File could not be deleted");
+                }
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error("Can not parse ObjectGroup", e);
                 throw new ProcessingException(e);
             } catch (final IOException e) {
                 LOGGER.error("Can not write to tmp folder ", e);
                 throw new ProcessingException(e);
-            } catch (ContentAddressableStorageServerException e) {
+            } catch (final ContentAddressableStorageServerException e) {
                 LOGGER.error("Workspace exception ", e);
                 throw new ProcessingException(e);
-            } 
+            }
         }
 
     }
 
     private ObjectNode getObjectGroupQualifiers(Map<String, ArrayList<JsonNode>> categoryMap) {
-        ObjectNode qualifierObject = JsonHandler.createObjectNode();
-        for (Entry<String, ArrayList<JsonNode>> entry : categoryMap.entrySet()) {
-            ObjectNode binaryNode = JsonHandler.createObjectNode();
+        final ObjectNode qualifierObject = JsonHandler.createObjectNode();
+        for (final Entry<String, ArrayList<JsonNode>> entry : categoryMap.entrySet()) {
+            final ObjectNode binaryNode = JsonHandler.createObjectNode();
             binaryNode.put("nb", entry.getValue().size());
-            ArrayNode arrayNode = JsonHandler.createArrayNode();
-            for (JsonNode node : entry.getValue()) {
+            final ArrayNode arrayNode = JsonHandler.createArrayNode();
+            for (final JsonNode node : entry.getValue()) {
                 arrayNode.add(node);
             }
             binaryNode.set("versions", arrayNode);
@@ -668,6 +681,15 @@ public class SedaUtils {
         } catch (final InvalidParseOperationException e) {
             LOGGER.debug("Archive unit json invalid");
             throw new ProcessingException(e);
+        } catch (final MetaDataNotFoundException e) {
+            LOGGER.debug("Archive unit not found");
+            throw new ProcessingException(e);
+        } catch (final MetaDataAlreadyExistException e) {
+            LOGGER.debug("Archive unit already exists");
+            throw new ProcessingException(e);
+        } catch (final MetaDataDocumentSizeException e) {
+            LOGGER.debug("Archive unit Document size error");
+            throw new ProcessingException(e);
         } catch (final MetaDataException e) {
             LOGGER.debug("Internal Server Error");
             throw new ProcessingException(e);
@@ -677,10 +699,10 @@ public class SedaUtils {
         }
 
     }
-    
+
     /**
      * The function is used for retrieving ObjectGroup in workspace and use metadata client to index ObjectGroup
-     * 
+     *
      * @param params work parameters
      * @throws ProcessingException when error in execution
      */
@@ -701,15 +723,15 @@ public class SedaUtils {
             input = workspaceClient.getObject(containerId, OBJECT_GROUP + "/" + objectName);
 
             if (input != null) {
-                String inputStreamString = CharStreams.toString(new InputStreamReader(input, "UTF-8"));
+                final String inputStreamString = CharStreams.toString(new InputStreamReader(input, "UTF-8"));
                 final JsonNode json = JsonHandler.getFromString(inputStreamString);
-                Insert insertRequest = new Insert().addData((ObjectNode) json);
+                final Insert insertRequest = new Insert().addData((ObjectNode) json);
                 metadataClient.insertObjectGroup(insertRequest.getFinalInsert().toString());
             } else {
                 LOGGER.error("Object group not found");
                 throw new ProcessingException("Object group not found");
             }
- 
+
 
         } catch (final MetaDataException e) {
             LOGGER.debug("Metadata Server Error", e);
@@ -736,7 +758,7 @@ public class SedaUtils {
             .build();
         JsonNode data = null;
         try {
-            tmpFileWriter = new FileWriter(tmpFile); 
+            tmpFileWriter = new FileWriter(tmpFile);
             final XMLEventReader reader = XMLInputFactory.newInstance().createXMLEventReader(input);
 
             final XMLEventWriter writer = new JsonXMLOutputFactory(config).createXMLEventWriter(tmpFileWriter);
@@ -747,7 +769,7 @@ public class SedaUtils {
                 if (event.isStartElement()) {
                     final StartElement startElement = event.asStartElement();
                     final Iterator<?> it = startElement.getAttributes();
-                    String tag = startElement.getName().getLocalPart();
+                    final String tag = startElement.getName().getLocalPart();
                     if (it.hasNext() && tag != TAG_CONTENT) {
                         writer.add(eventFactory.createStartElement("", "", tag));
 
@@ -762,7 +784,7 @@ public class SedaUtils {
                     if (tag == TAG_CONTENT) {
                         eventWritable = false;
                     }
-                    
+
                     if (tag == TAG_OG) {
                         contentWritable = true;
                     }
@@ -804,7 +826,9 @@ public class SedaUtils {
             input.close();
             tmpFileWriter.close();
             data = JsonHandler.getFromFile(tmpFile);
-            tmpFile.delete();
+            if (!tmpFile.delete()) {
+                LOGGER.warn("File could not be deleted");
+            }
         } catch (final XMLStreamException e) {
             LOGGER.debug("Can not read input stream");
             throw new ProcessingException(e);
@@ -949,26 +973,27 @@ public class SedaUtils {
             extractUriResponse.getMessages().add(SedaUtils.MSG_DUPLICATE_URI_MANIFEST + uriString);
         }
     }
-    
-    
+
+
     /**
      * check if the version list of the manifest.xml in workspace is valid
-     * 
+     *
      * @param params
      * @return list of unsupported version
      * @throws ProcessingException
      * @throws IOException
      * @throws URISyntaxException
      */
-    public List<String> checkSupportedBinaryObjectVersion(WorkParams params) throws ProcessingException, IOException, URISyntaxException {
+    public List<String> checkSupportedBinaryObjectVersion(WorkParams params)
+        throws ProcessingException, IOException, URISyntaxException {
         ParametersChecker.checkParameter("WorkParams is a mandatory parameter", params);
         final String containerId = params.getContainerName();
         final WorkspaceClient client = workspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
         return isSedaVersionValid(client, containerId);
     }
-    
-    private List<String> isSedaVersionValid(WorkspaceClient client, 
-        String containerId)throws ProcessingException, IOException, URISyntaxException {
+
+    private List<String> isSedaVersionValid(WorkspaceClient client,
+        String containerId) throws ProcessingException, IOException, URISyntaxException {
         ParametersChecker.checkParameter("WorkspaceClient is a mandatory parameter", client);
         ParametersChecker.checkParameter("ContainerId is a mandatory parameter", containerId);
 
@@ -992,106 +1017,107 @@ public class SedaUtils {
             LOGGER.error("Can not read SEDA");
             throw new ProcessingException(e);
         }
-        
+
         return invalidVersionList;
     }
-    
+
     private SedaUtilInfo getBinaryObjectInfo(XMLEventReader evenReader)
-            throws XMLStreamException, URISyntaxException{
-        SedaUtilInfo sedaUtilInfo = new SedaUtilInfo();
+        throws XMLStreamException, URISyntaxException {
+        final SedaUtilInfo sedaUtilInfo = new SedaUtilInfo();
         BinaryObjectInfo binaryObjectInfo = new BinaryObjectInfo();
         while (evenReader.hasNext()) {
             XMLEvent event = evenReader.nextEvent();
 
             if (event.isStartElement()) {
                 StartElement startElement = event.asStartElement();
-                
+
                 if (startElement.getName().getLocalPart() == BINARY_DATA_OBJECT) {
                     event = evenReader.nextEvent();
-                    Iterator<Attribute> attributes = startElement.getAttributes();
+                    final Iterator<Attribute> attributes = startElement.getAttributes();
                     final String id = attributes.next().getValue();
                     binaryObjectInfo.setId(id);
-                    
+
                     while (evenReader.hasNext()) {
                         event = evenReader.nextEvent();
                         if (event.isStartElement()) {
                             startElement = event.asStartElement();
-                             
-                            String tag = startElement.getName().getLocalPart();
+
+                            final String tag = startElement.getName().getLocalPart();
                             if (tag == TAG_URI) {
                                 final String uri = evenReader.getElementText();
                                 binaryObjectInfo.setUri(new URI(uri));
                             }
-                            
+
                             if (tag == TAG_VERSION) {
                                 final String version = evenReader.getElementText();
                                 binaryObjectInfo.setVersion(version);
                             }
-                            
+
                             if (tag == TAG_DIGEST) {
                                 final String messageDigest = evenReader.getElementText();
                                 binaryObjectInfo.setMessageDigest(messageDigest);
                             }
-                            
+
                             if (tag == TAG_SIZE) {
                                 final int size = Integer.parseInt(evenReader.getElementText());
                                 binaryObjectInfo.setSize(size);
                             }
                         }
-                        
-                        if (event.isEndElement() && event.asEndElement().getName().getLocalPart() == BINARY_DATA_OBJECT) {
+
+                        if (event.isEndElement() &&
+                            event.asEndElement().getName().getLocalPart() == BINARY_DATA_OBJECT) {
                             sedaUtilInfo.setBinaryObjectMap(binaryObjectInfo);
                             binaryObjectInfo = new BinaryObjectInfo();
                             break;
                         }
-                        
+
                     }
                 }
             }
         }
         return sedaUtilInfo;
     }
-    
+
     /**
      * @param evenReader XMLEventReader for the file manifest.xml
      * @return List<String> list of version for file manifest.xml
      * @throws XMLStreamException
      * @throws URISyntaxException
      */
-    public List<String> manifestVersionList(XMLEventReader evenReader) 
-            throws XMLStreamException, URISyntaxException{
-        List<String> versionList = new ArrayList<String>();
-        SedaUtilInfo sedaUtilInfo = getBinaryObjectInfo(evenReader);
-        Map<String, BinaryObjectInfo> binaryObjectMap = sedaUtilInfo.getBinaryObjectMap();
-        
-        for (String mapKey : binaryObjectMap.keySet()) {
-            if (!versionList.contains(binaryObjectMap.get(mapKey).getVersion())){
+    public List<String> manifestVersionList(XMLEventReader evenReader)
+        throws XMLStreamException, URISyntaxException {
+        final List<String> versionList = new ArrayList<String>();
+        final SedaUtilInfo sedaUtilInfo = getBinaryObjectInfo(evenReader);
+        final Map<String, BinaryObjectInfo> binaryObjectMap = sedaUtilInfo.getBinaryObjectMap();
+
+        for (final String mapKey : binaryObjectMap.keySet()) {
+            if (!versionList.contains(binaryObjectMap.get(mapKey).getVersion())) {
                 versionList.add(binaryObjectMap.get(mapKey).getVersion());
             }
         }
-        
+
         return versionList;
     }
-    
+
     /**
      * compare if the version list of manifest.xml is included in or equal to the version list of version.conf
-     * 
+     *
      * @param evenReader
      * @return list of unsupported version
      * @throws IOException
      * @throws XMLStreamException
      * @throws URISyntaxException
      */
-    public List<String> compareVersionList(XMLEventReader evenReader, String fileConf) 
-            throws IOException, XMLStreamException, URISyntaxException{
-        
-        File file = PropertiesUtils.findFile(fileConf);
-        List<String> fileVersionList = SedaVersion.fileVersionList(file);
-        List<String> manifestVersionList = manifestVersionList(evenReader);
-        List<String> invalidVersionList = new ArrayList<String>();
-        
-        for (String s : manifestVersionList){
-            if (!fileVersionList.contains(s)){
+    public List<String> compareVersionList(XMLEventReader evenReader, String fileConf)
+        throws IOException, XMLStreamException, URISyntaxException {
+
+        final File file = PropertiesUtils.findFile(fileConf);
+        final List<String> fileVersionList = SedaVersion.fileVersionList(file);
+        final List<String> manifestVersionList = manifestVersionList(evenReader);
+        final List<String> invalidVersionList = new ArrayList<String>();
+
+        for (final String s : manifestVersionList) {
+            if (!fileVersionList.contains(s)) {
                 LOGGER.info(s + ": invalid version");
                 invalidVersionList.add(s);
             } else {
@@ -1100,10 +1126,10 @@ public class SedaUtils {
         }
         return invalidVersionList;
     }
-    
+
     /**
      * check the conformity of the binary object
-     * 
+     *
      * @param params
      * @return List<String> list of the invalid digest message
      * @throws ProcessingException
@@ -1112,7 +1138,9 @@ public class SedaUtils {
      * @throws ContentAddressableStorageServerException
      * @throws ContentAddressableStorageException
      */
-    public List<String> checkConformityBinaryObject(WorkParams params) throws ProcessingException, URISyntaxException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, ContentAddressableStorageException{
+    public List<String> checkConformityBinaryObject(WorkParams params)
+        throws ProcessingException, URISyntaxException, ContentAddressableStorageNotFoundException,
+        ContentAddressableStorageServerException, ContentAddressableStorageException {
         ParametersChecker.checkParameter("WorkParams is a mandatory parameter", params);
         final String containerId = params.getContainerName();
         final WorkspaceClient client = workspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
@@ -1139,10 +1167,10 @@ public class SedaUtils {
         }
         return digestMessageInvalidList;
     }
-    
+
     /**
      * compare the digest message between the manifest.xml and related uri content in workspace container
-     * 
+     *
      * @param evenReader
      * @param client
      * @return List<String> list of the invalid digest message
@@ -1152,26 +1180,28 @@ public class SedaUtils {
      * @throws ContentAddressableStorageServerException
      * @throws ContentAddressableStorageException
      */
-    public List<String> compareDigestMessage(XMLEventReader evenReader, WorkspaceClient client) 
-        throws XMLStreamException, URISyntaxException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, ContentAddressableStorageException{
-        SedaUtilInfo sedaUtilInfo = getBinaryObjectInfo(evenReader);
-        Map<String, BinaryObjectInfo> binaryObjectMap = sedaUtilInfo.getBinaryObjectMap();
-        List<String> digestMessageInvalidList = new ArrayList<String>();
-        
-        for (String mapKey : binaryObjectMap.keySet()) {
-            String uri = binaryObjectMap.get(mapKey).getUri().toString();
-            String digestMessageManifest = binaryObjectMap.get(mapKey).getMessageDigest();
-            DigestType algo = binaryObjectMap.get(mapKey).getAlgo();
-            String digestMessage = client.computeObjectDigest(mapKey, SEDA_FOLDER + "/" + CONTENT_FOLDER + "/" + uri, algo);
-            
-            if(digestMessage != digestMessageManifest){
-                LOGGER.info("Binary object Digest Message Invalid : " + uri );
+    public List<String> compareDigestMessage(XMLEventReader evenReader, WorkspaceClient client)
+        throws XMLStreamException, URISyntaxException, ContentAddressableStorageNotFoundException,
+        ContentAddressableStorageServerException, ContentAddressableStorageException {
+        final SedaUtilInfo sedaUtilInfo = getBinaryObjectInfo(evenReader);
+        final Map<String, BinaryObjectInfo> binaryObjectMap = sedaUtilInfo.getBinaryObjectMap();
+        final List<String> digestMessageInvalidList = new ArrayList<String>();
+
+        for (final String mapKey : binaryObjectMap.keySet()) {
+            final String uri = binaryObjectMap.get(mapKey).getUri().toString();
+            final String digestMessageManifest = binaryObjectMap.get(mapKey).getMessageDigest();
+            final DigestType algo = binaryObjectMap.get(mapKey).getAlgo();
+            final String digestMessage =
+                client.computeObjectDigest(mapKey, SEDA_FOLDER + "/" + CONTENT_FOLDER + "/" + uri, algo);
+
+            if (digestMessage != digestMessageManifest) {
+                LOGGER.info("Binary object Digest Message Invalid : " + uri);
                 digestMessageInvalidList.add(digestMessageManifest);
             } else {
                 LOGGER.info("Binary Object Digest Message Valid : " + uri);
-            }            
+            }
         }
-        
+
         return digestMessageInvalidList;
     }
 

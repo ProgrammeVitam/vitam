@@ -42,7 +42,10 @@ import fr.gouv.vitam.core.database.collections.MongoDbAccess.VitamCollections;
  *
  */
 public abstract class Result {
-    private static final String RESULT_FIELD = "Result";
+    /**
+     * Field containing the full documents result as an array of document
+     */
+    public static final String RESULT_FIELD = "Result";
 
     /**
      * Current Units in the result

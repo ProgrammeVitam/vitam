@@ -50,7 +50,7 @@ public class AccessModuleImpl implements AccessModule {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AccessModuleImpl.class);
 
-    private AccessConfiguration accessConfiguration;
+    private final AccessConfiguration accessConfiguration;
 
     private MetaDataClientFactory metaDataClientFactory;
 
@@ -63,19 +63,19 @@ public class AccessModuleImpl implements AccessModule {
      */
     // constructor
     public AccessModuleImpl(AccessConfiguration configuration) {
-        this.accessConfiguration = configuration;
+        accessConfiguration = configuration;
     }
 
     /**
      * AccessModuleImpl constructor <br>
      * with metaDataClientFactory and configuration
-     * 
+     *
      * @param metaDataClientFactory {@link MetaDataClientFactory}
      * @param configuration {@link AccessConfiguration} access configuration
      */
     public AccessModuleImpl(MetaDataClientFactory metaDataClientFactory, AccessConfiguration configuration) {
         this.metaDataClientFactory = metaDataClientFactory;
-        this.accessConfiguration = configuration;
+        accessConfiguration = configuration;
     }
 
     /**
@@ -84,11 +84,13 @@ public class AccessModuleImpl implements AccessModule {
      * @param selectRequest as String { $query : query}
      * @throws InvalidParseOperationException Throw if json format is not correct
      * @throws AccessExecutionException Throw if error occurs when send Unit to database
-     * @throws MetadataInvalidSelectException 
-     * @throws MetaDataDocumentSizeException 
+     * @throws MetadataInvalidSelectException
+     * @throws MetaDataDocumentSizeException
      */
+    @Override
     public JsonNode selectUnit(String selectRequest)
-        throws IllegalArgumentException, InvalidParseOperationException, AccessExecutionException, MetadataInvalidSelectException, MetaDataDocumentSizeException {
+        throws IllegalArgumentException, InvalidParseOperationException, AccessExecutionException,
+        MetadataInvalidSelectException, MetaDataDocumentSizeException {
 
         if (StringUtils.isBlank(selectRequest)) {
             throw new IllegalArgumentException("the request is blank");
@@ -112,22 +114,22 @@ public class AccessModuleImpl implements AccessModule {
 
             jsonNode = metaDataClient.selectUnits(accessModuleBean.getRequestDsl());
 
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             LOGGER.error("parsing error", e);
             throw e;
-        } catch (MetadataInvalidSelectException e) {
+        } catch (final MetadataInvalidSelectException e) {
             LOGGER.error("invalid select", e);
             throw e;
-        } catch (MetaDataDocumentSizeException e) {
+        } catch (final MetaDataDocumentSizeException e) {
             LOGGER.error("document size problem", e);
             throw e;
-        } catch (MetaDataExecutionException e) {
+        } catch (final MetaDataExecutionException e) {
             LOGGER.error("metadata execution problem", e);
             throw new AccessExecutionException(e);
-        } catch (IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             LOGGER.error("illegal argument", e);
             throw e;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error("exeption thrown", e);
             throw new AccessExecutionException(e);
         }

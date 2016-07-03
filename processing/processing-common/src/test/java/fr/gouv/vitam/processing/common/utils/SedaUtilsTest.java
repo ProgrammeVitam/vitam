@@ -26,7 +26,9 @@
  */
 package fr.gouv.vitam.processing.common.utils;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -262,12 +264,12 @@ public class SedaUtilsTest {
 
     @Test
     public void givenManifestWhenGetInfoThenGetVersionList()
-            throws FileNotFoundException, XMLStreamException, URISyntaxException{
-        XMLInputFactory factory = XMLInputFactory.newInstance();
-        XMLEventReader evenReader = factory.createXMLEventReader(
-                new FileReader("src/test/resources/sip.xml"));
+        throws FileNotFoundException, XMLStreamException, URISyntaxException {
+        final XMLInputFactory factory = XMLInputFactory.newInstance();
+        final XMLEventReader evenReader = factory.createXMLEventReader(
+            new FileReader("src/test/resources/sip.xml"));
         List<String> versionList = new ArrayList<String>();
-        
+
         utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
         versionList = utils.manifestVersionList(evenReader);
         assertEquals(5, versionList.size());
@@ -277,29 +279,32 @@ public class SedaUtilsTest {
         assertTrue(versionList.contains("Thumbnail"));
         assertTrue(versionList.contains("TextContent"));
     }
-    
+
     @Test
-    public void givenCompareVersionList() throws IOException, XMLStreamException, URISyntaxException{
+    public void givenCompareVersionList() throws IOException, XMLStreamException, URISyntaxException {
         utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
 
-        XMLInputFactory factory = XMLInputFactory.newInstance();
+        final XMLInputFactory factory = XMLInputFactory.newInstance();
         XMLEventReader evenReader = factory.createXMLEventReader(
-                new FileReader("src/test/resources/sip.xml"));
+            new FileReader("src/test/resources/sip.xml"));
         assertEquals(0, utils.compareVersionList(evenReader, "src/test/resources/version.conf").size());
-        
+
         evenReader = factory.createXMLEventReader(
-                new FileReader("src/test/resources/sip-with-wrong-version.xml"));
+            new FileReader("src/test/resources/sip-with-wrong-version.xml"));
         assertEquals(1, utils.compareVersionList(evenReader, "src/test/resources/version.conf").size());
     }
-    
+
     @Test
-    public void givenCompareDigestMessage() throws FileNotFoundException, XMLStreamException, URISyntaxException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, ContentAddressableStorageException{
+    public void givenCompareDigestMessage()
+        throws FileNotFoundException, XMLStreamException, URISyntaxException,
+        ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
+        ContentAddressableStorageException {
         utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
         when(workspaceClient.computeObjectDigest(anyObject(), anyObject(), anyObject())).thenReturn(DIGESTMESSAGE);
-        
-        XMLInputFactory factory = XMLInputFactory.newInstance();
-        XMLEventReader evenReader = factory.createXMLEventReader(
-                new FileReader("src/test/resources/sip.xml"));
+
+        final XMLInputFactory factory = XMLInputFactory.newInstance();
+        final XMLEventReader evenReader = factory.createXMLEventReader(
+            new FileReader("src/test/resources/sip.xml"));
         utils.compareDigestMessage(evenReader, workspaceClient);
     }
 

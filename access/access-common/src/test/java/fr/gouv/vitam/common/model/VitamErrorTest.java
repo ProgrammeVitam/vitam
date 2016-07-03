@@ -32,15 +32,15 @@ import org.junit.Test;
 public class VitamErrorTest {
 
     private final int code = 0;
-    private String context = "context";
-    private String state = "state";
-    private String message = "message";
-    private String description = "description";
-    private ArrayList<VitamError> errors = new ArrayList<VitamError>();
+    private final String context = "context";
+    private final String state = "state";
+    private final String message = "message";
+    private final String description = "description";
+    private final ArrayList<VitamError> errors = new ArrayList<VitamError>();
 
     @Test
     public final void givenAccessConfiguration_WithNullAttributes_WhenInstanciate_ThenReturnTrue() {
-        VitamError vitamError = new VitamError(code);
+        final VitamError vitamError = new VitamError(code);
         assertThat(vitamError.getCode()).isEqualTo(code);
         assertThat(vitamError.getContext()).isNullOrEmpty();
         assertThat(vitamError.getState()).isNullOrEmpty();
@@ -51,7 +51,7 @@ public class VitamErrorTest {
 
     @Test
     public final void givenAccessConfiguration_whenInstanciateAnsSetsAttributes_ThenReturnTrue() {
-        VitamError vitamError = new VitamError(code);
+        final VitamError vitamError = new VitamError(code);
         vitamError.setContext(context).setDescription(description).setMessage(message).setState(state)
             .addAllErrors(errors).setCode(code);
 

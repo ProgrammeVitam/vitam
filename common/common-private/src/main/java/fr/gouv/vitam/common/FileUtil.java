@@ -123,7 +123,9 @@ public final class FileUtil {
             if (file.isDirectory()) {
                 delereRecursiveInternal(file);
             }
-            file.delete();
+            if (!file.delete()) {
+                LOGGER.warn("File could not be deleted");
+            }
         }
     }
 
@@ -137,6 +139,8 @@ public final class FileUtil {
             return;
         }
         delereRecursiveInternal(file);
-        file.delete();
+        if (!file.delete()) {
+            LOGGER.warn("File could not be deleted");
+        }
     }
 }

@@ -45,12 +45,13 @@ public final class SedaUtilInfo {
 
     /**
      * Add binaryObjectInfo to the Map
+     * 
      * @param binaryObjectInfo
      */
     public void setBinaryObjectMap(BinaryObjectInfo binaryObjectInfo) {
         binaryObjectMap.put(binaryObjectInfo.getId(), binaryObjectInfo);
     }
-    
-    
+
+
 
 }

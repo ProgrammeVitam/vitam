@@ -117,27 +117,27 @@ public class PropertiesUtilsTest {
         }
     }
 
-    private static class ConfigurationTest {
+    static class ConfigurationTest {
         private String test;
         private int number;
 
-        protected ConfigurationTest() {
+        public ConfigurationTest() {
             // empty
         }
 
-        protected final String getTest() {
+        public final String getTest() {
             return test;
         }
 
-        protected final void setTest(String test) {
+        public final void setTest(String test) {
             this.test = test;
         }
 
-        protected final int getNumber() {
+        public final int getNumber() {
             return number;
         }
 
-        protected final void setNumber(int number) {
+        public final void setNumber(int number) {
             this.number = number;
         }
 
@@ -206,5 +206,20 @@ public class PropertiesUtilsTest {
         } catch (final IOException e1) {
             // ignore
         }
+    }
+    
+    @Test
+    public void testWriteYamlFile() throws FileNotFoundException {
+        try {
+            final File original = PropertiesUtils.findFile(ResourcesPublicUtilTest.YAML_TEST_CONF);
+            final ConfigurationTest test = PropertiesUtils.readYaml(original, ConfigurationTest.class);
+            assertEquals("test", test.getTest());
+            assertEquals(12346, test.getNumber());
+            File destination = File.createTempFile("test", ResourcesPublicUtilTest.YAML_TEST_CONF, original.getParentFile());
+            PropertiesUtils.writeYaml(destination, test);
+        } catch (final IOException e1) {
+            e1.printStackTrace();
+            fail(ResourcesPublicUtilTest.SHOULD_NOT_HAVE_AN_EXCEPTION);
+        }        
     }
 }

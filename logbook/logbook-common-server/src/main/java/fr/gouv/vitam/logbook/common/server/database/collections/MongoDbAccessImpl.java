@@ -380,10 +380,8 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
     private final MongoCursor select(final LogbookCollections collection, final String select)
         throws LogbookDatabaseException, LogbookNotFoundException {
         try {
-            final SelectParser parser = new SelectParser(new LogbookVarNameAdapter());
-            parser.parse(select);
-            parser.addProjection(DEFAULT_SLICE, DEFAULT_ALLKEYS);
-            return selectExecute(collection, parser);
+            JsonNode node = JsonHandler.getFromString(select);
+            return select(collection, node);
         } catch (final InvalidParseOperationException e) {
             throw new LogbookDatabaseException(e);
         }

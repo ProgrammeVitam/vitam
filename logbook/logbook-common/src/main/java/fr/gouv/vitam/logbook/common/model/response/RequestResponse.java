@@ -41,6 +41,9 @@ public class RequestResponse {
     private JsonNode results;
 
     
+    /**
+     * @return the Result part
+     */
     public JsonNode getResult() {
         return results;
     }
@@ -48,7 +51,8 @@ public class RequestResponse {
     /**
      * RequestResponse constructor
      * 
-     * @param query the query of type JsonNode which will be setted for RequestResponse
+     * @param result the result of type JsonNode which will be setted for RequestResponse
+     * @return this
      */
     public RequestResponse setResult(JsonNode result) {
         this.results = result;
@@ -66,6 +70,7 @@ public class RequestResponse {
      * RequestResponse constructor
      * 
      * @param query the query of type JsonNode which will be setted for RequestResponse
+     * @return this
      */
     public RequestResponse setQuery(JsonNode query) {
         this.query = query;

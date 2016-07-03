@@ -29,6 +29,7 @@ package fr.gouv.vitam.common;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -217,5 +218,19 @@ public final class PropertiesUtils {
         }
         final File file = yamlPath.toFile();
         return readYaml(file, clasz);
+    }
+
+    /**
+     * Write the Yaml file
+     * 
+     * @param destination the destination file
+     * @param config the configuration object to write using Yaml format
+     * @throws IOException
+     */
+    public static final void writeYaml(File destination, Object config) throws IOException {
+        try (FileOutputStream outputStream = new FileOutputStream(destination)) {
+            final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+            mapper.writeValue(outputStream, config);
+        }
     }
 }

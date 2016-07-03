@@ -26,13 +26,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.common.util;
 
-import fr.gouv.vitam.common.LocalDateUtil;
-import org.apache.commons.lang3.builder.ToStringStyle;
-
 import java.util.Date;
 
+import org.apache.commons.lang3.builder.ToStringStyle;
+
+import fr.gouv.vitam.common.LocalDateUtil;
+
 /**
- * 
+ *
  * CustomToStringStyle extents ToStringStyle
  *
  */
@@ -43,9 +44,10 @@ public class CustomToStringStyle extends ToStringStyle {
      */
     private static final long serialVersionUID = -6477884518987519835L;
 
+    @Override
     protected void appendDetail(StringBuffer buffer, String fieldName, Object value) {
         if (value instanceof Date) {
-            value = LocalDateUtil.fromDate((Date)value).toString();
+            value = LocalDateUtil.fromDate((Date) value).toString();
         }
         buffer.append(value);
     }

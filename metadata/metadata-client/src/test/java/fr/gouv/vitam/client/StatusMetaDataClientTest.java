@@ -41,21 +41,39 @@ import javax.ws.rs.core.Response.Status;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.glassfish.jersey.test.TestProperties;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
+
+import fr.gouv.vitam.common.junit.JunitHelper;
 
 public class StatusMetaDataClientTest extends JerseyTest {
 
-    private static final String HOST = "http://localhost";
-    private static final int PORT = 8082;
-    private static final MetaDataClient client = new MetaDataClient(HOST + ":" + PORT);
-
+    private static final String HOST = "http://localhost:";
+    private static String url;
+    private static MetaDataClient client;
+    private static JunitHelper junitHelper;
+    private static int port;
     Supplier<Response> mock;
+
+    @BeforeClass
+    public static void setUpBeforeClass() throws Exception {
+        junitHelper = new JunitHelper();
+        port = junitHelper.findAvailablePort();
+        url = HOST + port;
+        client = new MetaDataClient(url);
+    }
+    
+    @AfterClass
+    public static void tearDownAfterClass() throws Exception {
+        junitHelper.releasePort(port);
+    }
 
     @Override
     protected Application configure() {
         enable(TestProperties.LOG_TRAFFIC);
         enable(TestProperties.DUMP_ENTITY);
-        forceSet(TestProperties.CONTAINER_PORT, Integer.toString(PORT));
+        forceSet(TestProperties.CONTAINER_PORT, Integer.toString(port));
         mock = mock(Supplier.class);
         return new ResourceConfig().registerInstances(new MyUnitsResource(mock));
     }

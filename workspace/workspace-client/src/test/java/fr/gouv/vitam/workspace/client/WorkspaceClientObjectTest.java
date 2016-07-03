@@ -77,9 +77,9 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
 
     @Override
     protected Application configure() {
-        set(TestProperties.LOG_TRAFFIC, true);
+        //set(TestProperties.LOG_TRAFFIC, true);
         set(TestProperties.DUMP_ENTITY, true);
-        forceSet(TestProperties.CONTAINER_PORT, String.valueOf(PORT));
+        forceSet(TestProperties.CONTAINER_PORT, String.valueOf(port));
 
         final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(JacksonFeature.class);

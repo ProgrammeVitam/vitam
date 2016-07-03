@@ -29,16 +29,29 @@ package fr.gouv.vitam.workspace.client;
 import javax.ws.rs.core.Response;
 
 import org.glassfish.jersey.test.JerseyTest;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+
+import fr.gouv.vitam.common.junit.JunitHelper;
 
 // TODO REVIEW comment this to inform this is an utility class for test
 public abstract class WorkspaceClientTest extends JerseyTest {
     protected static final String HOST = "http://localhost";
-    protected static final int PORT = 8092;
     protected static final String PATH = "/workspace/v1";
+    private static JunitHelper junitHelper = new JunitHelper();
+    protected static int port = junitHelper.findAvailablePort();
     protected WorkspaceClient client;
+    @BeforeClass
+    public static void setUpBeforeClass() throws Exception {
+    }
 
+    @AfterClass
+    public static void shutdownAfterClass() {
+        junitHelper.releasePort(port);
+    }
+    
     public WorkspaceClientTest() {
-        client = new WorkspaceClient(HOST + ":" + PORT);
+        client = new WorkspaceClient(HOST + ":" + port);
     }
 
     protected ExpectedResults mock;

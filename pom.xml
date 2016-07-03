@@ -249,8 +249,13 @@
 					<artifactId>maven-surefire-plugin</artifactId>
 					<version>2.19.1</version>
 					<configuration>
-						<forkMode>always</forkMode>
 						<argLine>-Xmx2048m -Dvitam.tmp.folder=/tmp ${coverageAgent}</argLine>
+						<!--  <forkMode>always</forkMode> -->
+						<parallel>classes</parallel>
+						<threadCount>3</threadCount>
+						<perCoreThreadCount>true</perCoreThreadCount>
+						<forkCount>3C</forkCount>
+						<reuseForks>true</reuseForks>
 					</configuration>
 				</plugin>
 				<plugin>

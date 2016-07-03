@@ -43,25 +43,42 @@ import javax.ws.rs.core.Response.Status;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.glassfish.jersey.test.TestProperties;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
+import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
 
 public class WorkflowProcessingManagementClientTest extends JerseyTest {
-
-    private static final String url = "http://localhost:8082";
-    private static final ProcessingManagementClient client = new ProcessingManagementClient(url);
+    private static String url;
+    private static ProcessingManagementClient client;
+    Supplier<Response> mock;
+    private static JunitHelper junitHelper;
+    private static int port;
     private static final String WORKFLOWID = "json1";
     private static final String CONTAINER = "c1";
-    Supplier<Response> mock;
+
+    @BeforeClass
+    public static void setUpBeforeClass() throws Exception {
+        junitHelper = new JunitHelper();
+        port = junitHelper.findAvailablePort();
+        url = "http://localhost:" + port;
+        client = new ProcessingManagementClient(url);
+    }
+    
+    @AfterClass
+    public static void tearDownAfterClass() throws Exception {
+        junitHelper.releasePort(port);
+    }
 
     @Override
     protected Application configure() {
-        enable(TestProperties.LOG_TRAFFIC);
+        //enable(TestProperties.LOG_TRAFFIC);
         enable(TestProperties.DUMP_ENTITY);
-        forceSet(TestProperties.CONTAINER_PORT, "8082");
+        forceSet(TestProperties.CONTAINER_PORT, Integer.toString(port));
         mock = mock(Supplier.class);
         return new ResourceConfig().registerInstances(new ProcessingResource(mock));
     }

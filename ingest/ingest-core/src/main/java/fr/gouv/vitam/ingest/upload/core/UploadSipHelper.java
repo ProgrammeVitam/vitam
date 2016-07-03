@@ -26,15 +26,15 @@ package fr.gouv.vitam.ingest.upload.core;
 import fr.gouv.vitam.ingest.model.UploadResponseDTO;
 
 /**
- * 
+ *
  * Constructs a representation entity data for response from upload sip
  *
  */
 public class UploadSipHelper {
 
-	/**
-	 * properties from configuration file
-	 */
+    /**
+     * properties from configuration file
+     */
     public static final String PROPERTIES_CORE = "ingest-core.properties";
 
 
@@ -48,8 +48,9 @@ public class UploadSipHelper {
      * @param engineStatus
      * @return
      */
-    public static final UploadResponseDTO getUploadResponseDTO(String fileName, Integer httpCode, String message, String vitamCode,
-                                                               String vitamStatus, String engineCode, String engineStatus) {
+    public static final UploadResponseDTO getUploadResponseDTO(String fileName, Integer httpCode, String message,
+        String vitamCode,
+        String vitamStatus, String engineCode, String engineStatus) {
         final UploadResponseDTO uploadResponseDTO = new UploadResponseDTO();
         uploadResponseDTO.setFileName(fileName);
         uploadResponseDTO.setHttpCode(httpCode);

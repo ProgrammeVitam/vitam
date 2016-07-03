@@ -46,22 +46,19 @@ import fr.gouv.vitam.access.common.exception.AccessClientServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * Access operation client
  */
 public class AccessOperationsClientRest implements AccessClient {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessOperationsClientRest.class);
     private static final String RESOURCE_PATH = "/access/v1";
 
     private final String serviceUrl;
     private final Client client;
 
     /**
-     * @param server - localhost
-     * @param port - define 8082
+     * @param server the server on which to send requests
+     * @param port the port used by the server
      */
     public AccessOperationsClientRest(String server, int port) {
         serviceUrl = "http://" + server + ":" + port + RESOURCE_PATH;
@@ -72,23 +69,12 @@ public class AccessOperationsClientRest implements AccessClient {
     }
 
 
-    /**
-     * @return : status of access server 200 : server is alive
-     */
+    @Override
     public Response status() {
         return client.target(serviceUrl).path("status").request().get();
     }
 
-    /**
-     *
-     * AccessClient to send a “GET” request and the returned json data.
-     *
-     * @param selectQuery
-     * @return Object JsonNode
-     * @throws InvalidParseOperationException
-     * @throws AccessClientServerException
-     * @throws AccessClientNotFoundException
-     */
+    @Override
     public JsonNode selectUnits(String selectQuery)
         throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException {
         if (StringUtils.isBlank(selectQuery)) {

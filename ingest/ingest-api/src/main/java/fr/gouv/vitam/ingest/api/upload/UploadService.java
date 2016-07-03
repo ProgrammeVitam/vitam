@@ -26,11 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.api.upload;
 
-import fr.gouv.vitam.common.exception.VitamException;
-import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
+import java.io.InputStream;
 
 import javax.ws.rs.core.Response;
-import java.io.InputStream;
+
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
+
+import fr.gouv.vitam.common.exception.VitamException;
 
 /**
  * Upload service a received SIP from a SIA
@@ -47,7 +49,7 @@ public interface UploadService {
      * @throws VitamException, if inputstream is null
      */
     public Response uploadSipAsStream(InputStream uploadedInputStream, FormDataContentDisposition fileDetail)
-            throws VitamException;
+        throws VitamException;
 
 
     /**
@@ -60,7 +62,7 @@ public interface UploadService {
      * @throws VitamException
      */
     public Response uploadSipAsStream(InputStream uploadedInputStream, FormDataContentDisposition fileDetail,
-                                      String sipName) throws VitamException;
+        String sipName) throws VitamException;
 
 
     /**

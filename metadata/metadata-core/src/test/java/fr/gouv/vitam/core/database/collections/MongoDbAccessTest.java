@@ -44,11 +44,11 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
+import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.core.database.collections.MongoDbAccess.VitamCollections;
 
 public class MongoDbAccessTest {
     private static final String DATABASE_HOST = "localhost";
-    private static final int DATABASE_PORT = 12345;
     private static final String DEFAULT_MONGO =
         "ObjectGroup\n" + "Unit\n" + "Unit Document{{v=1, key=Document{{_id=1}}, name=_id_, ns=vitam-test.Unit}}\n" +
             "Unit Document{{v=1, key=Document{{_id=hashed}}, name=_id_hashed, ns=vitam-test.Unit}}\n" +
@@ -58,19 +58,23 @@ public class MongoDbAccessTest {
     static MongodExecutable mongodExecutable;
     static MongoClient mongoClient;
     static MongodProcess mongod;
+    private static JunitHelper junitHelper;
+    private static int port;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         final MongodStarter starter = MongodStarter.getDefaultInstance();
+        junitHelper = new JunitHelper();
+        port = junitHelper.findAvailablePort();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .version(Version.Main.PRODUCTION)
-            .net(new Net(DATABASE_PORT, Network.localhostIsIPv6()))
+            .net(new Net(port, Network.localhostIsIPv6()))
             .build());
         mongod = mongodExecutable.start();
 
         final MongoClientOptions options = MongoDbAccess.getMongoClientOptions();
 
-        mongoClient = new MongoClient(new ServerAddress(DATABASE_HOST, DATABASE_PORT), options);
+        mongoClient = new MongoClient(new ServerAddress(DATABASE_HOST, port), options);
     }
 
     @AfterClass
@@ -78,6 +82,7 @@ public class MongoDbAccessTest {
         mongoDbAccess.closeFinal();
         mongod.stop();
         mongodExecutable.stop();
+        junitHelper.releasePort(port);
     }
 
     @After

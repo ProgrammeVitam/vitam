@@ -48,8 +48,9 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.junit.JunitFindAvailablePort;
+import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server.BasicVitamServer;
+import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.logbook.common.server.MongoDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.MongoDbAccessFactory;
@@ -65,6 +66,8 @@ public class LogbookApplicationTest {
     private static MongodProcess mongod;
     private static int databasePort;
     private static int serverPort;
+    private static int oldPort;
+    private static JunitHelper junitHelper;
     private static File logbook;
     
     @BeforeClass
@@ -72,8 +75,8 @@ public class LogbookApplicationTest {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
 
-        JunitFindAvailablePort junitFindAvailablePort = new JunitFindAvailablePort();
-        databasePort = junitFindAvailablePort.findAvailablePort();
+        junitHelper = new JunitHelper();
+        databasePort = junitHelper.findAvailablePort();
         logbook = PropertiesUtils.findFile(LOGBOOK_CONF);
         LogbookConfiguration realLogbook = PropertiesUtils.readYaml(logbook, LogbookConfiguration.class);
         realLogbook.setDbPort(databasePort);
@@ -91,7 +94,9 @@ public class LogbookApplicationTest {
             MongoDbAccessFactory.create(
                 new DbConfigurationImpl(DATABASE_HOST, databasePort,
                     "vitam-test"));
-        serverPort = junitFindAvailablePort.findAvailablePort();
+        serverPort = junitHelper.findAvailablePort();
+        oldPort = VitamServerFactory.getDefaultPort();
+        VitamServerFactory.setDefaultPort(serverPort);
     }
 
     @AfterClass
@@ -99,6 +104,9 @@ public class LogbookApplicationTest {
         mongoDbAccess.close();
         mongod.stop();
         mongodExecutable.stop();
+        junitHelper.releasePort(serverPort);
+        junitHelper.releasePort(databasePort);
+        VitamServerFactory.setDefaultPort(oldPort);
     }
 
     @Test

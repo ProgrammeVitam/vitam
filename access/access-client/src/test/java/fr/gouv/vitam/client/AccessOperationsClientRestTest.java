@@ -43,18 +43,22 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.glassfish.jersey.test.TestProperties;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import fr.gouv.vitam.access.client.AccessOperationsClientRest;
 import fr.gouv.vitam.access.common.exception.AccessClientNotFoundException;
 import fr.gouv.vitam.access.common.exception.AccessClientServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.junit.JunitHelper;
 
 public class AccessOperationsClientRestTest extends JerseyTest {
     protected static final String HOSTNAME = "localhost";
-    protected static final int PORT = 8082;
     protected static final String PATH = "/access/v1";
-    protected final AccessOperationsClientRest client;
+    protected static AccessOperationsClientRest client;
+    private static JunitHelper junitHelper;
+    private static int serverPort;
 
     final String queryDsql =
         "{ $query : [ { $eq : { 'title' : 'test' } } ], " +
@@ -69,15 +73,25 @@ public class AccessOperationsClientRestTest extends JerseyTest {
         Response post();
     }
 
-    public AccessOperationsClientRestTest() {
-        client = new AccessOperationsClientRest(HOSTNAME, PORT);
+    public AccessOperationsClientRestTest() {}
+
+    @BeforeClass
+    public static void setUpBeforeClass() throws Exception {
+        junitHelper = new JunitHelper();
+        serverPort = junitHelper.findAvailablePort();
+        client = new AccessOperationsClientRest(HOSTNAME, serverPort);
+    }
+
+    @AfterClass
+    public static void tearDownAfterClass() {
+        junitHelper.releasePort(serverPort);
     }
 
     @Override
     protected Application configure() {
         enable(TestProperties.LOG_TRAFFIC);
         enable(TestProperties.DUMP_ENTITY);
-        forceSet(TestProperties.CONTAINER_PORT, Integer.toString(PORT));
+        forceSet(TestProperties.CONTAINER_PORT, Integer.toString(serverPort));
         mock = mock(ExpectedResults.class);
         final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(JacksonFeature.class);

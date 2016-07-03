@@ -42,6 +42,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
 
 /**
@@ -51,7 +52,6 @@ import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
 public class WorkspaceApplication {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkspaceApplication.class);
 
-    private static final int DEFAULT_PORT = 8082;
     private static Server server;
 
     private static final String CONFIG_FILE_IS_A_MANDATORY_ARGUMENT = "Config file is a mandatory argument";
@@ -87,12 +87,12 @@ public class WorkspaceApplication {
                 StorageConfiguration configuration = new StorageConfiguration();
                 configuration = mapper.readValue(yamlFile, StorageConfiguration.class);
 
-                int serverPort = DEFAULT_PORT;
+                int serverPort = VitamServerFactory.getDefaultPort();
 
                 if (arguments.length >= 2) {
                     serverPort = Integer.parseInt(arguments[1]);
                     if (serverPort < 0) {
-                        serverPort = DEFAULT_PORT;
+                        serverPort = VitamServerFactory.getDefaultPort();
                     }
                 }
                 run(configuration, serverPort);

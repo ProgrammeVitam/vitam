@@ -45,8 +45,11 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.glassfish.jersey.test.TestProperties;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
+import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.logbook.common.client.StatusMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -59,9 +62,10 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 
 public class LogbookOperationsClientRestTest extends JerseyTest {
     protected static final String HOSTNAME = "localhost";
-    protected static final int PORT = 8092;
     protected static final String PATH = "/logbook/v1";
     protected final LogbookOperationsClientRest client;
+    private static JunitHelper junitHelper;
+    private static int port;
 
     protected ExpectedResults mock;
 
@@ -78,14 +82,25 @@ public class LogbookOperationsClientRestTest extends JerseyTest {
     }
 
     public LogbookOperationsClientRestTest() {
-        client = new LogbookOperationsClientRest(HOSTNAME, PORT);
+        client = new LogbookOperationsClientRest(HOSTNAME, port);
     }
-
+    
+    @BeforeClass
+    public static void setUpBeforeClass() throws Exception {
+        junitHelper = new JunitHelper();
+        port = junitHelper.findAvailablePort();
+    }
+    
+    @AfterClass
+    public static void tearDownAfterClass() throws Exception {
+        junitHelper.releasePort(port);
+    }
+    
     @Override
     protected Application configure() {
-        enable(TestProperties.LOG_TRAFFIC);
+        //enable(TestProperties.LOG_TRAFFIC);
         enable(TestProperties.DUMP_ENTITY);
-        forceSet(TestProperties.CONTAINER_PORT, Integer.toString(PORT));
+        forceSet(TestProperties.CONTAINER_PORT, Integer.toString(port));
         mock = mock(ExpectedResults.class);
         final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(JacksonFeature.class);

@@ -295,7 +295,7 @@ public class WorkspaceClient implements ContentAddressableStorage {
     }
 
     @Override
-    public void unzipObject(String containerName, String folderName, InputStream InputStreamObject)
+    public void unzipObject(String containerName, String folderName, InputStream inputStreamObject)
         throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException, ContentAddressableStorageAlreadyExistException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, folderName);
@@ -304,7 +304,7 @@ public class WorkspaceClient implements ContentAddressableStorage {
             if (!isExistingFolder(containerName, folderName)) {
 
                 final Response response = client.target(serviceUrl).path("/containers/" + containerName + "/folders/"+folderName).request()
-                    .put(Entity.entity(InputStreamObject, MediaType.APPLICATION_OCTET_STREAM));
+                    .put(Entity.entity(inputStreamObject, MediaType.APPLICATION_OCTET_STREAM));
 
                 if (Response.Status.CREATED.getStatusCode() == response.getStatus()) {
                     LOGGER.info(containerName + File.separator +folderName +  " : " + Response.Status.CREATED.getReasonPhrase());
@@ -333,7 +333,7 @@ public class WorkspaceClient implements ContentAddressableStorage {
 
     @Override
     public String computeObjectDigest(String containerName, String objectName, DigestType algo)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, ContentAddressableStorageException {
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
        
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName, algo);

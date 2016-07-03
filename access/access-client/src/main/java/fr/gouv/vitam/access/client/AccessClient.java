@@ -23,6 +23,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.client;
 
+import javax.ws.rs.core.Response;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.access.common.exception.AccessClientNotFoundException;
@@ -34,6 +36,14 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
  */
 public interface AccessClient {
     /**
+     * @return : status of access server 200 : server is alive
+     */
+    Response status();
+
+    /**
+     *
+     * AccessClient to send a “GET” request and the returned json data.
+     *
      * @param selectQuery
      * @return Object JsonNode
      * @throws InvalidParseOperationException
