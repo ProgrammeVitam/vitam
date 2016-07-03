@@ -250,12 +250,12 @@
 					<version>2.19.1</version>
 					<configuration>
 						<argLine>-Xmx2048m -Dvitam.tmp.folder=/tmp ${coverageAgent}</argLine>
-						<!--  <forkMode>always</forkMode> -->
+						<!--  obsolete <forkMode>always</forkMode> -->
 						<parallel>classes</parallel>
 						<threadCount>3</threadCount>
 						<perCoreThreadCount>true</perCoreThreadCount>
 						<forkCount>3C</forkCount>
-						<reuseForks>true</reuseForks>
+						<reuseForks>false</reuseForks>
 					</configuration>
 				</plugin>
 				<plugin>
