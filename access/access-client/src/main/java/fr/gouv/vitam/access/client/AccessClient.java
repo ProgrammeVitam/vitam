@@ -23,8 +23,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.client;
 
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.access.common.exception.AccessClientNotFoundException;
@@ -35,23 +33,31 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
  * Access client interface
  */
 public interface AccessClient {
-    /**
-     * @return : status of access server 200 : server is alive
-     */
-    Response status();
+	/**
+	 * Returns search units by criteria
+	 * 
+	 * @param selectQuery
+	 * @return Object JsonNode
+	 * @throws InvalidParseOperationException
+	 * @throws AccessClientServerException
+	 * @throws AccessClientNotFoundException
+	 */
+	JsonNode selectUnits(String selectQuery)
+			throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException;
 
-    /**
-     *
-     * AccessClient to send a “GET” request and the returned json data.
-     *
-     * @param selectQuery
-     * @return Object JsonNode
-     * @throws InvalidParseOperationException
-     * @throws AccessClientServerException
-     * @throws AccessClientNotFoundException
-     */
-    JsonNode selectUnits(String selectQuery)
-        throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException;
+	/**
+	 * Returns an archive unit details
+	 * 
+	 * @param sqlQuery
+	 *            DSL query
+	 * 
+	 * @param id
+	 *            Unit Id
+	 * @return
+	 * @throws InvalidParseOperationException
+	 * @throws AccessClientServerException
+	 * @throws AccessClientNotFoundException
+	 */
+	JsonNode selectUnitById(String sqlQuery, String id)
+			throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException;
 }
-
-
