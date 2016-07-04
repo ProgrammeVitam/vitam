@@ -50,17 +50,15 @@ import static fr.gouv.vitam.builder.request.construct.UpdateActionHelper.unset;
 import static fr.gouv.vitam.builder.request.construct.VitamFieldsHelper.all;
 import static fr.gouv.vitam.builder.request.construct.VitamFieldsHelper.id;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import javax.validation.constraints.AssertTrue;
 
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -72,7 +70,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBList;
-import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.ServerAddress;
@@ -90,15 +87,11 @@ import fr.gouv.vitam.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.builder.request.construct.Delete;
 import fr.gouv.vitam.builder.request.construct.Insert;
-import fr.gouv.vitam.builder.request.construct.Request;
 import fr.gouv.vitam.builder.request.construct.Select;
 import fr.gouv.vitam.builder.request.construct.Update;
 import fr.gouv.vitam.builder.request.construct.VitamFieldsHelper;
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens;
-import fr.gouv.vitam.builder.request.construct.query.CompareQuery;
-import fr.gouv.vitam.builder.request.construct.query.ExistsQuery;
 import fr.gouv.vitam.builder.request.construct.query.PathQuery;
-import fr.gouv.vitam.builder.request.construct.query.Query;
 import fr.gouv.vitam.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -143,6 +136,10 @@ public class DbRequestTest {
     static MongodProcess mongod;
     private static JunitHelper junitHelper;
     private static int port;
+    private static final String REQUEST_SELECT_TEST =
+        "{$query: {$eq: {\"id\" : \"id\" }}}";
+    private static final String REQUEST_INSERT_TEST = "{ \"id\": \"id\" }";;
+
 
     /**
      * @throws java.lang.Exception
@@ -891,6 +888,7 @@ public class DbRequestTest {
         assertNotNull(mongoDbAccess.toString());
     }
 
+
     private ObjectNode createInsertRequestGO(GUID uuid, GUID uuidParent) throws InvalidParseOperationException {
         // Create Insert command as in Internal Vitam Modules
         Insert insert = new Insert();
@@ -919,12 +917,15 @@ public class DbRequestTest {
         final GUID uuid2 = GUIDFactory.newObjectGroupGUID(tenantId);
         requestParser = new InsertParser(mongoDbVarNameAdapter);
         requestParser.parse(createInsertRequestGO(uuid2, uuid));
+
         executeRequest(dbRequest, requestParser);
         result = checkExistence(dbRequest, uuid2, true);
         assertFalse(result.isError());
     }
 
-    private Result checkExistence(DbRequest dbRequest, GUID uuid, boolean isOG) throws InvalidCreateOperationException, InvalidParseOperationException, MetaDataExecutionException, MetaDataAlreadyExistException, MetaDataNotFoundException, InstantiationException, IllegalAccessException {
+    private Result checkExistence(DbRequest dbRequest, GUID uuid, boolean isOG)
+        throws InvalidCreateOperationException, InvalidParseOperationException, MetaDataExecutionException,
+        MetaDataAlreadyExistException, MetaDataNotFoundException, InstantiationException, IllegalAccessException {
         Select select = new Select();
         select.addQueries(eq(VitamFieldsHelper.id(), uuid.getId()));
         if (isOG) {
@@ -939,8 +940,10 @@ public class DbRequestTest {
     public void testUnitParentForlastInsertFilterProjection() throws Exception {
         final DbRequest dbRequest = new DbRequest();
 
+
         final GUID uuid = GUIDFactory.newObjectGroupGUID(tenantId);
         final GUID uuidUnit = GUIDFactory.newUnitGUID(tenantId);
+
 
         final JsonNode insertRequest = createInsertRequestWithUUID(uuidUnit);
         final InsertParser insertParser = new InsertParser(mongoDbVarNameAdapter);
@@ -957,6 +960,7 @@ public class DbRequestTest {
         insert.addRoots(uuidUnit.getId());
         ObjectNode json = (ObjectNode) JsonHandler.getFromString("{\"_id\":\"" + uuid +
             "\", \"_qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description\" : \"Test\"}}, \"title\":\"title1\"}");
+
         insert.addData((ObjectNode) json);
         final ObjectNode insertNode = insert.getFinalInsert();
 
@@ -964,14 +968,13 @@ public class DbRequestTest {
         requestParser.parse(insertNode);
         executeRequest(dbRequest, requestParser);
         assertFalse(requestParser.getRequest().getRoots().isEmpty());
-
         // Check _og
         Result result = checkExistence(dbRequest, uuidUnit, false);
         assertFalse(result.isError());
         BasicDBList list = (BasicDBList) result.getFinal().get(Result.RESULT_FIELD);
         Document unit = (Document) list.get(0);
         assertTrue(unit.getString("_og").equals(uuid.getId()));
-        
+
         // Check _up is set as _og
         result = checkExistence(dbRequest, uuid, true);
         assertFalse(result.isError());
@@ -981,13 +984,15 @@ public class DbRequestTest {
         System.err.println(og.get("_up"));
         System.err.println(uuidUnit.getId());
         assertTrue(((List<String>) og.get("_up")).contains(uuidUnit.getId()));
+
     }
 
     @Test
     public void testRequestWithObjectGroupQuery() throws Exception {
         final GUID uuid01 = GUIDFactory.newUnitGUID(tenantId);
         final DbRequest dbRequest = new DbRequest();
-        RequestParser requestParser = RequestParserHelper.getParser(createInsertRequestWithUUID(uuid01), mongoDbVarNameAdapter);
+        RequestParser requestParser =
+            RequestParserHelper.getParser(createInsertRequestWithUUID(uuid01), mongoDbVarNameAdapter);
         executeRequest(dbRequest, requestParser);
         Result result = checkExistence(dbRequest, uuid01, false);
         assertFalse(result.isError());
@@ -1019,5 +1024,47 @@ public class DbRequestTest {
         RequestParser requestParser1 = new InsertParser(mongoDbVarNameAdapter);
         requestParser1.parse(insertRequestString);
         executeRequest(dbRequest, requestParser1);
+    }
+
+
+    @Test
+    public void testSelectResult() throws Exception {
+        final DbRequest dbRequest = new DbRequest();
+        final JsonNode selectRequest = JsonHandler.getFromString(REQUEST_SELECT_TEST);
+        final SelectParser selectParser = new SelectParser();
+        selectParser.parse(selectRequest);
+        LOGGER.debug("SelectParser: {}", selectRequest);
+        final Result result = dbRequest.execRequest(selectParser, null);
+        assertEquals("Document{{Result=null}}", result.getFinal().toString());
+
+    }
+
+
+    @Test
+    public void shouldSelectUnitResult() throws Exception {
+
+        final DbRequest dbRequest = new DbRequest();
+        final JsonNode insertRequest = buildQueryJsonWithOptions("", REQUEST_INSERT_TEST);
+        final InsertParser insertParser = new InsertParser(mongoDbVarNameAdapter);
+        insertParser.parse(insertRequest);
+        LOGGER.debug("InsertParser: {}", insertParser);
+        dbRequest.execRequest(insertParser, null);
+        final JsonNode selectRequest = JsonHandler.getFromString(REQUEST_SELECT_TEST);
+        final SelectParser selectParser = new SelectParser();
+        selectParser.parse(selectRequest);
+        LOGGER.debug("SelectParser: {}", selectRequest);
+        final Result result2 = dbRequest.execRequest(selectParser, null);
+        assertEquals(1, result2.nbResult);
+
+    }
+
+
+    private static final JsonNode buildQueryJsonWithOptions(String query, String data)
+        throws Exception {
+        return JsonHandler.getFromString(new StringBuilder()
+            .append("{ $roots : [ '' ], ")
+            .append("$query : [ " + query + " ], ")
+            .append("$data : " + data + " }")
+            .toString());
     }
 }

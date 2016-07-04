@@ -16,7 +16,6 @@ import fr.gouv.vitam.parser.request.parser.SelectParser;
 
 public class UnitsJsonUtilsTest {
 
-
     private static Result buildResult(int nbrResult) {
         Result result = new ResultDefault(FILTERARGS.UNITS, new ArrayList<String>());
         result.setNbResult(nbrResult);
@@ -28,7 +27,6 @@ public class UnitsJsonUtilsTest {
         JsonNode jsonNode = UnitsJsonUtils.populateJSONObjectResponse(buildResult(0), new SelectParser());
         assertNotNull(jsonNode);
     }
-
 
     @Test(expected = InvalidParseOperationException.class)
     public void given_resultwith_nbreresult_2_thenthrow_InvalidParseOperationException() throws Exception {

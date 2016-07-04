@@ -322,4 +322,17 @@ public class MetaDataResourceTest {
     }
 
 
+    @Test
+    public void shouldReturnErrorRequestBadRequestWhenInsertGOIfDocumentIsTooLarge() throws Exception {
+        int limitRequest = GlobalDatasParser.limitRequest;
+        GlobalDatasParser.limitRequest = 99;
+        given()
+            .contentType(ContentType.JSON)
+            .body(buildDSLWithOptions("", createJsonStringWithDepth(100))).when()
+            .post("/objectgroups").then()
+            .body(equalTo(generateResponseErrorFromStatus(Status.REQUEST_ENTITY_TOO_LARGE)))
+            .statusCode(Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode());
+        GlobalDatasParser.limitRequest = limitRequest;
+    }
+
 }
