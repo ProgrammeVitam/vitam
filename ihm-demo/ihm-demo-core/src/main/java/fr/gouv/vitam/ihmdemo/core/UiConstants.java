@@ -24,8 +24,15 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+package fr.gouv.vitam.ihmdemo.core;
 
-angular.module('core').controller('mainViewController', ['$scope', '$location', 'IHM_URLS', function($scope, $location, IHM_URLS){
-  $scope.showMenuBar = !$location.url().toString().startsWith(IHM_URLS.ARCHIVE_DETAILS_PATH);
+/**
+ * Constants used by Server Application
+ *
+ */
+public enum UiConstants {
+	/**
+	 * Token used to specify a root item
+	 */
+	SELECT_BY_ID;
 }
-]);

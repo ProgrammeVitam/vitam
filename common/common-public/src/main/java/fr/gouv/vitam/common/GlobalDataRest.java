@@ -25,7 +25,22 @@
  * accept its terms.
  */
 
-angular.module('core').controller('mainViewController', ['$scope', '$location', 'IHM_URLS', function($scope, $location, IHM_URLS){
-  $scope.showMenuBar = !$location.url().toString().startsWith(IHM_URLS.ARCHIVE_DETAILS_PATH);
+package fr.gouv.vitam.common;
+
+/**
+ * Global Variables and eventually method used by REST services
+ *
+ */
+public class GlobalDataRest {
+
+	/**
+	 * X_HTTP_METHOD_OVERRIDE : used in case of POST methods overriding GET
+	 * methods
+	 */
+	public static final String X_HTTP_METHOD_OVERRIDE = "X-Http-Method-Override";
+
+	/**
+	 * Header Parameter X_REQUEST_ID
+	 */
+	public static final String X_REQUEST_ID = "X-REQUEST-ID";
 }
-]);

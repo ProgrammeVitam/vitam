@@ -29,8 +29,9 @@ angular.module('core')
 .constant('IHM_URLS', {
   'IHM_BASE_URL':'/vitam/ihm-demo/api',
   'ARCHIVE_SEARCH_URL': '/archivesearch/units',
-  'ARCHIVE_DETAILS_URL': '/archiveunit',
-  'ARCHIVE_DETAILS_CONFIG_FILE': 'modules/config/archive-details.json'
+  'ARCHIVE_DETAILS_URL': '/archivesearch/unit/',
+  'ARCHIVE_DETAILS_CONFIG_FILE': 'modules/config/archive-details.json',
+  'ARCHIVE_DETAILS_PATH': '/archiveunit/'
 })
 
 /*ihmDemoCLient create a configured http client*/
@@ -45,7 +46,8 @@ angular.module('core')
   };
 
   // Search Selected Archive Unit Details Http Request (GET Method)
-  dataFactory.searchArchiveUnitDetails = function (unitId){
+  dataFactory.getArchiveUnitDetails = function (unitId){
+    return $http.get(IHM_URLS.IHM_BASE_URL + IHM_URLS.ARCHIVE_DETAILS_URL + unitId);
   };
 
   // Retrieve Archive unit details configuration (JSON file that contains fields to display and the labels used in interface)

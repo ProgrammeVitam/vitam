@@ -71,7 +71,7 @@ public class AccessResourceTest {
                 "Cannot start the Access Application Server", e);
         }
 
-        AccessClientFactory.setConfiguration(AccessClientType.MOCK_OPERATIONS, DATABASE_HOST, SERVER_PORT);
+        AccessClientFactory.setConfiguration(AccessClientType.MOCK, DATABASE_HOST, SERVER_PORT);
 
     }
 

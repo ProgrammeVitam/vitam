@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.client;
+package fr.gouv.vitam.access.client;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -38,8 +38,8 @@ import org.junit.Test;
 import fr.gouv.vitam.access.client.AccessClient;
 import fr.gouv.vitam.access.client.AccessClientFactory;
 import fr.gouv.vitam.access.client.AccessClientFactory.AccessClientType;
-import fr.gouv.vitam.access.client.AccessOperationsClientMock;
-import fr.gouv.vitam.access.client.AccessOperationsClientRest;
+import fr.gouv.vitam.access.client.AccessClientMock;
+import fr.gouv.vitam.access.client.AccessClientRest;
 
 /**
  * Test class for client (and parameters) factory
@@ -54,13 +54,13 @@ public class AccessClientFactoryTest {
     @Test
     public void getClientInstanceTest() {
         try {
-            AccessClientFactory.setConfiguration(AccessClientType.OPERATIONS, null, 10);
+            AccessClientFactory.setConfiguration(AccessClientType.PRODUCTION, null, 10);
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
 
         }
         try {
-            AccessClientFactory.setConfiguration(AccessClientType.OPERATIONS, "localhost", -10);
+            AccessClientFactory.setConfiguration(AccessClientType.PRODUCTION, "localhost", -10);
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
 
@@ -71,7 +71,7 @@ public class AccessClientFactoryTest {
         } catch (final IllegalArgumentException e) {
 
         }
-        AccessClientFactory.setConfiguration(AccessClientType.MOCK_OPERATIONS, null, -1);
+        AccessClientFactory.setConfiguration(AccessClientType.MOCK, null, -1);
 
         final AccessClient client =
             AccessClientFactory.getInstance().getAccessOperationClient();
@@ -88,35 +88,35 @@ public class AccessClientFactoryTest {
     public void changeDefaultClientTypeTest() {
         final AccessClient client =
             AccessClientFactory.getInstance().getAccessOperationClient();
-        assertTrue(client instanceof AccessOperationsClientRest);
+        assertTrue(client instanceof AccessClientRest);
         final AccessClientFactory.AccessClientType type = AccessClientFactory.getDefaultAccessClientType();
         assertNotNull(type);
-        assertEquals(AccessClientType.OPERATIONS, type);
+        assertEquals(AccessClientType.PRODUCTION, type);
 
-        AccessClientFactory.setConfiguration(AccessClientType.MOCK_OPERATIONS, null, 0);
+        AccessClientFactory.setConfiguration(AccessClientType.MOCK, null, 0);
         final AccessClient client2 = AccessClientFactory.getInstance().getAccessOperationClient();
         // a voir- bug
-        assertTrue(client2 instanceof AccessOperationsClientMock);
+        assertTrue(client2 instanceof AccessClientMock);
         final AccessClientFactory.AccessClientType type2 = AccessClientFactory.getDefaultAccessClientType();
         assertNotNull(type2);
-        assertEquals(AccessClientType.MOCK_OPERATIONS, type2);
+        assertEquals(AccessClientType.MOCK, type2);
 
-        AccessClientFactory.setConfiguration(AccessClientFactory.AccessClientType.OPERATIONS, "server", 1025);
+        AccessClientFactory.setConfiguration(AccessClientFactory.AccessClientType.PRODUCTION, "server", 1025);
         final AccessClient client3 = AccessClientFactory.getInstance().getAccessOperationClient();
-        assertTrue(client3 instanceof AccessOperationsClientRest);
+        assertTrue(client3 instanceof AccessClientRest);
         final AccessClientFactory.AccessClientType type3 = AccessClientFactory.getDefaultAccessClientType();
         assertNotNull(type3);
-        assertEquals(AccessClientType.OPERATIONS, type3);
+        assertEquals(AccessClientType.PRODUCTION, type3);
     }
 
     @Test
     public void testInitWithConfigurationFile() {
         final AccessClient client =
             AccessClientFactory.getInstance().getAccessOperationClient();
-        assertTrue(client instanceof AccessOperationsClientRest);
+        assertTrue(client instanceof AccessClientRest);
         final AccessClientFactory.AccessClientType type = AccessClientFactory.getDefaultAccessClientType();
         assertNotNull(type);
-        assertEquals(AccessClientType.OPERATIONS, type);
+        assertEquals(AccessClientType.PRODUCTION, type);
     }
 
 }
