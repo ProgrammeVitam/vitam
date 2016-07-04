@@ -27,7 +27,7 @@
 
 angular.module('core')
 .constant('IHM_URLS', {
-  'IHM_BASE_URL':'/vitam/ihm-demo/api',
+  'IHM_BASE_URL':'/ihm-demo/v1/api',
   'ARCHIVE_SEARCH_URL': '/archivesearch/units',
   'ARCHIVE_DETAILS_URL': '/archivesearch/unit/',
   'ARCHIVE_DETAILS_CONFIG_FILE': 'modules/config/archive-details.json',

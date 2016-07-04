@@ -58,7 +58,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookClientFactory;
 /**
  * Web Application Resource class
  */
-@Path("/")
+@Path("/v1/api")
 public class WebApplicationResource {
 
 	private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WebApplicationResource.class);

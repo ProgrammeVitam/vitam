@@ -32,6 +32,7 @@ import java.net.URL;
 
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
@@ -53,7 +54,7 @@ import fr.gouv.vitam.common.server.VitamServerFactory;
 public class ServerApplication {
 
 	private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ServerApplication.class);
-	private static final String DEFAULT_WEB_APP_CONTEXT = "/vitam/ihm-demo/api";
+	private static final String DEFAULT_WEB_APP_CONTEXT = "/ihm-demo";
 	private static final String DEFAULT_STATIC_CONTENT = "webapp";
 	private static Server server;
 
@@ -127,10 +128,14 @@ public class ServerApplication {
 		final URL webAppDir = Thread.currentThread().getContextClassLoader()
 				.getResource(configuration.getStaticContent());
 		staticContentHandler.setResourceBase(webAppDir.toURI().toString());
+		
+		//wrap to context handler
+		ContextHandler staticContext = new ContextHandler("/ihm-demo"); /* the server uri path */
+		staticContext.setHandler(staticContentHandler);
 
 		// Set Handlers (Static content and REST API)
 		final HandlerList handlerList = new HandlerList();
-		handlerList.setHandlers(new Handler[] { staticContentHandler, restResourceContext, new DefaultHandler() });
+		handlerList.setHandlers(new Handler[] { staticContext, restResourceContext, new DefaultHandler() });
 
 		server.setHandler(handlerList);
 		server.start();
