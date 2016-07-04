@@ -49,7 +49,7 @@ public class StorageConfiguration {
     /**
      * setter for storage path
      *
-     * @param storagePath
+     * @param storagePath as String, path to storage
      */
     public void setStoragePath(String storagePath) {
         this.storagePath = storagePath;

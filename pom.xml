@@ -152,6 +152,7 @@
 		<javax.servlet.version>3.1.0</javax.servlet.version>
 		<javax.inject.version>1</javax.inject.version>
 		<powermock.version>1.6.5</powermock.version>
+		<json-sanitize.version>1.1</json-sanitize.version>		
 	</properties>
 
 	<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
@@ -251,15 +252,10 @@
 					<version>2.19.1</version>
 					<configuration>
 						<argLine>-Xmx2048m -Dvitam.tmp.folder=/tmp ${coverageAgent}</argLine>
-						<!--  obsolete <forkMode>always</forkMode> -->
-						<!-- Parallel mode
-						<parallel>classes</parallel>
-						<threadCount>3</threadCount>
-						<perCoreThreadCount>true</perCoreThreadCount>
-						<forkCount>3C</forkCount>
-						<reuseForks>false</reuseForks>
-						 -->
-						 <!-- Non Parallel mode -->
+						<!-- obsolete <forkMode>always</forkMode> -->
+						<!-- Parallel mode <parallel>classes</parallel> <threadCount>3</threadCount> 
+							<perCoreThreadCount>true</perCoreThreadCount> <forkCount>3C</forkCount> <reuseForks>false</reuseForks> -->
+						<!-- Non Parallel mode -->
 						<parallel>classes</parallel>
 						<threadCount>1</threadCount>
 						<perCoreThreadCount>false</perCoreThreadCount>
@@ -717,6 +713,11 @@
 				<artifactId>jhades</artifactId>
 				<version>${jhades.version}</version>
 				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>com.mikesamuel</groupId>
+				<artifactId>json-sanitizer</artifactId>
+				<version>${json-sanitize.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

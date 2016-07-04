@@ -44,7 +44,7 @@ public final class UriUtils {
      *
      * FIXME REVIEW does not what it says
      *
-     * @param uriString
+     * @param uriString path file uri
      * @return a URI path
      */
     public static String splitUri(String uriString) {

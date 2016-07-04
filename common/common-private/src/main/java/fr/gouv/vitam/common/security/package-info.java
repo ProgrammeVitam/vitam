@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- *
+ * 
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -24,36 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.workspace.api.exception;
-
 /**
- * Thrown when a resource (Container, CasBlob, Folder) cannot be located.
+ * 
  */
-public class ContentAddressableStorageNotFoundException extends ContentAddressableStorageException {
-
-
-    private static final long serialVersionUID = -8557401608602084895L;
-
-    /**
-     * @param message to associate with a new ContentAddressableStorageNotFoundException
-     *
-     */
-    public ContentAddressableStorageNotFoundException(String message) {
-        super(message);
-    }
-
-    /**
-     * @param cause cause to associate with the exception
-     */
-    public ContentAddressableStorageNotFoundException(Throwable cause) {
-        super(cause);
-    }
-
-    /**
-     * @param message message to associate with the exception
-     * @param cause cause to associate with the exception
-     */
-    public ContentAddressableStorageNotFoundException(String message, Throwable cause) {
-        super(message, cause);
-    }
-}
+package fr.gouv.vitam.common.security;
