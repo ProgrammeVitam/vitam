@@ -31,6 +31,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
+import fr.gouv.vitam.processing.common.model.OutcomeMessage;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.model.WorkParams;
@@ -67,13 +68,13 @@ public class IndexUnitActionHandler extends ActionHandler {
         ParametersChecker.checkParameter("ServerConfiguration is a mandatory parameter",
             params.getServerConfiguration());
         LOGGER.info("IndexUnitActionHandler running ...");
-        final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK);
+        final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID, OutcomeMessage.INDEX_UNIT_OK);
         final SedaUtils sedaUtils = sedaUtilsFactory.create();
 
         try {
             sedaUtils.indexArchiveUnit(params);
         } catch (final ProcessingException e) {
-            response.setStatus(StatusCode.FATAL);
+            response.setStatus(StatusCode.FATAL).setOutcomeMessages(HANDLER_ID, OutcomeMessage.INDEX_UNIT_KO);
         }
 
         LOGGER.info("IndexUnitActionHandler response: " + response.getStatus().value());

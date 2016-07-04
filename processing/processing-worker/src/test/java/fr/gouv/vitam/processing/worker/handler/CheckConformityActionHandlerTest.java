@@ -1,6 +1,6 @@
 package fr.gouv.vitam.processing.worker.handler;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -13,9 +13,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
@@ -66,7 +63,7 @@ public class CheckConformityActionHandlerTest {
         handlerVersion = new CheckConformityActionHandler(factory);
         assertEquals(CheckConformityActionHandler.getId(), HANDLER_ID);
         final EngineResponse response = handlerVersion.execute(params);
-        assertEquals(response.getStatus(), StatusCode.WARNING);
+        assertEquals(response.getStatus(), StatusCode.KO);
     }
     
     @Test

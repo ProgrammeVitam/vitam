@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.processing.common.CheckObjectsNumberMessage;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
+import fr.gouv.vitam.processing.common.model.OutcomeMessage;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.model.WorkParams;
@@ -100,7 +101,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
 
         final List<String> messages = new ArrayList<>();
         final EngineResponse response = new ProcessResponse();
-        response.setStatus(StatusCode.OK).setMessages(messages);
+        response.setStatus(StatusCode.OK).setDetailMessages(messages).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_OK);
 
         try {
 
@@ -113,11 +114,13 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
                 checkCountDigitalObjectConformity(uriListFromManifest, uriListFromWorkspace, response);
 
             } else if (extractUriResponse != null) {
-                response.setStatus(StatusCode.KO).setMessages(extractUriResponse.getMessages());
+                response.setStatus(StatusCode.KO)
+                .setDetailMessages(extractUriResponse.getDetailMessages())
+                .setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_KO);
             }
 
         } catch (XMLStreamException | ProcessingException | NullPointerException e) {
-            response.setStatus(StatusCode.FATAL);
+            response.setStatus(StatusCode.FATAL).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_KO);
         }
 
         return response;
@@ -175,9 +178,9 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
         final int countCompare = Integer.compare(uriListManifest.size(), uriListWorkspace.size());
         if (countCompare != 0) {
             response.setStatus(StatusCode.KO);
-            response.getMessages().add(CheckObjectsNumberMessage.COUNT_DIGITAL_OBJECT_SIP.getMessage()
+            response.getDetailMessages().add(CheckObjectsNumberMessage.COUNT_DIGITAL_OBJECT_SIP.getMessage()
                 .concat(Integer.toString(uriListWorkspace.size())));
-            response.getMessages().add(CheckObjectsNumberMessage.COUNT_DIGITAL_OBJECT_MANIFEST.getMessage()
+            response.getDetailMessages().add(CheckObjectsNumberMessage.COUNT_DIGITAL_OBJECT_MANIFEST.getMessage()
                 .concat(Integer.toString(uriListManifest.size())));
 
             try {
@@ -207,7 +210,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
                     countConsistentDigitalObjectFromManifest++;
                 } else {
                     response.setStatus(StatusCode.KO);
-                    response.getMessages().add(CheckObjectsNumberMessage.NOT_FOUND_DIGITAL_OBJECT_WORKSPACE.getMessage()
+                    response.getDetailMessages().add(CheckObjectsNumberMessage.NOT_FOUND_DIGITAL_OBJECT_WORKSPACE.getMessage()
                         .concat(uriManifest.toString()));
                 }
             }
@@ -217,7 +220,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
                     countConsistentDigitalObjectFromWorkspace++;
                 } else {
                     response.setStatus(StatusCode.KO);
-                    response.getMessages().add(CheckObjectsNumberMessage.NOT_FOUND_DIGITAL_OBJECT_MANIFEST.getMessage()
+                    response.getDetailMessages().add(CheckObjectsNumberMessage.NOT_FOUND_DIGITAL_OBJECT_MANIFEST.getMessage()
                         .concat(uriWorkspace.toString()));
                 }
 
@@ -228,8 +231,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
             final boolean countConsistent = countConsistentDigitalObjectFromManifest == uriListManifest.size();
 
             if (countOK && countConsistent) {
-                response.setStatus(StatusCode.OK).getMessages()
-                    .add(CheckObjectsNumberMessage.COUNT_DIGITAL_OBJECT_CONSISTENT.getMessage());
+                response.setStatus(StatusCode.OK);
 
             } else {
                 response.setStatus(StatusCode.KO);
@@ -263,8 +265,8 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
 
             if (!uriNotFoundSet.isEmpty()) {
                 for (final String s : uriNotFoundSet) {
-                    if (response != null && response.getMessages() != null) {
-                        response.getMessages().add(s);
+                    if (response != null && response.getOutcomeMessages() != null) {
+                        response.getDetailMessages().add(s);
                     }
                 }
             }

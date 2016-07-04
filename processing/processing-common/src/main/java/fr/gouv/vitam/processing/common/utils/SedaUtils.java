@@ -100,7 +100,6 @@ public class SedaUtils {
     private static final String XML_EXTENSION = ".xml";
     private static final String JSON_EXTENSION = ".json";
     private static final String SEDA_FOLDER = "SIP";
-    private static final String CONTENT_FOLDER = "content";
     private static final String BINARY_DATA_OBJECT = "BinaryDataObject";
     private static final String MESSAGE_IDENTIFIER = "MessageIdentifier";
     private static final String OBJECT_GROUP = "ObjectGroup";
@@ -110,7 +109,6 @@ public class SedaUtils {
     private static final String BINARY_MASTER = "BinaryMaster";
     private static final String FILE_INFO = "FileInfo";
     private static final String METADATA = "Metadata";
-    private static final String DATA_OBJECT_REFERENCEID = "DataObjectReferenceId";
     private static final String DATA_OBJECT_GROUP_REFERENCEID = "DataObjectGroupReferenceId";
     private static final String TAG_URI = "Uri";
     private static final String TAG_SIZE = "Size";
@@ -567,6 +565,7 @@ public class SedaUtils {
                 final ObjectNode qualifiersNode = getObjectGroupQualifiers(categoryMap);
                 objectGroup.set("_qualifiers", qualifiersNode);
                 objectGroup.set("_up", unitParent);
+                objectGroup.put("_nb", entry.getValue().size());
                 tmpFileWriter.write(objectGroup.toString());
                 tmpFileWriter.close();
 
@@ -887,7 +886,7 @@ public class SedaUtils {
         final List<String> listMessages = new ArrayList<>();
 
         extractUriResponse.setUriListManifest(listUri);
-        extractUriResponse.setMessages(listMessages);
+        extractUriResponse.setDetailMessages(listMessages);
 
         // Create the XML input factory
         final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
@@ -925,7 +924,7 @@ public class SedaUtils {
             LOGGER.error(e.getMessage());
             throw new ProcessingException(e);
         } finally {
-            extractUriResponse.setErrorDuplicateUri(!extractUriResponse.getMessages().isEmpty());
+            extractUriResponse.setErrorDuplicateUri(!extractUriResponse.getOutcomeMessages().isEmpty());
         }
         return extractUriResponse;
     }
@@ -970,7 +969,7 @@ public class SedaUtils {
     private void checkDuplicatedUri(ExtractUriResponse extractUriResponse, String uriString) throws URISyntaxException {
 
         if (extractUriResponse.getUriListManifest().contains(new URI(uriString))) {
-            extractUriResponse.getMessages().add(SedaUtils.MSG_DUPLICATE_URI_MANIFEST + uriString);
+            extractUriResponse.getDetailMessages().add(SedaUtils.MSG_DUPLICATE_URI_MANIFEST + uriString);
         }
     }
 
@@ -1033,8 +1032,7 @@ public class SedaUtils {
 
                 if (startElement.getName().getLocalPart() == BINARY_DATA_OBJECT) {
                     event = evenReader.nextEvent();
-                    final Iterator<Attribute> attributes = startElement.getAttributes();
-                    final String id = attributes.next().getValue();
+                    final String id = ((Attribute) startElement.getAttributes().next()).getValue();
                     binaryObjectInfo.setId(id);
 
                     while (evenReader.hasNext()) {
@@ -1054,6 +1052,7 @@ public class SedaUtils {
                             }
 
                             if (tag == TAG_DIGEST) {
+                                binaryObjectInfo.setAlgo(((Attribute) startElement.getAttributes().next()).getValue());
                                 final String messageDigest = evenReader.getElementText();
                                 binaryObjectInfo.setMessageDigest(messageDigest);
                             }
@@ -1159,7 +1158,7 @@ public class SedaUtils {
 
         try {
             reader = xmlInputFactory.createXMLEventReader(xmlFile);
-            digestMessageInvalidList = compareDigestMessage(reader, client);
+            digestMessageInvalidList = compareDigestMessage(reader, client, containerId);
             reader.close();
         } catch (final XMLStreamException e) {
             LOGGER.error("Can not read SEDA");
@@ -1180,23 +1179,22 @@ public class SedaUtils {
      * @throws ContentAddressableStorageServerException
      * @throws ContentAddressableStorageException
      */
-    public List<String> compareDigestMessage(XMLEventReader evenReader, WorkspaceClient client)
-        throws XMLStreamException, URISyntaxException, ContentAddressableStorageNotFoundException,
-        ContentAddressableStorageServerException, ContentAddressableStorageException {
-        final SedaUtilInfo sedaUtilInfo = getBinaryObjectInfo(evenReader);
-        final Map<String, BinaryObjectInfo> binaryObjectMap = sedaUtilInfo.getBinaryObjectMap();
-        final List<String> digestMessageInvalidList = new ArrayList<String>();
 
-        for (final String mapKey : binaryObjectMap.keySet()) {
-            final String uri = binaryObjectMap.get(mapKey).getUri().toString();
-            final String digestMessageManifest = binaryObjectMap.get(mapKey).getMessageDigest();
-            final DigestType algo = binaryObjectMap.get(mapKey).getAlgo();
-            final String digestMessage =
-                client.computeObjectDigest(mapKey, SEDA_FOLDER + "/" + CONTENT_FOLDER + "/" + uri, algo);
-
-            if (digestMessage != digestMessageManifest) {
-                LOGGER.info("Binary object Digest Message Invalid : " + uri);
-                digestMessageInvalidList.add(digestMessageManifest);
+    public List<String> compareDigestMessage(XMLEventReader evenReader, WorkspaceClient client, String containerId) 
+        throws XMLStreamException, URISyntaxException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, ContentAddressableStorageException{
+        SedaUtilInfo sedaUtilInfo = getBinaryObjectInfo(evenReader);
+        Map<String, BinaryObjectInfo> binaryObjectMap = sedaUtilInfo.getBinaryObjectMap();
+        List<String> digestMessageInvalidList = new ArrayList<String>();
+        
+        for (String mapKey : binaryObjectMap.keySet()) {
+            String uri = binaryObjectMap.get(mapKey).getUri().toString();
+            String digestMessageManifest = binaryObjectMap.get(mapKey).getMessageDigest();
+            DigestType algo = binaryObjectMap.get(mapKey).getAlgo();
+            String digestMessage = client.computeObjectDigest(containerId, SEDA_FOLDER + "/" + uri, algo);
+            
+            if(!digestMessage.equals(digestMessageManifest)){
+                LOGGER.info("Binary object Digest Message Invalid : " + uri );
+                digestMessageInvalidList.add(uri);
             } else {
                 LOGGER.info("Binary Object Digest Message Valid : " + uri);
             }

@@ -54,6 +54,7 @@ import org.junit.rules.TemporaryFolder;
 import fr.gouv.vitam.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.client.MetaDataClient;
 import fr.gouv.vitam.client.MetaDataClientFactory;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -267,7 +268,7 @@ public class SedaUtilsTest {
         throws FileNotFoundException, XMLStreamException, URISyntaxException {
         final XMLInputFactory factory = XMLInputFactory.newInstance();
         final XMLEventReader evenReader = factory.createXMLEventReader(
-            new FileReader("src/test/resources/sip.xml"));
+            new FileReader(PropertiesUtils.getResourcesPath("sip.xml").toString()));
         List<String> versionList = new ArrayList<String>();
 
         utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
@@ -286,12 +287,12 @@ public class SedaUtilsTest {
 
         final XMLInputFactory factory = XMLInputFactory.newInstance();
         XMLEventReader evenReader = factory.createXMLEventReader(
-            new FileReader("src/test/resources/sip.xml"));
-        assertEquals(0, utils.compareVersionList(evenReader, "src/test/resources/version.conf").size());
+            new FileReader(PropertiesUtils.getResourcesPath("sip.xml").toString()));
+        assertEquals(0, utils.compareVersionList(evenReader, "version.conf").size());
 
         evenReader = factory.createXMLEventReader(
-            new FileReader("src/test/resources/sip-with-wrong-version.xml"));
-        assertEquals(1, utils.compareVersionList(evenReader, "src/test/resources/version.conf").size());
+            new FileReader(PropertiesUtils.getResourcesPath("sip-with-wrong-version.xml").toString()));
+        assertEquals(1, utils.compareVersionList(evenReader, "version.conf").size());
     }
 
     @Test
@@ -301,11 +302,11 @@ public class SedaUtilsTest {
         ContentAddressableStorageException {
         utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
         when(workspaceClient.computeObjectDigest(anyObject(), anyObject(), anyObject())).thenReturn(DIGESTMESSAGE);
-
-        final XMLInputFactory factory = XMLInputFactory.newInstance();
-        final XMLEventReader evenReader = factory.createXMLEventReader(
-            new FileReader("src/test/resources/sip.xml"));
-        utils.compareDigestMessage(evenReader, workspaceClient);
+        
+        XMLInputFactory factory = XMLInputFactory.newInstance();
+        XMLEventReader evenReader = factory.createXMLEventReader(
+                new FileReader(PropertiesUtils.getResourcesPath("sip.xml").toString()));
+        utils.compareDigestMessage(evenReader, workspaceClient, "");
     }
 
 }

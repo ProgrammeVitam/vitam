@@ -25,13 +25,14 @@ package fr.gouv.vitam.processing.worker.handler;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.List;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
+import fr.gouv.vitam.processing.common.model.OutcomeMessage;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.model.WorkParams;
@@ -69,16 +70,19 @@ public class CheckVersionActionHandler extends ActionHandler {
             params.getServerConfiguration());
         LOGGER.info("CheckVersionActionHandler running ...");
         
-        final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK);
+        final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_OK);
         final SedaUtils sedaUtils = sedaUtilsFactory.create();
 
         try {
-            if (sedaUtils.checkSupportedBinaryObjectVersion(params).size() != 0){
-                response.setStatus(StatusCode.WARNING);
+            
+            List<String> versionInvalidList =sedaUtils.checkSupportedBinaryObjectVersion(params);
+            if (versionInvalidList.size() != 0){
+                response.setDetailMessages(versionInvalidList);
+                response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_KO);
             }
         } catch (ProcessingException | IOException | URISyntaxException e) {
             LOGGER.error(e.getMessage());
-            response.setStatus(StatusCode.FATAL);
+            response.setStatus(StatusCode.FATAL).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_KO);
         }
 
         LOGGER.info("CheckVersionActionHandler response: " + response.getStatus().value());
