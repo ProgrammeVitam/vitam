@@ -66,7 +66,7 @@ public class UnitsJsonUtils {
             hitsNode.put("size", result.getNbResult());
             hitsNode.put("limit", result.getNbResult());
             hitsNode.put("time_out", false);
-            jsonUnitListResponse.set("$hits", hitsNode);
+            jsonUnitListResponse.set("$hint", hitsNode);
             ObjectNode contextNode = JsonHandler.createObjectNode();
             jsonUnitListResponse.set("$context", contextNode);
             if (result.getNbResult() > 0) {

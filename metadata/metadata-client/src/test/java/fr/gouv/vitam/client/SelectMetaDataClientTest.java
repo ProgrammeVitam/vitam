@@ -48,7 +48,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
-import fr.gouv.vitam.api.exception.MetadataInvalidSelectException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 
 /**
@@ -64,6 +64,8 @@ public class SelectMetaDataClientTest extends JerseyTest {
     private static MetaDataClient client;
     private static JunitHelper junitHelper;
     private static int port;
+
+    private static final String QUERY_ID = "{$query: {$eq: {\"data\" : \"data2\" }}, $projection: {}, $filter: {}}";
 
     Supplier<Response> mock;
 
@@ -104,6 +106,15 @@ public class SelectMetaDataClientTest extends JerseyTest {
         public Response selectUnit(String insertRequest) {
             return expectedResponse.get();
         }
+
+
+        @Path("units/{id_unit}")
+        @POST
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response selectUnitbyId(String insertRequest) {
+            return expectedResponse.get();
+        }
     }
 
     @Test(expected = Exception.class)
@@ -124,10 +135,47 @@ public class SelectMetaDataClientTest extends JerseyTest {
         client.selectUnits(QUERY);
     }
 
-    @Test(expected = MetadataInvalidSelectException.class)
+    @Test(expected = InvalidParseOperationException.class)
     public void given_EntityTooLargeRequest_When_Select_ThenReturn_not_acceptable() throws Exception {
-        when(mock.get()).thenReturn(Response.status(Status.NOT_ACCEPTABLE).build());
+        when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         client.selectUnits(QUERY);
+    }
+
+    @Test(expected = InvalidParseOperationException.class)
+    public void given_blankQuery_whenSelectUnit_ThenReturn_MetadataInvalidSelectException() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.NOT_ACCEPTABLE).build());
+        client.selectUnits("");
+    }
+
+    @Test(expected = Exception.class)
+    public void given_internal_server_error_whenSelectUnitById_ThenReturn_internal_server_error() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        client.selectUnitbyId(QUERY_ID, "unitId");
+    }
+
+    @Test(expected = InvalidParseOperationException.class)
+    public void given_blankQuery_whenSelectUnitById_ThenReturn_MetadataInvalidSelectException() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.NOT_ACCEPTABLE).build());
+        client.selectUnitbyId("", "");
+    }
+
+    @Test(expected = Exception.class)
+    public void given_QueryAndBlankUnitId_whenSelectUnitById_ThenReturn_internal_server_error() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.NOT_ACCEPTABLE).build());
+        client.selectUnitbyId(QUERY_ID, "");
+    }
+
+    @Test(expected = MetaDataDocumentSizeException.class)
+    public void given_EntityTooLargeRequest_When_selectUnitById_ThenReturn_RequestEntityTooLarge() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.REQUEST_ENTITY_TOO_LARGE).build());
+        client.selectUnitbyId(QUERY_ID, "unitId");
+    }
+
+
+    @Test(expected = InvalidParseOperationException.class)
+    public void given_InvalidRequest_When_SelectBYiD_ThenReturn_BadRequest() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+        client.selectUnitbyId(QUERY_ID, "unitId");
     }
 
 }

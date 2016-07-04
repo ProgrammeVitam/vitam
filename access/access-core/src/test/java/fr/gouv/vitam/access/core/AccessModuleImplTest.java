@@ -37,7 +37,6 @@ import fr.gouv.vitam.access.common.exception.AccessExecutionException;
 import fr.gouv.vitam.access.config.AccessConfiguration;
 import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.api.exception.MetadataInvalidSelectException;
 import fr.gouv.vitam.client.MetaDataClient;
 import fr.gouv.vitam.client.MetaDataClientFactory;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -127,12 +126,12 @@ public class AccessModuleImplTest {
 
     }
 
-    @Test(expected = MetadataInvalidSelectException.class)
-    public void given__DSLWhen_select_units_ThenThrows_MetadataInvalidSelectException()
+    @Test(expected = InvalidParseOperationException.class)
+    public void given__DSLWhen_select_units_ThenThrows_InvalidParseOperationException()
         throws Exception {
         when(metaDataClient.selectUnits(anyObject())).thenReturn(JsonHandler.createObjectNode());
         when(metaDataClientFactory.create(anyObject())).thenReturn(metaDataClient);
-        Mockito.doThrow(new MetadataInvalidSelectException("")).when(metaDataClient).selectUnits(QUERY);
+        Mockito.doThrow(new InvalidParseOperationException("")).when(metaDataClient).selectUnits(QUERY);
         accessModuleImpl = new AccessModuleImpl(metaDataClientFactory, conf);
         accessModuleImpl.selectUnit(QUERY);
     }

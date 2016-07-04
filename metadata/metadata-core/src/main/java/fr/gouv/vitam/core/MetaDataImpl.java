@@ -35,7 +35,7 @@ import fr.gouv.vitam.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.api.exception.MetadataInvalidSelectException;
+import fr.gouv.vitam.builder.request.construct.Request;
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -58,7 +58,6 @@ public final class MetaDataImpl implements MetaData {
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(MetaDataImpl.class);
 
-    private static final String MUST_BE_SELECT_PARSER = "Must be select request type when searching metadata";
     private static final String REQUEST_IS_NULL = "Request select is null or is empty";
 
     /**
@@ -78,7 +77,9 @@ public final class MetaDataImpl implements MetaData {
     }
 
     @Override
-    public void insertUnit(JsonNode insertRequest) throws InvalidParseOperationException, MetaDataDocumentSizeException, MetaDataExecutionException, MetaDataAlreadyExistException, MetaDataNotFoundException {
+    public void insertUnit(JsonNode insertRequest)
+        throws InvalidParseOperationException, MetaDataDocumentSizeException, MetaDataExecutionException,
+        MetaDataAlreadyExistException, MetaDataNotFoundException {
         Result result = null;
         try {
             GlobalDatasParser.sanityRequestCheck(insertRequest.toString());
@@ -106,7 +107,9 @@ public final class MetaDataImpl implements MetaData {
     }
 
     @Override
-    public void insertObjectGroup(JsonNode objectGroupRequest) throws InvalidParseOperationException, MetaDataDocumentSizeException, MetaDataExecutionException, MetaDataAlreadyExistException, MetaDataNotFoundException {
+    public void insertObjectGroup(JsonNode objectGroupRequest)
+        throws InvalidParseOperationException, MetaDataDocumentSizeException, MetaDataExecutionException,
+        MetaDataAlreadyExistException, MetaDataNotFoundException {
         Result result = null;
 
         try {
@@ -117,7 +120,7 @@ public final class MetaDataImpl implements MetaData {
 
         try {
             InsertParser insertParser = new InsertParser(new MongoDbVarNameAdapter());
-            insertParser.parse(objectGroupRequest);            
+            insertParser.parse(objectGroupRequest);
             insertParser.getRequest().addHintFilter(ParserTokens.FILTERARGS.OBJECTGROUPS.exactToken());
             result = dbRequestFactory.create().execRequest(insertParser, result);
         } catch (final InvalidParseOperationException e) {
@@ -135,15 +138,32 @@ public final class MetaDataImpl implements MetaData {
 
     @Override
     public JsonNode selectUnitsByQuery(String selectQuery)
-        throws MetaDataExecutionException, InvalidParseOperationException, MetadataInvalidSelectException,
+        throws MetaDataExecutionException, InvalidParseOperationException,
         MetaDataDocumentSizeException {
-        LOGGER.info("MetaDataImpl / Begin selectUnitsByQuery ...");
-        LOGGER.debug("MetaDataImpl /selectUnitsByQuery/ selectQuery: " + selectQuery);
+        LOGGER.info("Begin selectUnitsByQuery ...");
+        LOGGER.debug("SelectUnitsByQuery/ selectQuery: " + selectQuery);
+        return selectUnit(selectQuery, null);
 
+    }
+
+    @Override
+    public JsonNode selectUnitsById(String selectQuery, String unitId)
+        throws InvalidParseOperationException, MetaDataExecutionException,
+        MetaDataDocumentSizeException {
+        LOGGER.info("Begin selectUnitsById .../id:" + unitId);
+        LOGGER.debug("SelectUnitsById/ selectQuery: " + selectQuery);
+        return selectUnit(selectQuery, unitId);
+    }
+
+
+
+    private JsonNode selectUnit(String selectQuery, String unitId)
+        throws MetaDataExecutionException, InvalidParseOperationException,
+        MetaDataDocumentSizeException {
         Result result = null;
         JsonNode jsonNodeResponse;
         if (StringUtils.isEmpty(selectQuery)) {
-            throw new MetadataInvalidSelectException(REQUEST_IS_NULL);
+            throw new InvalidParseOperationException(REQUEST_IS_NULL);
         }
         try {
             // sanity check:InvalidParseOperationException will be thrown if request select invalid or size is too large
@@ -151,17 +171,19 @@ public final class MetaDataImpl implements MetaData {
         } catch (InvalidParseOperationException eInvalidParseOperationException) {
             throw new MetaDataDocumentSizeException(eInvalidParseOperationException);
         }
-
-
-        // parse Select request
-        RequestParser selectRequest = new SelectParser();
-        selectRequest.parse(selectQuery);
-        // check query type: must be instance of Select
-        if (!(selectRequest instanceof SelectParser)) {
-            throw new MetadataInvalidSelectException(MUST_BE_SELECT_PARSER);
-        }
-
         try {
+            // parse Select request
+            RequestParser selectRequest = new SelectParser();
+            selectRequest.parse(selectQuery);
+            // Reset $roots (add or override unit_id on roots)
+            if (unitId != null && !unitId.isEmpty()) {
+                Request request = selectRequest.getRequest();
+                if (request != null) {
+                    LOGGER.debug("Reset $roots unit_id by :" + unitId);
+                    request.resetRoots().addRoots(unitId);
+                }
+            }
+            // Execute DSL request
             result = dbRequestFactory.create().execRequest(selectRequest, result);
             jsonNodeResponse = UnitsJsonUtils.populateJSONObjectResponse(result, selectRequest);
 
@@ -184,7 +206,5 @@ public final class MetaDataImpl implements MetaData {
         }
         return jsonNodeResponse;
     }
-
-
 
 }

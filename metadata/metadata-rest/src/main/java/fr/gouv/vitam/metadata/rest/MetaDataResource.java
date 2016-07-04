@@ -31,6 +31,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -43,7 +44,6 @@ import fr.gouv.vitam.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.api.exception.MetadataInvalidSelectException;
 import fr.gouv.vitam.api.model.RequestResponseError;
 import fr.gouv.vitam.api.model.RequestResponseOK;
 import fr.gouv.vitam.api.model.VitamError;
@@ -61,6 +61,11 @@ import fr.gouv.vitam.core.database.collections.DbRequest;
 @Path("/metadata/v1")
 public class MetaDataResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetaDataResource.class);
+
+    private static final String X_HTTP_METHOD = "X-Http-Method-Override";
+
+
+
     private final MetaDataImpl metaDataImpl;
 
     /**
@@ -87,15 +92,16 @@ public class MetaDataResource {
 
     /**
      * Insert or Select unit with json request
-     * @throws MetaDataDocumentSizeException 
-     * @throws MetaDataExecutionException 
+     * 
+     * @throws MetaDataDocumentSizeException
+     * @throws MetaDataExecutionException
      */
 
     @Path("units")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response insertOrSelectUnit(String request, @HeaderParam("X-Http-Method-Override") String xhttpOverride) throws MetaDataExecutionException, MetaDataDocumentSizeException {
+    public Response insertOrSelectUnit(String request, @HeaderParam(X_HTTP_METHOD) String xhttpOverride) {
 
         if (xhttpOverride != null) {
             if ("GET".equals(xhttpOverride)) {
@@ -115,7 +121,7 @@ public class MetaDataResource {
     private Response insertUnit(String insertRequest) {
         Status status;
         JsonNode queryJson;
-        
+
         try {
             queryJson = JsonHandler.getFromString(insertRequest);
             metaDataImpl.insertUnit(queryJson);
@@ -188,26 +194,15 @@ public class MetaDataResource {
      * 
      * @param selectRequest
      * @return
-     * @throws MetaDataDocumentSizeException 
-     * @throws MetaDataExecutionException 
+     * @throws MetaDataDocumentSizeException
+     * @throws MetaDataExecutionException
+     * @throws InvalidParseOperationException
      */
-    private Response selectUnitsByQuery(String selectRequest) throws MetaDataExecutionException, MetaDataDocumentSizeException {
+    private Response selectUnitsByQuery(String selectRequest) {
         Status status;
         JsonNode jsonResultNode;
         try {
             jsonResultNode = metaDataImpl.selectUnitsByQuery(selectRequest);
-
-        } catch (MetadataInvalidSelectException e) {
-            LOGGER.error(e.getMessage());
-            status = Status.NOT_ACCEPTABLE;
-            return Response.status(status)
-                .entity(new RequestResponseError().setError(
-                    new VitamError(status.getStatusCode())
-                        .setContext("ACCESS")
-                        .setState("code_vitam")
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase())))
-                .build();
 
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e.getMessage());
@@ -220,24 +215,133 @@ public class MetaDataResource {
                         .setMessage(status.getReasonPhrase())
                         .setDescription(status.getReasonPhrase())))
                 .build();
+
+        } catch (final MetaDataExecutionException e) {
+            LOGGER.error(e.getMessage());
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                .entity(new RequestResponseError().setError(
+                    new VitamError(status.getStatusCode())
+                        .setContext("ACCESS")
+                        .setState("code_vitam")
+                        .setMessage(status.getReasonPhrase())
+                        .setDescription(status.getReasonPhrase())))
+                .build();
+        } catch (final MetaDataDocumentSizeException e) {
+            LOGGER.error(e.getMessage());
+            status = Status.REQUEST_ENTITY_TOO_LARGE;
+            return Response.status(status)
+                .entity(new RequestResponseError().setError(
+                    new VitamError(status.getStatusCode())
+                        .setContext("ACCESS")
+                        .setState("code_vitam")
+                        .setMessage(status.getReasonPhrase())
+                        .setDescription(status.getReasonPhrase())))
+                .build();
+
         }
-        return Response.status(Status.FOUND).entity(jsonResultNode).build();        
+
+        return Response.status(Status.FOUND).entity(jsonResultNode).build();
     }
-                        
-                        
-    /**                    
+
+    /**
+     * Select unit by query and path parameter unit_id
+     * 
+     * @param selectRequest
+     * @param unitId
+     * @return {@link Response} will be contains an json filled by unit result
+     * @see #entity(java.lang.Object, java.lang.annotation.Annotation[])
+     * @see #type(javax.ws.rs.core.MediaType)
+     */
+    @Path("units/{id_unit}")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response selectUnitById(String selectRequest, @PathParam("id_unit") String unitId,
+        @HeaderParam(X_HTTP_METHOD) String xhttpOverride) {
+        if (!"GET".equals(xhttpOverride)) {
+            return Response.status(Status.METHOD_NOT_ALLOWED).build();
+        }
+        return selectUnitById(selectRequest, unitId);
+    }
+
+    /**
+     * 
+     * @param selectRequest
+     * @param unitId
+     * @return {@link Response} will be contains an json filled by unit result
+     * @see #entity(java.lang.Object, java.lang.annotation.Annotation[])
+     * @see #type(javax.ws.rs.core.MediaType)
+     */
+    @Path("units/{id_unit}")
+    @GET
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getUnitById(String selectRequest, @PathParam("id_unit") String unitId) {
+        return selectUnitById(selectRequest, unitId);
+    }
+
+    /**
+     * Select unit by request and unit id
+     */
+    private Response selectUnitById(String selectRequest, String unitId) {
+        Status status;
+        JsonNode jsonResultNode;
+        try {
+            jsonResultNode = metaDataImpl.selectUnitsById(selectRequest, unitId);
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(e.getMessage());
+            status = Status.BAD_REQUEST;
+            return Response.status(status)
+                .entity(new RequestResponseError().setError(
+                    new VitamError(status.getStatusCode())
+                        .setContext("ACCESS")
+                        .setState("code_vitam")
+                        .setMessage(status.getReasonPhrase())
+                        .setDescription(status.getReasonPhrase())))
+                .build();
+        } catch (final MetaDataExecutionException e) {
+            LOGGER.error(e.getMessage());
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                .entity(new RequestResponseError().setError(
+                    new VitamError(status.getStatusCode())
+                        .setContext("ACCESS")
+                        .setState("code_vitam")
+                        .setMessage(status.getReasonPhrase())
+                        .setDescription(status.getReasonPhrase())))
+                .build();
+        } catch (final MetaDataDocumentSizeException e) {
+            LOGGER.error(e.getMessage());
+            status = Status.REQUEST_ENTITY_TOO_LARGE;
+            return Response.status(status)
+                .entity(new RequestResponseError().setError(
+                    new VitamError(status.getStatusCode())
+                        .setContext("ACCESS")
+                        .setState("code_vitam")
+                        .setMessage(status.getReasonPhrase())
+                        .setDescription(status.getReasonPhrase())))
+                .build();
+        }
+        return Response.status(Status.FOUND).entity(jsonResultNode).build();
+    }
+
+
+    /**
      * Create unit with json request
-     * @throws InvalidParseOperationException 
+     * 
+     * @throws InvalidParseOperationException
      */
     @Path("objectgroups")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+
     public Response insertObjectGroup(String insertRequest) throws InvalidParseOperationException {
         Status status;
         JsonNode queryJson;
         try {
-            queryJson = JsonHandler.getFromString(insertRequest);          
+            queryJson = JsonHandler.getFromString(insertRequest);
             metaDataImpl.insertObjectGroup(queryJson);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e.getMessage());
@@ -301,5 +405,5 @@ public class MetaDataResource {
                 .setHits(1, 0, 1)
                 .setQuery(queryJson))
             .build();
-    }    
+    }
 }

@@ -40,7 +40,6 @@ import fr.gouv.vitam.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.api.exception.MetadataInvalidSelectException;
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.FILTERARGS;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -75,14 +74,15 @@ public class MetaDataImplTest {
             "$orderby : { maclef1 : 1 , maclef2 : -1,  maclef3 : 1 } }," +
             "$projection : {$fields : {#dua : 1, #all : 1}, $usage : 'abcdef1234' } }";
 
-    private static final JsonNode buildQueryJsonWithOptions(String query, String data) throws InvalidParseOperationException {
+    private static final JsonNode buildQueryJsonWithOptions(String query, String data)
+        throws InvalidParseOperationException {
         return JsonHandler.getFromString(new StringBuilder()
             .append("{ $roots : [ '' ], ")
             .append("$query : [ " + query + " ], ")
             .append("$data : " + data + " }")
             .toString());
     }
-    
+
     private static String createLongString(int size) {
         final StringBuilder sb = new StringBuilder(size);
         for (int i = 0; i < size; i++) {
@@ -109,7 +109,7 @@ public class MetaDataImplTest {
         metaDataImpl = new MetaDataImpl(null, mongoDbAccessFactory, dbRequestFactory);
         metaDataImpl.insertUnit(buildQueryJsonWithOptions("", dataInsert));
     }
-    
+
     @Test(expected = InvalidParseOperationException.class)
     public void givenInsertObjectGroupWhenDuplicateEntryThenThrowMetaDataAlreadyExistException() throws Exception {
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new InvalidParseOperationException(""));
@@ -117,7 +117,7 @@ public class MetaDataImplTest {
         metaDataImpl = new MetaDataImpl(null, mongoDbAccessFactory, dbRequestFactory);
         metaDataImpl.insertObjectGroup(buildQueryJsonWithOptions("", dataInsert));
     }
-    
+
 
     @Test(expected = MetaDataExecutionException.class)
     public void givenInsertUnitWhenInstantiationExceptionThenThrowMetaDataExecutionException() throws Exception {
@@ -126,7 +126,7 @@ public class MetaDataImplTest {
         metaDataImpl = new MetaDataImpl(null, mongoDbAccessFactory, dbRequestFactory);
         metaDataImpl.insertUnit(buildQueryJsonWithOptions("", dataInsert));
     }
-    
+
     @Test(expected = MetaDataExecutionException.class)
     public void givenInsertObjectGroupWhenInstantiationExceptionThenThrowMetaDataExecutionException() throws Exception {
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new InstantiationException());
@@ -134,7 +134,7 @@ public class MetaDataImplTest {
         metaDataImpl = new MetaDataImpl(null, mongoDbAccessFactory, dbRequestFactory);
         metaDataImpl.insertObjectGroup(buildQueryJsonWithOptions("", dataInsert));
     }
-    
+
     @Test(expected = MetaDataAlreadyExistException.class)
     public void givenInsertUnitWhenMongoWriteErrorThenThrowMetaDataExecutionException() throws Exception {
         final MongoWriteException error =
@@ -154,7 +154,7 @@ public class MetaDataImplTest {
         metaDataImpl = new MetaDataImpl(null, mongoDbAccessFactory, dbRequestFactory);
         metaDataImpl.insertObjectGroup(buildQueryJsonWithOptions("", dataInsert));
     }
-    
+
     @Test(expected = MetaDataExecutionException.class)
     public void givenInsertUnitWhenIllegalAccessExceptionThenThrowMetaDataExecutionException() throws Exception {
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new IllegalAccessException());
@@ -170,7 +170,7 @@ public class MetaDataImplTest {
         metaDataImpl = new MetaDataImpl(null, mongoDbAccessFactory, dbRequestFactory);
         metaDataImpl.insertObjectGroup(buildQueryJsonWithOptions("", dataInsert));
     }
-    
+
     @Test(expected = MetaDataDocumentSizeException.class)
     public void givenInsertUnitWhenStringTooLongThenThrowMetaDataDocumentSizeException() throws Exception {
         metaDataImpl = new MetaDataImpl(null, mongoDbAccessFactory, dbRequestFactory);
@@ -187,8 +187,8 @@ public class MetaDataImplTest {
         String bigData = "{ \"data\": \"" + createLongString(1001) + "\" }";
         metaDataImpl.insertObjectGroup(buildQueryJsonWithOptions("", bigData));
         GlobalDatasParser.limitRequest = GlobalDatasParser.DEFAULT_LIMIT_REQUEST;
-    }   
-    
+    }
+
     @Test(expected = MetaDataNotFoundException.class)
     public void givenInsertUnitWhenParentNotFoundThenThrowMetaDataNotFoundException() throws Exception {
         when(request.execRequest(anyObject(), anyObject())).thenReturn(new ResultError(FILTERARGS.UNITS));
@@ -237,11 +237,12 @@ public class MetaDataImplTest {
         metaDataImpl.selectUnitsByQuery(QUERY);
     }
 
-    @Test(expected = MetadataInvalidSelectException.class)
+    @Test(expected = InvalidParseOperationException.class)
     public void given_empty_query_When_IllegalAccessException_ThenThrow_MetaDataExecutionException() throws Exception {
         metaDataImpl = new MetaDataImpl(null, mongoDbAccessFactory, dbRequestFactory);
         metaDataImpl.selectUnitsByQuery("");
     }
+
 
     @Test(expected = MetaDataNotFoundException.class)
     public void givenInsertObjectGroupWhenParentNotFoundThenThrowMetaDataNotFoundException() throws Exception {
@@ -250,4 +251,11 @@ public class MetaDataImplTest {
         metaDataImpl = new MetaDataImpl(null, mongoDbAccessFactory, dbRequestFactory);
         metaDataImpl.insertObjectGroup(buildQueryJsonWithOptions("", dataInsert));
     }
+
+    @Test(expected = InvalidParseOperationException.class)
+    public void given_empty_query_When_selectUnitById_ThenThrow_MetaDataExecutionException() throws Exception {
+        metaDataImpl = new MetaDataImpl(null, mongoDbAccessFactory, dbRequestFactory);
+        metaDataImpl.selectUnitsById("", "unitId");
+    }
+
 }

@@ -29,7 +29,6 @@ import fr.gouv.vitam.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.api.exception.MetadataInvalidSelectException;
 import fr.gouv.vitam.builder.request.construct.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
@@ -62,13 +61,33 @@ public interface MetaData {
      *         $context will be added later (Access)</br>
      *         $result array of units(can be empty)
      * @throws InvalidParseOperationException Thrown when json format is not correct
-     * @throws MetadataInvalidSelectException Thrown when json format is correct but is not select
      * @throws MetaDataExecutionException Throw if error occurs when send Unit to database
      * @throws MetaDataDocumentSizeException Throw if Unit size is too big
      * 
      */
     public JsonNode selectUnitsByQuery(String selectQuery)
-        throws InvalidParseOperationException, MetadataInvalidSelectException, MetaDataExecutionException,
+        throws InvalidParseOperationException, MetaDataExecutionException,
+        MetaDataDocumentSizeException;
+
+    /**
+     * Search UNITs by Id {@link Select}Query <br>
+     * for this method, the roots will be filled<br>
+     * for example request :{
+     * <h3>$roots:[{id:"id"}]</h3>,<br>
+     * $query{}, ..}
+     *
+     * @param selectQuery
+     * @param unitId
+     * @return JsonNode {$hits{},$context{},$result:[{}....{}],} <br>
+     *         $context will be added later (Access)</br>
+     *         $result array of units(can be empty)
+     * @throws InvalidParseOperationException Thrown when json format is not correct
+     * @throws MetaDataExecutionException Throw if error occurs when send Unit to database
+     * @throws MetaDataDocumentSizeException Throw if Unit size is too big
+     * 
+     */
+    public JsonNode selectUnitsById(String selectQuery, String unitId)
+        throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataDocumentSizeException;
 
     /**

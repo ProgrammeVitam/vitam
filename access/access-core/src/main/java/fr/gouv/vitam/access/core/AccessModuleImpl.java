@@ -117,10 +117,8 @@ public class AccessModuleImpl implements AccessModule {
         } catch (final InvalidParseOperationException e) {
             LOGGER.error("parsing error", e);
             throw e;
-        } catch (final MetadataInvalidSelectException e) {
-            LOGGER.error("invalid select", e);
-            throw e;
-        } catch (final MetaDataDocumentSizeException e) {
+
+        } catch (MetaDataDocumentSizeException e) {
             LOGGER.error("document size problem", e);
             throw e;
         } catch (final MetaDataExecutionException e) {
