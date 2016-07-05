@@ -43,9 +43,9 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.glassfish.jersey.test.TestProperties;
+import org.junit.Ignore;
 import org.junit.Test;
 
-import fr.gouv.vitam.access.client.AccessClientRest;
 import fr.gouv.vitam.access.common.exception.AccessClientNotFoundException;
 import fr.gouv.vitam.access.common.exception.AccessClientServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -61,7 +61,7 @@ public class AccessClientRestTest extends JerseyTest {
             " $filter : { $orderby : { '#id' } }," +
             " $projection : {$fields : {#id : 1, title:2, transacdate:1}}" +
             " }";
-
+    final String ID = "identfier1";
 
     protected ExpectedResults mock;
 
@@ -140,6 +140,63 @@ public class AccessClientRestTest extends JerseyTest {
         assertThat(client.selectUnits("")).isNotNull();
 
     }
+    // Select Unit By Id
 
+    @Ignore
+    @Test(expected = AccessClientServerException.class)
+    public void givenInternalServerError_whenSelectById_ThenRaiseAnExeption() throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        final String queryDsql =
+            "{ $query : [ { $eq : { 'title' : 'test' } } ], " +
+                " $filter : { $orderby : { '#id' } }," +
+                " $projection : {$fields : {#id : 1, title:2, transacdate:1}}" +
+                " }";
+
+        assertThat(client.selectUnitbyId(queryDsql, ID)).isNotNull();
+    }
+
+    @Test(expected = AccessClientNotFoundException.class)
+    public void givenRessourceNotFound_whenSelectUnitById_ThenRaiseAnException()
+        throws AccessClientNotFoundException, AccessClientServerException, InvalidParseOperationException {
+        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        final String queryDsql =
+            "{ $query : [ { $eq : { 'title' : 'test' } } ], " +
+                " $filter : { $orderby : { '#id' } }," +
+                " $projection : {$fields : {#id : 1, title:2, transacdate:1}}" +
+                " }";
+
+        assertThat(client.selectUnitbyId(queryDsql, ID)).isNotNull();
+    }
+
+    @Test(expected = AccessClientNotFoundException.class)
+    public void givenBadRequest_whenSelectUnitById_ThenRaiseAnException()
+        throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException {
+        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+        assertThat(client.selectUnitbyId(queryDsql, ID)).isNotNull();
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void givenRequestBlank_whenSelectUnitById_ThenRaiseAnException()
+        throws IllegalArgumentException, AccessClientServerException, AccessClientNotFoundException,
+        InvalidParseOperationException {
+        assertThat(client.selectUnitbyId("", "")).isNotNull();
+
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void givenIDBlank_whenSelectUnitById_ThenRaiseAnException()
+        throws IllegalArgumentException, AccessClientServerException, AccessClientNotFoundException,
+        InvalidParseOperationException {
+        assertThat(client.selectUnitbyId(queryDsql, "")).isNotNull();
+
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void givenrEQUESTBlank_IDFilledwhenSelectUnitById_ThenRaiseAnException()
+        throws IllegalArgumentException, AccessClientServerException, AccessClientNotFoundException,
+        InvalidParseOperationException {
+        assertThat(client.selectUnitbyId("", ID)).isNotNull();
+
+    }
 
 }

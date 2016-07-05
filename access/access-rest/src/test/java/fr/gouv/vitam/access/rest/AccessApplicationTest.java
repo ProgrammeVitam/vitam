@@ -136,6 +136,22 @@ public class AccessApplicationTest extends JerseyTest {
         assertEquals(200, response.getStatus());
     }
 
+    @Ignore
+    @Test
+    public void shouldExecuteGetUnitByIdServiceRest() throws URISyntaxException {
+        webTarget = client.target(new URI(getBaseUri() + "accessMock/units/xyz"));
+        Invocation.Builder builder = webTarget.request();
+
+        UnitRequestDTO statusRequestDTO = new UnitRequestDTO("queryDsl");
+        Entity<UnitRequestDTO> entity = Entity.json(statusRequestDTO);
+        Response response = builder.post(entity);
+
+        String status = response.readEntity(String.class);
+        assertNotNull(response);
+        assertEquals(200, response.getStatus());
+    }
+
+
     @Test(expected = IllegalStateException.class)
     public void shouldRaiseAnException_WhenExecuteMainWithEmptyArgs() throws Exception {
         AccessApplication.main(new String[0]);

@@ -28,10 +28,12 @@ import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 
 import fr.gouv.vitam.access.api.AccessResource;
+import fr.gouv.vitam.common.GlobalDataRest;
 
 /**
  * Using the Mock Class in order to simulate Access Client Resource if config file does not exist
@@ -67,7 +69,19 @@ public class AccessResourceMock implements AccessResource {
     @Override
     @POST
     @Path("/units")
-    public Response getUnits(String requestDsl, @HeaderParam("X-HTTP-Method-Override") String headerParam) {
+    public Response getUnits(String dslQuery,
+        @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String headerParam) {
         return Response.status(200).entity("{\"unit\" = \"OK_MockUnits\"}").build();
     }
+
+    /**
+     * get unit list by unit id
+     */
+    @POST
+    @Path("/units/{id_unit}")
+    public Response getUnitById(String dslQuery,
+        @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String headerParam, @PathParam("id_unit") String id_unit) {
+        return Response.status(200).entity("{\"unit\" = \"OK_MockUnits\"}").build();
+    }
+
 }

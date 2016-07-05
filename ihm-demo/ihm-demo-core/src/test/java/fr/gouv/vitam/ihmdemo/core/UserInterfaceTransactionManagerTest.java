@@ -70,7 +70,7 @@ public class UserInterfaceTransactionManagerTest {
 	public void testGetArchiveUnitDetails()
 			throws AccessClientServerException, AccessClientNotFoundException, InvalidParseOperationException {
 		// TODO : use PowerMockito to mock final classes and static methods
-		when(accessClient.selectUnitById(DSL_QUERY, ID_UNIT)).thenReturn(unitDetails);
+		when(accessClient.selectUnitbyId(DSL_QUERY, ID_UNIT)).thenReturn(unitDetails);
 
 		// test method
 		JsonNode archiveDetails = UserInterfaceTransactionManager.getArchiveUnitDetails(DSL_QUERY, ID_UNIT);

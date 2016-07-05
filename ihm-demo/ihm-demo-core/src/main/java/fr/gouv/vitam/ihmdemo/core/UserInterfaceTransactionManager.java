@@ -81,6 +81,6 @@ public class UserInterfaceTransactionManager {
 	 */
 	public static JsonNode getArchiveUnitDetails(String preparedDslQuery, String unitId)
 			throws AccessClientServerException, AccessClientNotFoundException, InvalidParseOperationException {
-		return ACCESS_CLIENT.selectUnitById(preparedDslQuery, unitId);
+		return ACCESS_CLIENT.selectUnitbyId(preparedDslQuery, unitId);
 	}
 }

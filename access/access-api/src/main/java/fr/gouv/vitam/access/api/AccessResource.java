@@ -33,12 +33,23 @@ public interface AccessResource {
     /**
      * gets archive units with Json query
      *
-     * @param requestDsl generated query by DSK, null not allowed
+     * @param queryNode, null not allowed
      * @param headerParam X-HTTP-Method-Override header
      * @return a archive unit result list
      */
 
-    public Response getUnits(String requestDsl, String headerParam);
+    public Response getUnits(String dslQuery, String headerParam);
+
+    /**
+     * gets archive units by Id with Json query
+     * 
+     * @param queryNode DSK, null not allowed
+     * @param headerParam X-HTTP-Method-Override header
+     * @param unit_id units identifier
+     * @return a archive unit result list
+     */
+
+    public Response getUnitById(String dslQuery, String headerParam, String unit_id);
 
     /**
      * Returns a response status

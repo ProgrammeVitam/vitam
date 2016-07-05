@@ -35,11 +35,7 @@ import static org.junit.Assert.fail;
 import org.junit.Before;
 import org.junit.Test;
 
-import fr.gouv.vitam.access.client.AccessClient;
-import fr.gouv.vitam.access.client.AccessClientFactory;
 import fr.gouv.vitam.access.client.AccessClientFactory.AccessClientType;
-import fr.gouv.vitam.access.client.AccessClientMock;
-import fr.gouv.vitam.access.client.AccessClientRest;
 
 /**
  * Test class for client (and parameters) factory
@@ -118,5 +114,4 @@ public class AccessClientFactoryTest {
         assertNotNull(type);
         assertEquals(AccessClientType.PRODUCTION, type);
     }
-
 }

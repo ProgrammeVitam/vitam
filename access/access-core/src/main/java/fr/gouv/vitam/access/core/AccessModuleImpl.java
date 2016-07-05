@@ -31,17 +31,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.access.api.AccessModule;
 import fr.gouv.vitam.access.common.exception.AccessExecutionException;
-import fr.gouv.vitam.access.common.model.AccessModuleBean;
 import fr.gouv.vitam.access.config.AccessConfiguration;
-import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
-import fr.gouv.vitam.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.api.exception.MetadataInvalidSelectException;
 import fr.gouv.vitam.client.MetaDataClient;
 import fr.gouv.vitam.client.MetaDataClientFactory;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.guid.GUID;
-import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.parser.request.parser.GlobalDatasParser;
+import fr.gouv.vitam.parser.request.parser.SelectParser;
 
 /**
  * AccessModuleImpl implements AccessModule
@@ -55,6 +50,10 @@ public class AccessModuleImpl implements AccessModule {
     private MetaDataClientFactory metaDataClientFactory;
 
     private MetaDataClient metaDataClient;
+    private static final String BLANK_REQUEST = "the request is blank";
+    private static final String SANITY_CHECK_FAILED = "Sanity Check Failed ";
+    private static final String ID_CHECK_FAILED = "the unit_id should be filled";
+
 
     /**
      * AccessModuleImpl constructor
@@ -84,26 +83,66 @@ public class AccessModuleImpl implements AccessModule {
      * @param selectRequest as String { $query : query}
      * @throws InvalidParseOperationException Throw if json format is not correct
      * @throws AccessExecutionException Throw if error occurs when send Unit to database
-     * @throws MetadataInvalidSelectException
-     * @throws MetaDataDocumentSizeException
      */
     @Override
-    public JsonNode selectUnit(String selectRequest)
-        throws IllegalArgumentException, InvalidParseOperationException, AccessExecutionException,
-        MetadataInvalidSelectException, MetaDataDocumentSizeException {
+    public JsonNode selectUnit(JsonNode jsonQuery)
+        throws IllegalArgumentException, InvalidParseOperationException, AccessExecutionException {
 
-        if (StringUtils.isBlank(selectRequest)) {
-            throw new IllegalArgumentException("the request is blank");
-        }
-        final GUID guid = GUIDFactory.newGUID();
-
-        final AccessModuleBean accessModuleBean = new AccessModuleBean(selectRequest, guid);
         JsonNode jsonNode = null;
 
         try {
-            GlobalDatasParser.sanityRequestCheck(selectRequest);
+            GlobalDatasParser.sanityRequestCheck(jsonQuery.toString());
+            SelectParser parser = new SelectParser();
+            parser.parse(jsonQuery);
         } catch (final InvalidParseOperationException e) {
             throw new IllegalArgumentException(e);
+        }
+        try {
+            if (metaDataClientFactory == null) {
+                metaDataClientFactory = new MetaDataClientFactory();
+            }
+            metaDataClient = metaDataClientFactory.create(accessConfiguration.getUrlMetaData());
+
+            jsonNode = metaDataClient.selectUnits(jsonQuery.toString());
+
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error("parsing error", e);
+            throw e;
+        } catch (IllegalArgumentException e) {
+            LOGGER.error("illegal argument", e);
+            throw e;
+        } catch (Exception e) {
+            LOGGER.error("exeption thrown", e);
+            throw new AccessExecutionException(e);
+        }
+        return jsonNode;
+    }
+
+    /**
+     * select Unit by Id
+     *
+     * @param selectRequest as String { $query : query}
+     * @param unit_id as String
+     * @throws IllegalARgumentException Throw if json format is not correct
+     * @throws AccessExecutionException Throw if error occurs when send Unit to database
+     */
+
+
+    @Override
+    public JsonNode selectUnitbyId(JsonNode jsonQuery, String unit_id)
+        throws IllegalArgumentException, InvalidParseOperationException, AccessExecutionException {
+        JsonNode jsonNode = null;
+
+        if (StringUtils.isEmpty(unit_id)) {
+            throw new IllegalArgumentException(ID_CHECK_FAILED);
+        }
+
+        try {
+            GlobalDatasParser.sanityRequestCheck(jsonQuery.toString());
+            SelectParser parser = new SelectParser();
+            parser.parse(jsonQuery);
+        } catch (final InvalidParseOperationException e) {
+            throw new IllegalArgumentException(SANITY_CHECK_FAILED, e);
         }
         try {
 
@@ -112,22 +151,15 @@ public class AccessModuleImpl implements AccessModule {
             }
             metaDataClient = metaDataClientFactory.create(accessConfiguration.getUrlMetaData());
 
-            jsonNode = metaDataClient.selectUnits(accessModuleBean.getRequestDsl());
+            jsonNode = metaDataClient.selectUnitbyId(jsonQuery.toString(), unit_id);
 
         } catch (final InvalidParseOperationException e) {
             LOGGER.error("parsing error", e);
             throw e;
-
-        } catch (MetaDataDocumentSizeException e) {
-            LOGGER.error("document size problem", e);
-            throw e;
-        } catch (final MetaDataExecutionException e) {
-            LOGGER.error("metadata execution problem", e);
-            throw new AccessExecutionException(e);
-        } catch (final IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             LOGGER.error("illegal argument", e);
             throw e;
-        } catch (final Exception e) {
+        } catch (Exception e) {
             LOGGER.error("exeption thrown", e);
             throw new AccessExecutionException(e);
         }

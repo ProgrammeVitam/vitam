@@ -38,19 +38,18 @@ import fr.gouv.vitam.common.json.JsonHandler;
  */
 public class AccessClientMock implements AccessClient {
 
-	@Override
-	public JsonNode selectUnits(String selectQuery)
-			throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException {
-		return JsonHandler.createObjectNode();
-	}
+    @Override
+    public JsonNode selectUnits(String selectQuery)
+        throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException {
+        return JsonHandler.getFromString(
+            "{$hint: {'total':'1'}, $result:[{'_id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}");
+    }
 
-	@Override
-	public JsonNode selectUnitById(String sqlQuery, String id)
-			throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException {
-		// TODO: to replace by a call to METADATA to get result
-		return JsonHandler.getFromString(
-				"{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\",\" Title\": \"Annuaire_\", \"DescriptionLevel\": \"Annuaire de test\", "
-						+ "\"TransactedDate\": \"15-12-2016\"}");
-
-	}
+    @Override
+    public JsonNode selectUnitbyId(String sqlQuery, String id)
+        throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException {
+        return JsonHandler.getFromString(
+            "{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\",\" Title\": \"Annuaire_\", \"DescriptionLevel\": \"Annuaire de test\", " +
+                "\"TransactedDate\": \"15-12-2016\"}");
+    }
 }
