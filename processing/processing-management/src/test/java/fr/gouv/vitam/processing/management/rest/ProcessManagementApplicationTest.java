@@ -32,6 +32,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.junit.JunitHelper;
 
 public class ProcessManagementApplicationTest {
@@ -72,12 +73,12 @@ public class ProcessManagementApplicationTest {
 
     @Test(expected = Exception.class)
     public void givenFileNotFoundWhenConfigureApplicationThenRaiseAnException() throws Exception {
-        application.configure("src/test/resources/notFound.conf");
+        application.configure(PropertiesUtils.getResourcesPath("notFound.conf").toString());
     }
 
     @Test
     public void givenFileExistsWhenConfigureApplicationThenRunServer() throws Exception {
-        application.configure("src/test/resources/processing.conf", Integer.toString(port));
+        application.configure(PropertiesUtils.getResourcesPath("processing.conf").toString(), Integer.toString(port));
     }
 
 }
