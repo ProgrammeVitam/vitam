@@ -26,13 +26,12 @@
  */
 package fr.gouv.vitam.processing.worker.handler;
 
-import java.io.IOException;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
+import fr.gouv.vitam.processing.common.model.OutcomeMessage;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.model.WorkParams;
@@ -51,7 +50,7 @@ public class CheckSedaActionHandler extends ActionHandler {
     /**
      * Constructor with parameter SedaUtilsFactory
      *
-     * @param factory
+     * @param factory SedaUtils factory
      */
     public CheckSedaActionHandler(SedaUtilsFactory factory) {
         sedaUtilsFactory = factory;
@@ -79,19 +78,16 @@ public class CheckSedaActionHandler extends ActionHandler {
         try {
             result = sedaUtils.checkSedaValidation(params);
             messageId = sedaUtils.getMessageIdentifier(params);
-        } catch (final IOException e) {
-            LOGGER.error("checkSedaActionHandler IOException");
-            response.setStatus(StatusCode.FATAL);
         } catch (ProcessingException e) {
             LOGGER.error("getMessageIdentifier ProcessingException");
-            response.setStatus(StatusCode.FATAL);
+            response.setStatus(StatusCode.FATAL).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_MANIFEST_KO);
         }
 
         if (result) {
-            response.setStatus(StatusCode.OK);
+            response.setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_MANIFEST_OK);
             response.setMessageIdentifier(messageId);
         } else {
-            response.setStatus(StatusCode.KO);
+            response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_MANIFEST_KO);
         }
 
         LOGGER.info("checkSedaActionHandler response: " + response.getStatus().value());

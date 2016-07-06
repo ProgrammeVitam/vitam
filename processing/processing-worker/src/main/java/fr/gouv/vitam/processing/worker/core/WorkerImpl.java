@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -41,8 +42,10 @@ import fr.gouv.vitam.processing.common.utils.ContainerExtractionUtilsFactory;
 import fr.gouv.vitam.processing.common.utils.SedaUtilsFactory;
 import fr.gouv.vitam.processing.worker.api.Worker;
 import fr.gouv.vitam.processing.worker.handler.ActionHandler;
+import fr.gouv.vitam.processing.worker.handler.CheckConformityActionHandler;
 import fr.gouv.vitam.processing.worker.handler.CheckObjectsNumberActionHandler;
 import fr.gouv.vitam.processing.worker.handler.CheckSedaActionHandler;
+import fr.gouv.vitam.processing.worker.handler.CheckVersionActionHandler;
 import fr.gouv.vitam.processing.worker.handler.ExtractSedaActionHandler;
 import fr.gouv.vitam.processing.worker.handler.IndexObjectGroupActionHandler;
 import fr.gouv.vitam.processing.worker.handler.IndexUnitActionHandler;
@@ -53,7 +56,7 @@ import fr.gouv.vitam.processing.worker.handler.IndexUnitActionHandler;
  *
  * manages and executes actions by step
  */
-// FIXME REVIEW since Factory => class and constructors package protected
+// TODO REVIEW since Factory => class and constructors package protected (many tests broken)
 public class WorkerImpl implements Worker {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerImpl.class);
@@ -77,15 +80,18 @@ public class WorkerImpl implements Worker {
         init();
     }
 
-    // FIXME REVIEW check null
     /**
-     * Constructor which can add an actionhandler in the pool of action
-     *
-     * @param actionName
-     * @param actionHandler
+     * Add an actionhandler in the pool of action
+     * 
+     * @param actionName action name
+     * @param actionHandler action handler
+     * @return WorkerImpl
      */
-    public WorkerImpl(String actionName, ActionHandler actionHandler) {
+    public WorkerImpl addActionHandler(String actionName, ActionHandler actionHandler) {
+        ParametersChecker.checkParameter("actionName is a mandatory parameter", actionName);
+        ParametersChecker.checkParameter("actionHandler is a mandatory parameter", actionHandler);
         actions.put(actionName, actionHandler);
+        return this;
     }
 
     private void init() {
@@ -100,6 +106,8 @@ public class WorkerImpl implements Worker {
         actions.put(CheckSedaActionHandler.getId(), new CheckSedaActionHandler(new SedaUtilsFactory()));
         actions.put(CheckObjectsNumberActionHandler.getId(),
             new CheckObjectsNumberActionHandler(new SedaUtilsFactory(), new ContainerExtractionUtilsFactory()));
+        actions.put(CheckVersionActionHandler.getId(), new CheckVersionActionHandler(new SedaUtilsFactory()));
+        actions.put(CheckConformityActionHandler.getId(), new CheckConformityActionHandler(new SedaUtilsFactory()));
     }
 
     @Override

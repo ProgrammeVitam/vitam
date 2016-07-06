@@ -23,69 +23,96 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.common.model;
 
-import java.util.List;
-import java.util.Map;
-
-
 /**
- * Model of Response from worker
+ * Enum StatusCode
+ *
+ * different constants status code for workflow , action handler and process
+ *
  */
-public interface EngineResponse {
-
+public enum OutcomeMessage {
     /**
-     *
-     * @return Enum StatusCode {OK,KO,FATAL}
+     * OK : success message
      */
-    public StatusCode getStatus();
-
-    /**
-     *
-     * @return StatusCode value {OK,KO,FATAL}
-     */
-    public String getValue();
-
-    /**
-     *
-     * @param status ENUM statusCode
-     * @return EngineResponse
-     */
-    public EngineResponse setStatus(StatusCode status);
-
-    /**
-     *
-     * @return list of functional error message
-     */
-    public Map<String, OutcomeMessage> getOutcomeMessages();
-
-    /**
-     * @param messages Outcome Messages of response
-     * @param handlerId handler name or id
-     * @return EngineResponse
-     */
-    EngineResponse setOutcomeMessages(String handlerId, OutcomeMessage messages);
+    CHECK_CONFORMITY_OK("Contrôle de conformité des objets réalisé avec succès"),
     
     /**
-    *
-    * @return list of functional error message
-    */
-   public List<String> getDetailMessages();
-
-   /**
-    * @param messages Detail Messages of response
-     * @return EngineResponse
-    */
-   EngineResponse setDetailMessages(List<String> messages);
+     * KO : fail message
+     */
+    CHECK_CONFORMITY_KO("Erreur de contrôle de conformité des objets"),
+    
+    /**
+     * OK : success message
+     */
+    CHECK_OBJECT_NUMBER_OK("Contrôle du nombre des objets réalisé avec succès"),
+    
+    /**
+     * KO : fail message
+     */
+    CHECK_OBJECT_NUMBER_KO("Erreur de contrôle du nombre des objets"),
+    
+    /**
+     * OK : success message
+     */
+    CHECK_VERSION_OK("Contrôle des versions réalisé avec succès"),
+    
+    /**
+     * KO : fail message
+     */
+    CHECK_VERSION_KO("Erreur de contrôle des versions"),
+    
+    /**
+     * OK : success message
+     */
+    CHECK_MANIFEST_OK("Contrôle du bordereau réalisé avec succès"),
+    
+    /**
+     * KO : fail message
+     */
+    CHECK_MANIFEST_KO("Erreur de contrôle du bordereau"),
 
     /**
-     *
-     * @return message identifier of seda
+     * OK : success message
      */
-    public String getMessageIdentifier();
+    EXTRACT_MANIFEST_OK("Extraction du bordereau réalisé avec succès"),
+    
+    /**
+     * KO : fail message
+     */
+    EXTRACT_MANIFEST_KO("Erreur de l'extraction du bordereau"),
+    
+    /**
+     * OK : success message
+     */
+    INDEX_UNIT_OK("Index unit réalisé avec succès"),
+    
+    /**
+     * KO : fail message
+     */
+    INDEX_UNIT_KO("Erreur de l'index unit"),
 
     /**
-     *
-     * @param message identifier of seda
-     * @return EngineResponse
+     * OK : success message
      */
-    public EngineResponse setMessageIdentifier(String message);
+    INDEX_OBJECT_GROUP_OK("Index objectgroup réalisé avec succès"),
+    
+    /**
+     * KO : fail message
+     */
+    INDEX_OBJECT_GROUP_KO("Erreur de l'index objectgroup");
+
+    private String value;
+
+    private OutcomeMessage(String value) {
+        this.value = value;
+    }
+
+    /**
+     * value
+     *
+     * @return : value of status code
+     */
+    public String value() {
+        return value;
+    }
+
 }

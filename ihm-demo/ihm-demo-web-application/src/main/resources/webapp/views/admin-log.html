@@ -2,9 +2,9 @@
 
     <div class="row">
 
-        <div style="padding-left: 20px; margin-top: 20px">
+        <form ng-submit="logctrl.getLogbookResult()" style="padding-left: 20px; margin-top: 20px">
             <h4>Filtres</h4>
-            <div style="padding-left: 20px">
+            <div  style="padding-left: 20px">
                 <div class="row" >
                     <div class="col-md-2">
                         <h5>Nom de l'entrée</h5>
@@ -20,13 +20,13 @@
                         </button>
                     </div>
                     <div class="col-md-4">
-                        <button type="button" class="btn btn-success btn-s" ng-click="logctrl.getMockResult()">
+                        <button type="button" class="btn btn-success btn-s" ng-click="logctrl.getLogbookResult()">
                             Rechercher
                         </button>
                     </div>
                 </div>
             </div>
-        </div>
+        </form>
 
 
         <div class="col-md-9" style="margin-top: 20px; border-top: 1px solid black;">
@@ -42,17 +42,17 @@
             </div>
         </div>
         <div class="col-md-9" style="float: right">
-            <button class="btn btn-default btn-s" ng-disabled="logctrl.currentPage == 0" ng-click="logctrl.currentPage=logctrl.currentPage-1">
+            <button class="btn btn-default btn-s" ng-disabled="logctrl.currentPage == 1" ng-click="logctrl.currentPage=logctrl.currentPage-1">
                 Previous
             </button>
             <input ng-model="logctrl.currentPage" style="max-width: 40px">/{{logctrl.resultPages}}
-            <button class="btn btn-default btn-s" ng-disabled="logctrl.currentPage >= logctrl.logbookResults.length/10 - 1" ng-click="logctrl.currentPage=logctrl.currentPage+1">
+            <button class="btn btn-default btn-s" ng-disabled="logctrl.currentPage >= logctrl.resultPages" ng-click="logctrl.currentPage=logctrl.currentPage+1">
                 Next
             </button>
         </div>
         <div class="col-md-9" style="padding-top: 40px">
             <table class="table table-bordered">
-                <thead>
+                <thead style="text-align: center">
                     <tr>
                         <th>Id</th>
                         <th>Date</th>
@@ -60,7 +60,7 @@
                         <th>Nom de l'entrée</th>
                     </tr>
                 </thead>
-                <tbody ng-repeat="log in logctrl.logbookResults | startFrom:(logctrl.currentPage-1)*10 | limitTo:10">
+                <tbody ng-repeat="log in logctrl.logbookResults | startFrom:(logctrl.currentPage-1)*logctrl.itemsPerPage | limitTo:logctrl.itemsPerPage">
                     <tr ng-click="logctrl.openDialog($event, log.evIdProc)" >
                         <th scope="row" >{{log.evIdProc}}</th>
                         <td>{{log.evDateTime}}</td>

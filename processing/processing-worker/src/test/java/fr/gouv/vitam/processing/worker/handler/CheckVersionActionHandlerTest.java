@@ -83,7 +83,7 @@ public class CheckVersionActionHandlerTest {
         handlerVersion = new CheckVersionActionHandler(factory);
         assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);
         final EngineResponse response = handlerVersion.execute(params);
-        assertEquals(response.getStatus(), StatusCode.WARNING);
+        assertEquals(response.getStatus(), StatusCode.KO);
     }
     
     @Test

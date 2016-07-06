@@ -31,9 +31,8 @@ import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
 public class ProcessEngineImplFactory {
 
     /**
-     * @param workflow as String is workfolowId
      * @return ProcessEngineImpl object created
-     * @throws WorkflowNotFoundException
+     * @throws WorkflowNotFoundException throws when workflow not found
      */
     public ProcessEngineImpl create() throws WorkflowNotFoundException {
         final ProcessEngineImpl processImpl = new ProcessEngineImpl();

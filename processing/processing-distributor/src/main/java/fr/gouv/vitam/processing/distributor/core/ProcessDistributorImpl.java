@@ -60,7 +60,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
     /**
      * Constructor with parameter workerImpl
      *
-     * @param workerImpl
+     * @param workerImpl {@link WorkerImpl} worker implementation
      */
     protected ProcessDistributorImpl(WorkerImpl workerImpl) {
         ParametersChecker.checkParameter("workerImpl is a mandatory parameter", workerImpl);

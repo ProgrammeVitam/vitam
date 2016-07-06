@@ -67,7 +67,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookClientFactory;
 
 public class WebApplicationResourceTest {
 
-	private static final String DEFAULT_WEB_APP_CONTEXT = "/ihm/api";
+	private static final String DEFAULT_WEB_APP_CONTEXT = "/ihm-demo";
 	private static final String DEFAULT_STATIC_CONTENT = "webapp";
 	private static final String OPTIONS = "{name: \"myName\"}";
 	private static JunitHelper junitHelper;
@@ -80,7 +80,7 @@ public class WebApplicationResourceTest {
 		ServerApplication.run(new WebApplicationConfig().setPort(port).setDefaultContext(DEFAULT_WEB_APP_CONTEXT)
 				.setVirtualHosts(new String[] {}).setStaticContent(DEFAULT_STATIC_CONTENT));
 		RestAssured.port = port;
-		RestAssured.basePath = DEFAULT_WEB_APP_CONTEXT;
+		RestAssured.basePath = DEFAULT_WEB_APP_CONTEXT + "/v1/api";
 	}
 
 	@AfterClass

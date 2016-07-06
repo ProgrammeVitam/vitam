@@ -5,12 +5,21 @@
     [
     {
     "workerGroupId" :"DefaultWorker",
-        "stepName":"check Seda",
+        "stepName":"Check manifest existence",
         "distribution" : {
         	"kind":"REF",
         	"element" : "SIP/manifest.xml"
         	},
         "actions":[{"action":"checkSeda"}]
+    },
+    {
+    "workerGroupId" :"DefaultWorker",
+        "stepName":"Check Version",
+        "distribution" : {
+        	"kind":"REF",
+        	"element" : "SIP/manifest.xml"
+        	},
+        "actions":[{"action":"CheckVersion"}]
     },
     {
     "workerGroupId" :"DefaultWorker",
@@ -23,7 +32,16 @@
     },
     {
     "workerGroupId" :"DefaultWorker",
-        "stepName":"Extract Seda",
+        "stepName":"Check Digest Message",
+        "distribution" : {
+        	"kind":"REF",
+        	"element" : "SIP/manifest.xml"
+        	},
+        "actions":[{"action":"CheckConformity"}]
+    },
+    {
+    "workerGroupId" :"DefaultWorker",
+        "stepName":"Extract Unit and ObjectGroup",
         "distribution" : {
         	"kind":"REF",
         	"element" : "SIP/manifest.xml"

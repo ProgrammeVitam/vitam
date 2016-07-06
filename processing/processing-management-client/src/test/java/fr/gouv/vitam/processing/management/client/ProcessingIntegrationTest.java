@@ -52,6 +52,7 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.metadata.rest.MetaDataApplication;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementApplication;
@@ -75,9 +76,9 @@ public class ProcessingIntegrationTest {
     private static final String PROCESSING_PATH = "/processing/api/v0.0.3";
     private static final String WORKSPACE_PATH = "/workspace/v1";
 
-    private static String CONFIG_PROCESSING_PATH = "src/test/resources/processing.conf";
-    private static String CONFIG_WORKSPACE_PATH = "src/test/resources/workspace.conf";
-    private static String CONFIG_METADATA_PATH = "src/test/resources/metadata.conf";
+    private static String CONFIG_PROCESSING_PATH = "";
+    private static String CONFIG_WORKSPACE_PATH = "";
+    private static String CONFIG_METADATA_PATH = "";
     
     private static ProcessManagementApplication processApplication;
     private static WorkspaceApplication workspaceApplication;
@@ -96,7 +97,11 @@ public class ProcessingIntegrationTest {
     
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        CONFIG_METADATA_PATH = PropertiesUtils.getResourcesPath("metadata.conf").toString();
+        CONFIG_PROCESSING_PATH = PropertiesUtils.getResourcesPath("processing.conf").toString();
+        CONFIG_WORKSPACE_PATH = PropertiesUtils.getResourcesPath("workspace.conf").toString();
         final MongodStarter starter = MongodStarter.getDefaultInstance();
+        
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .version(Version.Main.PRODUCTION)
             .net(new Net(DATABASE_PORT, Network.localhostIsIPv6()))

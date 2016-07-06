@@ -44,9 +44,9 @@ public interface ProcessDistributor {
      *
      * @param workParams {@link WorkParams} null not allowed
      * @param step {@link Step} null not allowed
-     * @param workflowId
+     * @param workflowId workflow Id
      *
-     * @return List<EngineResponse> {@link EngineResponse} : list of action response
+     * @return List EngineResponse {@link EngineResponse} : list of action response
      */
     List<EngineResponse> distribute(WorkParams workParams, Step step, String workflowId);
 }

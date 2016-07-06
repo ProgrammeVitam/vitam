@@ -341,7 +341,7 @@ public class WorkspaceClient implements ContentAddressableStorage {
         final Response response =
             client.target(serviceUrl).path("/containers/" + containerName + "/objects/" + objectName)
                 .request()
-                .header(X_DIGEST_ALGORITHM, algo.toString())
+                .header(X_DIGEST_ALGORITHM, algo.getName())
                 .head();
         
         if (Response.Status.OK.getStatusCode() == response.getStatus()) {

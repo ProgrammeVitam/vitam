@@ -46,9 +46,9 @@ public class ProcessPopulator {
     /**
      * create workflow object : parse JSON file
      *
-     * @param workflowId
+     * @param workflowId id of workflow
      * @return workflow's object
-     * @throws WorkflowNotFoundException
+     * @throws WorkflowNotFoundException throws when workflow not found
      */
     public static WorkFlow populate(String workflowId) throws WorkflowNotFoundException {
 

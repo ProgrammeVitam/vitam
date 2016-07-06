@@ -39,8 +39,8 @@ import java.util.List;
 public class SedaVersion {
 
     /**
-     * @return List<String> list of version for file version.conf
-     * @throws IOException
+     * @return List of supported version from file
+     * @throws IOException throws when can not read file
      */
     public static final List<String> fileVersionList(File file) throws IOException {
         final List<String> versionList = new ArrayList<String>();

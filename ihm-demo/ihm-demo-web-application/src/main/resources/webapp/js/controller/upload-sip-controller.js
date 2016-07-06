@@ -28,7 +28,7 @@
 'use strict';
 
 angular.module('ihm.demo')
-	.constant("VITAM_URL", "https://int.env.programmevitam.fr/ingest/v1/upload")
+	.constant("VITAM_URL", "/ingest/v1/upload")
     .controller('uploadController', function($scope, FileUploader, VITAM_URL) {
         var uploader = $scope.uploader = new FileUploader({
             url : VITAM_URL

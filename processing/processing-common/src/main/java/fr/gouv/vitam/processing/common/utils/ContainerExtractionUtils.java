@@ -51,7 +51,7 @@ public class ContainerExtractionUtils {
     /**
      * Constructor that instantiates a workspace client factory
      *
-     * @param workspaceClientFactory
+     * @param workspaceClientFactory factory of workspace client
      */
     public ContainerExtractionUtils(WorkspaceClientFactory workspaceClientFactory) {
         ParametersChecker.checkParameter("workspaceFactory is a mandatory parameter", workspaceClientFactory);
@@ -61,8 +61,8 @@ public class ContainerExtractionUtils {
     /**
      * get the uri list of digital object from a container into the workspace *
      *
-     * @param params - parameters of workspace server
-     * @return List<URI>
+     * @param workParams parameters of workspace server
+     * @return List of Uri 
      * @throws ProcessingException - throw when workspace is unavailable.
      *
      */

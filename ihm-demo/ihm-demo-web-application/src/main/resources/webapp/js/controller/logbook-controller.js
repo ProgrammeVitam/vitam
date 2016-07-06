@@ -28,15 +28,16 @@
 'use strict';
 
 angular.module('ihm.demo')
-  .constant("VITAM_URL", "https://int.env.programmevitam.fr/ihm-demo/servlet/upload")
+  .constant('ITEM_PER_PAGE', 10)
   .filter('startFrom', function() {
     return function (input, start) {
       start = +start; //parse to int
       return input.slice(start);
     }
   })
-  .controller('logbookController', function($scope, VITAM_URL, $mdDialog, ihmDemoCLient) {
+  .controller('logbookController', function($scope, $mdDialog, ihmDemoCLient, ITEM_PER_PAGE) {
     var ctrl = this;
+    ctrl.itemsPerPage = ITEM_PER_PAGE;
     ctrl.currentPage = 0;
     ctrl.startDate = new Date();
     ctrl.endDate = new Date();
@@ -44,9 +45,10 @@ angular.module('ihm.demo')
     ctrl.logbookResults = [];
     ctrl.client = ihmDemoCLient.getClient('logbook');
 
-    ctrl.getMockResult = function() {
+    ctrl.getLogbookResult = function() {
       ctrl.logbookResults = [];
       ctrl.searchOptions.INGEST = "all";
+      ctrl.searchOptions.orderby = "evDateTime";
       ctrl.client.all('operations').post(ctrl.searchOptions).then(function(response) {
         ctrl.logbookResults = response.data.result;
         ctrl.logbookResults.map(function(item) {
@@ -80,7 +82,7 @@ angular.module('ihm.demo')
     }
 
   })
-  .controller('logbookEntryController', function($scope, VITAM_URL, $mdDialog, operationId, ihmDemoCLient, idOperationService) {
+  .controller('logbookEntryController', function($scope, $mdDialog, operationId, ihmDemoCLient, idOperationService) {
     var self = this;
 
     ihmDemoCLient.getClient('logbook/operations').all(operationId).post({}).then(function(response) {

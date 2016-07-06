@@ -1,4 +1,4 @@
-<md-dialog aria-label="LogBook Operation Entry" ng-cloak>
+<md-dialog aria-label="LogBook Operation Entry" ng-cloak style="width:70%">
     <md-toolbar>
         <div class="md-toolbar-tools">
             <h3>LogBook Operation Entry: {{entryCtrl.detailId}}</h3>
@@ -7,11 +7,12 @@
     </md-toolbar>
     <md-dialog-content>
         <table class="table" id="detail" align="center">
-            <thead>
+            <thead  style="text-align: center">
             <tr>
                 <th>Etape</th>
                 <th>Date</th>
                 <th>Statut</th>
+                <th>Message</th>
             </tr>
             </thead>
             <tbody>
@@ -19,6 +20,7 @@
                 <td>{{entryCtrl.detail.evType}}</td>
                 <td>{{entryCtrl.detail.evDateTime}}</td>
                 <td>{{entryCtrl.detail.outcome}}</td>
+                <td>{{entryCtrl.detail.outMessg}}</td>
             </tr>
             </tbody>
             <tbody ng-repeat="event in entryCtrl.detail.events">
@@ -26,6 +28,7 @@
                 <td>{{event.evType}}</td>
                 <td>{{event.evDateTime}}</td>
                 <td>{{event.outcome}}</td>
+                <td>{{event.outMessg}}</td>
             </tr>
             </tbody>
         </table>

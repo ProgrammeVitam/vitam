@@ -34,11 +34,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,11 +52,11 @@ import org.junit.rules.TemporaryFolder;
 import fr.gouv.vitam.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.client.MetaDataClient;
 import fr.gouv.vitam.client.MetaDataClientFactory;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.WorkParams;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -264,10 +262,10 @@ public class SedaUtilsTest {
 
     @Test
     public void givenManifestWhenGetInfoThenGetVersionList()
-        throws FileNotFoundException, XMLStreamException, URISyntaxException {
+        throws Exception {
         final XMLInputFactory factory = XMLInputFactory.newInstance();
         final XMLEventReader evenReader = factory.createXMLEventReader(
-            new FileReader("src/test/resources/sip.xml"));
+            new FileReader(PropertiesUtils.getResourcesPath("sip.xml").toString()));
         List<String> versionList = new ArrayList<String>();
 
         utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
@@ -281,31 +279,29 @@ public class SedaUtilsTest {
     }
 
     @Test
-    public void givenCompareVersionList() throws IOException, XMLStreamException, URISyntaxException {
+    public void givenCompareVersionList() throws Exception {
         utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
 
         final XMLInputFactory factory = XMLInputFactory.newInstance();
         XMLEventReader evenReader = factory.createXMLEventReader(
-            new FileReader("src/test/resources/sip.xml"));
-        assertEquals(0, utils.compareVersionList(evenReader, "src/test/resources/version.conf").size());
+            new FileReader(PropertiesUtils.getResourcesPath("sip.xml").toString()));
+        assertEquals(0, utils.compareVersionList(evenReader, "version.conf").size());
 
         evenReader = factory.createXMLEventReader(
-            new FileReader("src/test/resources/sip-with-wrong-version.xml"));
-        assertEquals(1, utils.compareVersionList(evenReader, "src/test/resources/version.conf").size());
+            new FileReader(PropertiesUtils.getResourcesPath("sip-with-wrong-version.xml").toString()));
+        assertEquals(1, utils.compareVersionList(evenReader, "version.conf").size());
     }
 
     @Test
     public void givenCompareDigestMessage()
-        throws FileNotFoundException, XMLStreamException, URISyntaxException,
-        ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
-        ContentAddressableStorageException {
+        throws Exception {
         utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
         when(workspaceClient.computeObjectDigest(anyObject(), anyObject(), anyObject())).thenReturn(DIGESTMESSAGE);
-
-        final XMLInputFactory factory = XMLInputFactory.newInstance();
-        final XMLEventReader evenReader = factory.createXMLEventReader(
-            new FileReader("src/test/resources/sip.xml"));
-        utils.compareDigestMessage(evenReader, workspaceClient);
+        
+        XMLInputFactory factory = XMLInputFactory.newInstance();
+        XMLEventReader evenReader = factory.createXMLEventReader(
+                new FileReader(PropertiesUtils.getResourcesPath("sip.xml").toString()));
+        utils.compareDigestMessage(evenReader, workspaceClient, "");
     }
 
 }
