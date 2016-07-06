@@ -136,7 +136,7 @@ public final class BinaryObjectInfo {
 
 
     /**
-     * @param algo
+     * @param algo digest algorithm
      * @return BinaryObjectInfo
      */
     public BinaryObjectInfo setAlgo(String algo) {

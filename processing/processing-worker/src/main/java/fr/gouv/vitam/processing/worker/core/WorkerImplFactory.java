@@ -47,7 +47,7 @@ public class WorkerImplFactory {
      * @return WorkerImpl
      */
     public WorkerImpl create(String actionName, ActionHandler actionHandler) {
-        return new WorkerImpl(actionName, actionHandler);
+        return create().addActionHandler(actionName, actionHandler);
     }
 
 }

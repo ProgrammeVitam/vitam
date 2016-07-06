@@ -136,7 +136,7 @@ public class CheckObjectsNumberActionHandlerTest {
     public void givenWorkspaceExistWhenExecuteThenRaiseXMLStreamExceptionAndReturnResponseFATAL()
         throws XMLStreamException, IOException, ProcessingException {
         when(sedaFactory.create()).thenReturn(sedaUtils);
-        Mockito.doThrow(new XMLStreamException("")).when(sedaUtils).getAllDigitalObjectUriFromManifest(anyObject());
+        Mockito.doThrow(new ProcessingException("")).when(sedaUtils).getAllDigitalObjectUriFromManifest(anyObject());
 
         when(containerExtractionUtilsFactory.create()).thenReturn(containerExtractionUtils);
 

@@ -23,8 +23,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.worker.handler;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.List;
 
 import fr.gouv.vitam.common.ParametersChecker;
@@ -50,7 +48,7 @@ public class CheckVersionActionHandler extends ActionHandler {
     /**
      * Constructor with parameter SedaUtilsFactory
      *
-     * @param factory
+     * @param factory SedaUtils factory
      */
     public CheckVersionActionHandler(SedaUtilsFactory factory) {
         sedaUtilsFactory = factory;
@@ -80,7 +78,7 @@ public class CheckVersionActionHandler extends ActionHandler {
                 response.setDetailMessages(versionInvalidList);
                 response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_KO);
             }
-        } catch (ProcessingException | IOException | URISyntaxException e) {
+        } catch (ProcessingException e) {
             LOGGER.error(e.getMessage());
             response.setStatus(StatusCode.FATAL).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_KO);
         }

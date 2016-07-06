@@ -1,6 +1,5 @@
 package fr.gouv.vitam.processing.worker.handler;
 
-import java.net.URISyntaxException;
 import java.util.List;
 
 import fr.gouv.vitam.common.ParametersChecker;
@@ -14,7 +13,6 @@ import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.model.WorkParams;
 import fr.gouv.vitam.processing.common.utils.SedaUtils;
 import fr.gouv.vitam.processing.common.utils.SedaUtilsFactory;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 
 /**
  * Check conformity handler
@@ -28,7 +26,7 @@ public class CheckConformityActionHandler extends ActionHandler {
     /**
      * Constructor CheckConformityActionHandler with parameter SedaUtilsFactory
      * 
-     * @param factory
+     * @param factory SedaUtils factory
      */
     public CheckConformityActionHandler(SedaUtilsFactory factory){
         sedaUtilsFactory = factory;
@@ -58,12 +56,9 @@ public class CheckConformityActionHandler extends ActionHandler {
                 .setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_CONFORMITY_KO)
                 .setDetailMessages(digestMessageInvalidList);
             }
-        } catch (ProcessingException | ContentAddressableStorageException e) {
+        } catch (ProcessingException e) {
             LOGGER.error(e.getMessage());
             response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_CONFORMITY_KO);
-        } catch (URISyntaxException e) {
-            LOGGER.error(e.getMessage());
-            response.setStatus(StatusCode.FATAL).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_CONFORMITY_KO);
         }
 
         LOGGER.info("CheckConformityActionHandler response: "+ response.getStatus().value());

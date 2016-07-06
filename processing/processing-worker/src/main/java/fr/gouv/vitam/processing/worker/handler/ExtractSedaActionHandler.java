@@ -49,7 +49,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     /**
      * Constructor with parameter SedaUtilsFactory
      *
-     * @param factory
+     * @param factory SedaUtils factory
      */
     public ExtractSedaActionHandler(SedaUtilsFactory factory) {
         sedaUtilsFactory = factory;

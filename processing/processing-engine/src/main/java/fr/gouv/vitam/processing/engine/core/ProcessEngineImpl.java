@@ -74,7 +74,7 @@ public class ProcessEngineImpl implements ProcessEngine {
      * setWorkflow : populate a workflow to the pool of workflow
      *
      * @param workflowId as String
-     * @throws WorkflowNotFoundException
+     * @throws WorkflowNotFoundException throw when workflow not found
      */
     public void setWorkflow(String workflowId) throws WorkflowNotFoundException {
         ParametersChecker.checkParameter("workflowId is a mandatory parameter", workflowId);

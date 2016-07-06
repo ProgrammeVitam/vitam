@@ -49,7 +49,7 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
     /**
      * Constructor with parameter SedaUtilsFactory
      *
-     * @param factory
+     * @param factory SedaUtils factory
      */
     public IndexObjectGroupActionHandler(SedaUtilsFactory factory) {
         sedaUtilsFactory = factory;

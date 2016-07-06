@@ -40,9 +40,9 @@ public interface ProcessEngine {
      * @param workParams used to encapsulate a parameters
      * @param workflowId used to identify workflow id
      * @return the reponse of EngineResponse type that contains message and status code
-     * @throws IllegalArgumentException
-     * @throws WorkflowNotFoundException if workflow not found
-     * @throws ProcessingException
+     * @throws IllegalArgumentException throws when arguments are null
+     * @throws WorkflowNotFoundException throws when workflow not found
+     * @throws ProcessingException throws when error in execution
      */
 
 

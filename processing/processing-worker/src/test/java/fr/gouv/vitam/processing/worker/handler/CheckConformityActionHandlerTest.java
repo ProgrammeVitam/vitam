@@ -78,31 +78,9 @@ public class CheckConformityActionHandlerTest {
     }
     
     @Test
-    public void givenConformityCheckWhenContentAddressableStorageNotFoundExceptionThenResponseKO() 
+    public void givenConformityCheckWhenProcessingExceptionThenResponseKO() 
         throws ProcessingException, URISyntaxException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, ContentAddressableStorageException{
-        Mockito.doThrow(new ContentAddressableStorageNotFoundException("")).when(sedaUtils).checkConformityBinaryObject(anyObject());
-        when(factory.create()).thenReturn(sedaUtils);
-        handlerVersion = new CheckConformityActionHandler(factory);
-        assertEquals(CheckConformityActionHandler.getId(), HANDLER_ID);
-        final EngineResponse response = handlerVersion.execute(params);
-        assertEquals(response.getStatus(), StatusCode.KO);
-    }
-    
-    @Test
-    public void givenConformityCheckWhenContentAddressableStorageServerExceptionThenResponseKO() 
-        throws ProcessingException, URISyntaxException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, ContentAddressableStorageException{
-        Mockito.doThrow(new ContentAddressableStorageServerException("")).when(sedaUtils).checkConformityBinaryObject(anyObject());
-        when(factory.create()).thenReturn(sedaUtils);
-        handlerVersion = new CheckConformityActionHandler(factory);
-        assertEquals(CheckConformityActionHandler.getId(), HANDLER_ID);
-        final EngineResponse response = handlerVersion.execute(params);
-        assertEquals(response.getStatus(), StatusCode.KO);
-    }
-    
-    @Test
-    public void givenConformityCheckWhenContentAddressableStorageExceptionThenResponseKO() 
-        throws ProcessingException, URISyntaxException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, ContentAddressableStorageException{
-        Mockito.doThrow(new ContentAddressableStorageException("")).when(sedaUtils).checkConformityBinaryObject(anyObject());
+        Mockito.doThrow(new ProcessingException("")).when(sedaUtils).checkConformityBinaryObject(anyObject());
         when(factory.create()).thenReturn(sedaUtils);
         handlerVersion = new CheckConformityActionHandler(factory);
         assertEquals(CheckConformityActionHandler.getId(), HANDLER_ID);

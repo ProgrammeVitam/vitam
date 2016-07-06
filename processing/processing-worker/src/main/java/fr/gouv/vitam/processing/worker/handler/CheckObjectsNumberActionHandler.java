@@ -32,8 +32,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.xml.stream.XMLStreamException;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -61,24 +59,23 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
      */
     public static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckObjectsNumberActionHandler.class);
 
-    // FIXME REVIEW since getId => private
     /**
      * Handler's ID
      */
-    public static final String HANDLER_ID = "CheckObjectsNumber";
+    private static final String HANDLER_ID = "CheckObjectsNumber";
 
     private final SedaUtilsFactory sedaUtilsFactory;
     private final ContainerExtractionUtilsFactory containerExtractionUtilsFactory;
 
 
-    // FIXME REVIEW check null
-
     /**
-     * @param sedaUtilsFactory
-     * @param containerExtractionUtilsFactory
+     * @param sedaUtilsFactory  sedaUtils factory 
+     * @param containerExtractionUtilsFactory container Extraction utils factory
      */
     public CheckObjectsNumberActionHandler(SedaUtilsFactory sedaUtilsFactory,
         ContainerExtractionUtilsFactory containerExtractionUtilsFactory) {
+        ParametersChecker.checkParameter("sedaUtilsFactory is a mandatory parameter", sedaUtilsFactory);
+        ParametersChecker.checkParameter("containerExtractionUtilsFactory is a mandatory parameter", containerExtractionUtilsFactory);
         this.sedaUtilsFactory = sedaUtilsFactory;
         this.containerExtractionUtilsFactory = containerExtractionUtilsFactory;
     }
@@ -119,7 +116,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
                 .setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_KO);
             }
 
-        } catch (XMLStreamException | ProcessingException | NullPointerException e) {
+        } catch (ProcessingException e) {
             response.setStatus(StatusCode.FATAL).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_KO);
         }
 
@@ -131,13 +128,12 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
     /**
      * gets URI list of Digital object from the workspace, checks if there are duplicated URIs
      *
-     * @param params
-     * @return
-     * @throws XMLStreamException
-     * @throws ProcessingException
+     * @param params worker parameter
+     * @return ExtractUriResponse
+     * @throws ProcessingException throws when error in execution
      */
     private ExtractUriResponse getUriListFromManifest(WorkParams params)
-        throws ProcessingException, XMLStreamException {
+        throws ProcessingException {
         // get uri list from manifest
         final SedaUtils sedaUtils = sedaUtilsFactory.create();
         return sedaUtils.getAllDigitalObjectUriFromManifest(params);
@@ -147,9 +143,9 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
     /**
      * gets URI list of Digital object from the workspace, checks if there are duplicated URIs
      *
-     * @param params
-     * @return List<URI>
-     * @throws ProcessingException if params is null, or some params' attributes are null
+     * @param params worker parameter
+     * @return List of uri
+     * @throws ProcessingException throws when error in execution
      */
     private List<URI> getUriListFromWorkspace(WorkParams params) throws ProcessingException {
         final ContainerExtractionUtils containerExtractionUtils = containerExtractionUtilsFactory.create();
@@ -159,9 +155,9 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
     /**
      * Count the number of digital objects consistent between the manifest.xm file and the sip
      *
-     * @param uriListManifest
-     * @param uriListWorkspace
-     * @param response
+     * @param uriListManifest list of uri from manifest
+     * @param uriListWorkspace list of uri from workspace
+     * @param response of handler
      * @throws ProcessingException will be throwed when one or all arguments is null
      */
     private void checkCountDigitalObjectConformity(List<URI> uriListManifest, List<URI> uriListWorkspace,
@@ -243,10 +239,10 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
     /**
      * Found the undeclared digital object either in the manifest or in the sip
      *
-     * @param uriListManifest
-     * @param uriListWorkspace
-     * @param response
-     * @param element
+     * @param uriListManifest list of uri from manifest
+     * @param uriListWorkspace list of uri from workspace
+     * @param response of handler
+     * @param element element name
      */
     private void foundUnreferencedDigitalObject(List<URI> uriListToCompared, List<URI> uriListReference,
         EngineResponse response, String element) throws IllegalAccessException {

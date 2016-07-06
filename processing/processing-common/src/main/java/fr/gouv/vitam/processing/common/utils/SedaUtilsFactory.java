@@ -42,8 +42,8 @@ public class SedaUtilsFactory {
     }
 
     /**
-     * @param workspaceFactory
-     * @param metaDataFactory
+     * @param workspaceFactory workspace client Factory
+     * @param metaDataFactory metaData client Factory
      * @return SedaUtils
      */
     public SedaUtils create(WorkspaceClientFactory workspaceFactory, MetaDataClientFactory metaDataFactory) {

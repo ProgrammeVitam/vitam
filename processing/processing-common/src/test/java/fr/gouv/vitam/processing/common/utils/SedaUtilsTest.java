@@ -34,11 +34,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,7 +57,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.WorkParams;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -265,7 +262,7 @@ public class SedaUtilsTest {
 
     @Test
     public void givenManifestWhenGetInfoThenGetVersionList()
-        throws FileNotFoundException, XMLStreamException, URISyntaxException {
+        throws Exception {
         final XMLInputFactory factory = XMLInputFactory.newInstance();
         final XMLEventReader evenReader = factory.createXMLEventReader(
             new FileReader(PropertiesUtils.getResourcesPath("sip.xml").toString()));
@@ -282,7 +279,7 @@ public class SedaUtilsTest {
     }
 
     @Test
-    public void givenCompareVersionList() throws IOException, XMLStreamException, URISyntaxException {
+    public void givenCompareVersionList() throws Exception {
         utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
 
         final XMLInputFactory factory = XMLInputFactory.newInstance();
@@ -297,9 +294,7 @@ public class SedaUtilsTest {
 
     @Test
     public void givenCompareDigestMessage()
-        throws FileNotFoundException, XMLStreamException, URISyntaxException,
-        ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
-        ContentAddressableStorageException {
+        throws Exception {
         utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
         when(workspaceClient.computeObjectDigest(anyObject(), anyObject(), anyObject())).thenReturn(DIGESTMESSAGE);
         

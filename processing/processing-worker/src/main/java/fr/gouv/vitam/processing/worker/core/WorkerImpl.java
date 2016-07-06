@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -55,7 +56,7 @@ import fr.gouv.vitam.processing.worker.handler.IndexUnitActionHandler;
  *
  * manages and executes actions by step
  */
-// FIXME REVIEW since Factory => class and constructors package protected
+// TODO REVIEW since Factory => class and constructors package protected (many tests broken)
 public class WorkerImpl implements Worker {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerImpl.class);
@@ -79,15 +80,18 @@ public class WorkerImpl implements Worker {
         init();
     }
 
-    // FIXME REVIEW check null
     /**
-     * Constructor which can add an actionhandler in the pool of action
-     *
-     * @param actionName
-     * @param actionHandler
+     * Add an actionhandler in the pool of action
+     * 
+     * @param actionName action name
+     * @param actionHandler action handler
+     * @return WorkerImpl
      */
-    public WorkerImpl(String actionName, ActionHandler actionHandler) {
+    public WorkerImpl addActionHandler(String actionName, ActionHandler actionHandler) {
+        ParametersChecker.checkParameter("actionName is a mandatory parameter", actionName);
+        ParametersChecker.checkParameter("actionHandler is a mandatory parameter", actionHandler);
         actions.put(actionName, actionHandler);
+        return this;
     }
 
     private void init() {

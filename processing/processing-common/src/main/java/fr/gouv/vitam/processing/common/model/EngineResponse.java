@@ -47,6 +47,7 @@ public interface EngineResponse {
     /**
      *
      * @param status ENUM statusCode
+     * @return EngineResponse
      */
     public EngineResponse setStatus(StatusCode status);
 
@@ -57,8 +58,9 @@ public interface EngineResponse {
     public Map<String, OutcomeMessage> getOutcomeMessages();
 
     /**
-     * @param messages
-     * @return
+     * @param messages Outcome Messages of response
+     * @param handlerId handler name or id
+     * @return EngineResponse
      */
     EngineResponse setOutcomeMessages(String handlerId, OutcomeMessage messages);
     
@@ -69,8 +71,8 @@ public interface EngineResponse {
    public List<String> getDetailMessages();
 
    /**
-    * @param messages
-    * @return
+    * @param messages Detail Messages of response
+     * @return EngineResponse
     */
    EngineResponse setDetailMessages(List<String> messages);
 
@@ -83,6 +85,7 @@ public interface EngineResponse {
     /**
      *
      * @param message identifier of seda
+     * @return EngineResponse
      */
     public EngineResponse setMessageIdentifier(String message);
 }

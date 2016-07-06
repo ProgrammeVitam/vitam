@@ -28,6 +28,7 @@ package fr.gouv.vitam.processing.common.utils;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -153,42 +154,42 @@ public class SedaUtils {
     }
 
     /**
-     * @return Map<String, String> reflects BinaryDataObject and File(GUID)
+     * @return A map reflects BinaryDataObject and File(GUID)
      */
     public Map<String, String> getBinaryDataObjectIdToGuid() {
         return binaryDataObjectIdToGuid;
     }
 
     /**
-     * @return Map<String, String> reflects relation ObjectGroupId and BinaryDataObjectId
+     * @return A map reflects relation ObjectGroupId and BinaryDataObjectId
      */
     public Map<String, List<String>> getObjectGroupIdToBinaryDataObjectId() {
         return objectGroupIdToBinaryDataObjectId;
     }
 
     /**
-     * @return Map<String, String> reflects ObjectGroup and File(GUID)
+     * @return A map reflects ObjectGroup and File(GUID)
      */
     public Map<String, String> getObjectGroupIdToGuid() {
         return objectGroupIdToGuid;
     }
 
     /**
-     * @return Map<String, String> reflects Unit and File(GUID)
+     * @return A map reflects Unit and File(GUID)
      */
     public Map<String, String> getUnitIdToGuid() {
         return unitIdToGuid;
     }
 
     /**
-     * @return Map<String, String> reflects BinaryDataObject and ObjectGroup
+     * @return A map reflects BinaryDataObject and ObjectGroup
      */
     public Map<String, String> getBinaryDataObjectIdToGroupId() {
         return binaryDataObjectIdToObjectGroupId;
     }
 
     /**
-     * @return Map<String, String> reflects Unit and ObjectGroup
+     * @return A map reflects Unit and ObjectGroup
      */
     public Map<String, String> getUnitIdToGroupId() {
         return unitIdToGroupId;
@@ -198,8 +199,7 @@ public class SedaUtils {
     /**
      * Split Element from InputStream and write it to workspace
      *
-     * @param workParams parameters of workspace server
-     * @param workspaceClientFactory workspace client factory
+     * @param params parameters of workspace server
      * @throws ProcessingException throw when can't read or extract element from SEDA
      */
     public void extractSEDA(WorkParams params) throws ProcessingException {
@@ -212,7 +212,7 @@ public class SedaUtils {
     /**
      * get Message Identifier from seda
      * 
-     * @param WorkParams parameters of workspace server
+     * @param params parameters of workspace server
      * @return message id
      * @throws ProcessingException throw when can't read or extract message id from SEDA
      */
@@ -606,11 +606,10 @@ public class SedaUtils {
     /**
      * The method is used to validate SEDA by XSD
      *
-     * @param params
+     * @param params worker parameter
      * @return boolean true/false
-     * @throws IOException
      */
-    public boolean checkSedaValidation(WorkParams params) throws IOException {
+    public boolean checkSedaValidation(WorkParams params) {
         ParametersChecker.checkParameter("WorkParams is a mandatory parameter", params);
         final String containerId = params.getContainerName();
         final WorkspaceClient client = workspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
@@ -621,18 +620,12 @@ public class SedaUtils {
         } catch (ProcessingException | XMLStreamException | SAXException e) {
             LOGGER.error("Manifest.xml is not valid ", e);
             return false;
+        } catch (IOException e) {
+            LOGGER.error("Seda validation file not found", e);
+            return false;
         }
     }
 
-    /**
-     * The function is used for checking the existence of the file manifest.xml in workspace
-     *
-     * @param client
-     * @param guid
-     * @return true (if manifest.xml exists), true (if not)
-     * @throws IOException
-     * @throws ProcessingException
-     */
     private InputStream checkExistenceManifest(WorkspaceClient client, String guid)
         throws IOException, ProcessingException {
         ParametersChecker.checkParameter("WorkspaceClient is a mandatory parameter", client);
@@ -842,28 +835,18 @@ public class SedaUtils {
      *
      * @param params - parameters of workspace server
      * @return ExtractUriResponse - Object ExtractUriResponse contains listURI, listMessages and value boolean(error).
-     * @throws ProcessingException - throw when can't read or extract element from SEDA.
-     * @throws XMLStreamException -This Exception class is used to report well format SEDA.
+     * @throws ProcessingException - throw when error in execution.
      */
     public ExtractUriResponse getAllDigitalObjectUriFromManifest(WorkParams params)
-        throws ProcessingException, XMLStreamException {
+        throws ProcessingException {
         final String guid = params.getContainerName();
         final WorkspaceClient client = workspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
         final ExtractUriResponse extractUriResponse = parsingUriSEDAWithWorkspaceClient(client, guid);
         return extractUriResponse;
     }
 
-
-    /**
-     * Parsing file Manifest
-     *
-     * @param client - the InputStream to read from
-     * @param guid - Identification file seda.
-     * @return ExtractUriResponse - Object ExtractUriResponse contains listURI, listMessages and value boolean(error).
-     * @throws XMLStreamException-This Exception class is used to report well format SEDA.
-     */
     private ExtractUriResponse parsingUriSEDAWithWorkspaceClient(WorkspaceClient client, String guid)
-        throws ProcessingException, XMLStreamException {
+        throws ProcessingException {
 
         /**
          * Extract SEDA
@@ -895,12 +878,12 @@ public class SedaUtils {
 
         xmlOutputFactory.setProperty(SedaUtils.STAX_PROPERTY_PREFIX_OUTPUT_SIDE, Boolean.TRUE);
 
-        // Create event reader
-        final XMLEventReader evenReader = xmlInputFactory.createXMLEventReader(xmlFile);
-
         final QName binaryDataObject = new QName(SedaUtils.NAMESPACE_URI, SedaUtils.BINARY_DATA_OBJECT);
 
         try {
+
+            // Create event reader
+            final XMLEventReader evenReader = xmlInputFactory.createXMLEventReader(xmlFile);
 
             while (true) {
                 final XMLEvent event = evenReader.nextEvent();
@@ -929,14 +912,6 @@ public class SedaUtils {
         return extractUriResponse;
     }
 
-    /**
-     * Using Stax to split element Uri of Binary Data Object.
-     *
-     * @param extractUriResponse - list Uri of Binary Data Object and list Message and value error.
-     * @param evenReader -
-     * @throws XMLStreamException - This Exception class is used to report well-format SEDA.
-     * @throws URISyntaxException - if some information could not be parsed while creating a URI.
-     */
     private void getUri(ExtractUriResponse extractUriResponse, XMLEventReader evenReader)
         throws XMLStreamException, URISyntaxException {
 
@@ -959,13 +934,6 @@ public class SedaUtils {
         }
     }
 
-    /**
-     * Check element duplicate from UriListManifest.
-     *
-     * @param extractUriResponse - List contains listURI , listMessages and value error
-     * @param uriString - Value of uri in SEDA.
-     * @throws URISyntaxException - if some information could not be parsed while creating a URI
-     */
     private void checkDuplicatedUri(ExtractUriResponse extractUriResponse, String uriString) throws URISyntaxException {
 
         if (extractUriResponse.getUriListManifest().contains(new URI(uriString))) {
@@ -977,14 +945,12 @@ public class SedaUtils {
     /**
      * check if the version list of the manifest.xml in workspace is valid
      *
-     * @param params
+     * @param params worker parameter
      * @return list of unsupported version
-     * @throws ProcessingException
-     * @throws IOException
-     * @throws URISyntaxException
+     * @throws ProcessingException throws when error occurs
      */
     public List<String> checkSupportedBinaryObjectVersion(WorkParams params)
-        throws ProcessingException, IOException, URISyntaxException {
+        throws ProcessingException {
         ParametersChecker.checkParameter("WorkParams is a mandatory parameter", params);
         final String containerId = params.getContainerName();
         final WorkspaceClient client = workspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
@@ -992,7 +958,7 @@ public class SedaUtils {
     }
 
     private List<String> isSedaVersionValid(WorkspaceClient client,
-        String containerId) throws ProcessingException, IOException, URISyntaxException {
+        String containerId) throws ProcessingException {
         ParametersChecker.checkParameter("WorkspaceClient is a mandatory parameter", client);
         ParametersChecker.checkParameter("ContainerId is a mandatory parameter", containerId);
 
@@ -1021,57 +987,64 @@ public class SedaUtils {
     }
 
     private SedaUtilInfo getBinaryObjectInfo(XMLEventReader evenReader)
-        throws XMLStreamException, URISyntaxException {
+        throws ProcessingException {
         final SedaUtilInfo sedaUtilInfo = new SedaUtilInfo();
         BinaryObjectInfo binaryObjectInfo = new BinaryObjectInfo();
         while (evenReader.hasNext()) {
-            XMLEvent event = evenReader.nextEvent();
+            XMLEvent event;
+            try {
+                event = evenReader.nextEvent();
 
-            if (event.isStartElement()) {
-                StartElement startElement = event.asStartElement();
 
-                if (startElement.getName().getLocalPart() == BINARY_DATA_OBJECT) {
-                    event = evenReader.nextEvent();
-                    final String id = ((Attribute) startElement.getAttributes().next()).getValue();
-                    binaryObjectInfo.setId(id);
+                if (event.isStartElement()) {
+                    StartElement startElement = event.asStartElement();
 
-                    while (evenReader.hasNext()) {
+                    if (startElement.getName().getLocalPart() == BINARY_DATA_OBJECT) {
                         event = evenReader.nextEvent();
-                        if (event.isStartElement()) {
-                            startElement = event.asStartElement();
+                        final String id = ((Attribute) startElement.getAttributes().next()).getValue();
+                        binaryObjectInfo.setId(id);
 
-                            final String tag = startElement.getName().getLocalPart();
-                            if (tag == TAG_URI) {
-                                final String uri = evenReader.getElementText();
-                                binaryObjectInfo.setUri(new URI(uri));
+                        while (evenReader.hasNext()) {
+                            event = evenReader.nextEvent();
+                            if (event.isStartElement()) {
+                                startElement = event.asStartElement();
+
+                                final String tag = startElement.getName().getLocalPart();
+                                if (tag == TAG_URI) {
+                                    final String uri = evenReader.getElementText();
+                                    binaryObjectInfo.setUri(new URI(uri));
+                                }
+
+                                if (tag == TAG_VERSION) {
+                                    final String version = evenReader.getElementText();
+                                    binaryObjectInfo.setVersion(version);
+                                }
+
+                                if (tag == TAG_DIGEST) {
+                                    binaryObjectInfo.setAlgo(((Attribute) startElement.getAttributes().next()).getValue());
+                                    final String messageDigest = evenReader.getElementText();
+                                    binaryObjectInfo.setMessageDigest(messageDigest);
+                                }
+
+                                if (tag == TAG_SIZE) {
+                                    final int size = Integer.parseInt(evenReader.getElementText());
+                                    binaryObjectInfo.setSize(size);
+                                }
                             }
 
-                            if (tag == TAG_VERSION) {
-                                final String version = evenReader.getElementText();
-                                binaryObjectInfo.setVersion(version);
+                            if (event.isEndElement() &&
+                                event.asEndElement().getName().getLocalPart() == BINARY_DATA_OBJECT) {
+                                sedaUtilInfo.setBinaryObjectMap(binaryObjectInfo);
+                                binaryObjectInfo = new BinaryObjectInfo();
+                                break;
                             }
 
-                            if (tag == TAG_DIGEST) {
-                                binaryObjectInfo.setAlgo(((Attribute) startElement.getAttributes().next()).getValue());
-                                final String messageDigest = evenReader.getElementText();
-                                binaryObjectInfo.setMessageDigest(messageDigest);
-                            }
-
-                            if (tag == TAG_SIZE) {
-                                final int size = Integer.parseInt(evenReader.getElementText());
-                                binaryObjectInfo.setSize(size);
-                            }
                         }
-
-                        if (event.isEndElement() &&
-                            event.asEndElement().getName().getLocalPart() == BINARY_DATA_OBJECT) {
-                            sedaUtilInfo.setBinaryObjectMap(binaryObjectInfo);
-                            binaryObjectInfo = new BinaryObjectInfo();
-                            break;
-                        }
-
                     }
                 }
+            } catch (XMLStreamException | URISyntaxException e) {
+                LOGGER.error("Can not get BinaryObject info");
+                throw new ProcessingException(e);
             }
         }
         return sedaUtilInfo;
@@ -1079,12 +1052,11 @@ public class SedaUtils {
 
     /**
      * @param evenReader XMLEventReader for the file manifest.xml
-     * @return List<String> list of version for file manifest.xml
-     * @throws XMLStreamException
-     * @throws URISyntaxException
+     * @return List of version for file manifest.xml
+     * @throws ProcessingException when error in execution
      */
     public List<String> manifestVersionList(XMLEventReader evenReader)
-        throws XMLStreamException, URISyntaxException {
+        throws ProcessingException {
         final List<String> versionList = new ArrayList<String>();
         final SedaUtilInfo sedaUtilInfo = getBinaryObjectInfo(evenReader);
         final Map<String, BinaryObjectInfo> binaryObjectMap = sedaUtilInfo.getBinaryObjectMap();
@@ -1101,18 +1073,33 @@ public class SedaUtils {
     /**
      * compare if the version list of manifest.xml is included in or equal to the version list of version.conf
      *
-     * @param evenReader
+     * @param eventReader xml event reader 
+     * @param fileConf version file
      * @return list of unsupported version
-     * @throws IOException
-     * @throws XMLStreamException
-     * @throws URISyntaxException
+     * @throws ProcessingException when error in execution
      */
-    public List<String> compareVersionList(XMLEventReader evenReader, String fileConf)
-        throws IOException, XMLStreamException, URISyntaxException {
+    public List<String> compareVersionList(XMLEventReader eventReader, String fileConf)
+        throws ProcessingException {
 
-        final File file = PropertiesUtils.findFile(fileConf);
-        final List<String> fileVersionList = SedaVersion.fileVersionList(file);
-        final List<String> manifestVersionList = manifestVersionList(evenReader);
+        File file;
+
+        try {
+            file = PropertiesUtils.findFile(fileConf);
+        } catch (FileNotFoundException e) {
+            LOGGER.error("Can not get config file ");
+            throw new ProcessingException(e);
+        }
+
+        List<String> fileVersionList = new ArrayList<>();
+
+        try {
+            fileVersionList = SedaVersion.fileVersionList(file);
+        } catch (IOException e) {
+            LOGGER.error("Can not read config file");
+            throw new ProcessingException(e);
+        }
+
+        final List<String> manifestVersionList = manifestVersionList(eventReader);
         final List<String> invalidVersionList = new ArrayList<String>();
 
         for (final String s : manifestVersionList) {
@@ -1129,17 +1116,12 @@ public class SedaUtils {
     /**
      * check the conformity of the binary object
      *
-     * @param params
-     * @return List<String> list of the invalid digest message
-     * @throws ProcessingException
-     * @throws URISyntaxException
-     * @throws ContentAddressableStorageNotFoundException
-     * @throws ContentAddressableStorageServerException
-     * @throws ContentAddressableStorageException
+     * @param params worker parameter
+     * @return List of the invalid digest message
+     * @throws ProcessingException when error in execution
      */
     public List<String> checkConformityBinaryObject(WorkParams params)
-        throws ProcessingException, URISyntaxException, ContentAddressableStorageNotFoundException,
-        ContentAddressableStorageServerException, ContentAddressableStorageException {
+        throws ProcessingException {
         ParametersChecker.checkParameter("WorkParams is a mandatory parameter", params);
         final String containerId = params.getContainerName();
         final WorkspaceClient client = workspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
@@ -1170,28 +1152,31 @@ public class SedaUtils {
     /**
      * compare the digest message between the manifest.xml and related uri content in workspace container
      *
-     * @param evenReader
-     * @param client
-     * @return List<String> list of the invalid digest message
-     * @throws XMLStreamException
-     * @throws URISyntaxException
-     * @throws ContentAddressableStorageNotFoundException
-     * @throws ContentAddressableStorageServerException
-     * @throws ContentAddressableStorageException
+     * @param eventReader xml event reader
+     * @param client Workspace client
+     * @param containerId container id
+     * @return List of the invalid digest message
+     * @throws ProcessingException when error in execution
      */
-
-    public List<String> compareDigestMessage(XMLEventReader evenReader, WorkspaceClient client, String containerId) 
-        throws XMLStreamException, URISyntaxException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, ContentAddressableStorageException{
-        SedaUtilInfo sedaUtilInfo = getBinaryObjectInfo(evenReader);
+    public List<String> compareDigestMessage(XMLEventReader eventReader, WorkspaceClient client, String containerId) 
+        throws ProcessingException {
+        SedaUtilInfo sedaUtilInfo;
+        sedaUtilInfo = getBinaryObjectInfo(eventReader);
         Map<String, BinaryObjectInfo> binaryObjectMap = sedaUtilInfo.getBinaryObjectMap();
         List<String> digestMessageInvalidList = new ArrayList<String>();
-        
+
         for (String mapKey : binaryObjectMap.keySet()) {
             String uri = binaryObjectMap.get(mapKey).getUri().toString();
             String digestMessageManifest = binaryObjectMap.get(mapKey).getMessageDigest();
             DigestType algo = binaryObjectMap.get(mapKey).getAlgo();
-            String digestMessage = client.computeObjectDigest(containerId, SEDA_FOLDER + "/" + uri, algo);
-            
+            String digestMessage = "";
+            try {
+                digestMessage = client.computeObjectDigest(containerId, SEDA_FOLDER + "/" + uri, algo);
+            } catch (ContentAddressableStorageException e) {
+                LOGGER.error("Can not get BinaryObject digest");
+                throw new ProcessingException(e);
+            }
+
             if(!digestMessage.equals(digestMessageManifest)){
                 LOGGER.info("Binary object Digest Message Invalid : " + uri );
                 digestMessageInvalidList.add(uri);

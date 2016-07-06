@@ -49,7 +49,7 @@ public class IndexUnitActionHandler extends ActionHandler {
     /**
      * Constructor with parameter SedaUtilsFactory
      *
-     * @param factory
+     * @param factory SedaUtils factory
      */
     public IndexUnitActionHandler(SedaUtilsFactory factory) {
         sedaUtilsFactory = factory;

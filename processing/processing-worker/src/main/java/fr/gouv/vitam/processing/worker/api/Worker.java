@@ -46,11 +46,11 @@ public interface Worker {
      *
      * @param step {@link Step} null not allowed
      * @param workParams {@link WorkParams} (one and only workItem will be in workParams)
-     * @return List<EngineResponse> {@link EngineResponse} : list of action response {OK,KO,FATAL...}
+     * @return List EngineResponse {@link EngineResponse} : list of action response {OK,KO,FATAL...}
      *
-     * @throws IllegalArgumentException
-     * @throws HandlerNotFoundException
-     * @throws ProcessingException
+     * @throws IllegalArgumentException throws when arguments are null
+     * @throws HandlerNotFoundException throws when handler not found
+     * @throws ProcessingException throws when error in execution
      */
     List<EngineResponse> run(WorkParams workParams, Step step)
         throws IllegalArgumentException, HandlerNotFoundException, ProcessingException;

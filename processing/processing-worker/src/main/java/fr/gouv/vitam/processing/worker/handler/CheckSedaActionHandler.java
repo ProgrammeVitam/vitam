@@ -26,8 +26,6 @@
  */
 package fr.gouv.vitam.processing.worker.handler;
 
-import java.io.IOException;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -52,7 +50,7 @@ public class CheckSedaActionHandler extends ActionHandler {
     /**
      * Constructor with parameter SedaUtilsFactory
      *
-     * @param factory
+     * @param factory SedaUtils factory
      */
     public CheckSedaActionHandler(SedaUtilsFactory factory) {
         sedaUtilsFactory = factory;
@@ -80,9 +78,6 @@ public class CheckSedaActionHandler extends ActionHandler {
         try {
             result = sedaUtils.checkSedaValidation(params);
             messageId = sedaUtils.getMessageIdentifier(params);
-        } catch (final IOException e) {
-            LOGGER.error("checkSedaActionHandler IOException");
-            response.setStatus(StatusCode.FATAL).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_MANIFEST_KO);
         } catch (ProcessingException e) {
             LOGGER.error("getMessageIdentifier ProcessingException");
             response.setStatus(StatusCode.FATAL).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_MANIFEST_KO);
