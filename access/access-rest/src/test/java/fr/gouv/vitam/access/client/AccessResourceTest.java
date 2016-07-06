@@ -27,17 +27,18 @@ import static org.junit.Assert.assertNotNull;
 
 import java.io.FileNotFoundException;
 
-import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import fr.gouv.vitam.access.client.AccessClientFactory.AccessClientType;
+import com.jayway.restassured.RestAssured;
+
 import fr.gouv.vitam.access.common.exception.AccessClientException;
 import fr.gouv.vitam.access.rest.AccessApplication;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.BasicVitamServer;
@@ -48,31 +49,36 @@ import fr.gouv.vitam.common.server.VitamServer;
  */
 public class AccessResourceTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessResourceTest.class);
+    private static final String ACCESS_RESOURCE_URI = "access/v1";
 
     private static final String ACCESS_CONF = "access.conf";
     private static VitamServer vitamServer;
-    private static final String DATABASE_HOST = "";
-    private static final int SERVER_PORT = 8102;
+    private static final String ID = "identifier8";
+
+    private static JunitHelper junitHelper;
+    private static int port;
+    private static int serverPort;
 
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        // Identify overlapping in particular jsr311
-        new JHades().overlappingJarsReport();
-
+        junitHelper = new JunitHelper();
+        port = junitHelper.findAvailablePort();
         try {
             vitamServer = AccessApplication.startApplication(new String[] {
                 PropertiesUtils.getResourcesFile(ACCESS_CONF).getAbsolutePath(),
-                Integer.toString(SERVER_PORT)});
+                Integer.toString(port)});
             ((BasicVitamServer) vitamServer).start();
+
+            RestAssured.port = port;
+            RestAssured.basePath = ACCESS_RESOURCE_URI;
+
+            LOGGER.debug("Beginning tests");
         } catch (FileNotFoundException | VitamApplicationServerException e) {
             LOGGER.error(e);
             throw new IllegalStateException(
                 "Cannot start the Access Application Server", e);
         }
-
-        AccessClientFactory.setConfiguration(AccessClientType.MOCK, DATABASE_HOST, SERVER_PORT);
-
     }
 
     @AfterClass
@@ -80,6 +86,7 @@ public class AccessResourceTest {
         LOGGER.debug("Ending tests");
         try {
             ((BasicVitamServer) vitamServer).stop();
+            junitHelper.releasePort(serverPort);
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
         }
@@ -98,6 +105,7 @@ public class AccessResourceTest {
                 " $projection : {$fields : {#id : 1, title:2, transacdate:1}}" +
                 " }";
         assertNotNull(client.selectUnits(selectQuery));
+        assertNotNull(client.selectUnitbyId(selectQuery, ID));
     }
 
 }

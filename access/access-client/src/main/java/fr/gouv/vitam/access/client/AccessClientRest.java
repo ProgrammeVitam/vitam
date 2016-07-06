@@ -47,78 +47,108 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
  * Access client
  */
 public class AccessClientRest implements AccessClient {
-	private static final String RESOURCE_PATH = "/access/v1";
+    private static final String RESOURCE_PATH = "/access/v1";
+    private static final String BLANK_DSL = "select DSL is blank";
+    private static final String BLANK_UNIT_ID = "unit identifier should be filled";
 
-	private final String serviceUrl;
-	private final Client client;
+    private final String serviceUrl;
+    private final Client client;
 
-	/**
-	 * @param server
-	 *            - localhost
-	 * @param port
-	 *            - define 8082
-	 */
-	public AccessClientRest(String server, int port) {
-		serviceUrl = "http://" + server + ":" + port + RESOURCE_PATH;
-		final ClientConfig config = new ClientConfig();
-		config.register(JacksonJsonProvider.class);
-		config.register(JacksonFeature.class);
-		client = ClientBuilder.newClient(config);
-	}
+    /**
+     * @param server - localhost
+     * @param port - define 8082
+     */
+    public AccessClientRest(String server, int port) {
+        serviceUrl = "http://" + server + ":" + port + RESOURCE_PATH;
+        final ClientConfig config = new ClientConfig();
+        config.register(JacksonJsonProvider.class);
+        config.register(JacksonFeature.class);
+        client = ClientBuilder.newClient(config);
+    }
 
-	/**
-	 * @return : status of access server 200 : server is alive
-	 */
-	public Response status() {
-		return client.target(serviceUrl).path("status").request().get();
-	}
+    /**
+     * @return : status of access server 200 : server is alive
+     */
+    public Response status() {
+        return client.target(serviceUrl).path("status").request().get();
+    }
 
-	/**
-	 *
-	 * AccessClient to send a “GET” request and the returned json data.
-	 *
-	 * @param selectQuery
-	 * @return Object JsonNode
-	 * @throws InvalidParseOperationException
-	 * @throws AccessClientServerException
-	 * @throws AccessClientNotFoundException
-	 */
-	public JsonNode selectUnits(String selectQuery)
-			throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException {
-		if (StringUtils.isBlank(selectQuery)) {
-			throw new IllegalArgumentException("select DSL is blank");
-		}
+    /**
+     *
+     * AccessClient to send a “GET” request and the returned json data.
+     *
+     * @param selectQuery
+     * @return Object JsonNode
+     * @throws InvalidParseOperationException
+     * @throws AccessClientServerException
+     * @throws AccessClientNotFoundException
+     */
+    public JsonNode selectUnits(String selectQuery)
+        throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException {
+        if (StringUtils.isBlank(selectQuery)) {
+            throw new IllegalArgumentException("select DSL is blank");
+        }
 
-		final GUID guid = GUIDFactory.newGUID();
+        final GUID guid = GUIDFactory.newGUID();
 
-		final Response response = client.target(serviceUrl).path("units").request(MediaType.APPLICATION_JSON)
-				.header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
-				.header(GlobalDataRest.X_REQUEST_ID, guid.toString()).accept(MediaType.APPLICATION_JSON)
-				.post(Entity.entity(selectQuery, MediaType.APPLICATION_JSON), Response.class);
+        final Response response = client.target(serviceUrl).path("units").request(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .header(GlobalDataRest.X_REQUEST_ID, guid.toString()).accept(MediaType.APPLICATION_JSON)
+            .post(Entity.entity(selectQuery, MediaType.APPLICATION_JSON), Response.class);
 
-		if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-			throw new AccessClientServerException("Internal Server Error"); // access-common
-		} else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) { // access-common
-			throw new AccessClientNotFoundException("Not Found Exception");
-		} else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
-			throw new InvalidParseOperationException("Invalid Parse Operation");// common
-		}
+        if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+            throw new AccessClientServerException("Internal Server Error"); // access-common
+        } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) { // access-common
+            throw new AccessClientNotFoundException("Not Found Exception");
+        } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
+            throw new InvalidParseOperationException("Invalid Parse Operation");// common
+        }
 
-		return response.readEntity(JsonNode.class);
-	}
+        return response.readEntity(JsonNode.class);
+    }
 
-	@Override
-	public JsonNode selectUnitById(String sqlQuery, String id)
-			throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException {
-		// TODO: to replace by a call to METADATA to get result
-		return JsonHandler.getFromString(
-				"{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\",\" Title\": \"Annuaire_\", \"DescriptionLevel\": \"Annuaire de test\", "
-						+ "\"TransactedDate\": \"15-12-2016\"}");
-	}
+    /**
+     *
+     * AccessClient to send a “GET” request based on select by Id and the returned json data.
+     *
+     * @param selectQuery,unit_id
+     * @return Object JsonNode
+     * @throws InvalidParseOperationException
+     * @throws AccessClientServerException
+     * @throws AccessClientNotFoundException
+     */
+    public JsonNode selectUnitbyId(String selectQuery, String id_unit)
+        throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException {
+        if (StringUtils.isBlank(selectQuery)) {
+            throw new IllegalArgumentException(BLANK_DSL);
+        }
+        if (StringUtils.isEmpty(id_unit)) {
+            throw new IllegalArgumentException(BLANK_UNIT_ID);
+        }
+
+        final GUID guid = GUIDFactory.newGUID();
+
+        final Response response =
+            client.target(serviceUrl).path("units/" + id_unit).request(MediaType.APPLICATION_JSON)
+                .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+                .header("X-REQUEST-ID", guid.toString())
+                .accept(MediaType.APPLICATION_JSON)
+                .post(Entity.entity(selectQuery, MediaType.APPLICATION_JSON), Response.class);
+
+        if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+            throw new AccessClientServerException("Internal Server Error"); // access-common
+        } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) { // access-common
+            throw new AccessClientNotFoundException("Not Found Exception");
+        } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
+            throw new InvalidParseOperationException("Invalid Parse Operation");// common
+        }
+
+        return response.readEntity(JsonNode.class);
+    }
+
 }

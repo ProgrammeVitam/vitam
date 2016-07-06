@@ -25,20 +25,13 @@ package fr.gouv.vitam.access.rest;
 
 import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
+import static com.jayway.restassured.RestAssured.with;
 
 import java.io.FileNotFoundException;
 
 import javax.ws.rs.core.Response.Status;
 
-import org.eclipse.persistence.jaxb.rs.MOXyJsonProvider;
-import org.glassfish.jersey.jackson.JacksonFeature;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.JerseyTest;
-import org.glassfish.jersey.test.TestProperties;
-import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -46,29 +39,28 @@ import org.junit.Test;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.BasicVitamServer;
 import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.parser.request.parser.GlobalDatasParser;
 
 
+public class AccessResourceImplTest {
 
-public class AccessResourceImplTest extends JerseyTest {
-
-
-    private static final String X_HTTP_METHOD_OVERRIDE = "X-Http-Method-Override";
     // URI
     private static final String ACCESS_CONF = "access.conf";
     private static final String ACCESS_RESOURCE_URI = "access/v1";
     private static final String ACCESS_STATUS_URI = "/status";
     private static final String ACCESS_UNITS_URI = "/units";
-
-    private static final int ASSURD_SERVER_PORT = 8187;
+    private static final String ACCESS_UNITS_ID_URI = "/units/xyz";
+    // private static final int ASSURD_SERVER_PORT = 8187;
 
     private static VitamServer vitamServer;
-
 
     // QUERIES AND DSL
     // TODO
@@ -78,27 +70,37 @@ public class AccessResourceImplTest extends JerseyTest {
         " $projection : {$fields : {#id : 1, title:2, transacdate:1}}" +
         " }";
 
-
     private static final String DATA =
         "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", " + "\"data\": \"data1\" }";
 
     private static final String DATA2 =
         "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\"," + "\"data\": \"data2\" }";
 
+    private static final String ID = "identifier4";
     // LOGGER
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessResourceImplTest.class);
+
+    private static final String BODY_TEST = "{$query: {$eq: {\"data\" : \"data2\" }}, $projection: {}, $filter: {}}";
+
+    private static final String ID_UNIT = "identifier5";
+    private static JunitHelper junitHelper;
+    private static int port;
+    private static int serverPort;
 
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        RestAssured.port = ASSURD_SERVER_PORT;
-        RestAssured.basePath = ACCESS_RESOURCE_URI;
-
+        junitHelper = new JunitHelper();
+        port = junitHelper.findAvailablePort();
         try {
             vitamServer = AccessApplication.startApplication(new String[] {
                 PropertiesUtils.getResourcesFile(ACCESS_CONF).getAbsolutePath(),
-                Integer.toString(ASSURD_SERVER_PORT)});
+                Integer.toString(port)});
             ((BasicVitamServer) vitamServer).start();
+
+            RestAssured.port = port;
+            RestAssured.basePath = ACCESS_RESOURCE_URI;
+
             LOGGER.debug("Beginning tests");
         } catch (FileNotFoundException | VitamApplicationServerException e) {
             LOGGER.error(e);
@@ -112,46 +114,12 @@ public class AccessResourceImplTest extends JerseyTest {
         LOGGER.debug("Ending tests");
         try {
             ((BasicVitamServer) vitamServer).stop();
+            junitHelper.releasePort(serverPort);
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
         }
+
     }
-
-    @Before
-    public void before() throws Exception {
-        // client = ClientBuilder.newClient();
-        //
-        // accessModuleMock = mock(AccessModule.class);
-        // accessModuleImplMock = mock(AccessModuleImpl.class);
-        //
-        // final String json = "{\"objects\" : [\"One\", \"Two\", \"Three\"]}";
-        // final JsonNode arrNode = new ObjectMapper().readTree(json).get("objects");
-        // jsonNode = arrNode;
-    }
-
-    @Override
-    @After
-    public void tearDown() throws Exception {
-        super.tearDown();
-    }
-
-    @Override
-    public javax.ws.rs.core.Application configure() {
-        enable(TestProperties.LOG_TRAFFIC);
-        enable(TestProperties.DUMP_ENTITY);
-        enable(TestProperties.CONTAINER_FACTORY);
-        enable(TestProperties.CONTAINER_PORT);
-        set(TestProperties.CONTAINER_PORT, "8082");
-        final ResourceConfig resourceConfig = new ResourceConfig();
-        resourceConfig.packages("fr.gouv.vitam.access.rest");
-        resourceConfig.register(JacksonFeature.class);
-        resourceConfig.register(MultiPartFeature.class);
-        resourceConfig.register(MOXyJsonProvider.class);
-        resourceConfig.register(AccessResourceImpl.class);
-        return resourceConfig;
-    }
-
-
 
     // Status
     /**
@@ -163,7 +131,6 @@ public class AccessResourceImplTest extends JerseyTest {
     public void givenStartedServer_WhenGetStatus_ThenReturnStatusOk() throws Exception {
         get(ACCESS_STATUS_URI).then().statusCode(Status.OK.getStatusCode());
     }
-
 
     // Error cases
     /**
@@ -184,7 +151,7 @@ public class AccessResourceImplTest extends JerseyTest {
     @Test
     public void givenStartedServer_WhenRequestNotJson_ThenReturnError_UnsupportedMediaType() throws Exception {
         given()
-            .contentType(ContentType.XML).header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .contentType(ContentType.XML).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
             .body(buildDSLWithOptions(QUERY_TEST, DATA2))
             .when().post(ACCESS_UNITS_URI).then().statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
     }
@@ -197,30 +164,180 @@ public class AccessResourceImplTest extends JerseyTest {
     @Test
     public void givenStartedServer_WhenBadRequest_ThenReturnError_BadRequest() throws Exception {
         given()
-            .contentType(ContentType.JSON).header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
             .body(buildDSLWithOptions(QUERY_TEST, DATA2))
             .when().post(ACCESS_UNITS_URI).then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
-    @Test
-    public void givenStartedServer_When_BadRequest_ThenReturnError_BadRequest() throws Exception {
-        given()
-            .contentType(ContentType.JSON).header(X_HTTP_METHOD_OVERRIDE, "GET")
-            .body(buildDSLWithOptions(QUERY_TEST, DATA2))
-            .when().post(ACCESS_UNITS_URI).then().statusCode(Status.BAD_REQUEST.getStatusCode());
-    }
+
 
     @Test
     public void givenStartedServer_When_Empty_Http_Get_ThenReturnError_METHOD_NOT_ALLOWED() throws Exception {
         given()
-            .contentType(ContentType.JSON).header(X_HTTP_METHOD_OVERRIDE, "ABC")
+            .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "ABC")
             .body(buildDSLWithOptions(QUERY_TEST, DATA2))
             .when().post(ACCESS_UNITS_URI).then().statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
     }
 
-
+    /**
+     * 
+     * @param data
+     * @return query DSL with Options
+     */
     private static final String buildDSLWithOptions(String query, String data) {
         return "{ $roots : [ '' ], $query : [ " + query + " ], $data : " + data + " }";
     }
 
+    /**
+     * 
+     * @param data
+     * @return query DSL with id as Roots
+     */
+
+    private static final String buildDSLWithRoots(String data) {
+        return "{ $roots : [ " + data + " ], $query : [ '' ], $data : " + data + " }";
+    }
+
+    /**
+     * Checks if the send parameter doesn't have Json format
+     * 
+     * @throws Exception
+     */
+    @Test
+    public void givenStartedServer_WhenRequestNotJson_ThenReturnError_SelectById_UnsupportedMediaType()
+        throws Exception {
+        given()
+            .contentType(ContentType.XML).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .body(buildDSLWithRoots(ID))
+            .when().post(ACCESS_UNITS_ID_URI).then().statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
+    }
+
+    /**
+     * Checks if the send parameter is a bad request
+     * 
+     * @throws Exception
+     */
+    @Test
+    public void givenStartedServer_WhenBadRequest_ThenReturnError_SelectById_BadRequest() throws Exception {
+        given()
+            .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .body(buildDSLWithRoots(ID))
+            .when().post(ACCESS_UNITS_ID_URI).then().statusCode(Status.BAD_REQUEST.getStatusCode());
+    }
+
+
+    @Test
+    public void givenStartedServer_When_Empty_Http_Get_ThenReturnError_SelectById_METHOD_NOT_ALLOWED()
+        throws Exception {
+        given()
+            .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "ABC")
+            .body(buildDSLWithRoots(ID))
+            .when().post(ACCESS_UNITS_ID_URI).then().statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+    }
+
+
+
+    @Test
+    public void given_SelectUnitById_WhenStringTooLong_Then_Throw_MethodNotAllowed() throws Exception {
+        GlobalDatasParser.limitRequest = 1000;
+        given()
+            .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "ABC")
+            .body(buildDSLWithOptions(createLongString(1001), DATA2))
+            .when().post(ACCESS_UNITS_ID_URI).then().statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+
+    }
+
+    private static String createLongString(int size) throws Exception {
+        final StringBuilder sb = new StringBuilder(size);
+        for (int i = 0; i < size; i++) {
+            sb.append('a');
+        }
+        return sb.toString();
+    }
+
+    @Ignore
+    @Test
+    public void given_units_insert_when_searchUnitsByID_thenReturn_Found() throws Exception {
+        with()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .body(buildDSLWithOptions("", DATA2)).when()
+            .post("/units").then()
+            .statusCode(Status.CREATED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .body(BODY_TEST).when()
+            .post("/units/" + ID_UNIT).then()
+            .statusCode(Status.FOUND.getStatusCode());
+
+    }
+
+
+    @Test
+    public void given_emptyQuery_when_SelectByID_thenReturn_Bad_Request() {
+
+        given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .body("")
+            .when()
+            .post("/units/" + ID_UNIT)
+            .then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
+    }
+
+
+    @Test
+    public void given_bad_header_when_SelectByID_thenReturn_Not_allowed() {
+
+        given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "ABC")
+            .body(BODY_TEST)
+            .when()
+            .post("/units/" + ID_UNIT)
+            .then()
+            .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+    }
+
+    @Test
+    public void given_pathWithId_when_get_SelectByID_thenReturn_MethodNotAllowed() {
+
+        given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .body(BODY_TEST)
+            .when()
+            .post("/units/" + ID_UNIT)
+            .then()
+            .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+    }
+
+    @Ignore
+    @Test
+    public void shouldReturnInternalServerError() throws Exception {
+        int limitRequest = GlobalDatasParser.limitRequest;
+        GlobalDatasParser.limitRequest = 99;
+        given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .body(buildDSLWithOptions("", createJsonStringWithDepth(101))).when()
+            .post("/units/" + ID_UNIT).then()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+        GlobalDatasParser.limitRequest = limitRequest;
+    }
+
+
+    private static String createJsonStringWithDepth(int depth) {
+        final StringBuilder obj = new StringBuilder();
+        if (depth == 0) {
+            return " \"b\" ";
+        }
+        obj.append("{ \"a\": ").append(createJsonStringWithDepth(depth - 1)).append("}");
+        return obj.toString();
+    }
+
 }
+

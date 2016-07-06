@@ -33,31 +33,30 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
  * Access client interface
  */
 public interface AccessClient {
-	/**
-	 * Returns search units by criteria
-	 * 
-	 * @param selectQuery
-	 * @return Object JsonNode
-	 * @throws InvalidParseOperationException
-	 * @throws AccessClientServerException
-	 * @throws AccessClientNotFoundException
-	 */
-	JsonNode selectUnits(String selectQuery)
-			throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException;
 
-	/**
-	 * Returns an archive unit details
-	 * 
-	 * @param sqlQuery
-	 *            DSL query
-	 * 
-	 * @param id
-	 *            Unit Id
-	 * @return
-	 * @throws InvalidParseOperationException
-	 * @throws AccessClientServerException
-	 * @throws AccessClientNotFoundException
-	 */
-	JsonNode selectUnitById(String sqlQuery, String id)
-			throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException;
+
+    /**
+     * Select Units
+     * 
+     * @param selectQuery
+     * @return Object JsonNode
+     * @throws InvalidParseOperationException
+     * @throws AccessClientServerException
+     * @throws AccessClientNotFoundException
+     */
+    JsonNode selectUnits(String selectQuery)
+        throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException;
+
+    /**
+     * select Unit By Id
+     * 
+     * @param selectQuery
+     * @param id
+     * @return Object JsonNode
+     * @throws InvalidParseOperationException
+     * @throws AccessClientServerException
+     * @throws AccessClientNotFoundException
+     */
+    JsonNode selectUnitbyId(String sqlQuery, String id)
+        throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException;
 }

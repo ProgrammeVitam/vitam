@@ -48,7 +48,7 @@ public class AccessClientMockTest {
             " $filter : { $orderby : { '#id' } }," +
             " $projection : {$fields : {#id : 1, title:2, transacdate:1}}" +
             " }";
-
+    final String ID="identifier1";
     @Test
     public void givenMockConfExist_WhenCreateMockedClient_ThenReturnOK() {
         AccessClientFactory.setConfiguration(AccessClientType.MOCK, null, 0);
@@ -69,4 +69,17 @@ public class AccessClientMockTest {
 
         assertThat(client.selectUnits(queryDsql)).isNotNull();
     }
+    
+    @Test
+    public void givenMockExists_whenSelectUnitById_ThenReturnOK()
+        throws AccessClientServerException, AccessClientNotFoundException, InvalidParseOperationException {
+        AccessClientFactory.setConfiguration(AccessClientType.MOCK, null, 0);
+
+        final AccessClient client =
+            AccessClientFactory.getInstance().getAccessOperationClient();
+        assertNotNull(client);
+
+        assertThat(client.selectUnitbyId(queryDsql,ID)).isNotNull();
+    }
+    
 }
