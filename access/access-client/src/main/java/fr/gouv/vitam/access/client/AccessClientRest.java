@@ -53,7 +53,6 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
  */
 public class AccessClientRest implements AccessClient {
     private static final String RESOURCE_PATH = "/access/v1";
-    private static final String HTTP_OVERRIDE = "X-Http-Method-Override";
     private static final String BLANK_DSL = "select DSL is blank";
     private static final String BLANK_UNIT_ID = "unit identifier should be filled";
 
@@ -136,7 +135,7 @@ public class AccessClientRest implements AccessClient {
 
         final Response response =
             client.target(serviceUrl).path("units/" + id_unit).request(MediaType.APPLICATION_JSON)
-                .header(HTTP_OVERRIDE, "GET")
+                .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
                 .header("X-REQUEST-ID", guid.toString())
                 .accept(MediaType.APPLICATION_JSON)
                 .post(Entity.entity(selectQuery, MediaType.APPLICATION_JSON), Response.class);

@@ -42,14 +42,13 @@ public class AccessClientMock implements AccessClient {
     public JsonNode selectUnits(String selectQuery)
         throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException {
         return JsonHandler.getFromString(
-            "{$hint: {'total':'1'}, $result:[{'_id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}");
+            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"Title\" : \"Archive1\" }}, $projection: {}, $filter: {}}, $result:[{'_id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}");
     }
 
     @Override
     public JsonNode selectUnitbyId(String sqlQuery, String id)
         throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException {
         return JsonHandler.getFromString(
-            "{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\",\" Title\": \"Annuaire_\", \"DescriptionLevel\": \"Annuaire de test\", " +
-                "\"TransactedDate\": \"15-12-2016\"}");
+            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"1\" }}, $projection: {}, $filter: {}},$result:[{'_id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}");
     }
 }

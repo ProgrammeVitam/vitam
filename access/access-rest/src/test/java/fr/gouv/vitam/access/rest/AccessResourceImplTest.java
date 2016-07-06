@@ -315,6 +315,7 @@ public class AccessResourceImplTest {
             .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
     }
 
+    @Ignore
     @Test
     public void shouldReturnInternalServerError() throws Exception {
         int limitRequest = GlobalDatasParser.limitRequest;

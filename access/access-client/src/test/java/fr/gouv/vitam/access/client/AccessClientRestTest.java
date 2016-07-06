@@ -43,7 +43,6 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.glassfish.jersey.test.TestProperties;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import fr.gouv.vitam.access.common.exception.AccessClientNotFoundException;
@@ -142,8 +141,8 @@ public class AccessClientRestTest extends JerseyTest {
     }
     // Select Unit By Id
 
-    @Ignore
-    @Test(expected = AccessClientServerException.class)
+
+    @Test(expected = AccessClientNotFoundException.class)
     public void givenInternalServerError_whenSelectById_ThenRaiseAnExeption() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         final String queryDsql =

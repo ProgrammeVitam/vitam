@@ -48,6 +48,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.VitamError;
+import fr.gouv.vitam.parser.request.parser.GlobalDatasParser;
 
 /**
  * AccessResourceImpl implements AccessResource
@@ -90,6 +91,7 @@ public class AccessResourceImpl implements AccessResource {
         JsonNode queryJson = null;
         try {
             if (xhttpOverride != null && "GET".equalsIgnoreCase(xhttpOverride)) {
+                GlobalDatasParser.sanityRequestCheck(queryDsl);
                 queryJson = JsonHandler.getFromString(queryDsl);
                 result = accessModule.selectUnit(queryJson);
             } else {
@@ -127,7 +129,6 @@ public class AccessResourceImpl implements AccessResource {
         return Response.status(200).entity("OK_status").build();
     }
 
-
     /**
      * get units list by query based on identifier
      */
@@ -145,10 +146,10 @@ public class AccessResourceImpl implements AccessResource {
         JsonNode result = null;
         try {
             if (xhttpOverride != null && "GET".equalsIgnoreCase(xhttpOverride)) {
+
+                GlobalDatasParser.sanityRequestCheck(queryDsl);
                 queryJson = JsonHandler.getFromString(queryDsl);
                 result = accessModule.selectUnitbyId(queryJson, id_unit);
-                result.get("$result");
-
             } else {
                 throw new AccessExecutionException("There is no 'X-HTTP-Method-Override:GET' as a header");
             }
@@ -179,7 +180,4 @@ public class AccessResourceImpl implements AccessResource {
         LOGGER.info("End of execution of DSL Vitam from Access");
         return Response.status(Status.OK).entity(result).build();
     }
-
-
-
 }

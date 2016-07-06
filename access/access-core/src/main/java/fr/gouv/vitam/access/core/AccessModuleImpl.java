@@ -35,8 +35,6 @@ import fr.gouv.vitam.access.config.AccessConfiguration;
 import fr.gouv.vitam.client.MetaDataClient;
 import fr.gouv.vitam.client.MetaDataClientFactory;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.parser.request.parser.GlobalDatasParser;
-import fr.gouv.vitam.parser.request.parser.SelectParser;
 
 /**
  * AccessModuleImpl implements AccessModule
@@ -91,13 +89,6 @@ public class AccessModuleImpl implements AccessModule {
         JsonNode jsonNode = null;
 
         try {
-            GlobalDatasParser.sanityRequestCheck(jsonQuery.toString());
-            SelectParser parser = new SelectParser();
-            parser.parse(jsonQuery);
-        } catch (final InvalidParseOperationException e) {
-            throw new IllegalArgumentException(e);
-        }
-        try {
             if (metaDataClientFactory == null) {
                 metaDataClientFactory = new MetaDataClientFactory();
             }
@@ -135,14 +126,6 @@ public class AccessModuleImpl implements AccessModule {
 
         if (StringUtils.isEmpty(unit_id)) {
             throw new IllegalArgumentException(ID_CHECK_FAILED);
-        }
-
-        try {
-            GlobalDatasParser.sanityRequestCheck(jsonQuery.toString());
-            SelectParser parser = new SelectParser();
-            parser.parse(jsonQuery);
-        } catch (final InvalidParseOperationException e) {
-            throw new IllegalArgumentException(SANITY_CHECK_FAILED, e);
         }
         try {
 
