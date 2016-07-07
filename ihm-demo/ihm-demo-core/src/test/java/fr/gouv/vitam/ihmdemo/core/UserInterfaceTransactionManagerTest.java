@@ -27,12 +27,14 @@
 package fr.gouv.vitam.ihmdemo.core;
 
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -47,34 +49,53 @@ import fr.gouv.vitam.common.json.JsonHandler;
  * Tests UserInterfaceTransactionManager class
  *
  */
+
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({ AccessClientFactory.class })
 public class UserInterfaceTransactionManagerTest {
-	private static AccessClientFactory accessClientFactory;
-	private static AccessClient accessClient;
-	private static String DSL_QUERY = "";
+	private static String SELECT_ID_DSL_QUERY = "{ $roots : [ '1' ] }";
+	private static String SEARCH_UNIT_DSL_QUERY = "{ \"$queries\": [$eq : { '#id' : 1 }], \"$filter\": {$orderby : { TransactedDate : 1 } }, "
+			+ "\"$projection\": {$fields : {#id : 1, Title : 1, TransactedDate:1 }}}";
 	private static String ID_UNIT = "1";
 	private static String UNIT_DETAILS = "{_id: '1', Title: 'Archive 1', DescriptionLevel: 'Archive Mock'}";
+	private static String SEARCH_RESULT = "{$hint: {'total':'1'}, $result:[{'_id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}";
 	private static JsonNode unitDetails;
+	private static JsonNode searchResult;
+
+	private static AccessClientFactory accessClientFactory;
+	private static AccessClient accessClient;
 
 	@BeforeClass
 	public static void setup()
 			throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException {
-		accessClientFactory = mock(AccessClientFactory.class);
-		accessClient = mock(AccessClient.class);
 		unitDetails = JsonHandler.getFromString(UNIT_DETAILS);
-		when(accessClientFactory.getAccessOperationClient()).thenReturn(accessClient);
+		searchResult = JsonHandler.getFromString(SEARCH_RESULT);
 
+		PowerMockito.mockStatic(AccessClientFactory.class);
+		accessClientFactory = PowerMockito.mock(AccessClientFactory.class);
+		accessClient = org.mockito.Mockito.mock(AccessClient.class);
+		PowerMockito.when(AccessClientFactory.getInstance()).thenReturn(accessClientFactory);
+		PowerMockito.when(AccessClientFactory.getInstance().getAccessOperationClient()).thenReturn(accessClient);
 	}
 
-	@Ignore
 	@Test
-	public void testGetArchiveUnitDetails()
+	public void testSuccessSearchUnits()
 			throws AccessClientServerException, AccessClientNotFoundException, InvalidParseOperationException {
-		// TODO : use PowerMockito to mock final classes and static methods
-		when(accessClient.selectUnitbyId(DSL_QUERY, ID_UNIT)).thenReturn(unitDetails);
+		when(accessClient.selectUnits(SEARCH_UNIT_DSL_QUERY)).thenReturn(searchResult);
 
-		// test method
-		JsonNode archiveDetails = UserInterfaceTransactionManager.getArchiveUnitDetails(DSL_QUERY, ID_UNIT);
-		assertTrue(archiveDetails.get("Title").equals("Archive 1"));
+		// Test method
+		JsonNode searchResult = UserInterfaceTransactionManager.searchUnits(SEARCH_UNIT_DSL_QUERY);
+		assertTrue(searchResult.get("$hint").get("total").textValue().equals("1"));
+	}
+
+	@Test
+	public void testSuccessGetArchiveUnitDetails()
+			throws AccessClientServerException, AccessClientNotFoundException, InvalidParseOperationException {
+		when(accessClient.selectUnitbyId(SELECT_ID_DSL_QUERY, ID_UNIT)).thenReturn(unitDetails);
+
+		// Test method
+		JsonNode archiveDetails = UserInterfaceTransactionManager.getArchiveUnitDetails(SELECT_ID_DSL_QUERY, ID_UNIT);
+		assertTrue(archiveDetails.get("Title").textValue().equals("Archive 1"));
 	}
 
 }

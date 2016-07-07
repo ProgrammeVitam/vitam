@@ -56,6 +56,7 @@ public class ServerApplication {
 	private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ServerApplication.class);
 	private static final String DEFAULT_WEB_APP_CONTEXT = "/ihm-demo";
 	private static final String DEFAULT_STATIC_CONTENT = "webapp";
+	private static final String DEFAULT_HOST = "localhost";
 	private static Server server;
 
 	/**
@@ -87,9 +88,9 @@ public class ServerApplication {
 				configuration = mapper.readValue(yamlFile, WebApplicationConfig.class);
 			} else {
 				// Set default parameters
-				configuration.setDefaultContext(DEFAULT_WEB_APP_CONTEXT);
+				configuration.setBaseUrl(DEFAULT_WEB_APP_CONTEXT);
 				configuration.setPort(VitamServerFactory.getDefaultPort());
-				configuration.setVirtualHosts(new String[] {});
+				configuration.setServerHost(DEFAULT_HOST);
 				configuration.setStaticContent(DEFAULT_STATIC_CONTENT);
 			}
 
@@ -117,8 +118,8 @@ public class ServerApplication {
 		final ServletHolder restResourceHolder = new ServletHolder(servletContainer);
 
 		final ServletContextHandler restResourceContext = new ServletContextHandler(ServletContextHandler.SESSIONS);
-		restResourceContext.setContextPath(configuration.getDefaultContext());
-		restResourceContext.setVirtualHosts(configuration.getVirtualHosts());
+		restResourceContext.setContextPath(configuration.getBaseUrl());
+		restResourceContext.setVirtualHosts(new String[] { configuration.getServerHost() });
 		restResourceContext.addServlet(restResourceHolder, "/*");
 
 		// Static Content

@@ -129,7 +129,7 @@ angular.module('archiveSearch')
         $scope.showSimpleToast();
       } else {
         archiveUnitwindow = $window.open(ARCHIVE_SEARCH_MODULE_CONST.ARCHIVE_DETAILS_PATH + archiveId);
-        archiveUnitwindow.data = data;
+        archiveUnitwindow.data = data.$result;
         archiveUnitwindow.dataConfig = $scope.archiveDetailsConfig;
 
         // add a close listener to the window to update $scope.openedArchiveId content
@@ -143,14 +143,29 @@ angular.module('archiveSearch')
 
 
     var displayFormCallBack = function (data) {
-      var isArchiveFound = Object.keys(data).length > 0;
-      if(!isArchiveFound){
-        // Diplay Not found message
-        console.log('Archive unit not found');
-        $scope.error=true;
-        $scope.showResult=false;
-        $scope.errorMessage = ARCHIVE_SEARCH_MODULE_CONST.ARCHIVE_NOT_FOUND_MSG;
+
+      if(data.$result == null || data.$result == undefined ||
+        data.$hint == null || data.$hint == undefined) {
+          $scope.error=true;
+          $scope.errorMessage = ARCHIVE_SEARCH_MODULE_CONST.SEARCH_RESULT_INVALID;
+      } else {
+          $scope.totalFoundArchive = data.$hint.total;
+          if($scope.totalFoundArchive != 1){
+            console.log('Archive unit not found');
+            $scope.error=true;
+            $scope.errorMessage = ARCHIVE_SEARCH_MODULE_CONST.ARCHIVE_NOT_FOUND_MSG;
+          }
+          return;
       }
+
+      // var isArchiveFound = Object.keys(data).length > 0;
+      // if(!isArchiveFound){
+      //   // Diplay Not found message
+      //   console.log('Archive unit not found');
+      //   $scope.error=true;
+      //   $scope.showResult=false;
+      //   $scope.errorMessage = ARCHIVE_SEARCH_MODULE_CONST.ARCHIVE_NOT_FOUND_MSG;
+      // }
 
       // Archive unit found
       // Get Archive Details configuration only once
@@ -159,14 +174,14 @@ angular.module('archiveSearch')
         ihmDemoFactory.getArchiveUnitDetailsConfig()
         .then(function (response) {
           $scope.archiveDetailsConfig = response.data;
-          openArchiveDetailsWindow(data);
+          openArchiveDetailsWindow(data.$result);
         }, function (error) {
           console.log(ARCHIVE_UNIT_MODULE_CONST.CONFIG_FILE_NOT_FOUND_MSG);
           $scope.archiveDetailsConfig = {};
-          openArchiveDetailsWindow(data);
+          openArchiveDetailsWindow(data.$result);
         });
       }else{
-          openArchiveDetailsWindow(data);
+          openArchiveDetailsWindow(data.$result);
       }
     };
 
