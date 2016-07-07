@@ -1,4 +1,4 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,37 +23,37 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
-package fr.gouv.vitam.workspace.api.config;
+ *******************************************************************************/
+package fr.gouv.vitam.ingest.external.common.model.response;
 
-// TODO REVIEW missing javadoc comment to describe the use of the class
+import com.fasterxml.jackson.databind.JsonNode;
+
+import fr.gouv.vitam.common.json.JsonHandler;
+
 /**
- * Represents the service storage settings
+ * Meta-data RequestResponse class contains request query
+ *
  */
-public class StorageConfiguration {
-    // FIXME REVIEW Why such a configuration? Should the client be able to change it ? If this is for Filesystem
-    // implementation, this is not valid for others, right ? This should be in the rest or core package probably or even
-    // a filesystem implementation package.
-
-    private String storagePath;
+public abstract class RequestResponse {
+    private JsonNode query;
 
     /**
-     * getter for storage path
-     *
-     * @return String
+     * @return the query as JsonNode of Response
      */
-    public String getStoragePath() {
-        return storagePath;
+    public JsonNode getQuery() {
+        if (query == null) {
+            return JsonHandler.createObjectNode();
+        }
+        return query;
     }
 
     /**
-     * setter for storage path
+     * RequestResponse constructor
      *
-     * @param storagePath as String, path to storage
+     * @param query the query of type JsonNode which will be setted for RequestResponse
      */
-    public StorageConfiguration setStoragePath(String storagePath) {
-        this.storagePath = storagePath;
+    public RequestResponse setQuery(JsonNode query) {
+        this.query = query;
         return this;
     }
-
 }

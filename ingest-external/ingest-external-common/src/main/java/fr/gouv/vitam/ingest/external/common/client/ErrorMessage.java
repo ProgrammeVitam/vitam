@@ -24,36 +24,29 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.workspace.api.config;
+package fr.gouv.vitam.ingest.external.common.client;
 
-// TODO REVIEW missing javadoc comment to describe the use of the class
 /**
- * Represents the service storage settings
+ * Error Message for Ingest External
  */
-public class StorageConfiguration {
-    // FIXME REVIEW Why such a configuration? Should the client be able to change it ? If this is for Filesystem
-    // implementation, this is not valid for others, right ? This should be in the rest or core package probably or even
-    // a filesystem implementation package.
-
-    private String storagePath;
-
+public enum ErrorMessage {
     /**
-     * getter for storage path
-     *
-     * @return String
+     * Ingest external upload failed
      */
-    public String getStoragePath() {
-        return storagePath;
+    INGEST_EXTERNAL_UPLOAD_ERROR("Ingest external upload failed ");
+
+    private final String message;
+
+    private ErrorMessage(String message) {
+        this.message = message;
     }
 
     /**
-     * setter for storage path
      *
-     * @param storagePath as String, path to storage
+     * @return the associated message
      */
-    public StorageConfiguration setStoragePath(String storagePath) {
-        this.storagePath = storagePath;
-        return this;
+    public String getMessage() {
+        return message;
     }
 
 }
