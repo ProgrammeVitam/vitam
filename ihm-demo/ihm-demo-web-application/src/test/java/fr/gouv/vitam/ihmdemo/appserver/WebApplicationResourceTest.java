@@ -70,6 +70,7 @@ public class WebApplicationResourceTest {
 	private static final String DEFAULT_WEB_APP_CONTEXT = "/ihm-demo";
 	private static final String DEFAULT_STATIC_CONTENT = "webapp";
 	private static final String OPTIONS = "{name: \"myName\"}";
+	private static final String DEFAULT_HOST = "localhost";
 	private static JunitHelper junitHelper;
 	private static int port;
 
@@ -77,8 +78,8 @@ public class WebApplicationResourceTest {
 	public static void setup() throws Exception {
 		junitHelper = new JunitHelper();
 		port = junitHelper.findAvailablePort();
-		ServerApplication.run(new WebApplicationConfig().setPort(port).setDefaultContext(DEFAULT_WEB_APP_CONTEXT)
-				.setVirtualHosts(new String[] {}).setStaticContent(DEFAULT_STATIC_CONTENT));
+		ServerApplication.run(new WebApplicationConfig().setPort(port).setBaseUrl(DEFAULT_WEB_APP_CONTEXT)
+				.setServerHost(DEFAULT_HOST).setStaticContent(DEFAULT_STATIC_CONTENT));
 		RestAssured.port = port;
 		RestAssured.basePath = DEFAULT_WEB_APP_CONTEXT + "/v1/api";
 	}
