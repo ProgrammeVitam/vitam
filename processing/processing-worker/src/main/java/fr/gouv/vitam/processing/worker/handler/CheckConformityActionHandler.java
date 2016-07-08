@@ -54,7 +54,7 @@ public class CheckConformityActionHandler extends ActionHandler {
             if (digestMessageInvalidList.size() != 0){
                 response.setStatus(StatusCode.KO)
                 .setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_CONFORMITY_KO)
-                .setDetailMessages(digestMessageInvalidList);
+                .setErrorNumber(digestMessageInvalidList.size());
             }
         } catch (ProcessingException e) {
             LOGGER.error(e.getMessage());

@@ -23,7 +23,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.common.model;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,7 +52,7 @@ public class ProcessResponse implements EngineResponse {
     /**
      * List of functional messages
      */
-    private List<String> outcomeDetailMessages;
+    private Integer numberErrors;
 
     /**
      * Message identifier
@@ -178,8 +177,8 @@ public class ProcessResponse implements EngineResponse {
             for (final EngineResponse response : responses) {
                 for (final Entry<String, OutcomeMessage> entry : response.getOutcomeMessages().entrySet()) {
                     globalOutcomeMessage += entry.getValue().value() + ". ";
-                    if (!response.getDetailMessages().isEmpty()) {
-                        globalOutcomeMessage += "Errors: " + response.getDetailMessages().size();
+                    if (response.getErrorNumber() > 0) {
+                        globalOutcomeMessage += "Errors: " + response.getErrorNumber();
                     }
                 }
             }
@@ -235,20 +234,17 @@ public class ProcessResponse implements EngineResponse {
     }
 
     @Override
-    public List<String> getDetailMessages() {
-        if (outcomeDetailMessages == null) {
-            return SingletonUtils.singletonList();
+    public int getErrorNumber() {
+        if (numberErrors == null) {
+            return 0;
         }
-        return outcomeDetailMessages;
+        return numberErrors;
     }
 
     @Override
-    public EngineResponse setDetailMessages(List<String> messages) {
-        ParametersChecker.checkParameter("Detail message is a mandatory parameter", messages);
-        if (outcomeDetailMessages == null) {
-            outcomeDetailMessages = new ArrayList<String>();
-        }
-        outcomeDetailMessages.addAll(messages);
+    public EngineResponse setErrorNumber(int number) {
+        ParametersChecker.checkParameter("Detail message is a mandatory parameter", number);
+        numberErrors = number;
         return this;
     }
 }

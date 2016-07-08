@@ -37,6 +37,8 @@ import fr.gouv.vitam.builder.request.construct.Select;
 import fr.gouv.vitam.builder.request.construct.query.BooleanQuery;
 import fr.gouv.vitam.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * Helper class to create DSL queries
@@ -44,104 +46,107 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
  */
 public final class DslQueryHelper {
 
-	private static final String EVENT_TYPE_PROCESS = "evTypeProc";
-	private static final String DEFAULT_EVENT_TYPE_PROCESS = "INGEST";
-	private static final String OBJECT_IDENTIFIER_INCOME = "obIdIn";
-	private static final String ORDER_BY = "orderby";
-	private static final String PROJECTION_PREFIX = "projection_";
+    public static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DslQueryHelper.class);
+    //TODO: faire en sorte que LogbookMongoDbName ait une version publique "#qqc" (comme #id) pour permettre de "masquer" l'implémentation.
+    private static final String EVENT_TYPE_PROCESS = "evTypeProc";
+    private static final String DEFAULT_EVENT_TYPE_PROCESS = "INGEST";
+    private static final String OBJECT_IDENTIFIER_INCOME = "obIdIn";
+    private static final String ORDER_BY = "orderby";
+    private static final String PROJECTION_PREFIX = "projection_";
 
-	/**
-	 * generate the DSL query after receiving the search criteria
-	 * 
-	 * 
-	 * @param searchCriteriaMap
-	 * @return DSL request
-	 * @throws InvalidParseOperationException
-	 * @throws InvalidCreateOperationException
-	 */
-	public static String createLogBookSelectDSLQuery(Map<String, String> searchCriteriaMap)
-			throws InvalidParseOperationException, InvalidCreateOperationException {
-		final fr.gouv.vitam.builder.singlerequest.Select select = new fr.gouv.vitam.builder.singlerequest.Select();
-		BooleanQuery query = and();
-		for (Entry<String, String> entry : searchCriteriaMap.entrySet()) {
-			String searchKeys = entry.getKey();
-			String searchValue = entry.getValue();
+    /**
+     * generate the DSL query after receiving the search criteria
+     * 
+     * 
+     * @param searchCriteriaMap
+     * @return DSL request
+     * @throws InvalidParseOperationException
+     * @throws InvalidCreateOperationException
+     */
+    public static String createLogBookSelectDSLQuery(Map<String, String> searchCriteriaMap)
+        throws InvalidParseOperationException, InvalidCreateOperationException {
+        final fr.gouv.vitam.builder.singlerequest.Select select = new fr.gouv.vitam.builder.singlerequest.Select();
+        BooleanQuery query = and();
+        for (Entry<String, String> entry : searchCriteriaMap.entrySet()) {
+            String searchKeys = entry.getKey();
+            String searchValue = entry.getValue();
 
-			switch (searchKeys) {
-			case ORDER_BY:
-				select.addOrderByAscFilter(searchValue);
-				break;
+            switch (searchKeys) {
+                case ORDER_BY:
+                    select.addOrderByDescFilter(searchValue);
+                    break;
 
-			case DEFAULT_EVENT_TYPE_PROCESS:
-				query.add(eq(EVENT_TYPE_PROCESS, DEFAULT_EVENT_TYPE_PROCESS));
-				break;
+                case DEFAULT_EVENT_TYPE_PROCESS:
+                    query.add(eq(EVENT_TYPE_PROCESS, DEFAULT_EVENT_TYPE_PROCESS));
+                    break;
 
-			case OBJECT_IDENTIFIER_INCOME:
-				query.add(eq("events.obIdIn", searchValue));
-				break;
+                case OBJECT_IDENTIFIER_INCOME:
+                    query.add(eq("events.obIdIn", searchValue));
+                    break;
 
-			default:
-				query.add(eq(searchKeys, searchValue));
-			}
-		}
+                default:
+                    query.add(eq(searchKeys, searchValue));
+            }
+        }
 
-		select.setQuery(query);
-		return select.getFinalSelect().toString();
-	}
+        select.setQuery(query);
+        LOGGER.error(select.getFinalSelect().toString());
+        return select.getFinalSelect().toString();
+    }
 
-	/**
-	 * @param searchCriteriaMap
-	 *            Criteria received from The IHM screen Empty Keys or Value is
-	 *            not allowed
-	 * @return the JSONDSL File
-	 * @throws InvalidParseOperationException
-	 *             thrown when an error occurred during parsing
-	 * @throws InvalidCreateOperationException
-	 *             thrown when an error occurred during creation
-	 */
-	public static String createSelectDSLQuery(Map<String, String> searchCriteriaMap)
-			throws InvalidParseOperationException, InvalidCreateOperationException {
+    /**
+     * @param searchCriteriaMap
+     *            Criteria received from The IHM screen Empty Keys or Value is
+     *            not allowed
+     * @return the JSONDSL File
+     * @throws InvalidParseOperationException
+     *             thrown when an error occurred during parsing
+     * @throws InvalidCreateOperationException
+     *             thrown when an error occurred during creation
+     */
+    public static String createSelectDSLQuery(Map<String, String> searchCriteriaMap)
+        throws InvalidParseOperationException, InvalidCreateOperationException {
 
-		final Select select = new Select();
+        final Select select = new Select();
 
-		// AND by default
-		BooleanQuery booleanQueries = and();
-		for (Entry<String, String> entry : searchCriteriaMap.entrySet()) {
-			String searchKeys = entry.getKey();
-			String searchValue = entry.getValue();
+        // AND by default
+        BooleanQuery booleanQueries = and();
+        for (Entry<String, String> entry : searchCriteriaMap.entrySet()) {
+            String searchKeys = entry.getKey();
+            String searchValue = entry.getValue();
 
-			if (searchKeys.isEmpty() || searchValue.isEmpty()) {
-				throw new InvalidParseOperationException("Parameters should not be empty or null");
-			}
+            if (searchKeys.isEmpty() || searchValue.isEmpty()) {
+                throw new InvalidParseOperationException("Parameters should not be empty or null");
+            }
 
-			// Add projection for fields prefixed by projection_
-			if (searchKeys.startsWith(PROJECTION_PREFIX)) {
-				select.addUsedProjection(searchValue);
-				continue;
-			}
+            // Add projection for fields prefixed by projection_
+            if (searchKeys.startsWith(PROJECTION_PREFIX)) {
+                select.addUsedProjection(searchValue);
+                continue;
+            }
 
-			// Add order by
-			if (searchKeys.equals(ORDER_BY)) {
-				select.addOrderByAscFilter(searchValue);
-				continue;
-			}
+            // Add order by
+            if (searchKeys.equals(ORDER_BY)) {
+                select.addOrderByAscFilter(searchValue);
+                continue;
+            }
 
-			// Add root
-			if (searchKeys.equals(UiConstants.SELECT_BY_ID.toString())) {
-				select.addRoots(searchValue);
-				continue;
-			}
+            // Add root
+            if (searchKeys.equals(UiConstants.SELECT_BY_ID.toString())) {
+                select.addRoots(searchValue);
+                continue;
+            }
 
-			// By default add equals query
-			booleanQueries.add(eq(searchKeys, searchValue));
+            // By default add equals query
+            booleanQueries.add(eq(searchKeys, searchValue));
 
-		}
+        }
 
-		if (booleanQueries.isReady()) {
-			select.addQueries(booleanQueries);
-		}
+        if (booleanQueries.isReady()) {
+            select.addQueries(booleanQueries);
+        }
 
-		return select.getFinalSelect().toString();
-	}
+        return select.getFinalSelect().toString();
+    }
 
 }

@@ -133,9 +133,6 @@ public class SedaUtils {
     private final WorkspaceClientFactory workspaceClientFactory;
     private final MetaDataClientFactory metaDataClientFactory;
 
-    // Messages for duplicate Uri from SEDA
-    private static final String MSG_DUPLICATE_URI_MANIFEST = "Présence d'un URI en doublon dans le bordereau: ";
-
     protected SedaUtils(WorkspaceClientFactory workspaceFactory, MetaDataClientFactory metaDataFactory) {
         ParametersChecker.checkParameter("workspaceFactory is a mandatory parameter", workspaceFactory);
         binaryDataObjectIdToGuid = new HashMap<String, String>();
@@ -869,7 +866,7 @@ public class SedaUtils {
         final List<String> listMessages = new ArrayList<>();
 
         extractUriResponse.setUriListManifest(listUri);
-        extractUriResponse.setDetailMessages(listMessages);
+        extractUriResponse.setErrorNumber(listMessages.size());
 
         // Create the XML input factory
         final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
@@ -937,7 +934,7 @@ public class SedaUtils {
     private void checkDuplicatedUri(ExtractUriResponse extractUriResponse, String uriString) throws URISyntaxException {
 
         if (extractUriResponse.getUriListManifest().contains(new URI(uriString))) {
-            extractUriResponse.getDetailMessages().add(SedaUtils.MSG_DUPLICATE_URI_MANIFEST + uriString);
+            extractUriResponse.setErrorNumber(extractUriResponse.getErrorNumber() + 1);
         }
     }
 

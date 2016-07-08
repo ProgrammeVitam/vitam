@@ -75,7 +75,7 @@ public class CheckVersionActionHandler extends ActionHandler {
             
             List<String> versionInvalidList =sedaUtils.checkSupportedBinaryObjectVersion(params);
             if (versionInvalidList.size() != 0){
-                response.setDetailMessages(versionInvalidList);
+                response.setErrorNumber(versionInvalidList.size());
                 response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_KO);
             }
         } catch (ProcessingException e) {

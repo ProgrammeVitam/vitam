@@ -23,7 +23,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.common.model;
 
-import java.util.List;
 import java.util.Map;
 
 
@@ -68,13 +67,13 @@ public interface EngineResponse {
     *
     * @return list of functional error message
     */
-   public List<String> getDetailMessages();
+   public int getErrorNumber();
 
    /**
     * @param messages Detail Messages of response
      * @return EngineResponse
     */
-   EngineResponse setDetailMessages(List<String> messages);
+   EngineResponse setErrorNumber(int number);
 
     /**
      *
