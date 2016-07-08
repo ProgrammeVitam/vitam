@@ -55,10 +55,10 @@ public class ProcessResponseTest {
         
         assertFalse(processResponse.setOutcomeMessages("id", OutcomeMessage.CHECK_CONFORMITY_KO).getOutcomeMessages().isEmpty());
         
-        assertTrue(new ProcessResponse().getDetailMessages().isEmpty());
+        assertEquals(0, new ProcessResponse().getErrorNumber());
         ArrayList<String> detailMessages = new ArrayList<String>();
         detailMessages.add(TEST);
-        assertFalse(processResponse.setDetailMessages(detailMessages).getDetailMessages().isEmpty());
+        assertEquals(1, processResponse.setErrorNumber(detailMessages.size()).getErrorNumber());
         Map<String, List<EngineResponse>> stepResponses = new HashMap<String, List<EngineResponse>>();
         List<EngineResponse> processResponses = new ArrayList<EngineResponse>();
         processResponses.add(processResponse.setStatus(StatusCode.KO));

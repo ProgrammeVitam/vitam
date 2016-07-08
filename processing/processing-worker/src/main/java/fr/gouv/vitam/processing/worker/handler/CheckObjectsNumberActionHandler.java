@@ -27,15 +27,11 @@
 package fr.gouv.vitam.processing.worker.handler;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.processing.common.CheckObjectsNumberMessage;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.OutcomeMessage;
@@ -95,10 +91,8 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
             params.getServerConfiguration());
         LOGGER.info("CheckObjectsNumberActionHandler running ...");
 
-
-        final List<String> messages = new ArrayList<>();
         final EngineResponse response = new ProcessResponse();
-        response.setStatus(StatusCode.OK).setDetailMessages(messages).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_OK);
+        response.setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_OK);
 
         try {
 
@@ -112,7 +106,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
 
             } else if (extractUriResponse != null) {
                 response.setStatus(StatusCode.KO)
-                .setDetailMessages(extractUriResponse.getDetailMessages())
+                .setErrorNumber(extractUriResponse.getErrorNumber())
                 .setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_KO);
             }
 
@@ -171,24 +165,11 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
         /**
          * compare the size between list uri from manifest and list uri from workspace.
          */
-        final int countCompare = Integer.compare(uriListManifest.size(), uriListWorkspace.size());
-        if (countCompare != 0) {
-            response.setStatus(StatusCode.KO);
-            response.getDetailMessages().add(CheckObjectsNumberMessage.COUNT_DIGITAL_OBJECT_SIP.getMessage()
-                .concat(Integer.toString(uriListWorkspace.size())));
-            response.getDetailMessages().add(CheckObjectsNumberMessage.COUNT_DIGITAL_OBJECT_MANIFEST.getMessage()
-                .concat(Integer.toString(uriListManifest.size())));
-
-            try {
-                // found not declared digital object in the manifest
-                foundUnreferencedDigitalObject(uriListManifest, uriListWorkspace, response,
-                    CheckObjectsNumberMessage.NOT_FOUND_DIGITAL_OBJECT_WORKSPACE.getMessage());
-                // found not declared digital object in the sip
-                foundUnreferencedDigitalObject(uriListWorkspace, uriListManifest, response,
-                    CheckObjectsNumberMessage.NOT_FOUND_DIGITAL_OBJECT_MANIFEST.getMessage());
-            } catch (final IllegalAccessException e) {
-                throw new ProcessingException("Some arguments were null", e);
-            }
+        int countCompare = Math.abs(uriListManifest.size() - uriListWorkspace.size());
+        
+        if (countCompare > 0) {
+            response.setStatus(StatusCode.KO)
+            .setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_KO);
         } else {
 
             /**
@@ -205,9 +186,9 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
                 if (uriListWorkspace.contains(uriManifest)) {
                     countConsistentDigitalObjectFromManifest++;
                 } else {
-                    response.setStatus(StatusCode.KO);
-                    response.getDetailMessages().add(CheckObjectsNumberMessage.NOT_FOUND_DIGITAL_OBJECT_WORKSPACE.getMessage()
-                        .concat(uriManifest.toString()));
+                    countCompare++;
+                    response.setStatus(StatusCode.KO)
+                    .setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_KO);
                 }
             }
 
@@ -216,8 +197,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
                     countConsistentDigitalObjectFromWorkspace++;
                 } else {
                     response.setStatus(StatusCode.KO);
-                    response.getDetailMessages().add(CheckObjectsNumberMessage.NOT_FOUND_DIGITAL_OBJECT_MANIFEST.getMessage()
-                        .concat(uriWorkspace.toString()));
+                    countCompare++;
                 }
 
             }
@@ -230,42 +210,11 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
                 response.setStatus(StatusCode.OK);
 
             } else {
-                response.setStatus(StatusCode.KO);
+                response.setStatus(StatusCode.KO)
+                .setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_KO);
             }
         }
-
-    }
-
-    /**
-     * Found the undeclared digital object either in the manifest or in the sip
-     *
-     * @param uriListManifest list of uri from manifest
-     * @param uriListWorkspace list of uri from workspace
-     * @param response of handler
-     * @param element element name
-     */
-    private void foundUnreferencedDigitalObject(List<URI> uriListToCompared, List<URI> uriListReference,
-        EngineResponse response, String element) throws IllegalAccessException {
-
-        final Set<String> uriNotFoundSet = new HashSet<>();
-
-        if (uriListToCompared == null || uriListReference == null) {
-            throw new IllegalAccessException("uriListToCompared or uriListReference must not be null");
-        }
-
-        for (final URI uriManifest : uriListToCompared) {
-            if (!uriListReference.contains(uriManifest)) {
-                uriNotFoundSet.add(element
-                    .concat(uriManifest.toString()));
-            }
-
-            if (!uriNotFoundSet.isEmpty()) {
-                for (final String s : uriNotFoundSet) {
-                    if (response != null && response.getOutcomeMessages() != null) {
-                        response.getDetailMessages().add(s);
-                    }
-                }
-            }
-        }
+        
+        response.setErrorNumber(countCompare);
     }
 }

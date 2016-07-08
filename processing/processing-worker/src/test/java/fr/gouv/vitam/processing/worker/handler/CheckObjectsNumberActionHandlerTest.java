@@ -126,7 +126,7 @@ public class CheckObjectsNumberActionHandlerTest {
         messages.add("Duplicated digital objects " + "content/file1.pdf");
         extractDuplicatedUriResponseKO = new ExtractUriResponse();
         extractDuplicatedUriResponseKO.setUriListManifest(uriDuplicatedListManifestKO)
-            .setErrorDuplicateUri(Boolean.TRUE).setDetailMessages(messages);
+            .setErrorDuplicateUri(Boolean.TRUE).setErrorNumber(messages.size());
 
         extractOutNumberUriResponseKO = new ExtractUriResponse();
         extractOutNumberUriResponseKO.setUriListManifest(uriOutNumberListManifestKO);
@@ -207,6 +207,7 @@ public class CheckObjectsNumberActionHandlerTest {
 
         final EngineResponse response = checkObjectsNumberActionHandler.execute(workParams);
         assertThat(response).isNotNull();
+        assertThat(response.getErrorNumber()).isEqualTo(1);
         assertThat(response.getStatus()).isEqualTo(StatusCode.KO);
         assertThat(response.getOutcomeMessages()).isNotNull().isNotEmpty();
     }
@@ -230,6 +231,7 @@ public class CheckObjectsNumberActionHandlerTest {
 
         final EngineResponse response = checkObjectsNumberActionHandler.execute(workParams);
         assertThat(response).isNotNull();
+        assertThat(response.getErrorNumber()).isEqualTo(1);
         assertThat(response.getStatus()).isEqualTo(StatusCode.KO);
         assertThat(response.getOutcomeMessages()).isNotNull().isNotEmpty();
     }
