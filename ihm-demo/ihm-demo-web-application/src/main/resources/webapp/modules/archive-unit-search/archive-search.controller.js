@@ -41,7 +41,7 @@ angular.module('archiveSearch')
   $scope.archiveUnitsSearchResult;
   var criteriaSearch = {};
   $scope.getSearchResult = function getSearchResult(titleCriteria){
-    if(titleCriteria!='' && titleCriteria!= null && titleCriteria!= undefined){
+    if(titleCriteria!=='' && titleCriteria!== null && titleCriteria!== undefined){
 
       // Build title criteria and default selection
       criteriaSearch.Title = titleCriteria;
