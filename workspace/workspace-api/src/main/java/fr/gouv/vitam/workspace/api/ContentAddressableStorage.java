@@ -95,6 +95,7 @@ public interface ContentAddressableStorage {
      * Determines if a container exists
      *
      * @param containerName name of container
+     * @return boolean type
      */
     public boolean isExistingContainer(String containerName);
 
@@ -129,6 +130,7 @@ public interface ContentAddressableStorage {
      *
      * @param containerName container where the folder resides
      * @param folderName full path to the folder
+     * @return boolean type
      */
     boolean isExistingFolder(String containerName, String folderName);
 
@@ -143,6 +145,7 @@ public interface ContentAddressableStorage {
      *
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
      * @throws ContentAddressableStorageException Thrown when put action failed due some other failure
+     * @throws ContentAddressableStorageAlreadyExistException  Thrown when object creating exists
      */
     public void putObject(String containerName, String objectName, InputStream stream)
         throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageNotFoundException,
@@ -157,6 +160,7 @@ public interface ContentAddressableStorage {
      *
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
      * @throws ContentAddressableStorageException Thrown when get action failed due some other failure
+     * @throws ContentAddressableStorageAlreadyExistException  Thrown when object creating exists 
      */
     public InputStream getObject(String containerName, String objectName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
@@ -180,6 +184,7 @@ public interface ContentAddressableStorage {
      *
      * @param containerName container where the object resides
      * @param objectName fully qualified name relative to the container.
+     * @return boolean type
      */
 
     public boolean isExistingObject(String containerName, String objectName);
@@ -200,11 +205,11 @@ public interface ContentAddressableStorage {
 
 
     /**
-     * create container: will be identified by GUID && extract objects and push it on the container
+     * create container: will be identified by GUID and extract objects and push it on the container
      *
      * @param containerName : the container name (will be Guid created in ingest module)
      * @param folderName : the folder name
-     * @param SipObject : compressed SIP object
+     * @param inputStreamObject : SIP input stream
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located
      * @throws ContentAddressableStorageAlreadyExistException Thrown when folder exists
      * @throws ContentAddressableStorageServerException Thrown when internal server error happens
@@ -226,6 +231,7 @@ public interface ContentAddressableStorage {
      * @throws ContentAddressableStorageNotFoundException Thrown when the container or the object cannot be located
      * @throws ContentAddressableStorageServerException Thrown when internal server error happens
      * @throws ContentAddressableStorageException Thrown when put action failed due some other failure
+     * @return the digest object as String
      */
     public String computeObjectDigest(String containerName, String objectName, DigestType algo)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, ContentAddressableStorageException;

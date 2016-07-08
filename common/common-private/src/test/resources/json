@@ -1,0 +1,16 @@
+{
+    "name" : {
+    			"firstname" : "Zhang",
+    			"surname" : "CHEN"
+    			},
+    "tagbug" : "<script></script>",
+    "sizebug" : "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+    "id": "$id_async$",
+    "type": "ingest",
+    "state": "done",
+    "task_status": "commit",
+    "start_date": "2014-01-10T03:06:17.396Z",
+    "end_date": "2014-01-20T03:06:17.396Z",
+    "expiration_date": "2014-02-20T03:06:17.396Z",
+    "result_link": "https://xxx/v1/ingests/456"
+}

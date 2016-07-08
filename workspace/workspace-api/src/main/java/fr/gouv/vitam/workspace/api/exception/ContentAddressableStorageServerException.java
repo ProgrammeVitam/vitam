@@ -35,9 +35,8 @@ public class ContentAddressableStorageServerException extends ContentAddressable
     private static final long serialVersionUID = 2785259930527471401L;
 
     /**
-     * param message to associate with a new ContentAddressableStorageServerException
+     * @param message to associate with a new ContentAddressableStorageServerException
      *
-     * @param message
      */
     public ContentAddressableStorageServerException(String message) {
         super(message);

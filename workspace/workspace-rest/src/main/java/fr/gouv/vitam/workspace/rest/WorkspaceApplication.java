@@ -59,7 +59,7 @@ public class WorkspaceApplication {
     /**
      * runs the application
      *
-     * @param args
+     * @param args indicate the application server config 
      */
     public static void main(String[] args) {
         try {
@@ -113,6 +113,7 @@ public class WorkspaceApplication {
      * Run workspace server
      *
      * @param configuration Storage Configuration
+     * @param serverPort application server port 
      * @throws Exception Thrown if something goes wrong
      */
     // FIXME REVIEW Don't throw Exception
@@ -138,7 +139,7 @@ public class WorkspaceApplication {
     /**
      * stop a workspace server
      *
-     * @throws Exception
+     * @throws Exception in case of error
      */
     public void stop() throws Exception {
         server.stop();
