@@ -34,7 +34,7 @@ public interface AccessResource {
      * gets archive units with Json query
      *
      * @param queryNode, null not allowed
-     * @param headerParam X-HTTP-Method-Override header
+     * @param headerParam X-Http-Method-Override header
      * @return a archive unit result list
      */
 
@@ -44,7 +44,7 @@ public interface AccessResource {
      * gets archive units by Id with Json query
      * 
      * @param queryNode DSK, null not allowed
-     * @param headerParam X-HTTP-Method-Override header
+     * @param headerParam X-Http-Method-Override header
      * @param unit_id units identifier
      * @return a archive unit result list
      */

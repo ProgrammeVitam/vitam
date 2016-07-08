@@ -1,4 +1,4 @@
-Opération
+Métadata
 *********
 
 Présentation
@@ -15,7 +15,14 @@ Services
 Rest API
 --------
 
-| http://server/metadata/v1
+| URL Path : http://server/metadata/v1
+|
 | POST /units -> **POST nouvelle unit et selection d'une liste des units avec une réquête **
 |
-| GET /status -> **statut du metadata**
+| GET /status -> **statut du server rest metadata (available/unavailable)**
+|
+| POST /objectgroups -> **POST : insérer une nouvelle object groups avec une requête DSL**
+
+
+
+

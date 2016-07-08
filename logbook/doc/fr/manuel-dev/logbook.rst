@@ -72,12 +72,17 @@ Pour instancier son client en mode Production :
 Le client
 *********
 
-Le client propose actuellement deux méthode : create et update.
+Le client propose actuellement quatre méthodes : create, update, selectOperation et selectOperationbyId
 
-Le mock ne vérifie pas l'identifiant (eventIdentifier) ni la date (evendDateTime). En effet, il ne doit pas exister pour le create et inversement pour l'update.
+Le mock de create et upadate ne vérifie pas l'identifiant (eventIdentifier) ni la date (evendDateTime). En effet, il ne doit pas exister pour le create et inversement pour l'update.
 
 Chacune de ces méthodes prend en arguement la classe paramètre instanciée via la factory et peuplée au besoin.
 
+Le mock de selectOperation retourne un JsonNode qui contient MOCK_SELECT_RESULT_1 et MOCK_SELECT_RESULT_2
+
+Le mock de selectOperationbyId retourne un JsonNode qui contient seulement MOCK_SELECT_RESULT_1. En effet, chaque opération a un identifiant unique.
+
+Chacune de ces méthodes prend en arguement une requête select en String
 
 .. code-block:: java
 
@@ -94,6 +99,11 @@ Chacune de ces méthodes prend en arguement la classe paramètre instanciée via
     // Utilisation des setter : parameters.putParameterValue(parameterName, parameterValue);
     // update
     client.update(parameters);
+    
+    // select opération
+    client.selectOperation(String select);   
+    // select opération par id
+    client.selectOperationbyId(String select);
 
 Exemple d'usage générique
 =========================
@@ -240,3 +250,37 @@ Exemple Ingest
 
         // When all client opération is done
         client.close();
+
+
+
+
+Exemple ihm-demo-web-application
+================================ 
+
+.. code-block:: java
+
+    	@POST
+    	@Path("/logbook/operations")
+    	@Produces(MediaType.APPLICATION_JSON)
+    	public Response getLogbookResult(String options)
+    	
+        // Traduction de Mappeur à la requête DSL
+        Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
+        query = CreateDSLClient.createSelectDSLQuery(optionsMap);
+        
+        // Récupération du client
+        LogbookClient logbookClient = LogbookClientFactory.getInstance().getLogbookOperationClient();
+        
+        // Sélection des opérations par la requête DSL
+        result = logbookClient.selectOperation(query);
+        
+    	@POST
+    	@Path("/logbook/operations/{idOperation}")
+    	@Produces(MediaType.APPLICATION_JSON)
+    	public Response getLogbookResultById(@PathParam("idOperation") String operationId, String options)
+    	
+    	// Récupération du client
+    	LogbookClient logbookClient = LogbookClientFactory.getInstance().getLogbookOperationClient();
+        
+        // Sélection des opérations par ID
+        result = logbookClient.selectOperationbyId(operationId);       
