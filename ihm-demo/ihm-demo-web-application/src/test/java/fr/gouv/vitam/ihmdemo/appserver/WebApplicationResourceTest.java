@@ -36,7 +36,6 @@ import javax.ws.rs.core.Response.Status;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
@@ -99,20 +98,6 @@ public class WebApplicationResourceTest {
 	public void givenEmptyPayloadWhenSearchOperationsThenReturnBadRequest() {
 		given().contentType(ContentType.JSON).body("{}").expect().statusCode(Status.BAD_REQUEST.getStatusCode()).when()
 				.post("/logbook/operations");
-	}
-
-	@Ignore
-	@Test
-	public void givenNoOperationsWhenSearchOperationsThenReturnNotFound() {
-		given().contentType(ContentType.JSON).body(OPTIONS).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
-				.post("/logbook/operations");
-	}
-
-	@Ignore
-	@Test
-	public void givenNoOperationsWhenSearchOperationsWithIdThenReturnNotFound() {
-		given().contentType(ContentType.JSON).body(OPTIONS).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
-				.post("/logbook/operations/1");
 	}
 
 	@Test
