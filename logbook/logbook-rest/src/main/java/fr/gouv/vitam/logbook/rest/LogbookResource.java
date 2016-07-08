@@ -153,7 +153,7 @@ public class LogbookResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createOrSelectOperation(@PathParam("id_op") String operationId,
-        LogbookOperationParameters operation, @HeaderParam("X-HTTP-Method-Override") String xhttpOverride)
+        LogbookOperationParameters operation, @HeaderParam("X-Http-Method-Override") String xhttpOverride)
         throws InvalidParseOperationException {
         if (xhttpOverride != null && xhttpOverride.equals("GET")) {
             ParametersChecker.checkParameter("Operation id is required", operationId);
@@ -300,7 +300,7 @@ public class LogbookResource {
 
     /**
      * @param query as JsonNode
-     * @param xhttpOverride header parameter indicate that we use POST with X-HTTP-Method-Override,
+     * @param xhttpOverride header parameter indicate that we use POST with X-Http-Method-Override,
      * @return Response of SELECT query with POST method
      * @throws LogbookException
      * @throws InvalidParseOperationException
@@ -314,7 +314,7 @@ public class LogbookResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response selectOperationWithPostOverride(String query,
-        @HeaderParam("X-HTTP-Method-Override") String xhttpOverride)
+        @HeaderParam("X-Http-Method-Override") String xhttpOverride)
         throws InvalidParseOperationException, LogbookNotFoundException, LogbookException, JsonGenerationException,
         JsonMappingException, IOException {
         Status status;

@@ -96,7 +96,7 @@ public class LogbookResourceTest {
     private static LogbookOperationParameters logbookParametersSelectId;
     private static final String BODY_TEST = "{$query: {$eq: {\"aa\" : \"vv\" }}, $projection: {}, $filter: {}}";
     private static final String BODY_QUERY = "{$query: {$eq: {\"evType\" : \"eventTypeValueSelect\"}}, $projection: {}, $filter: {}}";
-    public static String X_HTTP_METHOD_OVERRIDE = "X-HTTP-Method-Override";
+    public static String X_HTTP_METHOD_OVERRIDE = "X-Http-Method-Override";
     private static JunitHelper junitHelper;
 
     

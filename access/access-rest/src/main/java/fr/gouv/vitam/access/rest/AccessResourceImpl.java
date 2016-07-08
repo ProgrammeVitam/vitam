@@ -95,7 +95,7 @@ public class AccessResourceImpl implements AccessResource {
                 queryJson = JsonHandler.getFromString(queryDsl);
                 result = accessModule.selectUnit(queryJson);
             } else {
-                throw new AccessExecutionException("There is no 'X-HTTP-Method-Override:GET' as a header");
+                throw new AccessExecutionException("There is no 'X-Http-Method-Override:GET' as a header");
             }
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e.getMessage(), e);
@@ -151,7 +151,7 @@ public class AccessResourceImpl implements AccessResource {
                 queryJson = JsonHandler.getFromString(queryDsl);
                 result = accessModule.selectUnitbyId(queryJson, id_unit);
             } else {
-                throw new AccessExecutionException("There is no 'X-HTTP-Method-Override:GET' as a header");
+                throw new AccessExecutionException("There is no 'X-Http-Method-Override:GET' as a header");
             }
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e.getMessage(), e);

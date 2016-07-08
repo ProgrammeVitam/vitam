@@ -62,11 +62,11 @@ la classe contient actuellement une méthode :
                 result = accessModule.selectUnit(queryJson.toString());
 
             } else {
-                throw new AccessExecutionException("There is no 'X-HTTP-Method-Override:GET' as a header");
+                throw new AccessExecutionException("There is no 'X-Http-Method-Override:GET' as a header");
             }
             ....
             
- NB : the post X-HTTP-Method-Override header        
+ NB : the post X-Http-Method-Override header        
  
  La méthode HTTP GET n'est pas compatible, on utilisera une méthode HTTP POST dont l'entête contiendra "X-HTTP-Method-GET" 
  

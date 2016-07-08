@@ -1,6 +1,6 @@
-###########
-|doc_title|
-###########
+##########################
+|IHM - logbook operations |
+##########################
 
 .. caution::
 
@@ -19,10 +19,9 @@ Sommaire
 .. toctree::
    :maxdepth: 2
 
-   metadata-introduction.rst
-   metadata-dat.rst
-   metadata-user-client.rst
-   metadata-api-rest-raml.rst
+   ihm-logbook-introduction.rst
+   ihm-logbook-dat.rst
+   ihm-logbook-rest-raml.rst
 
 
 ####################################################
