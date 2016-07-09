@@ -95,11 +95,12 @@ public class LogbookResourceTest {
     private static LogbookOperationParameters logbookParametersSelect;
     private static LogbookOperationParameters logbookParametersSelectId;
     private static final String BODY_TEST = "{$query: {$eq: {\"aa\" : \"vv\" }}, $projection: {}, $filter: {}}";
-    private static final String BODY_QUERY = "{$query: {$eq: {\"evType\" : \"eventTypeValueSelect\"}}, $projection: {}, $filter: {}}";
-    public static String X_HTTP_METHOD_OVERRIDE = "X-Http-Method-Override";
+    private static final String BODY_QUERY =
+        "{$query: {$eq: {\"evType\" : \"eventTypeValueSelect\"}}, $projection: {}, $filter: {}}";
+    public static String X_HTTP_METHOD_OVERRIDE = "X-HTTP-Method-Override";
     private static JunitHelper junitHelper;
 
-    
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         // Identify overlapping in particular jsr311
@@ -107,8 +108,8 @@ public class LogbookResourceTest {
 
         junitHelper = new JunitHelper();
         databasePort = junitHelper.findAvailablePort();
-        File logbook = PropertiesUtils.findFile(LOGBOOK_CONF);
-        LogbookConfiguration realLogbook = PropertiesUtils.readYaml(logbook, LogbookConfiguration.class);
+        final File logbook = PropertiesUtils.findFile(LOGBOOK_CONF);
+        final LogbookConfiguration realLogbook = PropertiesUtils.readYaml(logbook, LogbookConfiguration.class);
         realLogbook.setDbPort(databasePort);
         newLogbookConf = File.createTempFile("test", LOGBOOK_CONF, logbook.getParentFile());
         PropertiesUtils.writeYaml(newLogbookConf, realLogbook);
@@ -132,7 +133,7 @@ public class LogbookResourceTest {
                 newLogbookConf.getAbsolutePath(),
                 Integer.toString(serverPort)});
             ((BasicVitamServer) vitamServer).start();
-        } catch (VitamApplicationServerException e) {
+        } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
             throw new IllegalStateException(
                 "Cannot start the Logbook Application Server", e);
@@ -159,7 +160,7 @@ public class LogbookResourceTest {
         logbookParametersSelect = LogbookParametersFactory.newLogbookOperationParameters(
             eip, "eventTypeValueSelect", GUIDFactory.newOperationIdGUID(0), LogbookTypeProcess.INGEST,
             LogbookOutcome.OK, "start ingest", eip);
-        
+
         logbookParametersSelectId = LogbookParametersFactory.newLogbookOperationParameters(
             eip, "eventTypeValueSelectId", GUIDFactory.newOperationIdGUID(0), LogbookTypeProcess.INGEST,
             LogbookOutcome.OK, "start ingest", eip);
@@ -276,9 +277,9 @@ public class LogbookResourceTest {
             .put(OPERATIONS_URI + OPERATION_ID_URI,
                 GUIDFactory.newOperationIdGUID(0).getId())
             .then()
-            .statusCode(Status.BAD_REQUEST.getStatusCode());  
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
-    
+
     @Test
     public final void testGetStatus() {
         get(STATUS_URI).then().statusCode(200);
@@ -303,14 +304,14 @@ public class LogbookResourceTest {
             .post(OPERATIONS_URI)
             .then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
-        
+
         given()
             .contentType(ContentType.JSON)
             .when()
-            .get(OPERATIONS_URI + OPERATION_ID_URI, "abc")            
+            .get(OPERATIONS_URI + OPERATION_ID_URI, "abc")
             .then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
-        
+
     }
 
     @Test
@@ -354,12 +355,13 @@ public class LogbookResourceTest {
                     LogbookParameterName.eventIdentifierProcess))
             .then()
             .statusCode(Status.CREATED.getStatusCode());
-        
+
         given()
             .contentType(ContentType.JSON)
             .body(logbookParametersSelectId.toString())
             .header(X_HTTP_METHOD_OVERRIDE, "GET")
-            .pathParam("id_op", logbookParametersSelectId.getParameterValue(LogbookParameterName.eventIdentifierProcess))
+            .pathParam("id_op",
+                logbookParametersSelectId.getParameterValue(LogbookParameterName.eventIdentifierProcess))
             .when()
             .post(OPERATIONS_URI + OPERATION_ID_URI, logbookParametersSelectId.getParameterValue(
                 LogbookParameterName.eventIdentifierProcess))

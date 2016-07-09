@@ -69,7 +69,7 @@ public class LogbookApplicationTest {
     private static int oldPort;
     private static JunitHelper junitHelper;
     private static File logbook;
-    
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         // Identify overlapping in particular jsr311
@@ -78,7 +78,7 @@ public class LogbookApplicationTest {
         junitHelper = new JunitHelper();
         databasePort = junitHelper.findAvailablePort();
         logbook = PropertiesUtils.findFile(LOGBOOK_CONF);
-        LogbookConfiguration realLogbook = PropertiesUtils.readYaml(logbook, LogbookConfiguration.class);
+        final LogbookConfiguration realLogbook = PropertiesUtils.readYaml(logbook, LogbookConfiguration.class);
         realLogbook.setDbPort(databasePort);
         try (FileOutputStream outputStream = new FileOutputStream(logbook)) {
             final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());

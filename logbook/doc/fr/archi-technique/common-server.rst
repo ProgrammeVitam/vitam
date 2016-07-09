@@ -32,7 +32,7 @@ Plus tard, ces journaux seront aussi écrits dans des fichiers.
   - Un par jour
   - Chaque event (unitaire et non globalisé) devra être écrit au fur et à mesure, c'est à dire en respectant les dates d'events (dans l'ordre acquité par le Moteur de journalisation)
 
-- Lifecycles
+- LifeCycles
   
   - Un fichier unique, les events dans l'ordre chronologique (qui correspond à l'odre deans events)
  

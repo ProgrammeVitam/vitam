@@ -83,22 +83,22 @@ public interface LogbookClient {
      * Not implemented yet (think about pool logbook client)
      */
     void close();
-   
+
 
     /**
      * @param select
      * @return logbook operation as String
      * @throws LogbookClientException
-     * @throws InvalidParseOperationException 
+     * @throws InvalidParseOperationException
      */
     JsonNode selectOperation(String select) throws LogbookClientException, InvalidParseOperationException;
-    
+
     /**
      * @param select
      * @return logbook operation as String
      * @throws LogbookClientException
-     * @throws InvalidParseOperationException 
+     * @throws InvalidParseOperationException
      */
     JsonNode selectOperationbyId(String id) throws LogbookClientException, InvalidParseOperationException;
-        
+
 }

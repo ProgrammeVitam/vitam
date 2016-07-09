@@ -84,21 +84,21 @@ public class LogbookOperationsClientRestTest extends JerseyTest {
     public LogbookOperationsClientRestTest() {
         client = new LogbookOperationsClientRest(HOSTNAME, port);
     }
-    
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         junitHelper = new JunitHelper();
         port = junitHelper.findAvailablePort();
     }
-    
+
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         junitHelper.releasePort(port);
     }
-    
+
     @Override
     protected Application configure() {
-        //enable(TestProperties.LOG_TRAFFIC);
+        // enable(TestProperties.LOG_TRAFFIC);
         enable(TestProperties.DUMP_ENTITY);
         forceSet(TestProperties.CONTAINER_PORT, Integer.toString(port));
         mock = mock(ExpectedResults.class);

@@ -95,10 +95,10 @@ public class LogbookResourceTest {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
 
-        JunitHelper junitHelper = new JunitHelper();
+        final JunitHelper junitHelper = new JunitHelper();
         databasePort = junitHelper.findAvailablePort();
-        File logbook = PropertiesUtils.findFile(LOGBOOK_CONF);
-        LogbookConfiguration realLogbook = PropertiesUtils.readYaml(logbook, LogbookConfiguration.class);
+        final File logbook = PropertiesUtils.findFile(LOGBOOK_CONF);
+        final LogbookConfiguration realLogbook = PropertiesUtils.readYaml(logbook, LogbookConfiguration.class);
         realLogbook.setDbPort(databasePort);
         newLogbookConf = File.createTempFile("test", LOGBOOK_CONF, logbook.getParentFile());
         PropertiesUtils.writeYaml(newLogbookConf, realLogbook);
@@ -119,7 +119,7 @@ public class LogbookResourceTest {
                 newLogbookConf.getAbsolutePath(),
                 Integer.toString(serverPort)});
             ((BasicVitamServer) vitamServer).start();
-        } catch (VitamApplicationServerException e) {
+        } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
             throw new IllegalStateException(
                 "Cannot start the Logbook Application Server", e);

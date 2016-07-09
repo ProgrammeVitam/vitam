@@ -63,21 +63,22 @@ public interface LogbookOperations {
      *         or writing to the database
      */
     void update(LogbookOperationParameters parameters) throws LogbookNotFoundException, LogbookDatabaseException;
-    
+
     /**
      * Select logbook operation entries
-     * 
+     *
      * @param select the select request in format of JsonNode
      * @return List of the logbook operation
      * @throws LogbookNotFoundException if no operation selected cannot be found
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      * @throws InvalidParseOperationException if invalid parse for selecting the operation
      */
-    List<LogbookOperation> select(JsonNode select) throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException;
+    List<LogbookOperation> select(JsonNode select)
+        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException;
 
     /**
      * Select logbook operation by the operation's ID
-     * 
+     *
      * @param IdProcess
      * @return the logbook operation found by the ID
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database

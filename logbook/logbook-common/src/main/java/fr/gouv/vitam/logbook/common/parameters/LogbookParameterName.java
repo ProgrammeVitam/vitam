@@ -51,6 +51,7 @@ public enum LogbookParameterName {
     eventDateTime,
     /**
      * Process identifier: unique identifier for global operation workflow.
+     * <br>Primary key for Operation
      */
     eventIdentifierProcess,
     /**
@@ -113,7 +114,9 @@ public enum LogbookParameterName {
     /**
      * Object Identifier of the "process". <br>
      * <br>
-     * For instance: SIP GUID, but never ArchiveUnit GUID <br>
+     * For instance: SIP GUID, but never ArchiveUnit GUID for an Operation<br>
+     * For instance: ArchiveUnit GUID for a LifeCycle<br>
+     * <br>Primary key for LifeCycle
      * <br>
      * One of objectIdentifierRequest and objectIdentifier can be null but not both
      */
