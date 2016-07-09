@@ -41,7 +41,7 @@ angular.module('archiveSearch')
   $scope.archiveUnitsSearchResult;
   var criteriaSearch = {};
   $scope.getSearchResult = function getSearchResult(titleCriteria){
-    if(titleCriteria!==''){
+    if(titleCriteria!=='' && titleCriteria!== null && titleCriteria!== undefined){
 
       // Build title criteria and default selection
       criteriaSearch.Title = titleCriteria;
@@ -128,8 +128,9 @@ angular.module('archiveSearch')
         // Show Toast to indicate that the archive unit form is already opened
         $scope.showSimpleToast();
       } else {
+
         archiveUnitwindow = $window.open(ARCHIVE_SEARCH_MODULE_CONST.ARCHIVE_DETAILS_PATH + archiveId);
-        archiveUnitwindow.data = data.$result;
+        archiveUnitwindow.data = data[0];
         archiveUnitwindow.dataConfig = $scope.archiveDetailsConfig;
 
         // add a close listener to the window to update $scope.openedArchiveId content
@@ -154,34 +155,24 @@ angular.module('archiveSearch')
             console.log('Archive unit not found');
             $scope.error=true;
             $scope.errorMessage = ARCHIVE_SEARCH_MODULE_CONST.ARCHIVE_NOT_FOUND_MSG;
+          } else {
+            // Archive unit found
+            // Get Archive Details configuration only once
+            if($scope.archiveDetailsConfig == null || $scope.archiveDetailsConfig == undefined){
+              // $scope.archiveDetailsConfig = archiveDetailsService.getArchiveUnitDetailsConfig();
+              ihmDemoFactory.getArchiveUnitDetailsConfig()
+              .then(function (response) {
+                $scope.archiveDetailsConfig = response.data;
+                openArchiveDetailsWindow(data.$result);
+              }, function (error) {
+                console.log(ARCHIVE_UNIT_MODULE_CONST.CONFIG_FILE_NOT_FOUND_MSG);
+                $scope.archiveDetailsConfig = {};
+                openArchiveDetailsWindow(data.$result);
+              });
+            }else{
+                openArchiveDetailsWindow(data.$result);
+            }
           }
-          return;
-      }
-
-      // var isArchiveFound = Object.keys(data).length > 0;
-      // if(!isArchiveFound){
-      //   // Diplay Not found message
-      //   console.log('Archive unit not found');
-      //   $scope.error=true;
-      //   $scope.showResult=false;
-      //   $scope.errorMessage = ARCHIVE_SEARCH_MODULE_CONST.ARCHIVE_NOT_FOUND_MSG;
-      // }
-
-      // Archive unit found
-      // Get Archive Details configuration only once
-      if($scope.archiveDetailsConfig == null || $scope.archiveDetailsConfig == undefined){
-        $scope.archiveDetailsConfig = archiveDetailsService.getArchiveUnitDetailsConfig();
-        ihmDemoFactory.getArchiveUnitDetailsConfig()
-        .then(function (response) {
-          $scope.archiveDetailsConfig = response.data;
-          openArchiveDetailsWindow(data.$result);
-        }, function (error) {
-          console.log(ARCHIVE_UNIT_MODULE_CONST.CONFIG_FILE_NOT_FOUND_MSG);
-          $scope.archiveDetailsConfig = {};
-          openArchiveDetailsWindow(data.$result);
-        });
-      }else{
-          openArchiveDetailsWindow(data.$result);
       }
     };
 
