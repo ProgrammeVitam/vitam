@@ -35,19 +35,19 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 
 /**
- * LogbookOperationParameters Serializer for Jackson
+ * AbstractParameters Serializer for Jackson
  */
-class LogbookOperationSerializer extends JsonSerializer<LogbookOperationParameters> {
+class LogbookParametersSerializer extends JsonSerializer<AbstractParameters> {
 
     /**
      * Empty constructor
      */
-    public LogbookOperationSerializer() {
+    public LogbookParametersSerializer() {
         // empty
     }
 
     @Override
-    public void serialize(LogbookOperationParameters value, JsonGenerator gen,
+    public void serialize(AbstractParameters value, JsonGenerator gen,
         SerializerProvider serializers)
         throws IOException, JsonProcessingException {
         gen.writeStartObject();

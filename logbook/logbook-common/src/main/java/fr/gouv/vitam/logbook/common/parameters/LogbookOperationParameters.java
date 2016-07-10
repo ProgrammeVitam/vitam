@@ -26,37 +26,18 @@
  */
 package fr.gouv.vitam.logbook.common.parameters;
 
-import java.time.LocalDateTime;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
-import java.util.TreeMap;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.logbook.common.parameters.helper.LogbookParametersHelper;
-
 /**
  * Parameters for the logbook operation
  */
-@JsonSerialize(using = LogbookOperationSerializer.class)
-public class LogbookOperationParameters implements LogbookParameters {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookOperationParameters.class);
-
-    // Note: enum has declaration order comparable property
-    @JsonIgnore
-    private final Map<LogbookParameterName, String> mapParameters = new TreeMap<>();
-
-    @JsonIgnore
-    private final Set<LogbookParameterName> mandatoryParameters;
-
+@JsonSerialize(using = LogbookParametersSerializer.class)
+public class LogbookOperationParameters extends AbstractParameters {
     /**
      * Constructor use by the factory to initialize the set of mandatories
      *
@@ -64,7 +45,7 @@ public class LogbookOperationParameters implements LogbookParameters {
      */
     @JsonIgnore
     LogbookOperationParameters(final Set<LogbookParameterName> mandatory) {
-        mandatoryParameters = mandatory;
+        super(mandatory);
     }
 
     /**
@@ -75,106 +56,7 @@ public class LogbookOperationParameters implements LogbookParameters {
      */
     @JsonCreator
     protected LogbookOperationParameters(Map<String, String> map) {
-        mandatoryParameters = LogbookParametersFactory.getDefaultMandatory();
+        super(LogbookParametersFactory.getDefaultOperationMandatory());
         setMap(map);
-    }
-
-
-    @Override
-    public LogbookParameters setMap(Map<String, String> map) {
-        for (final Entry<String, String> item : map.entrySet()) {
-            final LogbookParameterName lpname = LogbookParameterName.valueOf(item.getKey());
-            mapParameters.put(lpname, item.getValue());
-        }
-        return this;
-    }
-
-    @Override
-    public LogbookParameters setFromParameters(LogbookParameters parameters) {
-        for (final LogbookParameterName item : LogbookParameterName.values()) {
-            mapParameters.put(item, parameters.getParameterValue(item));
-        }
-        return this;
-    }
-
-    @JsonIgnore
-    @Override
-    public LogbookOperationParameters putParameterValue(LogbookParameterName parameterName, String parameterValue) {
-        LogbookParametersHelper.checkNullOrEmptyParameter(parameterName, parameterValue, getMandatoriesParameters());
-        mapParameters.put(parameterName, parameterValue);
-        return this;
-    }
-
-    @JsonIgnore
-    @Override
-    public String getParameterValue(LogbookParameterName parameterName) {
-        ParametersChecker.checkParameter("Parameter cannot be null or empty", parameterName);
-        return mapParameters.get(parameterName);
-    }
-
-    @JsonIgnore
-    @Override
-    public Set<LogbookParameterName> getMandatoriesParameters() {
-        return mandatoryParameters;
-    }
-
-    @JsonIgnore
-    @Override
-    public Map<LogbookParameterName, String> getMapParameters() {
-        return mapParameters;
-    }
-
-    @JsonIgnore
-    @Override
-    public LocalDateTime getEventDateTime() {
-        final String date = mapParameters.get(LogbookParameterName.eventDateTime);
-        if (date != null) {
-            return LocalDateTime.parse(date);
-        }
-        return null;
-    }
-
-    @JsonIgnore
-    @Override
-    public LogbookOperationParameters setStatus(LogbookOutcome outcome) {
-        mapParameters.put(LogbookParameterName.outcome, outcome.name());
-        return this;
-    }
-
-    @JsonIgnore
-    @Override
-    public LogbookOutcome getStatus() {
-        final String status = mapParameters.get(LogbookParameterName.outcome);
-        if (status != null) {
-            return LogbookOutcome.valueOf(status);
-        }
-        return null;
-    }
-
-    @JsonIgnore
-    @Override
-    public LogbookOperationParameters setTypeProcess(LogbookTypeProcess process) {
-        mapParameters.put(LogbookParameterName.eventTypeProcess, process.name());
-        return this;
-    }
-
-    @JsonIgnore
-    @Override
-    public LogbookTypeProcess getTypeProcess() {
-        final String process = mapParameters.get(LogbookParameterName.eventTypeProcess);
-        if (process != null) {
-            return LogbookTypeProcess.valueOf(process);
-        }
-        return null;
-    }
-
-    @Override
-    public String toString() {
-        try {
-            return JsonHandler.writeAsString(mapParameters);
-        } catch (final InvalidParseOperationException e) {
-            LOGGER.error("Cannot convert to String", e);
-            return mapParameters.toString();
-        }
     }
 }

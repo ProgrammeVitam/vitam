@@ -104,7 +104,7 @@ class LogbookOperationsClientMock implements LogbookClient {
         parameters.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
         LogbookParametersHelper
-        .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
+            .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
         logInformation(CREATE, parameters);
     }
 
@@ -116,7 +116,7 @@ class LogbookOperationsClientMock implements LogbookClient {
         parameters.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
         LogbookParametersHelper
-        .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
+            .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
         logInformation(UPDATE, parameters);
     }
 
@@ -125,6 +125,10 @@ class LogbookOperationsClientMock implements LogbookClient {
         // do nothing
     }
 
+    /**
+     *
+     * @return the default first answer
+     */
     public static String getMockSelectOperationResult() {
         return MOCK_SELECT_RESULT_1;
     }
@@ -148,17 +152,17 @@ class LogbookOperationsClientMock implements LogbookClient {
     @Override
     public JsonNode selectOperation(String select) throws LogbookClientException, InvalidParseOperationException {
         LOGGER.info("Select request:" + select);
-        RequestResponseOK response =  new RequestResponseOK().setHits(new DatabaseCursor(2, 0, 10));
+        final RequestResponseOK response = new RequestResponseOK().setHits(new DatabaseCursor(2, 0, 10));
         response.setQuery(JsonHandler.getFromString(select));
-        response.setResult(JsonHandler.getFromString('['+ MOCK_SELECT_RESULT_1 + ',' + MOCK_SELECT_RESULT_2 + ']'));
+        response.setResult(JsonHandler.getFromString('[' + MOCK_SELECT_RESULT_1 + ',' + MOCK_SELECT_RESULT_2 + ']'));
         return new ObjectMapper().convertValue(response, JsonNode.class);
     }
 
     @Override
     public JsonNode selectOperationbyId(String id) throws LogbookClientException, InvalidParseOperationException {
         LOGGER.info("Select request with id:" + id);
-        RequestResponseOK response =  new RequestResponseOK().setHits(new DatabaseCursor(1, 0, 10));
-        response.setResult(JsonHandler.getFromString(MOCK_SELECT_RESULT_1 ));
+        final RequestResponseOK response = new RequestResponseOK().setHits(new DatabaseCursor(1, 0, 10));
+        response.setResult(JsonHandler.getFromString(MOCK_SELECT_RESULT_1));
         return new ObjectMapper().convertValue(response, JsonNode.class);
     }
 }

@@ -73,6 +73,9 @@ public final class PropertiesUtils {
             throw new FileNotFoundException(FILE_NOT_FOUND_IN_RESOURCES + resourcesFile);
         }
         if (url == null) {
+            url = Thread.currentThread().getContextClassLoader().getResource(resourcesFile);
+        }
+        if (url == null) {
             throw new FileNotFoundException(FILE_NOT_FOUND_IN_RESOURCES + resourcesFile);
         }
         File file;

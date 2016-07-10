@@ -166,9 +166,9 @@ public class LogbookOperationsClientRest implements LogbookClient {
     @Override
     public JsonNode selectOperation(String select) throws LogbookClientException, InvalidParseOperationException {
         final Response response = client.target(serviceUrl).path(OPERATIONS_URL).request(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON).header("X-Http-Method-Override", "GET")
-                .post(Entity.entity(select, MediaType.APPLICATION_JSON), Response.class);
-        
+            .accept(MediaType.APPLICATION_JSON).header("X-Http-Method-Override", "GET")
+            .post(Entity.entity(select, MediaType.APPLICATION_JSON), Response.class);
+
         if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
             LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
             throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
@@ -176,25 +176,27 @@ public class LogbookOperationsClientRest implements LogbookClient {
             LOGGER.error("Illegal Entry Parameter");
             throw new LogbookClientException("Request procondition failed");
         }
-        
+
         return JsonHandler.getFromString(response.readEntity(String.class));
     }
 
     @Override
-    public JsonNode selectOperationbyId(String processId) throws LogbookClientException, InvalidParseOperationException {
+    public JsonNode selectOperationbyId(String processId)
+        throws LogbookClientException, InvalidParseOperationException {
         final Response response = client.target(serviceUrl).path(OPERATIONS_URL + "/" + processId).request()
-            
+
             .accept(MediaType.APPLICATION_JSON).header("X-Http-Method-Override", "GET")
-            .post(Entity.entity(LogbookParametersFactory.newLogbookOperationParameters(), MediaType.APPLICATION_JSON), Response.class);
-    
-    if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-        LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
-        throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
-    } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-        LOGGER.error("Illegal Entry Parameter" );
-        throw new LogbookClientException("Request procondition failed");
-    }
-  
-    return JsonHandler.getFromString(response.readEntity(String.class));
+            .post(Entity.entity(LogbookParametersFactory.newLogbookOperationParameters(), MediaType.APPLICATION_JSON),
+                Response.class);
+
+        if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+            LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+            throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+        } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
+            LOGGER.error("Illegal Entry Parameter");
+            throw new LogbookClientException("Request procondition failed");
+        }
+
+        return JsonHandler.getFromString(response.readEntity(String.class));
     }
 }
