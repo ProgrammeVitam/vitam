@@ -87,7 +87,7 @@ public class LogbookLifeCyclesClientFactory {
      * Default client lifecycles type
      */
     private static LogbookClientType defaultLifeCyclesClientType;
-    private static final String CONFIGURATION_FILENAME = "logbook-lifecycles-client.conf";
+    private static final String CONFIGURATION_FILENAME = "logbook-client.conf";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookLifeCyclesClientFactory.class);
     private static final LogbookLifeCyclesClientFactory LOGBOOK_LIFECYCLES_CLIENT_FACTORY =
         new LogbookLifeCyclesClientFactory();

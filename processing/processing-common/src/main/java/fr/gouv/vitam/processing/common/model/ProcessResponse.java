@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.commons.lang3.StringUtils;
+
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SingletonUtils;
 
@@ -48,7 +50,7 @@ public class ProcessResponse implements EngineResponse {
      * Map of functional messages
      */
     private Map<String, OutcomeMessage> outcomeMessages;
-    
+
     /**
      * List of functional messages
      */
@@ -164,7 +166,7 @@ public class ProcessResponse implements EngineResponse {
         }
         return statusCode;
     }
-    
+
     /**
      * getGlobalProcessOutcomeMessage, return the all outcome message of workflow processing
      *
@@ -183,9 +185,13 @@ public class ProcessResponse implements EngineResponse {
                 }
             }
         }
+
+        if (StringUtils.isEmpty(globalOutcomeMessage)) {
+            globalOutcomeMessage = "DefaultMessage";
+        }
         return globalOutcomeMessage;
     }
-    
+
 
     /**
      * getMessageFromResponse return message id from list of response

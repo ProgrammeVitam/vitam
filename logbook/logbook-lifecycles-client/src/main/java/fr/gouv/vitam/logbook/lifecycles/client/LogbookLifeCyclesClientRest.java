@@ -118,9 +118,9 @@ class LogbookLifeCyclesClientRest implements LogbookLifeCycleClient {
     private String getServiceUrl(LogbookParameters parameters, String eip, String oid) {
         String logBookLifeCycleUrl = null;
         if (parameters instanceof LogbookLifeCycleObjectGroupParameters) {
-            logBookLifeCycleUrl = "unitlifecycles";
-        } else if (parameters instanceof LogbookLifeCycleUnitParameters) {
             logBookLifeCycleUrl = "objectgrouplifecycles";
+        } else if (parameters instanceof LogbookLifeCycleUnitParameters) {
+            logBookLifeCycleUrl = "unitlifecycles";
         } else {
             throw new IllegalArgumentException("Parameters to be checked");
         }

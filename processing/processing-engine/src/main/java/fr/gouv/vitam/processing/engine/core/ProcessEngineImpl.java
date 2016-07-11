@@ -118,7 +118,7 @@ public class ProcessEngineImpl implements ProcessEngine {
 
         try {
             final WorkFlow workFlow = poolWorkflows.get(workflowId);
-            
+
             if (workFlow != null && workFlow.getSteps() != null && !workFlow.getSteps().isEmpty()) {
 
                 /**
@@ -126,14 +126,14 @@ public class ProcessEngineImpl implements ProcessEngine {
                  */
                 for (final Step step : workFlow.getSteps()) {
                     LogbookParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
-                        GUIDFactory.newGUID(), 
-                        step.getStepName(), 
+                        GUIDFactory.newGUID(),
+                        step.getStepName(),
                         GUIDReader.getGUID(workParams.getContainerName()),
-                        LogbookTypeProcess.INGEST, 
-                        LogbookOutcome.STARTED, 
+                        LogbookTypeProcess.INGEST,
+                        LogbookOutcome.STARTED,
                         START_WORKER + step.getStepName(),
                         GUIDReader.getGUID(workParams.getContainerName()));
-                    
+
                     client.update(parameters);
 
                     workParams.setCurrentStep(step.getStepName());
@@ -142,17 +142,17 @@ public class ProcessEngineImpl implements ProcessEngine {
                     final StatusCode stepStatus = processResponse.getGlobalProcessStatusCode(stepResponse);
                     final String messageIdentifier = ProcessResponse.getMessageIdentifierFromResponse(stepResponse);
                     stepsResponses.put(step.getStepName(), stepResponse);
-                   
+
                     if (!messageIdentifier.isEmpty()) {
                         parameters.putParameterValue(LogbookParameterName.objectIdentifierIncome, messageIdentifier);
                     }
 
                     parameters.putParameterValue(LogbookParameterName.eventTypeProcess, stepStatus.value());
                     parameters.putParameterValue(LogbookParameterName.outcome, stepStatus.value());
-                    parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,ProcessResponse.getGlobalProcessOutcomeMessage(stepResponse));
-                    
-                    client.update(parameters);
+                    parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                        ProcessResponse.getGlobalProcessOutcomeMessage(stepResponse));
 
+                    client.update(parameters);
                     if (stepStatus.equals(StatusCode.KO) || stepStatus.equals(StatusCode.FATAL)) {
                         break;
                     }

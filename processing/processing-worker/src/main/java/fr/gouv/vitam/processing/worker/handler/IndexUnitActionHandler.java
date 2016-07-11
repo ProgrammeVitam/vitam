@@ -29,9 +29,10 @@ package fr.gouv.vitam.processing.worker.handler;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
-import fr.gouv.vitam.processing.common.model.OutcomeMessage;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.model.WorkParams;
@@ -45,11 +46,14 @@ public class IndexUnitActionHandler extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IndexUnitActionHandler.class);
     private static final String HANDLER_ID = "IndexUnit";
     private final SedaUtilsFactory sedaUtilsFactory;
+    private LogbookLifeCycleUnitParameters logbookLifecycleUnitParameters = LogbookParametersFactory
+        .newLogbookLifeCycleUnitParameters();
+
 
     /**
      * Constructor with parameter SedaUtilsFactory
      *
-     * @param factory SedaUtils factory
+     * @param factory
      */
     public IndexUnitActionHandler(SedaUtilsFactory factory) {
         sedaUtilsFactory = factory;
@@ -68,16 +72,25 @@ public class IndexUnitActionHandler extends ActionHandler {
         ParametersChecker.checkParameter("ServerConfiguration is a mandatory parameter",
             params.getServerConfiguration());
         LOGGER.info("IndexUnitActionHandler running ...");
-        final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID, OutcomeMessage.INDEX_UNIT_OK);
+        final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK);
         final SedaUtils sedaUtils = sedaUtilsFactory.create();
 
         try {
+            sedaUtils.updateLifeCycleByStep(logbookLifecycleUnitParameters, params);
             sedaUtils.indexArchiveUnit(params);
         } catch (final ProcessingException e) {
-            response.setStatus(StatusCode.FATAL).setOutcomeMessages(HANDLER_ID, OutcomeMessage.INDEX_UNIT_KO);
+            response.setStatus(StatusCode.FATAL);
         }
 
         LOGGER.info("IndexUnitActionHandler response: " + response.getStatus().value());
+
+        // Update lifeCycle
+        try {
+            sedaUtils.setLifeCycleFinalEventStatusByStep(logbookLifecycleUnitParameters, response.getStatus());
+        } catch (ProcessingException e) {
+            response.setStatus(StatusCode.WARNING);
+        }
+
         return response;
     }
 

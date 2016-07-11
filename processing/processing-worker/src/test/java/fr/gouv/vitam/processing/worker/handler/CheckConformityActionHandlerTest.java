@@ -31,18 +31,19 @@ public class CheckConformityActionHandlerTest {
     private SedaUtils sedaUtils;
     private static final WorkParams params =
         new WorkParams()
-        .setServerConfiguration(new ServerConfiguration().setUrlWorkspace(""))
-        .setGuuid("").setContainerName("Action").setCurrentStep("check conformity");
+            .setServerConfiguration(new ServerConfiguration().setUrlWorkspace(""))
+            .setGuuid("").setContainerName("Action").setCurrentStep("check conformity");
 
     @Before
     public void setUp() {
         factory = mock(SedaUtilsFactory.class);
         sedaUtils = mock(SedaUtils.class);
     }
-    
+
     @Test
-    public void givenConformityCheckWhenTrueThenResponseOK() 
-        throws ProcessingException, URISyntaxException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, ContentAddressableStorageException{
+    public void givenConformityCheckWhenTrueThenResponseOK()
+        throws ProcessingException, URISyntaxException, ContentAddressableStorageNotFoundException,
+        ContentAddressableStorageServerException, ContentAddressableStorageException {
         List<String> digestMessageInvalidList = new ArrayList<String>();
         Mockito.doReturn(digestMessageInvalidList).when(sedaUtils).checkConformityBinaryObject(anyObject());
         when(factory.create()).thenReturn(sedaUtils);
@@ -51,10 +52,11 @@ public class CheckConformityActionHandlerTest {
         final EngineResponse response = handlerVersion.execute(params);
         assertEquals(response.getStatus(), StatusCode.OK);
     }
-    
+
     @Test
-    public void givenConformityCheckWhenFalseThenResponseWarning() 
-        throws ProcessingException, URISyntaxException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, ContentAddressableStorageException{
+    public void givenConformityCheckWhenFalseThenResponseWarning()
+        throws ProcessingException, URISyntaxException, ContentAddressableStorageNotFoundException,
+        ContentAddressableStorageServerException, ContentAddressableStorageException {
         List<String> digestMessageInvalidList = new ArrayList<String>();
         digestMessageInvalidList.add("ZGVmYXVsdA==");
         digestMessageInvalidList.add("ZGVmYXVsdB==");
@@ -63,12 +65,13 @@ public class CheckConformityActionHandlerTest {
         handlerVersion = new CheckConformityActionHandler(factory);
         assertEquals(CheckConformityActionHandler.getId(), HANDLER_ID);
         final EngineResponse response = handlerVersion.execute(params);
-        assertEquals(response.getStatus(), StatusCode.KO);
+        assertEquals(response.getStatus(), StatusCode.WARNING);
     }
-    
+
     @Test
-    public void givenConformityCheckWhenExceptionThenResponseKO() 
-        throws ProcessingException, URISyntaxException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, ContentAddressableStorageException{
+    public void givenConformityCheckWhenExceptionThenResponseKO()
+        throws ProcessingException, URISyntaxException, ContentAddressableStorageNotFoundException,
+        ContentAddressableStorageServerException, ContentAddressableStorageException {
         Mockito.doThrow(new ProcessingException("")).when(sedaUtils).checkConformityBinaryObject(anyObject());
         when(factory.create()).thenReturn(sedaUtils);
         handlerVersion = new CheckConformityActionHandler(factory);
@@ -76,10 +79,11 @@ public class CheckConformityActionHandlerTest {
         final EngineResponse response = handlerVersion.execute(params);
         assertEquals(response.getStatus(), StatusCode.KO);
     }
-    
+
     @Test
-    public void givenConformityCheckWhenProcessingExceptionThenResponseKO() 
-        throws ProcessingException, URISyntaxException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, ContentAddressableStorageException{
+    public void givenConformityCheckWhenProcessingExceptionThenResponseKO()
+        throws ProcessingException, URISyntaxException, ContentAddressableStorageNotFoundException,
+        ContentAddressableStorageServerException, ContentAddressableStorageException {
         Mockito.doThrow(new ProcessingException("")).when(sedaUtils).checkConformityBinaryObject(anyObject());
         when(factory.create()).thenReturn(sedaUtils);
         handlerVersion = new CheckConformityActionHandler(factory);
