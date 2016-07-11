@@ -7,7 +7,8 @@ Présentation
 |  *Parent package:* **fr.gouv.vitam.api**
 |  *Package proposition:* **fr.gouv.vitam.metadata.rest**
 
-Module pour le module opération : api / rest.
+Ce parquet permet de valider les diffiréntes parquets.
+Module hébergeant le support REST et le jar de lancement du service.
 
 Services
 --------

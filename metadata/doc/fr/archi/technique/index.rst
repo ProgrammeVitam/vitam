@@ -20,9 +20,12 @@ Sommaire
    :maxdepth: 2
 
    introduction.rst
-   rest.rst
+   metadata-api.rst
+   metadata-builder.rst
    metadata-client.rst
-   metadata.rst
+   metadata-core.rst
+   metadata-parser.rst
+   metadata-rest.rst
 
 
 ##############
