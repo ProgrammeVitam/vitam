@@ -29,11 +29,15 @@ package fr.gouv.vitam.ingest.upload.rest;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.util.StringUtil;
 import org.eclipse.persistence.jaxb.rs.MOXyJsonProvider;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
@@ -60,25 +64,24 @@ public class MainUpload {
 
     /**
      * main method that runs a server
-     * 
+     *
      * @param args
      * @throws IOException
      * @throws VitamException
      */
-    // FIXME REVIEW Use same logic than Logbook
-    // TODO Peut être intéressant d'imprimer la stack trace pour avoir l'information complète de l'erreur avant exit ?
     public static void main(String[] args) throws IOException, VitamException {
 
         MainUpload.serverInitialisation(args);
         final String port = properties != null ? properties.getProperty("ingest.core.port")
-            : Integer.toString(VitamServerFactory.getDefaultPort());
+                : Integer.toString(VitamServerFactory.getDefaultPort());
 
         try {
-            MainUpload.serverStarting(Integer.parseInt(port));
+            MainUpload.serverInitialisation(Integer.parseInt(port));
+            MainUpload.serverStart();
             MainUpload.serverJoin();
 
         } catch (final Exception e) {
-            VITAM_LOGGER.error(e.getMessage(), e);
+            VITAM_LOGGER.error(e.getMessage());
             System.exit(1);
         }
     }
@@ -90,7 +93,7 @@ public class MainUpload {
                 if (args.length > 1) {
                     file = new File(args[0]);
                 } else {
-                    file = PropertiesUtils.fileFromConfigFolder(PROPERTIES_FILE);
+                    file = PropertiesUtils.findFile(PROPERTIES_FILE);
                 }
 
                 final FileInputStream fis = new FileInputStream(file);
@@ -101,16 +104,15 @@ public class MainUpload {
                 throw new VitamException("loading properties ingest-rest.properties failed");
             }
         }
-
     }
 
     /**
-     * runs a server
-     * 
-     * @param serverPort
+     * server initialisation
+     *
+     * @param port
      * @throws Exception
      */
-    protected static void serverStarting(int port) throws Exception {
+    protected static void serverInitialisation(int port) throws VitamException {
         final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(JacksonFeature.class);
         resourceConfig.register(MultiPartFeature.class);
@@ -126,34 +128,32 @@ public class MainUpload {
         context.addServlet(sh, "/*");
         server = new Server(port);
         server.setHandler(context);
-        server.start();
     }
 
+    protected static void serverStart() throws Exception {
+        server.start();
+    }
 
 
     protected static void serverJoin() throws InterruptedException {
         server.join();
     }
 
-
-
     /**
      * getter for server
-     * 
+     *
      * @return Server
      */
-    public static Server getServer() {
+    protected static Server getServer() {
         return server;
     }
 
     /**
      * stops a started server
-     * 
+     *
      * @throws Exception
      */
-    public static void stopServer() throws Exception {
+    protected static void stopServer() throws Exception {
         server.stop();
     }
-
-
 }
