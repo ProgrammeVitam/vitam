@@ -26,40 +26,78 @@
  */
 package fr.gouv.vitam.ingest.upload.rest;
 
-import org.junit.After;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.Ignore;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mockito.Matchers;
+import org.mockito.Mockito;
 import org.mockito.Spy;
+
+import fr.gouv.vitam.common.junit.JunitHelper;
+
+import java.io.IOException;
 
 /**
  * Tests the class MainUpload
  */
 public class MainUploadTest {
 
+    private static JunitHelper junitHelper;
+    private static int port;
+
     @Spy
     private MainUpload mainUpload;
 
+    @BeforeClass
+    public static void setUpBeforeClass() throws Exception {
+        junitHelper = new JunitHelper();
+        port = junitHelper.findAvailablePort();
+    }
+
+    @AfterClass
+    public static void shutdownAfterClass() {
+        junitHelper.releasePort(port);
+    }
 
     @Before
     public void setUp() {
 
     }
 
-    @After
-    public void tearDown() throws Exception {
-        MainUpload.getServer().stop();
-    }
-
-    @Ignore("To implement")
     @Test(expected = Exception.class)
     public void givenEmptyPort_WhenConfigureApplication_ThenRaiseAnException() throws Exception {
-        MainUpload.serverStarting((Integer) null);
+        MainUpload.serverInitialisation((Integer) null);
     }
 
-    @Ignore("To implement")
     @Test
     public void givenPort_WhenConfigureApplication_ThenServerStartedOK() throws Exception {
-        MainUpload.serverStarting(8080);
+        // Server started
+        MainUpload.serverInitialisation(port);
+        MainUpload.serverStart();
+        assertThat(MainUpload.getServer()).isNotNull();
+        assertThat(MainUpload.getServer().isStarted()).isTrue();
+
+        // Server stopped
+        MainUpload.stopServer();
+        assertThat(MainUpload.getServer().isStopped()).isTrue();
+    }
+
+    @Test
+    public void givenMain_WhenConfiguredApplicaiotn_ThenStartApplication() throws Exception {
+        String[] args = {"ingest-rest-test.properties"};
+        MainUpload.serverInitialisation(args);
+        MainUpload.serverInitialisation(Integer.parseInt("8080"));
+        MainUpload.serverStart();
+    }
+
+    @Test(expected = VitamException.class)
+    public void givenMain_WhenThrowIOException_ThenThrowVitamException() throws IOException, VitamException {
+        String[] args = {"mainFake", "fake.properties"};
+        MainUpload.serverInitialisation(args);
     }
 }
