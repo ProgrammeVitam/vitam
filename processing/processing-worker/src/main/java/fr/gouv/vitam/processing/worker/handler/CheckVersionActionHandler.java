@@ -68,7 +68,7 @@ public class CheckVersionActionHandler extends ActionHandler {
             params.getServerConfiguration());
         LOGGER.info("CheckVersionActionHandler running ...");
         
-        final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_OK);
+        final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_VERSION_OK);
         final SedaUtils sedaUtils = sedaUtilsFactory.create();
 
         try {
@@ -76,11 +76,11 @@ public class CheckVersionActionHandler extends ActionHandler {
             List<String> versionInvalidList =sedaUtils.checkSupportedBinaryObjectVersion(params);
             if (versionInvalidList.size() != 0){
                 response.setErrorNumber(versionInvalidList.size());
-                response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_KO);
+                response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_VERSION_KO);
             }
         } catch (ProcessingException e) {
             LOGGER.error(e.getMessage());
-            response.setStatus(StatusCode.FATAL).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_KO);
+            response.setStatus(StatusCode.FATAL).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_VERSION_KO);
         }
 
         LOGGER.info("CheckVersionActionHandler response: " + response.getStatus().value());

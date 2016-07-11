@@ -78,7 +78,7 @@ public class MainUpload {
             MainUpload.serverJoin();
 
         } catch (final Exception e) {
-            VITAM_LOGGER.error(e.getMessage());
+            VITAM_LOGGER.error(e.getMessage(), e);
             System.exit(1);
         }
     }

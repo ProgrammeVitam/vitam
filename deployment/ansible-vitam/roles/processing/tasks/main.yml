@@ -25,6 +25,7 @@
   - "server-identity.conf"
   - "setenv.sh"
   - "logback.xml"
+  - "version.conf"
 
 - name: Deploy VITAM docker file
   docker:

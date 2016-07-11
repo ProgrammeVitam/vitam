@@ -6,6 +6,11 @@ vitam_docker_tag: latest
 
 # Internal components communication configuration
 
+vitam_ihm_demo_host: "{{ groups['hosts-ihm-demo'][0] }}"
+vitam_ihm_demo_port: 8002
+vitam_ihm_demo_baseurl: "http://{{vitam_ihm_demo_host}}:{{vitam_ihm_demo_port}}"
+
+
 vitam_logbook_host: "{{ groups['hosts-logbook'][0] }}"
 vitam_logbook_port: 8204
 vitam_logbook_baseurl: "http://{{vitam_logbook_host}}:{{vitam_logbook_port}}"

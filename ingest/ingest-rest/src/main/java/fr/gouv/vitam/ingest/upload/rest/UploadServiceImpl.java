@@ -82,6 +82,8 @@ public class UploadServiceImpl implements UploadService {
     private static VitamLogger VITAM_LOGGER = VitamLoggerFactory.getInstance(UploadServiceImpl.class);
 
     private static final String FOLDER_SIP = "SIP";
+    private static final int tenantId = 0; // default tenanId
+    private String containerName;
     private Properties properties = null;
 
     private LogbookParameters parameters;
@@ -98,16 +100,29 @@ public class UploadServiceImpl implements UploadService {
         this.properties = properties;
     }
 
+    private LogbookClient initializeLogbookClient() throws LogbookClientNotFoundException, LogbookClientServerException, LogbookClientAlreadyExistsException, LogbookClientBadRequestException {
+        // guid generated for the container in the workspace
+        final GUID containerGUID = GUIDFactory.newOperationIdGUID(tenantId);
+        containerName = containerGUID.getId();
+        final GUID ingestGuid = GUIDFactory.newOperationIdGUID(tenantId);
+        logBookClient = logbookInitialisation(ingestGuid, containerGUID, tenantId);
+        return logBookClient;
+    }
+    
     /**
      * @throws VitamException if loading properties ingest-rest.properties failed
      */
-    public UploadServiceImpl(LogbookClient logbookClient, ProcessingManagementClient processingManagementClient,
-        WorkspaceClient wksClient, Properties properties) throws VitamException {
-        logBookClient = logbookClient;
-        processingClient = processingManagementClient;
-        workspaceClient = wksClient;
-        this.properties = properties;
-    }
+	public UploadServiceImpl(LogbookClient logbookClient, ProcessingManagementClient processingManagementClient,
+		WorkspaceClient wksClient, Properties properties) throws VitamException {
+		logBookClient = logbookClient != null ? logbookClient : initializeLogbookClient();
+
+		if (logBookClient == null) {
+			throw new VitamException("LogbookClient null");
+		}
+		processingClient = processingManagementClient;
+		workspaceClient = wksClient;
+		this.properties = properties;
+	}
 
     /**
      *
@@ -124,24 +139,22 @@ public class UploadServiceImpl implements UploadService {
     public Response uploadSipAsStream(@FormDataParam("file") InputStream uploadedInputStream,
         @FormDataParam("file") FormDataContentDisposition fileDetail) throws VitamException {
 
+    	 this.logBookClient = initializeLogbookClient();
+         if(logBookClient == null) {
+             throw new VitamException("LogbookClient null");
+         }
+         
         if (uploadedInputStream == null || fileDetail == null) {
             VITAM_LOGGER.error("input stream null");
             // TODO commentaire à variabiliser (FR/EN)
             throw new VitamException("error input stream");
         }
 
-
-        final int tenantId = 0; // default tenanId
         Response response = null;
         String url = "";
-        String containerName = "";
 
         try {
             VITAM_LOGGER.info("Starting up the save file sip : " + fileDetail.getFileName());
-
-            // guid generated for the container in the workspace
-            final GUID containerGUID = GUIDFactory.newOperationIdGUID(tenantId);
-            containerName = containerGUID.getId();
 
             if (properties != null) {
                 final String workspaceUrl = getWorkspaceUrl(properties);
@@ -149,9 +162,6 @@ public class UploadServiceImpl implements UploadService {
                 VITAM_LOGGER.info(workspaceUrl);
                 url = workspaceUrl;
             }
-
-            final GUID ingestGuid = GUIDFactory.newOperationIdGUID(tenantId);
-            logBookClient = logbookInitialisation(ingestGuid, containerGUID, tenantId);
 
             // workspace
             pushSipStreamToWorkspace(url, containerName, uploadedInputStream, parameters);
@@ -209,11 +219,8 @@ public class UploadServiceImpl implements UploadService {
                     "500", "upload failed", "500", "error ingest");
             response = Response.ok(uploadResponseDTO, "application/json").build();
 
-        } finally {
-            if (logBookClient != null) {
-                logBookClient.close();
-            }
-        }
+        } 
+        
         return response;
     }
 
