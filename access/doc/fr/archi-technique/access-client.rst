@@ -35,22 +35,8 @@ Utilisation
       
 Le client
 *********
-	Le client propose actuellement une méthode : selectUnits(String dslQuery);
-	Paramètre de la fonction : String dsl
+	Le client propose actuellement deux méthodes : selectUnits(String dslQuery);selectUnitbyId(String sqlQuery, String id);
+	Paramètre de la fonction : String ds, String Identification
 	//TODO (Itérations futures : ajouter méthode modification des métadonnées ?)
 
 	Le client récupère une réponse au format Json.
-
-	.. code-block:: java
-
-	Exemple d'usage générique
-	=========================
-	.. code-block:: java
-
-    // Récupération du client
-     AccessClient client = AccessClientFactory.getInstance().getAccessOperationClient();
-
-    // Récupération du dsl ( cf ihm-demo documentation)    
-    
-    // Recherche des Archives Units
-    JsonNode selectUnits(String dsl)  
