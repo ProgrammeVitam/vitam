@@ -24,4 +24,4 @@
 # The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
 # accept its terms.
 #*******************************************************************************
-export JAVA_ENTRYPOINT="ingest-core-${project.version}.jar"
+export JAVA_ENTRYPOINT="${project.build.finalName}.jar"

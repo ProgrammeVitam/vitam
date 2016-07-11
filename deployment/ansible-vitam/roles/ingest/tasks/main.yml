@@ -21,21 +21,7 @@
     group=vitam mode={{vitam_conf_permission}}
   notify: restart container
   with_items:
-  - "ingest-core.properties"
-  - "logbook-client.conf"
-  - "server-identity.conf"
-  - "setenv.sh"
-  - "logback.xml"
-
-- name: Deploy configuration files in {{vitam_folder_conf}} (duplicate)
-  template:
-    src="{{item}}.j2"
-    dest="{{vitam_folder_conf}}/{{item}}"
-    owner={{local_user}}
-    group=vitam mode={{vitam_conf_permission}}
-  notify: restart container
-  with_items:
-  - "ingest-core.properties"
+  - "ingest-rest.properties"
   - "logbook-client.conf"
   - "server-identity.conf"
   - "setenv.sh"

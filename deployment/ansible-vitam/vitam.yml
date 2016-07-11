@@ -4,15 +4,10 @@
   roles:
     - host-base
 
-
 # Vitam solution deployment
 - hosts: hosts-ihm-demo
   roles:
   - ihm-demo
-
-- hosts: hosts-ingest-web
-  roles:
-  - ingest-web
 
 - hosts: hosts-workspace
   roles:
@@ -40,6 +35,8 @@
 
 - hosts: hosts-access
   roles:
+    - access
+  tags: 
     - access
 
 - hosts: hosts-mongo-express
