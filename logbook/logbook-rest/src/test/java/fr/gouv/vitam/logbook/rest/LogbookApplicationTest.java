@@ -28,12 +28,16 @@ package fr.gouv.vitam.logbook.rest;
 
 import static org.junit.Assert.fail;
 
-import java.io.FileNotFoundException;
+import java.io.File;
+import java.io.FileOutputStream;
 
 import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
@@ -44,7 +48,9 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server.BasicVitamServer;
+import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.logbook.common.server.MongoDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.MongoDbAccessFactory;
@@ -52,30 +58,45 @@ import fr.gouv.vitam.logbook.common.server.database.collections.MongoDbAccessFac
 
 public class LogbookApplicationTest {
     private static final String SHOULD_NOT_RAIZED_AN_EXCEPTION = "Should not raized an exception";
-    private static final String SHOULD_RAIZED_AN_EXCEPTION = "Should raized an exception";
 
     private static final String LOGBOOK_CONF = "logbook.conf";
     private static final String DATABASE_HOST = "localhost";
-    private static final int DATABASE_PORT = 12346;
     private static MongoDbAccess mongoDbAccess;
     private static MongodExecutable mongodExecutable;
     private static MongodProcess mongod;
+    private static int databasePort;
+    private static int serverPort;
+    private static int oldPort;
+    private static JunitHelper junitHelper;
+    private static File logbook;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
 
+        junitHelper = new JunitHelper();
+        databasePort = junitHelper.findAvailablePort();
+        logbook = PropertiesUtils.findFile(LOGBOOK_CONF);
+        final LogbookConfiguration realLogbook = PropertiesUtils.readYaml(logbook, LogbookConfiguration.class);
+        realLogbook.setDbPort(databasePort);
+        try (FileOutputStream outputStream = new FileOutputStream(logbook)) {
+            final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+            mapper.writeValue(outputStream, realLogbook);
+        }
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .version(Version.Main.PRODUCTION)
-            .net(new Net(DATABASE_PORT, Network.localhostIsIPv6()))
+            .net(new Net(databasePort, Network.localhostIsIPv6()))
             .build());
         mongod = mongodExecutable.start();
         mongoDbAccess =
             MongoDbAccessFactory.create(
-                new DbConfigurationImpl(DATABASE_HOST, DATABASE_PORT,
+                new DbConfigurationImpl(DATABASE_HOST, databasePort,
                     "vitam-test"));
+        serverPort = junitHelper.findAvailablePort();
+        oldPort = VitamServerFactory.getDefaultPort();
+        VitamServerFactory.setDefaultPort(serverPort);
     }
 
     @AfterClass
@@ -83,28 +104,36 @@ public class LogbookApplicationTest {
         mongoDbAccess.close();
         mongod.stop();
         mongodExecutable.stop();
+        junitHelper.releasePort(serverPort);
+        junitHelper.releasePort(databasePort);
+        VitamServerFactory.setDefaultPort(oldPort);
     }
 
     @Test
     public final void testFictiveLaunch() {
         try {
             ((BasicVitamServer) LogbookApplication.startApplication(new String[] {
-                PropertiesUtils.getResourcesFile(LOGBOOK_CONF).getAbsolutePath(), "-1"
+                logbook.getAbsolutePath(), "-1"
             })).stop();
         } catch (final IllegalStateException e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        } catch (final FileNotFoundException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         } catch (final VitamApplicationServerException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
         try {
             ((BasicVitamServer) LogbookApplication.startApplication(new String[] {
-                PropertiesUtils.getResourcesFile(LOGBOOK_CONF).getAbsolutePath(), "-1xx"
+                logbook.getAbsolutePath(), "-1xx"
             })).stop();
         } catch (final IllegalStateException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        } catch (final FileNotFoundException e) {
+        } catch (final VitamApplicationServerException e) {
+            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
+        }
+        try {
+            ((BasicVitamServer) LogbookApplication.startApplication(new String[] {
+                logbook.getAbsolutePath(), Integer.toString(serverPort)
+            })).stop();
+        } catch (final IllegalStateException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         } catch (final VitamApplicationServerException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);

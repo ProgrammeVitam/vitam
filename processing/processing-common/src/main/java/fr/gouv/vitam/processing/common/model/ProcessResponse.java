@@ -23,10 +23,15 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.common.model;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+
+import org.apache.commons.lang3.StringUtils;
+
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.SingletonUtils;
 
 /**
  *
@@ -42,9 +47,14 @@ public class ProcessResponse implements EngineResponse {
     private StatusCode status;
 
     /**
+     * Map of functional messages
+     */
+    private Map<String, OutcomeMessage> outcomeMessages;
+
+    /**
      * List of functional messages
      */
-    private List<String> messages;
+    private Integer numberErrors;
 
     /**
      * Message identifier
@@ -85,20 +95,24 @@ public class ProcessResponse implements EngineResponse {
      * implementation of getMessage() of EngineResponse API class
      */
     @Override
-    public List<String> getMessages() {
-        if (messages == null) {
-            // FIXME REVIEW use SingletonUtils
-            return new ArrayList<>();
+    public Map<String, OutcomeMessage> getOutcomeMessages() {
+        if (outcomeMessages == null) {
+            return SingletonUtils.singletonMap();
         }
-        return messages;
+        return outcomeMessages;
     }
 
     /**
      * implementation of setMessage() of EngineResponse API class
      */
     @Override
-    public ProcessResponse setMessages(List<String> messages) {
-        this.messages = messages;
+    public ProcessResponse setOutcomeMessages(String handlerId, OutcomeMessage message) {
+        ParametersChecker.checkParameter("Handler id is a mandatory parameter", handlerId);
+        ParametersChecker.checkParameter("Outcome Detail Message is a mandatory parameter", message);
+        if (outcomeMessages == null) {
+            outcomeMessages = new HashMap<String, OutcomeMessage>();
+        }
+        this.outcomeMessages.put(handlerId, message);
         return this;
     }
 
@@ -110,8 +124,7 @@ public class ProcessResponse implements EngineResponse {
 
     public Map<String, List<EngineResponse>> getStepResponses() {
         if (stepResponses == null) {
-            // FIXME REVIEW use SingletonUtils
-            return new HashMap<>();
+            return SingletonUtils.singletonMap();
         }
         return stepResponses;
     }
@@ -122,7 +135,6 @@ public class ProcessResponse implements EngineResponse {
      * @param stepResponses the stepResponses to set
      */
     public ProcessResponse setStepResponses(Map<String, List<EngineResponse>> stepResponses) {
-        // FIXME REVIEW check null since assigned after
         if (stepResponses != null && !stepResponses.isEmpty()) {
             stepResponses.forEach((actionKey, responses) -> status = getGlobalProcessStatusCode(responses));
         }
@@ -156,16 +168,43 @@ public class ProcessResponse implements EngineResponse {
     }
 
     /**
-     * getMessageFromResponse return message id from list of response
-     * @param responses list of step response
-     * @return message id 
+     * getGlobalProcessOutcomeMessage, return the all outcome message of workflow processing
+     *
+     * @param responses, message list
+     * @return the global message
      */
-    public static String getMessageFromResponse(List<EngineResponse> responses) {
+    public static String getGlobalProcessOutcomeMessage(List<EngineResponse> responses) {
+        String globalOutcomeMessage = "";
+        if (responses != null) {
+            for (final EngineResponse response : responses) {
+                for (final Entry<String, OutcomeMessage> entry : response.getOutcomeMessages().entrySet()) {
+                    globalOutcomeMessage += entry.getValue().value() + ". ";
+                    if (response.getErrorNumber() > 0) {
+                        globalOutcomeMessage += "Errors: " + response.getErrorNumber();
+                    }
+                }
+            }
+        }
+
+        if (StringUtils.isEmpty(globalOutcomeMessage)) {
+            globalOutcomeMessage = "DefaultMessage";
+        }
+        return globalOutcomeMessage;
+    }
+
+
+    /**
+     * getMessageFromResponse return message id from list of response
+     * 
+     * @param responses list of step response
+     * @return message id
+     */
+    public static String getMessageIdentifierFromResponse(List<EngineResponse> responses) {
         String messageId = "";
 
         if (responses != null) {
             for (final EngineResponse response : responses) {
-                if(!response.getMessageIdentifier().isEmpty()) {
+                if (!response.getMessageIdentifier().isEmpty()) {
                     messageId = response.getMessageIdentifier();
                 }
             }
@@ -178,6 +217,9 @@ public class ProcessResponse implements EngineResponse {
      */
     @Override
     public String getValue() {
+        if (status == null) {
+            return StatusCode.FATAL.value();
+        }
         return status.value();
     }
 
@@ -191,9 +233,24 @@ public class ProcessResponse implements EngineResponse {
 
     @Override
     public EngineResponse setMessageIdentifier(String message) {
-        if (message == null) {
-            this.messageId = message;
+        if (message != null) {
+            messageId = message;
         }
+        return this;
+    }
+
+    @Override
+    public int getErrorNumber() {
+        if (numberErrors == null) {
+            return 0;
+        }
+        return numberErrors;
+    }
+
+    @Override
+    public EngineResponse setErrorNumber(int number) {
+        ParametersChecker.checkParameter("Detail message is a mandatory parameter", number);
+        numberErrors = number;
         return this;
     }
 }

@@ -41,9 +41,14 @@ enum LogbookCollections {
      */
     OPERATION(LogbookOperation.class),
     /**
-     * LifeCycle Collection
+     * LifeCycle unit Collection
      */
-    LIFECYCLE(LogbookLifeCycle.class);
+    LIFECYCLE_UNIT(LogbookLifeCycleUnit.class),
+    /**
+     * LifeCycle object group Collection
+     */
+    LIFECYCLE_OBJECTGROUP(LogbookLifeCycleObjectGroup.class);
+
 
     private final Class<?> clasz;
     private final String name;
@@ -98,8 +103,17 @@ enum LogbookCollections {
      * @return the casted MongoCollection
      */
     @SuppressWarnings("unchecked")
-    protected static final MongoCollection<LogbookLifeCycle> getLifeCycleCollection() {
-        return (MongoCollection<LogbookLifeCycle>) LIFECYCLE.collection;
+    protected static final MongoCollection<LogbookLifeCycleUnit> getLifeCycleUnitCollection() {
+        return (MongoCollection<LogbookLifeCycleUnit>) LIFECYCLE_UNIT.collection;
+    }
+
+    /**
+     *
+     * @return the casted MongoCollection
+     */
+    @SuppressWarnings("unchecked")
+    protected static final MongoCollection<LogbookLifeCycleObjectGroup> getLifeCycleObjectGroupCollection() {
+        return (MongoCollection<LogbookLifeCycleObjectGroup>) LIFECYCLE_OBJECTGROUP.collection;
     }
 
     /**

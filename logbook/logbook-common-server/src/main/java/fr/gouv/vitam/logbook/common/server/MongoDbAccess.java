@@ -29,9 +29,11 @@ package fr.gouv.vitam.logbook.common.server;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.MongoCursor;
 
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycle;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
@@ -63,7 +65,16 @@ public interface MongoDbAccess {
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      */
-    long getLogbookLifeCyleSize() throws LogbookDatabaseException, LogbookNotFoundException;
+    long getLogbookLifeCyleUnitSize() throws LogbookDatabaseException, LogbookNotFoundException;
+
+    /**
+     *
+     * @return the current number of Logbook LifeCyle
+     *
+     * @throws LogbookDatabaseException
+     * @throws LogbookNotFoundException
+     */
+    long getLogbookLifeCyleObjectGroupSize() throws LogbookDatabaseException, LogbookNotFoundException;
 
     /**
      * Check if one eventIdentifier for Operation exists already
@@ -74,7 +85,7 @@ public interface MongoDbAccess {
      * @throws LogbookDatabaseException
      * @throws IllegalArgumentException if parameter has null or empty mandatory values
      */
-    boolean existsLogbookOperation(final LogbookOperationParameters operationItem) throws LogbookDatabaseException;
+    boolean existsLogbookOperation(final String operationItem) throws LogbookDatabaseException;
 
     /**
      * Check if one eventIdentifier for Lifecycle exists already
@@ -86,7 +97,20 @@ public interface MongoDbAccess {
      * @throws LogbookNotFoundException
      * @throws IllegalArgumentException if parameter has null or empty mandatory values
      */
-    boolean existsLogbookLifeCycle(final LogbookParameters lifecycleItem)
+    boolean existsLogbookLifeCycleUnit(final String lifecycleItem)
+        throws LogbookDatabaseException, LogbookNotFoundException;
+
+    /**
+     * Check if one eventIdentifier for Lifecycle exists already
+     *
+     * @param lifecycleItem
+     * @return True if one LogbookLibeCycle exists with this id
+     *
+     * @throws LogbookDatabaseException
+     * @throws LogbookNotFoundException
+     * @throws IllegalArgumentException if parameter has null or empty mandatory values
+     */
+    boolean existsLogbookLifeCycleObjectGroup(final String lifecycleItem)
         throws LogbookDatabaseException, LogbookNotFoundException;
 
     /**
@@ -112,7 +136,48 @@ public interface MongoDbAccess {
      * @throws LogbookNotFoundException
      * @throws IllegalArgumentException if parameter has null or empty mandatory values
      */
-    LogbookLifeCycle getLogbookLifeCycle(final String objectIdentifier)
+    LogbookLifeCycleUnit getLogbookLifeCycleUnit(final String objectIdentifier)
+        throws LogbookDatabaseException, LogbookNotFoundException;
+
+    /**
+     * Get one Lifecycle
+     *
+     * @param objectIdentifier
+     * @return the full corresponding LogbookLibeCycle if it exists
+     *
+     * @throws LogbookDatabaseException
+     * @throws LogbookNotFoundException
+     * @throws IllegalArgumentException if parameter has null or empty mandatory values
+     */
+    LogbookLifeCycleObjectGroup getLogbookLifeCycleObjectGroup(final String objectIdentifier)
+        throws LogbookDatabaseException, LogbookNotFoundException;
+
+    /**
+     * Get one Lifecycle
+     *
+     * @param idOperation
+     * @param idLc
+     * @return the full corresponding LogbookLibeCycle if it exists and linked to the given operation
+     *
+     * @throws LogbookDatabaseException
+     * @throws LogbookNotFoundException
+     * @throws IllegalArgumentException if parameter has null or empty mandatory values
+     */
+    LogbookLifeCycleUnit getLogbookLifeCycleUnit(final String idOperation, final String idLc)
+        throws LogbookDatabaseException, LogbookNotFoundException;
+
+    /**
+     * Get one Lifecycle
+     *
+     * @param idOperation
+     * @param idLc
+     * @return the corresponding LogbookLibeCycle if it exists and linked to the given operation
+     *
+     * @throws LogbookDatabaseException
+     * @throws LogbookNotFoundException
+     * @throws IllegalArgumentException if parameter has null or empty mandatory values
+     */
+    LogbookLifeCycleObjectGroup getLogbookLifeCycleObjectGroup(final String idOperation, final String idLc)
         throws LogbookDatabaseException, LogbookNotFoundException;
 
     /**
@@ -128,16 +193,32 @@ public interface MongoDbAccess {
         throws LogbookDatabaseException, LogbookAlreadyExistsException;
 
     /**
-     * Create one Logbook LifeCycle
+     * Create one Logbook LifeCycle unit
      *
+     * @param idOperation
      * @param lifecycleItem
      *
      * @throws LogbookDatabaseException
      * @throws LogbookAlreadyExistsException
      * @throws IllegalArgumentException if parameter has null or empty mandatory values
      */
-    void createLogbookLifeCycle(final LogbookParameters lifecycleItem)
+    void createLogbookLifeCycleUnit(final String idOperation, final LogbookLifeCycleUnitParameters lifecycleItem)
         throws LogbookDatabaseException, LogbookAlreadyExistsException;
+
+    /**
+     * Create one Logbook LifeCycle object group
+     *
+     * @param idOperation
+     * @param lifecycleItem
+     *
+     * @throws LogbookDatabaseException
+     * @throws LogbookAlreadyExistsException
+     * @throws IllegalArgumentException if parameter has null or empty mandatory values
+     */
+    void createLogbookLifeCycleObjectGroup(final String idOperation,
+        final LogbookLifeCycleObjectGroupParameters lifecycleItem)
+        throws LogbookDatabaseException, LogbookAlreadyExistsException;
+
 
     /**
      * Update one Logbook Operation <br>
@@ -158,14 +239,63 @@ public interface MongoDbAccess {
      * <br>
      * It adds this new entry within the very same Logbook LifeCycle entry in "events" array.
      *
+     * @param idOperation
      * @param lifecycleItem
      *
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      * @throws IllegalArgumentException if parameter has null or empty mandatory values
      */
-    void updateLogbookLifeCycle(LogbookParameters lifecycleItem)
+    void updateLogbookLifeCycleUnit(final String idOperation, LogbookLifeCycleUnitParameters lifecycleItem)
         throws LogbookDatabaseException, LogbookNotFoundException;
+
+
+    /**
+     * Update one Logbook LifeCycle <br>
+     * <br>
+     * It adds this new entry within the very same Logbook LifeCycle entry in "events" array.
+     *
+     * @param idOperation
+     * @param lifecycleItem
+     *
+     * @throws LogbookDatabaseException
+     * @throws LogbookNotFoundException
+     * @throws IllegalArgumentException if parameter has null or empty mandatory values
+     */
+    void updateLogbookLifeCycleObjectGroup(final String idOperation,
+        LogbookLifeCycleObjectGroupParameters lifecycleItem)
+        throws LogbookDatabaseException, LogbookNotFoundException;
+
+    /**
+     * Rollback one Logbook LifeCycle <br>
+     * <br>
+     * It adds this new entry within the very same Logbook LifeCycle entry in "events" array.
+     *
+     * @param idOperation
+     * @param lifecycleItem
+     *
+     * @throws LogbookDatabaseException
+     * @throws LogbookNotFoundException
+     * @throws IllegalArgumentException if parameter has null or empty mandatory values
+     */
+    void rollbackLogbookLifeCycleUnit(final String idOperation, String lifecycleItem)
+        throws LogbookDatabaseException, LogbookNotFoundException;
+
+    /**
+     * Rollback one Logbook LifeCycle <br>
+     * <br>
+     * It adds this new entry within the very same Logbook LifeCycle entry in "events" array.
+     *
+     * @param idOperation
+     * @param lifecycleItem
+     *
+     * @throws LogbookDatabaseException
+     * @throws LogbookNotFoundException
+     * @throws IllegalArgumentException if parameter has null or empty mandatory values
+     */
+    void rollbackLogbookLifeCycleObjectGroup(final String idOperation, String lifecycleItem)
+        throws LogbookDatabaseException, LogbookNotFoundException;
+
 
     /**
      * Create one Logbook Operation with already multiple sub-events
@@ -190,8 +320,23 @@ public interface MongoDbAccess {
      * @throws LogbookDatabaseException
      * @throws LogbookAlreadyExistsException
      */
-    void createBulkLogbookLifeCycle(LogbookParameters lifecycleItem,
-        LogbookParameters... lifecycleItems) throws LogbookDatabaseException, LogbookAlreadyExistsException;
+    void createBulkLogbookLifeCycleUnit(LogbookLifeCycleUnitParameters lifecycleItem,
+        LogbookLifeCycleUnitParameters... lifecycleItems)
+        throws LogbookDatabaseException, LogbookAlreadyExistsException;
+
+    /**
+     * Create one Logbook LifeCycle with already multiple sub-events
+     *
+     * @param lifecycleItem to be created event
+     * @param lifecycleItems next events to add/update
+     *
+     * @throws IllegalArgumentException if first argument is null or null mandatory parameters for all
+     * @throws LogbookDatabaseException
+     * @throws LogbookAlreadyExistsException
+     */
+    void createBulkLogbookLifeCycleObjectGroup(LogbookLifeCycleObjectGroupParameters lifecycleItem,
+        LogbookLifeCycleObjectGroupParameters... lifecycleItems)
+        throws LogbookDatabaseException, LogbookAlreadyExistsException;
 
     /**
      * Update one Logbook Operation with multiple sub-events <br>
@@ -218,20 +363,21 @@ public interface MongoDbAccess {
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      */
-    void updateBulkLogbookLifeCycle(LogbookParameters... lifecycleItems)
+    void updateBulkLogbookLifeCycleUnit(LogbookLifeCycleUnitParameters... lifecycleItems)
         throws LogbookDatabaseException, LogbookNotFoundException;
 
     /**
-     * Get a list of Logbook Operation through Closeable MongoCursor
+     * Update one Logbook LifeCycle with multiple sub-events <br>
+     * <br>
+     * It adds this new entry within the very same Logbook LifeCycle entry in "events" array.
      *
-     * @param select
-     * @return the Closeable MongoCursor of LogbookOperation
+     * @param lifecycleItems
      *
-     * @throws IllegalArgumentException if argument is null or empty
+     * @throws IllegalArgumentException if parameter has null or empty mandatory values
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      */
-    MongoCursor<LogbookOperation> getLogbookOperations(String select)
+    void updateBulkLogbookLifeCycleObjectGroup(LogbookLifeCycleObjectGroupParameters... lifecycleItems)
         throws LogbookDatabaseException, LogbookNotFoundException;
 
     /**
@@ -257,7 +403,7 @@ public interface MongoDbAccess {
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      */
-    MongoCursor<LogbookLifeCycle> getLogbookLifeCycles(String select)
+    MongoCursor<LogbookLifeCycleUnit> getLogbookLifeCycleUnits(JsonNode select)
         throws LogbookDatabaseException, LogbookNotFoundException;
 
     /**
@@ -270,7 +416,8 @@ public interface MongoDbAccess {
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      */
-    MongoCursor<LogbookLifeCycle> getLogbookLifeCycles(JsonNode select)
+    MongoCursor<LogbookLifeCycleObjectGroup> getLogbookLifeCycleObjectGroups(JsonNode select)
         throws LogbookDatabaseException, LogbookNotFoundException;
+
 
 }

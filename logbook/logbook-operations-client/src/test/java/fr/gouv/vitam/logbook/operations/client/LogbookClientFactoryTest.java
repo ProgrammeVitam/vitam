@@ -44,7 +44,7 @@ public class LogbookClientFactoryTest {
 
     @Before
     public void initFileConfiguration() {
-        LogbookClientFactory.getInstance().changeConfigurationFile("logbook-client.conf");
+        LogbookClientFactory.getInstance().changeConfigurationFile("logbook-client-test.conf");
     }
 
     @Test

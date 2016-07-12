@@ -31,7 +31,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
+
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
@@ -48,9 +50,6 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import fr.gouv.vitam.logbook.common.model.response.RequestResponseError;
-import fr.gouv.vitam.logbook.common.model.response.RequestResponseOK;
-import fr.gouv.vitam.logbook.common.model.response.VitamError;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -60,6 +59,11 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.configuration.DbConfiguration;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.logbook.common.client.StatusMessage;
+import fr.gouv.vitam.logbook.common.model.response.RequestResponseError;
+import fr.gouv.vitam.logbook.common.model.response.RequestResponseOK;
+import fr.gouv.vitam.logbook.common.model.response.VitamError;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.helper.LogbookParametersHelper;
 import fr.gouv.vitam.logbook.common.server.MongoDbAccess;
@@ -69,6 +73,8 @@ import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsExcepti
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
+import fr.gouv.vitam.logbook.lifecycles.api.LogbookLifeCycles;
+import fr.gouv.vitam.logbook.lifecycles.core.LogbookLifeCyclesImpl;
 import fr.gouv.vitam.logbook.operations.api.LogbookOperations;
 import fr.gouv.vitam.logbook.operations.core.LogbookOperationsImpl;
 
@@ -78,7 +84,16 @@ import fr.gouv.vitam.logbook.operations.core.LogbookOperationsImpl;
 @Path("/logbook/v1")
 public class LogbookResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookResource.class);
-    private final LogbookOperations logbookOperation;   
+
+    /**
+     *
+     */
+    private final LogbookOperations logbookOperation;
+
+    /**
+     *
+     */
+    private final LogbookLifeCycles logbookLifeCycle;
 
     /**
      * Constructor
@@ -90,14 +105,16 @@ public class LogbookResource {
             new DbConfigurationImpl(configuration.getDbHost(), configuration.getDbPort(), configuration.getDbName());
         final MongoDbAccess mongoDbAccess = MongoDbAccessFactory.create(logbookConfiguration);
         logbookOperation = new LogbookOperationsImpl(mongoDbAccess);
-        LOGGER.debug("LogbookResource initialized");
+        LOGGER.debug("LogbookResource operation initialized");
+
+        logbookLifeCycle = new LogbookLifeCyclesImpl(mongoDbAccess);
+        LOGGER.debug("LogbookResource lifecycles initialized");
     }
 
     /**
      * TOTO : a true GET with body Select an operation
-     * 
+     *
      * @param operationId the operation id
-     * @param operation the json serialized as a LogbookOperationParameters.
      * @return the response with a specific HTTP status
      * @throws InvalidParseOperationException
      */
@@ -108,7 +125,7 @@ public class LogbookResource {
     public Response getOperation(@PathParam("id_op") String operationId) throws InvalidParseOperationException {
         Status status;
         try {
-            LogbookOperation result = logbookOperation.getById(operationId);
+            final LogbookOperation result = logbookOperation.getById(operationId);
             return Response.status(Status.OK)
                 .entity(new RequestResponseOK()
                     .setHits(1, 0, 1)
@@ -245,9 +262,10 @@ public class LogbookResource {
 
     /**
      * TODO : create a true GET with request in body
-     * 
+     *
      * @param query DSL as String
      * @return Response containt the list of loglook operation
+     * @throws InvalidParseOperationException
      * @throws LogbookException
      * @throws LogbookNotFoundException
      * @throws IOException
@@ -263,8 +281,8 @@ public class LogbookResource {
         JsonMappingException, IOException {
         Status status;
         try {
-            List<LogbookOperation> result = logbookOperation.select(JsonHandler.getFromString(query));
-            JsonNode resultAsJson = JsonHandler.getFromString(logbookOperationToJsonString(result));
+            final List<LogbookOperation> result = logbookOperation.select(JsonHandler.getFromString(query));
+            final JsonNode resultAsJson = JsonHandler.getFromString(logbookOperationToJsonString(result));
             return Response.status(Status.OK)
                 .entity(new RequestResponseOK()
                     .setHits(1, 0, 1)
@@ -299,7 +317,7 @@ public class LogbookResource {
 
     /**
      * @param query as JsonNode
-     * @param xhttpOverride, header parameter indicate that we use POST with X-HTTP-Method-Override,
+     * @param xhttpOverride header parameter indicate that we use POST with X-Http-Method-Override,
      * @return Response of SELECT query with POST method
      * @throws LogbookException
      * @throws InvalidParseOperationException
@@ -340,8 +358,384 @@ public class LogbookResource {
         final ObjectMapper mapper = new ObjectMapper();
         mapper.writeValue(out, logbook);
         final byte[] data = ((ByteArrayOutputStream) out).toByteArray();
-        String logbookAsString = new String(data);
+        final String logbookAsString = new String(data);
         return logbookAsString;
     }
+
+    /***** LIFE CYCLES UNIT - START *****/
+
+    /**
+     * Create Unit Life Cycle
+     * 
+     * @param operationId the operation id
+     * @param unitLcId the life cycle id
+     * @param parameters the json serialized as a LogbookLifeCycleUnitParameters.
+     * @return the response with a specific HTTP status
+     */
+    @POST
+    @Path("/operations/{id_op}/unitlifecycles/{id_lc}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response createUnitLifeCyclesByOperation(@PathParam("id_op") String operationId,
+        @PathParam("id_lc") String unitLcId, LogbookLifeCycleUnitParameters parameters) {
+        Status status;
+        try {
+            try {
+                // check null or empty parameters
+                LogbookParametersHelper.checkNullOrEmptyParameters(parameters);
+            } catch (final IllegalArgumentException e) {
+                LOGGER.error("unit lifecycles is incorrect", e);
+                status = Status.BAD_REQUEST;
+                return Response.status(status)
+                    .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                        .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
+                        .setDescription(status.getReasonPhrase())))
+                    .build();
+            }
+            /**
+             * create unit logbook Life cycle
+             */
+            logbookLifeCycle.createUnit(operationId, unitLcId, parameters);
+
+        } catch (final LogbookAlreadyExistsException exc) {
+            LOGGER.error(exc);
+            status = Status.CONFLICT;
+            return Response.status(status)
+                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                    .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase())))
+                .build();
+        } catch (final LogbookDatabaseException exc) {
+            LOGGER.error(exc);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                    .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase())))
+                .build();
+        } catch (final IllegalArgumentException exc) {
+            LOGGER.error(exc);
+            status = Status.BAD_REQUEST;
+            return Response.status(status)
+                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                    .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase())))
+                .build();
+        }
+        return Response.status(Response.Status.CREATED).build();
+
+    }
+
+    /**
+     * Update Unit Life Cycle
+     *
+     * @param operationId the operation id
+     * @param unitLcId the life cycle id
+     * @param parameters the json serialized as a LogbookLifeCycleUnitParameters.
+     * @return the response with a specific HTTP status
+     */
+    @PUT
+    @Path("/operations/{id_op}/unitlifecycles/{id_lc}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateUnitLifeCyclesByOperation(@PathParam("id_op") String operationId,
+        @PathParam("id_lc") String unitLcId, LogbookLifeCycleUnitParameters parameters) {
+        Status status;
+        try {
+            try {
+                // check null or empty parameters
+                LogbookParametersHelper.checkNullOrEmptyParameters(parameters);
+            } catch (final IllegalArgumentException e) {
+                LOGGER.error("unit lifecycles is incorrect", e);
+                status = Status.BAD_REQUEST;
+                return Response.status(status)
+                    .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                        .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
+                        .setDescription(status.getReasonPhrase())))
+                    .build();
+            }
+            /**
+             * update unit logbook Life cycle
+             */
+            logbookLifeCycle.updateUnit(operationId, unitLcId, parameters);
+
+        } catch (final LogbookNotFoundException exc) {
+            LOGGER.error(exc);
+            status = Status.NOT_FOUND;
+            return Response.status(status)
+                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                    .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase())))
+                .build();
+        } catch (final LogbookDatabaseException exc) {
+            LOGGER.error(exc);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                    .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase())))
+                .build();
+        } catch (final IllegalArgumentException exc) {
+            LOGGER.error(exc);
+            status = Status.BAD_REQUEST;
+            return Response.status(status)
+                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                    .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase())))
+                .build();
+        }
+        return Response.status(Response.Status.OK).build();
+    }
+
+    /**
+     * Delete Unit Life Cycle
+     *
+     * @param operationId the operation id
+     * @param unitLcId the life cycle id
+     * @return the response with a specific HTTP status
+     */
+    @DELETE
+    @Path("/operations/{id_op}/unitlifecycles/{id_lc}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteUnitLifeCyclesByOperation(@PathParam("id_op") String operationId,
+        @PathParam("id_lc") String unitLcId) {
+        Status status;
+        try {
+            logbookLifeCycle.rollbackUnit(operationId, unitLcId);
+        } catch (final LogbookNotFoundException exc) {
+            LOGGER.error(exc);
+            status = Status.NOT_FOUND;
+            return Response.status(status)
+                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                    .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase())))
+                .build();
+        } catch (final LogbookDatabaseException exc) {
+            LOGGER.error(exc);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                    .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase())))
+                .build();
+        } catch (final IllegalArgumentException exc) {
+            LOGGER.error(exc);
+            status = Status.BAD_REQUEST;
+            return Response.status(status)
+                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                    .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase())))
+                .build();
+        }
+        return Response.status(Response.Status.OK).build();
+    }
+
+    /**
+     * Commit Unit Life Cycle
+     * 
+     * @param operationId the operation id
+     * @param unitLcId the life cycle id
+     * @return the response with a specific HTTP status
+     */
+    @PUT
+    @Path("/operations/{id_op}/unitlifecycles/{id_lc}/commit")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response commitUnitLifeCyclesByOperation(@PathParam("id_op") String operationId,
+        @PathParam("id_lc") String unitLcId) {
+        LOGGER.info("UnitLifeCycle commited: " + unitLcId);
+        return Response.status(Response.Status.OK).build();
+    }
+
+    /***** LIFE CYCLES UNIT - END *****/
+
+    /***** LIFE CYCLES OBJECT GROUP - START *****/
+
+    /**
+     * Create object Group Life Cycle
+     *
+     * @param operationId the operation id
+     * @param objGrpId the life cycle id
+     * @param parameters the json serialized as a LogbookLifeCycleObjectGroupParameters.
+     * @return the response with a specific HTTP status
+     */
+    @POST
+    @Path("/operations/{id_op}/objectgrouplifecycles/{id_lc}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response createObjectGroupLifeCyclesByOperation(@PathParam("id_op") String operationId,
+        @PathParam("id_lc") String objGrpId, LogbookLifeCycleObjectGroupParameters parameters) {
+        Status status;
+
+        try {
+            try {
+                // check null or empty parameters
+                LogbookParametersHelper.checkNullOrEmptyParameters(parameters);
+            } catch (final IllegalArgumentException e) {
+                LOGGER.error("objectgrouplifecycles is incorrect", e);
+                status = Status.BAD_REQUEST;
+                return Response.status(status)
+                    .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                        .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
+                        .setDescription(status.getReasonPhrase())))
+                    .build();
+            }
+            /**
+             * create objectgroup logbook Life cycle
+             */
+            logbookLifeCycle.createObjectGroup(operationId, objGrpId, parameters);
+
+        } catch (final LogbookAlreadyExistsException exc) {
+            LOGGER.error(exc);
+            status = Status.CONFLICT;
+            return Response.status(status)
+                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                    .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase())))
+                .build();
+        } catch (final LogbookDatabaseException exc) {
+            LOGGER.error(exc);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                    .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase())))
+                .build();
+        } catch (final IllegalArgumentException exc) {
+            LOGGER.error(exc);
+            status = Status.BAD_REQUEST;
+            return Response.status(status)
+                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                    .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase())))
+                .build();
+        }
+        return Response.status(Response.Status.CREATED).build();
+    }
+
+    /**
+     * Update object Group Life Cycle
+     * 
+     * @param operationId the operation id
+     * @param objGrpId the life cycle id
+     * @param parameters the json serialized as a LogbookLifeCycleObjectGroupParameters.
+     * @return the response with a specific HTTP status
+     */
+    @PUT
+    @Path("/operations/{id_op}/objectgrouplifecycles/{id_lc}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateObjectGroupLifeCyclesByOperation(@PathParam("id_op") String operationId,
+        @PathParam("id_lc") String objGrpId, LogbookLifeCycleObjectGroupParameters parameters) {
+        Status status;
+        try {
+            try {
+                // check null or empty parameters
+                LogbookParametersHelper.checkNullOrEmptyParameters(parameters);
+            } catch (final IllegalArgumentException e) {
+                LOGGER.error("objectgrouplifecycles is incorrect", e);
+                status = Status.BAD_REQUEST;
+                return Response.status(status)
+                    .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                        .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
+                        .setDescription(status.getReasonPhrase())))
+                    .build();
+            }
+            /**
+             * update object group logbook Life cycle
+             */
+            logbookLifeCycle.updateObjectGroup(operationId, objGrpId, parameters);
+        } catch (final LogbookNotFoundException exc) {
+            LOGGER.error(exc);
+            status = Status.NOT_FOUND;
+            return Response.status(status)
+                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                    .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase())))
+                .build();
+        } catch (final LogbookDatabaseException exc) {
+            LOGGER.error(exc);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                    .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase())))
+                .build();
+        } catch (final IllegalArgumentException exc) {
+            LOGGER.error(exc);
+            status = Status.BAD_REQUEST;
+            return Response.status(status)
+                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                    .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase())))
+                .build();
+        }
+        return Response.status(Response.Status.OK).build();
+    }
+
+    /**
+     * Delete object Group Life Cycle
+     * 
+     * @param operationId the operation id
+     * @param objGrpId the life cycle id
+     * @return the response with a specific HTTP status
+     */
+    @DELETE
+    @Path("/operations/{id_op}/objectgrouplifecycles/{id_lc}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteObjectGroupLifeCyclesByOperation(@PathParam("id_op") String operationId,
+        @PathParam("id_lc") String objGrpId) {
+        Status status;
+        try {
+            logbookLifeCycle.rollbackObjectGroup(operationId, objGrpId);
+        } catch (final LogbookNotFoundException exc) {
+            LOGGER.error(exc);
+            status = Status.NOT_FOUND;
+            return Response.status(status)
+                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                    .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase())))
+                .build();
+        } catch (final LogbookDatabaseException exc) {
+            LOGGER.error(exc);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                    .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase())))
+                .build();
+        } catch (final IllegalArgumentException exc) {
+            LOGGER.error(exc);
+            status = Status.BAD_REQUEST;
+            return Response.status(status)
+                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                    .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase())))
+                .build();
+        }
+        return Response.status(Response.Status.OK).build();
+    }
+
+    /**
+     * Commit object Group Life Cycle
+     * 
+     * @param operationId the operation id
+     * @param objGrpId the life cycle id
+     * @param parameters the json serialized as a LogbookLifeCycleObjectGroupParameters.
+     * @return the response with a specific HTTP status
+     */
+    @PUT
+    @Path("/operations/{id_op}/objectgrouplifecycles/{id_lc}/commit")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response commitObjectGroupLifeCyclesByOperation(@PathParam("id_op") String operationId,
+        @PathParam("id_lc") String objGrpId) {
+        LOGGER.info("ObjectGroupLifeCycle commited: " + objGrpId);
+        return Response.status(Response.Status.OK).build();
+    }
+
+    /***** LIFE CYCLES OBJECT GROUP - END *****/
 
 }

@@ -34,7 +34,7 @@ import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.WorkParams;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
-import fr.gouv.vitam.processing.engine.core.ProcessEngineImpl;
+import fr.gouv.vitam.processing.engine.core.ProcessEngineImplFactory;
 import fr.gouv.vitam.processing.management.api.ProcessManagement;
 
 /**
@@ -77,7 +77,7 @@ public class ProcessManagementImpl implements ProcessManagement {
          * inject process engine
          */
         this.serverConfig = serverConfig;
-        processEngine = new ProcessEngineImpl();
+        processEngine = new ProcessEngineImplFactory().create();
     }
 
     /**

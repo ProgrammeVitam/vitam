@@ -19,7 +19,10 @@ Sommaire
 .. toctree::
    :maxdepth: 2
 
-   introduction.rst
+   metadata-introduction.rst
+   metadata-dat.rst
+   metadata-user-client.rst
+   metadata-api-rest-raml.rst
 
 
 ####################################################

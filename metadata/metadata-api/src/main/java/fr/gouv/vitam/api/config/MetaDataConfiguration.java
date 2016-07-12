@@ -23,19 +23,16 @@
  *******************************************************************************/
 package fr.gouv.vitam.api.config;
 
+import fr.gouv.vitam.common.ParametersChecker;
+
 /**
  * MetaDataConfiguration contains database access informations
  */
-// FIXME REVIEW should be final
-public class MetaDataConfiguration {
+public final class MetaDataConfiguration {
 
     private String host;
     private int port;
     private String dbName;
-    // FIXME REVIEW this is incorrect since we will have multiple collection: this does not used the logic of
-    // collections
-    // managed by MongoDbAccess (checking index and correct CODECs)
-    private String collectionName;
 
     /**
      * MetaDataConfiguration constructor
@@ -45,12 +42,13 @@ public class MetaDataConfiguration {
      * @param dbName database name
      * @param collectionName database collection name
      */
-    public MetaDataConfiguration(String host, int port, String dbName, String collectionName) {
-        // FIXME REVIEW do not allow null values and throw IllegalArgumentException
+    public MetaDataConfiguration(String host, int port, String dbName) {
+        ParametersChecker.checkParameter("Database address is a mandatory parameter", host);
+        ParametersChecker.checkParameter("Database address port is a mandatory parameter", port);
+        ParametersChecker.checkParameter("Database name is a mandatory parameter", dbName);
         this.host = host;
         this.port = port;
         this.dbName = dbName;
-        this.collectionName = collectionName;
     }
 
     /**
@@ -103,22 +101,6 @@ public class MetaDataConfiguration {
      */
     public MetaDataConfiguration setDbName(String dbName) {
         this.dbName = dbName;
-        return this;
-    }
-
-    /**
-     * @return the database collection
-     */
-    public String getCollectionName() {
-        return collectionName;
-    }
-
-    /**
-     * @param collectionName the name collection in database as String
-     * @return the MetaDataConfiguration with collection name is setted
-     */
-    public MetaDataConfiguration setCollectionName(String collectionName) {
-        this.collectionName = collectionName;
         return this;
     }
 }

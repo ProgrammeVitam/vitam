@@ -95,7 +95,7 @@ public final class LogbookClientFactory {
     private static final LogbookClientFactory LOGBOOK_CLIENT_FACTORY = new LogbookClientFactory();
 
     private String server = "localhost";
-    private int port = VitamServerFactory.DEFAULT_PORT;
+    private int port = VitamServerFactory.getDefaultPort();
 
     private LogbookClientFactory() {
         changeConfigurationFile(CONFIGURATION_FILENAME);
@@ -183,12 +183,12 @@ public final class LogbookClientFactory {
                 ClientConfigurationImpl.class);
         } catch (final IOException fnf) {
             LOGGER.debug(String.format("Error when retrieving configuration file %s, using mock",
-                CONFIGURATION_FILENAME),
+                configurationPath),
                 fnf);
         }
         if (configuration == null) {
             LOGGER.debug(String.format("Error when retrieving configuration file %s, using mock",
-                CONFIGURATION_FILENAME));
+                configurationPath));
         } else {
             server = configuration.getServerHost();
             port = configuration.getServerPort();

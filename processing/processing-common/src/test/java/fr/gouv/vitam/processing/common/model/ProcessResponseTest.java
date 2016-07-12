@@ -27,26 +27,53 @@
 package fr.gouv.vitam.processing.common.model;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.junit.Test;
 
 public class ProcessResponseTest {
 
+    private static String TEST = "test";
+    
     @Test
     public void testConstructor() {
-        assertEquals(StatusCode.WARNING, new ProcessResponse().getStatus());
-        assertTrue(new ProcessResponse().getMessages().isEmpty());
-        assertTrue(new ProcessResponse().getStepResponses().isEmpty());
+        ProcessResponse processResponse = new ProcessResponse();
+        assertEquals(StatusCode.WARNING, processResponse.getStatus());
+        assertTrue(processResponse.getOutcomeMessages().isEmpty());
+        assertTrue(processResponse.getStepResponses().isEmpty());
 
-        assertEquals(StatusCode.OK.value(), new ProcessResponse().setStatus(StatusCode.OK).getStatus().value());
+        assertEquals(StatusCode.OK.value(), processResponse.setStatus(StatusCode.OK).getStatus().value());
         final ArrayList<EngineResponse> list = new ArrayList<EngineResponse>();
-        list.add(new ProcessResponse().setStatus(StatusCode.WARNING));
-        assertEquals(StatusCode.WARNING, new ProcessResponse().getGlobalProcessStatusCode(list));
-        assertTrue(new ProcessResponse().setMessages(new ArrayList<>()).getMessages().isEmpty());
-        assertTrue(new ProcessResponse().setStepResponses(new HashMap<>()).getStepResponses().isEmpty());
+        list.add(processResponse.setStatus(StatusCode.WARNING));
+        assertEquals(StatusCode.WARNING, processResponse.getGlobalProcessStatusCode(list));
+        
+        assertFalse(processResponse.setOutcomeMessages("id", OutcomeMessage.CHECK_CONFORMITY_KO).getOutcomeMessages().isEmpty());
+        
+        assertEquals(0, new ProcessResponse().getErrorNumber());
+        ArrayList<String> detailMessages = new ArrayList<String>();
+        detailMessages.add(TEST);
+        assertEquals(1, processResponse.setErrorNumber(detailMessages.size()).getErrorNumber());
+        Map<String, List<EngineResponse>> stepResponses = new HashMap<String, List<EngineResponse>>();
+        List<EngineResponse> processResponses = new ArrayList<EngineResponse>();
+        processResponses.add(processResponse.setStatus(StatusCode.KO));
+        processResponses.add(new ProcessResponse().setStatus(StatusCode.OK));
+        
+        stepResponses.put("id", processResponses);
+        assertFalse(processResponse.setStepResponses(stepResponses).getStepResponses().isEmpty());
+        
+        assertEquals(StatusCode.KO.value(), processResponse.getValue());
+        assertEquals(StatusCode.FATAL.value(), new ProcessResponse().getValue());
+        
+        processResponse.setMessageIdentifier(TEST);        
+        assertEquals(TEST, processResponse.getMessageIdentifier());
+        assertEquals("", new ProcessResponse().getMessageIdentifier());
+        assertEquals(OutcomeMessage.CHECK_CONFORMITY_KO.value() + ". Errors: 1", ProcessResponse.getGlobalProcessOutcomeMessage(processResponses));
+        assertEquals(TEST, ProcessResponse.getMessageIdentifierFromResponse(processResponses));
     }
 }

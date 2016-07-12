@@ -29,6 +29,9 @@ package fr.gouv.vitam.api.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.SingletonUtils;
+
 /**
  * Meta-data RequestResponseError class
  *
@@ -40,8 +43,7 @@ public class VitamError {
     private String state;
     private String message;
     private String description;
-    // FIXME REVIEW should be List<String> as declaration side
-    private ArrayList<VitamError> errors;
+    private List<VitamError> errors;
 
     /**
      * RequestResponseError constructor
@@ -50,9 +52,6 @@ public class VitamError {
      **/
     public VitamError(int code) {
         this.code = code;
-        // FIXME REVIEW choose either assigning an empty ArrayList (explicit empty static final List), either keeping
-        // this List (and therefore add "add" method and change "set" method to clean and addAll): my preference would
-        // go to fix static final empty list
         errors = new ArrayList<>();
     }
 
@@ -70,7 +69,7 @@ public class VitamError {
      * @return the VitamError object with the context is setted
      */
     public VitamError setContext(String context) {
-        // FIXME REVIEW check illegalValue
+        ParametersChecker.checkParameter("context is a mandatory parameter", context);
         this.context = context;
         return this;
     }
@@ -80,8 +79,7 @@ public class VitamError {
      * @return the VitamError object with the error state is setted
      */
     public VitamError setState(String state) {
-        // TODO REVIEW fix style
-        // TODO REVIEW check illegalValue
+        ParametersChecker.checkParameter("state is a mandatory parameter", state);
         this.state = state;
         return this;
     }
@@ -91,7 +89,7 @@ public class VitamError {
      * @return the VitamError object with the error message is setted
      */
     public VitamError setMessage(String message) {
-        // TODO REVIEW check illegalValue
+        ParametersChecker.checkParameter("message is a mandatory parameter", message);
         this.message = message;
         return this;
     }
@@ -101,7 +99,7 @@ public class VitamError {
      * @return the VitamError object with the description error is setted
      */
     public VitamError setDescription(String description) {
-        // FIXME REVIEW check illegalValue
+        ParametersChecker.checkParameter("description is a mandatory parameter", description);
         this.description = description;
         return this;
     }
@@ -111,8 +109,12 @@ public class VitamError {
      * @return the VitamError object with the list of errors is setted
      */
     public VitamError setErrors(List<VitamError> errors) {
-        // FIXME REVIEW You cannot cast to ArrayList since argument is a List (could be whatever)
-        this.errors = (ArrayList<VitamError>) errors;
+        ParametersChecker.checkParameter("errors list is a mandatory parameter", errors);
+        if (this.errors == null) {
+            this.errors = errors;
+        } else {
+            this.errors.addAll(errors);
+        }
         return this;
     }
 
@@ -127,7 +129,9 @@ public class VitamError {
      * @return the context of the VitamError object
      */
     public String getContext() {
-        // FIXME REVIEW do not return null but empty
+        if (context == null) {
+            return "";
+        }
         return context;
     }
 
@@ -135,7 +139,9 @@ public class VitamError {
      * @return the state of the VitamError object
      */
     public String getState() {
-        // FIXME REVIEW do not return null but empty
+        if (state == null) {
+            return "";
+        }
         return state;
     }
 
@@ -143,7 +149,9 @@ public class VitamError {
      * @return the message of the VitamError object
      */
     public String getMessage() {
-        // FIXME REVIEW do not return null but empty
+        if (message == null) {
+            return "";
+        }
         return message;
     }
 
@@ -151,7 +159,9 @@ public class VitamError {
      * @return the description of the VitamError object
      */
     public String getDescription() {
-        // FIXME REVIEW do not return null but empty
+        if (description == null) {
+            return "";
+        }
         return description;
     }
 
@@ -159,6 +169,9 @@ public class VitamError {
      * @return the errors list of the VitamError object
      */
     public List<VitamError> getErrors() {
+        if (errors == null) {
+            return SingletonUtils.singletonList();
+        }
         return errors;
     }
 }

@@ -21,7 +21,10 @@ Sommaire
 
    introduction.rst
    ihm_sip_upload.rst
-
+   ihm_recherche_archive_unit.rst
+   ihm_detail_archive_unit.rst
+   ihm_journal_operations_entree.rst
+   ihm_detail_operation_entree.rst
 
 ####################################################
 Index & Tables

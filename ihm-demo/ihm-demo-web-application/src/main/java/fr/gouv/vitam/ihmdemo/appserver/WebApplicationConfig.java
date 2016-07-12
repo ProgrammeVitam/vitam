@@ -29,13 +29,13 @@ package fr.gouv.vitam.ihmdemo.appserver;
 import fr.gouv.vitam.common.ParametersChecker;
 
 /**
- * Web Application Configuration class 
+ * Web Application Configuration class
  */
 public class WebApplicationConfig {
 
     private int port;
-    private String[] virtualHosts;
-    private String defaultContext;
+    private String serverHost;
+    private String baseUrl;
     private String staticContent;
 
     /**
@@ -56,36 +56,36 @@ public class WebApplicationConfig {
     }
 
     /**
-     * @return virtualHosts
+     * @return serverHost
      */
-    public String[] getVirtualHosts() {
-        return virtualHosts;
+    public String getServerHost() {
+        return serverHost;
     }
 
     /**
      * @param virtualHosts
      * @return
      */
-    public WebApplicationConfig setVirtualHosts(String[] virtualHosts) {
-        ParametersChecker.checkParameter("virtualHosts is mandatory", virtualHosts);
-        this.virtualHosts = virtualHosts;
+    public WebApplicationConfig setServerHost(String serverHost) {
+        ParametersChecker.checkParameter("serverHost is mandatory", serverHost);
+        this.serverHost = serverHost;
         return this;
     }
 
     /**
-     * @return defaultContext
+     * @return baseUrl
      */
-    public String getDefaultContext() {
-        return defaultContext;
+    public String getBaseUrl() {
+        return baseUrl;
     }
 
     /**
      * @param defaultContext
      * @return WebApplicationConfig
      */
-    public WebApplicationConfig setDefaultContext(String defaultContext) {
-        ParametersChecker.checkParameter("defaultContext is mandatory", defaultContext);
-        this.defaultContext = defaultContext;
+    public WebApplicationConfig setBaseUrl(String baseUrl) {
+        ParametersChecker.checkParameter("baseUrl is mandatory", baseUrl);
+        this.baseUrl = baseUrl;
         return this;
     }
 

@@ -34,23 +34,35 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import fr.gouv.vitam.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.client.MetaDataClient;
 import fr.gouv.vitam.client.MetaDataClientFactory;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.WorkParams;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -62,49 +74,51 @@ public class SedaUtilsTest {
 
     private static final String SIP = "sip1.xml";
     private static final String OBJ = "obj";
-    private static final String TMP = "/tmp/";
     private static final String ARCHIVE_UNIT = "archiveUnit.xml";
+    private static final String DIGESTMESSAGE = "ZGVmYXVsdA==";
+    private static final String OBJECT_GROUP = "objectGroup.json";
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceFactory;
     private MetaDataClient metadataClient;
     private MetaDataClientFactory metadataFactory;
     private final InputStream seda = Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP);
-    private final InputStream archiveUnit =
-        Thread.currentThread().getContextClassLoader().getResourceAsStream(ARCHIVE_UNIT);
+    private final InputStream archiveUnit = Thread.currentThread().getContextClassLoader()
+        .getResourceAsStream(ARCHIVE_UNIT);
+    private final InputStream objectGroup = Thread.currentThread().getContextClassLoader()
+        .getResourceAsStream(OBJECT_GROUP);
+    private final InputStream errorExample = new ByteArrayInputStream("test".getBytes());
     private SedaUtils utils;
-    private String tmp = "";
-    private final WorkParams params = new WorkParams()
-        .setGuuid(OBJ)
-        .setContainerName(OBJ)
-        .setServerConfiguration(new ServerConfiguration()
-            .setUrlWorkspace(OBJ).setUrlMetada(OBJ))
+    private final WorkParams params = new WorkParams().setGuuid(OBJ).setContainerName(OBJ)
+        .setServerConfiguration(new ServerConfiguration().setUrlWorkspace(OBJ).setUrlMetada(OBJ))
         .setObjectName(OBJ);
 
     @Before
     public void setUp() {
-        tmp = SedaUtils.getTmpFolder();
-        SedaUtils.setTmpFolder(TMP);
         workspaceClient = mock(WorkspaceClient.class);
         workspaceFactory = mock(WorkspaceClientFactory.class);
         metadataClient = mock(MetaDataClient.class);
         metadataFactory = mock(MetaDataClientFactory.class);
     }
 
-    @After
-    public void tearDown() {
-        SedaUtils.setTmpFolder(tmp);
-    }
-
     @Test
     public void givenCorrectManifestWhenSplitElementThenOK()
-        throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageNotFoundException,
-        ContentAddressableStorageServerException {
+        throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageException,
+        LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
+        LogbookClientNotFoundException, InvalidParseOperationException, URISyntaxException {
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(seda);
         when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
         utils = new SedaUtilsFactory().create(workspaceFactory, null);
         utils.extractSEDA(params);
-        assertEquals(utils.getBinaryDataObjectIdToGuid().size(), 1);
-        assertEquals(utils.getBinaryDataObjectIdToGroupId().size(), 0);
+
+        when(workspaceClient.computeObjectDigest(anyObject(), anyObject(), anyObject())).thenReturn(DIGESTMESSAGE);
+
+        final XMLInputFactory factory = XMLInputFactory.newInstance();
+        final XMLEventReader evenReader = factory.createXMLEventReader(new FileReader("src/test/resources/sip.xml"));
+        utils.compareDigestMessage(evenReader, workspaceClient, OBJ);
+
+        assertEquals(utils.getBinaryDataObjectIdToGuid().size(), 4);
+        assertEquals(utils.getBinaryDataObjectIdToGroupId().size(), 4);
+        assertEquals(utils.getObjectGroupIdToBinaryDataObjectId().size(), 1);
         assertEquals(utils.getUnitIdToGuid().size(), 1);
         assertEquals(utils.getUnitIdToGroupId().size(), 1);
     }
@@ -128,20 +142,19 @@ public class SedaUtilsTest {
         utils = new SedaUtilsFactory().create(workspaceFactory, null);
         assertFalse(utils.checkSedaValidation(params));
     }
-    
+
     @Test
     public void givenSedaHasMessageIdWhengetMessageIdThenReturnCorrect() throws Exception {
         when(workspaceClient.getObject(params.getGuuid(), "SIP/manifest.xml")).thenReturn(seda);
         when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
 
         utils = new SedaUtilsFactory().create(workspaceFactory, null);
-        assertEquals("MessageIdentifier0", utils.getMessageIdentifier(params));
+        assertEquals("Entrée_avec_groupe_d_objet", utils.getMessageIdentifier(params));
     }
 
     @Test
-    public void givenCorrectArchiveUnitWhenConvertToJsonThenOK()
-        throws Exception {
-        when(metadataClient.insert(anyObject())).thenReturn("");
+    public void givenCorrectArchiveUnitWhenIndexUnitThenOK() throws Exception {
+        when(metadataClient.insertUnit(anyObject())).thenReturn("");
         when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(archiveUnit);
         when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
@@ -150,5 +163,151 @@ public class SedaUtilsTest {
         utils.indexArchiveUnit(params);
     }
 
-}
+    @Test(expected = ProcessingException.class)
+    public void givenArchiveUnitWrongFormatWhenIndexUnitThenOK() throws Exception {
+        when(metadataClient.insertUnit(anyObject())).thenReturn("");
+        when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
+        when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(errorExample);
+        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
+        utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
 
+        utils.indexArchiveUnit(params);
+    }
+
+    @Test(expected = ProcessingException.class)
+    public void givenArchiveUnitWrongFormatWhenIndexUnitWithMetadataThenOK() throws Exception {
+        when(metadataClient.insertUnit(anyObject())).thenThrow(new InvalidParseOperationException(""));
+        when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
+        when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(archiveUnit);
+        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
+        utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
+
+        utils.indexArchiveUnit(params);
+    }
+
+    @Test(expected = ProcessingException.class)
+    public void givenCreateArchiveUnitErrorWhenIndexUnitThenThrowError() throws Exception {
+        when(metadataClient.insertUnit(anyObject())).thenReturn("");
+        when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
+        when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(null);
+        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
+        utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
+
+        utils.indexArchiveUnit(params);
+    }
+
+    @Test(expected = ProcessingException.class)
+    public void givenNotExistArchiveUnitWhenIndexUnitThenThrowError() throws Exception {
+        when(metadataClient.insertUnit(anyObject())).thenThrow(new MetaDataExecutionException(""));
+        when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
+        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
+        utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
+
+        utils.indexArchiveUnit(params);
+    }
+
+    @Test(expected = ProcessingException.class)
+    public void givenGetArchiveUnitErrorWhenIndexUnitThenThrowError() throws Exception {
+        when(metadataClient.insertUnit(anyObject())).thenReturn("");
+        when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
+        when(workspaceClient.getObject(anyObject(), anyObject()))
+            .thenThrow(new ContentAddressableStorageServerException(""));
+        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
+        utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
+
+        utils.indexArchiveUnit(params);
+    }
+
+    @Test
+    public void givenCorrectObjectGroupWhenIndexObjectGroupThenOK() throws Exception {
+        when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
+        when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(objectGroup);
+        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
+        utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
+
+        utils.indexObjectGroup(params);
+    }
+
+    @Test(expected = ProcessingException.class)
+    public void givenCorrectObjectGroupWhenIndexObjectGroupThenThrowError() throws Exception {
+        when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
+        when(workspaceClient.getObject(anyObject(), anyObject()))
+            .thenThrow(new ContentAddressableStorageServerException(""));
+        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
+
+        utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
+        utils.indexObjectGroup(params);
+    }
+
+    @Test(expected = ProcessingException.class)
+    public void givenCreateObjectGroupErrorWhenIndexObjectGroupThenThrowError() throws Exception {
+        when(metadataClient.insertObjectGroup(anyObject())).thenThrow(new MetaDataExecutionException(""));
+        when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
+        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
+
+        utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
+        utils.indexObjectGroup(params);
+    }
+
+    @Test(expected = ProcessingException.class)
+    public void givenNotExistObjectGroupWhenIndexObjectGroupThenThrowError() throws Exception {
+        when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
+        when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(null);
+        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
+
+        utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
+        utils.indexObjectGroup(params);
+
+    }
+
+    @Test
+    public void givenManifestWhenGetInfoThenGetVersionList()
+        throws Exception {
+        final XMLInputFactory factory = XMLInputFactory.newInstance();
+        final XMLEventReader evenReader = factory.createXMLEventReader(
+            new FileReader(PropertiesUtils.getResourcesPath("sip.xml").toString()));
+        List<String> versionList = new ArrayList<String>();
+
+        utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
+        versionList = utils.manifestVersionList(evenReader);
+        assertEquals(5, versionList.size());
+        assertTrue(versionList.contains("PhysicalMaster"));
+        assertTrue(versionList.contains("BinaryMaster"));
+        assertTrue(versionList.contains("Diffusion"));
+        assertTrue(versionList.contains("Thumbnail"));
+        assertTrue(versionList.contains("TextContent"));
+    }
+
+    @Test
+    public void givenCompareVersionList() throws Exception {
+        utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
+
+        final XMLInputFactory factory = XMLInputFactory.newInstance();
+
+        XMLEventReader evenReader = factory.createXMLEventReader(new FileReader("src/test/resources/sip.xml"));
+        assertEquals(0, utils.compareVersionList(evenReader, "src/test/resources/version.conf").size());
+
+        evenReader = factory.createXMLEventReader(new FileReader("src/test/resources/sip-with-wrong-version.xml"));
+        assertEquals(1, utils.compareVersionList(evenReader, "src/test/resources/version.conf").size());
+    }
+
+    // @Test
+    // public void givenCompareDigestMessage() throws FileNotFoundException,
+    // XMLStreamException, URISyntaxException,
+    // ContentAddressableStorageNotFoundException,
+    // ContentAddressableStorageServerException,
+    // ContentAddressableStorageException, LogbookClientBadRequestException,
+    // LogbookClientAlreadyExistsException,
+    // LogbookClientServerException, LogbookClientNotFoundException,
+    // InvalidParseOperationException {
+    // utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
+    // when(workspaceClient.computeObjectDigest(anyObject(), anyObject(),
+    // anyObject())).thenReturn(DIGESTMESSAGE);
+    //
+    // final XMLInputFactory factory = XMLInputFactory.newInstance();
+    // final XMLEventReader evenReader = factory.createXMLEventReader(new
+    // FileReader("src/test/resources/sip.xml"));
+    // utils.compareDigestMessage(evenReader, workspaceClient, OBJ);
+    // }
+
+}

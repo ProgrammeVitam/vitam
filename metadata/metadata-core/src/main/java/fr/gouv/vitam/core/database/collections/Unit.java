@@ -29,9 +29,9 @@ import static com.mongodb.client.model.Filters.in;
 import static com.mongodb.client.model.Filters.lt;
 import static com.mongodb.client.model.Updates.addEachToSet;
 import static com.mongodb.client.model.Updates.combine;
+import static com.mongodb.client.model.Updates.set;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,15 +43,15 @@ import org.bson.conversions.Bson;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoException;
-import com.mongodb.MongoWriteConcernException;
-import com.mongodb.MongoWriteException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.UpdateOptions;
 
+import fr.gouv.vitam.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.UPDATEACTION;
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.UPDATEACTIONARGS;
+import fr.gouv.vitam.common.SingletonUtils;
 import fr.gouv.vitam.common.guid.GUIDObjectType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -200,56 +200,6 @@ public class Unit extends VitamDocument<Unit> {
         new BasicDBObject(TYPE, 1)};
 
     /**
-     * Default Rule usage Class
-     */
-    public static class RuleUsage {
-        String rule;
-        Date startDate;
-        Date end;
-    }
-    /**
-     * Default Rule Class
-     */
-    public static class RuleType {
-        List<RuleUsage> rules;
-        boolean preventInheritance;
-        List<String> refNonRuleIds;
-    }
-    /**
-     * Default Rule with Action Class
-     */
-    public static class RuleActionType {
-        List<RuleUsage> rules;
-        boolean preventInheritance;
-        List<String> refNonRuleIds;
-        String finalAction;
-    }
-    /**
-     * Classification Rule Class
-     */
-    public static class RuleClassificationType {
-        List<RuleUsage> rules;
-        boolean preventInheritance;
-        List<String> refNonRuleIds;
-        String classificationLevel;
-        String classificationOwner;
-        Date classificationReassessingDate;
-        boolean needReassessingAuthorization;
-    }
-    /**
-     * Management Class
-     */
-    public static class Management {
-        RuleActionType storageRule;
-        RuleActionType appraisalRule;
-        RuleType accessRule;
-        RuleType disseminationRule;
-        RuleType reuseRule;
-        RuleClassificationType classificationRule;
-        boolean needAuthorization;
-    }
-
-    /**
      * Number of Immediate child (Unit)
      */
     private long nb = 0;
@@ -315,7 +265,7 @@ public class Unit extends VitamDocument<Unit> {
     }
 
     @Override
-    public Unit save() throws MongoWriteException, MongoWriteConcernException, MongoException {
+    public Unit save() throws MetaDataExecutionException {
         putBeforeSave();
         getMaxDepth();
         getMinDepth();
@@ -330,7 +280,7 @@ public class Unit extends VitamDocument<Unit> {
     }
 
     @Override
-    protected boolean updated() throws MongoWriteException, MongoWriteConcernException, MongoException {
+    protected boolean updated() throws MetaDataExecutionException {
         // XXX TODO only addition is taken into consideration there: removal shall be done elsewhere
         final Unit vt = (Unit) MongoDbMetadataHelper.findOneNoAfterLoad(getVitamCollections(), getId());
         BasicDBObject update = null;
@@ -342,7 +292,7 @@ public class Unit extends VitamDocument<Unit> {
              * Only parent link, not child link
              */
             BasicDBObject upd =
-                MongoDbMetadataHelper.updateLinks(this, vt, VitamLinks.UNIT_TO_UNIT, false);
+                MongoDbMetadataHelper.updateLinkset(this, vt, VitamLinks.UNIT_TO_UNIT, false);
             if (upd != null) {
                 listAddToSet.add(upd);
             }
@@ -448,7 +398,7 @@ public class Unit extends VitamDocument<Unit> {
             listset.clear();
             return true;
         } else {
-            MongoDbMetadataHelper.updateLinks(this, null, VitamLinks.UNIT_TO_UNIT, false);
+            MongoDbMetadataHelper.updateLinkset(this, null, VitamLinks.UNIT_TO_UNIT, false);
             append(NBCHILD, nb);
             nb = 0;
         }
@@ -525,7 +475,11 @@ public class Unit extends VitamDocument<Unit> {
      */
     @SuppressWarnings("unchecked")
     public Map<String, Integer> getDepths() {
-        return (Map<String, Integer>) get(UNITDEPTHS);
+        Map<String, Integer> map = (Map<String, Integer>) get(UNITDEPTHS);
+        if (map == null) {
+            return SingletonUtils.singletonMap();
+        }
+        return map;
     }
 
     /**
@@ -575,12 +529,13 @@ public class Unit extends VitamDocument<Unit> {
 
 
     /**
-     * Add the link N-N between this Unit and sub Unit
+     * Add the link (N)-N between this Unit and sub Unit (update only subUnit)
      *
      * @param unit
      * @return this
+     * @throws MetaDataExecutionException 
      */
-    public Unit addUnit(final Unit unit) throws MongoWriteException, MongoWriteConcernException, MongoException {
+    public Unit addUnit(final Unit unit) throws MetaDataExecutionException {
         Bson update = null;
         final List<String> ids = new ArrayList<>();
         LOGGER.debug(this + "->" + unit);
@@ -606,13 +561,12 @@ public class Unit extends VitamDocument<Unit> {
                 max += val;
             }
             update = combine(update, updateSubDepth, updateSubUnits);
-            // FIXME REVIEW Why removing this computation without knowing why?
-            // if (min < unit.getInteger(MINDEPTH)) {
-            // update = combine(update, set(MINDEPTH, min));
-            // }
-            // if (max > unit.getInteger(MAXDEPTH)) {
-            // update = combine(update, set(MAXDEPTH, max));
-            // }
+            if (min < unit.getInteger(MINDEPTH)) {
+                update = combine(update, set(MINDEPTH, min));
+            }
+            if (max > unit.getInteger(MAXDEPTH)) {
+                update = combine(update, set(MAXDEPTH, max));
+            }
             LOGGER.debug(this + "->" + unit + "\n" +
                 "\t" + MongoDbHelper.bsonToString(update, false) + "\n\t" + min + ":" + max);
             try {
@@ -624,7 +578,7 @@ public class Unit extends VitamDocument<Unit> {
                 subids.clear();
             } catch (final MongoException e) {
                 LOGGER.error(EXCEPTION_FOR + update, e);
-                throw e;
+                throw new MetaDataExecutionException(e);
             }
         }
         ids.clear();
@@ -632,12 +586,13 @@ public class Unit extends VitamDocument<Unit> {
     }
 
     /**
-     * Add the link N-N between Unit and List of sub Unit
+     * Add the link (N)-N between Unit and List of sub Units (update only subUnits)
      *
      * @param units
      * @return this
+     * @throws MetaDataExecutionException 
      */
-    public Unit addUnit(final List<Unit> units) throws MongoWriteException, MongoWriteConcernException, MongoException {
+    public Unit addUnits(final List<Unit> units) throws MetaDataExecutionException {
         Bson update = null;
         final List<String> ids = new ArrayList<>();
         for (final Unit unit : units) {
@@ -681,7 +636,7 @@ public class Unit extends VitamDocument<Unit> {
                     new UpdateOptions().upsert(false));
             } catch (final MongoException e) {
                 LOGGER.error(EXCEPTION_FOR + update, e);
-                throw e;
+                throw new MetaDataExecutionException(e);
             }
         }
         ids.clear();
@@ -718,25 +673,39 @@ public class Unit extends VitamDocument<Unit> {
      */
     @SuppressWarnings("unchecked")
     public List<String> getFathersUnitIds(final boolean remove) {
+        List<String> list;
         if (remove) {
-            return (List<String>) remove(VitamLinks.UNIT_TO_UNIT.field2to1);
+            list = (List<String>) remove(VitamLinks.UNIT_TO_UNIT.field2to1);
         } else {
-            return (List<String>) this.get(VitamLinks.UNIT_TO_UNIT.field2to1);
+            list = (List<String>) this.get(VitamLinks.UNIT_TO_UNIT.field2to1);
         }
+        if (list == null) {
+            return SingletonUtils.singletonList();
+        }
+        return list;
     }
 
     /**
-     * Add the link 1-N between Unit and ObjectGroup
+     * Add the link 1-N between Unit and ObjectGroup (update both Unit and ObjectGroup)
      *
      * @param data
      * @return this
+     * @throws MetaDataExecutionException 
      */
     public Unit addObjectGroup(final ObjectGroup data)
-        throws MongoWriteException, MongoWriteConcernException, MongoException {
-        final BasicDBObject update =
+        throws MetaDataExecutionException {
+        // String old = this.getObjectGroupId(false);
+        BasicDBObject update =
             MongoDbMetadataHelper.addLink(this, VitamLinks.UNIT_TO_OBJECTGROUP, data);
         if (update != null) {
+            // TODO when update is ready: change Junit to reflect this case
+            /*
+            if (! old.equals(this.getObjectGroupId(false))) {
+                throw new MetaDataExecutionException("Cannot change ObjectGroup of Unit without removing it first");
+            }
+            */
             data.update(update);
+            this.updated();
         }
         return this;
     }
@@ -744,7 +713,7 @@ public class Unit extends VitamDocument<Unit> {
     /**
      *
      * @param remove
-     * @return the ObjectGroup UUID
+     * @return the ObjectGroup UUID (may return null)
      */
     public String getObjectGroupId(final boolean remove) {
         if (remove) {

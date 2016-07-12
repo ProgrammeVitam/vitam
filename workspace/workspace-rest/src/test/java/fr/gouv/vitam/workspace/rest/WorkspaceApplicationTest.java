@@ -26,14 +26,31 @@
  */
 package fr.gouv.vitam.workspace.rest;
 
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
+
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.junit.JunitHelper;
 
 // TODO REVIEW missing licence header
 
 public class WorkspaceApplicationTest {
 
     private WorkspaceApplication application;
+    private static JunitHelper junitHelper;
+    private static int port;
+    @BeforeClass
+    public static void setUpBeforeClass() throws Exception {
+        junitHelper = new JunitHelper();
+        port = junitHelper.findAvailablePort();
+    }
+
+    @AfterClass
+    public static void shutdownAfterClass() {
+        junitHelper.releasePort(port);
+    }
 
     @Before
     public void setup() throws Exception {
@@ -47,12 +64,12 @@ public class WorkspaceApplicationTest {
 
     @Test(expected = Exception.class)
     public void givenFileNotFoundWhenConfigureApplicationOThenRaiseAnException() throws Exception {
-        application.configure("src/test/resources/notFound.conf");
+        application.configure(PropertiesUtils.getResourcesPath("notFound.conf").toString());
     }
 
     @Test
     public void givenFileAlreadyExistsWhenConfigureApplicationOThenRunServer() throws Exception {
-        application.configure("src/test/resources/workspace.conf", "8098");
+        application.configure(PropertiesUtils.getResourcesPath("workspace.conf").toString(), Integer.toString(port));
     }
 
 }

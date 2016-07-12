@@ -9,22 +9,16 @@
 
     <artifactId>ingest</artifactId>
     <name>ingest</name>
-    <version>0.5.0-SNAPSHOT</version>
+
     <packaging>pom</packaging>
 
-    <properties>
-        <javax.servlet.version>3.1.0</javax.servlet.version>
-        <!--commons-io.version>2.5</commons-io.version-->
-        <commons-fileupload.version>1.3.1</commons-fileupload.version>
-    </properties>
-
     <modules>
+        <module>ingest-common</module>
         <module>ingest-api</module>
         <module>ingest-core</module>
         <module>ingest-model</module>
         <module>ingest-rest</module>
         <module>ingest-client</module>
-        <module>ingest-web</module>
     </modules>
 
 </project>

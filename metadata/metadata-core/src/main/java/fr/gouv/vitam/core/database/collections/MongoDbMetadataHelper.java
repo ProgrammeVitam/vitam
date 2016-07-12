@@ -39,11 +39,14 @@ import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import com.mongodb.BasicDBObject;
+import com.mongodb.MongoException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 
+import fr.gouv.vitam.api.exception.MetaDataExecutionException;
+import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.UPDATEACTION;
 import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.UPDATEACTIONARGS;
 import fr.gouv.vitam.core.database.collections.MongoDbAccess.VitamCollections;
 
@@ -193,13 +196,19 @@ public class MongoDbMetadataHelper {
      * @param data update
      * @param nb nb of item to update
      * @return the UpdateResult on the update request based on the given collection
+     * @throws MetaDataExecutionException 
      */
     public static final UpdateResult update(final VitamCollections collection,
-        final Bson condition, final Bson data, int nb) {
-        if (nb > 1) {
-            return collection.getCollection().updateMany(condition, data);
-        } else {
-            return collection.getCollection().updateOne(condition, data);
+        final Bson condition, final Bson data, int nb) 
+            throws MetaDataExecutionException {
+        try {
+            if (nb > 1) {
+                return collection.getCollection().updateMany(condition, data);
+            } else {
+                return collection.getCollection().updateOne(condition, data);
+            }
+        } catch (MongoException e) {
+            throw new MetaDataExecutionException(e);
         }
     }
 
@@ -208,13 +217,19 @@ public class MongoDbMetadataHelper {
      * @param condition where condition
      * @param nb nb of item to delete
      * @return the DeleteResult on the update request based on the given collection
+     * @throws MetaDataExecutionException 
      */
     public static final DeleteResult delete(final VitamCollections collection,
-        final Bson condition, int nb) {
-        if (nb > 1) {
-            return collection.getCollection().deleteMany(condition);
-        } else {
-            return collection.getCollection().deleteOne(condition);
+        final Bson condition, int nb) 
+            throws MetaDataExecutionException {
+        try {
+            if (nb > 1) {
+                return collection.getCollection().deleteMany(condition);
+            } else {
+                return collection.getCollection().deleteOne(condition);
+            }
+        } catch (MongoException e) {
+            throw new MetaDataExecutionException(e);
         }
     }
 
@@ -243,15 +258,13 @@ public class MongoDbMetadataHelper {
      * @return the Filter condition to find if ancestorIds are ancestors of targetIds or equals to targetIds
      */
     public static final Bson queryForAncestorsOrSame(Set<String> targetIds, Set<String> ancestorIds) {
-        // FIXME REVIEW you change massively the code and the algorithm: it was
-        // Filters.or(Filters.and(Filters.in(VitamDocument.ID, targetIds), Filters.in(VitamDocument.ID, ancestorIds)),
-        // Filters.and(Filters.in(VitamDocument.ID, targetIds), Filters.in(VitamDocument.UP, ancestorIds)));
         ancestorIds.addAll(targetIds);
-        // FIXME REVIEW : I understand why but not the possible reason of such value?
+        // TODO understand why it add empty string
         ancestorIds.remove("");
         final int size = ancestorIds.size();
         if (size > 0) {
-            return Filters.in(VitamDocument.ID, ancestorIds);
+            return Filters.or(Filters.and(Filters.in(VitamDocument.ID, targetIds), Filters.in(VitamDocument.ID, ancestorIds)),
+                Filters.and(Filters.in(VitamDocument.ID, targetIds), Filters.in(VitamDocument.UP, ancestorIds)));
         }
         return new BasicDBObject();
     }
@@ -271,24 +284,9 @@ public class MongoDbMetadataHelper {
         final VitamLinks relation,
         final VitamDocument obj2) {
         switch (relation.type) {
-            case ASYM_LINK_1:
-                addAsymmetricLink(obj1, relation.field1to2, obj2);
-                break;
-            case SYM_LINK_11:
-                addAsymmetricLink(obj1, relation.field1to2, obj2);
-                return addAsymmetricLinkUpdate(obj2, relation.field2to1, obj1);
-            case ASYM_LINK_N:
-                addAsymmetricLinkset(obj1, relation.field1to2, obj2, false);
-                break;
-            case SYM_LINK_1N:
-                return addSymmetricLink(obj1, relation.field1to2, obj2,
-                    relation.field2to1);
             case SYM_LINK_N1:
-                return addReverseSymmetricLink(obj1, relation.field1to2, obj2,
-                    relation.field2to1);
-            case SYM_LINK_NN:
-                return addSymmetricLinkset(obj1, relation.field1to2, obj2,
-                    relation.field2to1);
+                setAsymmetricLink(obj1, relation.field1to2, obj2);
+                return addAsymmetricLinkset(obj2, relation.field2to1, obj1, true);
             case SYM_LINK_N_N:
                 return addAsymmetricLinkset(obj2, relation.field2to1, obj1, true);
             default:
@@ -298,7 +296,7 @@ public class MongoDbMetadataHelper {
     }
 
     /**
-     * Update the link
+     * Update the link (1 link type)
      *
      * @param obj1
      * @param vtReloaded
@@ -337,7 +335,7 @@ public class MongoDbMetadataHelper {
     }
 
     /**
-     * Update the links
+     * Update the linkset (N link type)
      *
      * @param obj1
      * @param vtReloaded
@@ -346,7 +344,7 @@ public class MongoDbMetadataHelper {
      * @return the update part as { field : {$each : [value] } }
      */
     @SuppressWarnings("rawtypes")
-    protected static final BasicDBObject updateLinks(final VitamDocument obj1,
+    protected static final BasicDBObject updateLinkset(final VitamDocument obj1,
         final VitamDocument vtReloaded,
         final VitamLinks relation, final boolean src) {
         final String fieldname = src ? relation.field1to2 : relation.field2to1;
@@ -378,72 +376,7 @@ public class MongoDbMetadataHelper {
     }
 
     /**
-     * Add an asymmetric relation (n-1) between Obj1 and Obj2
-     *
-     * @param obj1
-     * @param obj1ToObj2
-     * @param obj2
-     * @param obj2ToObj1
-     * @return a {@link BasicDBObject} for update as { field : value }
-     */
-    @SuppressWarnings("rawtypes")
-    private static final BasicDBObject addReverseSymmetricLink(
-        final VitamDocument obj1, final String obj1ToObj2,
-        final VitamDocument obj2, final String obj2ToObj1) {
-        addAsymmetricLinkset(obj1, obj1ToObj2, obj2, false);
-        return addAsymmetricLinkUpdate(obj2, obj2ToObj1, obj1);
-    }
-
-    /**
-     * Add an asymmetric relation (1-n) between Obj1 and Obj2
-     *
-     * @param obj1
-     * @param obj1ToObj2
-     * @param obj2
-     * @param obj2ToObj1
-     * @return a {@link BasicDBObject} for update as { $addToSet : { field : value } }
-     */
-    @SuppressWarnings("rawtypes")
-    private static final BasicDBObject addSymmetricLink(final VitamDocument obj1,
-        final String obj1ToObj2,
-        final VitamDocument obj2, final String obj2ToObj1) {
-        addAsymmetricLink(obj1, obj1ToObj2, obj2);
-        return addAsymmetricLinkset(obj2, obj2ToObj1, obj1, true);
-    }
-
-    /**
-     * Add a symmetric relation (n-n) between Obj1 and Obj2
-     *
-     * @param obj1
-     * @param obj1ToObj2
-     * @param obj2
-     * @param obj2ToObj1
-     * @return a {@link BasicDBObject} for update as { $addToSet : { field : value } }
-     */
-    @SuppressWarnings("rawtypes")
-    private static final BasicDBObject addSymmetricLinkset(final VitamDocument obj1,
-        final String obj1ToObj2,
-        final VitamDocument obj2, final String obj2ToObj1) {
-        addAsymmetricLinkset(obj1, obj1ToObj2, obj2, false);
-        return addAsymmetricLinkset(obj2, obj2ToObj1, obj1, true);
-    }
-
-    /**
-     * Add a single relation (1) from Obj1 to Obj2
-     *
-     * @param obj1
-     * @param obj1ToObj2
-     * @param obj2
-     */
-    @SuppressWarnings("rawtypes")
-    private static final void addAsymmetricLink(final VitamDocument obj1,
-        final String obj1ToObj2, final VitamDocument obj2) {
-        final String refChild = (String) obj2.get(VitamDocument.ID);
-        obj1.put(obj1ToObj2, refChild);
-    }
-
-    /**
-     * Add a single relation (1) from Obj1 to Obj2 in update mode
+     * Add a single relation (1) from Obj1 to Obj2 (used in N-1 link)
      *
      * @param db
      * @param obj1
@@ -452,19 +385,19 @@ public class MongoDbMetadataHelper {
      * @return a {@link BasicDBObject} for update as { field : value }
      */
     @SuppressWarnings("rawtypes")
-    private static final BasicDBObject addAsymmetricLinkUpdate(
+    private static final BasicDBObject setAsymmetricLink( 
         final VitamDocument obj1, final String obj1ToObj2,
         final VitamDocument obj2) {
-        final String refChild = (String) obj2.get(VitamDocument.ID);
+        final String refChild = obj2.getId();
         if (obj1.containsKey(obj1ToObj2) && obj1.get(obj1ToObj2).equals(refChild)) {
             return null;
         }
         obj1.put(obj1ToObj2, refChild);
-        return new BasicDBObject(obj1ToObj2, refChild);
+        return new BasicDBObject(UPDATEACTION.SET.exactToken(), new BasicDBObject(obj1ToObj2, refChild));
     }
 
     /**
-     * Add a one way relation (n) from Obj1 to Obj2
+     * Add a one way relation (n) from Obj1 to Obj2 (used in N-(N) and N-1 links)
      *
      * @param obj1
      * @param obj1ToObj2
@@ -478,7 +411,7 @@ public class MongoDbMetadataHelper {
         final VitamDocument obj2, final boolean toUpdate) {
         @SuppressWarnings("unchecked")
         ArrayList<String> relation12 = (ArrayList<String>) obj1.get(obj1ToObj2);
-        final String oid2 = (String) obj2.get(VitamDocument.ID);
+        final String oid2 = obj2.getId();
         if (relation12 == null) {
             if (toUpdate) {
                 return new BasicDBObject(ADD_TO_SET,

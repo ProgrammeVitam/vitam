@@ -31,14 +31,11 @@ import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
 public class ProcessEngineImplFactory {
 
     /**
-     * @param workflow as String is workfolowId
      * @return ProcessEngineImpl object created
-     * @throws WorkflowNotFoundException
+     * @throws WorkflowNotFoundException throws when workflow not found
      */
-    // FIXME REVIEW check null
-    public ProcessEngineImpl create(String workflow) throws WorkflowNotFoundException {
+    public ProcessEngineImpl create() throws WorkflowNotFoundException {
         final ProcessEngineImpl processImpl = new ProcessEngineImpl();
-        processImpl.setWorkflow(workflow);
         return processImpl;
     }
 }

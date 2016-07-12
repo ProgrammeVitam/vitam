@@ -158,18 +158,18 @@ public class LogbookOperationsClientMockTest {
         logbookParamaters.putParameterValue(LogbookParameterName.objectIdentifierIncome,
             LogbookParameterName.objectIdentifierIncome.name());
     }
-    
+
     @Test
     public void selectTest() throws LogbookClientException, InvalidParseOperationException {
         LogbookClientFactory.setConfiguration(LogbookClientType.MOCK_OPERATIONS, null, 0);
 
         final LogbookClient client =
             LogbookClientFactory.getInstance().getLogbookOperationClient();
-        assertEquals("aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaz", 
+        assertEquals("aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaz",
             client.selectOperation(request).get("result").get(1).get("_id").asText());
-        assertEquals("aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq", 
+        assertEquals("aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq",
             client.selectOperationbyId("eventIdentifier").get("result").get("_id").asText());
     }
-    
-    
+
+
 }

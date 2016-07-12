@@ -18,11 +18,31 @@ hr {
     border-width: 1px;
 }
 
+.archiveSearchPage section {
+  background: white;
+  border-radius: 3px;
+  position: relative !important;
+  padding-bottom: 10px; }
+
+.page-container{
+  border-top: 5px solid #58438b;
+  padding-top: 10px;
+  }
+.archiveSearchResult{
+  padding-left: 200px;
+  padding-right: 200px;
+}
+
+.archiveSearchPage thead {
+    border-bottom: 2px solid black;
+    cursor: pointer;
+}
+
 label{
   white-space: nowrap;
   width: 100%;
   overflow: hidden;
-  text-overflow: ellipsis;
+  /*text-overflow: ellipsis;*/
 }
 
 .btn-form{

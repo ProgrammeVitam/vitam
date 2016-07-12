@@ -2,31 +2,23 @@
 |doc_title|
 ###########
 
-.. caution::
+.. toctree::
+   :numbered:
+   :maxdepth: 3
 
-   Cette documentation est un travail en cours ; elle est susceptible de changer de manière conséquente.
-   
-   Règles à respecter :
+   preamble.rst
+   perimetre/_toc.rst
+   fonctionnelle-archivistes/_toc.rst
+   fonctionnelle-exploitation/_toc.rst
+   technique/_toc.rst
+   securite/_toc.rst
 
-      * noms de fichiers / dossiers : tout en minuscule
-      * les tables des matières dans un fichier _toc.rst à la racine du dossier correspondant
- 
 
-####################################################
-Sommaire
-####################################################
+#######
+Annexes
+#######
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
-   fonctionnelle/index.rst
-   technique/index.rst
-   securite/index.rst
-
-
-####################################################
-Index & Tables
-####################################################
-
-* :ref:`genindex`
-* :ref:`search`
+   glossary.rst

@@ -29,11 +29,14 @@ import java.util.Map;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookClientFactory;
 import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
@@ -45,19 +48,16 @@ import fr.gouv.vitam.processing.common.model.WorkFlow;
 import fr.gouv.vitam.processing.common.model.WorkParams;
 import fr.gouv.vitam.processing.common.utils.ProcessPopulator;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
-import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImpl;
+import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImplFactory;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
 
 /**
  * ProcessEngineImpl class manages the context and call a process distributor
  *
  */
-// FIXME REVIEW since build through Factory => class and constructor as package protected
 public class ProcessEngineImpl implements ProcessEngine {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessEngineImpl.class);
     private static LogbookClient client = LogbookClientFactory.getInstance().getLogbookOperationClient();
-    // FIXME REVIEW: you should not use this method but the one with full mandatory parameters
-    LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters();
 
     private static final String RUNTIME_EXCEPTION_MESSAGE =
         "runtime exceptions thrown by the Process engine during the execution :";
@@ -65,6 +65,7 @@ public class ProcessEngineImpl implements ProcessEngine {
         "Total elapsed time in execution of method startProcessByWorkFlowId is :";
     private static final String START_MESSAGE = "start ProcessEngine ...";
     private static final String WORKFLOW_NOT_FOUND_MESSAGE = "Workflow not exist";
+    private static final String START_WORKER = "Début de l'action ";
 
     private final Map<String, WorkFlow> poolWorkflows;
     private final ProcessDistributor processDistributor;
@@ -73,18 +74,18 @@ public class ProcessEngineImpl implements ProcessEngine {
      * setWorkflow : populate a workflow to the pool of workflow
      *
      * @param workflowId as String
-     * @throws WorkflowNotFoundException
+     * @throws WorkflowNotFoundException throw when workflow not found
      */
-    // FIXME REVIEW check null
     public void setWorkflow(String workflowId) throws WorkflowNotFoundException {
+        ParametersChecker.checkParameter("workflowId is a mandatory parameter", workflowId);
         poolWorkflows.put(workflowId, ProcessPopulator.populate(workflowId));
     }
 
     /**
      * ProcessEngineImpl constructor populate also the workflow to the pool of workflow
      */
-    public ProcessEngineImpl() {
-        processDistributor = new ProcessDistributorImpl();
+    protected ProcessEngineImpl() {
+        processDistributor = new ProcessDistributorImplFactory().create();
         poolWorkflows = new HashMap<>();
         try {
             setWorkflow("DefaultIngestWorkflow");
@@ -109,6 +110,7 @@ public class ProcessEngineImpl implements ProcessEngine {
          * Check if workflow exist in the pool of workflows
          */
         if (!poolWorkflows.containsKey(workflowId)) {
+            LOGGER.error(WORKFLOW_NOT_FOUND_MESSAGE);
             throw new WorkflowNotFoundException(WORKFLOW_NOT_FOUND_MESSAGE);
         }
         final ProcessResponse processResponse = new ProcessResponse();
@@ -116,34 +118,31 @@ public class ProcessEngineImpl implements ProcessEngine {
 
         try {
             final WorkFlow workFlow = poolWorkflows.get(workflowId);
+
             if (workFlow != null && workFlow.getSteps() != null && !workFlow.getSteps().isEmpty()) {
 
                 /**
                  * call process distribute to manage steps
                  */
-
                 for (final Step step : workFlow.getSteps()) {
+                    LogbookParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
+                        GUIDFactory.newGUID(),
+                        step.getStepName(),
+                        GUIDReader.getGUID(workParams.getContainerName()),
+                        LogbookTypeProcess.INGEST,
+                        LogbookOutcome.STARTED,
+                        START_WORKER + step.getStepName(),
+                        GUIDReader.getGUID(workParams.getContainerName()));
 
-                    parameters.putParameterValue(LogbookParameterName.eventIdentifier,
-                        GUIDFactory.newGUID().toString());
-                    parameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
-                        workParams.getContainerName());
-                    parameters.putParameterValue(LogbookParameterName.eventIdentifierRequest, step.getStepName());
-                    parameters.putParameterValue(LogbookParameterName.eventType, step.getStepName());
-                    parameters.putParameterValue(LogbookParameterName.eventTypeProcess, StatusCode.SUBMITTED.value());
-                    parameters.putParameterValue(LogbookParameterName.outcome, StatusCode.SUBMITTED.value());
-                    parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                        StatusCode.SUBMITTED.value());
                     client.update(parameters);
 
+                    workParams.setCurrentStep(step.getStepName());
                     final List<EngineResponse> stepResponse =
                         processDistributor.distribute(workParams, step, workflowId);
                     final StatusCode stepStatus = processResponse.getGlobalProcessStatusCode(stepResponse);
-                    final String messageIdentifier = ProcessResponse.getMessageFromResponse(stepResponse);
+                    final String messageIdentifier = ProcessResponse.getMessageIdentifierFromResponse(stepResponse);
                     stepsResponses.put(step.getStepName(), stepResponse);
-                    if (stepStatus.equals(StatusCode.KO)) {
-                        break;
-                    }
+
                     if (!messageIdentifier.isEmpty()) {
                         parameters.putParameterValue(LogbookParameterName.objectIdentifierIncome, messageIdentifier);
                     }
@@ -151,8 +150,12 @@ public class ProcessEngineImpl implements ProcessEngine {
                     parameters.putParameterValue(LogbookParameterName.eventTypeProcess, stepStatus.value());
                     parameters.putParameterValue(LogbookParameterName.outcome, stepStatus.value());
                     parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                        "Result: " + stepStatus.value());
+                        ProcessResponse.getGlobalProcessOutcomeMessage(stepResponse));
+
                     client.update(parameters);
+                    if (stepStatus.equals(StatusCode.KO) || stepStatus.equals(StatusCode.FATAL)) {
+                        break;
+                    }
                 }
 
                 /**

@@ -126,7 +126,7 @@ public class CheckObjectsNumberActionHandlerTest {
         messages.add("Duplicated digital objects " + "content/file1.pdf");
         extractDuplicatedUriResponseKO = new ExtractUriResponse();
         extractDuplicatedUriResponseKO.setUriListManifest(uriDuplicatedListManifestKO)
-            .setErrorDuplicateUri(Boolean.TRUE).setMessages(messages);
+            .setErrorDuplicateUri(Boolean.TRUE).setErrorNumber(messages.size());
 
         extractOutNumberUriResponseKO = new ExtractUriResponse();
         extractOutNumberUriResponseKO.setUriListManifest(uriOutNumberListManifestKO);
@@ -136,7 +136,7 @@ public class CheckObjectsNumberActionHandlerTest {
     public void givenWorkspaceExistWhenExecuteThenRaiseXMLStreamExceptionAndReturnResponseFATAL()
         throws XMLStreamException, IOException, ProcessingException {
         when(sedaFactory.create()).thenReturn(sedaUtils);
-        Mockito.doThrow(new XMLStreamException("")).when(sedaUtils).getAllDigitalObjectUriFromManifest(anyObject());
+        Mockito.doThrow(new ProcessingException("")).when(sedaUtils).getAllDigitalObjectUriFromManifest(anyObject());
 
         when(containerExtractionUtilsFactory.create()).thenReturn(containerExtractionUtils);
 
@@ -187,7 +187,7 @@ public class CheckObjectsNumberActionHandlerTest {
         final EngineResponse response = checkObjectsNumberActionHandler.execute(workParams);
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(StatusCode.OK);
-        assertThat(response.getMessages()).hasSize(1);
+        assertThat(response.getOutcomeMessages()).hasSize(1);
     }
 
     @Test
@@ -207,8 +207,9 @@ public class CheckObjectsNumberActionHandlerTest {
 
         final EngineResponse response = checkObjectsNumberActionHandler.execute(workParams);
         assertThat(response).isNotNull();
+        assertThat(response.getErrorNumber()).isEqualTo(1);
         assertThat(response.getStatus()).isEqualTo(StatusCode.KO);
-        assertThat(response.getMessages()).isNotNull().isNotEmpty();
+        assertThat(response.getOutcomeMessages()).isNotNull().isNotEmpty();
     }
 
 
@@ -230,8 +231,9 @@ public class CheckObjectsNumberActionHandlerTest {
 
         final EngineResponse response = checkObjectsNumberActionHandler.execute(workParams);
         assertThat(response).isNotNull();
+        assertThat(response.getErrorNumber()).isEqualTo(1);
         assertThat(response.getStatus()).isEqualTo(StatusCode.KO);
-        assertThat(response.getMessages()).isNotNull().isNotEmpty();
+        assertThat(response.getOutcomeMessages()).isNotNull().isNotEmpty();
     }
 
     @Test
@@ -253,7 +255,7 @@ public class CheckObjectsNumberActionHandlerTest {
         final EngineResponse response = checkObjectsNumberActionHandler.execute(workParams);
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(StatusCode.KO);
-        assertThat(response.getMessages()).isNotNull().isNotEmpty();
+        assertThat(response.getOutcomeMessages()).isNotNull().isNotEmpty();
     }
 
     @Test
@@ -275,6 +277,6 @@ public class CheckObjectsNumberActionHandlerTest {
         final EngineResponse response = checkObjectsNumberActionHandler.execute(workParams);
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(StatusCode.KO);
-        assertThat(response.getMessages()).isNotNull().isNotEmpty();
+        assertThat(response.getOutcomeMessages()).isNotNull().isNotEmpty();
     }
 }

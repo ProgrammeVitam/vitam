@@ -30,6 +30,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
 
+import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -50,7 +51,7 @@ public interface ContentAddressableStorage {
      *
      * @throws ContentAddressableStorageAlreadyExistException Thrown when creating a container while it (containerName)
      *         already exists
-     * @throws ContentAddressableStorageServerException
+     * @throws ContentAddressableStorageServerException Thrown when internal server error happens
      */
     public void createContainer(String containerName)
         throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageServerException;
@@ -74,7 +75,7 @@ public interface ContentAddressableStorage {
      * @param containerName name of the container to delete
      *
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
-     * @throws ContentAddressableStorageServerException
+     * @throws ContentAddressableStorageServerException Thrown when internal server error happens
      */
     public void deleteContainer(String containerName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
@@ -94,9 +95,9 @@ public interface ContentAddressableStorage {
      * Determines if a container exists
      *
      * @param containerName name of container
+     * @return boolean type
      */
-    // FIXME REVIEW change name to isExistingContainer(String containeNname)
-    public boolean containerExists(String containerName);
+    public boolean isExistingContainer(String containerName);
 
     // folder (or directory)
 
@@ -107,7 +108,7 @@ public interface ContentAddressableStorage {
      * @param folderName full path to the folder (or directory)
      * @throws ContentAddressableStorageAlreadyExistException Thrown when creating a directory while it already exists
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
-     * @throws ContentAddressableStorageServerException
+     * @throws ContentAddressableStorageServerException Thrown when internal server error happens
      */
     void createFolder(String containerName, String folderName)
         throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageNotFoundException,
@@ -119,7 +120,7 @@ public interface ContentAddressableStorage {
      * @param containerName container to delete the folder from
      * @param folderName full path to the folder to delete
      * @throws ContentAddressableStorageNotFoundException Thrown when the directory cannot be located.
-     * @throws ContentAddressableStorageServerException
+     * @throws ContentAddressableStorageServerException Thrown when internal server error happens
      */
     void deleteFolder(String containerName, String folderName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
@@ -129,9 +130,9 @@ public interface ContentAddressableStorage {
      *
      * @param containerName container where the folder resides
      * @param folderName full path to the folder
+     * @return boolean type
      */
-    // FIXME REVIEW change name to isExistingFolder(String containeNname, String folderName)
-    boolean folderExists(String containerName, String folderName);
+    boolean isExistingFolder(String containerName, String folderName);
 
     // Object
 
@@ -144,6 +145,7 @@ public interface ContentAddressableStorage {
      *
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
      * @throws ContentAddressableStorageException Thrown when put action failed due some other failure
+     * @throws ContentAddressableStorageAlreadyExistException  Thrown when object creating exists
      */
     public void putObject(String containerName, String objectName, InputStream stream)
         throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageNotFoundException,
@@ -158,6 +160,7 @@ public interface ContentAddressableStorage {
      *
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
      * @throws ContentAddressableStorageException Thrown when get action failed due some other failure
+     * @throws ContentAddressableStorageAlreadyExistException  Thrown when object creating exists 
      */
     public InputStream getObject(String containerName, String objectName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
@@ -181,10 +184,10 @@ public interface ContentAddressableStorage {
      *
      * @param containerName container where the object resides
      * @param objectName fully qualified name relative to the container.
+     * @return boolean type
      */
-    // FIXME REVIEW change name to isExistingObject(String containeNname, String objectName)
 
-    public boolean objectExists(String containerName, String objectName);
+    public boolean isExistingObject(String containerName, String objectName);
 
     /**
      * Retrieves recursively the uri list of object inside a folder rootFolder/subfolder/
@@ -202,16 +205,35 @@ public interface ContentAddressableStorage {
 
 
     /**
-     * create container: will be identified by GUID && extract objects and push it on the container
+     * create container: will be identified by GUID and extract objects and push it on the container
      *
      * @param containerName : the container name (will be Guid created in ingest module)
-     * @param SipObject : compressed SIP object
-     * @throws ContentAddressableStorageAlreadyExistException Thrown when creating a container while it already exists
+     * @param folderName : the folder name
+     * @param inputStreamObject : SIP input stream
+     * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located
+     * @throws ContentAddressableStorageAlreadyExistException Thrown when folder exists
+     * @throws ContentAddressableStorageServerException Thrown when internal server error happens
      * @throws ContentAddressableStorageException Thrown when get action failed due some other failure
      */
-    // FIXME REVIEW MUST be unzipObject not unzipSipObject = it is a generic method => must add too a folder name (for
-    // SIP = "SIP")
-    public void unzipSipObject(String containerName, InputStream sipObject)
-        throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageException;
+
+    public void unzipObject(String containerName, String folderName, InputStream inputStreamObject)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageAlreadyExistException,  ContentAddressableStorageServerException, ContentAddressableStorageException;
+    
+    
+
+    /**
+     * compute Object Digest using a defined algorithm
+     *
+     * @param containerName container where this exists.
+     * @param objectName fully qualified name relative to the container.
+     * @param algo Digest algo
+     *
+     * @throws ContentAddressableStorageNotFoundException Thrown when the container or the object cannot be located
+     * @throws ContentAddressableStorageServerException Thrown when internal server error happens
+     * @throws ContentAddressableStorageException Thrown when put action failed due some other failure
+     * @return the digest object as String
+     */
+    public String computeObjectDigest(String containerName, String objectName, DigestType algo)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, ContentAddressableStorageException;
 
 }

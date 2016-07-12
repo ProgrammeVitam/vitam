@@ -23,6 +23,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.core;
 
+
+import org.apache.commons.lang.StringUtils;
+
+import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.MongoWriteException;
 
 import fr.gouv.vitam.api.MetaData;
@@ -31,23 +35,37 @@ import fr.gouv.vitam.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.builder.request.construct.Request;
+import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.core.database.collections.MongoDbVarNameAdapter;
 import fr.gouv.vitam.core.database.collections.Result;
+import fr.gouv.vitam.core.utils.UnitsJsonUtils;
 import fr.gouv.vitam.parser.request.parser.GlobalDatasParser;
 import fr.gouv.vitam.parser.request.parser.InsertParser;
+import fr.gouv.vitam.parser.request.parser.RequestParser;
+import fr.gouv.vitam.parser.request.parser.SelectParser;
 
 /**
  * MetaDataImpl implements a MetaData interface
  */
-public class MetaDataImpl implements MetaData {
+public final class MetaDataImpl implements MetaData {
 
     private final DbRequestFactory dbRequestFactory;
+
+    private static final VitamLogger LOGGER =
+        VitamLoggerFactory.getInstance(MetaDataImpl.class);
+
+    private static final String REQUEST_IS_NULL = "Request select is null or is empty";
 
     /**
      * MetaDataImpl constructor
      *
      * @param configuration of mongoDB access
+     * @param mongoDbAccessFactory 
+     * @param dbRequestFactory 
      */
     // FIXME REVIEW should be private and adding public static final Metadata newMetadata(...) calling this private
     // constructor
@@ -58,13 +76,13 @@ public class MetaDataImpl implements MetaData {
         this.dbRequestFactory = dbRequestFactory;
     }
 
-    // FIXME REVIEW should take a json as input
     @Override
-    public void insertUnit(String insertRequest) throws InvalidParseOperationException {
+    public void insertUnit(JsonNode insertRequest)
+        throws InvalidParseOperationException, MetaDataDocumentSizeException, MetaDataExecutionException,
+        MetaDataAlreadyExistException, MetaDataNotFoundException {
         Result result = null;
         try {
-            // Refactor to throw MetaDataDocumentSizeException
-            GlobalDatasParser.sanityRequestCheck(insertRequest);
+            GlobalDatasParser.sanityRequestCheck(insertRequest.toString());
         } catch (final InvalidParseOperationException e) {
             throw new MetaDataDocumentSizeException(e);
         }
@@ -77,6 +95,8 @@ public class MetaDataImpl implements MetaData {
             throw e;
         } catch (InstantiationException | IllegalAccessException e) {
             throw new MetaDataExecutionException(e);
+        } catch (final MetaDataAlreadyExistException e) {
+            throw e;
         } catch (final MongoWriteException e) {
             throw new MetaDataAlreadyExistException(e);
         }
@@ -84,7 +104,107 @@ public class MetaDataImpl implements MetaData {
         if (result.isError()) {
             throw new MetaDataNotFoundException("Parents not found");
         }
+    }
 
+    @Override
+    public void insertObjectGroup(JsonNode objectGroupRequest)
+        throws InvalidParseOperationException, MetaDataDocumentSizeException, MetaDataExecutionException,
+        MetaDataAlreadyExistException, MetaDataNotFoundException {
+        Result result = null;
+
+        try {
+            GlobalDatasParser.sanityRequestCheck(objectGroupRequest.toString());
+        } catch (final InvalidParseOperationException e) {
+            throw new MetaDataDocumentSizeException(e);
+        }
+
+        try {
+            InsertParser insertParser = new InsertParser(new MongoDbVarNameAdapter());
+            insertParser.parse(objectGroupRequest);
+            insertParser.getRequest().addHintFilter(ParserTokens.FILTERARGS.OBJECTGROUPS.exactToken());
+            result = dbRequestFactory.create().execRequest(insertParser, result);
+        } catch (final InvalidParseOperationException e) {
+            throw e;
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new MetaDataExecutionException(e);
+        } catch (final MongoWriteException e) {
+            throw new MetaDataAlreadyExistException(e);
+        }
+
+        if (result.isError()) {
+            throw new MetaDataNotFoundException("Parents not found");
+        }
+    }
+
+    @Override
+    public JsonNode selectUnitsByQuery(String selectQuery)
+        throws MetaDataExecutionException, InvalidParseOperationException,
+        MetaDataDocumentSizeException {
+        LOGGER.info("Begin selectUnitsByQuery ...");
+        LOGGER.debug("SelectUnitsByQuery/ selectQuery: " + selectQuery);
+        return selectUnit(selectQuery, null);
+
+    }
+
+    @Override
+    public JsonNode selectUnitsById(String selectQuery, String unitId)
+        throws InvalidParseOperationException, MetaDataExecutionException,
+        MetaDataDocumentSizeException {
+        LOGGER.info("Begin selectUnitsById .../id:" + unitId);
+        LOGGER.debug("SelectUnitsById/ selectQuery: " + selectQuery);
+        return selectUnit(selectQuery, unitId);
+    }
+
+
+
+    private JsonNode selectUnit(String selectQuery, String unitId)
+        throws MetaDataExecutionException, InvalidParseOperationException,
+        MetaDataDocumentSizeException {
+        Result result = null;
+        JsonNode jsonNodeResponse;
+        if (StringUtils.isEmpty(selectQuery)) {
+            throw new InvalidParseOperationException(REQUEST_IS_NULL);
+        }
+        try {
+            // sanity check:InvalidParseOperationException will be thrown if request select invalid or size is too large
+            GlobalDatasParser.sanityRequestCheck(selectQuery);
+        } catch (InvalidParseOperationException eInvalidParseOperationException) {
+            throw new MetaDataDocumentSizeException(eInvalidParseOperationException);
+        }
+        try {
+            // parse Select request
+            RequestParser selectRequest = new SelectParser();
+            selectRequest.parse(selectQuery);
+            // Reset $roots (add or override unit_id on roots)
+            if (unitId != null && !unitId.isEmpty()) {
+                Request request = selectRequest.getRequest();
+                if (request != null) {
+                    LOGGER.debug("Reset $roots unit_id by :" + unitId);
+                    request.resetRoots().addRoots(unitId);
+                }
+            }
+            // Execute DSL request
+            result = dbRequestFactory.create().execRequest(selectRequest, result);
+            jsonNodeResponse = UnitsJsonUtils.populateJSONObjectResponse(result, selectRequest);
+
+        } catch (final MetaDataExecutionException e) {
+            LOGGER.error(e);
+            throw e;
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(e);
+            throw e;
+        } catch (final InstantiationException e) {
+            LOGGER.error(e);
+            throw new MetaDataExecutionException(e);
+        } catch (final IllegalAccessException e) {
+            LOGGER.error(e);
+            throw new MetaDataExecutionException(e);
+        } catch (MetaDataAlreadyExistException | MetaDataNotFoundException e) {
+            // Should not happen there
+            LOGGER.error(e);
+            throw new MetaDataExecutionException(e);
+        }
+        return jsonNodeResponse;
     }
 
 }

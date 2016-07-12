@@ -34,6 +34,7 @@ import static org.junit.Assert.fail;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.junit.JunitHelper;
 
 public class BasicVitamServerTest {
 
@@ -61,7 +62,9 @@ public class BasicVitamServerTest {
 
     @Test
     public final void testBuild() {
-        final BasicVitamServer server = new BasicVitamServer(8082);
+        JunitHelper junitHelper = new JunitHelper();
+        int port = junitHelper.findAvailablePort();
+        final BasicVitamServer server = new BasicVitamServer(port);
         try {
             server.configure(null);
             fail(SHOULD_RAIZED_AN_EXCEPTION);
@@ -90,6 +93,7 @@ public class BasicVitamServerTest {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
         server.getServer().destroy();
+        junitHelper.releasePort(port);
     }
 
 }

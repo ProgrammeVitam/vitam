@@ -39,9 +39,9 @@ enum VitamLinks {
      */
     UNIT_TO_UNIT(VitamCollections.C_UNIT, LinkType.SYM_LINK_N_N, VitamDocument.UNUSED, VitamCollections.C_UNIT, VitamDocument.UP),
     /**
-     * Unit to ObjectGroup 1-N link. This link is symmetric.
+     * Unit to ObjectGroup N-1 link. This link is symmetric.
      */
-    UNIT_TO_OBJECTGROUP(VitamCollections.C_UNIT, LinkType.SYM_LINK_1N, VitamDocument.OG, VitamCollections.C_OBJECTGROUP, VitamDocument.UP);
+    UNIT_TO_OBJECTGROUP(VitamCollections.C_UNIT, LinkType.SYM_LINK_N1, VitamDocument.OG, VitamCollections.C_OBJECTGROUP, VitamDocument.UP);
 
     protected VitamCollections col1;
     protected LinkType type;

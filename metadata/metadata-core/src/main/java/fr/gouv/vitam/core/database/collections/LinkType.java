@@ -31,31 +31,11 @@ package fr.gouv.vitam.core.database.collections;
  */
 public enum LinkType {
     /**
-     * Link N-N
-     */
-    SYM_LINK_NN,
-    /**
-     * Link N-
-     */
-    ASYM_LINK_N,
-    /**
-     * Link 1-N
-     */
-    SYM_LINK_1N,
-    /**
-     * Link N-1
+     * Link N-1 (N fathers, 1 son)
      */
     SYM_LINK_N1,
     /**
-     * Link 1-1
-     */
-    SYM_LINK_11,
-    /**
-     * Link 1-
-     */
-    ASYM_LINK_1,
-    /**
-     * False Link (N)-N
+     * False Link N-(N) (N fathers, N sons but only Sons know)
      */
     SYM_LINK_N_N
 }

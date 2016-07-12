@@ -30,11 +30,10 @@ import org.bson.conversions.Bson;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.MongoException;
-import com.mongodb.MongoWriteConcernException;
-import com.mongodb.MongoWriteException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.UpdateOptions;
 
+import fr.gouv.vitam.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -125,17 +124,25 @@ public abstract class VitamDocument<E> extends Document {
      * @param tenantId
      * @return this
      */
-    public VitamDocument<E> checkId() {
-        try {
-            final int domainId = GUIDReader.getGUID(getId()).getTenantId();
-            append(DOMID, domainId);
-        } catch (final InvalidGuidOperationException e) {
-            // FIXME REVIEW Auto-generated catch block
-            e.printStackTrace();
+    VitamDocument<E> checkId() {
+        final String id = getId();
+        if (id != null) {
+            try {
+                final int domainId = GUIDReader.getGUID(id).getTenantId();
+                append(DOMID, domainId);
+            } catch (final InvalidGuidOperationException e) {
+                LOGGER.warn(e);
+            }
         }
         return this;
     }
 
+    VitamDocument<E> testAndCheckId() {
+        if (! containsKey(DOMID)) {
+            return checkId();
+        }
+        return this;
+    }
     /**
      *
      * @return the ID
@@ -170,14 +177,14 @@ public abstract class VitamDocument<E> extends Document {
      *
      * @return this
      */
-    public abstract VitamDocument<?> getAfterLoad();
+    public abstract VitamDocument<E> getAfterLoad();
 
     /**
      * To be called before any collection.insert() or update if HashMap values is changed.
      *
      * @return this
      */
-    public abstract VitamDocument<?> putBeforeSave();
+    public abstract VitamDocument<E> putBeforeSave();
 
     /**
      *
@@ -195,22 +202,26 @@ public abstract class VitamDocument<E> extends Document {
      * Save the object. Implementation should call putBeforeSave before the real save operation (insert or update)
      *
      * @return this
+     * @throws MetaDataExecutionException
      */
-    public abstract VitamDocument<E> save() throws MongoWriteException, MongoWriteConcernException, MongoException;
+    public abstract VitamDocument<E> save() throws MetaDataExecutionException;
 
     /**
      * Update the object to the database
      *
      * @param update
      * @return this
+     * @throws MetaDataExecutionException 
      */
     public VitamDocument<E> update(final Bson update)
-        throws MongoWriteException, MongoWriteConcernException, MongoException {
+        throws MetaDataExecutionException {
         try {
             getCollection().updateOne(eq(ID, getId()), update);
-        } catch (final MongoException e) {
-            LOGGER.error("Exception for " + update, e);
-            throw e;
+        } catch (MongoException e) {
+            LOGGER.debug(e);
+            throw new MetaDataExecutionException(e);
+        } catch (IllegalArgumentException e) {
+            throw new MetaDataExecutionException(e);
         }
         return this;
     }
@@ -219,8 +230,9 @@ public abstract class VitamDocument<E> extends Document {
      * try to update the object if necessary (difference from the current value in the database)
      *
      * @return True if the object does not need any extra save operation
+     * @throws MetaDataExecutionException
      */
-    protected abstract boolean updated();
+    protected abstract boolean updated() throws MetaDataExecutionException;
 
     /**
      * load the object from the database, ignoring any previous data, except ID
@@ -230,13 +242,21 @@ public abstract class VitamDocument<E> extends Document {
     public abstract boolean load();
 
     /**
-     * Insert the document (only for new)
+     * Insert the document (only for new): should not be called elsewhere
      *
      * @return this
+     * @throws MetaDataExecutionException 
      */
     @SuppressWarnings("unchecked")
-    protected final VitamDocument<E> insert() throws MongoWriteException, MongoWriteConcernException, MongoException {
-        getCollection().insertOne((E) this);
+    protected final VitamDocument<E> insert() throws MetaDataExecutionException {
+        testAndCheckId();
+        try {
+            getCollection().insertOne((E) this);
+        } catch (MongoException e) {
+            throw new MetaDataExecutionException(e);
+        } catch (IllegalArgumentException e) {
+            throw new MetaDataExecutionException(e);
+        }
         return this;
     }
 
@@ -244,15 +264,23 @@ public abstract class VitamDocument<E> extends Document {
      * Save the document if new, update it (keeping non set fields, replacing set fields)
      *
      * @return this
+     * @throws MetaDataExecutionException 
      */
     @SuppressWarnings("unchecked")
     protected final VitamDocument<E> updateOrSave()
-        throws MongoWriteException, MongoWriteConcernException, MongoException {
+        throws MetaDataExecutionException {
+        testAndCheckId();
         final String id = this.getId();
-        if (MongoDbMetadataHelper.exists(getVitamCollections(), id)) {
-            getCollection().replaceOne(eq(ID, id), (E) this);
-        } else {
-            getCollection().insertOne((E) this);
+        try {
+            if (MongoDbMetadataHelper.exists(getVitamCollections(), id)) {
+                getCollection().replaceOne(eq(ID, id), (E) this);
+            } else {
+                getCollection().insertOne((E) this);
+            }
+        } catch (MongoException e) {
+            throw new MetaDataExecutionException(e);
+        } catch (IllegalArgumentException e) {
+            throw new MetaDataExecutionException(e);
         }
         return this;
     }
@@ -261,10 +289,18 @@ public abstract class VitamDocument<E> extends Document {
      * Force the save (insert) of this document (no putBeforeSave done)
      *
      * @return this
+     * @throws MetaDataExecutionException 
      */
     protected final VitamDocument<E> forceSave()
-        throws MongoWriteException, MongoWriteConcernException, MongoException {
-        getCollection().updateOne(eq(ID, getId()), this, new UpdateOptions().upsert(true));
+        throws MetaDataExecutionException {
+        testAndCheckId();
+        try {
+            getCollection().updateOne(eq(ID, getId()), this, new UpdateOptions().upsert(true));
+        } catch (MongoException e) {
+            throw new MetaDataExecutionException(e);
+        } catch (IllegalArgumentException e) {
+            throw new MetaDataExecutionException(e);
+        }
         return this;
     }
 
@@ -272,9 +308,14 @@ public abstract class VitamDocument<E> extends Document {
      * Delete the current object
      *
      * @return this
+     * @throws MetaDataExecutionException 
      */
-    public final VitamDocument<E> delete() throws MongoWriteException, MongoWriteConcernException, MongoException {
-        getCollection().deleteOne(eq(ID, this.getId()));
+    public final VitamDocument<E> delete() throws MetaDataExecutionException {
+        try {
+            getCollection().deleteOne(eq(ID, this.getId()));
+        } catch (MongoException e) {
+            throw new MetaDataExecutionException(e);
+        }
         return this;
     }
 

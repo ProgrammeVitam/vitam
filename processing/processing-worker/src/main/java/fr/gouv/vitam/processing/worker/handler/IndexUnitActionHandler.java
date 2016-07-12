@@ -29,6 +29,8 @@ package fr.gouv.vitam.processing.worker.handler;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
@@ -44,6 +46,9 @@ public class IndexUnitActionHandler extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IndexUnitActionHandler.class);
     private static final String HANDLER_ID = "IndexUnit";
     private final SedaUtilsFactory sedaUtilsFactory;
+    private LogbookLifeCycleUnitParameters logbookLifecycleUnitParameters = LogbookParametersFactory
+        .newLogbookLifeCycleUnitParameters();
+
 
     /**
      * Constructor with parameter SedaUtilsFactory
@@ -71,12 +76,21 @@ public class IndexUnitActionHandler extends ActionHandler {
         final SedaUtils sedaUtils = sedaUtilsFactory.create();
 
         try {
+            sedaUtils.updateLifeCycleByStep(logbookLifecycleUnitParameters, params);
             sedaUtils.indexArchiveUnit(params);
         } catch (final ProcessingException e) {
             response.setStatus(StatusCode.FATAL);
         }
 
-        LOGGER.info("IndexUnitActionHandler response: ", response.getStatus().value());
+        LOGGER.info("IndexUnitActionHandler response: " + response.getStatus().value());
+
+        // Update lifeCycle
+        try {
+            sedaUtils.setLifeCycleFinalEventStatusByStep(logbookLifecycleUnitParameters, response.getStatus());
+        } catch (ProcessingException e) {
+            response.setStatus(StatusCode.WARNING);
+        }
+
         return response;
     }
 

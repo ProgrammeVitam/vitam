@@ -35,9 +35,8 @@ public class ContentAddressableStorageNotFoundException extends ContentAddressab
     private static final long serialVersionUID = -8557401608602084895L;
 
     /**
-     * param message to associate with a new ContentAddressableStorageNotFoundException
+     * @param message to associate with a new ContentAddressableStorageNotFoundException
      *
-     * @param message
      */
     public ContentAddressableStorageNotFoundException(String message) {
         super(message);

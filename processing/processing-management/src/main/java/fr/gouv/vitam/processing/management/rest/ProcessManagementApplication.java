@@ -42,6 +42,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 
 
@@ -53,7 +54,6 @@ public class ProcessManagementApplication {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessManagementApplication.class);
 
-    private static final int DEFAULT_PORT = 8082;
     private static Server server;
 
     private static final String CONFIG_FILE_IS_A_MANDATORY_ARGUMENT = "Config file is a mandatory argument";
@@ -89,12 +89,12 @@ public class ProcessManagementApplication {
                 ServerConfiguration configuration = new ServerConfiguration();
                 configuration = mapper.readValue(yamlFile, ServerConfiguration.class);
 
-                int serverPort = DEFAULT_PORT;
+                int serverPort = VitamServerFactory.getDefaultPort();
 
                 if (arguments.length >= 2) {
                     serverPort = Integer.parseInt(arguments[1]);
                     if (serverPort < 0) {
-                        serverPort = DEFAULT_PORT;
+                        serverPort = VitamServerFactory.getDefaultPort();
                     }
                 }
                 run(configuration, serverPort);
@@ -140,8 +140,10 @@ public class ProcessManagementApplication {
      *
      * @throws Exception
      */
-    public void stop() throws Exception {
-        server.stop();
+    public static void stop() throws Exception {
+        if (server.isStarted()) {
+            server.stop();
+        }
     }
 
 }

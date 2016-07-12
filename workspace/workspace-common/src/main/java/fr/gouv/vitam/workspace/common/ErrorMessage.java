@@ -86,7 +86,13 @@ public enum ErrorMessage {
     /**
      * Internal Server Error
      */
-    INTERNAL_SERVER_ERROR("Internal Server Error");
+    INTERNAL_SERVER_ERROR("Internal Server Error"),
+    
+    /**
+     * Algo name is a mandatory parameter
+     */
+    ALGO_IS_A_MANDATORY_PARAMETER(
+        "Digest Algo name is a mandatory parameter");
 
     private final String message;
 

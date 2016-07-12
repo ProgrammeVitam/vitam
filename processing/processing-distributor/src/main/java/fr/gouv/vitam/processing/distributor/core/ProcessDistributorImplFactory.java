@@ -41,7 +41,7 @@ public class ProcessDistributorImplFactory {
     }
 
     /**
-     * @param workerImpl
+     * @param workerImpl {@link WorkerImpl} worker implementation
      * @return ProcessDistributorImpl
      */
     public ProcessDistributorImpl create(WorkerImpl workerImpl) {

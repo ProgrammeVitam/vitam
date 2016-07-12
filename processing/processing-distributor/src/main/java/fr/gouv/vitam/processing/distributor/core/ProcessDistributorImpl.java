@@ -48,9 +48,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
  *
  */
 public class ProcessDistributorImpl implements ProcessDistributor {
-    // FIXME REVIEW Since build through Factory => protected package for class and constructors
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessDistributorImpl.class);
-    private static final String ARCHIVE_UNIT_FOLDER = "Units";
     private static final String ELAPSED_TIME_MESSAGE = "Total elapsed time in execution of method distribute is :";
 
     private static final String EXCEPTION_MESSAGE =
@@ -58,24 +56,24 @@ public class ProcessDistributorImpl implements ProcessDistributor {
 
     private final List<Worker> workers = new ArrayList<Worker>();
     private final List<String> availableWorkers = new ArrayList<String>();
-
-    /**
-     * Empty constructor
-     */
-    public ProcessDistributorImpl() {
-        final Worker worker1 = new WorkerImpl();
-        workers.add(worker1);
-        availableWorkers.add(worker1.getWorkerId());
-    }
-
+    
     /**
      * Constructor with parameter workerImpl
      *
-     * @param workerImpl
+     * @param workerImpl {@link WorkerImpl} worker implementation
      */
-    // FIXME REVIEW check null
-    public ProcessDistributorImpl(WorkerImpl workerImpl) {
+    protected ProcessDistributorImpl(WorkerImpl workerImpl) {
+        ParametersChecker.checkParameter("workerImpl is a mandatory parameter", workerImpl);
         final Worker worker1 = workerImpl;
+        workers.add(worker1);
+        availableWorkers.add(worker1.getWorkerId());
+    }
+    
+    /**
+     * Empty constructor
+     */
+    protected ProcessDistributorImpl() {
+        final Worker worker1 = new WorkerImpl();
         workers.add(worker1);
         availableWorkers.add(worker1.getWorkerId());
     }
@@ -95,12 +93,12 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 final WorkspaceClient workspaceClient =
                     new WorkspaceClientFactory().create(workParams.getServerConfiguration().getUrlWorkspace());
                 final List<URI> objectsList = workspaceClient
-                    .getListUriDigitalObjectFromFolder(workParams.getContainerName(), ARCHIVE_UNIT_FOLDER);
+                    .getListUriDigitalObjectFromFolder(workParams.getContainerName(), step.getDistribution().getElement());
                 if (objectsList == null || objectsList.isEmpty()) {
                     responses.add(errorResponse);
                 } else {
                     for (final URI objectUri : objectsList) {
-                        if (availableWorkers.size() == 0) {
+                        if (availableWorkers.isEmpty()) {
                             LOGGER.info(errorResponse.getStatus().toString());
                             responses.add(errorResponse);
                             break;

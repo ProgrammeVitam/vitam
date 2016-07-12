@@ -2,7 +2,7 @@
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v1.1.0-rc4-master-c26842a
+ * v1.1.0-rc4-master-f9738f5
  */
 (function( window, angular, undefined ){
 "use strict";
@@ -43,6 +43,10 @@ angular.module('material.components.select', [
  *
  * @description Displays a select box, bound to an ng-model.
  *
+ * When the select is required and uses a floating label, then the label will automatically contain
+ * an asterisk (`*`).<br/>
+ * This behavior can be disabled by using the `md-no-asterisk` attribute.
+ *
  * @param {expression} ng-model The model!
  * @param {boolean=} multiple Whether it's multiple.
  * @param {expression=} md-on-close Expression to be evaluated when the select is closed.
@@ -51,6 +55,7 @@ angular.module('material.components.select', [
  * @param {expression=} md-selected-text Expression to be evaluated that will return a string
  * to be displayed as a placeholder in the select input box when it is closed.
  * @param {string=} placeholder Placeholder hint text.
+ * @param md-no-asterisk {boolean=} When set to true, an asterisk will not be appended to the floating label.
  * @param {string=} aria-label Optional label for accessibility. Only necessary if no placeholder or
  * explicit label is present.
  * @param {string=} md-container-class Class list to get applied to the `._md-select-menu-container`
@@ -179,7 +184,7 @@ function SelectDirective($mdSelect, $mdUtil, $mdTheming, $mdAria, $compile, $par
         .find('md-content')
         .prepend(angular.element(
           '<div>' +
-          ' <md-progress-circular md-mode="indeterminate" ng-if="!$$loadingAsyncDone" md-diameter="25px"></md-progress-circular>' +
+          ' <md-progress-circular md-mode="indeterminate" ng-if="$$loadingAsyncDone === false" md-diameter="25px"></md-progress-circular>' +
           '</div>'
         ));
 
@@ -236,6 +241,7 @@ function SelectDirective($mdSelect, $mdUtil, $mdTheming, $mdAria, $compile, $par
       // grab a reference to the select menu value label
       var valueEl = element.find('md-select-value');
       var isReadonly = angular.isDefined(attr.readonly);
+      var disableAsterisk = $mdUtil.parseAttributeBoolean(attr.mdNoAsterisk);
 
       if (containerCtrl) {
         var isErrorGetter = containerCtrl.isErrorGetter || function() {
@@ -293,6 +299,13 @@ function SelectDirective($mdSelect, $mdUtil, $mdTheming, $mdAria, $compile, $par
 
       attr.$observe('placeholder', ngModelCtrl.$render);
 
+      if (containerCtrl && containerCtrl.label) {
+        attr.$observe('required', function (value) {
+          // Toggle the md-required class on the input containers label, because the input container is automatically
+          // applying the asterisk indicator on the label.
+          containerCtrl.label.toggleClass('md-required', value && !disableAsterisk);
+        });
+      }
 
       mdSelectCtrl.setLabelText = function(text) {
         mdSelectCtrl.setIsPlaceholder(!text);
@@ -561,7 +574,7 @@ function SelectMenuDirective($parse, $mdUtil, $mdTheming) {
     var selectCtrl = ctrls[0];
 
     element.addClass('_md');     // private md component indicator for styling
-    
+
     $mdTheming(element);
     element.on('click', clickListener);
     element.on('keypress', keyListener);
@@ -682,6 +695,11 @@ function SelectMenuDirective($parse, $mdUtil, $mdTheming) {
     self.init = function(ngModel, binding) {
       self.ngModel = ngModel;
       self.modelBinding = binding;
+
+      // Setup a more robust version of isEmpty to ensure value is a valid option
+      self.ngModel.$isEmpty = function($viewValue) {
+        return !self.options[$viewValue];
+      };
 
       // Allow users to provide `ng-model="foo" ng-model-options="{trackBy: 'foo.id'}"` so
       // that we can properly compare objects set on the model to the available options
@@ -977,7 +995,7 @@ function SelectProvider($$interimElementProvider) {
 
   /* ngInject */
   function selectDefaultOptions($mdSelect, $mdConstant, $mdUtil, $window, $q, $$rAF, $animateCss, $animate, $document) {
-    var ERRROR_TARGET_EXPECTED = "$mdSelect.show() expected a target element in options.target but got '{0}'!";
+    var ERROR_TARGET_EXPECTED = "$mdSelect.show() expected a target element in options.target but got '{0}'!";
     var animator = $mdUtil.dom.animator;
 
     return {
@@ -1148,7 +1166,7 @@ function SelectProvider($$interimElementProvider) {
         var selectEl = element.find('md-select-menu');
 
         if (!options.target) {
-          throw new Error($mdUtil.supplant(ERRROR_TARGET_EXPECTED, [options.target]));
+          throw new Error($mdUtil.supplant(ERROR_TARGET_EXPECTED, [options.target]));
         }
 
         angular.extend(options, {

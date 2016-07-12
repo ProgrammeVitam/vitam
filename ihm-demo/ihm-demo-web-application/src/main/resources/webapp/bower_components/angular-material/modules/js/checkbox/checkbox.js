@@ -2,7 +2,7 @@
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v1.0.9
+ * v1.1.0-rc4-master-f9738f5
  */
 (function( window, angular, undefined ){
 "use strict";
@@ -41,7 +41,10 @@ angular
  *     If a truthy expression or no value is passed in the checkbox renders in the md-indeterminate state.
  *     If falsy expression is passed in it just looks like a normal unchecked checkbox.
  *     The indeterminate, checked, and unchecked states are mutually exclusive. A box cannot be in any two states at the same time. 
- *     When a checkbox is indeterminate that overrides any checked/unchecked rendering logic.
+ *     Adding the 'md-indeterminate' attribute overrides any checked/unchecked rendering logic. 
+ *     When using the 'md-indeterminate' attribute use 'ng-checked' to define rendering logic instead of using 'ng-model'.
+ * @param {expression=} ng-checked If this expression evaluates as truthy, the 'md-checked' css class is added to the checkbox and it 
+ *     will appear checked.
  *
  * @usage
  * <hljs lang="html">
@@ -70,10 +73,10 @@ function MdCheckboxDirective(inputDirective, $mdAria, $mdConstant, $mdTheming, $
     require: '?ngModel',
     priority: 210, // Run before ngAria
     template:
-      '<div class="md-container" md-ink-ripple md-ink-ripple-checkbox>' +
-        '<div class="md-icon"></div>' +
+      '<div class="_md-container" md-ink-ripple md-ink-ripple-checkbox>' +
+        '<div class="_md-icon"></div>' +
       '</div>' +
-      '<div ng-transclude class="md-label"></div>',
+      '<div ng-transclude class="_md-label"></div>',
     compile: compile
   };
 
@@ -83,11 +86,11 @@ function MdCheckboxDirective(inputDirective, $mdAria, $mdConstant, $mdTheming, $
 
   function compile (tElement, tAttrs) {
     var container = tElement.children();
-    var mdIndeterminateStateEnabled = tAttrs.hasOwnProperty('mdIndeterminate');
+    var mdIndeterminateStateEnabled = $mdUtil.parseAttributeBoolean(tAttrs.mdIndeterminate);
 
-    tAttrs.type = 'checkbox';
-    tAttrs.tabindex = tAttrs.tabindex || '0';
-    tElement.attr('role', tAttrs.type);
+    tAttrs.$set('tabindex', tAttrs.tabindex || '0');
+    tAttrs.$set('type', 'checkbox');
+    tAttrs.$set('role', tAttrs.type);
 
     // Attach a click handler in compile in order to immediately stop propagation
     // (especially for ng-click) when the checkbox is disabled.

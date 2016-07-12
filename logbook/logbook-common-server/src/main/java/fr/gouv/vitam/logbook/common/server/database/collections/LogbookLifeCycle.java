@@ -37,15 +37,13 @@ import org.bson.conversions.Bson;
 import com.mongodb.BasicDBObject;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 
 /**
- *
+ * Abstract class for Logbook LifeCycle item
  */
-public class LogbookLifeCycle extends LogbookDocument<LogbookLifeCycle> {
+abstract class LogbookLifeCycle<T> extends LogbookDocument<LogbookLifeCycle<T>> {
     private static final long serialVersionUID = 105654500015427902L;
 
     /**
@@ -96,17 +94,23 @@ public class LogbookLifeCycle extends LogbookDocument<LogbookLifeCycle> {
     }
 
     @Override
-    public String getId() {
+    public final String getId() {
         return getString(getIdName().getDbname());
     }
 
     /**
      *
+     * @return the corresponding LogbookParameters implementation
+     */
+    abstract protected T getLogbookParameters();
+
+    /**
+     *
      * @return the equivalent unique Lifecycle
      */
-    private LogbookParameters getLifeCycle(Bson object) {
-        // TODO when lifecycle is ready, change Operation to LifeCycle
-        final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters();
+    @SuppressWarnings("unchecked")
+    private T getLifeCycle(Bson object) {
+        final LogbookParameters parameters = (LogbookParameters) getLogbookParameters();
         final Map<LogbookParameterName, String> map = parameters.getMapParameters();
         if (object instanceof BasicDBObject) {
             for (final LogbookMongoDbName name : LogbookMongoDbName.values()) {
@@ -119,7 +123,7 @@ public class LogbookLifeCycle extends LogbookDocument<LogbookLifeCycle> {
                     ((Document) object).getString(name.getDbname()));
             }
         }
-        return parameters;
+        return (T) parameters;
     }
 
     /**
@@ -128,11 +132,11 @@ public class LogbookLifeCycle extends LogbookDocument<LogbookLifeCycle> {
      * @param all If true returns all items, if false return the first item and last item if any
      * @return the list of LifeCyles
      */
-    public List<LogbookParameters> getLifeCycles(boolean all) {
+    public final List<T> getLifeCycles(boolean all) {
         @SuppressWarnings("unchecked")
         final ArrayList<Document> events = (ArrayList<Document>) get(EVENTS);
         final int nb = all ? events.size() : events.isEmpty() ? 1 : 2;
-        final List<LogbookParameters> list = new ArrayList<>(nb);
+        final List<T> list = new ArrayList<>(nb);
         list.add(getLifeCycle(this));
         if (all) {
             for (final Document eventob : events) {

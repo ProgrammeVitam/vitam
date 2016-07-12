@@ -23,6 +23,7 @@ Sommaire
    GUID.rst
    Digest.rst
    Logger.rst
+   JunitHelper.rst
 
 
 ##############

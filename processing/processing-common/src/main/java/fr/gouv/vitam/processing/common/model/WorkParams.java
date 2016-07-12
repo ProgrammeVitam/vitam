@@ -39,6 +39,23 @@ public class WorkParams {
     private String objectId;
     private String workerGUID;
     private String metaDataRequest;
+    private String currentStep;
+
+    /**
+     * @return currentStep
+     */
+    public String getCurrentStep() {
+        return currentStep;
+    }
+
+    /**
+     * @param currentStep
+     * @return WorkParams
+     */
+    public WorkParams setCurrentStep(String currentStep) {
+        this.currentStep = currentStep;
+        return this;
+    }
 
     /**
      * getContainerName

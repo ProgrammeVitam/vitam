@@ -1,0 +1,13 @@
+{
+    "DescriptionLevel": "Niveau de description",
+    "Title": "Titre",
+    "FilePlanPosition": "Position dans l'arborescence",
+    "SystemID": "Identifiant VITAM",
+    "OriginatingSystemId": "ID Système d'origine",
+    "ArchivalAgencyArchiveUnitIdentifier": "ID métier",
+    "OriginatingAgencyArchiveUnitIdentifier": "ID métier Service Producteur",
+    "TransferringAgencyArchiveUnitIdentifier": "ID métier Opérateur de Versement",
+    "Description": "Descriptions",
+    "Type": "Type",
+    "TransactedDate": "Date de transaction"
+}

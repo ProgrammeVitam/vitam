@@ -34,7 +34,8 @@ public class WorkspaceClientFactory {
     /**
      * Create workspace client with server URL
      *
-     * @param workspace server Url
+     * @param serviceUrl workspace server Url
+     * @return WorkspaceClient
      */
     public WorkspaceClient create(String serviceUrl) {
         return new WorkspaceClient(serviceUrl);

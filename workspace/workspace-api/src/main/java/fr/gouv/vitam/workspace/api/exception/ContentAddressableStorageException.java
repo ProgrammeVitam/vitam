@@ -39,7 +39,6 @@ public class ContentAddressableStorageException extends Exception {
 
     /**
      * @param message message to associate with the exception *
-     * @param message
      */
     public ContentAddressableStorageException(String message) {
         super(message);

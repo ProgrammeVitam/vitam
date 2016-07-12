@@ -2,7 +2,7 @@
  * Angular Material Design
  * https://github.com/angular/material
  * @license MIT
- * v1.1.0-rc4-master-c26842a
+ * v1.1.0-rc4-master-f9738f5
  */
 goog.provide('ng.material.components.slider');
 goog.require('ng.material.core');
@@ -78,19 +78,22 @@ function SliderContainerDirective() {
         var initialMaxWidth;
 
         ctrl.fitInputWidthToTextLength = function (length) {
-          var input = element.find('md-input-container');
-          var computedStyle = getComputedStyle(input[0]);
-          var minWidth = parseInt(computedStyle['min-width']);
-          var padding = parseInt(computedStyle['padding']) * 2;
-          initialMaxWidth = initialMaxWidth || parseInt(computedStyle['max-width']);
+          var input = element[0].querySelector('md-input-container');
 
-          var newMaxWidth = Math.max(initialMaxWidth, minWidth + padding + (minWidth / 2 * length));
+          if (input) {
+            var computedStyle = getComputedStyle(input);
+            var minWidth = parseInt(computedStyle.minWidth);
+            var padding = parseInt(computedStyle.padding) * 2;
 
-          input.css('max-width', newMaxWidth + 'px');
+            initialMaxWidth = initialMaxWidth || parseInt(computedStyle.maxWidth);
+            var newMaxWidth = Math.max(initialMaxWidth, minWidth + padding + (minWidth / 2 * length));
+
+            input.style.maxWidth = newMaxWidth + 'px';
+          }
         };
-      }
+      };
     }
-  }
+  };
 }
 
 /**
@@ -125,8 +128,14 @@ function SliderContainerDirective() {
  * <md-slider md-discrete ng-model="myDiscreteValue" step="10" min="10" max="130">
  * </md-slider>
  * </hljs>
+ * <h4>Invert Mode</h4>
+ * <hljs lang="html">
+ * <md-slider md-invert ng-model="myValue" step="10" min="10" max="130">
+ * </md-slider>
+ * </hljs>
  *
  * @param {boolean=} md-discrete Whether to enable discrete mode.
+ * @param {boolean=} md-invert Whether to enable invert mode.
  * @param {number=} step The distance between values the user is allowed to pick. Default 1.
  * @param {number=} min The minimum value the user is allowed to pick. Default 0.
  * @param {number=} max The maximum value the user is allowed to pick. Default 100.
@@ -211,6 +220,7 @@ function SliderDirective($$rAF, $window, $mdAria, $mdUtil, $mdConstant, $mdThemi
     var DEFAULT_ROUND = 3;
     var vertical = angular.isDefined(attr.mdVertical);
     var discrete = angular.isDefined(attr.mdDiscrete);
+    var invert = angular.isDefined(attr.mdInvert);
     angular.isDefined(attr.min) ? attr.$observe('min', updateMin) : updateMin(0);
     angular.isDefined(attr.max) ? attr.$observe('max', updateMax) : updateMax(100);
     angular.isDefined(attr.step)? attr.$observe('step', updateStep) : updateStep(1);
@@ -365,6 +375,7 @@ function SliderDirective($$rAF, $window, $mdAria, $mdUtil, $mdConstant, $mdThemi
       } else if (vertical ? ev.keyCode === $mdConstant.KEY_CODE.UP_ARROW : ev.keyCode === $mdConstant.KEY_CODE.RIGHT_ARROW) {
         changeAmount = step;
       }
+      changeAmount = invert ? -changeAmount : changeAmount;
       if (changeAmount) {
         if (ev.metaKey || ev.ctrlKey || ev.altKey) {
           changeAmount *= 4;
@@ -413,7 +424,7 @@ function SliderDirective($$rAF, $window, $mdAria, $mdUtil, $mdConstant, $mdThemi
 
       ngModelCtrl.$viewValue = minMaxValidator(ngModelCtrl.$viewValue);
 
-      var percent = (ngModelCtrl.$viewValue - min) / (max - min);
+      var percent = valueToPercent(ngModelCtrl.$viewValue);
       scope.modelValue = ngModelCtrl.$viewValue;
       element.attr('aria-valuenow', ngModelCtrl.$viewValue);
       setSliderPercent(percent);
@@ -452,12 +463,14 @@ function SliderDirective($$rAF, $window, $mdAria, $mdUtil, $mdConstant, $mdThemi
       percent = clamp(percent);
 
       var thumbPosition = (percent * 100) + '%';
+      var activeTrackPercent = invert ? (1 - percent) * 100 + '%' : thumbPosition;
 
       thumbContainer.css(vertical ? 'bottom' : 'left', thumbPosition);
-      activeTrack.css(vertical ? 'height' : 'width', thumbPosition);
+      
+      activeTrack.css(vertical ? 'height' : 'width', activeTrackPercent);
 
-      element.toggleClass('_md-min', percent === 0);
-      element.toggleClass('_md-max', percent === 1);
+      element.toggleClass((invert ? '_md-max' : '_md-min'), percent === 0);
+      element.toggleClass((invert ? '_md-min' : '_md-max'), percent === 1);
     }
 
     /**
@@ -567,11 +580,13 @@ function SliderDirective($$rAF, $window, $mdAria, $mdUtil, $mdConstant, $mdThemi
      * @returns {*}
      */
     function percentToValue( percent ) {
-      return (min + percent * (max - min));
+      var adjustedPercent = invert ? (1 - percent) : percent;
+      return (min + adjustedPercent * (max - min));
     }
 
     function valueToPercent( val ) {
-      return (val - min)/(max - min);
+      var percent = (val - min) / (max - min);
+      return invert ? (1 - percent) : percent;
     }
   }
 }

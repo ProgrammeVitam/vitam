@@ -23,9 +23,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.common.model;
 
-import java.util.List;
+import java.util.Map;
 
-// TODO REVIEW comment
+
+/**
+ * Model of Response from worker
+ */
 public interface EngineResponse {
 
     /**
@@ -43,6 +46,7 @@ public interface EngineResponse {
     /**
      *
      * @param status ENUM statusCode
+     * @return EngineResponse
      */
     public EngineResponse setStatus(StatusCode status);
 
@@ -50,7 +54,26 @@ public interface EngineResponse {
      *
      * @return list of functional error message
      */
-    public List<String> getMessages();
+    public Map<String, OutcomeMessage> getOutcomeMessages();
+
+    /**
+     * @param messages Outcome Messages of response
+     * @param handlerId handler name or id
+     * @return EngineResponse
+     */
+    EngineResponse setOutcomeMessages(String handlerId, OutcomeMessage messages);
+    
+    /**
+    *
+    * @return list of functional error message
+    */
+   public int getErrorNumber();
+
+   /**
+    * @param messages Detail Messages of response
+     * @return EngineResponse
+    */
+   EngineResponse setErrorNumber(int number);
 
     /**
      *
@@ -61,12 +84,7 @@ public interface EngineResponse {
     /**
      *
      * @param message identifier of seda
+     * @return EngineResponse
      */
     public EngineResponse setMessageIdentifier(String message);
-
-    /**
-     *
-     * @param messages list of functional error message
-     */
-    public EngineResponse setMessages(List<String> messages);
 }

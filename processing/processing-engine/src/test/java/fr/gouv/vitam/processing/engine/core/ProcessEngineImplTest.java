@@ -45,7 +45,8 @@ public class ProcessEngineImplTest {
     public void init() throws WorkflowNotFoundException {
         workParams =
             new WorkParams().setGuuid("dldmmdioeooelxmsddsjdkj").setServerConfiguration(new ServerConfiguration());
-        processEngine = new ProcessEngineImplFactory().create("workflowJSONv1");
+        processEngine = new ProcessEngineImplFactory().create();
+        processEngine.setWorkflow("workflowJSONv1");
     }
 
     @Test

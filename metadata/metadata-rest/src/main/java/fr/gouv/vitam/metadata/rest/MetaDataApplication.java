@@ -42,20 +42,25 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import fr.gouv.vitam.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.VitamServerFactory;
 
 /**
  * MetaData web server application
  */
 public class MetaDataApplication {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetaDataApplication.class);
-    private static final int DEFAULT_PORT = 8082;
 
     private static Server server;
     private MetaDataConfiguration configuration;
 
     private static final String CONFIG_FILE_IS_A_MANDATORY_ARGUMENT = "Config file is a mandatory argument";
 
-    // TODO: comment
+    /**
+     * Start a service of MetaData with the args as config
+     *
+     * @param args as String array
+     */
+
     public static void main(String[] args) {
         try {
             new MetaDataApplication().configure(args);
@@ -67,7 +72,13 @@ public class MetaDataApplication {
 
     }
 
-    // TODO: comment and probably protected
+
+    /**
+     * read the configured parameters of lauched server from the file
+     *
+     * @param arguments : name of configured file
+     * @throws Exception
+     */
     public void configure(String... arguments) throws Exception {
         // FIXME REVIEW define a real vitam config (see Logbook)
 
@@ -76,12 +87,12 @@ public class MetaDataApplication {
                 final FileReader yamlFile = new FileReader(new File(arguments[0]));
                 final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
                 configuration = mapper.readValue(yamlFile, MetaDataConfiguration.class);
-                int serverPort = DEFAULT_PORT;
+                int serverPort = VitamServerFactory.getDefaultPort();
 
                 if (arguments.length >= 2) {
                     serverPort = Integer.parseInt(arguments[1]);
                     if (serverPort <= 0) {
-                        serverPort = DEFAULT_PORT;
+                        serverPort = VitamServerFactory.getDefaultPort();
                     }
                 }
                 run(configuration, serverPort);
@@ -98,11 +109,18 @@ public class MetaDataApplication {
 
     }
 
-    // TODO: comment and probably protected
+    /**
+     * run a server instance with the configuration and port
+     *
+     * @param configuration as MetaDataConfiguration
+     * @param serverPort port number of launched server
+     * @throws Exception
+     */
+
     public static void run(MetaDataConfiguration configuration, int serverPort) throws Exception {
         final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(JacksonFeature.class);
-        resourceConfig.register(new UnitResource(configuration));
+        resourceConfig.register(new MetaDataResource(configuration));
 
         final ServletContainer servletContainer = new ServletContainer(resourceConfig);
         final ServletHolder sh = new ServletHolder(servletContainer);
@@ -112,6 +130,16 @@ public class MetaDataApplication {
         server = new Server(serverPort);
         server.setHandler(context);
         server.start();
+    }
+    
+    /**
+     * Stops the server
+     * @throws Exception
+     */
+    public static void stop() throws Exception {
+        if (server.isStarted()) {
+            server.stop();
+        }
     }
 
 }

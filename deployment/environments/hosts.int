@@ -11,9 +11,6 @@ hosts-ingest
 [hosts-ihm-demo]
 vitam-prod-app-15.internet.agri
 
-[hosts-ingest-web]
-vitam-prod-app-15.internet.agri
-
 [hosts-mongo-express]
 vitam-prod-app-15.internet.agri
 
@@ -37,9 +34,6 @@ vitam-prod-app-13.internet.agri
 
 [hosts-mongodb]
 vitam-prod-app-14.internet.agri
-
-[mongo-express]
-vitam-prod-app-15.internet.agri
 
 [hosts:vars]
 ansible_ssh_user=ansible

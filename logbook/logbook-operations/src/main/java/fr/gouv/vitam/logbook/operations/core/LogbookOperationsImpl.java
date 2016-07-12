@@ -31,8 +31,8 @@ import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.MongoCursor;
+
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.server.MongoDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
@@ -67,25 +67,24 @@ public class LogbookOperationsImpl implements LogbookOperations {
         throws LogbookNotFoundException, LogbookDatabaseException {
         mongoDbAccess.updateLogbookOperation(parameters);
     }
-    
+
     @Override
     public List<LogbookOperation> select(JsonNode select)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
-        String selectString = JsonHandler.writeAsString(select);
-        MongoCursor<LogbookOperation> logbook = mongoDbAccess.getLogbookOperations(selectString);
-        List<LogbookOperation> result = new ArrayList<LogbookOperation>();
-        if (!logbook.hasNext()){
+        final MongoCursor<LogbookOperation> logbook = mongoDbAccess.getLogbookOperations(select);
+        final List<LogbookOperation> result = new ArrayList<>();
+        if (logbook == null || !logbook.hasNext()) {
             throw new LogbookNotFoundException("Logbook entry not found");
         }
-        while (logbook.hasNext()){
+        while (logbook.hasNext()) {
             result.add(logbook.next());
         }
         return result;
     }
 
     @Override
-    public LogbookOperation getById(String idProcess) throws LogbookDatabaseException, LogbookNotFoundException { 
-        return  (LogbookOperation) mongoDbAccess.getLogbookOperation(idProcess);
+    public LogbookOperation getById(String idProcess) throws LogbookDatabaseException, LogbookNotFoundException {
+        return mongoDbAccess.getLogbookOperation(idProcess);
     }
 
 

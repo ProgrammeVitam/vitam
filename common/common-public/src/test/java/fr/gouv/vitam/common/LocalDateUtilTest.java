@@ -35,6 +35,7 @@ import java.nio.file.Files;
 import java.nio.file.attribute.FileTime;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 import org.junit.Assume;
@@ -128,7 +129,7 @@ public class LocalDateUtilTest {
     @Test
     public void checkConversion() throws IOException {
         final LocalDateTime ldt = LocalDateUtil.now();
-        assertEquals(ldt.toString(), LocalDateUtil.getString(ldt));
+        assertEquals(ldt.format(DateTimeFormatter.ISO_DATE_TIME), LocalDateUtil.getString(ldt));
         assertEquals(ldt, LocalDateUtil.fromDate(LocalDateUtil.getDate(ldt)));
         assertNotNull(LocalDateUtil.fromMillis(LocalDateUtil.getMillis(ldt)));
         assertNotNull(LocalDateUtil.getDate(ldt.toString()));

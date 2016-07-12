@@ -41,7 +41,7 @@ import org.junit.Test;
 public class LobookParametersFactoryTest {
 
     @Test
-    public void mandatorySetTest() {
+    public void mandatoryOperationSetTest() {
         final Set mandatoryToAdd = new TreeSet<>();
         mandatoryToAdd.add(LogbookParameterName.objectIdentifier);
         LogbookParameters logbookParameters = LogbookParametersFactory.newLogbookOperationParameters();
@@ -49,5 +49,27 @@ public class LobookParametersFactoryTest {
 
         logbookParameters = LogbookParametersFactory.newLogbookOperationParameters(mandatoryToAdd);
         assertTrue(logbookParameters.getMandatoriesParameters().contains(LogbookParameterName.objectIdentifier));
+    }
+
+    @Test
+    public void mandatoryLifeCycleObjectGroupSetTest() {
+        final Set mandatoryToAdd = new TreeSet<>();
+        mandatoryToAdd.add(LogbookParameterName.objectIdentifierIncome);
+        LogbookParameters logbookParameters = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
+        assertFalse(logbookParameters.getMandatoriesParameters().contains(LogbookParameterName.objectIdentifierIncome));
+
+        logbookParameters = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(mandatoryToAdd);
+        assertTrue(logbookParameters.getMandatoriesParameters().contains(LogbookParameterName.objectIdentifierIncome));
+    }
+
+    @Test
+    public void mandatoryLifeCycleUnitSetTest() {
+        final Set mandatoryToAdd = new TreeSet<>();
+        mandatoryToAdd.add(LogbookParameterName.objectIdentifierIncome);
+        LogbookParameters logbookParameters = LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
+        assertFalse(logbookParameters.getMandatoriesParameters().contains(LogbookParameterName.objectIdentifierIncome));
+
+        logbookParameters = LogbookParametersFactory.newLogbookLifeCycleUnitParameters(mandatoryToAdd);
+        assertTrue(logbookParameters.getMandatoriesParameters().contains(LogbookParameterName.objectIdentifierIncome));
     }
 }

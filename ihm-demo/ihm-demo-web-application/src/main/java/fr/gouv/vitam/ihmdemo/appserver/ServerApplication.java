@@ -32,6 +32,7 @@ import java.net.URL;
 
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
@@ -45,103 +46,109 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-
+import fr.gouv.vitam.common.server.VitamServerFactory;
 
 /**
  * Server application for ihm-demo
  */
 public class ServerApplication {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ServerApplication.class);
-    private static final int DEFAULT_PORT_START = 8082;
-    private static final String DEFAULT_WEB_APP_CONTEXT = "/vitam/ihm-demo/api";
-    private static final String DEFAULT_STATIC_CONTENT = "webapp";
-    private static Server server;
+	private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ServerApplication.class);
+	private static final String DEFAULT_WEB_APP_CONTEXT = "/ihm-demo";
+	private static final String DEFAULT_STATIC_CONTENT = "webapp";
+	private static final String DEFAULT_HOST = "localhost";
+	private static Server server;
 
-    /**
-     * Start a service of IHM Web Application with the args as config
-     *
-     * @param args as String
-     */
-    public static void main(String[] args) throws URISyntaxException {
-        try {
-            String configFile = args.length >= 1 ? args[0] : null;
-            new ServerApplication().configure(configFile);
-            server.join();
-        } catch (final Exception e) {
-            LOGGER.error("Can not start ihm server ", e);
-            System.exit(1);
-        }
-    }
+	/**
+	 * Start a service of IHM Web Application with the args as config
+	 *
+	 * @param args
+	 *            as String
+	 */
+	public static void main(String[] args) throws URISyntaxException {
+		try {
+			final String configFile = args.length >= 1 ? args[0] : null;
+			new ServerApplication().configure(configFile);
+			server.join();
+		} catch (final Exception e) {
+			LOGGER.error("Can not start ihm server ", e);
+			System.exit(1);
+		}
+	}
 
-    protected void configure(String configFile) throws Exception {
-        try {
+	protected void configure(String configFile) throws Exception {
+		try {
 
-            WebApplicationConfig configuration = new WebApplicationConfig();
-            
-            if (configFile != null) {
-                // Get configuration parameters from Configuration File
-                final FileReader yamlFile = new FileReader(configFile);
-                final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-                configuration = mapper.readValue(yamlFile, WebApplicationConfig.class);
-            } else {
-                // Set default parameters
-                configuration.setDefaultContext(DEFAULT_WEB_APP_CONTEXT);
-                configuration.setPort(DEFAULT_PORT_START);
-                configuration.setVirtualHosts(new String[] {});
-                configuration.setStaticContent(DEFAULT_STATIC_CONTENT);
-            }
+			WebApplicationConfig configuration = new WebApplicationConfig();
 
-            run(configuration);
+			if (configFile != null) {
+				// Get configuration parameters from Configuration File
+				final FileReader yamlFile = new FileReader(configFile);
+				final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+				configuration = mapper.readValue(yamlFile, WebApplicationConfig.class);
+			} else {
+				// Set default parameters
+				configuration.setBaseUrl(DEFAULT_WEB_APP_CONTEXT);
+				configuration.setPort(VitamServerFactory.getDefaultPort());
+				configuration.setServerHost(DEFAULT_HOST);
+				configuration.setStaticContent(DEFAULT_STATIC_CONTENT);
+			}
 
-        } catch (final Exception e) {
-            LOGGER.error("Can not config ihm server ", e);
-            throw e;
-        }
-    }
+			run(configuration);
 
-    /**
-     * run a server instance with the configuration
-     * 
-     * @param configuration as WebApplicationConfig
-     * @throws Exception
-     */
-    public static void run(WebApplicationConfig configuration) throws Exception {
-        server = new Server(configuration.getPort());
-        // Servlet Container (REST resource)
-        final ResourceConfig resourceConfig = new ResourceConfig();
-        resourceConfig.register(new WebApplicationResource());
-        final ServletContainer servletContainer = new ServletContainer(resourceConfig);
-        ServletHolder restResourceHolder = new ServletHolder(servletContainer);
+		} catch (final Exception e) {
+			LOGGER.error("Can not config ihm server ", e);
+			throw e;
+		}
+	}
 
-        final ServletContextHandler restResourceContext = new ServletContextHandler(ServletContextHandler.SESSIONS);
-        restResourceContext.setContextPath(configuration.getDefaultContext());
-        restResourceContext.setVirtualHosts(configuration.getVirtualHosts());
-        restResourceContext.addServlet(restResourceHolder, "/*");
+	/**
+	 * run a server instance with the configuration
+	 *
+	 * @param configuration
+	 *            as WebApplicationConfig
+	 * @throws Exception
+	 */
+	public static void run(WebApplicationConfig configuration) throws Exception {
+		server = new Server(configuration.getPort());
+		// Servlet Container (REST resource)
+		final ResourceConfig resourceConfig = new ResourceConfig();
+		resourceConfig.register(new WebApplicationResource());
+		final ServletContainer servletContainer = new ServletContainer(resourceConfig);
+		final ServletHolder restResourceHolder = new ServletHolder(servletContainer);
 
-        // Static Content
-        final ResourceHandler staticContentHandler = new ResourceHandler();
-        staticContentHandler.setDirectoriesListed(true);
-        staticContentHandler.setWelcomeFiles(new String[] {"index.html"});
-        final URL webAppDir = Thread.currentThread().getContextClassLoader()
-            .getResource(configuration.getStaticContent());
-        staticContentHandler.setResourceBase(webAppDir.toURI().toString());
+		final ServletContextHandler restResourceContext = new ServletContextHandler(ServletContextHandler.SESSIONS);
+		restResourceContext.setContextPath(configuration.getBaseUrl());
+		restResourceContext.setVirtualHosts(new String[] { configuration.getServerHost() });
+		restResourceContext.addServlet(restResourceHolder, "/*");
 
-        // Set Handlers (Static content and REST API)
-        HandlerList handlerList = new HandlerList();
-        handlerList.setHandlers(new Handler[] {staticContentHandler, restResourceContext, new DefaultHandler()});
+		// Static Content
+		final ResourceHandler staticContentHandler = new ResourceHandler();
+		staticContentHandler.setDirectoriesListed(true);
+		staticContentHandler.setWelcomeFiles(new String[] { "index.html" });
+		final URL webAppDir = Thread.currentThread().getContextClassLoader()
+				.getResource(configuration.getStaticContent());
+		staticContentHandler.setResourceBase(webAppDir.toURI().toString());
+		
+		//wrap to context handler
+		ContextHandler staticContext = new ContextHandler("/ihm-demo"); /* the server uri path */
+		staticContext.setHandler(staticContentHandler);
 
-        server.setHandler(handlerList);
-        server.start();
-    }
+		// Set Handlers (Static content and REST API)
+		final HandlerList handlerList = new HandlerList();
+		handlerList.setHandlers(new Handler[] { staticContext, restResourceContext, new DefaultHandler() });
 
-    /**
-     * stop a workspace server
-     *
-     * @throws Exception
-     */
-    public void stop() throws Exception {
-        server.stop();
-    }
+		server.setHandler(handlerList);
+		server.start();
+	}
+
+	/**
+	 * stop a workspace server
+	 *
+	 * @throws Exception
+	 */
+	public static void stop() throws Exception {
+		server.stop();
+	}
 
 }
