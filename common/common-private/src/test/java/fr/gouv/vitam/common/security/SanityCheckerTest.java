@@ -37,6 +37,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -56,6 +57,10 @@ public class SanityCheckerTest {
     
     private String JSON_TEST_FILE = "json";
     private String JSON_TEST_FILE2 = "json_good_sanity";
+    private final double limitFileSize = SanityChecker.getLimitFileSize();
+    private final int limitValueTagSize = SanityChecker.getLimitValueTagSize();
+    private final int limitJsonSize = SanityChecker.getLimitJsonSize();
+    
 
     @Before
     public void setUp() throws FileNotFoundException {
@@ -63,18 +68,24 @@ public class SanityCheckerTest {
         fileOK = PropertiesUtils.findFile(pathXMLOK); 
         fileKO = PropertiesUtils.findFile(pathXMLKO);
     }
+    
+    @After
+    public void tearDown() {
+        SanityChecker.setLimitJsonSize(limitJsonSize);
+        SanityChecker.setLimitFileSize(limitFileSize);
+        SanityChecker.setLimitValueTagSize(limitValueTagSize);
+    }
 
     @Test(expected = IOException.class)
     public void checkXMLFileSize() throws IOException {
-        SanityChecker.limitFileSize = 100;
+        SanityChecker.setLimitFileSize(100);
         SanityChecker.checkXMLSanityFileSize(fileOK);
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void checkXMLTagSize() throws IOException, InvalidParseOperationException {
-        SanityChecker.limitValueTagSize = 100;
+        SanityChecker.setLimitValueTagSize(100);
         SanityChecker.checkXMLSanityTagValueSize(fileKO);
-        SanityChecker.limitValueTagSize = 1000;
     }
 
     @Test(expected = InvalidParseOperationException.class)
@@ -104,11 +115,9 @@ public class SanityCheckerTest {
     @Test()
     public void givenJsonWhenGoodSanityThenReturnTrue() 
         throws FileNotFoundException, InvalidParseOperationException{
-        SanityChecker.limitJsonSize = 100;
+        SanityChecker.setLimitJsonSize(100);
         File file = PropertiesUtils.findFile(JSON_TEST_FILE2); 
         JsonNode json = JsonHandler.getFromFile(file);        
         assertFalse(SanityChecker.checkJsonAll(json));
-        SanityChecker.limitJsonSize = 1000;
-        assertTrue(SanityChecker.checkJsonAll(json));
     }
 }

@@ -66,14 +66,8 @@ public class SanityChecker {
     // TODO : issue with public static which is not final
     // defaut parameters for XML check
     
-    /*µ
-     * max size of xml tag value 
-     */
-    public static int limitValueTagSize = 1000000;
-    /**
-     *  max size of xml file 
-     */
-    public static double limitFileSize = 1000000000;
+    private static int limitValueTagSize = 1000000;
+    private static double limitFileSize = 1000000000;
     private static final String CDATA_TAG_UNESCAPED = "<![CDATA[";
     private static final String CDATA_TAG_ESCAPED = "&lt;![CDATA[";
     private static final String ENTITY_TAG_UNESCAPED = "<!ENTITY";
@@ -99,12 +93,54 @@ public class SanityChecker {
     /**
      *  max size of json value field  
      */
-    public static final int limitSize = 100;
+    private static final int limitSize = 100;
 
     /**
      * max size of json  
      */
-    public static int limitJsonSize = 1000000000;
+    private static int limitJsonSize = 1000000000;
+
+    /**
+     * @return limitValueTagSize
+     */
+    public static int getLimitValueTagSize() {
+        return limitValueTagSize;
+    }
+
+    /**
+     * @param limitValueTagSize limit of tag size
+     */
+    public static void setLimitValueTagSize(int limitValueTagSize) {
+        SanityChecker.limitValueTagSize = limitValueTagSize;
+    }
+
+    /**
+     * @return limitFileSize
+     */
+    public static double getLimitFileSize() {
+        return limitFileSize;
+    }
+
+    /**
+     * @param limitFileSize limit of file size
+     */
+    public static void setLimitFileSize(double limitFileSize) {
+        SanityChecker.limitFileSize = limitFileSize;
+    }
+
+    /**
+     * @return limitJsonSize
+     */
+    public static int getLimitJsonSize() {
+        return limitJsonSize;
+    }
+
+    /**
+     * @param limitJsonSize limit of json size
+     */
+    public static void setLimitJsonSize(int limitJsonSize) {
+        SanityChecker.limitJsonSize = limitJsonSize;
+    }
 
     /**
      * checkXMLSanityTagValueSize

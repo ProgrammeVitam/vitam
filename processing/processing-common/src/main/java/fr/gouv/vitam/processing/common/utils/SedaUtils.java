@@ -1482,7 +1482,7 @@ public class SedaUtils {
             final String digestMessageManifest = binaryObjectMap.get(mapKey).getMessageDigest();
             final DigestType algo = binaryObjectMap.get(mapKey).getAlgo();
             final String digestMessage = client.computeObjectDigest(containerId, SEDA_FOLDER + "/" + uri, algo);
-            if (digestMessage != digestMessageManifest) {
+            if (!digestMessage.equals(digestMessageManifest)) {
                 LOGGER.info("Binary object Digest Message Invalid : " + uri);
                 digestMessageInvalidList.add(digestMessageManifest);
 
