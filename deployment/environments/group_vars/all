@@ -41,7 +41,7 @@ vitam_processing_port: 8203
 vitam_processing_baseurl: "http://{{vitam_processing_host}}:{{vitam_processing_port}}"
 
 
-vitam_mongodb_host: vitam-prod-app-14.internet.agri
+vitam_mongodb_host: "{{ groups['hosts-mongodb'][0] }}"
 vitam_mongodb_port: 27017
 
 
