@@ -32,15 +32,6 @@
     },
     {
     "workerGroupId" :"DefaultWorker",
-        "stepName":"Check Digest Message",
-        "distribution" : {
-        	"kind":"REF",
-        	"element" : "SIP/manifest.xml"
-        	},
-        "actions":[{"action":"CheckConformity"}]
-    },
-    {
-    "workerGroupId" :"DefaultWorker",
         "stepName":"Extract Unit and ObjectGroup",
         "distribution" : {
         	"kind":"REF",
@@ -67,6 +58,15 @@
         	},
         "actions":[{"action":"IndexObjectGroup"}]
        
+    },
+    {
+    "workerGroupId" :"DefaultWorker",
+        "stepName":"Check Digest Message",
+        "distribution" : {
+        	"kind":"REF",
+        	"element" : "SIP/manifest.xml"
+        	},
+        "actions":[{"action":"CheckConformity"}]
     }
     ]
 }

@@ -29,9 +29,10 @@ package fr.gouv.vitam.processing.worker.handler;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
-import fr.gouv.vitam.processing.common.model.OutcomeMessage;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.model.WorkParams;
@@ -45,11 +46,14 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IndexObjectGroupActionHandler.class);
     private static final String HANDLER_ID = "IndexObjectGroup";
     private final SedaUtilsFactory sedaUtilsFactory;
+    private LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters = LogbookParametersFactory
+        .newLogbookLifeCycleObjectGroupParameters();
+
 
     /**
      * Constructor with parameter SedaUtilsFactory
      *
-     * @param factory SedaUtils factory
+     * @param factory
      */
     public IndexObjectGroupActionHandler(SedaUtilsFactory factory) {
         sedaUtilsFactory = factory;
@@ -62,19 +66,27 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
         return HANDLER_ID;
     }
 
+
     @Override
     public EngineResponse execute(WorkParams params) {
         ParametersChecker.checkParameter("params is a mandatory parameter", params);
         ParametersChecker.checkParameter("ServerConfiguration is a mandatory parameter",
             params.getServerConfiguration());
         LOGGER.info("IndexObjectGroupActionHandler running ...");
-        final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID, OutcomeMessage.INDEX_OBJECT_GROUP_OK);
+        final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK);
         final SedaUtils sedaUtils = sedaUtilsFactory.create();
 
         try {
+            sedaUtils.updateLifeCycleByStep(logbookLifecycleObjectGroupParameters, params);
             sedaUtils.indexObjectGroup(params);
         } catch (final ProcessingException e) {
-            response.setStatus(StatusCode.FATAL).setOutcomeMessages(HANDLER_ID, OutcomeMessage.INDEX_OBJECT_GROUP_KO);
+            response.setStatus(StatusCode.FATAL);
+        }
+        // Update lifeCycle
+        try {
+            sedaUtils.setLifeCycleFinalEventStatusByStep(logbookLifecycleObjectGroupParameters, response.getStatus());
+        } catch (ProcessingException e) {
+            response.setStatus(StatusCode.WARNING);
         }
 
         LOGGER.info("IndexObjectGroupActionHandler response: " + response.getStatus().value());

@@ -54,6 +54,7 @@ import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
+import org.apache.commons.io.FilenameUtils;
 import org.xml.sax.SAXException;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -71,6 +72,7 @@ import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.builder.request.construct.Insert;
 import fr.gouv.vitam.client.MetaDataClient;
 import fr.gouv.vitam.client.MetaDataClientFactory;
+import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.digest.DigestType;
@@ -79,7 +81,20 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCycleClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.model.WorkParams;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -94,6 +109,9 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 public class SedaUtils {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SedaUtils.class);
+    private static final LogbookLifeCycleClient LOGBOOK_LIFECYCLE_CLIENT = LogbookLifeCyclesClientFactory.getInstance()
+        .getLogbookLifeCyclesClient();
+
     private static String File_CONF = "version.conf";
     private static final String NAMESPACE_URI = "fr:gouv:culture:archivesdefrance:seda:v2.0";
     private static final String SEDA_FILE = "manifest.xml";
@@ -120,6 +138,15 @@ public class SedaUtils {
     private static final String TAG_CONTENT = "Content";
     private static final String TAG_MANAGEMENT = "Management";
     private static final String TAG_OG = "_og";
+    private static final String LIFE_CYCLE_EVENT_TYPE_PROCESS = "INGEST";
+    private static final String UNIT_LIFE_CYCLE_CREATION_EVENT_TYPE = "CREATE_LF_UNIT";
+    private static final String OG_LIFE_CYCLE_CREATION_EVENT_TYPE = "CREATE_LF_OG";
+    private static final String OG_LIFE_CYCLE_CHECK_BDO_EVENT_TYPE = "CHECK_BDO";
+    private static final String LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG = "LogbookClient Unsupported request";
+    private static final String LOGBOOK_LF_OBJECT_EXISTS_EXCEPTION_MSG = "LifeCycle Object already exists";
+    private static final String LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG = "Logbook LifeCycle resource not found";
+    private static final String LOGBOOK_SERVER_INTERNAL_EXCEPTION_MSG = "Logbook Server internal error";
+    private static final String LOGBOOK_LF_MAPS_PARSING_EXCEPTION_MSG = "Parse Object Groups/BDO Maps error";
 
     private final Map<String, String> binaryDataObjectIdToGuid;
     private final Map<String, String> objectGroupIdToGuid;
@@ -133,6 +160,12 @@ public class SedaUtils {
     private final WorkspaceClientFactory workspaceClientFactory;
     private final MetaDataClientFactory metaDataClientFactory;
 
+    private final Map<String, LogbookParameters> guidToLifeCycleParameters;
+
+    // Messages for duplicate Uri from SEDA
+    private static final String MSG_DUPLICATE_URI_MANIFEST = "Présence d'un URI en doublon dans le bordereau: ";
+
+
     protected SedaUtils(WorkspaceClientFactory workspaceFactory, MetaDataClientFactory metaDataFactory) {
         ParametersChecker.checkParameter("workspaceFactory is a mandatory parameter", workspaceFactory);
         binaryDataObjectIdToGuid = new HashMap<String, String>();
@@ -144,6 +177,7 @@ public class SedaUtils {
         unitIdToGroupId = new HashMap<String, String>();
         workspaceClientFactory = workspaceFactory;
         metaDataClientFactory = metaDataFactory;
+        guidToLifeCycleParameters = new HashMap<String, LogbookParameters>();
     }
 
     protected SedaUtils() {
@@ -191,7 +225,6 @@ public class SedaUtils {
     public Map<String, String> getUnitIdToGroupId() {
         return unitIdToGroupId;
     }
-
 
     /**
      * Split Element from InputStream and write it to workspace
@@ -281,9 +314,20 @@ public class SedaUtils {
                 if (event.isStartElement()) {
                     final StartElement element = event.asStartElement();
                     if (element.getName().equals(unitName)) {
-                        writeArchiveUnitToWorkspace(client, containerId, reader, element);
+                        String unitGuid = writeArchiveUnitToWorkspace(client, containerId, reader, element);
+
+                        if (guidToLifeCycleParameters.get(unitGuid) != null) {
+                            guidToLifeCycleParameters.get(unitGuid).setStatus(LogbookOutcome.OK);
+                            LOGBOOK_LIFECYCLE_CLIENT.update(guidToLifeCycleParameters.get(unitGuid));
+                        }
+
                     } else if (element.getName().equals(dataObjectName)) {
-                        writeBinaryDataObjectInLocal(reader, element);
+                        String objectGroupGuid = writeBinaryDataObjectInLocal(reader, element, containerId);
+
+                        if (guidToLifeCycleParameters.get(objectGroupGuid) != null) {
+                            guidToLifeCycleParameters.get(objectGroupGuid).setStatus(LogbookOutcome.OK);
+                            LOGBOOK_LIFECYCLE_CLIENT.update(guidToLifeCycleParameters.get(objectGroupGuid));
+                        }
                     }
                 }
                 if (event.isEndDocument()) {
@@ -296,11 +340,20 @@ public class SedaUtils {
         } catch (final XMLStreamException e) {
             LOGGER.error("Can not read SEDA");
             throw new ProcessingException(e);
+        } catch (LogbookClientBadRequestException e) {
+            LOGGER.error(LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG, e);
+            throw new ProcessingException(e);
+        } catch (LogbookClientNotFoundException e) {
+            LOGGER.error(LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG, e);
+            throw new ProcessingException(e);
+        } catch (LogbookClientServerException e) {
+            LOGGER.error(LOGBOOK_SERVER_INTERNAL_EXCEPTION_MSG, e);
+            throw new ProcessingException(e);
         }
     }
 
-    private File extractArchiveUnitToLocalFile(String elementGuid, XMLEventReader reader,
-        StartElement startElement) throws ProcessingException {
+    private File extractArchiveUnitToLocalFile(String elementGuid, XMLEventReader reader, StartElement startElement)
+        throws ProcessingException {
 
         final XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
         final XMLEventFactory eventFactory = XMLEventFactory.newInstance();
@@ -380,7 +433,134 @@ public class SedaUtils {
         return tmpFile;
     }
 
-    private void writeArchiveUnitToWorkspace(WorkspaceClient client, String containerId, XMLEventReader reader,
+    private LogbookParameters initLogbookLifeCycleParameters(String guid, boolean isArchive, boolean isObjectGroup) {
+        LogbookParameters logbookLifeCycleParameters = guidToLifeCycleParameters.get(guid);
+        if (logbookLifeCycleParameters == null) {
+            logbookLifeCycleParameters = isArchive ? LogbookParametersFactory.newLogbookLifeCycleUnitParameters()
+                : (isObjectGroup ? LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters()
+                    : LogbookParametersFactory.newLogbookOperationParameters());
+
+            logbookLifeCycleParameters.putParameterValue(LogbookParameterName.objectIdentifier, guid);
+        }
+        return logbookLifeCycleParameters;
+    }
+
+    private void createObjectGroupLifeCycle(String groupGuid, String containerId)
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
+        LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters =
+            (LogbookLifeCycleObjectGroupParameters) initLogbookLifeCycleParameters(
+                groupGuid, false, true);
+
+        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
+            containerId);
+        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier,
+            GUIDFactory.newGUID().toString());
+        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventTypeProcess,
+            LIFE_CYCLE_EVENT_TYPE_PROCESS);
+        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventType,
+            OG_LIFE_CYCLE_CREATION_EVENT_TYPE);
+        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcome,
+            LogbookOutcome.STARTED.toString());
+        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
+            LogbookOutcome.STARTED.toString());
+        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+            LogbookOutcome.STARTED.toString());
+        LOGBOOK_LIFECYCLE_CLIENT.create(logbookLifecycleObjectGroupParameters);
+
+        // Update guidToLifeCycleParameters
+        guidToLifeCycleParameters.put(groupGuid, logbookLifecycleObjectGroupParameters);
+    }
+
+    private void createUnitLifeCycle(String unitGuid, String containerId)
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
+        LogbookLifeCycleUnitParameters logbookLifecycleUnitParameters =
+            (LogbookLifeCycleUnitParameters) initLogbookLifeCycleParameters(
+                unitGuid, true, false);
+
+        logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess, containerId);
+        logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventIdentifier,
+            GUIDFactory.newGUID().toString());
+        logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventTypeProcess,
+            LIFE_CYCLE_EVENT_TYPE_PROCESS);
+        logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventType,
+            UNIT_LIFE_CYCLE_CREATION_EVENT_TYPE);
+        logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.outcome,
+            LogbookOutcome.STARTED.toString());
+        logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.outcomeDetail,
+            LogbookOutcome.STARTED.toString());
+        logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+            LogbookOutcome.STARTED.toString());
+        LOGBOOK_LIFECYCLE_CLIENT.create(logbookLifecycleUnitParameters);
+
+        // Update guidToLifeCycleParameters
+        guidToLifeCycleParameters.put(unitGuid, logbookLifecycleUnitParameters);
+    }
+
+    /**
+     * @param unitGuid
+     * @param containerId
+     * @param stepName
+     * @return
+     * @throws ProcessingException
+     */
+    public void updateLifeCycleByStep(LogbookParameters logbookLifecycleParameters, WorkParams params)
+        throws ProcessingException {
+
+        try {
+            String extension = FilenameUtils.getExtension(params.getObjectName());
+            logbookLifecycleParameters.putParameterValue(LogbookParameterName.objectIdentifier,
+                params.getObjectName().replace("." + extension, ""));
+            logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
+                params.getContainerName());
+            logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventIdentifier,
+                GUIDFactory.newGUID().toString());
+            logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventTypeProcess,
+                LIFE_CYCLE_EVENT_TYPE_PROCESS);
+            logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventType, params.getCurrentStep());
+            logbookLifecycleParameters.putParameterValue(LogbookParameterName.outcome,
+                LogbookOutcome.STARTED.toString());
+            logbookLifecycleParameters.putParameterValue(LogbookParameterName.outcomeDetail,
+                LogbookOutcome.STARTED.toString());
+            logbookLifecycleParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                LogbookOutcome.STARTED.toString());
+
+            LOGBOOK_LIFECYCLE_CLIENT.update(logbookLifecycleParameters);
+        } catch (LogbookClientBadRequestException e) {
+            LOGGER.error(LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG, e);
+            throw new ProcessingException(e);
+        } catch (LogbookClientServerException e) {
+            LOGGER.error(LOGBOOK_SERVER_INTERNAL_EXCEPTION_MSG, e);
+            throw new ProcessingException(e);
+        } catch (LogbookClientNotFoundException e) {
+            LOGGER.error(LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG, e);
+            throw new ProcessingException(e);
+        }
+    }
+
+    /**
+     * @param logbookLifecycleUnitParameters
+     * @param stepStatus
+     * @throws ProcessingException
+     */
+    public void setLifeCycleFinalEventStatusByStep(LogbookParameters logbookLifecycleParameters, StatusCode stepStatus)
+        throws ProcessingException {
+
+        try {
+            logbookLifecycleParameters.putParameterValue(LogbookParameterName.outcome, stepStatus.toString());
+            LOGBOOK_LIFECYCLE_CLIENT.update(logbookLifecycleParameters);
+        } catch (LogbookClientBadRequestException e) {
+            LOGGER.error(LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG, e);
+            throw new ProcessingException(e);
+        } catch (LogbookClientServerException e) {
+            LOGGER.error(LOGBOOK_SERVER_INTERNAL_EXCEPTION_MSG, e);
+            throw new ProcessingException(e);
+        } catch (LogbookClientNotFoundException e) {
+            LOGGER.error(LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG, e);
+            throw new ProcessingException(e);
+        }
+    }
+
+    private String writeArchiveUnitToWorkspace(WorkspaceClient client, String containerId, XMLEventReader reader,
         StartElement startElement) throws ProcessingException {
         final String elementGuid = GUIDFactory.newGUID().toString();
 
@@ -389,6 +569,10 @@ public class SedaUtils {
             if (tmpFile != null) {
                 client.putObject(containerId, ARCHIVE_UNIT_FOLDER + "/" + elementGuid + XML_EXTENSION,
                     new FileInputStream(tmpFile));
+
+                // Create Archive Unit LifeCycle
+                createUnitLifeCycle(elementGuid, containerId);
+
                 if (!tmpFile.delete()) {
                     LOGGER.warn("File could not be deleted");
                 }
@@ -402,7 +586,18 @@ public class SedaUtils {
         } catch (final ContentAddressableStorageServerException e) {
             LOGGER.error("Can not write to workspace ", e);
             throw new ProcessingException(e);
+        } catch (LogbookClientBadRequestException e) {
+            LOGGER.error(LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG, e);
+            throw new ProcessingException(e);
+        } catch (LogbookClientAlreadyExistsException e) {
+            LOGGER.error(LOGBOOK_LF_OBJECT_EXISTS_EXCEPTION_MSG, e);
+            throw new ProcessingException(e);
+        } catch (LogbookClientServerException e) {
+            LOGGER.error(LOGBOOK_SERVER_INTERNAL_EXCEPTION_MSG, e);
+            throw new ProcessingException(e);
         }
+
+        return elementGuid;
     }
 
     private void checkArchiveUnitIdReference() throws ProcessingException {
@@ -416,12 +611,13 @@ public class SedaUtils {
         }
     }
 
-    private void writeBinaryDataObjectInLocal(XMLEventReader reader,
-        StartElement startElement) throws ProcessingException {
+    private String writeBinaryDataObjectInLocal(XMLEventReader reader, StartElement startElement, String containerId)
+        throws ProcessingException {
         final String elementGuid = GUIDFactory.newGUID().toString();
         final File tmpFile = PropertiesUtils.fileFromTmpFolder(elementGuid + ".json");
         final XMLEventFactory eventFactory = XMLEventFactory.newInstance();
         final JsonXMLConfig config = new JsonXMLConfigBuilder().build();
+        String groupGuid = null;
         try {
             final FileWriter tmpFileWriter = new FileWriter(tmpFile);
 
@@ -454,10 +650,13 @@ public class SedaUtils {
                 if (event.isStartElement()) {
                     final String localPart = event.asStartElement().getName().getLocalPart();
                     if (localPart == DATA_OBJECT_GROUPID) {
-                        final String groupGuid = GUIDFactory.newGUID().toString();
+                        groupGuid = GUIDFactory.newGUID().toString();
                         final String groupId = reader.getElementText();
                         binaryDataObjectIdToObjectGroupId.put(binaryOjectId, groupId);
                         objectGroupIdToGuid.put(groupId, groupGuid);
+
+                        // Create OG lifeCycle
+                        createObjectGroupLifeCycle(groupGuid, containerId);
 
                         final List<String> binaryOjectList = new ArrayList<String>();
                         binaryOjectList.add(binaryOjectId);
@@ -498,7 +697,18 @@ public class SedaUtils {
         } catch (final IOException e) {
             LOGGER.debug("Closing stream error");
             throw new ProcessingException(e);
+        } catch (LogbookClientBadRequestException e) {
+            LOGGER.error(LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG, e);
+            throw new ProcessingException(e);
+        } catch (LogbookClientAlreadyExistsException e) {
+            LOGGER.error(LOGBOOK_LF_OBJECT_EXISTS_EXCEPTION_MSG, e);
+            throw new ProcessingException(e);
+        } catch (LogbookClientServerException e) {
+            LOGGER.error(LOGBOOK_SERVER_INTERNAL_EXCEPTION_MSG, e);
+            throw new ProcessingException(e);
         }
+
+        return groupGuid;
 
     }
 
@@ -512,9 +722,31 @@ public class SedaUtils {
         }
     }
 
+    private void saveObjectGroupBdoMaps() throws IOException {
+        // Save objectGroupIdToGuid and objectGroupIdToGuid
+        final File firstMapTmpFile = PropertiesUtils.fileFromTmpFolder("BdoToObjectGroupId.txt");
+        final FileWriter firstMapTmpFileWriter = new FileWriter(firstMapTmpFile);
+        firstMapTmpFileWriter.write(binaryDataObjectIdToObjectGroupId.toString());
+        firstMapTmpFileWriter.flush();
+        firstMapTmpFileWriter.close();
+        final File secondMapTmpFile = PropertiesUtils.fileFromTmpFolder("objectGroupIdToGuid.txt");
+        final FileWriter secondMapTmpFileWriter = new FileWriter(secondMapTmpFile);
+        secondMapTmpFileWriter.write(objectGroupIdToGuid.toString());
+        secondMapTmpFileWriter.flush();
+        secondMapTmpFileWriter.close();
+    }
+
     private void saveObjectGroupsToWorkspace(WorkspaceClient client, String containerId) throws ProcessingException {
 
         completeBinaryObjectToObjectGroupMap();
+
+        // Save maps
+        try {
+            saveObjectGroupBdoMaps();
+        } catch (IOException e1) {
+            LOGGER.error("Can not write to tmp folder ", e1);
+            throw new ProcessingException(e1);
+        }
 
         for (final Entry<String, List<String>> entry : objectGroupIdToBinaryDataObjectId.entrySet()) {
             final ObjectNode objectGroup = JsonHandler.createObjectNode();
@@ -530,11 +762,9 @@ public class SedaUtils {
                 objectGroup.put("_id", objectGroupGuid);
                 objectGroup.put("_tenantId", 0);
                 for (final String id : entry.getValue()) {
-                    final File binaryObjectFile =
-                        PropertiesUtils.fileFromTmpFolder(binaryDataObjectIdToGuid.get(id) + JSON_EXTENSION);
-                    final JsonNode binaryNode = JsonHandler
-                        .getFromFile(binaryObjectFile)
-                        .get("BinaryDataObject");
+                    final File binaryObjectFile = PropertiesUtils
+                        .fileFromTmpFolder(binaryDataObjectIdToGuid.get(id) + JSON_EXTENSION);
+                    final JsonNode binaryNode = JsonHandler.getFromFile(binaryObjectFile).get("BinaryDataObject");
                     final String nodeCategory = binaryNode.get("DataObjectVersion").asText();
                     ArrayList<JsonNode> nodeCategoryArray = categoryMap.get(nodeCategory);
                     if (nodeCategoryArray == null) {
@@ -571,6 +801,16 @@ public class SedaUtils {
                 if (!tmpFile.delete()) {
                     LOGGER.warn("File could not be deleted");
                 }
+
+                // Create unreferenced object group
+                if (guidToLifeCycleParameters.get(objectGroupGuid) == null) {
+                    createObjectGroupLifeCycle(objectGroupGuid, containerId);
+                }
+
+                // Update Object Group lifeCycle creation event
+                guidToLifeCycleParameters.get(objectGroupGuid).setStatus(LogbookOutcome.OK);
+                LOGBOOK_LIFECYCLE_CLIENT.update(guidToLifeCycleParameters.get(objectGroupGuid));
+
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error("Can not parse ObjectGroup", e);
                 throw new ProcessingException(e);
@@ -579,6 +819,18 @@ public class SedaUtils {
                 throw new ProcessingException(e);
             } catch (final ContentAddressableStorageServerException e) {
                 LOGGER.error("Workspace exception ", e);
+                throw new ProcessingException(e);
+            } catch (LogbookClientBadRequestException e) {
+                LOGGER.error(LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG, e);
+                throw new ProcessingException(e);
+            } catch (LogbookClientAlreadyExistsException e) {
+                LOGGER.error(LOGBOOK_LF_OBJECT_EXISTS_EXCEPTION_MSG, e);
+                throw new ProcessingException(e);
+            } catch (LogbookClientServerException e) {
+                LOGGER.error(LOGBOOK_SERVER_INTERNAL_EXCEPTION_MSG, e);
+                throw new ProcessingException(e);
+            } catch (LogbookClientNotFoundException e) {
+                LOGGER.error(LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG, e);
                 throw new ProcessingException(e);
             }
         }
@@ -637,7 +889,6 @@ public class SedaUtils {
         return manifest;
     }
 
-
     /**
      * @param params work parameters
      * @throws ProcessingException when error in execution
@@ -650,10 +901,10 @@ public class SedaUtils {
         ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
         ParametersChecker.checkParameter("ObjectName id is a mandatory parameter", objectName);
 
-        final WorkspaceClient workspaceClient =
-            workspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
-        final MetaDataClient metadataClient =
-            metaDataClientFactory.create(params.getServerConfiguration().getUrlMetada());
+        final WorkspaceClient workspaceClient = workspaceClientFactory
+            .create(params.getServerConfiguration().getUrlWorkspace());
+        final MetaDataClient metadataClient = metaDataClientFactory
+            .create(params.getServerConfiguration().getUrlMetada());
         InputStream input;
         try {
             input = workspaceClient.getObject(containerId, ARCHIVE_UNIT_FOLDER + "/" + objectName);
@@ -703,10 +954,10 @@ public class SedaUtils {
         ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
         ParametersChecker.checkParameter("ObjectName id is a mandatory parameter", objectName);
 
-        final WorkspaceClient workspaceClient =
-            workspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
-        final MetaDataClient metadataClient =
-            metaDataClientFactory.create(params.getServerConfiguration().getUrlMetada());
+        final WorkspaceClient workspaceClient = workspaceClientFactory
+            .create(params.getServerConfiguration().getUrlWorkspace());
+        final MetaDataClient metadataClient = metaDataClientFactory
+            .create(params.getServerConfiguration().getUrlMetada());
         InputStream input = null;
         try {
             input = workspaceClient.getObject(containerId, OBJECT_GROUP + "/" + objectName);
@@ -720,7 +971,6 @@ public class SedaUtils {
                 LOGGER.error("Object group not found");
                 throw new ProcessingException("Object group not found");
             }
-
 
         } catch (final MetaDataException e) {
             LOGGER.debug("Metadata Server Error", e);
@@ -743,8 +993,7 @@ public class SedaUtils {
         final File tmpFile = PropertiesUtils.fileFromTmpFolder(GUIDFactory.newGUID().toString());
         FileWriter tmpFileWriter = null;
         final XMLEventFactory eventFactory = XMLEventFactory.newInstance();
-        final JsonXMLConfig config = new JsonXMLConfigBuilder()
-            .build();
+        final JsonXMLConfig config = new JsonXMLConfigBuilder().build();
         JsonNode data = null;
         try {
             tmpFileWriter = new FileWriter(tmpFile);
@@ -801,7 +1050,6 @@ public class SedaUtils {
                     }
                 }
 
-
                 if (event.isEndDocument()) {
                     writer.add(event);
                     break;
@@ -842,6 +1090,14 @@ public class SedaUtils {
         return extractUriResponse;
     }
 
+    /**
+     * Parsing file Manifest
+     *
+     * @param client - the InputStream to read from
+     * @param guid - Identification file seda.
+     * @return ExtractUriResponse - Object ExtractUriResponse contains listURI, listMessages and value boolean(error).
+     * @throws XMLStreamException-This Exception class is used to report well format SEDA.
+     */
     private ExtractUriResponse parsingUriSEDAWithWorkspaceClient(WorkspaceClient client, String guid)
         throws ProcessingException {
 
@@ -938,7 +1194,6 @@ public class SedaUtils {
         }
     }
 
-
     /**
      * check if the version list of the manifest.xml in workspace is valid
      *
@@ -983,6 +1238,7 @@ public class SedaUtils {
         return invalidVersionList;
     }
 
+
     private SedaUtilInfo getBinaryObjectInfo(XMLEventReader evenReader)
         throws ProcessingException {
         final SedaUtilInfo sedaUtilInfo = new SedaUtilInfo();
@@ -1018,7 +1274,8 @@ public class SedaUtils {
                                 }
 
                                 if (tag == TAG_DIGEST) {
-                                    binaryObjectInfo.setAlgo(((Attribute) startElement.getAttributes().next()).getValue());
+                                    binaryObjectInfo
+                                        .setAlgo(((Attribute) startElement.getAttributes().next()).getValue());
                                     final String messageDigest = evenReader.getElementText();
                                     binaryObjectInfo.setMessageDigest(messageDigest);
                                 }
@@ -1052,6 +1309,7 @@ public class SedaUtils {
      * @return List of version for file manifest.xml
      * @throws ProcessingException when error in execution
      */
+
     public List<String> manifestVersionList(XMLEventReader evenReader)
         throws ProcessingException {
         final List<String> versionList = new ArrayList<String>();
@@ -1070,7 +1328,7 @@ public class SedaUtils {
     /**
      * compare if the version list of manifest.xml is included in or equal to the version list of version.conf
      *
-     * @param eventReader xml event reader 
+     * @param eventReader xml event reader
      * @param fileConf version file
      * @return list of unsupported version
      * @throws ProcessingException when error in execution
@@ -1116,9 +1374,14 @@ public class SedaUtils {
      * @param params worker parameter
      * @return List of the invalid digest message
      * @throws ProcessingException when error in execution
+     * @throws ContentAddressableStorageException
+     * @throws URISyntaxException
+     * @throws ContentAddressableStorageServerException
+     * @throws ContentAddressableStorageNotFoundException
      */
     public List<String> checkConformityBinaryObject(WorkParams params)
-        throws ProcessingException {
+        throws ProcessingException, ContentAddressableStorageNotFoundException,
+        ContentAddressableStorageServerException, URISyntaxException, ContentAddressableStorageException {
         ParametersChecker.checkParameter("WorkParams is a mandatory parameter", params);
         final String containerId = params.getContainerName();
         final WorkspaceClient client = workspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
@@ -1142,6 +1405,24 @@ public class SedaUtils {
         } catch (final XMLStreamException e) {
             LOGGER.error("Can not read SEDA");
             throw new ProcessingException(e);
+        } catch (LogbookClientBadRequestException e) {
+            LOGGER.error(LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG);
+            throw new ProcessingException(e);
+        } catch (LogbookClientAlreadyExistsException e) {
+            LOGGER.error(LOGBOOK_LF_OBJECT_EXISTS_EXCEPTION_MSG);
+            throw new ProcessingException(e);
+        } catch (LogbookClientServerException e) {
+            LOGGER.error(LOGBOOK_SERVER_INTERNAL_EXCEPTION_MSG);
+            throw new ProcessingException(e);
+        } catch (LogbookClientNotFoundException e) {
+            LOGGER.error(LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG);
+            throw new ProcessingException(e);
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error(LOGBOOK_LF_MAPS_PARSING_EXCEPTION_MSG);
+            throw new ProcessingException(e);
+        } catch (IOException e) {
+            LOGGER.error(LOGBOOK_LF_MAPS_PARSING_EXCEPTION_MSG);
+            throw new ProcessingException(e);
         }
         return digestMessageInvalidList;
     }
@@ -1149,40 +1430,119 @@ public class SedaUtils {
     /**
      * compare the digest message between the manifest.xml and related uri content in workspace container
      *
-     * @param eventReader xml event reader
-     * @param client Workspace client
-     * @param containerId container id
-     * @return List of the invalid digest message
-     * @throws ProcessingException when error in execution
+     * 
+     * @param evenReader
+     * @param client
+     * @return List<String> list of the invalid digest message
+     * @throws XMLStreamException
+     * @throws URISyntaxException
+     * @throws ContentAddressableStorageNotFoundException
+     * @throws ContentAddressableStorageServerException
+     * @throws ContentAddressableStorageException
+     * @throws InvalidParseOperationException
+     * @throws LogbookClientServerException
+     * @throws LogbookClientAlreadyExistsException
+     * @throws LogbookClientBadRequestException
+     * @throws LogbookClientNotFoundException
+     * @throws IOException
+     * @throws ProcessingException
      */
-    public List<String> compareDigestMessage(XMLEventReader eventReader, WorkspaceClient client, String containerId) 
-        throws ProcessingException {
-        SedaUtilInfo sedaUtilInfo;
-        sedaUtilInfo = getBinaryObjectInfo(eventReader);
-        Map<String, BinaryObjectInfo> binaryObjectMap = sedaUtilInfo.getBinaryObjectMap();
-        List<String> digestMessageInvalidList = new ArrayList<String>();
 
-        for (String mapKey : binaryObjectMap.keySet()) {
-            String uri = binaryObjectMap.get(mapKey).getUri().toString();
-            String digestMessageManifest = binaryObjectMap.get(mapKey).getMessageDigest();
-            DigestType algo = binaryObjectMap.get(mapKey).getAlgo();
-            String digestMessage = "";
-            try {
-                digestMessage = client.computeObjectDigest(containerId, SEDA_FOLDER + "/" + uri, algo);
-            } catch (ContentAddressableStorageException e) {
-                LOGGER.error("Can not get BinaryObject digest");
-                throw new ProcessingException(e);
+    public List<String> compareDigestMessage(XMLEventReader evenReader, WorkspaceClient client, String containerId)
+        throws XMLStreamException, URISyntaxException, ContentAddressableStorageNotFoundException,
+        ContentAddressableStorageServerException, ContentAddressableStorageException,
+        InvalidParseOperationException, LogbookClientBadRequestException, LogbookClientAlreadyExistsException,
+        LogbookClientServerException, LogbookClientNotFoundException, IOException, ProcessingException {
+
+        final SedaUtilInfo sedaUtilInfo = getBinaryObjectInfo(evenReader);
+        final Map<String, BinaryObjectInfo> binaryObjectMap = sedaUtilInfo.getBinaryObjectMap();
+        final List<String> digestMessageInvalidList = new ArrayList<String>();
+
+        final File firstMapTmpFile = PropertiesUtils.fileFromTmpFolder("BdoToObjectGroupId.txt");
+        final File secondMapTmpFile = PropertiesUtils.fileFromTmpFolder("objectGroupIdToGuid.txt");
+        String firstStoredMap = FileUtil.readFile(firstMapTmpFile);
+        String secondStoredMap = FileUtil.readFile(secondMapTmpFile);
+
+        Map<String, Object> binaryDataObjectIdToObjectGroupId = getMapFromString(firstStoredMap);
+        Map<String, Object> objectGroupIdToGuid = getMapFromString(secondStoredMap);
+
+        for (final String mapKey : binaryObjectMap.keySet()) {
+
+            // Update OG lifecycle
+            String bdoXmlId = binaryObjectMap.get(mapKey).getId();
+            String objectGroupId = (String) binaryDataObjectIdToObjectGroupId.get(bdoXmlId);
+            LogbookLifeCycleObjectGroupParameters logbookLifeCycleObjGrpParam = null;
+            if (objectGroupId != null) {
+                String objectGroupGuid = (String) objectGroupIdToGuid.get(objectGroupId);
+                logbookLifeCycleObjGrpParam = updateObjectGroupLifeCycleOnBdoCheck(objectGroupGuid, bdoXmlId,
+                    containerId);
             }
 
-            if(!digestMessage.equals(digestMessageManifest)){
-                LOGGER.info("Binary object Digest Message Invalid : " + uri );
-                digestMessageInvalidList.add(uri);
+            final String uri = binaryObjectMap.get(mapKey).getUri().toString();
+            final String digestMessageManifest = binaryObjectMap.get(mapKey).getMessageDigest();
+            final DigestType algo = binaryObjectMap.get(mapKey).getAlgo();
+            final String digestMessage = client.computeObjectDigest(containerId, SEDA_FOLDER + "/" + uri, algo);
+            if (digestMessage != digestMessageManifest) {
+                LOGGER.info("Binary object Digest Message Invalid : " + uri);
+                digestMessageInvalidList.add(digestMessageManifest);
+
+                // Set KO status
+                if (logbookLifeCycleObjGrpParam != null) {
+                    logbookLifeCycleObjGrpParam.putParameterValue(LogbookParameterName.outcome,
+                        StatusCode.KO.toString());
+                    LOGBOOK_LIFECYCLE_CLIENT.update(logbookLifeCycleObjGrpParam);
+                }
             } else {
                 LOGGER.info("Binary Object Digest Message Valid : " + uri);
+
+                // Set OK status
+                if (logbookLifeCycleObjGrpParam != null) {
+                    logbookLifeCycleObjGrpParam.putParameterValue(LogbookParameterName.outcome,
+                        StatusCode.OK.toString());
+                    LOGBOOK_LIFECYCLE_CLIENT.update(logbookLifeCycleObjGrpParam);
+                }
             }
         }
 
         return digestMessageInvalidList;
+    }
+
+    private Map<String, Object> getMapFromString(String mapStr) {
+        Map<String, Object> map = new HashMap<String, Object>();
+        String value = mapStr.substring(1, mapStr.length() - 2);
+        String[] keyValuePairs = value.split(",");
+        for (String pair : keyValuePairs) {
+            String[] entry = pair.split("=");
+            map.put(entry[0].trim(), entry[1].trim());
+        }
+
+        return map;
+    }
+
+    private LogbookLifeCycleObjectGroupParameters updateObjectGroupLifeCycleOnBdoCheck(String objectGroupGuid,
+        String bdoXmlId, String containerId) throws LogbookClientBadRequestException,
+        LogbookClientAlreadyExistsException, LogbookClientServerException, LogbookClientNotFoundException {
+
+        LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters =
+            (LogbookLifeCycleObjectGroupParameters) initLogbookLifeCycleParameters(
+                objectGroupGuid, false, true);
+
+        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
+            containerId);
+        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier, bdoXmlId);
+        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventTypeProcess,
+            LIFE_CYCLE_EVENT_TYPE_PROCESS);
+        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventType,
+            OG_LIFE_CYCLE_CHECK_BDO_EVENT_TYPE);
+        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcome,
+            LogbookOutcome.STARTED.toString());
+        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
+            LogbookOutcome.STARTED.toString());
+        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+            LogbookOutcome.STARTED.toString());
+        LOGBOOK_LIFECYCLE_CLIENT.update(logbookLifecycleObjectGroupParameters);
+
+        return logbookLifecycleObjectGroupParameters;
     }
 
 }
