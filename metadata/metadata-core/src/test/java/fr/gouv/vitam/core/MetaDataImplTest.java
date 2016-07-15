@@ -229,6 +229,18 @@ public class MetaDataImplTest {
         metaDataImpl.selectUnitsByQuery(QUERY);
     }
 
+    @Test
+    public void given_filled_query_When_SelectUnitById_() throws Exception {
+        metaDataImpl = new MetaDataImpl(null, mongoDbAccessFactory, dbRequestFactory);
+        metaDataImpl.selectUnitsById(QUERY, "unitId");
+    }
+
+    @Test
+    public void given_filled_query_When_UpdateUnitById_() throws Exception {
+        metaDataImpl = new MetaDataImpl(null, mongoDbAccessFactory, dbRequestFactory);
+        metaDataImpl.updateUnitsbyId(QUERY, "unitId");
+    }
+
     @Test(expected = MetaDataExecutionException.class)
     public void given_selectUnits_ThenThrow_MetaDataExecutionException() throws Exception {
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new MetaDataExecutionException(""));
@@ -244,6 +256,7 @@ public class MetaDataImplTest {
     }
 
 
+
     @Test(expected = MetaDataNotFoundException.class)
     public void givenInsertObjectGroupWhenParentNotFoundThenThrowMetaDataNotFoundException() throws Exception {
         when(request.execRequest(anyObject(), anyObject())).thenReturn(new ResultError(FILTERARGS.UNITS));
@@ -256,6 +269,75 @@ public class MetaDataImplTest {
     public void given_empty_query_When_selectUnitById_ThenThrow_MetaDataExecutionException() throws Exception {
         metaDataImpl = new MetaDataImpl(null, mongoDbAccessFactory, dbRequestFactory);
         metaDataImpl.selectUnitsById("", "unitId");
+    }
+
+    @Test(expected = InvalidParseOperationException.class)
+    public void given_empty_query_When_updateUnitById_ThenThrow_MetaDataExecutionException() throws Exception {
+        metaDataImpl = new MetaDataImpl(null, mongoDbAccessFactory, dbRequestFactory);
+        metaDataImpl.updateUnitsbyId("", "unitId");
+    }
+
+    @Test(expected = MetaDataExecutionException.class)
+    public void given_updateUnits_ThenThrow_MetaDataExecutionException() throws Exception {
+        when(request.execRequest(anyObject(), anyObject())).thenThrow(new MetaDataExecutionException(""));
+
+        metaDataImpl = new MetaDataImpl(null, mongoDbAccessFactory, dbRequestFactory);
+        metaDataImpl.updateUnitsbyId(QUERY, "unitId");
+    }
+
+    @Test(expected = MetaDataExecutionException.class)
+    public void given_updateUnits_FindMetadataNotFoundException_ThenThrow_MetaDataExecutionException()
+        throws Exception {
+        when(request.execRequest(anyObject(), anyObject())).thenThrow(new MetaDataNotFoundException(""));
+
+        metaDataImpl = new MetaDataImpl(null, mongoDbAccessFactory, dbRequestFactory);
+        metaDataImpl.updateUnitsbyId(QUERY, "unitId");
+    }
+
+    @Test(expected = MetaDataExecutionException.class)
+    public void given_selectUnit_FindMetadataNotFoundException_ThenThrow_MetaDataExecutionException()
+        throws Exception {
+        when(request.execRequest(anyObject(), anyObject())).thenThrow(new MetaDataNotFoundException(""));
+
+        metaDataImpl = new MetaDataImpl(null, mongoDbAccessFactory, dbRequestFactory);
+        metaDataImpl.selectUnitsById(QUERY, "unitId");
+    }
+
+    @Test(expected = MetaDataExecutionException.class)
+    public void given_updateUnits_When_IllegalAccessException_ThenThrow_MetaDataExecutionException() throws Exception {
+        when(request.execRequest(anyObject(), anyObject())).thenThrow(new IllegalAccessException());
+
+        metaDataImpl = new MetaDataImpl(null, mongoDbAccessFactory, dbRequestFactory);
+        metaDataImpl.updateUnitsbyId(QUERY, "unitId");
+    }
+
+    public void given_empty_query_UpdateUnitbyId_When_IllegalAccessException_ThenThrow_MetaDataExecutionException()
+        throws Exception {
+        metaDataImpl = new MetaDataImpl(null, mongoDbAccessFactory, dbRequestFactory);
+        metaDataImpl.updateUnitsbyId("", "");
+    }
+
+    @Test(expected = MetaDataDocumentSizeException.class)
+    public void given_UpdateUnitWhenStringTooLong_Then_Throw_MetaDataDocumentSizeException() throws Exception {
+        metaDataImpl = new MetaDataImpl(null, mongoDbAccessFactory, dbRequestFactory);
+        GlobalDatasParser.limitRequest = 1000;
+        metaDataImpl.updateUnitsbyId(createLongString(1001), "unitId");
+    }
+
+    @Test(expected = MetaDataExecutionException.class)
+    public void given_Update_Unit_When_InstantiationException_ThenThrown_MetaDataExecutionException() throws Exception {
+        when(request.execRequest(anyObject(), anyObject())).thenThrow(new InstantiationException());
+
+        metaDataImpl = new MetaDataImpl(null, mongoDbAccessFactory, dbRequestFactory);
+        metaDataImpl.updateUnitsbyId(REQUEST_SELECT, "");
+    }
+
+    @Test(expected = InvalidParseOperationException.class)
+    public void given_updateUnitbyId_When_search_units_Then_Throw_InvalidParseOperationException() throws Exception {
+        when(request.execRequest(anyObject(), anyObject())).thenThrow(new InvalidParseOperationException(""));
+
+        metaDataImpl = new MetaDataImpl(null, mongoDbAccessFactory, dbRequestFactory);
+        metaDataImpl.updateUnitsbyId(QUERY, "unitId");
     }
 
 }
