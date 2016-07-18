@@ -47,6 +47,7 @@ import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
 
 /**
  * The Workspace application.
+ * TODO refacto config
  *
  */
 public class WorkspaceApplication {
