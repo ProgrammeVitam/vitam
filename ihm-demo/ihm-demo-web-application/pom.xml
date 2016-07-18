@@ -13,6 +13,7 @@
   	<!-- Activate javascript sonar analysis -->
 	<sonar.sources>src/main</sonar.sources>
 	<sonar.exclusions>**/bower_components/**</sonar.exclusions>
+	<unix.name>ihm-demo</unix.name>
   </properties>
 
   <dependencies>
@@ -135,6 +136,23 @@
 							</resources>
 						</configuration>
 					</execution>
+					<execution>
+						<id>copy-systemd-resources</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/systemd</outputDirectory>
+							<resources>
+								<resource>
+									<directory>src/main/systemd</directory>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+
 				</executions>
 			</plugin>
 
@@ -183,6 +201,13 @@
 							<directory>${project.build.directory}/dependencies</directory>
 						</resource>
 					</resources>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+			        <artifactId>rpm-maven-plugin</artifactId>
+				<configuration>
+					<disabled>false</disabled>
 				</configuration>
 			</plugin>
 

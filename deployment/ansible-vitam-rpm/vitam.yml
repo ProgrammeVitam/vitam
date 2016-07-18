@@ -1,0 +1,35 @@
+---
+
+# Vitam solution deployment
+- hosts: hosts-mongodb
+  roles:
+    - mongodb
+
+- hosts: hosts-logbook
+  roles:
+    - {role: vitam, vitam_component: logbook } 
+
+- hosts: hosts-metadata
+  roles:
+    - {role: vitam, vitam_component: metadata, vitam_user: vitamdb, vitam_group: vitamdb , java_args: /vitam/metadata/conf/metadata.conf} 
+
+- hosts: hosts-workspace
+  roles:
+    - {role: vitam, vitam_component: workspace ,java_args: /vitam/workspace/conf/workspace.conf }
+
+
+- hosts: hosts-ingest
+  roles:
+    - {role: vitam, vitam_component: ingest, java_args: '/vitam/ingest/conf/ingest-rest.properties totally_useless_second_argument_but_mandatory' } 
+
+- hosts: hosts-processing
+  roles:
+    - {role: vitam, vitam_component: processing,java_args: /vitam/processing/conf/processing.conf } 
+
+- hosts: hosts-access
+  roles:
+    - {role: vitam, vitam_component: access, java_args: /vitam/access/conf/access.conf } 
+
+- hosts: hosts-ihm-demo
+  roles:
+    - {role: vitam, vitam_component: ihm-demo, java_args: /vitam/ihm-demo/conf/ihm-demo.conf } 

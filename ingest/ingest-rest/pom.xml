@@ -11,6 +11,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <start-class>fr.gouv.vitam.ingest.upload.rest.UploadServiceImpl</start-class>
+	<unix.name>ingest</unix.name>
     </properties>
 
     <build>
@@ -72,6 +73,22 @@
                             </resources>
                         </configuration>
                     </execution>
+			<execution>
+				<id>copy-systemd-resources</id>
+				<phase>validate</phase>
+				<goals>
+					<goal>copy-resources</goal>
+				</goals>
+				<configuration>
+					<outputDirectory>${project.build.directory}/systemd</outputDirectory>
+					<resources>
+						<resource>
+							<directory>src/main/systemd</directory>
+							<filtering>true</filtering>
+						</resource>
+					</resources>
+				</configuration>
+			</execution>
                 </executions>
             </plugin>
 
@@ -123,9 +140,16 @@
                     </resources>
                 </configuration>
             </plugin>
+	       <plugin>
+			<groupId>org.codehaus.mojo</groupId>
+			<artifactId>rpm-maven-plugin</artifactId>
+			<configuration>
+				<disabled>false</disabled>
+			</configuration>
+		</plugin>
+
         </plugins>
     </build>
-
     <dependencies>
         <dependency>
             <groupId>fr.gouv.vitam</groupId>

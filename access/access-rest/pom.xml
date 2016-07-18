@@ -10,7 +10,9 @@
 	</parent>
 
 	<artifactId>access-rest</artifactId>
-
+	<properties>
+		<unix.name>access</unix.name>
+	</properties>
 	<build>
 		<pluginManagement>
 			<plugins>
@@ -93,6 +95,22 @@
 							</resources>
 						</configuration>
 					</execution>
+					<execution>
+						<id>copy-systemd-resources</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/systemd</outputDirectory>
+							<resources>
+								<resource>
+									<directory>src/main/systemd</directory>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
 
@@ -146,6 +164,13 @@
 				<groupId>org.eclipse.jetty</groupId>
 				<artifactId>jetty-maven-plugin</artifactId>
 				<version>${jetty.version}</version>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>rpm-maven-plugin</artifactId>
+				<configuration>
+					<disabled>false</disabled>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
