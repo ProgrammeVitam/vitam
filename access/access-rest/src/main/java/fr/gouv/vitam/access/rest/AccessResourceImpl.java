@@ -23,13 +23,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.rest;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -41,6 +35,7 @@ import fr.gouv.vitam.access.api.AccessResource;
 import fr.gouv.vitam.access.common.exception.AccessExecutionException;
 import fr.gouv.vitam.access.config.AccessConfiguration;
 import fr.gouv.vitam.access.core.AccessModuleImpl;
+import fr.gouv.vitam.api.exception.MetadataInvalidUpdateException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -176,6 +171,57 @@ public class AccessResourceImpl implements AccessResource {
                         .setMessage(status.getReasonPhrase())
                         .setDescription(status.getReasonPhrase())))
                 .build();
+        }
+        LOGGER.info("End of execution of DSL Vitam from Access");
+        return Response.status(Status.OK).entity(result).build();
+    }
+
+    /**
+     * update archive units by Id with Json query
+     *
+     * @param queryDsl    DSK, null not allowed
+     * @param id_unit     units identifier
+     * @return a archive unit result list
+     */
+    @PUT
+    @Path("/units/{id_unit}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateUnitById(String queryDsl,
+                                   @PathParam("id_unit") String id_unit) {
+
+        LOGGER.info("Execution of DSL Vitam from Access ongoing...");
+
+        Status status;
+        JsonNode queryJson = null;
+        JsonNode result = null;
+        try {
+            GlobalDatasParser.sanityRequestCheck(queryDsl);
+            queryJson = JsonHandler.getFromString(queryDsl);
+            result = accessModule.updateUnitbyId(queryJson, id_unit);
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(e.getMessage(), e);
+            // Unprocessable Entity not implemented by Jersey
+            status = Status.BAD_REQUEST;
+            return Response.status(status)
+                    .entity(new RequestResponseError().setError(
+                            new VitamError(status.getStatusCode())
+                                    .setContext(ACCESS_MODULE)
+                                    .setState(CODE_VITAM)
+                                    .setMessage(status.getReasonPhrase())
+                                    .setDescription(status.getReasonPhrase())))
+                    .build();
+        } catch (final AccessExecutionException e) {
+            LOGGER.error(e.getMessage(), e);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                    .entity(new RequestResponseError().setError(
+                            new VitamError(status.getStatusCode())
+                                    .setContext(ACCESS_MODULE)
+                                    .setState(CODE_VITAM)
+                                    .setMessage(status.getReasonPhrase())
+                                    .setDescription(status.getReasonPhrase())))
+                    .build();
         }
         LOGGER.info("End of execution of DSL Vitam from Access");
         return Response.status(Status.OK).entity(result).build();

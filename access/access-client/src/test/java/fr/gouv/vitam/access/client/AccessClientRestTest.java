@@ -179,7 +179,6 @@ public class AccessClientRestTest extends JerseyTest {
         throws IllegalArgumentException, AccessClientServerException, AccessClientNotFoundException,
         InvalidParseOperationException {
         assertThat(client.selectUnitbyId("", "")).isNotNull();
-
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -187,7 +186,6 @@ public class AccessClientRestTest extends JerseyTest {
         throws IllegalArgumentException, AccessClientServerException, AccessClientNotFoundException,
         InvalidParseOperationException {
         assertThat(client.selectUnitbyId(queryDsql, "")).isNotNull();
-
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -195,7 +193,43 @@ public class AccessClientRestTest extends JerseyTest {
         throws IllegalArgumentException, AccessClientServerException, AccessClientNotFoundException,
         InvalidParseOperationException {
         assertThat(client.selectUnitbyId("", ID)).isNotNull();
-
     }
 
+    @Test(expected = AccessClientNotFoundException.class)
+    public void givenBadRequest_whenUpdateUnitById_ThenRaiseAnException()
+            throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException {
+        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+        assertThat(client.updateUnitbyId(queryDsql, ID)).isNotNull();
+    }
+
+
+    @Test(expected = IllegalArgumentException.class)
+    public void givenRequestBlank_whenUpdateUnitById_ThenRaiseAnException()
+            throws IllegalArgumentException, AccessClientServerException, AccessClientNotFoundException,
+            InvalidParseOperationException {
+        assertThat(client.updateUnitbyId("", "")).isNotNull();
+    }
+
+
+    @Test(expected = IllegalArgumentException.class)
+    public void givenIdBlank_whenUpdateUnitById_ThenRaiseAnException()
+            throws IllegalArgumentException, AccessClientServerException, AccessClientNotFoundException,
+            InvalidParseOperationException {
+        assertThat(client.updateUnitbyId(queryDsql, "")).isNotNull();
+    }
+
+
+    @Test(expected = IllegalArgumentException.class)
+    public void givenrEquestBlank_IDFilledwhenUpdateUnitById_ThenRaiseAnException()
+            throws IllegalArgumentException, AccessClientServerException, AccessClientNotFoundException,
+            InvalidParseOperationException {
+        assertThat(client.updateUnitbyId("", ID)).isNotNull();
+    }
+
+    @Test(expected = AccessClientNotFoundException.class)
+    public void givenBadRequest_whenUpdateUnit_ThenRaiseAnException()
+            throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException {
+        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+        assertThat(client.updateUnitbyId(queryDsql, ID)).isNotNull();
+    }
 }

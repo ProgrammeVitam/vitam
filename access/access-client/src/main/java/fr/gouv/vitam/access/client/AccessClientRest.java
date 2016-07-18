@@ -151,4 +151,42 @@ public class AccessClientRest implements AccessClient {
         return response.readEntity(JsonNode.class);
     }
 
+    /**
+     * update Unit By Id
+     *
+     * @param updateQuery
+     * @param unitId
+     * @return Object JsonNode
+     * @throws InvalidParseOperationException
+     * @throws AccessClientServerException
+     * @throws AccessClientNotFoundException
+     */
+    @Override
+    public JsonNode updateUnitbyId(String updateQuery, String unitId) throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException {
+        if (StringUtils.isBlank(updateQuery)) {
+            throw new IllegalArgumentException(BLANK_DSL);
+        }
+        if (StringUtils.isEmpty(unitId)) {
+            throw new IllegalArgumentException(BLANK_UNIT_ID);
+        }
+
+        final GUID guid = GUIDFactory.newGUID();
+
+        final Response response =
+                client.target(serviceUrl).path("units/" + unitId).request(MediaType.APPLICATION_JSON)
+                        .header("X-REQUEST-ID", guid.toString())
+                        .accept(MediaType.APPLICATION_JSON)
+                        .put(Entity.entity(updateQuery, MediaType.APPLICATION_JSON), Response.class);
+
+        if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+            throw new AccessClientServerException("Internal Server Error"); // access-common
+        } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) { // access-common
+            throw new AccessClientNotFoundException("Not Found Exception");
+        } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
+            throw new InvalidParseOperationException("Invalid Parse Operation");// common
+        }
+
+        return response.readEntity(JsonNode.class);
+    }
+
 }

@@ -27,7 +27,7 @@ package fr.gouv.vitam.access.common.model;
 import fr.gouv.vitam.access.config.AccessConfiguration;
 
 /**
- * Created by bsui on 16/06/16.
+ * Access parameters with the configuration
  */
 public class AccessParams {
 

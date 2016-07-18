@@ -23,6 +23,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.core;
 
+import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
+import fr.gouv.vitam.api.exception.MetaDataExecutionException;
+import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.api.exception.MetadataInvalidUpdateException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,7 +82,7 @@ public class AccessModuleImpl implements AccessModule {
     /**
      * select Unit
      *
-     * @param selectRequest as String { $query : query}
+     * @param jsonQuery as String { $query : query}
      * @throws InvalidParseOperationException Throw if json format is not correct
      * @throws AccessExecutionException Throw if error occurs when send Unit to database
      */
@@ -112,9 +116,9 @@ public class AccessModuleImpl implements AccessModule {
     /**
      * select Unit by Id
      *
-     * @param selectRequest as String { $query : query}
+     * @param jsonQuery as String { $query : query}
      * @param unit_id as String
-     * @throws IllegalARgumentException Throw if json format is not correct
+     * @throws IllegalArgumentException Throw if json format is not correct
      * @throws AccessExecutionException Throw if error occurs when send Unit to database
      */
 
@@ -135,6 +139,44 @@ public class AccessModuleImpl implements AccessModule {
             metaDataClient = metaDataClientFactory.create(accessConfiguration.getUrlMetaData());
 
             jsonNode = metaDataClient.selectUnitbyId(jsonQuery.toString(), unit_id);
+
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error("parsing error", e);
+            throw e;
+        } catch (IllegalArgumentException e) {
+            LOGGER.error("illegal argument", e);
+            throw e;
+        } catch (Exception e) {
+            LOGGER.error("exeption thrown", e);
+            throw new AccessExecutionException(e);
+        }
+        return jsonNode;
+    }
+
+    /**
+     * update Unit by id
+     *
+     * @param queryJson json update query
+     * @param id_unit   as String
+     * @throws InvalidParseOperationException Throw if json format is not correct
+     * @throws AccessExecutionException       Throw if error occurs when send Unit to database
+     * @throws IllegalArgumentException       Throw if error occurs when checking argument
+     */
+    @Override
+    public JsonNode updateUnitbyId(JsonNode queryJson, String id_unit) throws IllegalArgumentException, InvalidParseOperationException, AccessExecutionException {
+        JsonNode jsonNode = null;
+
+        if (StringUtils.isEmpty(id_unit)) {
+            throw new IllegalArgumentException(ID_CHECK_FAILED);
+        }
+        try {
+
+            if (metaDataClientFactory == null) {
+                metaDataClientFactory = new MetaDataClientFactory();
+            }
+            metaDataClient = metaDataClientFactory.create(accessConfiguration.getUrlMetaData());
+
+            jsonNode = metaDataClient.updateUnitbyId(queryJson.toString(), id_unit);
 
         } catch (final InvalidParseOperationException e) {
             LOGGER.error("parsing error", e);

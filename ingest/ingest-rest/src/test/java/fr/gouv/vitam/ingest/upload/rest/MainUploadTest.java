@@ -48,7 +48,6 @@ import java.io.IOException;
 public class MainUploadTest {
 
     private static JunitHelper junitHelper;
-    private static int port;
 
     @Spy
     private MainUpload mainUpload;
@@ -56,12 +55,11 @@ public class MainUploadTest {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         junitHelper = new JunitHelper();
-        port = junitHelper.findAvailablePort();
     }
 
     @AfterClass
     public static void shutdownAfterClass() {
-        junitHelper.releasePort(port);
+
     }
 
     @Before
@@ -77,6 +75,7 @@ public class MainUploadTest {
     @Test
     public void givenPort_WhenConfigureApplication_ThenServerStartedOK() throws Exception {
         // Server started
+        int port = junitHelper.findAvailablePort();
         MainUpload.serverInitialisation(port);
         MainUpload.serverStart();
         assertThat(MainUpload.getServer()).isNotNull();
@@ -85,14 +84,21 @@ public class MainUploadTest {
         // Server stopped
         MainUpload.stopServer();
         assertThat(MainUpload.getServer().isStopped()).isTrue();
+        junitHelper.releasePort(port);
     }
 
     @Test
     public void givenMain_WhenConfiguredApplicaiotn_ThenStartApplication() throws Exception {
         String[] args = {"ingest-rest-test.properties"};
         MainUpload.serverInitialisation(args);
-        MainUpload.serverInitialisation(Integer.parseInt("8080"));
+        int port = junitHelper.findAvailablePort();
+        MainUpload.serverInitialisation(port);
         MainUpload.serverStart();
+
+        // Server stopped
+        MainUpload.stopServer();
+        assertThat(MainUpload.getServer().isStopped()).isTrue();
+        junitHelper.releasePort(port);
     }
 
     @Test(expected = VitamException.class)

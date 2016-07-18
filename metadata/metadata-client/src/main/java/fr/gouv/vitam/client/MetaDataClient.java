@@ -33,14 +33,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.api.exception.*;
 import org.apache.commons.lang.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import fr.gouv.vitam.api.exception.MetaDataAlreadyExistException;
-import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
-import fr.gouv.vitam.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.builder.request.construct.Select;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -78,7 +75,7 @@ public class MetaDataClient {
     }
 
     /**
-     * @param query as String <br>
+     * @param insertQuery as String <br>
      *        null is not allowed
      * @return : response as String
      * @throws InvalidParseOperationException
@@ -124,7 +121,7 @@ public class MetaDataClient {
     /**
      * Search units by select query (DSL)
      * 
-     * @param query : select query {@link Select} as String <br>
+     * @param selectQuery : select query {@link Select} as String <br>
      *        Null is not allowed
      * @return Json object {$hint:{},$result:[{},{}]}
      * @throws MetaDataExecutionException thrown when internal Server Error (fatal technical exception thrown)
@@ -158,7 +155,7 @@ public class MetaDataClient {
     /**
      * Search units by query (DSL) and path unit id
      * 
-     * @param query : select query {@link Select} as String <br>
+     * @param selectQuery : select query {@link Select} as String <br>
      *        Null is not allowed
      * @param unitId : unit id <br>
      *        null and blank is not allowed
@@ -271,5 +268,4 @@ public class MetaDataClient {
 
         return response.readEntity(String.class);
     }
-
 }
