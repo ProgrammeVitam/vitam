@@ -153,6 +153,8 @@
 		<javax.inject.version>1</javax.inject.version>
 		<powermock.version>1.6.5</powermock.version>
 		<json-sanitize.version>1.1</json-sanitize.version>		
+		<unix.user>vitam</unix.user>
+		<unix.group>vitam</unix.group>
 	</properties>
 
 	<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
@@ -288,6 +290,9 @@
 								<Maven-build-timestamp>${maven.build.timestamp}</Maven-build-timestamp>
 								<!-- <Sealed>true</Sealed> -->
 							</manifestEntries>
+							<manifest>
+								<useUniqueVersions>false</useUniqueVersions>
+							</manifest>
 						</archive>
 					</configuration>
 				</plugin>
@@ -416,6 +421,65 @@
 					<groupId>org.sonarsource.scanner.maven</groupId>
 					<artifactId>sonar-maven-plugin</artifactId>
 					<version>3.0.2</version>
+				</plugin>
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>rpm-maven-plugin</artifactId>
+					<version>2.1.5</version>
+					<configuration>
+						<name>vitam-${unix.name}</name>
+						<disabled>true</disabled>
+						<licence>CeCILL 2.1</licence>
+						<distribution>Vitam Project</distribution>
+						<group>Application/Archiving</group>
+						<packager>Vitam Package Team</packager>
+						<defineStatements/>
+						<requires>
+							<require>java-1.8.0</require>
+							<require>vitam-user-${unix.user}</require>
+						</requires>
+						<defaultDirMode>750</defaultDirMode>
+						<defaultFileMode>640</defaultFileMode>
+						<defaultUsername>${unix.user}</defaultUsername>
+						<defaultGroupname>${unix.group}</defaultGroupname>
+						<mappings>
+							<mapping>
+								<directory>/vitam/${unix.name}/lib</directory>
+								<artifact/>
+								<dependency/>
+							</mapping>
+							<mapping>
+								<directory>/vitam/${unix.name}/conf</directory>
+								<sources>
+									<source>
+										<location>${basedir}/src/main/config</location>
+									</source>
+								</sources>
+							</mapping>
+
+							<mapping>
+								<directory>/vitam/${unix.name}/bin</directory>
+								<sources>
+									<source>
+										<location>${project.build.directory}/bin</location>
+									</source>
+								</sources>
+							</mapping>
+
+							<mapping>
+								<directory>/usr/lib/systemd/system/</directory>
+								<filemode>644</filemode>
+								<username>root</username>
+								<groupname>root</groupname>
+								<directoryIncluded>false</directoryIncluded>
+								<sources>
+									<source>
+										<location>${project.build.directory}/systemd</location>
+									</source>
+								</sources>
+							</mapping>
+						</mappings>
+					</configuration>
 				</plugin>
 			</plugins>
 		</pluginManagement>

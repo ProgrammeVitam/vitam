@@ -1,0 +1,21 @@
+#providing some properties used by this engine, and between other engine
+ingest.core.port={{ vitam_ingest_port }}
+ingest.core.rest.upload=ingest/upload
+ingest.core.status=ingest/status
+ingest.core.uploaded.dir=/vitam/ingest/data
+ingest.core.log.dir=/vitam/ingest/log
+
+ingest.core.workspace.client.protocol=http
+ingest.core.workspace.client.host={{ vitam_workspace_host }}
+ingest.core.workspace.client.uri=workspace/v1
+ingest.core.workspace.client.port={{ vitam_workspace_port }}
+
+ingest.core.processing.client.protocol=http
+ingest.core.processing.client.host={{ vitam_processing_host }}
+ingest.core.processing.client.uri=processing/v1
+ingest.core.processing.client.port={{ vitam_processing_port }}
+
+
+ingest.core.logbook.server=http://{{ vitam_logbook_host }}/logbook/v1
+ingest.core.logbook.port = 8081
+

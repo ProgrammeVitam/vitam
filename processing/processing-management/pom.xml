@@ -7,7 +7,9 @@
 	</parent>
 	<artifactId>processing-management</artifactId>
 	<name>Processing Management</name>
-
+	<properties>
+		<unix.name>processing</unix.name>
+	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
@@ -109,6 +111,22 @@
 							</resources>
 						</configuration>
 					</execution>
+                                        <execution>
+                                                <id>copy-systemd-resources</id>
+                                                <phase>validate</phase>
+                                                <goals>
+                                                        <goal>copy-resources</goal>
+                                                </goals>
+                                                <configuration>
+                                                        <outputDirectory>${project.build.directory}/systemd</outputDirectory>
+                                                        <resources>
+                                                                <resource>
+                                                                        <directory>src/main/systemd</directory>
+                                                                        <filtering>true</filtering>
+                                                                </resource>
+                                                        </resources>
+                                                </configuration>
+                                        </execution>
 				</executions>
 			</plugin>
 
@@ -158,6 +176,13 @@
 					</resources>
 				</configuration>
 			</plugin>
+                       <plugin>
+                                <groupId>org.codehaus.mojo</groupId>
+                                <artifactId>rpm-maven-plugin</artifactId>
+                                <configuration>
+                                        <disabled>false</disabled>
+                                </configuration>
+                        </plugin>
 
 			<plugin>
 				<groupId>org.eclipse.jetty</groupId>

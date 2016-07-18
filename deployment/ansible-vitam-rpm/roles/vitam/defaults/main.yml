@@ -1,0 +1,9 @@
+---
+# defaults file for common
+vitam_user: vitam
+vitam_group: vitam
+memory_opts: -Xms512m -Xmx512m
+gc_opts: ""
+java_opts: ""
+java_args: ""
+rpm_name: "vitam-{{ vitam_component }}"

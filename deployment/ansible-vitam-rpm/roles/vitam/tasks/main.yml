@@ -1,0 +1,59 @@
+---
+# tasks file for common
+
+- name: Install rpm
+  yum: 
+    name: "{{ rpm_name }}"
+    state: latest
+
+- name: Deploy common configuration files
+  template:
+    src: "{{item}}.j2"
+    dest: "{{vitam_folder_conf}}/{{item}}"
+    owner: "{{ vitam_user}}"
+    group: "{{ vitam_group }}"
+    mode: "0640"
+  with_items:
+    - "logbook-client.conf"
+    - "server-identity.conf"
+    - "logback.xml"
+    - "setenv.sh"
+
+- name: Deploy specific configuration files (can override the common configuration files)
+  template:
+    src: "{{role_path}}/templates/{{ vitam_component }}/{{item}}.j2"
+    dest: "{{vitam_folder_conf}}/{{item }}"
+    owner: "{{ vitam_user }}"
+    group: "{{ vitam_group }}"
+    mode: "{{vitam_conf_permission}}"
+  with_items: "{{ lookup('pipe','find {{role_path}}/templates/{{ vitam_component }}/ -type f  -exec basename {} .j2 \\;').split('\n') }}"
+
+
+- name: Install systemd wrapper.sh (must be included in the RPM)
+  copy: 
+    src: wrapper.sh
+    dest: "/vitam/{{ vitam_component }}/bin/wrapper.sh"
+    owner: "{{ vitam_user}}"
+    group: "{{ vitam_group }}"
+    mode: "0750"
+
+- name: Check that the directories exists (must be removed when the RPM plugin will be patched)
+  file: 
+    path: "/vitam/{{ vitam_component }}/{{ item }}"
+    state: directory
+    owner: "{{ vitam_user}}"
+    group: "{{ vitam_group }}"
+    mode: "0750"
+  with_items:
+    - app
+    - bin
+    - conf
+    - lib
+    - log 
+    - data
+
+- name: start service
+  service: 
+    name: "{{ vitam_component }}"
+    enabled: true
+    state: restarted
