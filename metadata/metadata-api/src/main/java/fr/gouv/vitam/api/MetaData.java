@@ -30,6 +30,7 @@ import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.builder.request.construct.Select;
+import fr.gouv.vitam.builder.request.construct.Update;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
@@ -49,7 +50,8 @@ public interface MetaData {
      * @throws MetaDataExecutionException Throw if error occurs when send Unit to database
      * @throws MetaDataDocumentSizeException Throw if Unit size is too big
      */
-    public void insertUnit(JsonNode insertRequest) throws InvalidParseOperationException, IllegalArgumentException, MetaDataNotFoundException,
+    public void insertUnit(JsonNode insertRequest)
+        throws InvalidParseOperationException, IllegalArgumentException, MetaDataNotFoundException,
         MetaDataAlreadyExistException, MetaDataExecutionException, MetaDataDocumentSizeException;
 
 
@@ -91,6 +93,28 @@ public interface MetaData {
         MetaDataDocumentSizeException;
 
     /**
+     * Update UNITs by Id {@link Update}Query <br>
+     * for this method, the roots will be filled<br>
+     * for example request :{
+     * <h3>$roots:[{id:"id"}]</h3>,<br>
+     * $query{}, ..}
+     *
+     * @param updateQuery
+     * @param unitId
+     * @return JsonNode {$hits{},$context{},$result:[{}....{}],} <br>
+     *         $context will be added later (Access)</br>
+     *         $result array of units(can be empty)
+     * @throws InvalidParseOperationException Thrown when json format is not correct
+     * @throws MetaDataExecutionException Throw if error occurs when send Unit to database
+     * @throws MetaDataDocumentSizeException Throw if Unit size is too big
+     * 
+     */
+    public JsonNode updateUnitsbyId(String updateQuery, String unitId)
+        throws InvalidParseOperationException, MetaDataExecutionException,
+        MetaDataDocumentSizeException;
+
+
+    /**
      * @param objectRequest as JsonNode { $roots: roots, $query : query, $filter : multi, $data : data}
      *
      * @throws InvalidParseOperationException Throw if json format is not correct
@@ -100,6 +124,6 @@ public interface MetaData {
      * @throws MetaDataDocumentSizeException Throw if Unit size is too big
      */
     void insertObjectGroup(JsonNode objectRequest) throws InvalidParseOperationException, MetaDataNotFoundException,
-    MetaDataAlreadyExistException, MetaDataExecutionException, MetaDataDocumentSizeException;
+        MetaDataAlreadyExistException, MetaDataExecutionException, MetaDataDocumentSizeException;
 
 }

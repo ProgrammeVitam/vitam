@@ -138,6 +138,9 @@ public class DbRequestTest {
     private static int port;
     private static final String REQUEST_SELECT_TEST =
         "{$query: {$eq: {\"id\" : \"id\" }}}";
+
+    private static final String REQUEST_UPDATE_TEST =
+        "{$query: {$eq: {\"id\" : \"id\" }}}";
     private static final String REQUEST_INSERT_TEST = "{ \"id\": \"id\" }";;
 
 
@@ -1058,6 +1061,17 @@ public class DbRequestTest {
 
     }
 
+    public void shouldUpdateUnitResult() throws Exception {
+
+        final DbRequest dbRequest = new DbRequest();
+        final JsonNode updateRequest = JsonHandler.getFromString(REQUEST_UPDATE_TEST);
+        final UpdateParser updateParser = new UpdateParser();
+        updateParser.parse(updateRequest);
+        LOGGER.debug("UpdateParser: {}", updateRequest);
+        final Result result2 = dbRequest.execRequest(updateParser, null);
+        assertEquals(1, result2.nbResult);
+
+    }
 
     private static final JsonNode buildQueryJsonWithOptions(String query, String data)
         throws Exception {
