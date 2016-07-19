@@ -208,7 +208,7 @@ public final class MetaDataImpl implements MetaData {
 
     @SuppressWarnings("deprecation")
     @Override
-    public JsonNode updateUnitsbyId(String updateQuery, String unitId)
+    public JsonNode updateUnitbyId(String updateQuery, String unitId)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataDocumentSizeException {
         Result result = null;
         JsonNode jsonNodeResponse;

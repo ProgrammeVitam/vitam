@@ -420,7 +420,7 @@ public class MetaDataResource {
         Status status;
         JsonNode jsonResultNode;
         try {
-            jsonResultNode = metaDataImpl.updateUnitsbyId(selectRequest, unitId);
+            jsonResultNode = metaDataImpl.updateUnitbyId(selectRequest, unitId);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e.getMessage());
             status = Status.BAD_REQUEST;

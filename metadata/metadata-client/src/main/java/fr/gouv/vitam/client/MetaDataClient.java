@@ -221,10 +221,6 @@ public class MetaDataClient {
         if (StringUtils.isBlank(updateQuery)) {
             throw new InvalidParseOperationException(UPDATE_UNITS_QUERY_NULL);
         }
-        // check unit id
-        if (StringUtils.isBlank(unitId)) {
-            throw new IllegalArgumentException(BLANK_PARAM);
-        }
 
         final Response response =
             client.target(url).path("units/" + unitId).request(MediaType.APPLICATION_JSON)
@@ -239,7 +235,7 @@ public class MetaDataClient {
             throw new InvalidParseOperationException("Invalid Parse Operation");
         }
 
-        LOGGER.info(ELAPSED_TIME_MESSAGE + "select Units by Id :" + ((System.currentTimeMillis() - time) / 1000) + "s");
+        LOGGER.info(ELAPSED_TIME_MESSAGE + "update Units by Id :" + ((System.currentTimeMillis() - time) / 1000) + "s");
         return response.readEntity(JsonNode.class);
     }
 
