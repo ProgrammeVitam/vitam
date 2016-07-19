@@ -109,7 +109,7 @@ public interface MetaData {
      * @throws MetaDataDocumentSizeException Throw if Unit size is too big
      * 
      */
-    public JsonNode updateUnitsbyId(String updateQuery, String unitId)
+    public JsonNode updateUnitbyId(String updateQuery, String unitId)
         throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataDocumentSizeException;
 
