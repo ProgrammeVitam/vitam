@@ -14,4 +14,12 @@
     </dependencies>
     
     <name>Functional Administration</name>
+    <packaging>pom</packaging>
+    <modules>
+    	<module>functional-administration-common</module>
+    	<module>functional-administration-format</module>
+    	<module>functional-administration-rest</module>
+    	<module>functional-administration-client</module>
+    <module>functional-administration-rule</module>
+  </modules>
 </project>
