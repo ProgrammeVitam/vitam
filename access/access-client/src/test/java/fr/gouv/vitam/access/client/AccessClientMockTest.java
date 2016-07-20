@@ -79,7 +79,18 @@ public class AccessClientMockTest {
             AccessClientFactory.getInstance().getAccessOperationClient();
         assertNotNull(client);
 
-        assertThat(client.selectUnitbyId(queryDsql,ID)).isNotNull();
+        assertThat(client.selectUnitbyId(queryDsql, ID)).isNotNull();
     }
-    
+
+    @Test
+    public void givenMockExists_whenUpdateUnitById_ThenReturnOK()
+            throws AccessClientServerException, AccessClientNotFoundException, InvalidParseOperationException {
+        AccessClientFactory.setConfiguration(AccessClientType.MOCK, null, 0);
+
+        final AccessClient client =
+                AccessClientFactory.getInstance().getAccessOperationClient();
+        assertNotNull(client);
+
+        assertThat(client.updateUnitbyId(queryDsql,ID)).isNotNull();
+    }
 }

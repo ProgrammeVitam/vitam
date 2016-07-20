@@ -26,6 +26,7 @@ package fr.gouv.vitam.access.api;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.access.common.exception.AccessExecutionException;
+import fr.gouv.vitam.api.exception.MetadataInvalidUpdateException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
@@ -57,5 +58,19 @@ public interface AccessModule {
      */
     public JsonNode selectUnitbyId(JsonNode queryJson, String id_unit)
         throws IllegalArgumentException, InvalidParseOperationException, AccessExecutionException;
+
+    /**
+     * update Unit by id
+     *
+     * @param queryJson json update query
+     * @param id_unit as String
+     * @return the result of the update on Unit
+     *
+     * @throws InvalidParseOperationException Throw if json format is not correct
+     * @throws AccessExecutionException Throw if error occurs when send Unit to database
+     * @throws IllegalArgumentException Throw if error occurs when checking argument
+     */
+    public JsonNode updateUnitbyId(JsonNode queryJson, String id_unit)
+            throws IllegalArgumentException, InvalidParseOperationException, AccessExecutionException;
 
 }

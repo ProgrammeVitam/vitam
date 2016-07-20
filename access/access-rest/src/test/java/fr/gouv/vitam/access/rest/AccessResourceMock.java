@@ -23,13 +23,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.rest;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 
 import fr.gouv.vitam.access.api.AccessResource;
@@ -81,6 +75,19 @@ public class AccessResourceMock implements AccessResource {
     @Path("/units/{id_unit}")
     public Response getUnitById(String dslQuery,
         @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String headerParam, @PathParam("id_unit") String id_unit) {
+        return Response.status(200).entity("{\"unit\" = \"OK_MockUnits\"}").build();
+    }
+
+    /**
+     * update archive units by Id with Json query
+     *
+     * @param dslQuery    DSK, null not allowed
+     * @param unit_id     units identifier
+     * @return a archive unit result list
+     */
+    @PUT
+    @Path("/units/{id_unit}")
+    public Response updateUnitById(String dslQuery, @PathParam("id_unit") String unit_id) {
         return Response.status(200).entity("{\"unit\" = \"OK_MockUnits\"}").build();
     }
 

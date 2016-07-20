@@ -21,46 +21,38 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.access.common.exception;
+package fr.gouv.vitam.api.exception;
 
 /**
- * AccessExecutionException access execution error
+ * MetadataInvalidUpdateException update failed in update operation in metatada
  */
-public class AccessExecutionException extends AccessException {
-
-
-    private static final long serialVersionUID = 3109893413022252153L;
+public class MetadataInvalidUpdateException extends MetaDataException {
 
     /**
-     * @param message message to associate with the exception
+     *serial id
      */
-    public AccessExecutionException(String message) {
+    private static final long serialVersionUID = 2268498439396621151L;
+
+    /**
+     * @param message to associate with the exception
+     */
+    public MetadataInvalidUpdateException(String message) {
         super(message);
     }
 
+
     /**
-     * @param cause cause to associate with the exception
+     * @param cause to associate with the exception
      */
-    public AccessExecutionException(Throwable cause) {
+    public MetadataInvalidUpdateException(Throwable cause) {
         super(cause);
     }
 
     /**
      * @param message message to associate with the exception
-     * @param cause cause to associate with the exception
+     * @param cause to associate with the exception
      */
-    public AccessExecutionException(String message, Throwable cause) {
+    public MetadataInvalidUpdateException(String message, Throwable cause) {
         super(message, cause);
-    }
-
-    /**
-     * @param message associated message
-     * @param cause associated cause
-     * @param enableSuppression allow suppression or not
-     * @param writableStackTrace allow writable stack trace or not
-     */
-    public AccessExecutionException(String message, Throwable cause, boolean enableSuppression,
-        boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
     }
 }

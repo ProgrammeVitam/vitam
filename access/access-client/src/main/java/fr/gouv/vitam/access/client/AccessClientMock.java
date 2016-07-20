@@ -51,4 +51,20 @@ public class AccessClientMock implements AccessClient {
         return JsonHandler.getFromString(
             "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"1\" }}, $projection: {}, $filter: {}},$result:[{'_id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}");
     }
+
+    /**
+     * update Unit By Id
+     *
+     * @param updateQuery
+     * @param unitId
+     * @return Object JsonNode
+     * @throws InvalidParseOperationException
+     * @throws AccessClientServerException
+     * @throws AccessClientNotFoundException
+     */
+    @Override
+    public JsonNode updateUnitbyId(String updateQuery, String unitId) throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException {
+        return JsonHandler.getFromString(
+                "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"ArchiveUnit1\" }}, $projection: {}, $filter: {}},$result:[{'_id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}");
+    }
 }

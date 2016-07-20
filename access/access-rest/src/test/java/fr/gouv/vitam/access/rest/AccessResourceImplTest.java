@@ -23,22 +23,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.rest;
 
-import static com.jayway.restassured.RestAssured.get;
-import static com.jayway.restassured.RestAssured.given;
-import static com.jayway.restassured.RestAssured.with;
-
-import java.io.FileNotFoundException;
-
-import javax.ws.rs.core.Response.Status;
-
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
-
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
-
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -48,6 +34,15 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.BasicVitamServer;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.parser.request.parser.GlobalDatasParser;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Test;
+
+import javax.ws.rs.core.Response.Status;
+import java.io.FileNotFoundException;
+
+import static com.jayway.restassured.RestAssured.*;
 
 
 public class AccessResourceImplTest {
@@ -58,6 +53,7 @@ public class AccessResourceImplTest {
     private static final String ACCESS_STATUS_URI = "/status";
     private static final String ACCESS_UNITS_URI = "/units";
     private static final String ACCESS_UNITS_ID_URI = "/units/xyz";
+    private static final String ACCESS_UPDATE_UNITS_ID_URI = "/units/xyz";
     // private static final int ASSURD_SERVER_PORT = 8187;
 
     private static VitamServer vitamServer;
@@ -69,6 +65,8 @@ public class AccessResourceImplTest {
         " $filter : { $orderby : { '#id' } }," +
         " $projection : {$fields : {#id : 1, title:2, transacdate:1}}" +
         " }";
+
+    private static final String QUERY_SIMPLE_TEST = "{ $query : [ { $eq : { 'title' : 'test' } } ] }";
 
     private static final String DATA =
         "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", " + "\"data\": \"data1\" }";
@@ -235,8 +233,6 @@ public class AccessResourceImplTest {
             .when().post(ACCESS_UNITS_ID_URI).then().statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
     }
 
-
-
     @Test
     public void given_SelectUnitById_WhenStringTooLong_Then_Throw_MethodNotAllowed() throws Exception {
         GlobalDatasParser.limitRequest = 1000;
@@ -246,6 +242,16 @@ public class AccessResourceImplTest {
             .when().post(ACCESS_UNITS_ID_URI).then().statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
 
     }
+
+    @Test
+    public void given_updateUnitById_WhenStringTooLong_Then_Throw_BadRequest() throws Exception {
+        GlobalDatasParser.limitRequest = 1000;
+        given()
+                .contentType(ContentType.JSON).body(buildDSLWithOptions(createLongString(1001), DATA2))
+                .when().put(ACCESS_UPDATE_UNITS_ID_URI).then().statusCode(Status.BAD_REQUEST.getStatusCode());
+    }
+
+
 
     private static String createLongString(int size) throws Exception {
         final StringBuilder sb = new StringBuilder(size);
@@ -288,18 +294,41 @@ public class AccessResourceImplTest {
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
+    @Test
+    public void given_emptyQuery_when_UpdateByID_thenReturn_Bad_Request() {
+
+        given()
+                .contentType(ContentType.JSON)
+                .body("")
+                .when()
+                .put("/units/" + ID_UNIT)
+                .then()
+                .statusCode(Status.BAD_REQUEST.getStatusCode());
+    }
+
+    @Test
+    public void given_queryThatThrowException_when_updateByID_thenThrowAccessException() {
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(buildDSLWithOptions(QUERY_SIMPLE_TEST, DATA))
+                .when()
+                .put("/units/" + ID)
+                .then()
+                .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
 
     @Test
     public void given_bad_header_when_SelectByID_thenReturn_Not_allowed() {
 
         given()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "ABC")
-            .body(BODY_TEST)
-            .when()
-            .post("/units/" + ID_UNIT)
-            .then()
-            .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "ABC")
+                .body(BODY_TEST)
+                .when()
+                .post("/units/" + ID_UNIT)
+                .then()
+                .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
     }
 
     @Test
@@ -317,6 +346,19 @@ public class AccessResourceImplTest {
 
     @Ignore
     @Test
+    public void given_bad_header_when_updateByID_thenReturn_Not_allowed() {
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(BODY_TEST)
+                .when()
+                .put("/units/" + ID_UNIT)
+                .then()
+                .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+    }
+
+    @Ignore
+    @Test
     public void shouldReturnInternalServerError() throws Exception {
         int limitRequest = GlobalDatasParser.limitRequest;
         GlobalDatasParser.limitRequest = 99;
@@ -329,7 +371,6 @@ public class AccessResourceImplTest {
         GlobalDatasParser.limitRequest = limitRequest;
     }
 
-
     private static String createJsonStringWithDepth(int depth) {
         final StringBuilder obj = new StringBuilder();
         if (depth == 0) {
@@ -338,6 +379,5 @@ public class AccessResourceImplTest {
         obj.append("{ \"a\": ").append(createJsonStringWithDepth(depth - 1)).append("}");
         return obj.toString();
     }
-
 }
 

@@ -50,7 +50,7 @@ public interface AccessClient {
     /**
      * select Unit By Id
      * 
-     * @param selectQuery
+     * @param sqlQuery
      * @param id
      * @return Object JsonNode
      * @throws InvalidParseOperationException
@@ -59,4 +59,18 @@ public interface AccessClient {
      */
     JsonNode selectUnitbyId(String sqlQuery, String id)
         throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException;
+
+    /**
+     * update Unit By Id
+     *
+     * @param updateQuery
+     * @param unitId
+     * @return Object JsonNode
+     * @throws InvalidParseOperationException
+     * @throws AccessClientServerException
+     * @throws AccessClientNotFoundException
+     */
+    JsonNode updateUnitbyId(String updateQuery, String unitId)
+            throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException;
+
 }
