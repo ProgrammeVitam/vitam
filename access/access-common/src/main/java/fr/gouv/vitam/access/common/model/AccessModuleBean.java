@@ -42,6 +42,7 @@ public class AccessModuleBean {
     }
 
     /**
+     * constructor by request  and requestId
      * @param requestDsl -return type string
      * @param requestId - return type GUID
      */
@@ -51,6 +52,7 @@ public class AccessModuleBean {
     }
 
     /**
+     * getter requestdsl
      * @return requestDsl type String
      */
     public String getRequestDsl() {
@@ -70,6 +72,7 @@ public class AccessModuleBean {
 
 
     /**
+     * getter requestId
      * @return - type GUID
      */
     public GUID getRequestId() {
@@ -77,6 +80,7 @@ public class AccessModuleBean {
     }
 
     /**
+     * setter XrequestId
      * @param xRequestId -return GUID
      */
     public AccessModuleBean setxRequestId(GUID xRequestId) {

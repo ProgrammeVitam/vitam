@@ -20,6 +20,11 @@
         </dependency>
         <dependency>
             <groupId>fr.gouv.vitam</groupId>
+            <artifactId>common-public</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>fr.gouv.vitam</groupId>
             <artifactId>common-database</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -33,6 +38,16 @@
 			<artifactId>access-common</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+        <dependency>
+            <groupId>fr.gouv.vitam</groupId>
+            <artifactId>logbook-lifecycles-client</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>fr.gouv.vitam</groupId>
+            <artifactId>logbook-operations-client</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 		 <dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>metadata-client</artifactId>

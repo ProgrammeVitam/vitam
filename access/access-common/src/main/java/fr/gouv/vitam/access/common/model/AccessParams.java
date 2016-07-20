@@ -35,6 +35,7 @@ public class AccessParams {
 
 
     /**
+     * default constructor
      * Default Constructor AccessParams
      */
     public AccessParams() {
@@ -42,6 +43,7 @@ public class AccessParams {
     }
 
     /**
+     * getter server configuration
      * @return - hostname, port, dbName, collectionName
      */
     public AccessConfiguration getServerConfiguration() {
@@ -49,6 +51,7 @@ public class AccessParams {
     }
 
     /**
+     * setter server configuration
      * @param serverConfiguration - return hostname, port, dbName, collectionName
      */
     public AccessParams setServerConfiguration(AccessConfiguration serverConfiguration) {

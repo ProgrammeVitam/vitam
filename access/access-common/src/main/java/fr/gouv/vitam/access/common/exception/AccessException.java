@@ -33,6 +33,7 @@ public class AccessException extends VitamException {
     private static final long serialVersionUID = 5412138701285198642L;
 
     /**
+     * constructor with message
      * @param message message to associate with the exception
      */
     public AccessException(String message) {
@@ -40,6 +41,7 @@ public class AccessException extends VitamException {
     }
 
     /**
+     * constructor with throwable
      * @param cause cause to associate with the exception
      */
     public AccessException(Throwable cause) {
@@ -47,6 +49,7 @@ public class AccessException extends VitamException {
     }
 
     /**
+     * constructor with message and throwable
      * @param message message to associate with the exception
      * @param cause cause to associate with the exception
      */
@@ -55,6 +58,7 @@ public class AccessException extends VitamException {
     }
 
     /**
+     * constructor with  message throwable anableSuppression and writableStackTrace
      * @param message associated message
      * @param cause associated cause
      * @param enableSuppression allow suppression or not
