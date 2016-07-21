@@ -23,6 +23,7 @@ Sommaire
    storage-general.rst
    storage-driver.rst
    storage-engine.rst
+   storage-engine-client.rst
    storage-offers.rst
    default-offer.rst
 

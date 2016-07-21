@@ -43,6 +43,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.Optional;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventFactory;
@@ -57,6 +58,7 @@ import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.xml.sax.SAXException;
 
@@ -412,7 +414,7 @@ public class SedaUtils {
 
     private Map<String, File> extractArchiveUnitToLocalFile(XMLEventReader reader, StartElement startElement,
         String archiveUnitId, ObjectNode archiveUnitTree)
-        throws ProcessingException {
+            throws ProcessingException {
 
         Map<String, File> archiveUnitToTmpFileMap = new HashMap<String, File>();
         final String elementGuid = GUIDFactory.newGUID().toString();
@@ -1736,7 +1738,7 @@ public class SedaUtils {
 
     private LogbookLifeCycleObjectGroupParameters updateObjectGroupLifeCycleOnBdoCheck(String objectGroupGuid,
         String bdoXmlId, String containerId) throws LogbookClientBadRequestException,
-        LogbookClientAlreadyExistsException, LogbookClientServerException, LogbookClientNotFoundException {
+            LogbookClientAlreadyExistsException, LogbookClientServerException, LogbookClientNotFoundException {
 
         LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters =
             (LogbookLifeCycleObjectGroupParameters) initLogbookLifeCycleParameters(
@@ -1818,4 +1820,125 @@ public class SedaUtils {
 
     }
 
+    /**
+     * Retrieve the binary data object infos linked to the object group. <br>
+     * TODO : should not need to parse the manifest.xml to link a binary data object present in workspace to an object
+     * group. To refactor when Object Group <-> Binary Data Object link is defined.
+     * TODO : during the next refactoring of Sedautils, it has to be refactored to StoreObjectGroupActionHandler
+     * 
+     * @param params worker parameters
+     * @return list binary data object informations
+     * @throws ProcessingException throws when error occurs
+     */
+    public List<BinaryObjectInfo> retrieveStorageInformationForObjectGroup(WorkParams params)
+        throws ProcessingException {
+        ParametersChecker.checkParameter("Work parameters is a mandatory parameter", params);
+        final String containerId = params.getContainerName();
+        final String objectName = params.getObjectName();
+        ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
+        ParametersChecker.checkParameter("ObjectName id is a mandatory parameter", objectName);
+
+        final WorkspaceClient workspaceClient =
+            WorkspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
+        // retrieve SEDA FILE and get the list of objectsDatas
+        List<BinaryObjectInfo> binaryObjectsToStore = new ArrayList<>();
+        // Get binary objects informations of the SIP
+        SedaUtilInfo sedaUtilInfo = getSedaUtilInfo(workspaceClient, containerId);
+        // Get objectGroup objects ids
+        final JsonNode jsonOG = getJsonFromWorkspace(workspaceClient, containerId, OBJECT_GROUP + "/" + objectName);
+
+        // Filter on objectGroup objects ids to retrieve only binary objects informations linked to the ObjectGroup
+        JsonNode qualifiers = jsonOG.get("_qualifiers");
+        if (qualifiers == null) {
+            return binaryObjectsToStore;
+        }
+
+        List<JsonNode> versions = qualifiers.findValues("versions");
+        if (versions == null || versions.isEmpty()) {
+            return binaryObjectsToStore;
+        }
+        for (JsonNode version : versions) {
+            for (JsonNode binaryObject : version) {
+                Optional<Entry<String, BinaryObjectInfo>> objectEntry =
+                    sedaUtilInfo.getBinaryObjectMap().entrySet().stream()
+                        .filter(entry -> entry.getKey().equals(binaryObject.get("_id").asText())).findFirst();
+                if (objectEntry.isPresent()) {
+                    binaryObjectsToStore.add(objectEntry.get().getValue());
+                }
+            }
+        }
+
+        return binaryObjectsToStore;
+    }
+
+    /**
+     * Parse SEDA file manifest.xml to retrieve all its binary data objects informations as a SedaUtilInfo.
+     * 
+     * @param workspaceClient workspace connector
+     * @param containerId container id
+     * @return SedaUtilInfo
+     * @throws ProcessingException throws when error occurs
+     */
+    private SedaUtilInfo getSedaUtilInfo(WorkspaceClient workspaceClient, String containerId)
+        throws ProcessingException {
+        InputStream xmlFile = null;
+        try {
+            xmlFile = workspaceClient.getObject(containerId, SEDA_FOLDER + "/" + SEDA_FILE);
+        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
+            LOGGER.error("Manifest.xml Not Found");
+            IOUtils.closeQuietly(xmlFile);
+            throw new ProcessingException(e);
+        }
+
+        final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+
+        SedaUtilInfo sedaUtilInfo = null;
+        XMLEventReader reader = null;
+        try {
+            reader = xmlInputFactory.createXMLEventReader(xmlFile);
+            sedaUtilInfo = getBinaryObjectInfo(reader);
+            return sedaUtilInfo;
+        } catch (final XMLStreamException e) {
+            LOGGER.error("Can not read SEDA");
+            throw new ProcessingException(e);
+        } finally {
+            IOUtils.closeQuietly(xmlFile);
+            try {
+                reader.close();
+            } catch (XMLStreamException e) {
+                // nothing to throw
+                LOGGER.info("Can not close XML reader SEDA");
+            }
+        }
+
+    }
+
+    /**
+     * Retrieve a json file as a {@link JsonNode} from the workspace.
+     * 
+     * @param workspaceClient workspace connector
+     * @param containerId container id
+     * @param jsonFilePath path in workspace of the json File
+     * @return JsonNode of the json file
+     * @throws ProcessingException throws when error occurs
+     */
+    private JsonNode getJsonFromWorkspace(WorkspaceClient workspaceClient, String containerId, String jsonFilePath)
+        throws ProcessingException {
+        try (InputStream is = workspaceClient.getObject(containerId, jsonFilePath)) {
+            if (is != null) {
+                final String inputStreamString = CharStreams.toString(new InputStreamReader(is, "UTF-8"));
+                return JsonHandler.getFromString(inputStreamString);
+            } else {
+                LOGGER.error("Object group not found");
+                throw new ProcessingException("Object group not found");
+            }
+
+        } catch (InvalidParseOperationException | IOException e) {
+            LOGGER.debug("Json wrong format", e);
+            throw new ProcessingException(e);
+        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
+            LOGGER.debug("Workspace Server Error", e);
+            throw new ProcessingException(e);
+        }
+    }
 }

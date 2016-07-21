@@ -586,6 +586,11 @@
 				</exclusions>
 			</dependency>
 			<dependency>
+				<groupId>org.glassfish.jersey.connectors</groupId>
+				<artifactId>jersey-jetty-connector</artifactId>
+				<version>${jersey.version}</version>
+			</dependency>
+			<dependency>
 				<groupId>org.glassfish.jersey.media</groupId>
 				<artifactId>jersey-media-json-jackson</artifactId>
 				<version>${jersey.version}</version>
@@ -602,6 +607,8 @@
 				<version>${jackson.version}</version>
 			</dependency>
 
+
+
 			<dependency>
 				<groupId>org.eclipse.jetty</groupId>
 				<artifactId>jetty-http</artifactId>
@@ -610,6 +617,11 @@
 			<dependency>
 				<groupId>org.eclipse.jetty</groupId>
 				<artifactId>jetty-server</artifactId>
+				<version>${jetty.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.eclipse.jetty</groupId>
+				<artifactId>jetty-client</artifactId>
 				<version>${jetty.version}</version>
 			</dependency>
 			<dependency>

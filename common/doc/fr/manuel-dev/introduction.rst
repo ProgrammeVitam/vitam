@@ -68,7 +68,7 @@ Les usages principaux
 * GUID pour PlatformId
 * Logger and Logbook pour tous les champs
 
-SyetemPropertyUtil
+SystemPropertyUtil
 ==================
 
 Cet utilitaire propose quelques méthodes pour manipuler les Propritétés héritées du Système, notamment celle déduites de "-Dxxxx" dans la ligne de commande Java.
@@ -177,4 +177,8 @@ Exception
 
 L'exception parente Vitam VitamException s'y trouve. Toutes les exceptions Vitam en héritent.
 
- 
+Client
+******
+
+Le client parent Vitam BasicClient et son implémentation des méthodes commune AbstractClient s'y trouvent. 
+Une configuration commune SSLClientConfiguration complète le client Vitam. 

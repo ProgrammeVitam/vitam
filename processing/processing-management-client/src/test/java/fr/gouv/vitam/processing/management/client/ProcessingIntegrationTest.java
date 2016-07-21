@@ -123,6 +123,14 @@ public class ProcessingIntegrationTest {
     public static void tearDownAfterClass() {
         mongod.stop();
         mongodExecutable.stop();
+        try {
+            workspaceApplication.stop();
+            processApplication.stop();
+            medtadataApplication.stop();
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
     @Test

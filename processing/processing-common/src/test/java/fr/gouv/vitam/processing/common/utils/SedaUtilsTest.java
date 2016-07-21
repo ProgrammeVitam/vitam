@@ -81,7 +81,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({WorkspaceClientFactory.class })
+@PrepareForTest({WorkspaceClientFactory.class})
 public class SedaUtilsTest {
 
     @Rule
@@ -99,7 +99,8 @@ public class SedaUtilsTest {
     private MetaDataClient metadataClient;
     private MetaDataClientFactory metadataFactory;
     private final InputStream seda = Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP);
-    private final InputStream seda_arborescence = Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_ARBORESCENCE);
+    private final InputStream seda_arborescence =
+        Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_ARBORESCENCE);
     private final InputStream archiveUnit = Thread.currentThread().getContextClassLoader()
         .getResourceAsStream(ARCHIVE_UNIT);
     private final InputStream objectGroup = Thread.currentThread().getContextClassLoader()
@@ -147,7 +148,7 @@ public class SedaUtilsTest {
     public void givenGuidWhenXmlExistThenReturnTrue() throws Exception {
         when(workspaceClient.getObject(params.getGuuid(), "SIP/manifest.xml")).thenReturn(seda);
         PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
-        
+
         utils = new SedaUtilsFactory().create(metadataFactory);
         assertTrue(utils.checkSedaValidation(params));
     }
@@ -167,7 +168,6 @@ public class SedaUtilsTest {
     public void givenSedaHasMessageIdWhengetMessageIdThenReturnCorrect() throws Exception {
         when(workspaceClient.getObject(params.getGuuid(), "SIP/manifest.xml")).thenReturn(seda);
         PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
-
         utils = new SedaUtilsFactory().create(metadataFactory);
         assertEquals("Entrée_avec_groupe_d_objet", utils.getMessageIdentifier(params));
     }
@@ -338,7 +338,7 @@ public class SedaUtilsTest {
         evenReader = factory.createXMLEventReader(new FileReader("src/test/resources/sip-with-wrong-version.xml"));
         assertEquals(1, utils.compareVersionList(evenReader, "src/test/resources/version.conf").size());
     }
-    
+
     @Test
     public void givenCorrectManifestWhenArchiveUnitTreeThenOK()
         throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageException,
@@ -349,12 +349,12 @@ public class SedaUtilsTest {
         PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
         utils = new SedaUtilsFactory().create(new MetaDataClientFactory());
         utils.extractSEDA(params);
-        
+
         assertEquals(utils.getUnitIdToGuid().size(), 6);
-        
+
         // Open saved Archive Tree Json file
         File archiveTreeTmpFile = PropertiesUtils
-                .fileFromTmpFolder(SedaUtils.ARCHIVE_TREE_TMP_FILE_NAME_PREFIX + OBJ + SedaUtils.JSON_EXTENSION);
+            .fileFromTmpFolder(SedaUtils.ARCHIVE_TREE_TMP_FILE_NAME_PREFIX + OBJ + SedaUtils.JSON_EXTENSION);
         JsonNode archiveTree = JsonHandler.getFromFile(archiveTreeTmpFile);
         assertTrue(archiveTree.has("ID027"));
         assertTrue(archiveTree.has("ID032"));
@@ -363,6 +363,41 @@ public class SedaUtilsTest {
         assertTrue(archiveTree.get("ID032").get(SedaUtils.UP_FIELD).toString().contains("ID030"));
         assertTrue(archiveTree.get("ID032").get(SedaUtils.UP_FIELD).toString().contains("ID029"));
     }
+
+    @Test
+    public void givenCorrectObjectGroupWhenStoreObjectGroupThenOK() throws Exception {
+        String containerName = "aeaaaaaaaaaaaaabaa4quakwgip7nuaaaaaq";
+        WorkParams paramsObjectGroups =
+            new WorkParams().setGuuid(OBJ).setContainerName(containerName)
+                .setServerConfiguration(new ServerConfiguration().setUrlWorkspace(OBJ).setUrlMetada(OBJ))
+                .setObjectName("aeaaaaaaaaaaaaabaa4quakwgip76jaaaaaq.json").setCurrentStep("Store ObjectGroup");
+        when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
+        when(workspaceClient.getObject(containerName, "SIP/manifest.xml")).thenReturn(seda);
+        when(workspaceClient.getObject(containerName, "ObjectGroup/aeaaaaaaaaaaaaabaa4quakwgip76jaaaaaq.json"))
+            .thenReturn(objectGroup);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        utils = new SedaUtilsFactory().create(metadataFactory);
+
+        utils.retrieveStorageInformationForObjectGroup(paramsObjectGroups);
+    }
+
+    @Test(expected = ProcessingException.class)
+    public void givenCorrectObjectGroupWhenStoreObjectGroupThenJsonKO() throws Exception {
+        String containerName = "aeaaaaaaaaaaaaabaa4quakwgip7nuaaaaaq";
+        WorkParams paramsObjectGroups =
+            new WorkParams().setGuuid(OBJ).setContainerName(containerName)
+                .setServerConfiguration(new ServerConfiguration().setUrlWorkspace(OBJ).setUrlMetada(OBJ))
+                .setObjectName("aeaaaaaaaaaaaaabaa4quakwgip76jaaaaaq.json").setCurrentStep("Store ObjectGroup");
+        when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
+        when(workspaceClient.getObject(containerName, "SIP/manifest.xml")).thenReturn(seda);
+        when(workspaceClient.getObject(containerName, "aeaaaaaaaaaaaaabaa4quakwgip76jaaaaaq.json"))
+            .thenReturn(objectGroup);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        utils = new SedaUtilsFactory().create(metadataFactory);
+
+        utils.retrieveStorageInformationForObjectGroup(paramsObjectGroups);
+    }
+
 
     // @Test
     // public void givenCompareDigestMessage() throws FileNotFoundException,

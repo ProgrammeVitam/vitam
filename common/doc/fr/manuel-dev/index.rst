@@ -24,6 +24,7 @@ Sommaire
    Digest.rst
    Logger.rst
    JunitHelper.rst
+   client.rst
 
 
 ##############

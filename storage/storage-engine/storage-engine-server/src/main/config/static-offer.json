@@ -1,0 +1,7 @@
+{
+  "id" : "default",
+  "baseUrl" : "http://workspaceOfferService",
+  "parameters" : {
+    "user" : "bob"
+  }
+}
