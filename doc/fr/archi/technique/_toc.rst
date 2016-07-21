@@ -12,4 +12,5 @@ Architecture Technique
 
 ..   logbook.rst
 ..   logbook-dsl.rst
+..   storage.rst
 

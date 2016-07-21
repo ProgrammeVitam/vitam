@@ -1,0 +1,38 @@
+@startuml
+
+skinparam classFontSize 11
+title Vitam Storage Driver architecture
+
+interface Driver {
+  +Connection connect(String url, Properties parameters)
+  +boolean isStorageOfferAvailable(String url, Properties parameters)
+  +String getName()
+  +int getMajorVersion()
+  +int getMinorVersion()
+}
+
+interface Connection extends AutoCloseable {
+  +long getStorageRemainingCapacity()
+  +GetObjectResult getObject(GetObjectRequest request)
+  +PutObjectResult putObject(PutObjectRequest request, File object)
+  +PutObjectResult putObject(PutObjectRequest request, InputStream object)
+  +RemoveObjectResult removeObject(RemoveObjectRequest request)
+}
+
+abstract InputStream {
+}
+
+Driver -> Connection : Provides
+Driver <-down- Properties : is used in
+Connection <-down- File : is used in
+Connection <-down- InputStream : is used in
+Connection <-down- GetObjectRequest : is used in
+Connection <-down- PutObjectRequest : is used in
+Connection <-down- RemoveObjectRequest : is used in
+Connection -down-> GetObjectResult : Produce
+Connection -down-> PutObjectResult : Produce
+Connection -down-> RemoveObjectResult : Produce
+
+hide empty attributes
+hide empty members
+@enduml
