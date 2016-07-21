@@ -44,4 +44,5 @@ vitam_folder_permission=0755
 vitam_conf_permission=0500
 pull_strategy=always
 local_user=vitam
+vitam_docker_tag=0.6.0-SNAPSHOT
 

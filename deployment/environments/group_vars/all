@@ -1,7 +1,6 @@
 ---
 vitam_folder_root: /opt/vitam
 docker_registry_httponly: yes
-vitam_docker_tag: latest
 
 
 # Internal components communication configuration
