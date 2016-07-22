@@ -51,7 +51,7 @@ public class StatusMessage {
     /**
      * Constructor from ServerIdentity
      *
-     * @param serverIdentity
+     * @param serverIdentity containing ServerName, ServerRole, Global PlatformId
      */
     public StatusMessage(ServerIdentity serverIdentity) {
         setName(serverIdentity.getName());

@@ -62,7 +62,7 @@ public final class WorkspaceOfferApplication
      * Main method to run the application (doing start and join)
      *
      * @param args command line parameters
-     * @throws IllegalStateException
+     * @throws IllegalStateException if the Vitam server cannot be launched
      */
     public static void main(String[] args) {
         try {
@@ -77,9 +77,10 @@ public final class WorkspaceOfferApplication
     /**
      * Prepare the application to be run or started.
      *
-     * @param args
+     * @param args the list of arguments as an array of strings
      * @return the VitamServer
-     * @throws IllegalStateException
+     * @throws IllegalStateException if the server cannot be configured, meaning there are problem with the
+     *         configuration
      */
     public static VitamServer startApplication(String[] args) {
         try {

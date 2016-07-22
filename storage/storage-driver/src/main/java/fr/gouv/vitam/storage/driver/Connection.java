@@ -65,6 +65,7 @@ public interface Connection extends AutoCloseable {
      * Return value MUST in bytes
      *
      * @return the capacity available in bytes
+     * @throws StorageDriverException if any problem occurs during request
      */
     long getStorageRemainingCapacity() throws StorageDriverException;
 
