@@ -93,6 +93,22 @@ Une fois que le distributeur a récupéré le driver de l'offre, il utilise l'in
 
 Le distributeur gère la mise à jour du journal des écritures du storage liée à l'opération de stockage d'un objet binaire dans une offre.
 
+D'un point de vue séquentiel :
+
+- Lors d'un appel de type POST /objects/{id_object} pour stocker un nouvel objet, le service est appelé :
+
+ 1. Il vérifie les paramètres d'entrée (nullité et cohérence simple)
+ 2. Il récupère la stratégie associée à l'ID fourni
+ 3. Regarde uniquement la partie "offres chaudes"
+ 4. Pour chaque offre chaude :
+    1. Récupération du Driver associé s'il existe (sinon remontée d'une exception technique)
+    2. Récupération des paramètres de l'offre : url du service, paramètres additionels
+    3. Tentative de connection à l'offre et d'upload de l'objet (avec un méchanisme de retry basé sur 3 tentatives)
+    4. Comparaison du digest hash renvoyé par l'offre avec le digest calculé à la volée lors de l'envoi du stream à l'offre
+    5. Stockage du résultat de l'upload (simple booléen aujourd'hui) dans une map temporaire contenant le résultat de l'upload sur chaque offre
+ 5. Génération d'une réponse sérialisable, en mode 'succès' si **tous** les drivers ont correctement stocker l'objet (renvoi d'une exception sinon)
+
+
 DriverManager : SPI
 ===================
 
@@ -111,8 +127,8 @@ Principe
 --------
 
 Le driver à ajouter doit implémenter l'interface définie. Dans son jar, il faut donc retrouver l'implémentation du
-driver ainsi que le fichier permettant au ServiceLoader de fonctionner. Ce fichier DOIT se trouver dans les
-resources, sous META-INF/services.
+driver ainsi que le fichier permettant au ServiceLoader de fonctionner. Ce fichier **DOIT** se trouver dans les
+resources, sous META-INF/services (principe du ServiceLoader de la JDK).
 Son nom est l'interface implémentée par le driver précédé de son package.
 
 Exemple::
@@ -131,11 +147,15 @@ Où VitamDriverImpl est l'implémentation du driver.
 
 Voici le fichier : :download:`fr.gouv.vitam.storage.driver.VitamDriver <samples/fr.gouv.vitam.storage.driver.VitamDriver>`
 
-| Le jar sera déposé via une interface graphique dans un répertoire défini : WEB-INF/lib ?
+| Le jar sera déposé via une interface graphique dans un répertoire défini dans le fichier de configuration
+driver-location.conf avec la clef **driverLocation**. Actuellement il faut le déposer manuellement.
 | Le paramétrage des offres se fera également via une interface graphique.
 
 Cependant, il faut pouvoir redémarrer Vitam sans perdre l'association driver / offre ou démarrer Vitam avec des
 drivers et des offres par défaut. Pour se faire, il faut persister la configuration.
+
+Persistance
+-----------
 
 On s'appuie sur une interface offrant différentes méthodes afin de récupérer les offres à partir d'un nom de driver,
 persister la configuration... Cela permet demain de changer la stratégie de persistance sans avoir à modifier le code
@@ -144,12 +164,21 @@ du SPI.
 .. code-block:: java
 
     public interface DriverMapper {
-        List<String> getOffersFor(String driverName);
+        List<String> getOffersFor(String driverName) throws StorageException;
 
-        /**
-        * Map<offreId, driverName>
-        **/
-        void persist(Map<String, String> driverMapping);
+        void addOfferTo(String offerId, String driverName) throws StorageException;
+
+        void addOffersTo(List<String> offersIdsToAdd, String driverName) throws StorageException;
+
+        void removeOfferTo(String offerId, String driverName) throws StorageException;
+
+        void removeOffersTo(List<String> offersIdsToRemove, String driverName) throws StorageException;
     }
 
-Dans un premier temps, l'implémentation du mapper se fera en passant par un fichier.
+Dans un premier temps, l'implémentation du mapper se fera en passant par un fichier. Dans son implémentation
+actuelle, le DriverMapper a besoin d'un fichier de configuration, driver-mapping.conf. Ici, il permet de définir
+l'emplacement où seront enregistrés les fichiers permettant la persistance via la clef **driverMappingPath**. Une autre clef est
+nécessaire afin de définir le délimiteur dans ce fichier via la clef **delimiter**, le principe étant de mettre en place un
+fichier par driver comme un fichier CSV, les offres étant séparées par ce délimiteur.
+
+

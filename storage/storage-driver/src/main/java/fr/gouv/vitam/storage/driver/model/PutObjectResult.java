@@ -39,5 +39,22 @@ package fr.gouv.vitam.storage.driver.model;
  * Holds result data that come as a result of a request to put an object on the distant storage offer
  */
 public class PutObjectResult {
-    // TODO : implements me
+    private String distantObjectId;
+    private String digestHashBase16;
+
+    public String getDistantObjectId() {
+        return distantObjectId;
+    }
+
+    public void setDistantObjectId(String distantObjectId) {
+        this.distantObjectId = distantObjectId;
+    }
+
+    public String getDigestHashBase16() {
+        return digestHashBase16;
+    }
+
+    public void setDigestHashBase16(String digestHashBase16) {
+        this.digestHashBase16 = digestHashBase16;
+    }
 }

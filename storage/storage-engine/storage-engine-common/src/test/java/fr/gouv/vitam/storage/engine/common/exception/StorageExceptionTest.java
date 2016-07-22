@@ -69,4 +69,22 @@ public class StorageExceptionTest {
         assertNotNull(new StorageNotFoundException(MESSAGE, exception));
         assertNotNull(new StorageNotFoundException(MESSAGE, exception, true, true));
     }
+
+    @Test
+    public void testStorageDriverMapperExceptionThrowable() {
+        assertNotNull(new StorageDriverMapperException((String) null));
+        assertNotNull(new StorageDriverMapperException(MESSAGE));
+        assertNotNull(new StorageDriverMapperException(exception));
+        assertNotNull(new StorageDriverMapperException(MESSAGE, exception));
+        assertNotNull(new StorageDriverMapperException(MESSAGE, exception, true, true));
+    }
+
+    @Test
+    public final void testStorageDriverNotFoundExceptionThrowable() {
+        assertNotNull(new StorageDriverNotFoundException((String) null));
+        assertNotNull(new StorageDriverNotFoundException(MESSAGE));
+        assertNotNull(new StorageDriverNotFoundException(exception));
+        assertNotNull(new StorageDriverNotFoundException(MESSAGE, exception));
+        assertNotNull(new StorageDriverNotFoundException(MESSAGE, exception, true, true));
+    }
 }

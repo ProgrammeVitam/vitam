@@ -32,7 +32,7 @@ package fr.gouv.vitam.storage.engine.server.rest;
  */
 public final class StorageConfiguration {
 
-    private String urlStorage;
+    private String urlWorkspace;
 
     /**
      * StorageConfiguration empty constructor for YAMLFactory
@@ -42,19 +42,19 @@ public final class StorageConfiguration {
     }
 
     /**
-     * @return the urlStorage
+     * @return the urlWorkspace
      */
-    public String getUrlStorage() {
-        return urlStorage;
+    public String getUrlWorkspace() {
+        return urlWorkspace;
     }
 
     /**
-     * @param urlStorage the urlStorage to set
+     * @param urlWorkspace the urlWorkspace to set
      *
      * @return this
      */
-    public StorageConfiguration setUrlStorage(String urlStorage) {
-        this.urlStorage = urlStorage;
+    public StorageConfiguration setUrlWorkspace(String urlWorkspace) {
+        this.urlWorkspace = urlWorkspace;
         return this;
     }
 

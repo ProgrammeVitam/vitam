@@ -44,7 +44,6 @@ import fr.gouv.vitam.storage.driver.model.RemoveObjectRequest;
 import fr.gouv.vitam.storage.driver.model.RemoveObjectResult;
 
 import java.io.File;
-import java.io.InputStream;
 
 /**
  * Represents a connection to the distant storage offer service that is provided by the driver when calling the
@@ -83,22 +82,22 @@ public interface Connection extends AutoCloseable {
      * connection parameters.
      *
      * @param request the request to send. It may contains informations needed to store the file.
-     * @param object  the file to store as a {@link File}
-     * @return a result that may contains metadata or statistics about the object put operation.
+     * @return a result that may contains metadatas or statistics about the object put operation.
      * @throws StorageDriverException if any problem occurs during request
      */
-    PutObjectResult putObject(PutObjectRequest request, File object) throws StorageDriverException;
+    PutObjectResult putObject(PutObjectRequest request) throws StorageDriverException;
 
     /**
      * Put the object file into the storage offer based on criterias defined in request argument and underlaying
      * connection parameters.
      *
      * @param request the request to send. It may contains informations needed to store the file.
-     * @param object  the file to store as an {@link InputStream}
-     * @return a result that may contains metadatas or statistics about the object put operation.
+     * @param object  the file to store as a {@link File} object to be used in replacement of the InpuStream
+     *                contained in the request
+     * @return a result that may contains metadata or statistics about the object put operation.
      * @throws StorageDriverException if any problem occurs during request
      */
-    PutObjectResult putObject(PutObjectRequest request, InputStream object) throws StorageDriverException;
+    PutObjectResult putObject(PutObjectRequest request, File object) throws StorageDriverException;
 
     /**
      * Delete an object on the distant storage offer.
@@ -108,4 +107,11 @@ public interface Connection extends AutoCloseable {
      * @throws StorageDriverException if any problem occurs during request
      */
     RemoveObjectResult removeObject(RemoveObjectRequest request) throws StorageDriverException;
+
+    /**
+     * Override AutoCloseable implementation to specify the exception
+     * @throws StorageDriverException to be thrown in case of any driver exception
+     */
+    @Override
+    void close() throws StorageDriverException;
 }

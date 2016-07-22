@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- *
+ * 
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -24,83 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.storage.offers.workspace.core;
-
-import fr.gouv.vitam.common.ServerIdentity;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
-
 /**
- * Default Status message (at that time)
- * <p>
- * TODO refactor into common class.
- * </p>
+ * Contains storage common responses model
  */
-public class StatusMessage {
-    private String name;
-    private String role;
-    private int pid;
-
-    /**
-     * Empty constructor
-     */
-    public StatusMessage() {
-        // Empty
-    }
-
-    /**
-     * Constructor from ServerIdentity
-     *
-     * @param serverIdentity containing ServerName, ServerRole, Global PlatformId
-     */
-    public StatusMessage(ServerIdentity serverIdentity) {
-        setName(serverIdentity.getName());
-        setRole(serverIdentity.getRole());
-        setPid(serverIdentity.getPlatformId());
-    }
-
-    /**
-     *
-     * @return the server name
-     */
-    public final String getName() {
-        return name;
-    }
-
-    protected final void setName(String name) {
-        this.name = name;
-    }
-
-    /**
-     *
-     * @return the server role
-     */
-    public final String getRole() {
-        return role;
-    }
-
-    protected final void setRole(String role) {
-        this.role = role;
-    }
-
-    /**
-     *
-     * @return the unique int identifier for this server
-     */
-    public final int getPid() {
-        return pid;
-    }
-
-    protected final void setPid(int pid) {
-        this.pid = pid;
-    }
-
-    @Override
-    public String toString() {
-        try {
-            return JsonHandler.writeAsString(this);
-        } catch (final InvalidParseOperationException e) {// NOSONAR ignore
-            return "unknownStatusMessage";
-        }
-    }
-}
+package fr.gouv.vitam.storage.engine.common.model.response;

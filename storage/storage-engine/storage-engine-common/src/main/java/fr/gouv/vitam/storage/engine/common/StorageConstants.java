@@ -30,7 +30,11 @@ package fr.gouv.vitam.storage.engine.common;
 /**
  * TODO: move to common public VITAM
  */
-public class StorageConstants {
+public final class StorageConstants {
 
     public static final String APPLICATION_ZIP = "application/zip";
+
+    private StorageConstants() {
+        // Just hiding empty constructor
+    }
 }

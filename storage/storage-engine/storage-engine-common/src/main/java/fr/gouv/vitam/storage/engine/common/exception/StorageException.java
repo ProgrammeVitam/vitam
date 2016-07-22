@@ -41,8 +41,6 @@ import fr.gouv.vitam.common.exception.VitamException;
  */
 public class StorageException extends VitamException {
 
-    private static final long serialVersionUID = 372486794073955019L;
-
     /**
      * @param message associated message
      */

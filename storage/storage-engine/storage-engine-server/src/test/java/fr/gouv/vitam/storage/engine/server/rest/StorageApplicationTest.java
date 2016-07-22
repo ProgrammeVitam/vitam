@@ -61,7 +61,7 @@ public class StorageApplicationTest {
     
     private static final String SHOULD_NOT_RAIZED_AN_EXCEPTION = "Should not raized an exception";
     
-    private static final String STORAGE_CONF = "storage.conf";
+    private static final String STORAGE_CONF = "storage-engine.conf";
 
     private static int serverPort;
     private static int oldPort;

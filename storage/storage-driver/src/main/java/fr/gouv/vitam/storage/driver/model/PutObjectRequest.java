@@ -35,9 +35,46 @@
 
 package fr.gouv.vitam.storage.driver.model;
 
+import java.io.InputStream;
+
 /**
  * Holds every needed parameters that may be needed to put an object on the distant storage offer
  */
 public class PutObjectRequest {
-    // TODO : implements me
+    private String tenantId;
+    private String digestAlgorithm;
+    private String guid;
+    private InputStream dataStream;
+
+    public String getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(String tenantId) {
+        this.tenantId = tenantId;
+    }
+
+    public InputStream getDataStream() {
+        return dataStream;
+    }
+
+    public void setDataStream(InputStream dataStream) {
+        this.dataStream = dataStream;
+    }
+
+    public String getGuid() {
+        return guid;
+    }
+
+    public void setGuid(String guid) {
+        this.guid = guid;
+    }
+
+    public String getDigestAlgorithm() {
+        return digestAlgorithm;
+    }
+
+    public void setDigestAlgorithm(String digestAlgorithm) {
+        this.digestAlgorithm = digestAlgorithm;
+    }
 }
