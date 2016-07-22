@@ -40,7 +40,12 @@ import javax.xml.stream.XMLStreamException;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -55,6 +60,9 @@ import fr.gouv.vitam.processing.common.utils.SedaUtilsFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore("javax.net.ssl.*")
+@PrepareForTest({WorkspaceClientFactory.class })
 public class CheckObjectsNumberActionHandlerTest {
 
     private CheckObjectsNumberActionHandler checkObjectsNumberActionHandler;
@@ -69,7 +77,6 @@ public class CheckObjectsNumberActionHandlerTest {
     private ContainerExtractionUtils containerExtractionUtils;
 
     private WorkspaceClient workspaceClient;
-    private WorkspaceClientFactory workspaceClientFactory;
 
     private final List<URI> uriDuplicatedListManifestKO = new ArrayList<>();
     private final List<URI> uriListManifestOK = new ArrayList<>();
@@ -98,7 +105,7 @@ public class CheckObjectsNumberActionHandlerTest {
         containerExtractionUtils = mock(ContainerExtractionUtils.class);
 
         workspaceClient = mock(WorkspaceClient.class);
-        workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        PowerMockito.mockStatic(WorkspaceClientFactory.class);
 
         // URI LIST MANIFEST
         uriDuplicatedListManifestKO.add(new URI("content/file1.pdf"));
@@ -141,9 +148,8 @@ public class CheckObjectsNumberActionHandlerTest {
         when(containerExtractionUtilsFactory.create()).thenReturn(containerExtractionUtils);
 
         // when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(seda);
-        when(workspaceClientFactory.create(anyObject())).thenReturn(workspaceClient);
-
-        containerExtractionUtils = new ContainerExtractionUtils(workspaceClientFactory);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        containerExtractionUtils = new ContainerExtractionUtils();
 
         checkObjectsNumberActionHandler =
             new CheckObjectsNumberActionHandler(sedaFactory, containerExtractionUtilsFactory);

@@ -39,10 +39,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import fr.gouv.vitam.client.MetaDataClientFactory;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -65,7 +67,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({LogbookLifeCyclesClientFactory.class})
+@PrepareForTest({LogbookLifeCyclesClientFactory.class, WorkspaceClientFactory.class})
 public class SedaUtilsLifeCycleExceptionsTest {
 
     @Rule
@@ -75,7 +77,7 @@ public class SedaUtilsLifeCycleExceptionsTest {
 	private static final String SIP_ARCHIVE_BEFORE_BDO = "SIP_Archive_Before_BDO.xml";
     private static final String OBJ = "obj";
     private WorkspaceClient workspaceClient;
-    private WorkspaceClientFactory workspaceFactory;
+    private final MetaDataClientFactory metadataFactory = new MetaDataClientFactory();
     private final InputStream seda = Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP);
 	private final InputStream seda_2 = Thread.currentThread().getContextClassLoader()
 			.getResourceAsStream(SIP_ARCHIVE_BEFORE_BDO);
@@ -103,7 +105,7 @@ public class SedaUtilsLifeCycleExceptionsTest {
 			throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
 			LogbookClientNotFoundException {
         workspaceClient = mock(WorkspaceClient.class);
-        workspaceFactory = mock(WorkspaceClientFactory.class);
+        PowerMockito.mockStatic(WorkspaceClientFactory.class);
 
 		PowerMockito.doNothing().when(logbookLifeCycleClient).create(anyObject());
 		PowerMockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
@@ -115,11 +117,11 @@ public class SedaUtilsLifeCycleExceptionsTest {
 			LogbookClientServerException, LogbookClientNotFoundException, URISyntaxException,
 			ContentAddressableStorageException {
 		when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(seda);
-		when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
+		PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
 		PowerMockito.doThrow(new LogbookClientBadRequestException("LogbookClientBadRequestException"))
 				.when(logbookLifeCycleClient).update(anyObject());
 
-		utils = new SedaUtilsFactory().create(workspaceFactory, null);
+		utils = new SedaUtilsFactory().create(metadataFactory);
 		utils.checkConformityBinaryObject(params);
 	}
 
@@ -128,11 +130,11 @@ public class SedaUtilsLifeCycleExceptionsTest {
 			LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
 			LogbookClientNotFoundException, URISyntaxException, ContentAddressableStorageException {
 		when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(seda);
-		when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
+		PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
 		PowerMockito.doThrow(new LogbookClientNotFoundException("LogbookClientNotFoundException"))
 				.when(logbookLifeCycleClient).update(anyObject());
 
-		utils = new SedaUtilsFactory().create(workspaceFactory, null);
+		utils = new SedaUtilsFactory().create(metadataFactory);
 		utils.checkConformityBinaryObject(params);
 	}
 
@@ -141,11 +143,11 @@ public class SedaUtilsLifeCycleExceptionsTest {
 			LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
 			LogbookClientNotFoundException, URISyntaxException, ContentAddressableStorageException {
 		when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(seda);
-		when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
+		PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
 		PowerMockito.doThrow(new LogbookClientServerException("LogbookClientServerException"))
 				.when(logbookLifeCycleClient).update(anyObject());
 
-		utils = new SedaUtilsFactory().create(workspaceFactory, null);
+		utils = new SedaUtilsFactory().create(metadataFactory);
 		utils.checkConformityBinaryObject(params);
 	}
 
@@ -157,11 +159,11 @@ public class SedaUtilsLifeCycleExceptionsTest {
 			ProcessingException, LogbookClientBadRequestException, LogbookClientAlreadyExistsException,
 			LogbookClientServerException {
 		when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(seda_2);
-		when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
+		PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
 		PowerMockito.doThrow(new LogbookClientBadRequestException("LogbookClientBadRequestException"))
 				.when(logbookLifeCycleClient).create(anyObject());
 
-		utils = new SedaUtilsFactory().create(workspaceFactory, null);
+		utils = new SedaUtilsFactory().create(metadataFactory);
 		utils.extractSEDA(params);
 	}
 
@@ -173,11 +175,11 @@ public class SedaUtilsLifeCycleExceptionsTest {
 			ProcessingException, LogbookClientBadRequestException, LogbookClientAlreadyExistsException,
 			LogbookClientServerException {
 		when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(seda_2);
-		when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
+		PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
 		PowerMockito.doThrow(new LogbookClientAlreadyExistsException("LogbookClientAlreadyExistsException"))
 				.when(logbookLifeCycleClient).create(anyObject());
 
-		utils = new SedaUtilsFactory().create(workspaceFactory, null);
+		utils = new SedaUtilsFactory().create(metadataFactory);
 		utils.extractSEDA(params);
 	}
 
@@ -189,11 +191,11 @@ public class SedaUtilsLifeCycleExceptionsTest {
 			ProcessingException, LogbookClientBadRequestException, LogbookClientAlreadyExistsException,
 			LogbookClientServerException {
 		when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(seda_2);
-		when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
+		PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
 		PowerMockito.doThrow(new LogbookClientServerException("LogbookClientServerException"))
 				.when(logbookLifeCycleClient).create(anyObject());
 
-		utils = new SedaUtilsFactory().create(workspaceFactory, null);
+		utils = new SedaUtilsFactory().create(metadataFactory);
 		utils.extractSEDA(params);
 	}
 
@@ -204,11 +206,11 @@ public class SedaUtilsLifeCycleExceptionsTest {
         ProcessingException, LogbookClientBadRequestException, LogbookClientAlreadyExistsException,
         LogbookClientServerException {
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(seda);
-        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
         PowerMockito.doThrow(new LogbookClientBadRequestException("LogbookClientBadRequestException"))
             .when(logbookLifeCycleClient).create(anyObject());
 
-        utils = new SedaUtilsFactory().create(workspaceFactory, null);
+        utils = new SedaUtilsFactory().create(metadataFactory);
         utils.extractSEDA(params);
     }
 
@@ -219,11 +221,11 @@ public class SedaUtilsLifeCycleExceptionsTest {
         ProcessingException, LogbookClientBadRequestException, LogbookClientAlreadyExistsException,
         LogbookClientServerException {
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(seda);
-        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
         PowerMockito.doThrow(new LogbookClientServerException("LogbookClientServerException"))
             .when(logbookLifeCycleClient).create(anyObject());
 
-        utils = new SedaUtilsFactory().create(workspaceFactory, null);
+        utils = new SedaUtilsFactory().create(metadataFactory);
         utils.extractSEDA(params);
     }
 
@@ -234,11 +236,11 @@ public class SedaUtilsLifeCycleExceptionsTest {
         ProcessingException, LogbookClientBadRequestException, LogbookClientAlreadyExistsException,
         LogbookClientServerException {
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(seda);
-        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
         PowerMockito.doThrow(new LogbookClientAlreadyExistsException("LogbookClientAlreadyExistsException"))
             .when(logbookLifeCycleClient).create(anyObject());
 
-        utils = new SedaUtilsFactory().create(workspaceFactory, null);
+        utils = new SedaUtilsFactory().create(metadataFactory);
         utils.extractSEDA(params);
     }
 
@@ -249,12 +251,12 @@ public class SedaUtilsLifeCycleExceptionsTest {
         ProcessingException, LogbookClientBadRequestException, LogbookClientAlreadyExistsException,
         LogbookClientServerException, LogbookClientNotFoundException {
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(seda);
-        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
 
         PowerMockito.doThrow(new LogbookClientBadRequestException("LogbookClientBadRequestException"))
             .when(logbookLifeCycleClient).update(anyObject());
 
-        utils = new SedaUtilsFactory().create(workspaceFactory, null);
+        utils = new SedaUtilsFactory().create(metadataFactory);
         utils.extractSEDA(params);
     }
 
@@ -265,12 +267,12 @@ public class SedaUtilsLifeCycleExceptionsTest {
         ProcessingException, LogbookClientBadRequestException, LogbookClientAlreadyExistsException,
         LogbookClientServerException, LogbookClientNotFoundException {
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(seda);
-        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
 
         PowerMockito.doThrow(new LogbookClientNotFoundException("LogbookClientNotFoundException"))
             .when(logbookLifeCycleClient).update(anyObject());
 
-        utils = new SedaUtilsFactory().create(workspaceFactory, null);
+        utils = new SedaUtilsFactory().create(metadataFactory);
         utils.extractSEDA(params);
     }
 
@@ -281,12 +283,12 @@ public class SedaUtilsLifeCycleExceptionsTest {
         ProcessingException, LogbookClientBadRequestException, LogbookClientAlreadyExistsException,
         LogbookClientServerException, LogbookClientNotFoundException {
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(seda);
-        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
 
         PowerMockito.doThrow(new LogbookClientServerException("LogbookClientServerException"))
             .when(logbookLifeCycleClient).update(anyObject());
 
-        utils = new SedaUtilsFactory().create(workspaceFactory, null);
+        utils = new SedaUtilsFactory().create(metadataFactory);
         utils.extractSEDA(params);
     }
     
@@ -300,7 +302,7 @@ public class SedaUtilsLifeCycleExceptionsTest {
 		PowerMockito.doThrow(new LogbookClientServerException("LogbookClientServerException"))
 				.when(logbookLifeCycleClient).update(logbookLifecycleUnitParameters);
 
-		utils = new SedaUtilsFactory().create(workspaceFactory, null);
+		utils = new SedaUtilsFactory().create(metadataFactory);
 		params.setCurrentStep("TEST");
 		utils.updateLifeCycleByStep(logbookLifecycleUnitParameters, params);
     }
@@ -315,7 +317,7 @@ public class SedaUtilsLifeCycleExceptionsTest {
 		PowerMockito.doThrow(new LogbookClientBadRequestException("LogbookClientBadRequestException"))
 				.when(logbookLifeCycleClient).update(logbookLifecycleUnitParameters);
 
-		utils = new SedaUtilsFactory().create(workspaceFactory, null);
+		utils = new SedaUtilsFactory().create(metadataFactory);
 		params.setCurrentStep("TEST");
 		utils.updateLifeCycleByStep(logbookLifecycleUnitParameters, params);
 	}
@@ -330,7 +332,7 @@ public class SedaUtilsLifeCycleExceptionsTest {
 		PowerMockito.doThrow(new LogbookClientNotFoundException("LogbookClientNotFoundException"))
 				.when(logbookLifeCycleClient).update(logbookLifecycleUnitParameters);
 
-		utils = new SedaUtilsFactory().create(workspaceFactory, null);
+		utils = new SedaUtilsFactory().create(metadataFactory);
 		params.setCurrentStep("TEST");
 		utils.updateLifeCycleByStep(logbookLifecycleUnitParameters, params);
 	}
@@ -344,7 +346,7 @@ public class SedaUtilsLifeCycleExceptionsTest {
 		PowerMockito.doThrow(new LogbookClientServerException("LogbookClientServerException"))
 				.when(logbookLifeCycleClient).update(logbookLifecycleUnitParameters);
 
-		utils = new SedaUtilsFactory().create(workspaceFactory, null);
+		utils = new SedaUtilsFactory().create(metadataFactory);
 		params.setCurrentStep("TEST");
 		utils.setLifeCycleFinalEventStatusByStep(logbookLifecycleUnitParameters, StatusCode.OK);
 	}
@@ -358,7 +360,7 @@ public class SedaUtilsLifeCycleExceptionsTest {
 		PowerMockito.doThrow(new LogbookClientBadRequestException("LogbookClientBadRequestException"))
 				.when(logbookLifeCycleClient).update(logbookLifecycleUnitParameters);
 
-		utils = new SedaUtilsFactory().create(workspaceFactory, null);
+		utils = new SedaUtilsFactory().create(metadataFactory);
 		params.setCurrentStep("TEST");
 		utils.setLifeCycleFinalEventStatusByStep(logbookLifecycleUnitParameters, StatusCode.OK);
 	}
@@ -372,7 +374,7 @@ public class SedaUtilsLifeCycleExceptionsTest {
 		PowerMockito.doThrow(new LogbookClientNotFoundException("LogbookClientNotFoundException"))
 				.when(logbookLifeCycleClient).update(logbookLifecycleUnitParameters);
 
-		utils = new SedaUtilsFactory().create(workspaceFactory, null);
+		utils = new SedaUtilsFactory().create(metadataFactory);
 		params.setCurrentStep("TEST");
 		utils.setLifeCycleFinalEventStatusByStep(logbookLifecycleUnitParameters, StatusCode.OK);
 	}

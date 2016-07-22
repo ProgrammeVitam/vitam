@@ -26,8 +26,6 @@
  */
 package fr.gouv.vitam.processing.common.utils;
 
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-
 /**
  * ContainerExtractionUtilsFactory Factory to create ContainerExtractionUtils
  */
@@ -38,6 +36,6 @@ public class ContainerExtractionUtilsFactory {
      * @return ContainerExtractionUtils
      */
     public ContainerExtractionUtils create() {
-        return new ContainerExtractionUtils(new WorkspaceClientFactory());
+        return new ContainerExtractionUtils();
     }
 }

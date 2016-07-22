@@ -170,7 +170,6 @@ public class SedaUtils {
     private final Map<String, String> unitIdToGroupId;
     private final Map<String, List<String>> objectGroupIdToUnitId;
 
-    private final WorkspaceClientFactory workspaceClientFactory;
     private final MetaDataClientFactory metaDataClientFactory;
 
     private final Map<String, LogbookParameters> guidToLifeCycleParameters;
@@ -179,8 +178,8 @@ public class SedaUtils {
     private static final String MSG_DUPLICATE_URI_MANIFEST = "Présence d'un URI en doublon dans le bordereau: ";
 
 
-    protected SedaUtils(WorkspaceClientFactory workspaceFactory, MetaDataClientFactory metaDataFactory) {
-        ParametersChecker.checkParameter("workspaceFactory is a mandatory parameter", workspaceFactory);
+    protected SedaUtils(MetaDataClientFactory metaDataFactory) {
+        ParametersChecker.checkParameter("metaDataFactory is a mandatory parameter", metaDataFactory);
         binaryDataObjectIdToGuid = new HashMap<String, String>();
         objectGroupIdToGuid = new HashMap<String, String>();
         objectGroupIdToGuidTmp = new HashMap<String, String>();
@@ -189,13 +188,12 @@ public class SedaUtils {
         binaryDataObjectIdToObjectGroupId = new HashMap<String, String>();
         objectGroupIdToUnitId = new HashMap<String, List<String>>();
         unitIdToGroupId = new HashMap<String, String>();
-        workspaceClientFactory = workspaceFactory;
         metaDataClientFactory = metaDataFactory;
         guidToLifeCycleParameters = new HashMap<String, LogbookParameters>();
     }
 
     protected SedaUtils() {
-        this(new WorkspaceClientFactory(), new MetaDataClientFactory());
+        this(new MetaDataClientFactory());
     }
 
     /**
@@ -249,7 +247,7 @@ public class SedaUtils {
     public void extractSEDA(WorkParams params) throws ProcessingException {
         ParametersChecker.checkParameter("WorkParams is a mandatory parameter", params);
         final String containerId = params.getContainerName();
-        final WorkspaceClient client = workspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
+        final WorkspaceClient client = WorkspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
         extractSEDAWithWorkspaceClient(client, containerId);
     }
 
@@ -264,7 +262,7 @@ public class SedaUtils {
         ParametersChecker.checkParameter("WorkParams is a mandatory parameter", params);
         final String containerId = params.getContainerName();
         String messageId = "";
-        final WorkspaceClient client = workspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
+        final WorkspaceClient client = WorkspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
         InputStream xmlFile = null;
         try {
             xmlFile = client.getObject(containerId, SEDA_FOLDER + "/" + SEDA_FILE);
@@ -978,7 +976,7 @@ public class SedaUtils {
     public boolean checkSedaValidation(WorkParams params) {
         ParametersChecker.checkParameter("WorkParams is a mandatory parameter", params);
         final String containerId = params.getContainerName();
-        final WorkspaceClient client = workspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
+        final WorkspaceClient client = WorkspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
         try {
             final InputStream input = checkExistenceManifest(client, containerId);
             return new ValidationXsdUtils().checkWithXSD(input, SEDA_VALIDATION_FILE);
@@ -1018,7 +1016,7 @@ public class SedaUtils {
         ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
         ParametersChecker.checkParameter("ObjectName id is a mandatory parameter", objectName);
 
-        final WorkspaceClient workspaceClient = workspaceClientFactory
+        final WorkspaceClient workspaceClient = WorkspaceClientFactory
             .create(params.getServerConfiguration().getUrlWorkspace());
         final MetaDataClient metadataClient = metaDataClientFactory
             .create(params.getServerConfiguration().getUrlMetada());
@@ -1071,7 +1069,7 @@ public class SedaUtils {
         ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
         ParametersChecker.checkParameter("ObjectName id is a mandatory parameter", objectName);
 
-        final WorkspaceClient workspaceClient = workspaceClientFactory
+        final WorkspaceClient workspaceClient = WorkspaceClientFactory
             .create(params.getServerConfiguration().getUrlWorkspace());
         final MetaDataClient metadataClient = metaDataClientFactory
             .create(params.getServerConfiguration().getUrlMetada());
@@ -1202,7 +1200,7 @@ public class SedaUtils {
     public ExtractUriResponse getAllDigitalObjectUriFromManifest(WorkParams params)
         throws ProcessingException {
         final String guid = params.getContainerName();
-        final WorkspaceClient client = workspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
+        final WorkspaceClient client = WorkspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
         final ExtractUriResponse extractUriResponse = parsingUriSEDAWithWorkspaceClient(client, guid);
         return extractUriResponse;
     }
@@ -1322,7 +1320,7 @@ public class SedaUtils {
         throws ProcessingException {
         ParametersChecker.checkParameter("WorkParams is a mandatory parameter", params);
         final String containerId = params.getContainerName();
-        final WorkspaceClient client = workspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
+        final WorkspaceClient client = WorkspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
         return isSedaVersionValid(client, containerId);
     }
 
@@ -1503,7 +1501,7 @@ public class SedaUtils {
         ContentAddressableStorageServerException, URISyntaxException, ContentAddressableStorageException {
         ParametersChecker.checkParameter("WorkParams is a mandatory parameter", params);
         final String containerId = params.getContainerName();
-        final WorkspaceClient client = workspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
+        final WorkspaceClient client = WorkspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
 
         InputStream xmlFile = null;
         List<String> digestMessageInvalidList = new ArrayList<String>();

@@ -44,7 +44,7 @@ public class SedaUtilsFactoryTest {
     @Test
     public void givenSedaUtilsFactoryWhenCallingCreateWithParamsThenReturnClient() {
         final SedaUtilsFactory factory = new SedaUtilsFactory();
-        assertTrue(factory.create(new WorkspaceClientFactory(), new MetaDataClientFactory()) instanceof SedaUtils);
+        assertTrue(factory.create(new MetaDataClientFactory()) instanceof SedaUtils);
     }
 
 }

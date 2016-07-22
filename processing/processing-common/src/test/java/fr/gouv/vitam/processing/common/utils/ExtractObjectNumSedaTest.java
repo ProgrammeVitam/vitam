@@ -40,16 +40,23 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
+import fr.gouv.vitam.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.WorkParams;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
-/**
- * Test class for Extract Uri from seda.
- */
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore("javax.net.ssl.*")
+@PrepareForTest({WorkspaceClientFactory.class })
 public class ExtractObjectNumSedaTest {
 
     @Rule
@@ -57,7 +64,6 @@ public class ExtractObjectNumSedaTest {
 
     private static final String SIP = "sip1.xml";
     private WorkspaceClient client;
-    private WorkspaceClientFactory factory;
     private final InputStream seda = Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP);
     private SedaUtils utils;
     private final WorkParams params = new WorkParams()
@@ -66,8 +72,8 @@ public class ExtractObjectNumSedaTest {
 
     @Before
     public void setUp() {
+        PowerMockito.mockStatic(WorkspaceClientFactory.class);
         client = mock(WorkspaceClient.class);
-        factory = mock(WorkspaceClientFactory.class);
     }
 
     @Test
@@ -75,8 +81,8 @@ public class ExtractObjectNumSedaTest {
         throws FileNotFoundException, XMLStreamException, ProcessingException, Exception, Exception {
 
         when(client.getObject(anyObject(), anyObject())).thenReturn(seda);
-        when(factory.create(anyObject())).thenReturn(client);
-        utils = new SedaUtilsFactory().create(factory, null);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(client);
+        utils = new SedaUtilsFactory().create(new MetaDataClientFactory());
 
         final ExtractUriResponse extractUriResponse = utils.getAllDigitalObjectUriFromManifest(params);
 
