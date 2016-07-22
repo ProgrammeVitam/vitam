@@ -1,0 +1,3 @@
+
+.. include:: ../exploitation/architecture.rst
+
