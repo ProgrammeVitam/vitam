@@ -59,7 +59,7 @@ public class WorkspaceOfferResource {
     /**
      * Constructor
      *
-     * @param configuration
+     * @param configuration the workspace offer configuration to be applied
      */
     public WorkspaceOfferResource(WorkspaceOfferConfiguration configuration) {
         LOGGER.debug("WorkspaceOfferResource initialized");
@@ -68,7 +68,6 @@ public class WorkspaceOfferResource {
     /**
      * Get the informations on the offer objects collection (free and used capacity, etc)
      *
-     * @param query the query to get objects
      * @return informations on the offer objects collection
      */
     @GET
@@ -136,7 +135,6 @@ public class WorkspaceOfferResource {
      * Delete an Object
      *
      * @param idObject the id of the object to be tested
-     * @param headers headers HTTP added to the request
      * @return the response with a specific HTTP status
      */
     @DELETE

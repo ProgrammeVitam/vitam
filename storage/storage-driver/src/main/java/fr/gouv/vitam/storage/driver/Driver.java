@@ -56,7 +56,7 @@ public interface Driver {
      * @param parameters the parameters needed to connect and possibly authenticate to a specific offer service.
      * @return a connection which MUST contains all necessary parameters and initial configurations to allow further
      * requests to the distant offer service without needing to pass parameters/configurations.
-     * @throws StorageDriverException
+     * @throws StorageDriverException if any problem occurs during connection
      */
     Connection connect(String url, Properties parameters) throws StorageDriverException;
 
@@ -70,6 +70,7 @@ public interface Driver {
      * @param url        URL to the offer service
      * @param parameters the parameters needed to connect and possibly authenticate to a specific offer service
      * @return MUST return true if the distant offer service is available to accept further requests, false otherwise
+     * @throws StorageDriverException if any problem occurs during request
      */
     boolean isStorageOfferAvailable(String url, Properties parameters) throws StorageDriverException;
 
