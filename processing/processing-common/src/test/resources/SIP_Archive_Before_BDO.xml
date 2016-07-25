@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ArchiveTransfer xmlns:xlink="http://www.w3.org/1999/xlink"
+ xmlns:pr="info:lc/xmlns/premis-v2"
+ xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 file:/C:/Users/mehdi.afnai/Documents/SEDA_Vitam/seda-2.0-main.xsd">
+    <Date>2006-05-04T18:13:51.0</Date>
+    <MessageIdentifier>Entrée SIP arborescence complexe</MessageIdentifier>
+    <!-- SIP avezc arboresecnce complexe n'ayant qu'une seule racine et ArchiveUnit ayant deux parents -->
+    <Signature>
+    </Signature>
+    <ArchivalAgreement>ArchivalAgreement0</ArchivalAgreement>
+    <CodeListVersions>
+        <ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
+        <MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0</MessageDigestAlgorithmCodeListVersion>
+        <MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion>
+        <EncodingCodeListVersion>EncodingCodeListVersion0</EncodingCodeListVersion>
+        <FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
+        <CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion>
+        <DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion>
+        <StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion>
+        <AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion>
+        <AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion>
+        <DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion>
+        <ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion>
+        <ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion>
+        <AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion>
+        <RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion>
+    </CodeListVersions>
+    <DataObjectPackage>
+    <DescriptiveMetadata>
+            <ArchiveUnit id="ID027">
+                <Content>
+                    <DescriptionLevel>Fonds</DescriptionLevel>
+                    <Title>Test fonds 1</Title>
+                    <TransactedDate>2015-06-15</TransactedDate>
+                </Content>
+           
+                <ArchiveUnit id="ID028">
+                    <Content>
+                        <DescriptionLevel>Subfonds</DescriptionLevel>
+                        <Title>Test sous fonds 1</Title>
+                        <TransactedDate>2015-06-15</TransactedDate>
+                    </Content>
+                    <ArchiveUnit id="ID029">
+                        <Content>
+                            <DescriptionLevel>File</DescriptionLevel>
+                            <Title>Test file 1</Title>
+                        </Content>
+                        <DataObjectReference>
+                            <DataObjectGroupReferenceId>ID019</DataObjectGroupReferenceId>
+                        </DataObjectReference>
+                    </ArchiveUnit>
+                </ArchiveUnit>
+              <ArchiveUnit id="ID030">
+                  <Content>
+                      <DescriptionLevel>Subfonds</DescriptionLevel>
+                      <Title>Test sous fonds 2</Title>
+                      <TransactedDate>2015-06-15</TransactedDate>
+                  </Content>
+                  <ArchiveUnit id="ID032">
+                      <ArchiveUnitRefId>ID029</ArchiveUnitRefId>
+                  </ArchiveUnit>
+              </ArchiveUnit>
+                   <ArchiveUnit id="ID031">
+                       <Content>
+                           <DescriptionLevel>File</DescriptionLevel>
+                           <Title>Test File 2</Title>
+                       </Content>
+                   </ArchiveUnit>
+              </ArchiveUnit>  
+        </DescriptiveMetadata>
+        <BinaryDataObject id="ID009">
+            <DataObjectGroupId>ID019</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>content/e3e02a356a2e903a03c6b8b6c7a36e6ad4b50d29c6a5360c79a60719812c54cd5433caa227de9856ee80d95ff9f84f416090a62ee52f681e0a29b9b07d75d51a.pdf</Uri>
+            <MessageDigest algorithm="SHA-512">e3e02a356a2e903a03c6b8b6c7a36e6ad4b50d29c6a5360c79a60719812c54cd5433caa227de9856ee80d95ff9f84f416090a62ee52f681e0a29b9b07d75d51a</MessageDigest>
+            <Size>226224</Size>
+            <FormatIdentification>
+                <FormatLitteral>FormatLitteral0</FormatLitteral>
+                <MimeType>MimeType0</MimeType>
+                <FormatId>FormatId0</FormatId>
+                <Encoding>Encoding0</Encoding>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>Filename0</Filename>
+                <CreatingApplicationName>CreatingApplicationName0</CreatingApplicationName>
+                <CreatingApplicationVersion>CreatingApplicationVersion0</CreatingApplicationVersion>
+                <DateCreatedByApplication>2006-05-04T18:13:51.0</DateCreatedByApplication>
+                <CreatingOs>CreatingOs0</CreatingOs>
+                <CreatingOsVersion>CreatingOsVersion0</CreatingOsVersion>
+                <LastModified>2006-05-04T18:13:51.0</LastModified>
+            </FileInfo>
+            <Metadata>
+                <Text>
+                </Text>
+            </Metadata>
+            <OtherMetadata>
+            </OtherMetadata>
+        </BinaryDataObject>
+        <ManagementMetadata>
+            <ArchivalProfile>ArchivalProfile0</ArchivalProfile>
+            <ServiceLevel>ServiceLevel0</ServiceLevel>
+            <StorageRule>
+                <Rule>Rule0</Rule>
+                <StartDate>2006-05-04</StartDate>
+                <Rule>Rule1</Rule>
+                <StartDate>2006-05-04</StartDate>
+                <Rule>Rule2</Rule>
+                <StartDate>2006-05-04</StartDate>
+                <PreventInheritance>false</PreventInheritance>
+                <FinalAction>RestrictAccess</FinalAction>
+            </StorageRule>
+            <AppraisalRule>
+                <Rule>Rule3</Rule>
+                <StartDate>2006-05-04</StartDate>
+                <Rule>Rule4</Rule>
+                <StartDate>2006-05-04</StartDate>
+                <Rule>Rule5</Rule>
+                <StartDate>2006-05-04</StartDate>
+                <PreventInheritance>false</PreventInheritance>
+                <FinalAction>Keep</FinalAction>
+            </AppraisalRule>
+            <AccessRule>
+                <Rule>Rule6</Rule>
+                <StartDate>2006-05-04</StartDate>
+                <Rule>Rule7</Rule>
+                <StartDate>2006-05-04</StartDate>
+                <Rule>Rule8</Rule>
+                <StartDate>2006-05-04</StartDate>
+                <PreventInheritance>false</PreventInheritance>
+            </AccessRule>
+            <DisseminationRule>
+                <Rule>Rule9</Rule>
+                <StartDate>2006-05-04</StartDate>
+                <Rule>Rule10</Rule>
+                <StartDate>2006-05-04</StartDate>
+                <Rule>Rule11</Rule>
+                <StartDate>2006-05-04</StartDate>
+                <PreventInheritance>false</PreventInheritance>
+            </DisseminationRule>
+            <ReuseRule>
+                <Rule>Rule12</Rule>
+                <StartDate>2006-05-04</StartDate>
+                <Rule>Rule13</Rule>
+                <StartDate>2006-05-04</StartDate>
+                <Rule>Rule14</Rule>
+                <StartDate>2006-05-04</StartDate>
+                <PreventInheritance>false</PreventInheritance>
+            </ReuseRule>
+            <ClassificationRule>
+                <Rule>Rule15</Rule>
+                <StartDate>2006-05-04</StartDate>
+                <Rule>Rule16</Rule>
+                <StartDate>2006-05-04</StartDate>
+                <Rule>Rule17</Rule>
+                <StartDate>2006-05-04</StartDate>
+                <PreventInheritance>false</PreventInheritance>
+                <ClassificationLevel>ClassificationLevel0</ClassificationLevel>
+                <ClassificationOwner>ClassificationOwner0</ClassificationOwner>
+                <ClassificationReassessingDate>2006-05-04</ClassificationReassessingDate>
+                <NeedReassessingAuthorization>false</NeedReassessingAuthorization>
+            </ClassificationRule>
+            <NeedAuthorization>false</NeedAuthorization>
+        </ManagementMetadata>
+    </DataObjectPackage>
+    <RelatedTransferReference>RelatedTransferReference0</RelatedTransferReference>
+    <RelatedTransferReference>RelatedTransferReference1</RelatedTransferReference>
+    <RelatedTransferReference>RelatedTransferReference2</RelatedTransferReference>
+    <TransferRequestReplyIdentifier>TransferRequestReplyIdentifier0</TransferRequestReplyIdentifier>
+    <ArchivalAgency>
+        <Identifier>Identifier0</Identifier>
+        <OrganizationDescriptiveMetadata>
+        </OrganizationDescriptiveMetadata>
+    </ArchivalAgency>
+    <TransferringAgency>
+        <Identifier>Identifier1</Identifier>
+        <OrganizationDescriptiveMetadata>
+        </OrganizationDescriptiveMetadata>
+    </TransferringAgency>
+</ArchiveTransfer>
