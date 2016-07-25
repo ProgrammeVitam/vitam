@@ -150,6 +150,9 @@ public class SedaUtils {
 
     private final Map<String, String> binaryDataObjectIdToGuid;
     private final Map<String, String> objectGroupIdToGuid;
+    // TODO : utiliser une structure avec le GUID et le témoin de passage du DataObjectGroupID . 
+    // objectGroup referenced before declaration
+    private final Map<String, String> objectGroupIdToGuidTmp;
     private final Map<String, String> unitIdToGuid;
 
     private final Map<String, String> binaryDataObjectIdToObjectGroupId;
@@ -162,14 +165,11 @@ public class SedaUtils {
 
     private final Map<String, LogbookParameters> guidToLifeCycleParameters;
 
-    // Messages for duplicate Uri from SEDA
-    private static final String MSG_DUPLICATE_URI_MANIFEST = "Présence d'un URI en doublon dans le bordereau: ";
-
-
     protected SedaUtils(WorkspaceClientFactory workspaceFactory, MetaDataClientFactory metaDataFactory) {
         ParametersChecker.checkParameter("workspaceFactory is a mandatory parameter", workspaceFactory);
         binaryDataObjectIdToGuid = new HashMap<String, String>();
         objectGroupIdToGuid = new HashMap<String, String>();
+        objectGroupIdToGuidTmp = new HashMap<String, String>();
         objectGroupIdToBinaryDataObjectId = new HashMap<String, List<String>>();
         unitIdToGuid = new HashMap<String, String>();
         binaryDataObjectIdToObjectGroupId = new HashMap<String, String>();
@@ -367,9 +367,6 @@ public class SedaUtils {
             tmpFile.createNewFile();
             writer = xmlOutputFactory.createXMLEventWriter(new FileWriter(tmpFile));
             unitIdToGuid.put(elementID, elementGuid);
-
-            // add an empty objectgroup to each archive unit
-            unitIdToGroupId.put(elementID, "");
 
             // Create new startElement for object with new guid
             writer.add(eventFactory.createStartElement("", NAMESPACE_URI, startElement.getName().getLocalPart()));
@@ -652,28 +649,49 @@ public class SedaUtils {
                     if (localPart == DATA_OBJECT_GROUPID) {
                         groupGuid = GUIDFactory.newGUID().toString();
                         final String groupId = reader.getElementText();
+                        // Having DataObjectGroupID after a DataObjectGroupReferenceID in the XML flow .
+                        // We get the GUID defined earlier during the DataObjectGroupReferenceID analysis
+                        if(objectGroupIdToGuidTmp.get(groupId)!=null){
+                        	groupGuid=objectGroupIdToGuidTmp.get(groupId);
+                        	objectGroupIdToGuidTmp.remove(groupId);
+                        }
                         binaryDataObjectIdToObjectGroupId.put(binaryOjectId, groupId);
                         objectGroupIdToGuid.put(groupId, groupGuid);
-
+                       
                         // Create OG lifeCycle
                         createObjectGroupLifeCycle(groupGuid, containerId);
-
-                        final List<String> binaryOjectList = new ArrayList<String>();
-                        binaryOjectList.add(binaryOjectId);
-                        objectGroupIdToBinaryDataObjectId.put(groupId, binaryOjectList);
-
+                        if(objectGroupIdToBinaryDataObjectId.get(groupId)==null){
+                        	final List<String> binaryOjectList = new ArrayList<String>();
+                            binaryOjectList.add(binaryOjectId);
+                            objectGroupIdToBinaryDataObjectId.put(groupId, binaryOjectList);
+                        } else {
+                        	 objectGroupIdToBinaryDataObjectId.get(groupId).add(binaryOjectId);
+                        }
+                        
                         // Create new startElement for group with new guid
                         writer.add(eventFactory.createStartElement("", "", DATA_OBJECT_GROUPID));
                         writer.add(eventFactory.createCharacters(groupGuid));
                         writer.add(eventFactory.createEndElement("", "", DATA_OBJECT_GROUPID));
                     } else if (localPart == DATA_OBJECT_GROUP_REFERENCEID) {
                         final String groupId = reader.getElementText();
+                        String groupGuidTmp = GUIDFactory.newGUID().toString();
                         binaryDataObjectIdToObjectGroupId.put(binaryOjectId, groupId);
-                        objectGroupIdToBinaryDataObjectId.get(groupId).add(binaryOjectId);
-
+                        // The DataObjectGroupReferenceID is after DataObjectGroupID in the XML flow
+                        if(objectGroupIdToBinaryDataObjectId.get(groupId)!=null){
+                        	 objectGroupIdToBinaryDataObjectId.get(groupId).add(binaryOjectId);
+                        	 groupGuidTmp = objectGroupIdToGuid.get(groupId);
+                        }else {
+                        // The DataObjectGroupReferenceID is before DataObjectGroupID in the XML flow 
+                        	  final List<String> binaryOjectList = new ArrayList<String>();
+                              binaryOjectList.add(binaryOjectId);
+                              objectGroupIdToBinaryDataObjectId.put(groupId, binaryOjectList);
+                              objectGroupIdToGuidTmp.put(groupId, groupGuidTmp);
+                              
+                        }
+                        
                         // Create new startElement for group with new guid
                         writer.add(eventFactory.createStartElement("", "", DATA_OBJECT_GROUPID));
-                        writer.add(eventFactory.createCharacters(objectGroupIdToGuid.get(groupId)));
+                        writer.add(eventFactory.createCharacters(groupGuidTmp));
                         writer.add(eventFactory.createEndElement("", "", DATA_OBJECT_GROUPID));
                     } else if (localPart == "Uri") {
                         reader.getElementText();
@@ -691,6 +709,7 @@ public class SedaUtils {
             reader.close();
             writer.close();
             tmpFileWriter.close();
+     
         } catch (final XMLStreamException e) {
             LOGGER.debug("Can not read input stream");
             throw new ProcessingException(e);
@@ -718,6 +737,7 @@ public class SedaUtils {
                 final List<String> binaryOjectList = new ArrayList<String>();
                 binaryOjectList.add(key);
                 objectGroupIdToBinaryDataObjectId.put(GUIDFactory.newGUID().toString(), binaryOjectList);
+                // TODO Create OG / OG lifeCycle
             }
         }
     }
@@ -765,7 +785,10 @@ public class SedaUtils {
                     final File binaryObjectFile = PropertiesUtils
                         .fileFromTmpFolder(binaryDataObjectIdToGuid.get(id) + JSON_EXTENSION);
                     final JsonNode binaryNode = JsonHandler.getFromFile(binaryObjectFile).get("BinaryDataObject");
-                    final String nodeCategory = binaryNode.get("DataObjectVersion").asText();
+                    String nodeCategory = "BinaryMaster";
+                    if(binaryNode.get("DataObjectVersion")!=null){
+                    	nodeCategory= binaryNode.get("DataObjectVersion").asText();
+                    }
                     ArrayList<JsonNode> nodeCategoryArray = categoryMap.get(nodeCategory);
                     if (nodeCategoryArray == null) {
                         nodeCategoryArray = new ArrayList<JsonNode>();
@@ -775,8 +798,11 @@ public class SedaUtils {
                     }
                     categoryMap.put(nodeCategory, nodeCategoryArray);
                     if (BINARY_MASTER.equals(nodeCategory)) {
-                        fileInfo = (ObjectNode) binaryNode.get(FILE_INFO);
-                        objectGroupType = binaryNode.get(METADATA).fieldNames().next();
+                    	
+						fileInfo = (ObjectNode) binaryNode.get(FILE_INFO);
+						if (binaryNode.get(METADATA) != null) {
+							objectGroupType = binaryNode.get(METADATA).fieldNames().next();
+						}
                     }
                     if (!binaryObjectFile.delete()) {
                         LOGGER.warn("File could not be deleted");
@@ -1358,12 +1384,14 @@ public class SedaUtils {
         final List<String> invalidVersionList = new ArrayList<String>();
 
         for (final String s : manifestVersionList) {
-            if (!fileVersionList.contains(s)) {
-                LOGGER.info(s + ": invalid version");
-                invalidVersionList.add(s);
-            } else {
-                LOGGER.info(s + ": valid version");
-            }
+			if (s != null) {
+				if (!fileVersionList.contains(s)) {
+					LOGGER.info(s + ": invalid version");
+					invalidVersionList.add(s);
+				} else {
+					LOGGER.info(s + ": valid version");
+				}
+			}
         }
         return invalidVersionList;
     }
