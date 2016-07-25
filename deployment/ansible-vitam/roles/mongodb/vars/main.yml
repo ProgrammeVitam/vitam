@@ -8,4 +8,4 @@ vitam_folder_data: "{{vitam_folder_root}}/{{vitam_component}}/data"
 
 vitam_docker_name: "{{vitam_component}}-{{vitam_environment}}"
 vitam_docker_tag: "3.2.6"
-vitam_docker_port_mongodb: 27017
+vitam_docker_port_mongodb: "{{vitam_mongodb_port}}"

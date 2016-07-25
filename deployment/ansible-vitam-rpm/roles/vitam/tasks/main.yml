@@ -5,6 +5,7 @@
   yum: 
     name: "{{ rpm_name }}"
     state: latest
+# OMA : question : lastest ou fixer la version dans les fichiers d'inventaire ???
 
 - name: Deploy common configuration files
   template:

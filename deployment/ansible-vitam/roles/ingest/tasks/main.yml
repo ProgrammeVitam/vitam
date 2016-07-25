@@ -21,7 +21,7 @@
     group=vitam mode={{vitam_conf_permission}}
   notify: restart container
   with_items:
-  - "ingest-rest.properties"
+  - "ingest-internal.conf"
   - "logbook-client.conf"
   - "server-identity.conf"
   - "setenv.sh"
