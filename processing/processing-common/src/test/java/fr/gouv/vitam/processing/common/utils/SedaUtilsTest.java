@@ -34,6 +34,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,11 +51,14 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.client.MetaDataClient;
 import fr.gouv.vitam.client.MetaDataClientFactory;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -73,6 +77,7 @@ public class SedaUtilsTest {
     public TemporaryFolder tempFolder = new TemporaryFolder();
 
     private static final String SIP = "sip1.xml";
+    private static final String SIP_ARBORESCENCE = "SIP_Arborescence.xml";
     private static final String OBJ = "obj";
     private static final String ARCHIVE_UNIT = "archiveUnit.xml";
     private static final String DIGESTMESSAGE = "ZGVmYXVsdA==";
@@ -82,6 +87,7 @@ public class SedaUtilsTest {
     private MetaDataClient metadataClient;
     private MetaDataClientFactory metadataFactory;
     private final InputStream seda = Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP);
+    private final InputStream seda_arborescence = Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_ARBORESCENCE);
     private final InputStream archiveUnit = Thread.currentThread().getContextClassLoader()
         .getResourceAsStream(ARCHIVE_UNIT);
     private final InputStream objectGroup = Thread.currentThread().getContextClassLoader()
@@ -105,6 +111,7 @@ public class SedaUtilsTest {
         throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageException,
         LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
         LogbookClientNotFoundException, InvalidParseOperationException, URISyntaxException {
+
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(seda);
         when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
         utils = new SedaUtilsFactory().create(workspaceFactory, null);
@@ -149,7 +156,7 @@ public class SedaUtilsTest {
         when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
 
         utils = new SedaUtilsFactory().create(workspaceFactory, null);
-        assertEquals("Entrée_avec_groupe_d_objet", utils.getMessageIdentifier(params));
+		assertEquals("Entrée_avec_groupe_d_objet", utils.getMessageIdentifier(params));
     }
 
     @Test
@@ -289,6 +296,31 @@ public class SedaUtilsTest {
 
         evenReader = factory.createXMLEventReader(new FileReader("src/test/resources/sip-with-wrong-version.xml"));
         assertEquals(1, utils.compareVersionList(evenReader, "src/test/resources/version.conf").size());
+    }
+    
+    @Test
+    public void givenCorrectManifestWhenArchiveUnitTreeThenOK()
+        throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageException,
+        LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
+        LogbookClientNotFoundException, InvalidParseOperationException, URISyntaxException {
+
+        when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(seda_arborescence);
+        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
+        utils = new SedaUtilsFactory().create(workspaceFactory, null);
+        utils.extractSEDA(params);
+        
+        assertEquals(utils.getUnitIdToGuid().size(), 6);
+        
+        // Open saved Archive Tree Json file
+        File archiveTreeTmpFile = PropertiesUtils
+                .fileFromTmpFolder(SedaUtils.ARCHIVE_TREE_TMP_FILE_NAME_PREFIX + OBJ + SedaUtils.JSON_EXTENSION);
+        JsonNode archiveTree = JsonHandler.getFromFile(archiveTreeTmpFile);
+        assertTrue(archiveTree.has("ID027"));
+        assertTrue(archiveTree.has("ID032"));
+        assertTrue(archiveTree.get("ID032").has(SedaUtils.UP_FIELD));
+        assertTrue(archiveTree.get("ID032").get(SedaUtils.UP_FIELD).isArray());
+        assertTrue(archiveTree.get("ID032").get(SedaUtils.UP_FIELD).toString().contains("ID030"));
+        assertTrue(archiveTree.get("ID032").get(SedaUtils.UP_FIELD).toString().contains("ID029"));
     }
 
     // @Test
