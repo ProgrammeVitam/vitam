@@ -23,13 +23,22 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.core;
 
+import fr.gouv.vitam.access.common.exception.AccessException;
 import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.api.exception.MetadataInvalidUpdateException;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.common.parameters.*;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCycleClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
+import fr.gouv.vitam.logbook.operations.client.LogbookClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookClientFactory;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -45,7 +54,9 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
  */
 public class AccessModuleImpl implements AccessModule {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AccessModuleImpl.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessModuleImpl.class);
+    private LogbookLifeCycleClient logbookLifeCycleClient;
+    private LogbookClient logbookOperationClient;
 
     private final AccessConfiguration accessConfiguration;
 
@@ -55,7 +66,10 @@ public class AccessModuleImpl implements AccessModule {
     private static final String BLANK_REQUEST = "the request is blank";
     private static final String SANITY_CHECK_FAILED = "Sanity Check Failed ";
     private static final String ID_CHECK_FAILED = "the unit_id should be filled";
+    private String eventType = "Update_archive_unit_unitary";           //Event Type
 
+    //TODO setting in other place
+    private Integer tenantId = 0;
 
     /**
      * AccessModuleImpl constructor
@@ -77,6 +91,26 @@ public class AccessModuleImpl implements AccessModule {
     public AccessModuleImpl(MetaDataClientFactory metaDataClientFactory, AccessConfiguration configuration) {
         this.metaDataClientFactory = metaDataClientFactory;
         accessConfiguration = configuration;
+    }
+
+    /**
+     * AccessModuleImpl constructor <br>
+     * with metaDataClientFactory, configuration and logbook operation client and lifecycle
+     *
+     * @param metaDataClientFactory
+     * @param configuration
+     * @param pLogbookOperationClient
+     * @param pLogbookLifeCycleClient
+     */
+    public AccessModuleImpl(MetaDataClientFactory metaDataClientFactory, AccessConfiguration configuration,
+                            LogbookClient pLogbookOperationClient, LogbookLifeCycleClient pLogbookLifeCycleClient) {
+        this.metaDataClientFactory = metaDataClientFactory;
+        accessConfiguration = configuration;
+
+        logbookOperationClient = pLogbookOperationClient==null ?
+                LogbookClientFactory.getInstance().getLogbookOperationClient() : pLogbookOperationClient;
+        logbookLifeCycleClient = pLogbookLifeCycleClient==null ?
+                LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient() : pLogbookLifeCycleClient;
     }
 
     /**
@@ -165,29 +199,131 @@ public class AccessModuleImpl implements AccessModule {
     @Override
     public JsonNode updateUnitbyId(JsonNode queryJson, String id_unit) throws IllegalArgumentException, InvalidParseOperationException, AccessExecutionException {
         JsonNode jsonNode = null;
+        LogbookOperationParameters logbookOpParamStart, logbookOpParamEnd;
+        LogbookLifeCycleUnitParameters logbookLCParamStart, logbookLCParamEnd;
 
         if (StringUtils.isEmpty(id_unit)) {
             throw new IllegalArgumentException(ID_CHECK_FAILED);
         }
+
+        final GUID updateOpGuidStart = GUIDFactory.newOperationIdGUID(tenantId); //eventidentifierprocess for lifecycle
+
         try {
 
             if (metaDataClientFactory == null) {
                 metaDataClientFactory = new MetaDataClientFactory();
             }
-            metaDataClient = metaDataClientFactory.create(accessConfiguration.getUrlMetaData());
+            metaDataClient = metaDataClientFactory.create(accessConfiguration!=null?accessConfiguration.getUrlMetaData():"");
 
+            //update logbook operation
+            logbookOpParamStart = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
+                    LogbookOutcome.STARTED, "update archiveunit:" + id_unit, id_unit);
+            logbookOperationClient.update(logbookOpParamStart);
+
+            //update logbook lifecycle
+            logbookLCParamStart = getLogbookLifeCycleUpdateUnitParameters(updateOpGuidStart, LogbookOutcome.STARTED,
+                    queryJson.toString(), queryJson.toString(), id_unit);
+            logbookLifeCycleClient.update(logbookLCParamStart);
+
+            //call update
             jsonNode = metaDataClient.updateUnitbyId(queryJson.toString(), id_unit);
 
-        } catch (final InvalidParseOperationException e) {
-            LOGGER.error("parsing error", e);
-            throw e;
-        } catch (IllegalArgumentException e) {
-            LOGGER.error("illegal argument", e);
-            throw e;
-        } catch (Exception e) {
-            LOGGER.error("exeption thrown", e);
-            throw new AccessExecutionException(e);
+            //update logbook operation
+            final GUID updateOpGuidEnd = GUIDFactory.newOperationIdGUID(tenantId); //eventidentifierprocess for lifecycle
+            logbookOpParamEnd = getLogbookOperationUpdateUnitParameters(updateOpGuidEnd, updateOpGuidEnd,
+                    LogbookOutcome.OK, "update archiveunit:" + id_unit, id_unit);
+            logbookOperationClient.update(logbookOpParamEnd);
+
+            //update logbook lifecycle
+            logbookLCParamEnd = getLogbookLifeCycleUpdateUnitParameters(updateOpGuidEnd, LogbookOutcome.OK,
+                    queryJson.toString(), queryJson.toString(), id_unit);
+            logbookLifeCycleClient.update(logbookLCParamEnd);
+
+            //commit logbook lifecycle
+            logbookLifeCycleClient.commit(logbookLCParamEnd);
+
+        } catch (final InvalidParseOperationException ipoe) {
+            rollBackLogbook(updateOpGuidStart, queryJson, id_unit);
+            LOGGER.error("parsing error", ipoe);
+            throw ipoe;
+        } catch (IllegalArgumentException iae) {
+            rollBackLogbook(updateOpGuidStart, queryJson, id_unit);
+            LOGGER.error("illegal argument", iae);
+            throw iae;
+        } catch (MetaDataDocumentSizeException mddse) {
+            rollBackLogbook(updateOpGuidStart, queryJson, id_unit);
+            LOGGER.error("metadata document size error", mddse);
+            throw  new AccessExecutionException(mddse);
+        } catch (LogbookClientServerException lcse) {
+            rollBackLogbook(updateOpGuidStart, queryJson, id_unit);
+            LOGGER.error("document client server error", lcse);
+            throw new AccessExecutionException(lcse);
+        } catch (MetaDataExecutionException mdee) {
+            rollBackLogbook(updateOpGuidStart, queryJson, id_unit);
+            LOGGER.error("metadata execution execution error", mdee);
+            throw new AccessExecutionException(mdee);
+        } catch (LogbookClientNotFoundException lcnfe) {
+            rollBackLogbook(updateOpGuidStart, queryJson, id_unit);
+            LOGGER.error("logbook client not found error", lcnfe);
+            throw new AccessExecutionException(lcnfe);
+        } catch (LogbookClientBadRequestException lcbre) {
+            rollBackLogbook(updateOpGuidStart, queryJson, id_unit);
+            LOGGER.error("logbook client bad request error", lcbre);
+            throw new AccessExecutionException(lcbre);
         }
         return jsonNode;
+    }
+
+    private void rollBackLogbook(GUID updateOpGuidStart, JsonNode queryJson, String objectIdentifier) {
+        try {
+            LogbookOperationParameters logbookOpParamEnd = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
+                    LogbookOutcome.ERROR, "Echec de l'écriture de la mise à jour des métadonnées", objectIdentifier);
+            logbookOperationClient.update(logbookOpParamEnd);
+
+            LogbookLifeCycleUnitParameters logbookParametersEnd = getLogbookLifeCycleUpdateUnitParameters(updateOpGuidStart, LogbookOutcome.ERROR,
+                    queryJson.toString(), queryJson.toString(), objectIdentifier);
+            logbookLifeCycleClient.rollback(logbookParametersEnd);
+        } catch (LogbookClientBadRequestException lcbre) {
+            LOGGER.error("bad request", lcbre);
+        } catch (LogbookClientNotFoundException lcbre) {
+            LOGGER.error("client not found", lcbre);
+        } catch (LogbookClientServerException lcse) {
+            LOGGER.error("client server error", lcse);
+        }
+    }
+
+    private LogbookLifeCycleUnitParameters getLogbookLifeCycleUpdateUnitParameters(GUID eventIdentifierProcess, LogbookOutcome logbookOutcome, String outcomeDetail,
+                                                                                   String outcomeDetailMessage, String objectIdentifier) {
+        LogbookTypeProcess eventTypeProcess = LogbookTypeProcess.UPDATE;
+        final GUID updateGuid = GUIDFactory.newUnitGUID(tenantId); //eventidentifier
+
+        LogbookLifeCycleUnitParameters parameters = LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
+        parameters.putParameterValue(LogbookParameterName.eventIdentifier, updateGuid.toString());
+        parameters.putParameterValue(LogbookParameterName.eventType, eventType);
+        parameters.putParameterValue(LogbookParameterName.eventIdentifierProcess, eventIdentifierProcess!=null ? eventIdentifierProcess.toString() : "evtIdP NA");
+        parameters.putParameterValue(LogbookParameterName.eventTypeProcess, eventTypeProcess.toString());
+        parameters.putParameterValue(LogbookParameterName.outcome, logbookOutcome!=null ? logbookOutcome.toString() : "outcome NA");
+        parameters.putParameterValue(LogbookParameterName.outcomeDetail, "update archive unit");
+        parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, "update unit"+objectIdentifier.toString());
+        parameters.putParameterValue(LogbookParameterName.objectIdentifier, objectIdentifier);
+
+        return parameters;
+    }
+
+    private LogbookOperationParameters getLogbookOperationUpdateUnitParameters(GUID eventIdentifier, GUID eventIdentifierProcess, LogbookOutcome logbookOutcome,
+                                                                               String outcomeDetailMessage, String eventIdentifierRequest) {
+
+        LogbookTypeProcess eventTypeProcess = LogbookTypeProcess.UPDATE;
+
+        LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters();
+        parameters.putParameterValue(LogbookParameterName.eventIdentifier, eventIdentifier!=null ? eventIdentifier.toString() : "evtId NA");
+        parameters.putParameterValue(LogbookParameterName.eventType, eventType);
+        parameters.putParameterValue(LogbookParameterName.eventIdentifierProcess, eventIdentifierProcess!=null ? eventIdentifierProcess.toString() : "evtIdP NA");
+        parameters.putParameterValue(LogbookParameterName.eventTypeProcess, eventTypeProcess.toString());
+        parameters.putParameterValue(LogbookParameterName.outcome, logbookOutcome!=null ? logbookOutcome.toString() : "outcome NA");
+        parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, outcomeDetailMessage);
+        parameters.putParameterValue(LogbookParameterName.eventIdentifierRequest, eventIdentifierRequest);
+
+        return parameters;
     }
 }

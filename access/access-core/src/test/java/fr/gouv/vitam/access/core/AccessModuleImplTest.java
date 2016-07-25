@@ -28,6 +28,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import fr.gouv.vitam.api.exception.MetadataInvalidUpdateException;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCycleClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookClient;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -59,6 +61,9 @@ public class AccessModuleImplTest {
     private MetaDataClientFactory metaDataClientFactory;
 
     private MetaDataClient metaDataClient;
+
+    private LogbookClient logbookOperationClient;
+    private LogbookLifeCycleClient logbookLifeCycleClient;
 
     private static JunitHelper junitHelper;
     private static int serverPort;
@@ -98,9 +103,10 @@ public class AccessModuleImplTest {
     public void setUp() {
         metaDataClient = mock(MetaDataClient.class);
         metaDataClientFactory = mock(MetaDataClientFactory.class);
+        logbookLifeCycleClient = mock(LogbookLifeCycleClient.class);
+        logbookOperationClient = mock(LogbookClient.class);
         conf = new AccessConfiguration();
         conf.setUrlMetaData(HOST);
-
     }
 
     @Test
@@ -318,44 +324,54 @@ public class AccessModuleImplTest {
     @Test
     public void given_correct_dsl_When_updateUnitById_thenOK()
             throws Exception {
+
+        Mockito.doNothing().when(logbookOperationClient).update(anyObject());
+        Mockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
         when(metaDataClient.selectUnitbyId(anyObject(), anyObject())).thenReturn(JsonHandler.createObjectNode());
         when(metaDataClientFactory.create(anyObject())).thenReturn(metaDataClient);
-        accessModuleImpl = new AccessModuleImpl(metaDataClientFactory, conf);
+        accessModuleImpl = new AccessModuleImpl(metaDataClientFactory, conf, logbookOperationClient, logbookLifeCycleClient);
         accessModuleImpl.updateUnitbyId(FromStringToJson(QUERY), ID);
     }
-
 
     @Test(expected = InvalidParseOperationException.class)
     public void given_empty_dsl_When_updateUnitById_thenTrows_IllegalArgumentException()
             throws Exception {
-        accessModuleImpl = new AccessModuleImpl(metaDataClientFactory, conf);
+        Mockito.doNothing().when(logbookOperationClient).update(anyObject());
+        Mockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
+        accessModuleImpl = new AccessModuleImpl(metaDataClientFactory, conf, logbookOperationClient, logbookLifeCycleClient);
         accessModuleImpl.updateUnitbyId(FromStringToJson(""), ID);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void given_test_AccessExecutionException_updateUnitById()
             throws Exception {
+        Mockito.doNothing().when(logbookOperationClient).update(anyObject());
+        Mockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
         when(metaDataClientFactory.create(HOST)).thenReturn(metaDataClient);
         Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient).updateUnitbyId(FromStringToJson(QUERY).toString(), ID);
-        accessModuleImpl = new AccessModuleImpl(metaDataClientFactory, conf);
+        accessModuleImpl = new AccessModuleImpl(metaDataClientFactory, conf, logbookOperationClient, logbookLifeCycleClient);
         accessModuleImpl.updateUnitbyId(FromStringToJson(QUERY), ID);
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void given_empty_DSLWhen_updateUnitById_ThenThrows_InvalidParseOperationException()
             throws Exception {
+        Mockito.doNothing().when(logbookOperationClient).update(anyObject());
+        Mockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
         when(metaDataClientFactory.create(anyObject())).thenReturn(metaDataClient);
         Mockito.doThrow(new InvalidParseOperationException("")).when(metaDataClient).updateUnitbyId(FromStringToJson(QUERY).toString(), ID);
-        accessModuleImpl = new AccessModuleImpl(metaDataClientFactory, conf);
+        accessModuleImpl = new AccessModuleImpl(metaDataClientFactory, conf, logbookOperationClient, logbookLifeCycleClient);
         accessModuleImpl.updateUnitbyId(FromStringToJson(QUERY), ID);
     }
 
     @Test(expected = AccessExecutionException.class)
     public void given_DSLWhen_updateUnitById_ThenThrows_MetaDataDocumentSizeException()
             throws Exception {
+        Mockito.doNothing().when(logbookOperationClient).update(anyObject());
+        Mockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
         when(metaDataClientFactory.create(anyObject())).thenReturn(metaDataClient);
         when(metaDataClient.updateUnitbyId(anyObject(), anyObject())).thenThrow(MetaDataDocumentSizeException.class);
-        accessModuleImpl = new AccessModuleImpl(metaDataClientFactory, conf);
+        accessModuleImpl = new AccessModuleImpl(metaDataClientFactory, conf, logbookOperationClient, logbookLifeCycleClient);
         accessModuleImpl.updateUnitbyId(FromStringToJson(QUERY), ID);
     }
 
@@ -363,35 +379,43 @@ public class AccessModuleImplTest {
     @Test(expected = AccessExecutionException.class)
     public void given_DSL_When_updateUnitById_ThenThrows_MetaDataExecutionException()
             throws Exception {
+        Mockito.doNothing().when(logbookOperationClient).update(anyObject());
+        Mockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
         when(metaDataClient.updateUnitbyId(anyObject(), anyObject())).thenReturn(JsonHandler.createObjectNode());
         when(metaDataClientFactory.create(anyObject())).thenReturn(metaDataClient);
         Mockito.doThrow(new MetaDataExecutionException("")).when(metaDataClient).updateUnitbyId(FromStringToJson(QUERY).toString(), ID);
-        accessModuleImpl = new AccessModuleImpl(metaDataClientFactory, conf);
+        accessModuleImpl = new AccessModuleImpl(metaDataClientFactory, conf, logbookOperationClient, logbookLifeCycleClient);
         accessModuleImpl.updateUnitbyId(FromStringToJson(QUERY), ID);
     }
 
 
-    @Test(expected = AccessExecutionException.class)
-    public void given_null_params_conf_When_updateUnitById_ThenThrows_AccessExecutionException()
+    @Test
+    public void given_null_params_conf_When_updateUnitById_ThenNotThrowAnyException()
             throws Exception {
+        Mockito.doNothing().when(logbookOperationClient).update(anyObject());
+        Mockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
         when(metaDataClientFactory.create(anyObject())).thenReturn(metaDataClient);
-        accessModuleImpl = new AccessModuleImpl(metaDataClientFactory, null);
+        accessModuleImpl = new AccessModuleImpl(metaDataClientFactory, null, logbookOperationClient, logbookLifeCycleClient);
         accessModuleImpl.updateUnitbyId(FromStringToJson(QUERY), ID);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void given_emptyOrNullIdUnit_when_updateUnitbyId_thenthrows_IllegalArgumentException() throws Exception {
+        Mockito.doNothing().when(logbookOperationClient).update(anyObject());
+        Mockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
         when(metaDataClientFactory.create(anyObject())).thenReturn(metaDataClient);
         Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient).updateUnitbyId(FromStringToJson(QUERY).toString(), "");
-        accessModuleImpl = new AccessModuleImpl(metaDataClientFactory, conf);
+        accessModuleImpl = new AccessModuleImpl(metaDataClientFactory, conf, logbookOperationClient, logbookLifeCycleClient);
         accessModuleImpl.updateUnitbyId(FromStringToJson(QUERY), "");
     }
 
 
     @Test(expected = IllegalArgumentException.class)
     public void given_nullFactory_when_updateUnitById_then_instanciateNewFactory() throws Exception {
+        Mockito.doNothing().when(logbookOperationClient).update(anyObject());
+        Mockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
         when(metaDataClientFactory.create(anyObject())).thenReturn(metaDataClient);
-        accessModuleImpl = new AccessModuleImpl(null, conf);
+        accessModuleImpl = new AccessModuleImpl(null, conf, logbookOperationClient, logbookLifeCycleClient);
         accessModuleImpl.updateUnitbyId(FromStringToJson(QUERY), ID);
     }
 }

@@ -52,5 +52,9 @@ public enum LogbookTypeProcess {
     /**
      * Check type process
      */
-    CHECK
+    CHECK,
+    /**
+     * Update process
+     */
+    UPDATE
 }
