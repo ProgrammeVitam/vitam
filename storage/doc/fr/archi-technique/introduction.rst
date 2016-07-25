@@ -37,7 +37,7 @@ Modules - packages Storage
 |        /storage-drivers
 |           /workspace-driver
 |              fr.gouv.vitam.storage.offers.workspace.driver
-|        /workspace-offer
+|        /default-offer
 |           fr.gouv.vitam.storage.offers.workspace.core
 |           fr.gouv.vitam.storage.offers.workspace.rest
 

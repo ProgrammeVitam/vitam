@@ -28,13 +28,30 @@
 package fr.gouv.vitam.storage.engine.common;
 
 /**
- * TODO: move to common public VITAM
+ * Common storage values
  */
 public final class StorageConstants {
 
+    //TODO: move to common public VITAM
     public static final String APPLICATION_ZIP = "application/zip";
+    
+    /**
+     * X-Command header INIT value
+     */
+    public static final String COMMAND_INIT = "INIT";
 
+    /**
+     * X-Command header WRITE value
+     */
+    public static final String COMMAND_WRITE = "WRITE";
+
+    /**
+     * X-Command header END value
+     */
+    public static final String COMMAND_END = "END";
+    
     private StorageConstants() {
         // Just hiding empty constructor
     }
+    
 }

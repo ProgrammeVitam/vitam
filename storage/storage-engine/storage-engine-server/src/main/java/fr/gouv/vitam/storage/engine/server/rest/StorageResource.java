@@ -174,6 +174,7 @@ public class StorageResource {
      *
      * @param headers http headers
      * @return Response containing the storage information as an input stream, or an error (412 or 404)
+     * @throws IOException throws an IO Exception
      */
     @GET
     @Consumes(MediaType.APPLICATION_JSON)
@@ -267,7 +268,7 @@ public class StorageResource {
      * @param headers  http header
      * @param objectId the id of the object
      * @return Response NOT_IMPLEMENTED
-     * @throws IOException
+     * @throws IOException throws an IO Exception
      */
     @Path("/objects/{id_object}")
     @GET
@@ -284,6 +285,7 @@ public class StorageResource {
      *
      * @param headers  http header
      * @param objectId the id of the object
+     * @param createObjectDescription the object description
      * @return Response
      */
     @Path("/objects/{id_object}")
@@ -606,6 +608,7 @@ public class StorageResource {
      *
      * @param headers    http header
      * @param metadataId the id of the unit metadata
+     * @param query the query as a JsonNode
      * @return Response NOT_IMPLEMENTED
      */
     @Path("/units/{id_md}")
@@ -733,6 +736,7 @@ public class StorageResource {
      *
      * @param headers    http header
      * @param metadataId the id of the unit metadata
+     * @param query the query as a JsonNode
      * @return Response NOT_IMPLEMENTED
      */
     @Path("/objectgroups/{id_md}")

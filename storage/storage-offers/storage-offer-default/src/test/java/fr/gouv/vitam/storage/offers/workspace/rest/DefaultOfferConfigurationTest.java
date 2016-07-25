@@ -24,33 +24,24 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+package fr.gouv.vitam.storage.offers.workspace.rest;
 
-package fr.gouv.vitam.common;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
-/**
- * Global Variables and eventually method used by REST services
- *
- */
-public class GlobalDataRest {
+import org.junit.Test;
 
-	/**
-	 * X_HTTP_METHOD_OVERRIDE : used in case of POST methods overriding GET
-	 * methods
-	 */
-	public static final String X_HTTP_METHOD_OVERRIDE = "X-Http-Method-Override";
+public class DefaultOfferConfigurationTest {
+    @Test
+    public void constructorTest() {
+        DefaultOfferConfiguration conf = new DefaultOfferConfiguration("storage", "context");
+        assertNotNull(conf);
+        assertEquals("storage", conf.getStoragePath());
+        assertEquals("context", conf.getContextPath());
+        conf.setStoragePath("storage2");
+        conf.setContextPath("context2");
+        assertEquals("storage2", conf.getStoragePath());
+        assertEquals("context2", conf.getContextPath());
 
-	/**
-	 * Header Parameter X_REQUEST_ID
-	 */
-	public static final String X_REQUEST_ID = "X-REQUEST-ID";
-
-	/**
-	 * X-Command header used on storage resources
-	 */
-	public static final String X_COMMAND = "X-Command";
-
-	/**
-	 * X-Tenant-Id header used on REST request to identify the concerned tenant
-	 */
-	public static final String X_TENANT_ID = "X-Tenant-Id";
+    }
 }

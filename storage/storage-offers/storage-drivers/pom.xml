@@ -6,12 +6,12 @@
 		<artifactId>storage-offers</artifactId>
 		<version>0.6.0-SNAPSHOT</version>
 	</parent>
-	
+
 	<artifactId>storage-drivers</artifactId>
 	<name>Storage Drivers</name>
-	
+
 	<packaging>pom</packaging>
 	<modules>
-		<module>workspace-driver</module>
-	</modules>	
+		<module>default-driver</module>
+	</modules>
 </project>

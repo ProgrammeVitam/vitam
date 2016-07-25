@@ -24,7 +24,7 @@ Sommaire
    storage-driver.rst
    storage-engine.rst
    storage-offers.rst
-   workspace-offer.rst
+   default-offer.rst
 
 
 ##############
