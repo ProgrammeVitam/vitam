@@ -21,6 +21,7 @@
 		<module>common</module>
 		<module>access</module>
 		<module>ingest</module>
+		<module>ingest-external</module>
 		<module>processing</module>
 		<module>logbook</module>
 		<module>workspace</module>
@@ -99,6 +100,7 @@
 		<vitam.docker.registry.pull>docker.programmevitam.fr</vitam.docker.registry.pull>
 		<vitam.docker.registry.push>docker.programmevitam.fr</vitam.docker.registry.push>
 		<vitam.docker.baseimage>vitam/java:0.2.0</vitam.docker.baseimage>
+		<vitam.docker.baseimage.antivirus>vitam/vitam-virus-java</vitam.docker.baseimage.antivirus>
 
 		<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
 		<!-- Sonar properties -->

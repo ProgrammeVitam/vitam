@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- *
+ * 
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -24,36 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.workspace.api.config;
-
-// TODO REVIEW missing javadoc comment to describe the use of the class
 /**
- * Represents the service storage settings
+ * Contains all API in ingest extern
  */
-public class StorageConfiguration {
-    // FIXME REVIEW Why such a configuration? Should the client be able to change it ? If this is for Filesystem
-    // implementation, this is not valid for others, right ? This should be in the rest or core package probably or even
-    // a filesystem implementation package.
-
-    private String storagePath;
-
-    /**
-     * getter for storage path
-     *
-     * @return String
-     */
-    public String getStoragePath() {
-        return storagePath;
-    }
-
-    /**
-     * setter for storage path
-     *
-     * @param storagePath as String, path to storage
-     */
-    public StorageConfiguration setStoragePath(String storagePath) {
-        this.storagePath = storagePath;
-        return this;
-    }
-
-}
+package fr.gouv.vitam.ingest.external.api;

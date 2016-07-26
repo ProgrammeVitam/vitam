@@ -24,36 +24,42 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.workspace.api.config;
+package fr.gouv.vitam.ingest.external.common.model.response;
 
-// TODO REVIEW missing javadoc comment to describe the use of the class
+import fr.gouv.vitam.common.ParametersChecker;
+
 /**
- * Represents the service storage settings
+ * Logbook RequestResponseError class contains error list
+ *
  */
-public class StorageConfiguration {
-    // FIXME REVIEW Why such a configuration? Should the client be able to change it ? If this is for Filesystem
-    // implementation, this is not valid for others, right ? This should be in the rest or core package probably or even
-    // a filesystem implementation package.
 
-    private String storagePath;
+/*
+ * TODO ; refactor to the common vitam
+ * 
+ * */
+public class RequestResponseError extends RequestResponse {
+
+    private VitamError error;
 
     /**
-     * getter for storage path
-     *
-     * @return String
+     * @return the error of the RequestResponseError
      */
-    public String getStoragePath() {
-        return storagePath;
+    public VitamError getError() {
+        if (error != null) {
+            return error;
+        }
+        return new VitamError(0);
     }
 
     /**
-     * setter for storage path
-     *
-     * @param storagePath as String, path to storage
+     * RequestResponseError constructor
+     * 
+     * @param error the error message of type VitamError which will be setted for RequestResponseError
+     * @return this
      */
-    public StorageConfiguration setStoragePath(String storagePath) {
-        this.storagePath = storagePath;
+    public RequestResponseError setError(VitamError error) {
+        ParametersChecker.checkParameter("VitamError is mandatory parameter", error);
+        this.error = error;
         return this;
     }
-
 }
