@@ -23,24 +23,26 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common.exception;
 
+import fr.gouv.vitam.common.exception.VitamException;
+
 /**
  * FileFormatException error
  */
-public class FileFormatException extends ReferentialException {
+public class ReferentialException extends VitamException {
 
     private static final long serialVersionUID = 5667138701285198642L;
 
     /**
      * @param message message to associate with the exception
      */
-    public FileFormatException(String message) {
+    public ReferentialException(String message) {
         super(message);
     }
 
     /**
      * @param cause cause to associate with the exception
      */
-    public FileFormatException(Throwable cause) {
+    public ReferentialException(Throwable cause) {
         super(cause);
     }
 
@@ -48,7 +50,7 @@ public class FileFormatException extends ReferentialException {
      * @param message message to associate with the exception
      * @param cause cause to associate with the exception
      */
-    public FileFormatException(String message, Throwable cause) {
+    public ReferentialException(String message, Throwable cause) {
         super(message, cause);
     }
 
@@ -58,7 +60,7 @@ public class FileFormatException extends ReferentialException {
      * @param enableSuppression allow suppression or not
      * @param writableStackTrace allow writable stack trace or not
      */
-    public FileFormatException(String message, Throwable cause, boolean enableSuppression,
+    public ReferentialException(String message, Throwable cause, boolean enableSuppression,
         boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
