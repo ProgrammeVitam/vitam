@@ -34,8 +34,6 @@
  */
 package fr.gouv.vitam.common.database.server.mongodb;
 
-import java.util.Map;
-
 import org.bson.Document;
 
 /**
@@ -56,9 +54,6 @@ public class CollectionSample extends VitamDocument<CollectionSample>{
          */
         public CollectionSample(Document content) {
             super(content);
-        }
-        @Override
-        public void putAll(Map<? extends String, ? extends Object> m) {
         }
 
         @Override

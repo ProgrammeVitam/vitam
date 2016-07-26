@@ -87,8 +87,7 @@ public class VitamCollection {
      *
      * @return the associated MongoCollection
      */
-    @SuppressWarnings("rawtypes")
-    public MongoCollection getCollection() {
+    public MongoCollection<?> getCollection() {
         return collection;
     }
 
@@ -99,21 +98,21 @@ public class VitamCollection {
     public Class<?> getClasz() {
         return clasz;
     }
-    
-    /**
-    *
-    * @return The MongoCLientOptions to apply to MongoClient
-    */
-    @SuppressWarnings("rawtypes")
-   public static MongoClientOptions getMongoClientOptions(List<Class<?>> claszList) {
-        List<CodecRegistry> codecs = new ArrayList<CodecRegistry>();
-       for (Class<?> clasz : claszList) {
-           codecs.add(CodecRegistries.fromCodecs(new VitamDocumentCodec(clasz)));
-       }
 
-       final CodecRegistry vitamCodecRegistry = CodecRegistries.fromRegistries(codecs);
-       final CodecRegistry codecRegistry = CodecRegistries.fromRegistries(MongoClient.getDefaultCodecRegistry(), vitamCodecRegistry);
-       
-       return MongoClientOptions.builder().codecRegistry(codecRegistry).build();
-   }
+    /**
+     * @param claszList Vitam document extended class list
+     * @return MongoClientOptions for mongoClient
+     */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public static MongoClientOptions getMongoClientOptions(List<Class<?>> claszList) {
+        List<CodecRegistry> codecs = new ArrayList<CodecRegistry>();
+        for (Class<?> clasz : claszList) {
+            codecs.add(CodecRegistries.fromCodecs(new VitamDocumentCodec(clasz)));
+        }
+
+        final CodecRegistry vitamCodecRegistry = CodecRegistries.fromRegistries(codecs);
+        final CodecRegistry codecRegistry = CodecRegistries.fromRegistries(MongoClient.getDefaultCodecRegistry(), vitamCodecRegistry);
+
+        return MongoClientOptions.builder().codecRegistry(codecRegistry).build();
+    }
 }
