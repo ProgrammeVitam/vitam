@@ -372,8 +372,8 @@ public class WebApplicationResourceTest {
      */
 
     @Test
-    public void testUpdateArchiveUnitDetails() {
-        given().expect().statusCode(Status.OK.getStatusCode()).when().put("/archiveupdate/units/1");
+    public void testUpdateArchiveUnitWithoutBody() {
+        given().expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when().put("/archiveupdate/units/1");
     }
 
     @SuppressWarnings({"unchecked"})
