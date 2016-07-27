@@ -56,7 +56,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
 
     private final List<Worker> workers = new ArrayList<Worker>();
     private final List<String> availableWorkers = new ArrayList<String>();
-    
+
     /**
      * Constructor with parameter workerImpl
      *
@@ -68,7 +68,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         workers.add(worker1);
         availableWorkers.add(worker1.getWorkerId());
     }
-    
+
     /**
      * Empty constructor
      */
@@ -91,7 +91,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
 
             if (step.getDistribution().getKind().equals(DistributionKind.LIST)) {
                 final WorkspaceClient workspaceClient =
-                    new WorkspaceClientFactory().create(workParams.getServerConfiguration().getUrlWorkspace());
+                    WorkspaceClientFactory.create(workParams.getServerConfiguration().getUrlWorkspace());
                 final List<URI> objectsList = workspaceClient
                     .getListUriDigitalObjectFromFolder(workParams.getContainerName(), step.getDistribution().getElement());
                 if (objectsList == null || objectsList.isEmpty()) {

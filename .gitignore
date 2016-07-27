@@ -5,6 +5,7 @@ target
 .classpath
 .project
 npm-debug.log
+.class
 .settings
 **/node_modules/
 **/evosuite-tests/

@@ -37,6 +37,12 @@ import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -44,13 +50,12 @@ import fr.gouv.vitam.processing.common.model.WorkParams;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
-/**
- *
- */
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore("javax.net.ssl.*")
+@PrepareForTest({WorkspaceClientFactory.class })
 public class ContainerExtractionUtilsTest {
 
     private WorkspaceClient workspaceClient;
-    private WorkspaceClientFactory workspaceClientFactory;
     private ContainerExtractionUtils containerExtractionUtils;
 
     private final String SIP = "SIP";
@@ -71,7 +76,7 @@ public class ContainerExtractionUtilsTest {
     @Before
     public void setUp() throws Exception {
         workspaceClient = mock(WorkspaceClient.class);
-        workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        PowerMockito.mockStatic(WorkspaceClientFactory.class);
 
         uriListWorkspace.add(new URI("content/file1.pdf"));
         uriListWorkspace.add(new URI("content/file2.pdf"));
@@ -80,10 +85,10 @@ public class ContainerExtractionUtilsTest {
     @Test
     public void givenWorkspaceExistWhenGetUriListThenReturnOK() throws ProcessingException {
 
-        when(workspaceClientFactory.create(anyObject())).thenReturn(workspaceClient);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
         when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject())).thenReturn(uriListWorkspace);
 
-        containerExtractionUtils = new ContainerExtractionUtils(workspaceClientFactory);
+        containerExtractionUtils = new ContainerExtractionUtils();
         uriListWorkspace = containerExtractionUtils.getDigitalObjectUriListFromWorkspace(workParams);
 
         assertThat(uriListWorkspace).isNotNull().isNotEmpty();

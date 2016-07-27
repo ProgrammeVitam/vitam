@@ -27,7 +27,6 @@
 package fr.gouv.vitam.processing.common.utils;
 
 import fr.gouv.vitam.client.MetaDataClientFactory;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
  * SedaUtils Factory to create SedaUtils
@@ -46,7 +45,7 @@ public class SedaUtilsFactory {
      * @param metaDataFactory metaData client Factory
      * @return SedaUtils
      */
-    public SedaUtils create(WorkspaceClientFactory workspaceFactory, MetaDataClientFactory metaDataFactory) {
-        return new SedaUtils(workspaceFactory, metaDataFactory);
+    public SedaUtils create(MetaDataClientFactory metaDataFactory) {
+        return new SedaUtils(metaDataFactory);
     }
 }

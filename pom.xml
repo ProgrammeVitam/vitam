@@ -21,7 +21,6 @@
 		<module>common</module>
 		<module>access</module>
 		<module>ingest</module>
-		<module>ingest-external</module>
 		<module>processing</module>
 		<module>logbook</module>
 		<module>workspace</module>

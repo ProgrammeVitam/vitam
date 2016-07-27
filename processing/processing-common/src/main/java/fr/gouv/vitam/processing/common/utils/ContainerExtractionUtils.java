@@ -42,7 +42,6 @@ public class ContainerExtractionUtils {
     // FIXME REVIEW Use something to clarify globally the Ingest folder organization in one place for all, not in every
     // class!
     // Each class then can add extra organization for its own
-    private final WorkspaceClientFactory workspaceClientFactory;
     // TODO
     // Retrieve the hard code value for the path of the folder of digital objects
     private static final String DIGITAL_OBJECT_FOLDER_NAME = "SIP";
@@ -53,9 +52,7 @@ public class ContainerExtractionUtils {
      *
      * @param workspaceClientFactory factory of workspace client
      */
-    public ContainerExtractionUtils(WorkspaceClientFactory workspaceClientFactory) {
-        ParametersChecker.checkParameter("workspaceFactory is a mandatory parameter", workspaceClientFactory);
-        this.workspaceClientFactory = workspaceClientFactory;
+    public ContainerExtractionUtils() {
     }
 
     /**
@@ -69,7 +66,7 @@ public class ContainerExtractionUtils {
     public List<URI> getDigitalObjectUriListFromWorkspace(WorkParams workParams)
         throws ProcessingException {
         final WorkspaceClient workspaceClient =
-            workspaceClientFactory.create(workParams.getServerConfiguration().getUrlWorkspace());
+            WorkspaceClientFactory.create(workParams.getServerConfiguration().getUrlWorkspace());
         final String guidContainer = workParams.getContainerName();
         return getDigitalObjectUriListFromWorkspace(workspaceClient, guidContainer);
     }

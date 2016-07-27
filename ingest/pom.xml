@@ -13,12 +13,8 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>ingest-common</module>
-        <module>ingest-api</module>
-        <module>ingest-core</module>
-        <module>ingest-model</module>
-        <module>ingest-rest</module>
-        <module>ingest-client</module>
+        <module>ingest-internal</module>
+        <module>ingest-external</module>
     </modules>
 
 </project>
