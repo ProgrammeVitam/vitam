@@ -69,6 +69,7 @@ public class WebApplicationResourceTest {
 	private static final String DEFAULT_WEB_APP_CONTEXT = "/ihm-demo";
 	private static final String DEFAULT_STATIC_CONTENT = "webapp";
 	private static final String OPTIONS = "{name: \"myName\"}";
+    private static final String UPDATE = "{title: \"myarchive\"}";
 	private static final String DEFAULT_HOST = "localhost";
 	private static JunitHelper junitHelper;
 	private static int port;
@@ -365,5 +366,34 @@ public class WebApplicationResourceTest {
 		given().param("id", "1").expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
 				.get("/archivesearch/unit/1");
 	}
+
+    /**
+     * Update Unit Treatment
+     */
+
+    @Test
+    public void testUpdateArchiveUnitDetails() {
+        given().expect().statusCode(Status.OK.getStatusCode()).when().put("/archiveupdate/units/1");
+    }
+
+    @SuppressWarnings({"unchecked"})
+    @Test
+    public void testUpdateArchiveUnitDetailsDsl()
+        throws InvalidParseOperationException, InvalidCreateOperationException {
+
+        Map<String, String> updateCriteriaMap = new HashMap<String, String>();
+        updateCriteriaMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
+
+        updateCriteriaMap.put("title", "archive1");
+
+        // DslqQueryHelper Exceptions : InvalidParseOperationException,
+        // InvalidCreateOperationException
+        PowerMockito.when(DslQueryHelper.createUpdateDSLQuery(updateCriteriaMap))
+            .thenThrow(InvalidParseOperationException.class, InvalidCreateOperationException.class);
+
+        given().contentType(ContentType.JSON).body(UPDATE).expect()
+            .statusCode(Status.OK.getStatusCode()).when()
+            .put("/archiveupdate/units/1");
+    }
 
 }

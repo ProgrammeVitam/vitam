@@ -29,8 +29,10 @@ package fr.gouv.vitam.ihmdemo.appserver;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -67,6 +69,7 @@ public class WebApplicationResource {
 	private static final String ACCESS_SERVER_EXCEPTION_MSG = "Access Server exception";
 	private static final String INTERNAL_SERVER_ERROR_MSG = "INTERNAL SERVER ERROR";
 	private static final String SEARCH_CRITERIA_MANDATORY_MSG = "Search criteria payload is mandatory";
+    private static final String UPDATE_CRITERIA_MANDATORY_MSG = "Update criteria payload is mandatory";
 
 	/**
 	 * @param criteria
@@ -205,4 +208,44 @@ public class WebApplicationResource {
 	public Response status() {
 		return Response.status(Status.OK).build();
 	}
+
+    /**
+     * Update Archive Units
+     * 
+     * @param updateSet conains updated field
+     * @param unitId archive unit id
+     * @return archive unit details
+     * @throws InvalidParseOperationException
+     */
+    @PUT
+    @Path("/archiveupdate/units/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response updateArchiveUnitDetails(@PathParam("id") String unitId, String updateSet)
+        throws InvalidParseOperationException {
+        ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitId);
+        ParametersChecker.checkParameter(UPDATE_CRITERIA_MANDATORY_MSG, updateSet);
+        Map<String, String> updateUnitIdMap = JsonHandler.getMapStringFromString(updateSet);
+        updateUnitIdMap.put(UiConstants.SELECT_BY_ID.toString(), unitId);
+
+        try {
+            String preparedQueryDsl = DslQueryHelper.createUpdateDSLQuery(updateUnitIdMap);
+            JsonNode archiveDetails = UserInterfaceTransactionManager.updateUnits(preparedQueryDsl, unitId);
+
+            return Response.status(Status.OK).entity(archiveDetails).build();
+        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
+            return Response.status(Status.BAD_REQUEST).build();
+        } catch (AccessClientServerException e) {
+            LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (AccessClientNotFoundException e) {
+            LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
+            return Response.status(Status.NOT_FOUND).build();
+        } catch (Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
 }

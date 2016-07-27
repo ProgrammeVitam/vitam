@@ -83,4 +83,19 @@ public class UserInterfaceTransactionManager {
 			throws AccessClientServerException, AccessClientNotFoundException, InvalidParseOperationException {
 		return ACCESS_CLIENT.selectUnitbyId(preparedDslQuery, unitId);
 	}
+	
+    /**
+     * Update units result
+     * 
+     * @param parameters search criteria as DSL query
+     * @param unitId unitIdentifier 
+     * @return
+     * @throws AccessClientServerException thrown when an errors occurs during the connection with the server
+     * @throws AccessClientNotFoundException thrown when access client is not found
+     * @throws InvalidParseOperationException thrown when the Json node format is not correct
+     */
+    public static JsonNode updateUnits(String parameters, String unitId)
+        throws AccessClientServerException, AccessClientNotFoundException, InvalidParseOperationException {
+        return ACCESS_CLIENT.updateUnitbyId(parameters, unitId);
+    }
 }
