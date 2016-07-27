@@ -80,6 +80,9 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
         }
     }
     
+    /**
+     * insertDocuments implement
+     */
     @SuppressWarnings({"rawtypes", "unchecked"})
     public void insertDocuments(ArrayNode arrayNode, FunctionalAdminCollections collection) throws ReferentialException {
         List<VitamDocument> vitamDocumentList = new ArrayList<>();
@@ -99,16 +102,25 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
         collection.getCollection().insertMany(vitamDocumentList);
     }
     
+    /**
+     * deleteCollection implement
+     */
     public void deleteCollection(FunctionalAdminCollections collection) {
         collection.getCollection().drop();
     }
     
+    /**
+     * getDocumentById implement
+     */
     @Override
     public VitamDocument<?> getDocumentById(String id, FunctionalAdminCollections collection)
         throws ReferentialException {
         return (VitamDocument<?>) collection.getCollection().find(eq(VitamDocument.ID, id)).first();
     }
     
+    /**
+     * select implement
+     */
     @Override
     public MongoCursor<?> select(JsonNode select, FunctionalAdminCollections collection)
         throws ReferentialException {
@@ -125,7 +137,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
      * @param collection
      * @param parser
      * @return the Closeable MongoCursor on the find request based on the given collection
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException when query is not correct
      */
     @SuppressWarnings("rawtypes")
     private MongoCursor selectExecute(final FunctionalAdminCollections collection, SelectParserSingle parser)
