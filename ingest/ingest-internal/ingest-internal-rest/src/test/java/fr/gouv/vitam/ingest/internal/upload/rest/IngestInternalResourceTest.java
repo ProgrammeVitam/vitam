@@ -27,6 +27,8 @@
 package fr.gouv.vitam.ingest.internal.upload.rest;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
@@ -54,12 +56,11 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.BasicVitamServer;
 import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.operations.client.LogbookClient;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
@@ -87,10 +88,9 @@ public class IngestInternalResourceTest {
 
     private WorkspaceClient workspaceClient;
     private ProcessingManagementClient processingClient;
-    private LogbookClient logbookClient;
     private InputStream inputStream;
-    private LogbookOperationParameters externalOperationParameters;
-
+    private List<LogbookParameters> operationList= new ArrayList<LogbookParameters>();
+    
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         junitHelper = new JunitHelper();
@@ -124,20 +124,31 @@ public class IngestInternalResourceTest {
         
         workspaceClient = PowerMockito.mock(WorkspaceClient.class);
         processingClient = PowerMockito.mock(ProcessingManagementClient.class);
-        logbookClient = PowerMockito.mock(LogbookClient.class);
         
         PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
         PowerMockito.when(ProcessingManagementClientFactory.create(Mockito.anyObject())).thenReturn(processingClient);
         
+        GUID ingestGuid= GUIDFactory.newGUID();
         GUID conatinerGuid= GUIDFactory.newGUID();
-        externalOperationParameters = LogbookParametersFactory.newLogbookOperationParameters(
-            GUIDFactory.newGUID(), 
+        LogbookOperationParameters externalOperationParameters1 = LogbookParametersFactory.newLogbookOperationParameters(
+        	ingestGuid, 
             "Ingest external", 
             conatinerGuid,
             LogbookTypeProcess.INGEST, 
             LogbookOutcome.STARTED, 
-            "Started: Ingest external",
+            "Start Ingest external",
             conatinerGuid);
+        
+        LogbookOperationParameters externalOperationParameters2 = LogbookParametersFactory.newLogbookOperationParameters(
+            	ingestGuid, 
+                "Ingest external", 
+                conatinerGuid,
+                LogbookTypeProcess.INGEST, 
+                LogbookOutcome.OK, 
+                "End Ingest external",
+                conatinerGuid);
+        operationList.add(externalOperationParameters1);
+        operationList.add(externalOperationParameters2);
            
     }
     // Status
@@ -163,11 +174,10 @@ public class IngestInternalResourceTest {
         Mockito.doNothing().when(workspaceClient).unzipObject(Mockito.anyObject(), Mockito.anyObject(), Mockito.anyObject());
         
         Mockito.doReturn("OK").when(processingClient).executeVitamProcess(Mockito.anyObject(), Mockito.anyObject());
-    	
         inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
         RestAssured.given()
         				
-        				.multiPart("part", externalOperationParameters, MediaType.APPLICATION_JSON)
+        				.multiPart("part", operationList, MediaType.APPLICATION_JSON)
         				.multiPart("part", FILE_NAME, inputStream)
         			.then().statusCode(Status.OK.getStatusCode())
         			.when().post(UPLOAD_URI);
@@ -185,7 +195,7 @@ public class IngestInternalResourceTest {
         inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
         RestAssured.given()
         				
-        				.multiPart("part", externalOperationParameters, MediaType.APPLICATION_JSON)
+        				.multiPart("part", operationList, MediaType.APPLICATION_JSON)
         			.then().statusCode(Status.OK.getStatusCode())
         			.when().post(UPLOAD_URI);
     }
@@ -197,8 +207,7 @@ public class IngestInternalResourceTest {
     
         inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
         RestAssured.given()
-        				.multiPart("file", FILE_NAME, inputStream)
-        				.multiPart("logbook", externalOperationParameters, MediaType.APPLICATION_JSON)
+        				.multiPart("part", operationList, MediaType.APPLICATION_JSON)
         			.then().statusCode(Status.OK.getStatusCode())
         			.when().post(UPLOAD_URI);
 
@@ -212,8 +221,7 @@ public class IngestInternalResourceTest {
         inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
         
         RestAssured.given()
-        				.multiPart("file", FILE_NAME, inputStream)
-        				.multiPart("logbook", externalOperationParameters, MediaType.APPLICATION_JSON)
+        					.multiPart("part", operationList, MediaType.APPLICATION_JSON)
         			.then().statusCode(Status.OK.getStatusCode())
         			.when().post(UPLOAD_URI);
     }
@@ -227,26 +235,10 @@ public class IngestInternalResourceTest {
         inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
 
         RestAssured.given()
-	        			.multiPart("file", FILE_NAME, inputStream)
-	        			.multiPart("logbook", externalOperationParameters, MediaType.APPLICATION_JSON)
+        				.multiPart("part", operationList, MediaType.APPLICATION_JSON)
         			.then().statusCode(Status.OK.getStatusCode())
         			.when().post(UPLOAD_URI).andReturn().getBody().asString().contains("upload failed");
     }
-    
-    @Test
-    public void givenLogbookUnavailableWhenUploadSipAsStreamThenRaiseAnExceptionLogbookClientNotFoundException()
-        throws Exception {
-
-        Mockito.doThrow(new LogbookClientServerException("")).when(logbookClient).create(Mockito.anyObject());
-        inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
-
-        RestAssured.given()
-        				.multiPart("file", FILE_NAME, inputStream)
-        				.multiPart("logbook", externalOperationParameters, MediaType.APPLICATION_JSON)
-        			.then().statusCode(Status.OK.getStatusCode())
-        			.when().post(UPLOAD_URI).andReturn().getBody().asString().contains("upload failed");
-    }
-
-    
+       
 }
 

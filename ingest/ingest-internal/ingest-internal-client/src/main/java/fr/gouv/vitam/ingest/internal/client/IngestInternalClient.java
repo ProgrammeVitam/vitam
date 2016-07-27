@@ -25,10 +25,11 @@
 package fr.gouv.vitam.ingest.internal.client;
 
 import java.io.InputStream;
+import java.util.List;
 
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.ingest.internal.model.UploadResponseDTO;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 
 /**
  * Ingest Internal client interface
@@ -52,7 +53,7 @@ public interface IngestInternalClient {
      *
      * @return http code
      */
-	UploadResponseDTO upload(LogbookOperationParameters logbookParameters, InputStream inputStream) throws VitamException;
+	UploadResponseDTO upload(List<LogbookParameters> logbookParametersList, InputStream inputStream) throws VitamException;
     
 
 }

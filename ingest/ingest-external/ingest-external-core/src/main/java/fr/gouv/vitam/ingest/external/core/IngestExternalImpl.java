@@ -35,8 +35,11 @@
 package fr.gouv.vitam.ingest.external.core;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -46,6 +49,8 @@ import fr.gouv.vitam.ingest.external.api.IngestExternalException;
 import fr.gouv.vitam.ingest.external.api.IngestExternalOutcomeMessage;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
 import fr.gouv.vitam.ingest.external.common.util.JavaExecuteScript;
+import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
+import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
@@ -107,6 +112,18 @@ public class IngestExternalImpl implements IngestExternal {
             throw new IngestExternalException(e);
         }
         
+        GUID ingestGuid = GUIDFactory.newGUID();
+        List<LogbookParameters> logbookParametersList= new ArrayList<LogbookParameters>();
+        LogbookParameters startedParameters = LogbookParametersFactory.newLogbookOperationParameters(
+        		ingestGuid, 
+                INGEST_EXT, 
+                containerName,
+                LogbookTypeProcess.INGEST, 
+                LogbookOutcome.STARTED, 
+                "Start " + INGEST_EXT,
+                containerName);
+        logbookParametersList.add(startedParameters);
+        
         String filePath = config.getPath() + "/" + containerName.getId() + "/" + objectName.getId();
         int antiVirusResult;
         
@@ -124,32 +141,46 @@ public class IngestExternalImpl implements IngestExternal {
             throw new IngestExternalException(e);
         }
         
-        // Send logbook params and inputStream to ingest intern
-        LogbookParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
-            GUIDFactory.newGUID(), 
-            INGEST_EXT, 
-            containerName,
-            LogbookTypeProcess.INGEST, 
-            LogbookOutcome.STARTED, 
-            "Started: " + INGEST_EXT,
-            containerName);
+        LogbookParameters endParameters = LogbookParametersFactory.newLogbookOperationParameters(
+        		ingestGuid, 
+                INGEST_EXT, 
+                containerName,
+                LogbookTypeProcess.INGEST, 
+                LogbookOutcome.STARTED, 
+                "End " + INGEST_EXT,
+                containerName);
+        
+        InputStream inputStream=input;
         switch(antiVirusResult) {
             case 0:
                 LOGGER.info(IngestExternalOutcomeMessage.OK.toString());
-                parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, IngestExternalOutcomeMessage.OK.toString());
+                endParameters.setStatus(LogbookOutcome.OK);
+                endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, IngestExternalOutcomeMessage.OK.toString());
                 break;
             case 1:
                 LOGGER.debug(IngestExternalOutcomeMessage.KO.toString());
-                parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, IngestExternalOutcomeMessage.KO.toString());
+                endParameters.setStatus(LogbookOutcome.OK);
+                endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, IngestExternalOutcomeMessage.KO.toString());
+                inputStream=null;
                 break;
             // NOSONAR : the case '2' throws the exception.
             case 2: 
                 LOGGER.error(IngestExternalOutcomeMessage.KO.toString());
-                parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, IngestExternalOutcomeMessage.KO.toString());
+                endParameters.setStatus(LogbookOutcome.ERROR);
+                endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, IngestExternalOutcomeMessage.KO.toString());
+                inputStream=null;
             default:
                 throw new IngestExternalException("Unknown error or Virus detected");
         }
         
-     // use ingest-client to start process
+        logbookParametersList.add(endParameters);
+        
+        IngestInternalClient client = IngestInternalClientFactory.getInstance().getIngestInternalClient();
+        try {
+			client.upload(logbookParametersList, inputStream);
+		} catch (VitamException e) {
+			throw new IngestExternalException("Ingest Internal Exception");
+		}
+        
     }
 }

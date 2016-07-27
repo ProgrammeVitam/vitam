@@ -11,5 +11,12 @@
     <name>Ingest External</name>
 
     <packaging>pom</packaging>
+    	<modules>
+		<module>ingest-external-common</module>
+		<module>ingest-external-api</module>
+		<module>ingest-external-core</module>
+		<module>ingest-external-rest</module>
+		<module>ingest-external-client</module>
+	</modules>
     
 </project>

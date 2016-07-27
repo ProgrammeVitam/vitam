@@ -41,13 +41,14 @@ import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.ingest.internal.api.upload.UploadService;
+import fr.gouv.vitam.ingest.internal.common.util.LogbookOperationParametersList;
 import fr.gouv.vitam.ingest.internal.model.UploadResponseDTO;
 import fr.gouv.vitam.ingest.internal.upload.core.UploadSipHelper;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
@@ -55,7 +56,6 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
@@ -74,7 +74,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
- * UploadServiceImpl implements UploadService
+ * IngestInternalResource implements UploadService
  *
  */
 @Path("/ingest/v1")
@@ -117,42 +117,43 @@ public class IngestInternalResource implements UploadService {
      * @param uploadedInputStream
      * @param fileDetail
      * @return
-     * @throws VitamException
      */
     @Override
     @POST
     @Path("/upload")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response uploadSipAsStream(@FormDataParam("part") List<FormDataBodyPart> partList){
+    public Response uploadSipAsStream(@FormDataParam("part") List<FormDataBodyPart> partList) {
     	
     	Response response = null;
         try {
-        	LogbookParameters logbookParameters= partList.get(0).getValueAs(LogbookOperationParameters.class);
+    
+        	ParametersChecker.checkParameter("partList is a Mandatory parameter", partList);
         	
-        	ParametersChecker.checkParameter("Mandatory parameter", logbookParameters);
-        	final int tenantId = 0; // default tenanId
+        	LogbookOperationParametersList logbookOperationParametersList= partList.get(0).getValueAs(LogbookOperationParametersList.class);
+        
+        	ParametersChecker.checkParameter("logbookOperationParametersList is a Mandatory parameter", logbookOperationParametersList);
+        	int tenantId = 0; // default tenanId
         	// guid for the container in the workspace
-        	final GUID containerGUID = GUIDReader.getGUID(logbookParameters.getMapParameters().get(LogbookParameterName.eventIdentifierProcess));
-        	final GUID ingestGuid = GUIDReader.getGUID(logbookParameters.getMapParameters().get(LogbookParameterName.eventIdentifier));
+        	final GUID containerGUID = GUIDReader.getGUID(logbookOperationParametersList.getLogbookOperationList().get(0).getMapParameters().get(LogbookParameterName.eventIdentifierProcess));
+        	final GUID ingestGuid = GUIDReader.getGUID(logbookOperationParametersList.getLogbookOperationList().get(0).getMapParameters().get(LogbookParameterName.eventIdentifier));
 
         	logbookClient = logbookInitialisation(ingestGuid, containerGUID, tenantId);
 
         	// Log Ingest External operations
         	VITAM_LOGGER.info("Log Ingest External operations");
-
-        	logbookClient.update(logbookParameters);
-        	logbookParameters.setStatus(LogbookOutcome.OK);
-        	parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, "End Scan antivirus");
-        	logbookClient.update(logbookParameters);
+        	
+        	for(LogbookParameters logbookParameters: logbookOperationParametersList.getLogbookOperationList() ){
+        		logbookClient.update(logbookParameters);
+        	}
         	
         	InputStream uploadedInputStream=null;
         	
         	if (partList.size()==2) {
         		uploadedInputStream= partList.get(1).getValueAs(InputStream.class);
-        	}
         	
-        	ParametersChecker.checkParameter("Mandatory parameter", uploadedInputStream);
+        	
+        	ParametersChecker.checkParameter("HTTP Request must contains 2 multiparts part", uploadedInputStream);
 
         	// Save sip file
         	VITAM_LOGGER.info("Starting up the save file sip");
@@ -161,7 +162,7 @@ public class IngestInternalResource implements UploadService {
 
         	// processing
         	logbookClient = callProcessingEngine(parameters, logbookClient, containerGUID.getId());
-
+        	}
         	final UploadResponseDTO uploadResponseDTO =
         			UploadSipHelper.getUploadResponseDTO("Sip file", 200, "success",
         					"201", "success", "200", "success");
@@ -182,7 +183,7 @@ public class IngestInternalResource implements UploadService {
         			UploadSipHelper.getUploadResponseDTO("Sip file", 500, e.getMessage(),
         					"500", "workspace failed", "500", "error workspace");
         	response = Response.ok(uploadResponseDTO, "application/json").build();
-        } catch (final Exception e) {
+        } catch (final  InvalidGuidOperationException | InvalidParseOperationException | ProcessingException | LogbookClientException  e) {
 
         	if (parameters != null) {
         		try {

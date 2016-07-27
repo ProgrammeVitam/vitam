@@ -2,9 +2,7 @@ package fr.gouv.vitam.ingest.internal.upload.rest;
 
 import static org.junit.Assert.fail;
 
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -17,7 +15,7 @@ import fr.gouv.vitam.common.server.BasicVitamServer;
 import fr.gouv.vitam.common.server.VitamServerFactory;
 
 public class IngestInternalApplicationTest {
-	 	private static final String SHOULD_NOT_RAIZED_AN_EXCEPTION = "Should not raized an exception";
+	 	private static final String SHOULD_NOT_RAIZED_AN_EXCEPTION = "Should not raise an exception";
 
 	    private static final String INGEST_INTERNAL_CONF = "ingest-internal.conf";
 	    

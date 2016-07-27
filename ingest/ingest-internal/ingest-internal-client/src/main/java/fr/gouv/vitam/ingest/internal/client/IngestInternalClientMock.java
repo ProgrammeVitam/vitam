@@ -24,12 +24,13 @@
 package fr.gouv.vitam.ingest.internal.client;
 
 import java.io.InputStream;
+import java.util.List;
 
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.ingest.internal.model.UploadResponseDTO;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 
 /**
  * Mock client implementation for Ingest Internal
@@ -46,7 +47,7 @@ public class IngestInternalClientMock implements IngestInternalClient{
 	}
 	
 	@Override
-    public UploadResponseDTO upload(LogbookOperationParameters logbookParameters, InputStream inputStream) throws VitamException{
+    public UploadResponseDTO upload(List<LogbookParameters> logbookParametersList, InputStream inputStream) throws VitamException{
 		LOGGER.info("Post SIP");
 		 final UploadResponseDTO uploadResponseDTO = new UploadResponseDTO();
 	        uploadResponseDTO.setFileName("SIP");

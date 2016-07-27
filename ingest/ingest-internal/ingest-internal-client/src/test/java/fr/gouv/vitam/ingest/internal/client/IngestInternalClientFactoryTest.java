@@ -51,19 +51,19 @@ public class IngestInternalClientFactoryTest {
     public void getClientInstanceTest() {
         try {
         	IngestInternalClientFactory.setConfiguration(IngestInternalClientType.PRODUCTION, null, 10);
-            fail("Should raized an exception");
+            fail("Should raise an exception");
         } catch (final IllegalArgumentException e) {
 
         }
         try {
         	IngestInternalClientFactory.setConfiguration(IngestInternalClientType.PRODUCTION, "localhost", -10);
-            fail("Should raized an exception");
+            fail("Should raise an exception");
         } catch (final IllegalArgumentException e) {
 
         }
         try {
         	IngestInternalClientFactory.setConfiguration(null, null, 10);
-            fail("Should raized an exception");
+            fail("Should raise an exception");
         } catch (final IllegalArgumentException e) {
 
         }

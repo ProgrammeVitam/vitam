@@ -163,7 +163,7 @@
         </dependency>
         <dependency>
             <groupId>fr.gouv.vitam</groupId>
-            <artifactId>ingest-common</artifactId>
+            <artifactId>ingest-internal-common</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

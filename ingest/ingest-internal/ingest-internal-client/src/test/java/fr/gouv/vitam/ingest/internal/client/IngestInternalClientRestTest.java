@@ -31,6 +31,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -58,6 +60,7 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.ingest.internal.model.UploadResponseDTO;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 
@@ -68,7 +71,6 @@ public class IngestInternalClientRestTest extends JerseyTest{
 	private static JunitHelper junitHelper = new JunitHelper();
 	private static int port = junitHelper.findAvailablePort();
 	private IngestInternalClientRest client;
-	private LogbookOperationParameters externalOperationParameters;
 	private UploadResponseDTO uploadResponseDTO;
 	
     protected ExpectedResults mock;
@@ -132,15 +134,29 @@ public class IngestInternalClientRestTest extends JerseyTest{
 	  @Test
 	   public void  givenStartedServerWhenUploadSipThenReturnOK() throws VitamException {
 
-		  GUID conatinerGuid= GUIDFactory.newGUID();
-	        externalOperationParameters = LogbookParametersFactory.newLogbookOperationParameters(
-	            GUIDFactory.newGUID(), 
-	            "Ingest external", 
-	            conatinerGuid,
-	            LogbookTypeProcess.INGEST, 
-	            LogbookOutcome.STARTED, 
-	            "Started: Ingest external",
-	            conatinerGuid);
+		  List<LogbookParameters> operationList= new ArrayList<LogbookParameters>();
+			
+			 GUID ingestGuid= GUIDFactory.newGUID();
+		        GUID conatinerGuid= GUIDFactory.newGUID();
+		        LogbookOperationParameters externalOperationParameters1 = LogbookParametersFactory.newLogbookOperationParameters(
+		        	ingestGuid, 
+		            "Ingest external", 
+		            conatinerGuid,
+		            LogbookTypeProcess.INGEST, 
+		            LogbookOutcome.STARTED, 
+		            "Start Ingest external",
+		            conatinerGuid);
+		        
+		        LogbookOperationParameters externalOperationParameters2 = LogbookParametersFactory.newLogbookOperationParameters(
+		            	ingestGuid, 
+		                "Ingest external", 
+		                conatinerGuid,
+		                LogbookTypeProcess.INGEST, 
+		                LogbookOutcome.OK, 
+		                "End Ingest external",
+		                conatinerGuid);
+		        operationList.add(externalOperationParameters1);
+		        operationList.add(externalOperationParameters2);
 	        
 	        uploadResponseDTO = new UploadResponseDTO();
 	        uploadResponseDTO.setFileName("fileName");
@@ -153,22 +169,36 @@ public class IngestInternalClientRestTest extends JerseyTest{
 	        
 	        when(mock.post()).thenReturn( Response.ok(uploadResponseDTO, "application/json").build());
 	        InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
-	        UploadResponseDTO response= client.upload(externalOperationParameters, inputStream);
+	        UploadResponseDTO response= client.upload(operationList, inputStream);
 			assertThat(response.getVitamStatus()).isEqualTo("success");
 	    }
 	  
 	  @Test
 	  public void  givenVirusWhenUploadSipThenReturnOK() throws VitamException {
 
-		  GUID conatinerGuid= GUIDFactory.newGUID();
-	        externalOperationParameters = LogbookParametersFactory.newLogbookOperationParameters(
-	            GUIDFactory.newGUID(), 
-	            "Ingest external", 
-	            conatinerGuid,
-	            LogbookTypeProcess.INGEST, 
-	            LogbookOutcome.STARTED, 
-	            "Started: Ingest external",
-	            conatinerGuid);
+		  List<LogbookParameters> operationList= new ArrayList<LogbookParameters>();
+			
+			 GUID ingestGuid= GUIDFactory.newGUID();
+		        GUID conatinerGuid= GUIDFactory.newGUID();
+		        LogbookOperationParameters externalOperationParameters1 = LogbookParametersFactory.newLogbookOperationParameters(
+		        	ingestGuid, 
+		            "Ingest external", 
+		            conatinerGuid,
+		            LogbookTypeProcess.INGEST, 
+		            LogbookOutcome.STARTED, 
+		            "Start Ingest external",
+		            conatinerGuid);
+		        
+		        LogbookOperationParameters externalOperationParameters2 = LogbookParametersFactory.newLogbookOperationParameters(
+		            	ingestGuid, 
+		                "Ingest external", 
+		                conatinerGuid,
+		                LogbookTypeProcess.INGEST, 
+		                LogbookOutcome.ERROR,
+		                "End Ingest external",
+		                conatinerGuid);
+		        operationList.add(externalOperationParameters1);
+		        operationList.add(externalOperationParameters2);
 	        
 	        uploadResponseDTO = new UploadResponseDTO();
 	        uploadResponseDTO.setFileName("fileName");
@@ -180,22 +210,36 @@ public class IngestInternalClientRestTest extends JerseyTest{
 	        uploadResponseDTO.setEngineStatus("success");
 	        
 	        when(mock.post()).thenReturn( Response.ok(uploadResponseDTO, "application/json").build());
-	        UploadResponseDTO response= client.upload(externalOperationParameters, null);
+	        UploadResponseDTO response= client.upload(operationList, null);
 			assertThat(response.getVitamStatus()).isEqualTo("success");
 	    }
 	  
 	  @Test(expected = VitamException.class)
 	    public void givenServerErrorWhenPostSipThenRaiseAnException() throws Exception {
 		  
-		  GUID conatinerGuid= GUIDFactory.newGUID();
-	        externalOperationParameters = LogbookParametersFactory.newLogbookOperationParameters(
-	            GUIDFactory.newGUID(), 
-	            "Ingest external", 
-	            conatinerGuid,
-	            LogbookTypeProcess.INGEST, 
-	            LogbookOutcome.STARTED, 
-	            "Started: Ingest external",
-	            conatinerGuid);
+		  List<LogbookParameters> operationList= new ArrayList<LogbookParameters>();
+			
+			 GUID ingestGuid= GUIDFactory.newGUID();
+		        GUID conatinerGuid= GUIDFactory.newGUID();
+		        LogbookOperationParameters externalOperationParameters1 = LogbookParametersFactory.newLogbookOperationParameters(
+		        	ingestGuid, 
+		            "Ingest external", 
+		            conatinerGuid,
+		            LogbookTypeProcess.INGEST, 
+		            LogbookOutcome.STARTED, 
+		            "Start Ingest external",
+		            conatinerGuid);
+		        
+		        LogbookOperationParameters externalOperationParameters2 = LogbookParametersFactory.newLogbookOperationParameters(
+		            	ingestGuid, 
+		                "Ingest external", 
+		                conatinerGuid,
+		                LogbookTypeProcess.INGEST, 
+		                LogbookOutcome.OK, 
+		                "End Ingest external",
+		                conatinerGuid);
+		        operationList.add(externalOperationParameters1);
+		        operationList.add(externalOperationParameters2);
 	        
 		  uploadResponseDTO = new UploadResponseDTO();
 		  uploadResponseDTO.setFileName("fileName");
@@ -208,6 +252,6 @@ public class IngestInternalClientRestTest extends JerseyTest{
 		  when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).entity(uploadResponseDTO).build());
 		  
 		  InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
-		  client.upload(externalOperationParameters, inputStream);
+		  client.upload(operationList, inputStream);
 	    }
 }
