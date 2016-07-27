@@ -100,7 +100,9 @@ public abstract class VitamDocument<E> extends Document {
      *
      * @return the ID
      */
-    public abstract String getId();
+    public String getId() {
+        return getString(ID);
+    }
 
     /**
      *

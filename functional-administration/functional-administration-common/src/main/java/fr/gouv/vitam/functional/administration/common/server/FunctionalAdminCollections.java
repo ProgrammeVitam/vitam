@@ -32,32 +32,64 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL 2.1 license and that you accept its terms.
  */
-package fr.gouv.vitam.common.database.server.mongodb;
+package fr.gouv.vitam.functional.administration.common.server;
 
-import org.bson.Document;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+
+import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
+import fr.gouv.vitam.functional.administration.common.FileFormat;
 
 /**
- * 
+ * All collections in functional admin module
  */
-public class CollectionSample extends VitamDocument<CollectionSample>{
-
-        /**
-     * 
+public enum FunctionalAdminCollections {
+    /**
+     * Formats Collection
      */
-    private static final long serialVersionUID = -132115596185118655L;
+    FORMATS(FileFormat.class);
+    
+    private VitamCollection vitamCollection;
 
-        /**
-         * Constructor from Document
-         *
-         * @param content
-         * @throws IllegalArgumentException if Id is not a GUID
-         */
-        public CollectionSample(Document content) {
-            super(content);
-        }
+    private FunctionalAdminCollections(final Class<?> clasz) {
+        vitamCollection = VitamCollectionHelper.getCollection(clasz);
+    }
 
-        @Override
-        public String getId() {
-            return null;
-        }
+    /**
+     * Initialize the collection
+     *
+     * @param db
+     * @param recreate
+     */
+    protected void initialize(final MongoDatabase db, final boolean recreate) {
+        vitamCollection.initialize(db, recreate);
+    }
+
+    /**
+     *
+     * @return the name of the collection
+     */
+    protected String getName() {
+        return vitamCollection.getName();
+    }
+
+    /**
+     *
+     * @return the associated MongoCollection
+     */
+    @SuppressWarnings("rawtypes")
+    protected MongoCollection getCollection() {
+        return vitamCollection.getCollection();
+    }
+
+
+    /**
+     *
+     * @return the associated class
+     */
+    protected Class<?> getClasz() {
+        return vitamCollection.getClasz();
+    }
+
 }

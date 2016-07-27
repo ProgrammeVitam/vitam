@@ -47,7 +47,7 @@ public abstract class MongoDbAccess {
     * @param recreate True to recreate the index
     * @throws IllegalArgumentException if mongoClient or dbname is null
     */
-    MongoDbAccess(MongoClient mongoClient, final String dbname, final boolean recreate) {
+    public MongoDbAccess(MongoClient mongoClient, final String dbname, final boolean recreate) {
        ParametersChecker.checkParameter("Parameter of MongoDbAccess", mongoClient, dbname);
        this.mongoClient = mongoClient;
        this.mongoDatabase = mongoClient.getDatabase(dbname);
@@ -105,6 +105,8 @@ public abstract class MongoDbAccess {
     /**
      * Close database access
      */
-    public abstract void close();
+    public void close() {
+        mongoClient.close();
+    }
 
 }

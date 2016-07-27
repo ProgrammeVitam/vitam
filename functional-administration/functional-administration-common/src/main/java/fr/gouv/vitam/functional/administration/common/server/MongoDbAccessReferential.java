@@ -32,32 +32,48 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL 2.1 license and that you accept its terms.
  */
-package fr.gouv.vitam.common.database.server.mongodb;
+package fr.gouv.vitam.functional.administration.common.server;
 
-import org.bson.Document;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.mongodb.client.MongoCursor;
+
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
 /**
- * 
+ * MongoDb Access Referential interface 
  */
-public class CollectionSample extends VitamDocument<CollectionSample>{
+public interface MongoDbAccessReferential {
 
-        /**
-     * 
+    /**
+     * insert documents
+     * @param arrayNode of documents
+     * @param collection
+     * @throws ReferentialException when error occurs
      */
-    private static final long serialVersionUID = -132115596185118655L;
+    public void insertDocuments(ArrayNode arrayNode, FunctionalAdminCollections collection) throws ReferentialException;
+    
+    /**
+     * Drop FileFormat collections
+     * @param collection
+     */
+    public void deleteCollection(FunctionalAdminCollections collection);
+    
+    /**
+     * @param id of vitam document
+     * @return vitam document
+     * @throws ReferentialException when error occurs
+     */
+    public VitamDocument<?> getDocumentById(String id, FunctionalAdminCollections collection) throws ReferentialException;
 
-        /**
-         * Constructor from Document
-         *
-         * @param content
-         * @throws IllegalArgumentException if Id is not a GUID
-         */
-        public CollectionSample(Document content) {
-            super(content);
-        }
-
-        @Override
-        public String getId() {
-            return null;
-        }
+    /**
+     * @param select filter
+     * @param collection
+     * @return vitam document list
+     * @throws ReferentialException  when error occurs
+     */
+    public MongoCursor<?> select(JsonNode select, FunctionalAdminCollections collection) throws ReferentialException;
+    
+    
 }

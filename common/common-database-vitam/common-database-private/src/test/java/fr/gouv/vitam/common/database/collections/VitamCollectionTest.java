@@ -53,16 +53,17 @@ public class VitamCollectionTest {
         junitHelper.releasePort(port);
     }
     
+    @SuppressWarnings("unchecked")
     @Test
     public void shouldCreateVitamCollection() {
-        List<Class<?>> documentList = new ArrayList<Class<?>>();
-        documentList.add(CollectionSample.class);
-        mongoClient = new MongoClient(new ServerAddress(DATABASE_HOST, port), VitamCollection.getMongoClientOptions(documentList));
+        List<Class<?>> classList = new ArrayList<>();
+        classList.add(CollectionSample.class);
+        mongoClient = new MongoClient(new ServerAddress(DATABASE_HOST, port), VitamCollection.getMongoClientOptions(classList));
         VitamCollection vitamCollection = VitamCollectionHelper.getCollection(CollectionSample.class);
         assertEquals(vitamCollection.getClasz(), CollectionSample.class);
         assertEquals(vitamCollection.getName(), "CollectionSample");
         vitamCollection.initialize(mongoClient.getDatabase(DATABASE_NAME), true);
-        MongoCollection<CollectionSample> collection = vitamCollection.getCollection();
+        MongoCollection<CollectionSample> collection = (MongoCollection<CollectionSample>) vitamCollection.getCollection();
         CollectionSample test = new CollectionSample(new Document("_id", GUIDFactory.newGUID().toString()));
         collection.insertOne(test);
         assertEquals(1, collection.count());
