@@ -78,12 +78,11 @@ public class PronomParser {
 
     /**
      * getPronom
-     * 
-     * @param pronomFile as File
+     * @param xmlPronom as InputStream
      * @return : the list of file format as ArrayNode
      * @throws FileFormatException 
      */
-    public static ArrayNode getPronom(File pronomFile) throws FileFormatException {
+    public static ArrayNode getPronom(InputStream xmlPronom) throws FileFormatException {
         FileFormat pronomFormat = new FileFormat();
         boolean bExtension = false;
         boolean bFileFormat = false;
@@ -99,9 +98,8 @@ public class PronomParser {
         List<String> priorityOverIdList = new ArrayList<String>();
 
         try {
-            InputStream xmlPronomStream = new FileInputStream(pronomFile);
             final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
-            XMLEventReader eventReader = xmlInputFactory.createXMLEventReader(xmlPronomStream);
+            XMLEventReader eventReader = xmlInputFactory.createXMLEventReader(xmlPronom);
             while (eventReader.hasNext()) {
                 XMLEvent event = eventReader.nextEvent();
                 switch (event.getEventType()) {
@@ -188,9 +186,6 @@ public class PronomParser {
                         break;
                 }
             }
-        } catch (FileNotFoundException e) {
-            LOGGER.error(e.getMessage());
-            throw new FileFormatNotFoundException("Not found referential format file");
         } catch (XMLStreamException e) {
             LOGGER.error(e.getMessage());
             throw new InvalidFileFormatParseException("Invalid xml file format");            

@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.List;
 
@@ -32,6 +33,7 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
 public class ReferentialFormatFileImplTest {
     String FILE_TO_TEST_KO = "FF-vitam-format-KO.xml";
@@ -47,6 +49,7 @@ public class ReferentialFormatFileImplTest {
     static final String COLLECTION_NAME = "FileFormat";
     static int port;
     static ReferentialFormatFileImpl formatFile;
+    
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         final MongodStarter starter = MongodStarter.getDefaultInstance();
@@ -70,19 +73,17 @@ public class ReferentialFormatFileImplTest {
     }
 
     @Test
-    public void testFormatXML() throws FileFormatException, FileNotFoundException {
-
-        pronomFile = PropertiesUtils.findFile(FILE_TO_TEST_OK);
-        assertTrue(formatFile.checkFile(pronomFile));
-        
-        pronomFile = PropertiesUtils.findFile(FILE_TO_TEST_KO);
-        assertFalse(formatFile.checkFile(pronomFile));
+    public void testFormatXML() throws FileNotFoundException, ReferentialException {
+        formatFile.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));        
     }
     
+    @Test(expected = ReferentialException.class)
+    public void testFormatXMLKO() throws FileNotFoundException, ReferentialException {
+        formatFile.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_KO)));
+    }
     @Test
     public void testimportAndDeleteFormat() throws Exception {
-        pronomFile = PropertiesUtils.findFile(FILE_TO_TEST_OK);
-        formatFile.importFile(pronomFile);
+        formatFile.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
         MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
         MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
         assertEquals(1328, collection.count());
@@ -96,6 +97,4 @@ public class ReferentialFormatFileImplTest {
         assertEquals(0, collection.count());
         client.close();
     }
-
-
 }

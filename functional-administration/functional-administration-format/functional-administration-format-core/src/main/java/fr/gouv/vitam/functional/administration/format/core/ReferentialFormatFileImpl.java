@@ -26,9 +26,6 @@
  */
 package fr.gouv.vitam.functional.administration.format.core;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -71,44 +68,35 @@ public class ReferentialFormatFileImpl implements ReferentialFile {
     }
 
     @Override
-    public void importFile(File xmlPronom)
-        throws ReferentialException {
+    public void importFile(InputStream xmlPronom) throws ReferentialException {
         ParametersChecker.checkParameter("Pronom file is a mandatory parameter", xmlPronom);
         try {
             ArrayNode pronomList = PronomParser.getPronom(xmlPronom);
             this.mongoAccess.insertDocuments(pronomList, FunctionalAdminCollections.FORMATS);
         } catch (ReferentialException e) {
             LOGGER.error(e.getMessage());
-            throw new FileFormatException(e);
+            throw new ReferentialException(e);
         }
-
     }
 
     @Override
     public void deleteCollection() {
         this.mongoAccess.deleteCollection(FunctionalAdminCollections.FORMATS);
     }
-
-    // TODO Check with xsd file  
+  
     @Override
-    public boolean checkFile(File xmlPronom) throws FileFormatException {
+    public void checkFile(InputStream xmlPronom) throws ReferentialException {
         ParametersChecker.checkParameter("Pronom file is a mandatory parameter", xmlPronom);
         try {
-            InputStream xmlPronomStream = new FileInputStream(xmlPronom);
             final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
-            XMLEventReader eventReader = xmlInputFactory.createXMLEventReader(xmlPronomStream);
+            XMLEventReader eventReader = xmlInputFactory.createXMLEventReader(xmlPronom);
             while (eventReader.hasNext()) {
                 eventReader.nextEvent();
             }
-        } catch (FileNotFoundException e) {
-            LOGGER.error(e.getMessage());
-            throw new FileFormatNotFoundException("Not found referential format file");
         } catch (XMLStreamException e) {
-            LOGGER.error(e.getMessage());
-            return false;
+            LOGGER.error(e);
+            throw new ReferentialException("Invalid Format", e);
         }
-
-        return true;
     }
 
     @Override
