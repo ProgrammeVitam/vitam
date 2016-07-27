@@ -33,10 +33,6 @@ import java.util.List;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
-import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
-import fr.gouv.vitam.functional.administration.common.exception.FileFormatNotFoundException;
-import fr.gouv.vitam.functional.administration.common.exception.InvalidFileFormatParseException;
-import fr.gouv.vitam.functional.administration.common.exception.JsonNodeFormatCreationException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
 /** ReferentialFile 
@@ -81,5 +77,5 @@ public interface ReferentialFile {
      * @return true if file is OK
      * @throws FileFormatException
      */
-    boolean checkFile(File file) throws FileFormatException;
+    boolean checkFile(File file) throws ReferentialException;
 }
