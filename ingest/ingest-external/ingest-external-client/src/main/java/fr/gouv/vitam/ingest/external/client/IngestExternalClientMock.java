@@ -28,64 +28,24 @@ package fr.gouv.vitam.ingest.external.client;
 
 import java.io.InputStream;
 
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.guid.GUID;
-import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.ingest.external.api.IngestExternalException;
-import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
-import fr.gouv.vitam.ingest.external.common.util.JavaExecuteScript;
-import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.core.filesystem.FileSystem;
 
 /**
  * Mock client implementation for IngestExternal
  */
 public class IngestExternalClientMock implements IngestExternalClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalClientMock.class);
-    private final IngestExternalConfiguration config = new IngestExternalConfiguration();
-    private static final String DATA_FOLDER = "/tmp";
-    private static final String SCRIPT_SCAN_CLAMAV = "scan-clamav.sh";
 
     @Override
-    public void upload(InputStream stream){
-        ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
-        GUID containerName = GUIDFactory.newGUID();
-        GUID objectName = GUIDFactory.newGUID();
-        FileSystem workspaceFileSystem = new FileSystem(new StorageConfiguration().setStoragePath(DATA_FOLDER));
-        int result = 3;
-            try {
-                workspaceFileSystem.createContainer(containerName.toString());
-                workspaceFileSystem.putObject(containerName.getId(), objectName.getId(), stream);
-                String filePath = DATA_FOLDER + "/" + containerName.getId() + "/" + objectName.getId();
-                result = JavaExecuteScript.executeCommand(SCRIPT_SCAN_CLAMAV,filePath);
-            } catch (ContentAddressableStorageAlreadyExistException e) {
-                LOGGER.error("cannot create container");
-            } catch (ContentAddressableStorageException e) {
-                LOGGER.error("cannot store file");
-            } catch (IngestExternalException e) {
-                LOGGER.error("cannot scan virus!");
-            } finally {
-                try {
-                    workspaceFileSystem.deleteObject(containerName.getId(), objectName.getId());
-                } catch (ContentAddressableStorageNotFoundException e) {
-                    LOGGER.error("cannot find container");
-                }
-            }
-            
-        if (result == 0 || result == 1){
-            LOGGER.debug(Response.Status.OK.getReasonPhrase());
-        } else {
-            LOGGER.debug(Response.Status.ACCEPTED.getReasonPhrase());
+    public void upload(InputStream stream) throws IngestExternalException {
+        if (stream == null) {
+            throw new IngestExternalException("stream is null");
         }
-        
+        LOGGER.info("Running mock upload");
     }
 
     @Override

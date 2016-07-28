@@ -58,9 +58,15 @@ public class IngestExternalImplTest {
         ingestExternalImpl.upload(stream);
     }
     
-    @Test(expected=IngestExternalException.class)
+    @Test
     public void givenUnfixedVirusFile() throws IngestExternalException {
         stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("unfixed-virus.txt");
+        ingestExternalImpl.upload(stream);
+    }
+    
+    @Test
+    public void givenUnknownErrorFile() throws IngestExternalException {
+        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("unknown.txt");
         ingestExternalImpl.upload(stream);
     }
 

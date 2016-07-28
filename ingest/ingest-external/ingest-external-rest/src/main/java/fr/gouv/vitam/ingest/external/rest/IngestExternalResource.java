@@ -41,8 +41,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.ingest.external.api.IngestExternalException;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
-import fr.gouv.vitam.ingest.external.common.model.response.RequestResponseError;
-import fr.gouv.vitam.ingest.external.common.model.response.VitamError;
+import fr.gouv.vitam.ingest.external.common.model.response.IngestExternalError;
 import fr.gouv.vitam.ingest.external.core.IngestExternalImpl;
 
 /**
@@ -91,14 +90,13 @@ public class IngestExternalResource {
             ingestExtern.upload(stream);
         } catch (IngestExternalException e) {
             LOGGER.error(e.getMessage());
-            Status status = Status.ACCEPTED;
+            Status status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(new RequestResponseError().setError(
-                    new VitamError(123456)
+                .entity(new IngestExternalError(status.getStatusCode())
                         .setContext("ingest")
-                        .setState("Running")
-                        .setMessage("The ingest is on going")
-                        .setDescription("The application 'Xxxx' requested an ingest operation and this operation is on going.")))
+                        .setState("Error")
+                        .setMessage("The ingest external server error")
+                        .setDescription("The application 'Xxxx' requested an ingest operation and this operation has errors."))
                 .build();
         }
         return Response.status(Status.OK).build();

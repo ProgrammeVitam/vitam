@@ -26,8 +26,6 @@
  */
 package fr.gouv.vitam.ingest.external.client;
 
-import static org.junit.Assert.*;
-
 import java.io.InputStream;
 
 import org.junit.Test;

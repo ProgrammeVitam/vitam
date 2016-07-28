@@ -150,28 +150,42 @@ public class IngestExternalImpl implements IngestExternal {
                 "End " + INGEST_EXT,
                 containerName);
         
-        InputStream inputStream=input;
+        InputStream inputStream = null;
+        boolean isFileInfected = false;
+        
         switch(antiVirusResult) {
             case 0:
                 LOGGER.info(IngestExternalOutcomeMessage.OK.toString());
                 endParameters.setStatus(LogbookOutcome.OK);
-                endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, IngestExternalOutcomeMessage.OK.toString());
+                endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, IngestExternalOutcomeMessage.OK.value());
                 break;
             case 1:
-                LOGGER.debug(IngestExternalOutcomeMessage.KO.toString());
+                LOGGER.debug(IngestExternalOutcomeMessage.OK.toString());
                 endParameters.setStatus(LogbookOutcome.OK);
-                endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, IngestExternalOutcomeMessage.KO.toString());
-                inputStream=null;
+                endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, IngestExternalOutcomeMessage.KO.value());
                 break;
-            // NOSONAR : the case '2' throws the exception.
             case 2: 
                 LOGGER.error(IngestExternalOutcomeMessage.KO.toString());
                 endParameters.setStatus(LogbookOutcome.ERROR);
-                endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, IngestExternalOutcomeMessage.KO.toString());
-                inputStream=null;
+                endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, IngestExternalOutcomeMessage.KO.value());
+                isFileInfected=true;
+                break;
             default:
-                throw new IngestExternalException("Unknown error or Virus detected");
+                LOGGER.error(IngestExternalOutcomeMessage.KO.toString());
+                endParameters.setStatus(LogbookOutcome.FATAL);
+                endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, IngestExternalOutcomeMessage.KO.value());
+                isFileInfected=true;
         }
+
+        if (!isFileInfected) {
+            try {
+                inputStream = workspaceFileSystem.getObject(containerName.getId(), objectName.getId());
+            } catch (ContentAddressableStorageException e) {
+                LOGGER.error("Can not get SIP", e);
+                throw new IngestExternalException("Ingest Internal Exception");
+            }
+        }
+        
         
         logbookParametersList.add(endParameters);
         

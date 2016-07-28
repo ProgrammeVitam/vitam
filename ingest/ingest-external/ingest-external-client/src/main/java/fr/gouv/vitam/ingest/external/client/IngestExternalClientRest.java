@@ -49,20 +49,23 @@ public class IngestExternalClientRest implements IngestExternalClient {
     }
     
     @Override
-    public void upload(InputStream stream) throws IngestExternalException{
+    public void upload(InputStream stream) throws IngestExternalException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
         final Response response = client.target(serviceUrl).path(UPLOAD_URL)
             .request(MediaType.APPLICATION_OCTET_STREAM)
             .accept(MediaType.APPLICATION_JSON)
             .post(Entity.entity(stream, MediaType.APPLICATION_OCTET_STREAM), Response.class);
+        String result = response.readEntity(String.class);
         final Status status = Status.fromStatusCode(response.getStatus());
         switch (status) {
             case OK:
                 LOGGER.debug(Response.Status.CREATED.getReasonPhrase());
                 break;
-            case ACCEPTED:
+            case INTERNAL_SERVER_ERROR:
                 LOGGER.error(ErrorMessage.INGEST_EXTERNAL_UPLOAD_ERROR.getMessage());
-                throw new IngestExternalException("upload is ongoing or error");    
+                throw new IngestExternalException(result);    
+            default:
+                throw new IngestExternalException("Unknown error");      
         }
     }
     
