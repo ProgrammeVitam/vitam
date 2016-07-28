@@ -33,6 +33,7 @@ import java.util.List;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
 /** ReferentialFile 
@@ -45,8 +46,9 @@ public interface ReferentialFile {
      * importFile : import reference file to database
      * @param file as InputStream
      * @throws ReferentialException 
+     * @throws DatabaseConflictException 
      */
-    void importFile(InputStream file) throws ReferentialException ;
+    void importFile(InputStream file) throws ReferentialException, DatabaseConflictException ;
     
     
     /**

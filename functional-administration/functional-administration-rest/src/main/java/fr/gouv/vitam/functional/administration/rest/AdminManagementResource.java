@@ -53,6 +53,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
+import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.format.core.ReferentialFormatFileImpl;
 
@@ -127,6 +128,12 @@ public class AdminManagementResource {
         } catch (ReferentialException e) {
             LOGGER.error(e.getMessage());
             Status status = Status.PRECONDITION_FAILED;
+            return Response.status(status)
+                .entity(status)
+                .build();
+        } catch (DatabaseConflictException e) {
+            LOGGER.error(e);
+            Status status = Status.CONFLICT;
             return Response.status(status)
                 .entity(status)
                 .build();

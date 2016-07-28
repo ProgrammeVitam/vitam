@@ -21,6 +21,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
+import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 /**
  *  AdminManagement client
@@ -83,7 +84,7 @@ public class AdminManagementClientRest implements AdminManagementClient {
     }
 
     @Override
-    public void importFormat(InputStream stream) throws  ReferentialException {
+    public void importFormat(InputStream stream) throws  ReferentialException, DatabaseConflictException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
         final Response response = client.target(serviceUrl).path(FORMAT_IMPORT_URL)
             .request(MediaType.APPLICATION_OCTET_STREAM)
@@ -97,6 +98,9 @@ public class AdminManagementClientRest implements AdminManagementClient {
             case PRECONDITION_FAILED:
                 LOGGER.error(Response.Status.PRECONDITION_FAILED.getReasonPhrase());
                 throw new ReferentialException("File format error");
+            case CONFLICT:
+                LOGGER.debug(Response.Status.CONFLICT.getReasonPhrase());
+                throw new DatabaseConflictException("Collection input conflic");                
             default:
                 break;    
         }                

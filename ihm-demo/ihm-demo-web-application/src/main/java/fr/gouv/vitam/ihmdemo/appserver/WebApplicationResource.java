@@ -26,11 +26,13 @@
  */
 package fr.gouv.vitam.ihmdemo.appserver;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -53,6 +55,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
 import fr.gouv.vitam.ihmdemo.core.UiConstants;
@@ -348,4 +351,65 @@ public class WebApplicationResource {
         return Response.status(Status.OK).entity(result).build();
     }
 
+	
+	/***
+	 * check the referential format
+	 * 
+	 * @param input the file xml
+	 * @return If the formet is valid, return ok. If not, return the list of errors 
+	 * @throws IOException 
+	 */
+	@POST
+	@Path("/format/check")
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response checkRefFormat(InputStream input) throws IOException{
+	    AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
+	    try {
+            client.checkFormat(input);
+        } catch (ReferentialException e) {
+            return Response.status(Status.FORBIDDEN).build();
+        }
+	    return Response.status(Status.OK).build();    
+	}
+	
+    /**
+     * Upload the referential format in the base
+     * 
+     * @param input
+     * @return
+     */
+    @POST
+    @Path("/format/upload")
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response uploadRefFormat(InputStream input){
+        AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
+        try {
+            client.importFormat(input);
+        } catch (ReferentialException e) {
+            return Response.status(Status.FORBIDDEN).build();
+        } catch (DatabaseConflictException e) {
+            return Response.status(Status.FORBIDDEN).build();
+        }
+        return Response.status(Status.OK).build(); 
+    }
+    
+    /**
+     * Delete the referential format in the base
+     * 
+     * @return
+     */
+    @Path("/format/delete")
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteFormat(){
+        AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
+        try {
+            client.deleteFormat();
+        } catch (ReferentialException e) {
+            return Response.status(Status.FORBIDDEN).build();
+        }         
+        return Response.status(Status.OK).build();
+    }
 }

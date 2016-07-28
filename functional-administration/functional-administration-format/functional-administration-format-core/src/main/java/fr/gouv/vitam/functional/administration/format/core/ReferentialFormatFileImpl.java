@@ -46,6 +46,7 @@ import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.ReferentialFile;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatNotFoundException;
+import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
@@ -58,6 +59,7 @@ public class ReferentialFormatFileImpl implements ReferentialFile {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PronomParser.class);
     private final MongoDbAccessAdminImpl mongoAccess;
+    private final String COLLECTION_NAME = "FileFormat";    
     
     /**
      * Constructor
@@ -68,11 +70,15 @@ public class ReferentialFormatFileImpl implements ReferentialFile {
     }
 
     @Override
-    public void importFile(InputStream xmlPronom) throws ReferentialException {
+    public void importFile(InputStream xmlPronom) throws ReferentialException, DatabaseConflictException {
         ParametersChecker.checkParameter("Pronom file is a mandatory parameter", xmlPronom);
         try {
             ArrayNode pronomList = PronomParser.getPronom(xmlPronom);
-            this.mongoAccess.insertDocuments(pronomList, FunctionalAdminCollections.FORMATS);
+            if (this.mongoAccess.getMongoDatabase().getCollection(COLLECTION_NAME).count() == 0) {
+                this.mongoAccess.insertDocuments(pronomList, FunctionalAdminCollections.FORMATS);
+            } else {
+                throw new DatabaseConflictException("File format collection is not empty");
+            }                
         } catch (ReferentialException e) {
             LOGGER.error(e.getMessage());
             throw new ReferentialException(e);
