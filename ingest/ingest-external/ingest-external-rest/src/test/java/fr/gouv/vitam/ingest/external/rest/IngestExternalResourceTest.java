@@ -98,7 +98,7 @@ public class IngestExternalResourceTest {
         
         given().contentType(ContentType.BINARY).body(stream)
         .when().post(UPLOAD_URI)
-        .then().statusCode(Status.ACCEPTED.getStatusCode());
+        .then().statusCode(Status.OK.getStatusCode());
     }
 
 }

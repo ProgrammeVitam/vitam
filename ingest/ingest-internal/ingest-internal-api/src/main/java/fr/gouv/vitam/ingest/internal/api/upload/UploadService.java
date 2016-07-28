@@ -38,8 +38,6 @@ import fr.gouv.vitam.common.exception.VitamException;
  * Upload service a received SIP from a SIA
  */
 public interface UploadService {
-    // FIXME REVIEW Comment
-
 
     /**
      * Upload service a received SIP from a SIA
