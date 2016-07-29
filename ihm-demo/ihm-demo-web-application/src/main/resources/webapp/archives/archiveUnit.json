@@ -1,4 +1,8 @@
 {
+  "$hint":{
+    "total":"1"
+  },
+  "$result":[{
     "DescriptionLevel": "Fonds",
     "Title": "Title0",
     "FilePlanPosition": "FilePlanPosition0",
@@ -81,4 +85,6 @@
     "_dom": "tenantId",
     "_type": "DocumentType",
     "_entry": "entryId"
+  }
+    ]
 }
