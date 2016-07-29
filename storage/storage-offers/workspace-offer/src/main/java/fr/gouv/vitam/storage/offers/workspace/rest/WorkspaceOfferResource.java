@@ -45,8 +45,8 @@ import javax.ws.rs.core.Response;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.StatusMessage;
 import fr.gouv.vitam.storage.offers.workspace.core.ObjectInit;
-import fr.gouv.vitam.storage.offers.workspace.core.StatusMessage;
 
 /**
  * Workspace offer REST Resource

@@ -8,4 +8,11 @@
 	</parent>
 	<artifactId>storage-driver</artifactId>
 	<name>Storage driver</name>
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
 </project>

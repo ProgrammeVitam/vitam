@@ -49,7 +49,7 @@ public final class StorageApplication extends AbstractVitamApplication<StorageAp
     private static final String STORAGE_APPLICATION_STARTS_ON_DEFAULT_PORT =
         "StorageApplication Starts on default port";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageApplication.class);
-    private static final String STORAGE_CONF_FILE_NAME = "storage.conf";
+    private static final String STORAGE_CONF_FILE_NAME = "storage-engine.conf";
 
     /**
      * StorageApplication constructor

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>%d{ISO8601} [%thread] %-5level %logger - %replace(%caller{1..2}){'Caller\+1	 at |\n',''} : %msg %rootException%n</pattern>
+		</encoder>
+	</appender>
+	<root level="INFO">
+		<appender-ref ref="CONSOLE"/>
+	</root>
+</configuration>

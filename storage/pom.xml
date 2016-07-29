@@ -18,27 +18,4 @@
 		<module>storage-offers</module>
 	</modules>
 
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>fr.gouv.vitam</groupId>
-				<artifactId>common-private</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>fr.gouv.vitam</groupId>
-				<artifactId>storage-engine-common</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<!-- Test dependencies -->
-			<dependency>
-				<groupId>fr.gouv.vitam</groupId>
-				<artifactId>common-junit</artifactId>
-				<version>${project.version}</version>
-				<scope>test</scope>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
-
 </project>
