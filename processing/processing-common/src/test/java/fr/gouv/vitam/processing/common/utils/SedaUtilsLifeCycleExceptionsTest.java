@@ -30,8 +30,13 @@ import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -45,6 +50,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import fr.gouv.vitam.client.MetaDataClientFactory;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -101,14 +107,34 @@ public class SedaUtilsLifeCycleExceptionsTest {
     }
 
     @Before
-	public void setUp()
-			throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
-			LogbookClientNotFoundException {
+    public void setUp()
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
+        LogbookClientNotFoundException, IOException {
         workspaceClient = mock(WorkspaceClient.class);
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
 
-		PowerMockito.doNothing().when(logbookLifeCycleClient).create(anyObject());
-		PowerMockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
+        PowerMockito.doNothing().when(logbookLifeCycleClient).create(anyObject());
+        PowerMockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
+
+
+        Map<String, String> binaryDataObjectIdToObjectGroupId = new HashMap<String, String>();
+        Map<String, String> objectGroupIdToGuid = new HashMap<String, String>();
+        binaryDataObjectIdToObjectGroupId.put("ID011", "ID006");
+        objectGroupIdToGuid.put("ID006", OBJ);
+
+        final File firstMapTmpFile = PropertiesUtils
+            .fileFromTmpFolder(SedaUtils.BDO_TO_OBJECT_GROUP_ID_MAP_FILE_NAME_PREFIX + OBJ + SedaUtils.TXT_EXTENSION);
+        final FileWriter firstMapTmpFileWriter = new FileWriter(firstMapTmpFile);
+        firstMapTmpFileWriter.write(binaryDataObjectIdToObjectGroupId.toString());
+        firstMapTmpFileWriter.flush();
+        firstMapTmpFileWriter.close();
+
+        final File secondMapTmpFile = PropertiesUtils
+            .fileFromTmpFolder(SedaUtils.OBJECT_GROUP_ID_TO_GUID_MAP_FILE_NAME_PREFIX + OBJ + SedaUtils.TXT_EXTENSION);
+        final FileWriter secondMapTmpFileWriter = new FileWriter(secondMapTmpFile);
+        secondMapTmpFileWriter.write(objectGroupIdToGuid.toString());
+        secondMapTmpFileWriter.flush();
+        secondMapTmpFileWriter.close();
     }
 
 	@Test(expected = ProcessingException.class)

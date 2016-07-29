@@ -35,7 +35,7 @@ import java.util.Map.Entry;
 
 import fr.gouv.vitam.builder.request.construct.Select;
 import fr.gouv.vitam.builder.request.construct.Update;
-import fr.gouv.vitam.builder.request.construct.action.AddAction;
+import fr.gouv.vitam.builder.request.construct.action.SetAction;
 import fr.gouv.vitam.builder.request.construct.query.BooleanQuery;
 import fr.gouv.vitam.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -173,7 +173,8 @@ public final class DslQueryHelper {
                 continue;
             }
             // Add Actions
-            update.addActions(new AddAction(searchKeys, searchValue).add(true));
+            update.addActions(new SetAction(searchKeys, searchValue));
+            // update.addActions(new AddAction(searchKeys, searchValue));
         }
         return update.getFinalUpdate().toString();
     }

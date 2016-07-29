@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.core.database.collections.Result;
 import fr.gouv.vitam.parser.request.parser.RequestParser;
+import fr.gouv.vitam.parser.request.parser.SelectParser;
 
 /**
  * Units metadata tools
@@ -69,7 +70,9 @@ public class UnitsJsonUtils {
             jsonUnitListResponse.set("$hint", hitsNode);
             ObjectNode contextNode = JsonHandler.createObjectNode();
             jsonUnitListResponse.set("$context", contextNode);
-            if (result.getNbResult() > 0) {
+
+            if (result.getNbResult() > 0 && (selectRequest instanceof SelectParser ||
+                result.getFinal().get("Result") != null)) {
                 jsonUnitListResponse.set("$result", getJsonUnitObject(result.getFinal().get("Result")));
             } else {
                 jsonUnitListResponse.set("$result", JsonHandler.createObjectNode());
