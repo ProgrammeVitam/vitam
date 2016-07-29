@@ -23,21 +23,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.core;
 
-import fr.gouv.vitam.access.common.exception.AccessException;
-import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
-import fr.gouv.vitam.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.common.guid.GUID;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.logbook.common.parameters.*;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCycleClient;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
-import fr.gouv.vitam.logbook.operations.client.LogbookClient;
-import fr.gouv.vitam.logbook.operations.client.LogbookClientFactory;
 import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -45,9 +30,29 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.api.AccessModule;
 import fr.gouv.vitam.access.common.exception.AccessExecutionException;
 import fr.gouv.vitam.access.config.AccessConfiguration;
+import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
+import fr.gouv.vitam.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.client.MetaDataClient;
 import fr.gouv.vitam.client.MetaDataClientFactory;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCycleClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
+import fr.gouv.vitam.logbook.operations.client.LogbookClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookClientFactory;
 
 /**
  * AccessModuleImpl implements AccessModule
@@ -200,13 +205,16 @@ public class AccessModuleImpl implements AccessModule {
     public JsonNode updateUnitbyId(JsonNode queryJson, String id_unit) throws IllegalArgumentException, InvalidParseOperationException, AccessExecutionException {
         JsonNode jsonNode = null;
         LogbookOperationParameters logbookOpParamStart, logbookOpParamEnd;
-        LogbookLifeCycleUnitParameters logbookLCParamStart, logbookLCParamEnd;
+
+        // TODO : Comment until to resolve lifeCycle update
+        // LogbookLifeCycleUnitParameters logbookLCParamStart, logbookLCParamEnd;
 
         if (StringUtils.isEmpty(id_unit)) {
             throw new IllegalArgumentException(ID_CHECK_FAILED);
         }
 
-        final GUID updateOpGuidStart = GUIDFactory.newOperationIdGUID(tenantId); //eventidentifierprocess for lifecycle
+        // eventidentifierprocess for lifecycle
+        final GUID updateOpGuidStart = GUIDFactory.newOperationIdGUID(tenantId);
 
         try {
 
@@ -215,32 +223,23 @@ public class AccessModuleImpl implements AccessModule {
             }
             metaDataClient = metaDataClientFactory.create(accessConfiguration!=null?accessConfiguration.getUrlMetaData():"");
 
-            //update logbook operation
-            logbookOpParamStart = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
-                    LogbookOutcome.STARTED, "update archiveunit:" + id_unit, id_unit);
-            logbookOperationClient.update(logbookOpParamStart);
+            logbookOperationClient = logbookOperationClient == null
+                ? LogbookClientFactory.getInstance().getLogbookOperationClient() : logbookOperationClient;
 
-            //update logbook lifecycle
-            logbookLCParamStart = getLogbookLifeCycleUpdateUnitParameters(updateOpGuidStart, LogbookOutcome.STARTED,
-                    queryJson.toString(), queryJson.toString(), id_unit);
-            logbookLifeCycleClient.update(logbookLCParamStart);
+            // FIXME : Update lifeCycle issue aborted, only logbook operation is created
+
+            // Create logbook operation
+            logbookOpParamStart = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
+                LogbookOutcome.STARTED, "update archiveunit:" + id_unit, id_unit);
+            logbookOperationClient.create(logbookOpParamStart);
+
 
             //call update
             jsonNode = metaDataClient.updateUnitbyId(queryJson.toString(), id_unit);
 
-            //update logbook operation
-            final GUID updateOpGuidEnd = GUIDFactory.newOperationIdGUID(tenantId); //eventidentifierprocess for lifecycle
-            logbookOpParamEnd = getLogbookOperationUpdateUnitParameters(updateOpGuidEnd, updateOpGuidEnd,
-                    LogbookOutcome.OK, "update archiveunit:" + id_unit, id_unit);
+            logbookOpParamEnd = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
+                LogbookOutcome.OK, "update archiveunit:" + id_unit, id_unit);
             logbookOperationClient.update(logbookOpParamEnd);
-
-            //update logbook lifecycle
-            logbookLCParamEnd = getLogbookLifeCycleUpdateUnitParameters(updateOpGuidEnd, LogbookOutcome.OK,
-                    queryJson.toString(), queryJson.toString(), id_unit);
-            logbookLifeCycleClient.update(logbookLCParamEnd);
-
-            //commit logbook lifecycle
-            logbookLifeCycleClient.commit(logbookLCParamEnd);
 
         } catch (final InvalidParseOperationException ipoe) {
             rollBackLogbook(updateOpGuidStart, queryJson, id_unit);
@@ -270,6 +269,9 @@ public class AccessModuleImpl implements AccessModule {
             rollBackLogbook(updateOpGuidStart, queryJson, id_unit);
             LOGGER.error("logbook client bad request error", lcbre);
             throw new AccessExecutionException(lcbre);
+        } catch (LogbookClientAlreadyExistsException e) {
+            LOGGER.error("logbook operation already exists", e);
+            throw new AccessExecutionException(e);
         }
         return jsonNode;
     }

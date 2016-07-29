@@ -211,7 +211,7 @@ public final class MetaDataImpl implements MetaData {
     public JsonNode updateUnitbyId(String updateQuery, String unitId)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataDocumentSizeException {
         Result result = null;
-        JsonNode jsonNodeResponse;
+        JsonNode jsonNodeResponse = null;
         if (StringUtils.isEmpty(updateQuery)) {
             throw new InvalidParseOperationException(REQUEST_IS_NULL);
         }
@@ -236,7 +236,6 @@ public final class MetaDataImpl implements MetaData {
             // Execute DSL request
             result = dbRequestFactory.create().execRequest(updateRequest, result);
             jsonNodeResponse = UnitsJsonUtils.populateJSONObjectResponse(result, updateRequest);
-
         } catch (final MetaDataExecutionException e) {
             LOGGER.error(e);
             throw e;

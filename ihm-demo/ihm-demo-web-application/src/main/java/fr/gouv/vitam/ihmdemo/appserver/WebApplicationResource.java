@@ -73,6 +73,8 @@ public class WebApplicationResource {
     private static final String INTERNAL_SERVER_ERROR_MSG = "INTERNAL SERVER ERROR";
     private static final String SEARCH_CRITERIA_MANDATORY_MSG = "Search criteria payload is mandatory";
     private static final String UPDATE_CRITERIA_MANDATORY_MSG = "Update criteria payload is mandatory";
+    private static final String FIELD_ID_KEY = "fieldId";
+    private static final String NEW_FIELD_VALUE_KEY = "newFieldValue";
 
     /**
      * @param criteria
@@ -251,13 +253,23 @@ public class WebApplicationResource {
         throws InvalidParseOperationException {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitId);
         ParametersChecker.checkParameter(UPDATE_CRITERIA_MANDATORY_MSG, updateSet);
-        Map<String, String> updateUnitIdMap = JsonHandler.getMapStringFromString(updateSet);
+        
+        // Parse updateSet
+        Map<String, String> updateUnitIdMap = new HashMap<String, String>();
+        JsonNode modifiedFields = JsonHandler.getFromString(updateSet);
+        if (modifiedFields != null && modifiedFields.isArray()) {
+            for (final JsonNode modifiedField : modifiedFields) {
+                updateUnitIdMap.put(modifiedField.get(FIELD_ID_KEY).textValue(),
+                    modifiedField.get(NEW_FIELD_VALUE_KEY).textValue());
+            }
+        }
+
+        // Add ID to set root part
         updateUnitIdMap.put(UiConstants.SELECT_BY_ID.toString(), unitId);
 
         try {
             String preparedQueryDsl = DslQueryHelper.createUpdateDSLQuery(updateUnitIdMap);
             JsonNode archiveDetails = UserInterfaceTransactionManager.updateUnits(preparedQueryDsl, unitId);
-
             return Response.status(Status.OK).entity(archiveDetails).build();
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);

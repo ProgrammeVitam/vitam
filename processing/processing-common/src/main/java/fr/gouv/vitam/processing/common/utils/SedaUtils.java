@@ -55,6 +55,7 @@ import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.StringUtils;
 import org.xml.sax.SAXException;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -147,9 +148,9 @@ public class SedaUtils {
     private static final String LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG = "Logbook LifeCycle resource not found";
     private static final String LOGBOOK_SERVER_INTERNAL_EXCEPTION_MSG = "Logbook Server internal error";
     private static final String LOGBOOK_LF_MAPS_PARSING_EXCEPTION_MSG = "Parse Object Groups/BDO Maps error";
-    private static final String OBJECT_GROUP_ID_TO_GUID_MAP_FILE_NAME_PREFIX = "OBJECT_GROUP_ID_TO_GUID_MAP_";
-    private static final String BDO_TO_OBJECT_GROUP_ID_MAP_FILE_NAME_PREFIX = "BDO_TO_OBJECT_GROUP_ID_MAP_";
-    private static final String TXT_EXTENSION = ".txt";
+    public static final String OBJECT_GROUP_ID_TO_GUID_MAP_FILE_NAME_PREFIX = "OBJECT_GROUP_ID_TO_GUID_MAP_";
+    public static final String BDO_TO_OBJECT_GROUP_ID_MAP_FILE_NAME_PREFIX = "BDO_TO_OBJECT_GROUP_ID_MAP_";
+    public static final String TXT_EXTENSION = ".txt";
 
     private static final String ARCHIVE_UNIT_ELEMENT_ID_ATTRIBUTE = "id";
     private static final String ARCHIVE_UNIT_REF_ID_TAG = "ArchiveUnitRefId";
@@ -1628,13 +1629,15 @@ public class SedaUtils {
 
     private Map<String, Object> getMapFromString(String mapStr) {
         Map<String, Object> map = new HashMap<String, Object>();
-        String value = mapStr.substring(1, mapStr.length() - 2);
+        String value =
+            !StringUtils.isBlank(mapStr) && mapStr.length() >= 2 ? mapStr.substring(1, mapStr.length() - 2) : "";
         String[] keyValuePairs = value.split(",");
         for (String pair : keyValuePairs) {
-            String[] entry = pair.split("=");
-            map.put(entry[0].trim(), entry[1].trim());
+            if (!StringUtils.isBlank(pair) && pair.contains("=")) {
+                String[] entry = pair.split("=");
+                map.put(entry[0].trim(), entry[1].trim());
+            }
         }
-
         return map;
     }
 

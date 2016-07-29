@@ -30,6 +30,7 @@ angular.module('core')
   'IHM_BASE_URL':'/ihm-demo/v1/api',
   'ARCHIVE_SEARCH_URL': '/archivesearch/units',
   'ARCHIVE_DETAILS_URL': '/archivesearch/unit/',
+  'SAVE_ARCHIVE_DETAILS_URL': '/archiveupdate/units/',
   'ARCHIVE_DETAILS_CONFIG_FILE': 'modules/config/archive-details.json',
   'ARCHIVE_DETAILS_PATH': '/archiveunit/'
 })
@@ -53,6 +54,11 @@ angular.module('core')
   // Retrieve Archive unit details configuration (JSON file that contains fields to display and the labels used in interface)
   dataFactory.getArchiveUnitDetailsConfig = function(){
     return $http.get(IHM_URLS.ARCHIVE_DETAILS_CONFIG_FILE);
+  };
+
+  // Save archive unit modifications
+  dataFactory.saveArchiveUnit = function(unitId, modifiedFields){
+    return $http.put(IHM_URLS.IHM_BASE_URL + IHM_URLS.SAVE_ARCHIVE_DETAILS_URL + unitId, modifiedFields);
   };
 
   return dataFactory;
