@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
 /**
@@ -27,8 +28,9 @@ public interface AdminManagementClient {
     /**
      * @param stream
      * @throws  ReferentialException
+     * @throws DatabaseConflictException 
      */
-    void importFormat(InputStream stream) throws  ReferentialException;
+    void importFormat(InputStream stream) throws  ReferentialException, DatabaseConflictException;
     
     
     /**

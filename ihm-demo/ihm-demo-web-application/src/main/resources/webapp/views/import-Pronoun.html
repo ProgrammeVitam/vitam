@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>import pronoun</title>
+</head>
+<body>
+<div class="container" ng-controller="MyController">
+    <div class="row">
+		<div class="col-md-3">
+    		<h3>Select files</h3>
+        	<input type="file" ng-model="FileInput" nv-file-select="" uploader="uploader" >
+    	</div>
+    	<div class="col-md-2">
+    		<br>
+    		<button type="button" class="btn btn-success btn-s" ng-disabled="checked" ng-click="validAction()">
+           		Valid
+           	</button>  
+           	<button type="button" class="btn btn-success btn-s" ng-click="deleteAction()">
+           		Remove
+           	</button>
+    	</div>
+    </div>
+</div>
+</body>
+</html>

@@ -40,6 +40,9 @@ angular.
 	      when('/admin', {
 	          templateUrl: "views/admin.html"
 	      }).
+	      when('/importPronoun', {
+		      templateUrl: "views/import-Pronoun.html",
+	  	  }).
 	      when('/uploadSIP', {
 	          templateUrl: "views/upload-sip.html",
 	          controller: "uploadController"
