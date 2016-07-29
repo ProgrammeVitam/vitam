@@ -3,34 +3,26 @@
  * <p>
  * contact.vitam@culture.gouv.fr
  * <p>
- * This software is a computer program whose purpose is to implement a digital
- * archiving back-office system managing high volumetry securely and efficiently.
+ * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
+ * high volumetry securely and efficiently.
  * <p>
- * This software is governed by the CeCILL 2.1 license under French law and
- * abiding by the rules of distribution of free software.  You can  use,
- * modify and/ or redistribute the software under the terms of the CeCILL 2.1
- * license as circulated by CEA, CNRS and INRIA at the following URL
- * "http://www.cecill.info".
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
+ * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
  * <p>
- * As a counterpart to the access to the source code and  rights to copy,
- * modify and redistribute granted by the license, users are provided only
- * with a limited warranty  and the software's author,  the holder of the
- * economic rights,  and the successive licensors  have only  limited
- * liability.
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
  * <p>
- * In this respect, the user's attention is drawn to the risks associated
- * with loading,  using,  modifying and/or developing or reproducing the
- * software by the user in light of its specific status of free software,
- * that may mean  that it is complicated to manipulate,  and  that  also
- * therefore means  that it is reserved for developers  and  experienced
- * professionals having in-depth computer knowledge. Users are therefore
- * encouraged to load and test the software's suitability as regards their
- * requirements in conditions enabling the security of their systems and/or
- * data to be ensured and,  more generally, to use and operate it in the
- * same conditions as regards security.
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
  * <p>
- * The fact that you are presently reading this means that you have had
- * knowledge of the CeCILL 2.1 license and that you accept its terms.
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
+ * accept its terms.
  */
 
 package fr.gouv.vitam.storage.engine.server.distribution.impl;
@@ -40,6 +32,7 @@ import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -64,6 +57,11 @@ import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.storage.engine.server.distribution.DataCategory;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
+import fr.gouv.vitam.storage.engine.server.logbook.StorageLogbook;
+import fr.gouv.vitam.storage.engine.server.logbook.StorageLogbookFactory;
+import fr.gouv.vitam.storage.engine.server.logbook.parameters.StorageLogbookOutcome;
+import fr.gouv.vitam.storage.engine.server.logbook.parameters.StorageLogbookParameterName;
+import fr.gouv.vitam.storage.engine.server.logbook.parameters.StorageLogbookParameters;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.spi.DriverManager;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -103,6 +101,7 @@ public class StorageDistributionImpl implements StorageDistribution {
 
     /**
      * Constructs the service with a given configuration
+     * 
      * @param configuration
      */
     public StorageDistributionImpl(StorageConfiguration configuration) {
@@ -115,6 +114,7 @@ public class StorageDistributionImpl implements StorageDistribution {
 
     /**
      * For JUnit ONLY
+     * 
      * @param wkClient a custom instance of workspace client
      * @param digest a custom digest
      */
@@ -127,8 +127,8 @@ public class StorageDistributionImpl implements StorageDistribution {
     // they should not be both resent at the same time. Maybe encapsulate or create 2 methods
     @Override
     public StoredInfoResult storeData(String tenantId, String strategyId, String objectId,
-        CreateObjectDescription createObjectDescription, DataCategory category, JsonNode jsonData) throws
-        StorageTechnicalException, StorageNotFoundException {
+        CreateObjectDescription createObjectDescription, DataCategory category, JsonNode jsonData)
+        throws StorageTechnicalException, StorageNotFoundException {
 
         // Check input params
         checkStoreDataParams(createObjectDescription, tenantId, strategyId, objectId, category, jsonData);
@@ -146,9 +146,10 @@ public class StorageDistributionImpl implements StorageDistribution {
             for (OfferReference offerReference : offerReferences) {
                 // TODO: sequential process for now (we have only 1 offer anyway) but storing object should be
                 // processed in parallel for each driver, in order to not be blocked on 1 driver storage process
-                boolean success = tryAndRetryStoreObjectInOffer(createObjectDescription, tenantId, objectId, category, jsonData,
-                    offerReference);
-                offerResults.put(offerReference.getId(), success);
+                boolean success =
+                    tryAndRetryStoreObjectInOffer(createObjectDescription, tenantId, objectId, category, jsonData,
+                        offerReference);
+                offerResults.put(offerReference.getId(), success);                
             }
             return buildStoreDataResponse(objectId, category, offerResults);
         }
@@ -213,11 +214,11 @@ public class StorageDistributionImpl implements StorageDistribution {
         PutObjectRequest putObjectRequest = null;
         PutObjectResult putObjectResult;
         boolean objectStored = false;
+        MessageDigest messageDigest = null;
         int i = 0;
         while (i < NB_RETRY && !objectStored) {
             i++;
-            LOGGER.info("[Attempt " + i + "] Trying to store object '" + objectId + "' in offer " + offer.getId());
-            MessageDigest messageDigest;
+            LOGGER.info("[Attempt " + i + "] Trying to store object '" + objectId + "' in offer " + offer.getId());            
             try {
                 messageDigest = MessageDigest.getInstance(digestType.getName());
             } catch (NoSuchAlgorithmException exc) {
@@ -249,6 +250,16 @@ public class StorageDistributionImpl implements StorageDistribution {
                 }
             }
         }
+        
+        try {            
+            StorageLogbook storageLogbook = StorageLogbookFactory.getInstance().getStorageLogbook();                    
+            storageLogbook.add(getStorageLogbookParameters(putObjectRequest!=null ? putObjectRequest.getGuid() : "objectReques NA", null, 
+                messageDigest!=null ? messageDigest.digest().toString() : "messageDigest NA", digestType.getName(), "fakeSize", offer.getId(), "X-Application-Id",
+                null, null, objectStored==true ? StorageLogbookOutcome.OK : StorageLogbookOutcome.KO));
+        } catch (StorageException exc) {
+            throw new StorageTechnicalException("Operation couldnt be logged in the storage logbook", exc);
+        }
+        
         return objectStored;
     }
 
@@ -331,6 +342,32 @@ public class StorageDistributionImpl implements StorageDistribution {
             offerReferences.add(hotStrategy.getOffers().get(0));
         }
         return offerReferences;
+    }
+
+    //TODO : refactor this method, too many arguments
+    private StorageLogbookParameters getStorageLogbookParameters(String objectIdentifier, GUID objectGroupIdentifier,
+        String digest, String digestAlgorithm, String size, String agentIdentifiers, String agentIdentifierRequester,
+        String outcomeDetailMessage, String objectIdentifierIncome, StorageLogbookOutcome outcome) {
+        StorageLogbookParameters parameters = new StorageLogbookParameters();
+        parameters.putParameterValue(StorageLogbookParameterName.eventDateTime, "2016-07-29T11:56:35.914");
+        parameters.putParameterValue(StorageLogbookParameterName.outcome, outcome.name());
+        parameters.putParameterValue(StorageLogbookParameterName.objectIdentifier,
+            objectIdentifier != null ? objectIdentifier.toString() : "objId NA");
+        parameters.putParameterValue(StorageLogbookParameterName.objectGroupIdentifier,
+            objectGroupIdentifier != null ? objectGroupIdentifier.toString() : "objGId NA");
+        parameters.putParameterValue(StorageLogbookParameterName.digest, digest);
+        parameters.putParameterValue(StorageLogbookParameterName.digestAlgorithm, digestAlgorithm);
+        parameters.putParameterValue(StorageLogbookParameterName.size, size);
+        parameters.putParameterValue(StorageLogbookParameterName.agentIdentifiers, agentIdentifiers);
+        parameters.putParameterValue(StorageLogbookParameterName.agentIdentifierRequester, agentIdentifierRequester);
+
+        if (outcomeDetailMessage != null) {
+            parameters.putParameterValue(StorageLogbookParameterName.outcomeDetailMessage, outcomeDetailMessage);
+        }
+        if (objectIdentifierIncome != null) {
+            parameters.putParameterValue(StorageLogbookParameterName.objectIdentifierIncome, objectIdentifierIncome);
+        }
+        return parameters;
     }
 
     @Override
