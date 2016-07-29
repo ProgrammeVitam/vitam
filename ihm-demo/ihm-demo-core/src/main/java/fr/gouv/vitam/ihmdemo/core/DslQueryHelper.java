@@ -80,7 +80,7 @@ public final class DslQueryHelper {
 
             switch (searchKeys) {
                 case ORDER_BY:
-                    if (searchValue == EVENT_DATE_TIME) {
+                    if (EVENT_DATE_TIME.equals(searchValue)) {
                         select.addOrderByDescFilter(searchValue);
                     } else {
                         select.addOrderByAscFilter(searchValue);
