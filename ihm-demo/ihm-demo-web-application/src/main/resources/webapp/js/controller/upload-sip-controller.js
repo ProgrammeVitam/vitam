@@ -34,7 +34,8 @@ angular.module('ihm.demo')
       url : VITAM_URL,
       headers : {
         'Content-Type': 'application/octet-stream'
-      }
+      },
+      disableMultipart: true
     });
 
     // FILTERS
