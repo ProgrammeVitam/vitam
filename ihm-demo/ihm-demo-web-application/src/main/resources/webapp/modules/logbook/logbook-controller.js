@@ -42,19 +42,19 @@ angular.module('ihm.demo')
     ctrl.startDate = new Date();
     ctrl.endDate = new Date();
     ctrl.searchOptions = {};
-    ctrl.logbookResults = [];
+    ctrl.fileFormatList = [];
     ctrl.client = ihmDemoCLient.getClient('logbook');
 
-    ctrl.getLogbookResult = function() {
-      ctrl.logbookResults = [];
+    ctrl.getFileFormats = function() {
+      ctrl.fileFormatList = [];
       ctrl.searchOptions.INGEST = "all";
       ctrl.searchOptions.orderby = "evDateTime";
       ctrl.client.all('operations').post(ctrl.searchOptions).then(function(response) {
-        ctrl.logbookResults = response.data.result;
-        ctrl.logbookResults.map(function(item) {
+        ctrl.fileFormatList = response.data.result;
+        ctrl.fileFormatList.map(function(item) {
           item.obIdIn = ctrl.searchOptions.obIdIn;
         });
-        ctrl.resultPages = Math.ceil(ctrl.logbookResults.length/10);
+        ctrl.resultPages = Math.ceil(ctrl.fileFormatList.length/10);
         ctrl.currentPage = 1;
         ctrl.searchOptions = {};
       }, function(response) {

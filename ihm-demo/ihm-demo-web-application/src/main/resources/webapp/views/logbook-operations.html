@@ -2,7 +2,7 @@
 
     <div class="row">
 
-        <form ng-submit="logctrl.getLogbookResult()" style="padding-left: 20px; margin-top: 20px">
+        <form ng-submit="logctrl.getFileFormats()" style="padding-left: 20px; margin-top: 20px">
             <h4>Filtres</h4>
             <div  style="padding-left: 20px">
                 <div class="row" >
@@ -20,7 +20,7 @@
                         </button>
                     </div>
                     <div class="col-md-4">
-                        <button type="button" class="btn btn-success btn-s" ng-click="logctrl.getLogbookResult()">
+                        <button type="button" class="btn btn-success btn-s" ng-click="logctrl.getFileFormats()">
                             Rechercher
                         </button>
                     </div>
@@ -42,7 +42,7 @@
             </div>
         </div>
         <div class="col-md-9" style="float: right">
-            <button class="btn btn-default btn-s" ng-disabled="logctrl.currentPage == 1" ng-click="logctrl.currentPage=logctrl.currentPage-1">
+            <button class="btn btn-default btn-s" ng-disabled="logctrl.currentPage <= 1" ng-click="logctrl.currentPage=logctrl.currentPage-1">
                 Previous
             </button>
             <input ng-model="logctrl.currentPage" style="max-width: 40px">/{{logctrl.resultPages}}
@@ -53,20 +53,20 @@
         <div class="col-md-9" style="padding-top: 40px">
             <table class="table table-bordered">
                 <thead style="text-align: center">
-                    <tr>
-                        <th>Id</th>
-                        <th>Date</th>
-                        <th>Statut</th>
-                        <th>Nom de l'entrée</th>
-                    </tr>
+                <tr>
+                    <th>Id</th>
+                    <th>Date</th>
+                    <th>Statut</th>
+                    <th>Nom de l'entrée</th>
+                </tr>
                 </thead>
-                <tbody ng-repeat="log in logctrl.logbookResults | startFrom:(logctrl.currentPage-1)*logctrl.itemsPerPage | limitTo:logctrl.itemsPerPage">
-                    <tr ng-click="logctrl.openDialog($event, log.evIdProc)" >
-                        <th scope="row" >{{log.evIdProc}}</th>
-                        <td>{{log.evDateTime}}</td>
-                        <td>{{log.outcome}}</td>
-                        <td>{{log.obIdIn}}</td>
-                    </tr>
+                <tbody ng-repeat="log in logctrl.fileFormatList | startFrom:(logctrl.currentPage-1)*logctrl.itemsPerPage | limitTo:logctrl.itemsPerPage">
+                <tr ng-click="logctrl.openDialog($event, log.evIdProc)" >
+                    <th scope="row" >{{log.evIdProc}}</th>
+                    <td>{{log.evDateTime}}</td>
+                    <td>{{log.outcome}}</td>
+                    <td>{{log.obIdIn}}</td>
+                </tr>
                 </tbody>
             </table>
         </div>
