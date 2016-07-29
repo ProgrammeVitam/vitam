@@ -84,6 +84,8 @@ public class IngestInternalResource implements UploadService {
     private static VitamLogger VITAM_LOGGER = VitamLoggerFactory.getInstance(IngestInternalResource.class);
 
     private static final String FOLDER_SIP = "SIP";
+    private static final String INGEST_EXT = "Ingest external";
+    private static final String INGEST_INT = "Process_SIP_unitary";
 
     private IngestInternalConfiguration configuration;
     private LogbookParameters parameters;
@@ -145,9 +147,12 @@ public class IngestInternalResource implements UploadService {
             VITAM_LOGGER.info("Log Ingest External operations");
 
             for(LogbookParameters logbookParameters: logbookOperationParametersList.getLogbookOperationList() ){
-                logbookClient.update(logbookParameters);
+            	 parameters.putParameterValue(LogbookParameterName.eventType, INGEST_EXT);
+            	callLogbookUpdate(logbookClient, parameters, logbookParameters.getStatus(), logbookParameters.getMapParameters().get(LogbookParameterName.outcomeDetailMessage));
             }
-
+           
+            parameters.putParameterValue(LogbookParameterName.eventType, INGEST_INT);
+            
             InputStream uploadedInputStream=null;
 
             if (partList.size()==2) {
@@ -211,10 +216,8 @@ public class IngestInternalResource implements UploadService {
         throws LogbookClientNotFoundException,
         LogbookClientServerException, LogbookClientAlreadyExistsException, LogbookClientBadRequestException {
 
-        final String eventType="Process_SIP_unitary";
-
         parameters = LogbookParametersFactory.newLogbookOperationParameters(
-            ingestGuid, eventType, containerGUID,
+            ingestGuid, INGEST_INT, containerGUID,
             LogbookTypeProcess.INGEST, LogbookOutcome.STARTED,
             ingestGuid != null ? ingestGuid.toString() : "outcomeDetailMessage",
                 ingestGuid);
