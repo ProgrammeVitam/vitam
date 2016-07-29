@@ -28,7 +28,9 @@ package fr.gouv.vitam.ihmdemo.appserver;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.mockito.Matchers.anyObject;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -56,6 +58,9 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
 import fr.gouv.vitam.ihmdemo.core.UiConstants;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
@@ -68,8 +73,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookClientFactory;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({ UserInterfaceTransactionManager.class, DslQueryHelper.class, LogbookClientFactory.class, IngestExternalClientFactory.class })
-
+@PrepareForTest({ UserInterfaceTransactionManager.class, DslQueryHelper.class, LogbookClientFactory.class, IngestExternalClientFactory.class, AdminManagementClientFactory.class })
 public class WebApplicationResourceTest {
 
     private static final String DEFAULT_WEB_APP_CONTEXT = "/ihm-demo";
@@ -101,6 +105,7 @@ public class WebApplicationResourceTest {
         PowerMockito.mockStatic(UserInterfaceTransactionManager.class);
         PowerMockito.mockStatic(DslQueryHelper.class);
         PowerMockito.mockStatic(IngestExternalClientFactory.class);
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
     }
 
     @Test
@@ -133,7 +138,7 @@ public class WebApplicationResourceTest {
 
         Map<String, String> searchCriteriaMap = JsonHandler.getMapStringFromString(OPTIONS);
         String preparedDslQuery = "";
-        PowerMockito.when(DslQueryHelper.createLogBookSelectDSLQuery(searchCriteriaMap)).thenReturn(preparedDslQuery);
+        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(searchCriteriaMap)).thenReturn(preparedDslQuery);
 
         PowerMockito.when(logbookClient.selectOperation(preparedDslQuery)).thenThrow(LogbookClientException.class);
         given().contentType(ContentType.JSON).body(OPTIONS).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
@@ -153,7 +158,7 @@ public class WebApplicationResourceTest {
 
         Map<String, String> searchCriteriaMap = JsonHandler.getMapStringFromString(OPTIONS);
         String preparedDslQuery = "";
-        PowerMockito.when(DslQueryHelper.createLogBookSelectDSLQuery(searchCriteriaMap)).thenReturn(preparedDslQuery);
+        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(searchCriteriaMap)).thenReturn(preparedDslQuery);
 
         PowerMockito.when(logbookClient.selectOperation(preparedDslQuery)).thenThrow(Exception.class);
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
@@ -187,7 +192,7 @@ public class WebApplicationResourceTest {
 
         Map<String, String> searchCriteriaMap = JsonHandler.getMapStringFromString(OPTIONS);
         String preparedDslQuery = "";
-        PowerMockito.when(DslQueryHelper.createLogBookSelectDSLQuery(searchCriteriaMap)).thenReturn(preparedDslQuery);
+        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(searchCriteriaMap)).thenReturn(preparedDslQuery);
 
         JsonNode result = JsonHandler.getFromString("{}");
         PowerMockito.when(logbookClient.selectOperation(preparedDslQuery)).thenReturn(result);
@@ -431,5 +436,79 @@ public class WebApplicationResourceTest {
         .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
         .post("/ingest/upload");
     }
+    
+    @Test
+    public void testSearchFormatOK() throws Exception {
+        AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
+        AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        doReturn(JsonHandler.getFromString(OPTIONS)).when(adminClient).getDocument(anyObject());
+        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject())).thenReturn(OPTIONS);
+
+        PowerMockito.when(adminFactory.getAdminManagementClient()).thenReturn(adminClient);
+        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
+        
+        given().contentType(ContentType.JSON).body(OPTIONS).expect()
+        .statusCode(Status.OK.getStatusCode()).when()
+        .post("/admin/formats");
+    }
+    
+    @Test
+    public void testSearchFormatBadRequest() throws Exception {
+        AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
+        AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        doReturn(JsonHandler.getFromString(OPTIONS)).when(adminClient).getDocument(anyObject());
+        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject())).thenThrow(new InvalidParseOperationException(""));
+
+        PowerMockito.when(adminFactory.getAdminManagementClient()).thenReturn(adminClient);
+        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
+        
+        given().contentType(ContentType.JSON).body(OPTIONS).expect()
+        .statusCode(Status.BAD_REQUEST.getStatusCode()).when()
+        .post("/admin/formats");
+    }
+    
+    @Test
+    public void testSearchFormatNotFound() throws Exception {
+        AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
+        AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        doThrow(new ReferentialException("")).when(adminClient).getDocument(anyObject());
+        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject())).thenReturn(OPTIONS);
+
+        PowerMockito.when(adminFactory.getAdminManagementClient()).thenReturn(adminClient);
+        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
+        
+        given().contentType(ContentType.JSON).body(OPTIONS).expect()
+        .statusCode(Status.NOT_FOUND.getStatusCode()).when()
+        .post("/admin/formats");
+    }
+    
+    @Test
+    public void testSearchFormatByIdOK() throws Exception {
+        AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
+        AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        doReturn(JsonHandler.getFromString(OPTIONS)).when(adminClient).getFormatByID(anyObject());
+
+        PowerMockito.when(adminFactory.getAdminManagementClient()).thenReturn(adminClient);
+        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
+        
+        given().contentType(ContentType.JSON).body(OPTIONS).expect()
+        .statusCode(Status.OK.getStatusCode()).when()
+        .post("/admin/formats/1");
+    }
+    
+    @Test
+    public void testSearchFormatByIdNotFound() throws Exception {
+        AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
+        AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        doThrow(new ReferentialException("")).when(adminClient).getFormatByID(anyObject());
+
+        PowerMockito.when(adminFactory.getAdminManagementClient()).thenReturn(adminClient);
+        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
+        
+        given().contentType(ContentType.JSON).body(OPTIONS).expect()
+        .statusCode(Status.NOT_FOUND.getStatusCode()).when()
+        .post("/admin/formats/1");
+    }
+
 
 }

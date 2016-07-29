@@ -24,29 +24,13 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
- 
+
 'use strict';
 
+// Register `archive.unit` component, along with its associated controller and template
 angular.
   module('ihm.demo').
-  config(['$locationProvider' ,'$routeProvider',
-    function config($locationProvider, $routeProvider) {
-      $locationProvider.hashPrefix('!');
-
-      $routeProvider.
-	      when('/archiveSearch', {
-	    	  template: '<archive-search></archive-search>'
-	      }).
-	      when('/admin', {
-	          templateUrl: "views/admin.html"
-	      }).
-	      when('/uploadSIP', {
-	          templateUrl: "views/upload-sip.html",
-	          controller: "uploadController"
-	      }).
-	      when('/archiveunit/:archiveId', {
-	    	  template: '<archive-unit></archive-unit>'
-	      }).
-	      otherwise('/uploadSIP');
-    }
-  ]);
+  component('fileFormat', {
+    templateUrl: 'views/file-format.html',
+    controller: 'fileformatController as fileCtrl'
+  });

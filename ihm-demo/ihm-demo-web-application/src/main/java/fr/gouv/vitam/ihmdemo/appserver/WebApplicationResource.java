@@ -51,6 +51,9 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
 import fr.gouv.vitam.ihmdemo.core.UiConstants;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
@@ -158,7 +161,7 @@ public class WebApplicationResource {
         String query = "";
         try {
             Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
-            query = DslQueryHelper.createLogBookSelectDSLQuery(optionsMap);
+            query = DslQueryHelper.createSingleQueryDSL(optionsMap);
             LogbookClient logbookClient = LogbookClientFactory.getInstance().getLogbookOperationClient();
             result = logbookClient.selectOperation(query);
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
@@ -284,6 +287,65 @@ public class WebApplicationResource {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
+    }
+    
+    /**
+     * @param search
+     *            options
+     * @return Response
+     * @throws InvalidParseOperationException
+     */
+    @POST
+    @Path("/admin/formats")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getFileFormats(String options) throws InvalidParseOperationException {
+        ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
+        JsonNode result = JsonHandler.getFromString("{}");
+        String query = "";
+        try {
+            Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
+            query = DslQueryHelper.createSingleQueryDSL(optionsMap);
+            AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getAdminManagementClient();
+            result = adminClient.getDocument(JsonHandler.getFromString(query));
+        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
+            LOGGER.error("Bad request Exception ", e);
+            return Response.status(Status.BAD_REQUEST).build();
+        } catch (ReferentialException e) {
+            LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
+            return Response.status(Status.NOT_FOUND).build();
+        } catch (Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+        return Response.status(Status.OK).entity(result).build();
+    }
+    
+    /**
+     * @param formatId
+     *            id of format
+     * @param search
+     *            options
+     * @return Response
+     * @throws InvalidParseOperationException
+     */
+    @POST
+    @Path("/admin/formats/{idFormat}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getFormatById(@PathParam("idFormat") String formatId, String options) throws InvalidParseOperationException {
+        ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
+        ParametersChecker.checkParameter("Format Id is mandatory", formatId);
+        JsonNode result = JsonHandler.getFromString("{}");
+        try {
+            AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getAdminManagementClient();
+            result = adminClient.getFormatByID(formatId);
+        } catch (ReferentialException e) {
+            LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
+            return Response.status(Status.NOT_FOUND).build();
+        } catch (Exception e) {
+            LOGGER.error("INTERNAL SERVER ERROR", e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+        return Response.status(Status.OK).entity(result).build();
     }
 
 }

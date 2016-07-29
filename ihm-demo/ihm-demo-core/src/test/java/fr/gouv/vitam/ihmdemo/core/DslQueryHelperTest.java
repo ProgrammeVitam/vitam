@@ -75,28 +75,28 @@ public class DslQueryHelperTest {
         "$action : " + updateAction + " }";
 
     /**
-     * Tests createLogBookSelectDSLQuery method : main scenario
-     * 
-     * @throws InvalidCreateOperationException
-     * @throws InvalidParseOperationException
-     */
-    @Test
-    public void testCreateLogBookSelectDSLQuery()
-        throws InvalidCreateOperationException, InvalidParseOperationException {
-
-        HashMap<String, String> myHashMap = new HashMap<String, String>();
-        myHashMap.put("title", "Archive2");
-        myHashMap.put("date", "2006-03-05");
-        myHashMap.put("orderby", "date");
-        myHashMap.put("obIdIn", "name");
-        myHashMap.put("INGEST", "date");
-
-        String request = DslQueryHelper.createLogBookSelectDSLQuery(myHashMap);
-        assertNotNull(request);
-        final SelectParser request2 = new SelectParser();
-        request2.parse(request);
-        assertEquals(result, request2.toString());
-    }
+             * Tests createLogBookSelectDSLQuery method : main scenario
+             * 
+             * @throws InvalidCreateOperationException
+             * @throws InvalidParseOperationException
+             */
+            @Test
+            public void testCreateSingleQueryDSL()
+                throws InvalidCreateOperationException, InvalidParseOperationException {
+        
+                HashMap<String, String> myHashMap = new HashMap<String, String>();
+                myHashMap.put("title", "Archive2");
+                myHashMap.put("date", "2006-03-05");
+                myHashMap.put("orderby", "date");
+                myHashMap.put("obIdIn", "name");
+                myHashMap.put("INGEST", "date");
+        
+                String request = DslQueryHelper.createSingleQueryDSL(myHashMap);
+                assertNotNull(request);
+                final SelectParser request2 = new SelectParser();
+                request2.parse(request);
+                assertEquals(result, request2.toString());
+            }
 
     /**
      * Tests CreateSelectDSLQuery mthod : main scenario

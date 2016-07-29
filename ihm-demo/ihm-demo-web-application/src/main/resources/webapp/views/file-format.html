@@ -1,0 +1,84 @@
+<div class="container"   id="formatformular">
+
+    <div class="row">
+        <div class="col-md-9" style="margin-top: 20px">
+            <form ng-submit="fileCtrl.getFileFormats()" style="padding-left: 20px; margin-top: 20px">
+                <h4>Filtres</h4>
+                <div  style="padding-left: 20px">
+                    <div class="row" >
+                        <div class="col-md-2">
+                            <h5>Nom du format</h5>
+                        </div>
+                        <div class="col-md-6">
+                            <input ng-model="fileCtrl.searchOptions.Name">
+                        </div>
+                    </div>
+                    <div class="row" >
+                        <div class="col-md-2">
+                            <h5>PUID</h5>
+                        </div>
+                        <div class="col-md-6">
+                            <input ng-model="fileCtrl.searchOptions.PUID">
+                        </div>
+                    </div>
+                    <div class="row" style="padding-top: 20px">
+                        <div class="col-md-6">
+                            <button type="button" class="btn btn-success btn-s" ng-click="fileCtrl.clearSearchOptions()">
+                                Effacer
+                            </button>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="button submit" class="btn btn-success btn-s" ng-click="fileCtrl.getFileFormats()">
+                                Rechercher
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <button ng-if="fileCtrl.fileNotFoundError" class="btn btn-danger" type="button" style="margin: 20px 0 0 40px">
+                {{fileCtrl.errorMessage}}
+            </button>
+        </div>
+
+        <div class="col-md-9" style="margin-top: 20px; border-top: 1px solid black;">
+            <div class="row" style="padding-top: 20px">
+                <div class="col-md-8">
+                    <h4>Resultats</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-9" style="float: right">
+            <button class="btn btn-default btn-s" ng-disabled="fileCtrl.currentPage <= 1" ng-click="fileCtrl.currentPage=fileCtrl.currentPage-1">
+                Previous
+            </button>
+            <input ng-model="fileCtrl.currentPage" style="max-width: 40px">/{{fileCtrl.resultPages}}
+            <button class="btn btn-default btn-s" ng-disabled="fileCtrl.currentPage >= fileCtrl.resultPages" ng-click="fileCtrl.currentPage=fileCtrl.currentPage+1">
+                Next
+            </button>
+        </div>
+        <div class="col-md-9" style="padding-top: 40px">
+            <table class="table table-bordered">
+                <thead style="text-align: center">
+                <tr>
+                    <th>PUID</th>
+                    <th>Nom de format</th>
+                    <th>Version</th>
+                    <th>MIME</th>
+                    <th>Extensions</th>
+                </tr>
+                </thead>
+                <tbody ng-repeat="file in fileCtrl.fileFormatList | startFormat:(fileCtrl.currentPage-1)*fileCtrl.itemsPerPage | limitTo:fileCtrl.itemsPerPage">
+                <tr ng-click="fileCtrl.openDialog($event, file._id)" >
+                    <th scope="row" >{{file.PUID}}</th>
+                    <td>{{file.Name}}</td>
+                    <td>{{file.Version}}</td>
+                    <td>{{file.MIMEType.toString()}}</td>
+                    <td>{{file.Extension.toString()}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+</div>

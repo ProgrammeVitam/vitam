@@ -43,6 +43,7 @@ public class FileFormat extends VitamDocument<FileFormat> {
     public static final String PUID = "PUID";
     
     private static final String VERSION_PRONOM = "VersionPronom";
+    private static final String VERSION = "Version";
     private static final String CREATED_DATE = "CreatedDate";
     private static final String HAS_PRIORITY_OVER_FILE_FORMAT_ID = "HasPriorityOverFileFormatID";
     private static final String MIME_TYPE = "MIMEType";
@@ -104,7 +105,7 @@ public class FileFormat extends VitamDocument<FileFormat> {
      * @return FileFormat with version setted
      */    
     public FileFormat setVersion(String version) {
-        this.append(EXTENSION, version);
+        this.append(VERSION, version);
         return this;
     }
 
