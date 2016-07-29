@@ -23,11 +23,19 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.distributor.core;
 
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.io.CharStreams;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
@@ -50,9 +58,13 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 public class ProcessDistributorImpl implements ProcessDistributor {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessDistributorImpl.class);
     private static final String ELAPSED_TIME_MESSAGE = "Total elapsed time in execution of method distribute is :";
-
+    private static final String EXEC = "Exec";
+    private static final String ARCHIVE_UNIT_FOLDER = "Units";
+    private static final String XML_EXTENSION = ".xml";
     private static final String EXCEPTION_MESSAGE =
         "runtime exceptions thrown by the Process distributor during runnig...";
+    private static final String ELEMENT_UNITS = "Units";
+    private static final String INGEST_LEVEL_STACK = "ingestLevelStack.json";
 
     private final List<Worker> workers = new ArrayList<Worker>();
     private final List<String> availableWorkers = new ArrayList<String>();
@@ -92,8 +104,36 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             if (step.getDistribution().getKind().equals(DistributionKind.LIST)) {
                 final WorkspaceClient workspaceClient =
                     WorkspaceClientFactory.create(workParams.getServerConfiguration().getUrlWorkspace());
-                final List<URI> objectsList = workspaceClient
-                    .getListUriDigitalObjectFromFolder(workParams.getContainerName(), step.getDistribution().getElement());
+                List<URI> objectsList = null;
+
+                // Test regarding Unit to be indexed
+                if (step.getDistribution().getElement().equals(ELEMENT_UNITS)) {
+                    objectsList = new ArrayList<URI>();
+
+                    // get the file to retrieve the GUID
+                    InputStream levelFile =
+                        workspaceClient.getObject(workParams.getContainerName(), EXEC + "/" + INGEST_LEVEL_STACK);
+                    final String inputStreamString = CharStreams.toString(new InputStreamReader(levelFile, "UTF-8"));
+                    final JsonNode levelFileJson = JsonHandler.getFromString(inputStreamString);
+                    Iterator<Entry<String, JsonNode>> iteratorlLevelFile = levelFileJson.fields();
+                    while (iteratorlLevelFile.hasNext()) {
+                        Entry<String, JsonNode> guidFieldList = iteratorlLevelFile.next();
+                        JsonNode guid = guidFieldList.getValue();
+                        if (guid != null && guid.size() > 0) {
+                            for (final JsonNode _idGuid : guid) {
+                                // include the GUID in the new URI
+                                objectsList.add(new URI(_idGuid.asText() + XML_EXTENSION));
+                            }
+                        }
+                    }
+                } else {
+                    //
+                    objectsList = workspaceClient
+                        .getListUriDigitalObjectFromFolder(workParams.getContainerName(),
+                            step.getDistribution().getElement());
+                }
+
+                // Iterate over Objects List
                 if (objectsList == null || objectsList.isEmpty()) {
                     responses.add(errorResponse);
                 } else {

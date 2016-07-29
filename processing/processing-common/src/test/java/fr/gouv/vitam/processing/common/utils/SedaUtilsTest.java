@@ -46,6 +46,7 @@ import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -90,6 +91,8 @@ public class SedaUtilsTest {
     private static final String SIP_ARBORESCENCE = "SIP_Arborescence.xml";
     private static final String OBJ = "obj";
     private static final String ARCHIVE_UNIT = "archiveUnit.xml";
+    private static final String INGEST_TREE = "INGEST_TREE.json";
+    private static final String ARCHIVE_ID_TO_GUID_MAP = "ARCHIVE_ID_TO_GUID_MAP.txt";
     private static final String DIGESTMESSAGE = "ZGVmYXVsdA==";
     private static final String OBJECT_GROUP = "objectGroup.json";
     private WorkspaceClient workspaceClient;
@@ -177,7 +180,35 @@ public class SedaUtilsTest {
         PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
         utils = new SedaUtilsFactory().create(metadataFactory);
 
+        // Create required temporary files
+        writeMapToTmpFileForTest();
+        saveTmpArchiveUnitTree();
+
+        // Update params
+        params.setObjectName("ID019G");
+
+        // Run index method
         utils.indexArchiveUnit(params);
+
+        // RollBack params modification
+        params.setObjectName(OBJ);
+    }
+
+    private void writeMapToTmpFileForTest()
+        throws IOException, URISyntaxException {
+        File sourceMapTmpFile = new File(Thread.currentThread().getContextClassLoader()
+            .getResource(ARCHIVE_ID_TO_GUID_MAP).toURI());
+        File mapTmpFile = PropertiesUtils
+            .fileFromTmpFolder(SedaUtils.ARCHIVE_ID_TO_GUID_MAP_FILE_NAME_PREFIX + OBJ + SedaUtils.TXT_EXTENSION);
+        FileUtils.copyFile(sourceMapTmpFile, mapTmpFile);
+    }
+
+    private void saveTmpArchiveUnitTree() throws InvalidParseOperationException, URISyntaxException, IOException {
+        File ingestTreeFile = new File(Thread.currentThread().getContextClassLoader()
+            .getResource(INGEST_TREE).toURI());
+        File treeTmpFile = PropertiesUtils
+            .fileFromTmpFolder(SedaUtils.ARCHIVE_TREE_TMP_FILE_NAME_PREFIX + OBJ + SedaUtils.JSON_EXTENSION);
+        FileUtils.copyFile(ingestTreeFile, treeTmpFile);
     }
 
     @Test(expected = ProcessingException.class)

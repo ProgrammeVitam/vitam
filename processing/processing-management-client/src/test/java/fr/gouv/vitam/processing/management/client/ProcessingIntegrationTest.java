@@ -87,6 +87,8 @@ public class ProcessingIntegrationTest {
     private static String WORFKLOW_NAME = "DefaultIngestWorkflow";
     private static String CONTAINER_NAME = GUIDFactory.newGUID().toString();
     private static String SIP_FILE_OK_NAME = "SIP.zip";
+    private static String SIP_ARBO_COMPLEXE_FILE_OK = "SIP_arbor_OK.zip";
+
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -157,6 +159,29 @@ public class ProcessingIntegrationTest {
         RestAssured.basePath = PROCESSING_PATH;
         processingClient = new ProcessingManagementClient(PROCESSING_URL);
         String s = processingClient.executeVitamProcess(CONTAINER_NAME, WORFKLOW_NAME);
+        assertFalse(s.contains("FATAL"));
+    }
+
+    @Test
+    public void testWorkflow_with_complexe_unit_seda() throws Exception {
+        String containerName = GUIDFactory.newManifestGUID(0).getId();
+
+        // workspace client dezip SIP in workspace
+        RestAssured.port = PORT_SERVICE_WORKSPACE;
+        RestAssured.basePath = WORKSPACE_PATH;
+
+        InputStream zipInputStreamSipObject =
+            Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_ARBO_COMPLEXE_FILE_OK);
+        WorkspaceClientFactory worspaceClienFactory = new WorkspaceClientFactory();
+        workspaceClient = worspaceClienFactory.create(WORKSPACE_URL);
+        workspaceClient.createContainer(containerName);
+        workspaceClient.unzipObject(containerName, SIP_FOLDER, zipInputStreamSipObject);
+
+        // call processing
+        RestAssured.port = PORT_SERVICE_PROCESSING;
+        RestAssured.basePath = PROCESSING_PATH;
+        processingClient = new ProcessingManagementClient(PROCESSING_URL);
+        String s = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
         assertFalse(s.contains("FATAL"));
     }
 }
