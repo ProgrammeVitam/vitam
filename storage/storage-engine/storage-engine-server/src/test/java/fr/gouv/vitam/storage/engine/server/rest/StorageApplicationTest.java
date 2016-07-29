@@ -41,7 +41,6 @@ import java.io.FileOutputStream;
 
 import org.jhades.JHades;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 

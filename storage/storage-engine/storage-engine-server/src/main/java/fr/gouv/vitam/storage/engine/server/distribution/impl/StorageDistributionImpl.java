@@ -101,8 +101,8 @@ public class StorageDistributionImpl implements StorageDistribution {
 
     /**
      * Constructs the service with a given configuration
-     * 
-     * @param configuration
+     *
+     * @param configuration the configuration of the storage
      */
     public StorageDistributionImpl(StorageConfiguration configuration) {
         ParametersChecker.checkParameter("Storage service configuration is mandatory", configuration);

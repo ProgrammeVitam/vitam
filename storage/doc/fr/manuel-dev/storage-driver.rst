@@ -52,3 +52,32 @@ Vérification de la capacité de l'offre
     } catch (StorageDriverException exc) {
         // Un problème est survenu lors de la communication avec le service distant
     }
+    
+Put d'un objet dans l'offre de stockage
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: java
+
+    // Définition des paramètres nécessaires à l'établissement d'une connexion avec l'offre de stockage
+    // Note: dans un vrai cas d'utilisation, ces paramètres doivent être récupérés de la configuration de
+    // l'offre et ne pourrons pas être défini en dur de cette manière car l'utilisation des drivers est un traitement
+    // générique à la fois vis à vis de l'offre et vis à vis du driver.
+    Properties parameters = new Properties();
+    parameters.put(StorageDriverParameterNames.USER.name(), "bob");
+    parameters.put(StorageDriverParameterNames.PASSWORD.name(), "p4ssword");
+
+    // Etablissement d'une connexion avec l'offre de stockage et réalisation d'une opération
+    try (Connection myConnection = myDriver.connect("http://my.storage.offer.com", parameters)) {
+        PutObjectRequest request = new PutObjectRequest();
+        request.setDataStream(new FileInputStream(PropertiesUtils.findFile("digitalObject.pdf")));
+        request.setDigestAlgorithm(DigestType.MD5.getName());
+        request.setGuid("GUID");
+        request.setTenantId("0");
+        PutObjectResult result = myConnection.putObject(request);
+        // On peut vérifier ici le résultat du put
+    } catch (StorageDriverException exc) {
+        // Un problème est survenu lors de la communication avec le service distant
+    }
+
+   
+    

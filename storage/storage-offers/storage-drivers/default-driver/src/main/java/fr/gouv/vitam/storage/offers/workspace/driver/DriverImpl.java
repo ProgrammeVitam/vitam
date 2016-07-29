@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- *
+ * 
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -24,33 +24,57 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+package fr.gouv.vitam.storage.offers.workspace.driver;
 
-package fr.gouv.vitam.common;
+import java.util.Properties;
+
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.storage.driver.Driver;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 
 /**
- * Global Variables and eventually method used by REST services
- *
+ * Workspace Driver Implementation
  */
-public class GlobalDataRest {
+public class DriverImpl implements Driver {
 
-	/**
-	 * X_HTTP_METHOD_OVERRIDE : used in case of POST methods overriding GET
-	 * methods
-	 */
-	public static final String X_HTTP_METHOD_OVERRIDE = "X-Http-Method-Override";
+    private static final String DRIVER_NAME = "WorkspaceDriver";
+    private static final String URL_IS_A_MANDATORY_PARAMETER = "Url is a mandatory parameter";
 
-	/**
-	 * Header Parameter X_REQUEST_ID
-	 */
-	public static final String X_REQUEST_ID = "X-REQUEST-ID";
+    @Override
+    public ConnectionImpl connect(String url, Properties parameters) throws StorageDriverException {
+        try {
+            ParametersChecker.checkParameter(URL_IS_A_MANDATORY_PARAMETER, url);
+        } catch (IllegalArgumentException exc) {
+            throw new StorageDriverException(DRIVER_NAME, URL_IS_A_MANDATORY_PARAMETER);
+        }
+        try {
+            ConnectionImpl connection = new ConnectionImpl(url, DRIVER_NAME);
+            connection.getStatus();
+            return connection;
+        } catch (StorageDriverException exception) {
+            throw new StorageDriverException(DRIVER_NAME, exception.getMessage());
+        }
 
-	/**
-	 * X-Command header used on storage resources
-	 */
-	public static final String X_COMMAND = "X-Command";
+    }
 
-	/**
-	 * X-Tenant-Id header used on REST request to identify the concerned tenant
-	 */
-	public static final String X_TENANT_ID = "X-Tenant-Id";
+    @Override
+    public boolean isStorageOfferAvailable(String url, Properties parameters) throws StorageDriverException {
+        return true;
+    }
+
+    @Override
+    public String getName() {
+        return DRIVER_NAME;
+    }
+
+    @Override
+    public int getMajorVersion() {
+        return 0;
+    }
+
+    @Override
+    public int getMinorVersion() {
+        return 0;
+    }
+
 }

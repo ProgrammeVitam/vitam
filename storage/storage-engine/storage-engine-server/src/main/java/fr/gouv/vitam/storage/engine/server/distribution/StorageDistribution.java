@@ -81,6 +81,7 @@ public interface StorageDistribution {
      * @param strategyId id of the strategy
      * @return the content of the container as an InputStream
      * @throws StorageNotFoundException Thrown if the Storage Container does not exist
+     * @throws StorageTechnicalException Thrown if a technical exception is encountered
      */
     InputStream getStorageContainer(String tenantId, String strategyId) throws StorageNotFoundException,
         StorageTechnicalException;
