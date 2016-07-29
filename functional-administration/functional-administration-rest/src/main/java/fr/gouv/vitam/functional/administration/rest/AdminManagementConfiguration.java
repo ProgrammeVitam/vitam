@@ -25,54 +25,12 @@
  * accept its terms.
  */
 
-package fr.gouv.vitam.functional.administration.common;
+package fr.gouv.vitam.functional.administration.rest;
 
-import java.io.InputStream;
-import java.util.List;
+import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
-
-/** ReferentialFile 
- * 
+/** AdminManagementConfiguration
+ *  inherated from DbConfigurationImpl
  */
-public interface ReferentialFile {
-    
-    
-    /** 
-     * importFile : import reference file to database
-     * @param file as InputStream
-     * @throws ReferentialException 
-     */
-    void importFile(InputStream file) throws ReferentialException ;
-    
-    
-    /**
-     * delete Format Collection
-     */
-    void deleteCollection();
-    
-    /**
-     * @param id of vitam document
-     * @return vitam document
-     * @throws ReferentialException when error occurs
-     */
-    public VitamDocument<?> findDocumentById(String id) throws ReferentialException;
-    
-    /**
-     * @param select filter
-     * @param collection
-     * @return vitam document list
-     * @throws ReferentialException  when error occurs
-     */
-    public List<?> findDocuments(JsonNode select) throws ReferentialException;
-    
-    /** 
-     * checkFile : check if file is OK
-     * @param file
-     * @throws FileFormatException
-     */
-    void checkFile(InputStream file) throws ReferentialException;   
+public class AdminManagementConfiguration extends DbConfigurationImpl {
 }
