@@ -357,11 +357,11 @@ public class SedaUtilsTest {
             .fileFromTmpFolder(SedaUtils.ARCHIVE_TREE_TMP_FILE_NAME_PREFIX + OBJ + SedaUtils.JSON_EXTENSION);
         JsonNode archiveTree = JsonHandler.getFromFile(archiveTreeTmpFile);
         assertTrue(archiveTree.has("ID027"));
-        assertTrue(archiveTree.has("ID032"));
-        assertTrue(archiveTree.get("ID032").has(SedaUtils.UP_FIELD));
-        assertTrue(archiveTree.get("ID032").get(SedaUtils.UP_FIELD).isArray());
-        assertTrue(archiveTree.get("ID032").get(SedaUtils.UP_FIELD).toString().contains("ID030"));
-        assertTrue(archiveTree.get("ID032").get(SedaUtils.UP_FIELD).toString().contains("ID029"));
+        assertTrue(archiveTree.has("ID029"));
+        assertTrue(archiveTree.get("ID029").has(SedaUtils.UP_FIELD));
+        assertTrue(archiveTree.get("ID029").get(SedaUtils.UP_FIELD).isArray());
+        assertTrue(archiveTree.get("ID029").get(SedaUtils.UP_FIELD).toString().contains("ID028"));
+        assertTrue(archiveTree.get("ID029").get(SedaUtils.UP_FIELD).toString().contains("ID032"));
     }
 
     @Test
