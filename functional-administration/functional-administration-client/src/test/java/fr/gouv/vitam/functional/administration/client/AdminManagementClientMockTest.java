@@ -57,7 +57,7 @@ public class AdminManagementClientMockTest {
         AdminManagementClientFactory.setConfiguration(AdminManagementClientType.MOCK_CLIENT, null, 0);
         final AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
         Select select = new Select();        
-        assertNotNull(client.getDocument(select.getFinalSelect()));
+        assertNotNull(client.getFormats(select.getFinalSelect()));
     }
     
 }
