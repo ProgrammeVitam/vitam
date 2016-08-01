@@ -41,6 +41,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventFactory;
@@ -77,7 +79,11 @@ import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.exception.CycleFoundException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.graph.DirectedCycle;
+import fr.gouv.vitam.common.graph.DirectedGraph;
+import fr.gouv.vitam.common.graph.Graph;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -150,7 +156,10 @@ public class SedaUtils {
     private static final String LOGBOOK_LF_MAPS_PARSING_EXCEPTION_MSG = "Parse Object Groups/BDO Maps error";
     public static final String OBJECT_GROUP_ID_TO_GUID_MAP_FILE_NAME_PREFIX = "OBJECT_GROUP_ID_TO_GUID_MAP_";
     public static final String BDO_TO_OBJECT_GROUP_ID_MAP_FILE_NAME_PREFIX = "BDO_TO_OBJECT_GROUP_ID_MAP_";
+    public static final String ARCHIVE_ID_TO_GUID_MAP_FILE_NAME_PREFIX = "ARCHIVE_ID_TO_GUID_MAP_";
     public static final String TXT_EXTENSION = ".txt";
+    private static final String LEVEL = "level_";
+    private static final String EXEC = "Exec";
 
     private static final String ARCHIVE_UNIT_ELEMENT_ID_ATTRIBUTE = "id";
     private static final String ARCHIVE_UNIT_REF_ID_TAG = "ArchiveUnitRefId";
@@ -158,6 +167,11 @@ public class SedaUtils {
     public static final String ARCHIVE_TREE_TMP_FILE_NAME_PREFIX = "INGEST_TREE_";
     private static final String INVALID_INGEST_TREE_EXCEPTION_MSG =
         "INGEST_TREE invalid, can not save to temporary file";
+    private static final String TMP_FOLDER = "vitam" + File.separator + "temp";
+    private static final String INGEST_LEVEL_STACK = "ingestLevelStack.json";
+    private static final String CYCLE_FOUND_EXCEPTION = "Seda has an archive unit cycle ";
+    private static final String SAVE_ARCHIVE_ID_TO_GUID_IOEXCEPTION_MSG =
+        "Can not save unitToGuidMap to temporary file";
 
     private final Map<String, String> binaryDataObjectIdToGuid;
     private final Map<String, String> objectGroupIdToGuid;
@@ -359,6 +373,16 @@ public class SedaUtils {
             final File archiveTreeTmpFile = PropertiesUtils
                 .fileFromTmpFolder(ARCHIVE_TREE_TMP_FILE_NAME_PREFIX + containerId + JSON_EXTENSION);
             JsonHandler.writeAsFile(archiveUnitTree, archiveTreeTmpFile);
+            // check cycle and create level stack; will be used when indexing unit
+            // 1-detect cycle : if graph has a cycle throw CycleFoundException
+            new DirectedCycle(new DirectedGraph(archiveUnitTree));
+
+            // Save unitToGuidMap
+            saveArchiveUnitIdToGuidMap(containerId);
+
+
+            // 2- create graph and create level
+            createIngestLevelStackFile(client, containerId, new Graph(archiveUnitTree).getGraphWithLongestPaths());
 
             checkArchiveUnitIdReference();
             saveObjectGroupsToWorkspace(client, containerId);
@@ -376,6 +400,12 @@ public class SedaUtils {
             throw new ProcessingException(e);
         } catch (InvalidParseOperationException e) {
             LOGGER.error(INVALID_INGEST_TREE_EXCEPTION_MSG, e);
+            throw new ProcessingException(e);
+        } catch (CycleFoundException e) {
+            LOGGER.error(CYCLE_FOUND_EXCEPTION, e);
+            throw new ProcessingException(e);
+        } catch (IOException e) {
+            LOGGER.error(SAVE_ARCHIVE_ID_TO_GUID_IOEXCEPTION_MSG, e);
             throw new ProcessingException(e);
         }
     }
@@ -406,7 +436,7 @@ public class SedaUtils {
             archiveUnitNode = JsonHandler.createObjectNode();
         }
 
-        // Add GUID entry
+        // Add new Archive Unit Entry
         archiveUnitTree.set(archiveUnitId, archiveUnitNode);
 
         try {
@@ -484,6 +514,16 @@ public class SedaUtils {
                 } else if (event.isStartElement() && event.asStartElement().getName().equals(archiveUnitRefIdTag)) {
                     // Referenced Parent Archive Unit
                     String parentArchiveUnitRef = reader.getElementText();
+
+                    if (!archiveUnitTree.has(parentArchiveUnitRef)) {
+                        archiveUnitTree.remove(archiveUnitId);
+
+                        // Create new Archive Unit Node
+                        ObjectNode parentArchiveUnitNode = JsonHandler.createObjectNode();
+                        archiveUnitTree.set(parentArchiveUnitRef, parentArchiveUnitNode);
+
+                        archiveUnitTree.set(archiveUnitId, archiveUnitNode);
+                    }
 
                     // Update _up field
                     ArrayNode parentsField = archiveUnitNode.withArray(UP_FIELD);
@@ -847,6 +887,16 @@ public class SedaUtils {
         secondMapTmpFileWriter.close();
     }
 
+    private void saveArchiveUnitIdToGuidMap(String containerId) throws IOException {
+        // Save unitIdToGuid
+        final File firstMapTmpFile = PropertiesUtils
+            .fileFromTmpFolder(ARCHIVE_ID_TO_GUID_MAP_FILE_NAME_PREFIX + containerId + TXT_EXTENSION);
+        final FileWriter firstMapTmpFileWriter = new FileWriter(firstMapTmpFile);
+        firstMapTmpFileWriter.write(unitIdToGuid.toString());
+        firstMapTmpFileWriter.flush();
+        firstMapTmpFileWriter.close();
+    }
+
     private void saveObjectGroupsToWorkspace(WorkspaceClient client, String containerId) throws ProcessingException {
 
         completeBinaryObjectToObjectGroupMap();
@@ -1027,7 +1077,14 @@ public class SedaUtils {
 
             if (input != null) {
                 final JsonNode json = convertArchiveUnitToJson(input, containerId, objectName).get(ARCHIVE_UNIT);
-                final String insertRequest = new Insert().addData((ObjectNode) json).getFinalInsert().toString();
+
+                // Add _up to archive unit json object
+                String extension = FilenameUtils.getExtension(objectName);
+                addParents(json, objectName.replace("." + extension, ""), containerId);
+
+                Insert insertQuery = new Insert();
+                final String insertRequest = insertQuery.addData((ObjectNode) json).getFinalInsert().toString();
+
                 metadataClient.insertUnit(insertRequest);
             } else {
                 LOGGER.error("Archive unit not found");
@@ -1052,8 +1109,44 @@ public class SedaUtils {
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
             LOGGER.debug("Workspace Server Error");
             throw new ProcessingException(e);
+        } catch (IOException e) {
+            LOGGER.debug("Error occured when opening required temporary files");
+            throw new ProcessingException(e);
         }
 
+    }
+
+    private void addParents(JsonNode archiveUnitJsonObject, String archiveUnitGuid, String containerId)
+        throws IOException, InvalidParseOperationException {
+
+        final File unitIdToGuidMapFile = PropertiesUtils
+            .fileFromTmpFolder(ARCHIVE_ID_TO_GUID_MAP_FILE_NAME_PREFIX + containerId + TXT_EXTENSION);
+
+        final File archiveunitTreeTmpFile = PropertiesUtils
+            .fileFromTmpFolder(ARCHIVE_TREE_TMP_FILE_NAME_PREFIX + containerId + JSON_EXTENSION);
+
+        JsonNode archiveUnitTree = JsonHandler.getFromFile(archiveunitTreeTmpFile);
+        String unitIdToGuidStoredContent = FileUtil.readFile(unitIdToGuidMapFile);
+        Map<String, Object> unitIdToGuidStoredMap = getMapFromString(unitIdToGuidStoredContent);
+
+        Map<Object, String> guidToUnitIdMap =
+            unitIdToGuidStoredMap.entrySet()
+                .stream()
+                .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
+
+        if (guidToUnitIdMap.containsKey(archiveUnitGuid) && archiveUnitTree.has(guidToUnitIdMap.get(archiveUnitGuid)) &&
+            archiveUnitTree.get(guidToUnitIdMap.get(archiveUnitGuid)).has(UP_FIELD) &&
+            archiveUnitTree.get(guidToUnitIdMap.get(archiveUnitGuid)).get(UP_FIELD).isArray()) {
+
+            ArrayNode parents = (ArrayNode) archiveUnitTree.get(guidToUnitIdMap.get(archiveUnitGuid)).get(UP_FIELD);
+            ArrayNode upNode = (ArrayNode) archiveUnitJsonObject.withArray(UP_FIELD);
+            for (JsonNode currentParentNode : parents) {
+                String currentParentId = currentParentNode.asText();
+                if (unitIdToGuidStoredMap.containsKey(currentParentId)) {
+                    upNode.add(unitIdToGuidStoredMap.get(currentParentId).toString());
+                }
+            }
+        }
     }
 
     /**
@@ -1665,6 +1758,64 @@ public class SedaUtils {
         LOGBOOK_LIFECYCLE_CLIENT.update(logbookLifecycleObjectGroupParameters);
 
         return logbookLifecycleObjectGroupParameters;
+    }
+
+    /**
+     * create level stack on Json file
+     * 
+     * @param client workspace client
+     * @param containerId
+     * @param levelStackMap
+     * @throws ProcessingException
+     */
+    private void createIngestLevelStackFile(WorkspaceClient client, String containerId,
+        Map<Integer, Set<String>> levelStackMap) throws ProcessingException {
+        LOGGER.info("Begin createIngestLevelStackFile/containerId:" + containerId);
+        ParametersChecker.checkParameter("levelStackMap is a mandatory parameter", levelStackMap);
+        ParametersChecker.checkParameter("unitIdToGuid is a mandatory parameter", unitIdToGuid);
+        ParametersChecker.checkParameter("WorkspaceClient is a mandatory parameter", client);
+
+        File tempFile = null;
+        try {
+            tempFile = File.createTempFile(TMP_FOLDER, INGEST_LEVEL_STACK);
+            // tempFile will be deleted on exit
+            tempFile.deleteOnExit();
+            // create level json object node
+            ObjectNode IngestLevelStack = JsonHandler.createObjectNode();
+            for (Entry<Integer, Set<String>> entry : levelStackMap.entrySet()) {
+                ArrayNode unitList = IngestLevelStack.withArray(LEVEL + entry.getKey());
+                Set<String> unitGuidList = entry.getValue();
+                for (String idXml : unitGuidList) {
+
+                    String unitGuid = unitIdToGuid.get(idXml);
+                    if (unitGuid == null) {
+                        throw new IllegalArgumentException("Unit guid not found in map");
+                    }
+                    unitList.add(unitGuid);
+                }
+                IngestLevelStack.set(LEVEL + entry.getKey(), unitList);
+            }
+            LOGGER.debug("IngestLevelStack:" + IngestLevelStack.toString());
+            // create json file
+            JsonHandler.writeAsFile(IngestLevelStack, tempFile);
+            // put file in workspace
+            client.putObject(containerId, EXEC + "/" + INGEST_LEVEL_STACK, new FileInputStream(tempFile));
+        } catch (IOException e) {
+            LOGGER.error(e);
+            throw new ProcessingException(e);
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error(e);
+            throw new ProcessingException(e);
+        } catch (ContentAddressableStorageServerException e) {
+            LOGGER.error(e);
+            throw new ProcessingException(e);
+        } finally {
+            if (tempFile != null) {
+                tempFile.exists();
+            }
+        }
+        LOGGER.info("End createIngestLevelStackFile/containerId:" + containerId);
+
     }
 
 }
