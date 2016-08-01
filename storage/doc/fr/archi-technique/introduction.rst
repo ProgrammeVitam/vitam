@@ -28,6 +28,7 @@ Modules - packages Storage
 |           fr.gouv.vitam.storage.engine.client
 |        /storage-engine-server
 |           fr.gouv.vitam.storage.engine.server.spi
+|           fr.gouv.vitam.storage.engine.server.logbook
 |           fr.gouv.vitam.storage.engine.server.rest
 |           fr.gouv.vitam.storage.engine.server.distribution
 |        /storage-engine-common
@@ -35,9 +36,9 @@ Modules - packages Storage
 
 |     /storage-offers
 |        /storage-drivers
-|           /workspace-driver
+|           /default-driver
 |              fr.gouv.vitam.storage.offers.workspace.driver
-|        /default-offer
+|        /storage-offer-default
 |           fr.gouv.vitam.storage.offers.workspace.core
 |           fr.gouv.vitam.storage.offers.workspace.rest
 

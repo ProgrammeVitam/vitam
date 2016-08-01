@@ -31,12 +31,12 @@ Le stockage des *objets binaires* contenus dans un *groupe d'objet technique* se
   - étape 6 :  le **worker** ajoute dans le **journal des opérations** le début de l'opération de stockage du *groupe d'objet technique* (STARTED)
   - pour chaque objet binaire du *groupe d'objet technique* :
 
-    - étape 7 : le **worker** mets à jour le **journal du cycle de vie** de l'objet (STARTED)
+    - étape 7 : le **worker** met à jour le **journal du cycle de vie** de l'objet (STARTED)
     - étape 8 : le **worker** appelle le **moteur de stockage** pour envoyer l'objet dont l'identifiant est donné en suivant la *stratégie de stockage* donnée
     - étape 9 : le **moteur de stockage** appelle le **référentiel des stratégies de stockage** pour récupérer les détail de la *statégie de stockage*
     - étape 10 : le **moteur de stockage** récupére l'objet binaire dans le **workspace**
     - étape 11 : le **moteur de stockage** envoi l'objet binaire dans les **offres de stockage** définies par la *stratégie de stockage* à travers leur driver correspondant
-    - étape 12 : le **worker** mets à jour le **journal du cycle de vie** de l'objet (OK/...)
+    - étape 12 : le **worker** met à jour le **journal du cycle de vie** de l'objet (OK/...)
 
   - étape 13 : le **worker** ajoute dans le **journal des opérations**  la fin de l'opération de stockage du *groupe d'objet technique* (OK/...)
 
@@ -47,3 +47,4 @@ Limites :
 
 - le **référentiel des stratégies de stockage** n'est pas encore implémenté, de ce fait la *stratégie de stockage* est définie de manière statique
 - seule l'**offre de stockage** utilisant une partie du module workspace est disponible
+- la vérification de la disponibilité n'est pas encore implémenté. 
