@@ -31,7 +31,7 @@ angular.module('ihm.demo')
 .controller('MyController', function($scope, $http, FileUploader, $mdDialog, $route){
 	$scope.mustShow = false;
 
-	var serviceURI = "http://localhost:8112/ihm-demo/v1/api/format";
+	var serviceURI = "/ihm-demo/v1/api/format";
 	var checkFormat = "/check";
 	var uploadFormat = "/upload";
 	var deleteFormat = "/delete";
@@ -64,7 +64,12 @@ angular.module('ihm.demo')
     	
     		$mdDialog.show(confirm).then(uploadAction, cancelAction);
     	} else if (uploader.queue[0].url == serviceURI + uploadFormat) {
-    		console.info('uploaded');
+        var confirm = $mdDialog.confirm()
+          .title('The referential format is imported')
+          .ok("close");
+        $mdDialog.show(confirm).then(function(){
+          $route.reload();
+        });
     	}
     	
     };
@@ -84,15 +89,13 @@ angular.module('ihm.demo')
     	}
     	
     };
-    console.info('uploader', uploader);    
-    
+
     
 	$scope.validAction = function(){
 		uploader = $scope.uploader;
 		uploader.queue[0].url = serviceURI + checkFormat;
 		uploader.queue[0].upload();
-		console.log(uploader);
-	}
+	};
 	
 	function uploadAction() {
 		uploader = $scope.uploader;
@@ -104,7 +107,7 @@ angular.module('ihm.demo')
 
     function cancelAction() {
     	console.log('Canceled');
-    	$route.reload();;
+    	$route.reload();
     }
     
     $scope.deleteAction = function(){ 
@@ -116,7 +119,12 @@ angular.module('ihm.demo')
     			'accept' : 'application/json'
     		}
     	}).success(function (data, status, headers, config) {
-    		console.log('Deleted');
+        var confirm = $mdDialog.confirm()
+          .title('The referential format is deleted')
+          .ok("close");
+        $mdDialog.show(confirm).then(function(){
+          $route.reload();
+        });
     	}).error(function (data, status, headers, config) {
     		
     	});
