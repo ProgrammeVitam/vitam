@@ -12,6 +12,7 @@ import java.io.InputStream;
 import javax.ws.rs.core.Response.Status;
 
 import org.jhades.JHades;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -41,7 +42,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.BasicVitamServer;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
-import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
 
@@ -134,6 +134,12 @@ public class AdminManagementResourceTest {
         mongodExecutable.stop();
         junitHelper.releasePort(databasePort);
         junitHelper.releasePort(serverPort);        
+    }
+    @After
+    public void tearDown() {
+        with()
+        .when().delete(DELETE_FORMAT_URI)
+        .then().statusCode(Status.OK.getStatusCode());
     }
 
     @Test
