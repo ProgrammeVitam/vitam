@@ -58,18 +58,18 @@ angular.module('ihm.demo')
     	
     	if (uploader.queue[0].url == serviceURI + checkFormat){
     		var confirm = $mdDialog.confirm()
-    			.title('The referential format is valid')
-    			.ok('Upload')
-    			.cancel('Cancel');
+    			.title('Fichier valide')
+    			.ok('Lancer l\'import')
+    			.cancel('Annuler l\'import');
     	
     		$mdDialog.show(confirm).then(uploadAction, cancelAction);
     	} else if (uploader.queue[0].url == serviceURI + uploadFormat) {
-        var confirm = $mdDialog.confirm()
-          .title('The referential format is imported')
-          .ok("close");
-        $mdDialog.show(confirm).then(function(){
-          $route.reload();
-        });
+    		var confirm = $mdDialog.confirm()
+    			.title('Fichier importé')
+    			.ok("Fermer");
+    		$mdDialog.show(confirm).then(function(){
+    			$route.reload();
+    		});
     	}
     	
     };
@@ -78,14 +78,17 @@ angular.module('ihm.demo')
     	console.info('onErrorItem', fileItem, response, status, headers);
     	if (uploader.queue[0].url == serviceURI + checkFormat){
     		var confirm = $mdDialog.confirm()
-				.title('The referential format is invalid')
-				.ok("close");
+				.title('Fichier invalide')
+				.ok("Fermer");
     		$mdDialog.show(confirm).then(function(){
     			$route.reload();
     		});
     	} else if (uploader.queue[0].url == serviceURI + uploadFormat) {
-    		alert('Format is already uploaded in the base.' +  
-    				'If you want to reupload the format, please press the button Delete at first');
+    		var confirm = $mdDialog.confirm()
+    		            	.title('Format est déjà chargé dans la base.' +  
+    		        				' Si vous voulez télécharger un nouveau format, appuyez sur le bouton Supprimer.')
+    		            	.ok("close");
+    		$mdDialog.show(confirm);
     	}
     	
     };
@@ -120,8 +123,8 @@ angular.module('ihm.demo')
     		}
     	}).success(function (data, status, headers, config) {
         var confirm = $mdDialog.confirm()
-          .title('The referential format is deleted')
-          .ok("close");
+          .title('Referentiel de formats vide')
+          .ok("Fermer");
         $mdDialog.show(confirm).then(function(){
           $route.reload();
         });
