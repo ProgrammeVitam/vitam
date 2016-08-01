@@ -41,9 +41,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.Optional;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventFactory;
@@ -414,7 +414,7 @@ public class SedaUtils {
 
     private Map<String, File> extractArchiveUnitToLocalFile(XMLEventReader reader, StartElement startElement,
         String archiveUnitId, ObjectNode archiveUnitTree)
-            throws ProcessingException {
+        throws ProcessingException {
 
         Map<String, File> archiveUnitToTmpFileMap = new HashMap<String, File>();
         final String elementGuid = GUIDFactory.newGUID().toString();
@@ -500,8 +500,11 @@ public class SedaUtils {
                     String nestedArchiveUnitId = event.asStartElement()
                         .getAttributeByName(new QName(ARCHIVE_UNIT_ELEMENT_ID_ATTRIBUTE)).getValue();
 
-                    // Create new Archive Unit Node
-                    ObjectNode nestedArchiveUnitNode = JsonHandler.createObjectNode();
+                    ObjectNode nestedArchiveUnitNode = (ObjectNode) archiveUnitTree.get(nestedArchiveUnitId);
+                    if (nestedArchiveUnitNode == null) {
+                        // Create new Archive Unit Node
+                        nestedArchiveUnitNode = JsonHandler.createObjectNode();
+                    }
 
                     // Add immediate parents
                     ArrayNode parentsField = nestedArchiveUnitNode.withArray(UP_FIELD);
@@ -514,25 +517,18 @@ public class SedaUtils {
                     archiveUnitToTmpFileMap.putAll(extractArchiveUnitToLocalFile(reader, event.asStartElement(),
                         nestedArchiveUnitId, archiveUnitTree));
                 } else if (event.isStartElement() && event.asStartElement().getName().equals(archiveUnitRefIdTag)) {
-                    // Referenced Parent Archive Unit
-                    String parentArchiveUnitRef = reader.getElementText();
+                    // Referenced Child Archive Unit
+                    String childArchiveUnitRef = reader.getElementText();
 
-                    if (!archiveUnitTree.has(parentArchiveUnitRef)) {
-                        archiveUnitTree.remove(archiveUnitId);
-
+                    ObjectNode childArchiveUnitNode = (ObjectNode) archiveUnitTree.get(childArchiveUnitRef);
+                    if (childArchiveUnitNode == null) {
                         // Create new Archive Unit Node
-                        ObjectNode parentArchiveUnitNode = JsonHandler.createObjectNode();
-                        archiveUnitTree.set(parentArchiveUnitRef, parentArchiveUnitNode);
-
-                        archiveUnitTree.set(archiveUnitId, archiveUnitNode);
+                        childArchiveUnitNode = JsonHandler.createObjectNode();
                     }
 
-                    // Update _up field
-                    ArrayNode parentsField = archiveUnitNode.withArray(UP_FIELD);
-                    parentsField.add(parentArchiveUnitRef);
-
-                    // Update global tree
-                    archiveUnitTree.set(archiveUnitId, archiveUnitNode);
+                    ArrayNode parentsField = childArchiveUnitNode.withArray(UP_FIELD);
+                    parentsField.add(archiveUnitId);
+                    archiveUnitTree.set(childArchiveUnitRef, childArchiveUnitNode);
                 } else {
                     writer.add(event);
                 }
@@ -1738,7 +1734,7 @@ public class SedaUtils {
 
     private LogbookLifeCycleObjectGroupParameters updateObjectGroupLifeCycleOnBdoCheck(String objectGroupGuid,
         String bdoXmlId, String containerId) throws LogbookClientBadRequestException,
-            LogbookClientAlreadyExistsException, LogbookClientServerException, LogbookClientNotFoundException {
+        LogbookClientAlreadyExistsException, LogbookClientServerException, LogbookClientNotFoundException {
 
         LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters =
             (LogbookLifeCycleObjectGroupParameters) initLogbookLifeCycleParameters(
@@ -1823,8 +1819,8 @@ public class SedaUtils {
     /**
      * Retrieve the binary data object infos linked to the object group. <br>
      * TODO : should not need to parse the manifest.xml to link a binary data object present in workspace to an object
-     * group. To refactor when Object Group <-> Binary Data Object link is defined.
-     * TODO : during the next refactoring of Sedautils, it has to be refactored to StoreObjectGroupActionHandler
+     * group. To refactor when Object Group <-> Binary Data Object link is defined. TODO : during the next refactoring
+     * of Sedautils, it has to be refactored to StoreObjectGroupActionHandler
      * 
      * @param params worker parameters
      * @return list binary data object informations

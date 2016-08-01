@@ -53,6 +53,7 @@ public class Graph {
     private int size;
     private int maxSize;
     private StackHelper stack;
+    int count = 0;
 
     // map id_xml index
     BidiMap<Integer, String> indexMapping;
@@ -86,16 +87,18 @@ public class Graph {
         }
 
         // parse json to create graph
-        int i = 0;
+
         Iterator<Entry<String, JsonNode>> levelIterator = JsonGraph.fields();
         while (levelIterator.hasNext()) {
             Entry<String, JsonNode> cycle = levelIterator.next();
-            i++;
+
             String idChild = cycle.getKey();
             JsonNode up = cycle.getValue();
             // create mappping
             // TODO create add method (will check if map index to xml id exist)
-            indexMapping.put(i, idChild);
+
+            addMapIdToIndex(idChild);
+            // indexMapping.put(count, idChild);
 
             if (up != null && up.size() > 0) {
                 final JsonNode arrNode = up.get("_up");
@@ -115,6 +118,17 @@ public class Graph {
             }
         }
 
+    }
+
+    private int addMapIdToIndex(String idXml) {
+        if (indexMapping != null) {
+            BidiMap<String, Integer> xmlIdToIndex = indexMapping.inverseBidiMap();
+            if (!xmlIdToIndex.containsKey(idXml)) {
+                count++;
+                indexMapping.put(count, idXml);
+            }
+        }
+        return count;
     }
 
     /**
@@ -260,6 +274,7 @@ public class Graph {
                 for (Map.Entry<Integer, Integer> e : longestsPathMap.entrySet()) {
                     Integer key = e.getKey();
                     Integer value = e.getValue();
+                    LOGGER.info("key" + key + "------------ value:" + indexMapping.get(key));
                     if (allLongestsPath.containsKey(key) && allLongestsPath.get(key) < value) {
                         // replace old value
                         allLongestsPath.put(key, value);
@@ -321,9 +336,17 @@ public class Graph {
     }
 
     private int getIndex(String id) {
-        BidiMap<String, Integer> xmlIdToIndex = indexMapping.inverseBidiMap();
-        // TODO add map index to xml id if not exists
-        int key = xmlIdToIndex.get(id);
+        int key = 0;
+        if (indexMapping != null) {
+            if (indexMapping.containsValue(id)) {
+                BidiMap<String, Integer> xmlIdToIndex = indexMapping.inverseBidiMap();
+                key = xmlIdToIndex.get(id);
+            } else {
+                key = addMapIdToIndex(id);
+            }
+
+            return key;
+        }
         return key;
     }
 

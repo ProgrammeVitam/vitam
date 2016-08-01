@@ -54,4 +54,15 @@ public class GraphTest {
             "{0=[ID027], 1=[ID030, ID031, ID028], 2=[ID029], 3=[ID032]}");
     }
 
+
+    @Test
+    public void test_graph_cyc() throws Exception {
+
+        File file = PropertiesUtils.getResourcesFile("ingest_cyc_2.json");
+        JsonNode json = JsonHandler.getFromFile(file);
+        Graph g = new Graph(json);
+        assertNotNull(g.getGraphWithLongestPaths());
+        System.out.println(g.getGraphWithLongestPaths());
+
+    }
 }

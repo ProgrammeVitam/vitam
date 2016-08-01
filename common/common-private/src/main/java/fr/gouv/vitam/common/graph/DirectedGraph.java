@@ -57,6 +57,7 @@ public class DirectedGraph {
     // map id_xml index
     BidiMap<Integer, String> indexMapping;
 
+    int count = 0;
 
     /**
      * Initializes an empty DirectedGraph with n vertices.
@@ -108,8 +109,8 @@ public class DirectedGraph {
             JsonNode up = cycle.getValue();
 
             // create mappping
-            // TODO create method for check unicity and add the map if not exist
-            indexMapping.put(i, idChild);
+            addMapIdToIndex(idChild);
+            // indexMapping.put(i, idChild);
 
             if (up != null && up.size() > 0) {
                 final JsonNode arrNode = up.get("_up");
@@ -218,10 +219,28 @@ public class DirectedGraph {
     }
 
     private int getIndex(String id) {
-        BidiMap<String, Integer> xmlIdToIndex = indexMapping.inverseBidiMap();
-        // TODO add index if not exist (cout ++ will be in object not in the constructor and put object in the map must
-        // be
-        return xmlIdToIndex.get(id);
+        int key = 0;
+        if (indexMapping != null) {
+            if (indexMapping.containsValue(id)) {
+                BidiMap<String, Integer> xmlIdToIndex = indexMapping.inverseBidiMap();
+                key = xmlIdToIndex.get(id);
+            } else {
+                key = addMapIdToIndex(id);
+            }
 
+            return key;
+        }
+        return key;
+    }
+
+    private int addMapIdToIndex(String idXml) {
+        if (indexMapping != null) {
+            BidiMap<String, Integer> xmlIdToIndex = indexMapping.inverseBidiMap();
+            if (!xmlIdToIndex.containsKey(idXml)) {
+                count++;
+                indexMapping.put(count, idXml);
+            }
+        }
+        return count;
     }
 }

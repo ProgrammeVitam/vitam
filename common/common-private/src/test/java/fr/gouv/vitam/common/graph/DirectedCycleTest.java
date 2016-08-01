@@ -15,7 +15,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 public class DirectedCycleTest {
 
     @Test(expected = CycleFoundException.class)
-    public void given_CyclycGraph_then_returnTrue() throws Exception {
+    public void given_CyclycGraph_then_throwException() throws Exception {
         File file = PropertiesUtils.getResourcesFile("ingest_cyc.json");
         JsonNode json = JsonHandler.getFromFile(file);
         DirectedGraph g = new DirectedGraph(json);
@@ -29,5 +29,15 @@ public class DirectedCycleTest {
         JsonNode json = JsonHandler.getFromFile(file);
         DirectedGraph g = new DirectedGraph(json);
         assertNotNull(new DirectedCycle(g));
+    }
+
+
+
+    public void given_CyclycGraph_then_throwException_cyc2() throws Exception {
+        File file = PropertiesUtils.getResourcesFile("ingest_cyc_2.json");
+        JsonNode json = JsonHandler.getFromFile(file);
+        DirectedGraph g = new DirectedGraph(json);
+        new DirectedCycle(g);
+
     }
 }
