@@ -6,3 +6,4 @@ Architecture Technique
    :maxdepth: 2
 
    introduction.rst
+   storage.rst

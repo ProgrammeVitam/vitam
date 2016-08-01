@@ -26,7 +26,7 @@
  */
 package fr.gouv.vitam.common.model;
 
-import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.ServerIdentityInterface;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
@@ -50,7 +50,7 @@ public class StatusMessage {
      *
      * @param serverIdentity containing ServerName, ServerRole, Global PlatformId
      */
-    public StatusMessage(ServerIdentity serverIdentity) {
+    public StatusMessage(ServerIdentityInterface serverIdentity) {
         setName(serverIdentity.getName());
         setRole(serverIdentity.getRole());
         setPid(serverIdentity.getPlatformId());

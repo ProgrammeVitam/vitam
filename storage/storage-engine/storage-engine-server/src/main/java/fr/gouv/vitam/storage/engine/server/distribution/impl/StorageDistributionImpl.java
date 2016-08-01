@@ -27,8 +27,25 @@
 
 package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
+import org.apache.commons.io.IOUtils;
+
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.BaseXx;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -68,20 +85,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.apache.commons.io.IOUtils;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.security.DigestInputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
 
 /**
  * StorageDistribution service Implementation
@@ -149,7 +152,7 @@ public class StorageDistributionImpl implements StorageDistribution {
                 boolean success =
                     tryAndRetryStoreObjectInOffer(createObjectDescription, tenantId, objectId, category, jsonData,
                         offerReference);
-                offerResults.put(offerReference.getId(), success);                
+                offerResults.put(offerReference.getId(), success);
             }
             return buildStoreDataResponse(objectId, category, offerResults);
         }
@@ -192,10 +195,10 @@ public class StorageDistributionImpl implements StorageDistribution {
         description.append("' stored successfully");
         result.setId(objectId);
         result.setInfo(description.toString());
-        result.setCreationTime(now);
-        result.setLastAccessTime(now);
-        result.setLastCheckedTime(now);
-        result.setLastModifiedTime(now);
+        result.setCreationTime(LocalDateUtil.getString(now));
+        result.setLastAccessTime(LocalDateUtil.getString(now));
+        result.setLastCheckedTime(LocalDateUtil.getString(now));
+        result.setLastModifiedTime(LocalDateUtil.getString(now));
         return result;
 
     }
@@ -218,7 +221,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         int i = 0;
         while (i < NB_RETRY && !objectStored) {
             i++;
-            LOGGER.info("[Attempt " + i + "] Trying to store object '" + objectId + "' in offer " + offer.getId());            
+            LOGGER.info("[Attempt " + i + "] Trying to store object '" + objectId + "' in offer " + offer.getId());
             try {
                 messageDigest = MessageDigest.getInstance(digestType.getName());
             } catch (NoSuchAlgorithmException exc) {
@@ -250,16 +253,19 @@ public class StorageDistributionImpl implements StorageDistribution {
                 }
             }
         }
-        
-        try {            
-            StorageLogbook storageLogbook = StorageLogbookFactory.getInstance().getStorageLogbook();                    
-            storageLogbook.add(getStorageLogbookParameters(putObjectRequest!=null ? putObjectRequest.getGuid() : "objectReques NA", null, 
-                messageDigest!=null ? messageDigest.digest().toString() : "messageDigest NA", digestType.getName(), "fakeSize", offer.getId(), "X-Application-Id",
-                null, null, objectStored==true ? StorageLogbookOutcome.OK : StorageLogbookOutcome.KO));
+
+        try {
+            StorageLogbook storageLogbook = StorageLogbookFactory.getInstance().getStorageLogbook();
+            // TODO : replace fakeSize by the real size of the file
+            storageLogbook.add(getStorageLogbookParameters(
+                putObjectRequest != null ? putObjectRequest.getGuid() : "objectReques NA", null,
+                messageDigest != null ? messageDigest.digest().toString() : "messageDigest NA", digestType.getName(),
+                "fakeSize", offer.getId(), "X-Application-Id",
+                null, null, objectStored == true ? StorageLogbookOutcome.OK : StorageLogbookOutcome.KO));
         } catch (StorageException exc) {
             throw new StorageTechnicalException("Operation couldnt be logged in the storage logbook", exc);
         }
-        
+
         return objectStored;
     }
 
@@ -344,7 +350,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         return offerReferences;
     }
 
-    //TODO : refactor this method, too many arguments
+    // TODO : refactor this method, too many arguments
     private StorageLogbookParameters getStorageLogbookParameters(String objectIdentifier, GUID objectGroupIdentifier,
         String digest, String digestAlgorithm, String size, String agentIdentifiers, String agentIdentifierRequester,
         String outcomeDetailMessage, String objectIdentifierIncome, StorageLogbookOutcome outcome) {
