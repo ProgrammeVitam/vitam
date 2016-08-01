@@ -78,6 +78,8 @@ angular.module('archive.unit')
       }
 
       var fieldSet = {};
+      var isMgtChild = false;
+
       fieldSet.fieldName = fieldNameLabel;
       fieldSet.fieldId = key;
       fieldSet.fieldValue= value;
@@ -89,6 +91,9 @@ angular.module('archive.unit')
       if(parent !== key){
         for(i=0; i<parents.length;i++){
             fieldSet.parents.push(parents[i]);
+            if(parents[i] == ARCHIVE_UNIT_MODULE_CONST.MGT_KEY || parents[i] == ARCHIVE_UNIT_MODULE_CONST.MGT_WITH_CSHARP_KEY){
+              isMgtChild = true;
+            }
         }
 
         fieldSet.parents.push(parent);
@@ -97,6 +102,9 @@ angular.module('archive.unit')
 
       if(!angular.isObject(value)) {
         fieldSet.typeF = ARCHIVE_UNIT_MODULE_CONST.SIMPLE_FIELD_TYPE;
+        if(!isMgtChild){
+          fieldSet.isModificationAllowed = true;
+        }
       } else {
         // Composite value
         fieldSet.typeF = ARCHIVE_UNIT_MODULE_CONST.COMPLEX_FIELD_TYPE;
@@ -203,6 +211,7 @@ angular.module('archive.unit')
             console.log(errorMsg);
           }
           archiveDetailsService.findArchiveUnitDetails(self.archiveId, displayUpdatedArchiveCallBack, failureUpdateDisplayCallback);
+
       }, function (error) {
         console.log('Update Archive unit failed : ' + error.message);
         self.showMessageToast("Erreur survenue à la mise à jour de l'archive unit");
@@ -210,61 +219,87 @@ angular.module('archive.unit')
     };
 
     // ************ Diplay Archive Unit Form dynamically ************* /
-    self.displayArchiveDetails = function(){
-      // ID Field
-      var idField = self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.ID_KEY];
-      if(!angular.isObject(idField)){
-          var fieldSet = {};
-          fieldSet.fieldName = ARCHIVE_UNIT_MODULE_CONST.ID_LABEL;
-          fieldSet.fieldValue= idField;
-          fieldSet.isChild = false;
-          fieldSet.typeF= ARCHIVE_UNIT_MODULE_CONST.SIMPLE_FIELD_TYPE;
-          fieldSet.fieldId = ARCHIVE_UNIT_MODULE_CONST.ID_KEY;
-          fieldSet.parents = [];
-          fieldSet.isModificationAllowed = false;
-          self.archiveArray.push(fieldSet);
+    self.refreshArchiveDetails = function () {
+      var displayUpdatedArchiveCallBack = function (data) {
+        if(data.$result == null || data.$result == undefined ||
+          data.$hint == null || data.$hint == undefined) {
+            console.log("errorMsg");
+        } else {
+          // Archive unit found
+          self.archiveFields = data.$result[0];
+          self.archiveArray=[];
+          self.isEditMode = false;
+          self.displayArchiveDetails();
+        }
+      };
+
+      var failureUpdateDisplayCallback = function(errorMsg){
+        // Display error message
+        console.log(errorMsg);
       }
+      archiveDetailsService.findArchiveUnitDetails(self.archiveId, displayUpdatedArchiveCallBack, failureUpdateDisplayCallback);
+    };
 
-      // Other fields
-      angular.forEach(self.archiveFields, function(value, key) {
-          if(key !== ARCHIVE_UNIT_MODULE_CONST.MGT_KEY && key !== ARCHIVE_UNIT_MODULE_CONST.ID_KEY &&
-            key.toString().charAt(0)!==ARCHIVE_UNIT_MODULE_CONST.TECH_KEY) {
-                // Get Title archive
-                if(key == ARCHIVE_UNIT_MODULE_CONST.TITLE_FIELD){
-                  self.archiveTitle = value;
-                  $window.document.title = ARCHIVE_UNIT_MODULE_CONST.ARCHIVE_UNIT_FORM_PREFIX +
-                          $routeParams.archiveId + ARCHIVE_UNIT_MODULE_CONST.ARCHIVE_UNIT_FORM_TITLE_SEPARATOR + self.archiveTitle;
+    self.displayArchiveDetails = function(){
+      if(self.archiveFields == null || self.archiveFields == undefined){
+        // Refresh screen
+        self.refreshArchiveDetails();
+      } else {
+        // ID Field
+        var idField = self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.ID_KEY];
+        if(!angular.isObject(idField)){
+            var fieldSet = {};
+            fieldSet.fieldName = ARCHIVE_UNIT_MODULE_CONST.ID_LABEL;
+            fieldSet.fieldValue= idField;
+            fieldSet.isChild = false;
+            fieldSet.typeF= ARCHIVE_UNIT_MODULE_CONST.SIMPLE_FIELD_TYPE;
+            fieldSet.fieldId = ARCHIVE_UNIT_MODULE_CONST.ID_KEY;
+            fieldSet.parents = [];
+            fieldSet.isModificationAllowed = false;
+            self.archiveArray.push(fieldSet);
+        }
+
+        // Other fields
+        angular.forEach(self.archiveFields, function(value, key) {
+            if(key !== ARCHIVE_UNIT_MODULE_CONST.MGT_KEY && key !== ARCHIVE_UNIT_MODULE_CONST.ID_KEY &&
+              key.toString().charAt(0)!==ARCHIVE_UNIT_MODULE_CONST.TECH_KEY) {
+                  // Get Title archive
+                  if(key == ARCHIVE_UNIT_MODULE_CONST.TITLE_FIELD){
+                    self.archiveTitle = value;
+                    $window.document.title = ARCHIVE_UNIT_MODULE_CONST.ARCHIVE_UNIT_FORM_PREFIX +
+                            $routeParams.archiveId + ARCHIVE_UNIT_MODULE_CONST.ARCHIVE_UNIT_FORM_TITLE_SEPARATOR + self.archiveTitle;
+                  }
+                  var parents = [];
+                  self.fieldSet = buildSingleField(value, key, key, parents);
+                  self.fieldSet.isModificationAllowed = true;
+                  self.archiveArray.push(self.fieldSet);
+            }
+        });
+
+        // _mgt field
+        var mgtField = self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.MGT_KEY];
+        if(angular.isObject(mgtField)){
+            var fieldSet = {};
+            fieldSet.fieldName = ARCHIVE_UNIT_MODULE_CONST.MGT_LABEL;
+            fieldSet.fieldValue= mgtField;
+            fieldSet.isChild = false;
+            fieldSet.typeF= ARCHIVE_UNIT_MODULE_CONST.COMPLEX_FIELD_TYPE;
+            fieldSet.fieldId = ARCHIVE_UNIT_MODULE_CONST.MGT_WITH_CSHARP_KEY;
+            fieldSet.parents = [];
+
+            var contentField = mgtField;
+            fieldSet.content = [];
+
+            angular.forEach(contentField, function(value, key) {
+                if(key !== ARCHIVE_UNIT_MODULE_CONST.MGT_KEY && key !== ARCHIVE_UNIT_MODULE_CONST.ID_KEY &&
+                  key.toString().charAt(0)!==ARCHIVE_UNIT_MODULE_CONST.TECH_KEY){
+                  var fieldSetSecond = buildSingleField(value, key, ARCHIVE_UNIT_MODULE_CONST.MGT_WITH_CSHARP_KEY, fieldSet.parents);
+                  fieldSetSecond.isModificationAllowed = false;
+                  fieldSet.content.push(fieldSetSecond);
                 }
-                var parents = [];
-                self.fieldSet = buildSingleField(value, key, key, parents);
-                self.fieldSet.isModificationAllowed = true;
-                self.archiveArray.push(self.fieldSet);
+            });
+            self.archiveArray.push(fieldSet);
           }
-      });
-
-      // _mgt field
-      var mgtField = self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.MGT_KEY];
-      if(angular.isObject(mgtField)){
-          var fieldSet = {};
-          fieldSet.fieldName = ARCHIVE_UNIT_MODULE_CONST.MGT_LABEL;
-          fieldSet.fieldValue= mgtField;
-          fieldSet.isChild = false;
-          fieldSet.typeF= ARCHIVE_UNIT_MODULE_CONST.COMPLEX_FIELD_TYPE;
-          fieldSet.fieldId = ARCHIVE_UNIT_MODULE_CONST.MGT_WITH_CSHARP_KEY;
-          fieldSet.parents = [];
-
-          var contentField = mgtField;
-          fieldSet.content = [];
-
-          angular.forEach(contentField, function(value, key) {
-              if(key !== ARCHIVE_UNIT_MODULE_CONST.MGT_KEY && key !== ARCHIVE_UNIT_MODULE_CONST.ID_KEY &&
-                key.toString().charAt(0)!==ARCHIVE_UNIT_MODULE_CONST.TECH_KEY){
-                var fieldSetSecond = buildSingleField(value, key, ARCHIVE_UNIT_MODULE_CONST.MGT_WITH_CSHARP_KEY, fieldSet.parents);
-                fieldSetSecond.isModificationAllowed = false;
-                fieldSet.content.push(fieldSetSecond);
-              }
-          });
-          self.archiveArray.push(fieldSet);
       }
     };
 
