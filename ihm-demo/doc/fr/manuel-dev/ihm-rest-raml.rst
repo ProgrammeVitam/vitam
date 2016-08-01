@@ -32,6 +32,7 @@ Rest API
 | POST /format/check -> Validation du fichier PRONOM
 | POST /format/import -> Import des formats dans le fichier PRONOM
 | DELETE /format/delete -> Supprimmer tous les format dans la base de données 
+| PUT    /archiveupdtae/units/{id} -> update des métadata 
 
 
 
