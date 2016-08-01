@@ -1,4 +1,5 @@
-DEX
+###########
+|DIN      |
 ###########
 
 .. caution::
@@ -16,16 +17,10 @@ Sommaire
 ########
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
-   plan.rst
+   index.rst
 
-#######
-Annexes
-#######
-
-.. toctree::
-	:maxdepth: 1
 
 
 ##############

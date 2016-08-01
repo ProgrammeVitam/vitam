@@ -1,17 +1,17 @@
 Dépendances aux services d'infrastructures
-##########################################
+---------------------------------------------
 
 
 Ordonnanceurs techniques / batchs
-=================================
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
 
 Socles d'exécution
-==================
+^^^^^^^^^^^^^^^^^^
 
-OS
-**
+1. OS
+
 
 Seul CentOS 7 est supporté à ce stade.
 
@@ -21,8 +21,8 @@ Seul CentOS 7 est supporté à ce stade.
 
 
 
-Middlewares
-***********
+2. Middlewares
+
 
 * Java : JRE 8
   

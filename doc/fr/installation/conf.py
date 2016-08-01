@@ -19,7 +19,7 @@ import os
 project = u'VITAM - Documentation d\'exploitation'
 copyright = u'2016, VITAM'
 author = u'VITAM'
-doc_id = 'vitam-documentation-exploitation'
+doc_id = 'vitam-documentation-installation'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

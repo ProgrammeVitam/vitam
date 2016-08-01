@@ -1,4 +1,4 @@
-DEX
+DIN
 ###########
 
 .. caution::
