@@ -65,7 +65,7 @@
 		<!-- build docker dependency -->
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>workspace-driver</artifactId>
+			<artifactId>default-driver</artifactId>
 			<version>${project.version}</version>
 			<scope>runtime</scope>
 		</dependency>

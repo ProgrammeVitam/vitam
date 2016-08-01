@@ -67,6 +67,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
 
     private static final String HANDLER_ID = "StoreObjectGroup";
     private static final String OG_LIFE_CYCLE_STORE_BDO_EVENT_TYPE = "STORE_BDO";
+    private static final String SIP = "SIP/";
 
     private final SedaUtilsFactory sedaUtilsFactory;
     //TODO should not be a private attribute -> to refactor
@@ -170,7 +171,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
             // store binary data object
             CreateObjectDescription description = new CreateObjectDescription();
             description.setWorkspaceContainerGUID(params.getContainerName());
-            description.setWorkspaceObjectURI(storageObjectInfo.getUri().toString());
+            description.setWorkspaceObjectURI(SIP + storageObjectInfo.getUri().toString());
             StoredInfoResult result =
                 STORAGE_CLIENT.storeFileFromWorkspace(DEFAULT_TENANT, DEFAULT_STRATEGY, StorageCollectionType.OBJECTS,
                     storageObjectInfo.getMessageDigest(), description);
