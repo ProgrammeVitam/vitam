@@ -150,7 +150,7 @@ public class AdminManagementClientRest implements AdminManagementClient {
     }
 
     @Override
-    public JsonNode getDocument(JsonNode query) throws  ReferentialException, InvalidParseOperationException {
+    public JsonNode getFormats(JsonNode query) throws  ReferentialException, InvalidParseOperationException {
         ParametersChecker.checkParameter("query is a mandatory parameter", query);        
         final Response response = client.target(serviceUrl).path(FORMAT_GET_DOCUMENT_URL)
             .request(MediaType.APPLICATION_JSON)

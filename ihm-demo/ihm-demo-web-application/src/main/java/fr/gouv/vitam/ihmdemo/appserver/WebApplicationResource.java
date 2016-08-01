@@ -309,7 +309,7 @@ public class WebApplicationResource {
             Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
             query = DslQueryHelper.createSingleQueryDSL(optionsMap);
             AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getAdminManagementClient();
-            result = adminClient.getDocument(JsonHandler.getFromString(query));
+            result = adminClient.getFormats(JsonHandler.getFromString(query));
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error("Bad request Exception ", e);
             return Response.status(Status.BAD_REQUEST).build();

@@ -441,7 +441,7 @@ public class WebApplicationResourceTest {
     public void testSearchFormatOK() throws Exception {
         AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
         AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
-        doReturn(JsonHandler.getFromString(OPTIONS)).when(adminClient).getDocument(anyObject());
+        doReturn(JsonHandler.getFromString(OPTIONS)).when(adminClient).getFormats(anyObject());
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject())).thenReturn(OPTIONS);
 
         PowerMockito.when(adminFactory.getAdminManagementClient()).thenReturn(adminClient);
@@ -456,7 +456,7 @@ public class WebApplicationResourceTest {
     public void testSearchFormatBadRequest() throws Exception {
         AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
         AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
-        doReturn(JsonHandler.getFromString(OPTIONS)).when(adminClient).getDocument(anyObject());
+        doReturn(JsonHandler.getFromString(OPTIONS)).when(adminClient).getFormats(anyObject());
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject())).thenThrow(new InvalidParseOperationException(""));
 
         PowerMockito.when(adminFactory.getAdminManagementClient()).thenReturn(adminClient);
@@ -471,7 +471,7 @@ public class WebApplicationResourceTest {
     public void testSearchFormatNotFound() throws Exception {
         AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
         AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
-        doThrow(new ReferentialException("")).when(adminClient).getDocument(anyObject());
+        doThrow(new ReferentialException("")).when(adminClient).getFormats(anyObject());
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject())).thenReturn(OPTIONS);
 
         PowerMockito.when(adminFactory.getAdminManagementClient()).thenReturn(adminClient);

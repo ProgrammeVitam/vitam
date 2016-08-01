@@ -66,5 +66,5 @@ public interface AdminManagementClient {
      * @throws JsonMappingException 
      * @throws JsonGenerationException 
      */
-    JsonNode getDocument(JsonNode query) throws  ReferentialException, InvalidParseOperationException, JsonGenerationException, JsonMappingException, IOException;
+    JsonNode getFormats(JsonNode query) throws  ReferentialException, InvalidParseOperationException, JsonGenerationException, JsonMappingException, IOException;
 }

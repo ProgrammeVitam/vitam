@@ -178,6 +178,6 @@ public class AdminManagementClientRestTest extends JerseyTest {
         InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
         client.importFormat(stream);
         when(mock.getDocument()).thenReturn(Response.status(Status.OK).build());
-        JsonNode jsonDocument = client.getDocument(select.getFinalSelect());  
+        JsonNode jsonDocument = client.getFormats(select.getFinalSelect());  
     }    
 }

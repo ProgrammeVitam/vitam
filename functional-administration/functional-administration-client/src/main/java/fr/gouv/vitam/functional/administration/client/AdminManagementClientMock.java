@@ -111,7 +111,7 @@ public class AdminManagementClientMock implements AdminManagementClient {
     }
     
     @Override
-    public JsonNode getDocument(JsonNode query) throws FileFormatException, JsonGenerationException, JsonMappingException, InvalidParseOperationException, IOException {
+    public JsonNode getFormats(JsonNode query) throws FileFormatException, JsonGenerationException, JsonMappingException, InvalidParseOperationException, IOException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", query);
         LOGGER.info("get document format request:");                
         FileFormat file1 = createFileFormat(GUIDFactory.newGUID().toString());
