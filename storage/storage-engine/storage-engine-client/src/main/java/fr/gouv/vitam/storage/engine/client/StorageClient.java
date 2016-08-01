@@ -61,7 +61,7 @@ public interface StorageClient extends BasicClient {
      * @param strategyId the storage strategy id
      * @param type the type of object collection
      * @param guid vitam guid
-     * @param information on stored object
+     * @param data the data
      * @return the result status of object creation
      * @throws StorageAlreadyExistsClientException if the Server got a CONFLICT status result
      * @throws StorageNotFoundClientException if the Server got a NotFound result
@@ -79,10 +79,10 @@ public interface StorageClient extends BasicClient {
      * @param type the type of object collection
      * @param guid vitam guid
      * @param description object description
-     * @param information on stored object
      * @throws StorageAlreadyExistsClientException if the Server got a CONFLICT status result
      * @throws StorageNotFoundClientException if the Server got a NotFound result
      * @throws StorageServerClientException if the Server got an internal error
+     * @return the result status of object creation
      */
     StoredInfoResult storeFileFromWorkspace(String tenantId, String strategyId, StorageCollectionType type, String guid,
         CreateObjectDescription description)

@@ -101,7 +101,7 @@ public class StorageLogbookParameters {
      * set The status of the operation
      * 
      * @param outcome the outcome
-     * @return
+     * @return the StorageLogbookParameters after the parameter has been added
      */
     @JsonIgnore
     public StorageLogbookParameters setStatus(StorageLogbookOutcome outcome) {

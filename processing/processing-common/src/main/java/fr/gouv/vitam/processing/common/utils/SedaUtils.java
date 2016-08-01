@@ -1819,7 +1819,7 @@ public class SedaUtils {
     /**
      * Retrieve the binary data object infos linked to the object group. <br>
      * TODO : should not need to parse the manifest.xml to link a binary data object present in workspace to an object
-     * group. To refactor when Object Group <-> Binary Data Object link is defined. TODO : during the next refactoring
+     * group. To refactor when Object Group and Binary Data Object link is defined. TODO : during the next refactoring
      * of Sedautils, it has to be refactored to StoreObjectGroupActionHandler
      * 
      * @param params worker parameters
