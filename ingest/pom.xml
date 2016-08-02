@@ -3,7 +3,7 @@
     <parent>
         <groupId>fr.gouv.vitam</groupId>
         <artifactId>parent</artifactId>
-        <version>0.5.0-SNAPSHOT</version>
+        <version>0.6.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -13,12 +13,8 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>ingest-common</module>
-        <module>ingest-api</module>
-        <module>ingest-core</module>
-        <module>ingest-model</module>
-        <module>ingest-rest</module>
-        <module>ingest-client</module>
+        <module>ingest-internal</module>
+        <module>ingest-external</module>
     </modules>
 
 </project>

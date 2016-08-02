@@ -38,9 +38,11 @@ angular.
 	    	  template: '<archive-search></archive-search>'
 	      }).
 	      when('/admin', {
-	          templateUrl: "views/admin-log.html",
-	          controller: "logbookController as logctrl"
+	          templateUrl: "views/admin.html"
 	      }).
+	      when('/importPronoun', {
+		      templateUrl: "views/import-Pronoun.html",
+	  	  }).
 	      when('/uploadSIP', {
 	          templateUrl: "views/upload-sip.html",
 	          controller: "uploadController"

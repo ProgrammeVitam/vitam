@@ -64,5 +64,10 @@ v-pane-header{
   margin-top: 0;
   font-weight: normal; }
 
+md-dialog {
+    width: auto;
+    height: auto;
+}
+
 .menuBardemoBasicUsage .page p {
   line-height: 1.6rem; }

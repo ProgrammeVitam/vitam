@@ -50,6 +50,7 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.core.database.collections.MongoDbAccess;
 import fr.gouv.vitam.parser.request.parser.GlobalDatasParser;
 
@@ -68,7 +69,6 @@ public class SelectUnitResourceTest {
     private static final String ID_UNIT = "aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab";
     private static final String DATA_URI = "/metadata/v1";
     private static final String DATABASE_NAME = "vitam-test";
-    private static final int DATABASE_PORT = 12345;
     private static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
 
@@ -82,8 +82,9 @@ public class SelectUnitResourceTest {
     private static final String GET = "GET";
 
     private static final String BODY_TEST = "{$query: {$eq: {\"data\" : \"data2\" }}, $projection: {}, $filter: {}}";
-
-    private static final int SERVER_PORT = 8589;
+    private static JunitHelper junitHelper;
+    private static int serverPort;
+    private static int dataBasePort;
 
     private static final String buildDSLWithOptions(String query, String data) {
         return "{ $roots : [ '' ], $query : [ " + query + " ], $data : " + data + " }";
@@ -103,25 +104,31 @@ public class SelectUnitResourceTest {
     public static void setUpBeforeClass() throws Exception {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
+        junitHelper = new JunitHelper();
+        dataBasePort = junitHelper.findAvailablePort();
 
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .version(Version.Main.PRODUCTION)
-            .net(new Net(DATABASE_PORT, Network.localhostIsIPv6()))
+            .net(new Net(dataBasePort, Network.localhostIsIPv6()))
             .build());
         mongod = mongodExecutable.start();
 
         final MetaDataConfiguration configuration =
-            new MetaDataConfiguration(SERVER_HOST, DATABASE_PORT, DATABASE_NAME);
-        MetaDataApplication.run(configuration, SERVER_PORT);
-        RestAssured.port = SERVER_PORT;
+            new MetaDataConfiguration(SERVER_HOST, dataBasePort, DATABASE_NAME);
+        serverPort = junitHelper.findAvailablePort();
+        MetaDataApplication.run(configuration, serverPort);
+        RestAssured.port = serverPort;
         RestAssured.basePath = DATA_URI;
     }
 
     @AfterClass
-    public static void tearDownAfterClass() {
+    public static void tearDownAfterClass() throws Exception {
+        MetaDataApplication.stop();
         mongod.stop();
         mongodExecutable.stop();
+        junitHelper.releasePort(dataBasePort);
+        junitHelper.releasePort(serverPort);
     }
 
     @After

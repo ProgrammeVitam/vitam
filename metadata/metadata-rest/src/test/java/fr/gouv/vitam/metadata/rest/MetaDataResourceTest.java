@@ -86,7 +86,7 @@ public class MetaDataResourceTest {
 
     private static final String SERVER_HOST = "localhost";
     private static JunitHelper junitHelper;
-    private static int databasePort;
+    private static int dataBasePort;
     private static int serverPort;
 
     private static final String buildDSLWithOptions(String query, String data) {
@@ -112,21 +112,23 @@ public class MetaDataResourceTest {
         return new ObjectMapper().writeValueAsString(new RequestResponseOK().setHits(cursor).setQuery(query));
     }
 
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
         junitHelper = new JunitHelper();
-        databasePort = junitHelper.findAvailablePort();
+        dataBasePort = junitHelper.findAvailablePort();
 
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .version(Version.Main.PRODUCTION)
-            .net(new Net(databasePort, Network.localhostIsIPv6()))
+            .net(new Net(dataBasePort, Network.localhostIsIPv6()))
             .build());
         mongod = mongodExecutable.start();
 
-        final MetaDataConfiguration configuration = new MetaDataConfiguration(SERVER_HOST, databasePort, DATABASE_NAME);
+        final MetaDataConfiguration configuration =
+            new MetaDataConfiguration(SERVER_HOST, dataBasePort, DATABASE_NAME);
         serverPort = junitHelper.findAvailablePort();
         MetaDataApplication.run(configuration, serverPort);
         RestAssured.port = serverPort;
@@ -142,7 +144,7 @@ public class MetaDataResourceTest {
         }
         mongod.stop();
         mongodExecutable.stop();
-        junitHelper.releasePort(databasePort);
+        junitHelper.releasePort(dataBasePort);
         junitHelper.releasePort(serverPort);
     }
 

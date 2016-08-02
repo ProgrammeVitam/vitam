@@ -51,8 +51,9 @@ public class StorageConfiguration {
      *
      * @param storagePath as String, path to storage
      */
-    public void setStoragePath(String storagePath) {
+    public StorageConfiguration setStoragePath(String storagePath) {
         this.storagePath = storagePath;
+        return this;
     }
 
 }

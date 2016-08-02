@@ -1,0 +1,30 @@
+---
+# tasks file for mongo-express
+
+- name: deploy docker container
+  docker:
+    name: "mongo-express"
+    image: "{{ docker_registry_hostname }}/mongo-express"
+    state: started
+    restart_policy: always
+    ports:
+      - "{{vitam_docker_port_http}}:{{vitam_docker_port_internal}}"
+    env: 
+      ME_CONFIG_MONGODB_SERVER: "{{ vitam_mongodb_host }}"
+      ME_CONFIG_MONGODB_PORT: "{{ vitam_mongodb_port }}"
+      ME_CONFIG_SITE_BASEURL: /mongo-express/ 
+
+#OMA : commented as useless in this case
+#- name: put cfg file for Nagios
+#  become_user: root
+#  template: 
+#     dest: "/etc/nagios/conf.d/{{ ansible_fqdn }}_http_{{ service_name }}.cfg" 
+#     src: "nagios_http.cfg.j2"
+#  delegate_to: vitam-prod-ldap-1.internet.agri
+
+# OMA : ajouter le restart
+#- name: Nagios restart
+#  service:
+#    name=nagios
+#    state=restarted
+# delegate_to: vitam-prod-ldap-1.internet.agri

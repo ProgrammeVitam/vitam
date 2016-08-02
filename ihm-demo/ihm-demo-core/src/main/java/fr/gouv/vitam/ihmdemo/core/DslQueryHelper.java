@@ -28,12 +28,14 @@
 package fr.gouv.vitam.ihmdemo.core;
 
 import static fr.gouv.vitam.builder.request.construct.QueryHelper.and;
-import static fr.gouv.vitam.builder.request.construct.QueryHelper.eq;
+import static fr.gouv.vitam.builder.request.construct.QueryHelper.*;
 
 import java.util.Map;
 import java.util.Map.Entry;
 
 import fr.gouv.vitam.builder.request.construct.Select;
+import fr.gouv.vitam.builder.request.construct.Update;
+import fr.gouv.vitam.builder.request.construct.action.SetAction;
 import fr.gouv.vitam.builder.request.construct.query.BooleanQuery;
 import fr.gouv.vitam.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -47,12 +49,17 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 public final class DslQueryHelper {
 
     public static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DslQueryHelper.class);
-    //TODO: faire en sorte que LogbookMongoDbName ait une version publique "#qqc" (comme #id) pour permettre de "masquer" l'implémentation.
+    // TODO: faire en sorte que LogbookMongoDbName ait une version publique "#qqc" (comme #id) pour permettre de
+    // "masquer" l'implémentation.
     private static final String EVENT_TYPE_PROCESS = "evTypeProc";
+    private static final String EVENT_DATE_TIME = "evDateTime";
     private static final String DEFAULT_EVENT_TYPE_PROCESS = "INGEST";
+    private static final String PUID = "PUID";
     private static final String OBJECT_IDENTIFIER_INCOME = "obIdIn";
+    private static final String FORMAT = "FORMAT";
     private static final String ORDER_BY = "orderby";
     private static final String PROJECTION_PREFIX = "projection_";
+    private static final String UPDATE_PREFIX = "update_";
 
     /**
      * generate the DSL query after receiving the search criteria
@@ -63,7 +70,7 @@ public final class DslQueryHelper {
      * @throws InvalidParseOperationException
      * @throws InvalidCreateOperationException
      */
-    public static String createLogBookSelectDSLQuery(Map<String, String> searchCriteriaMap)
+    public static String createSingleQueryDSL(Map<String, String> searchCriteriaMap)
         throws InvalidParseOperationException, InvalidCreateOperationException {
         final fr.gouv.vitam.builder.singlerequest.Select select = new fr.gouv.vitam.builder.singlerequest.Select();
         BooleanQuery query = and();
@@ -73,7 +80,11 @@ public final class DslQueryHelper {
 
             switch (searchKeys) {
                 case ORDER_BY:
-                    select.addOrderByDescFilter(searchValue);
+                    if (EVENT_DATE_TIME.equals(searchValue)) {
+                        select.addOrderByDescFilter(searchValue);
+                    } else {
+                        select.addOrderByAscFilter(searchValue);
+                    }
                     break;
 
                 case DEFAULT_EVENT_TYPE_PROCESS:
@@ -84,8 +95,14 @@ public final class DslQueryHelper {
                     query.add(eq("events.obIdIn", searchValue));
                     break;
 
+                case FORMAT:
+                    query.add(exists(PUID));
+                    break;    
+
                 default:
-                    query.add(eq(searchKeys, searchValue));
+                    if (!searchValue.isEmpty()) {
+                        query.add(eq(searchKeys, searchValue));
+                    }
             }
         }
 
@@ -95,14 +112,10 @@ public final class DslQueryHelper {
     }
 
     /**
-     * @param searchCriteriaMap
-     *            Criteria received from The IHM screen Empty Keys or Value is
-     *            not allowed
+     * @param searchCriteriaMap Criteria received from The IHM screen Empty Keys or Value is not allowed
      * @return the JSONDSL File
-     * @throws InvalidParseOperationException
-     *             thrown when an error occurred during parsing
-     * @throws InvalidCreateOperationException
-     *             thrown when an error occurred during creation
+     * @throws InvalidParseOperationException thrown when an error occurred during parsing
+     * @throws InvalidCreateOperationException thrown when an error occurred during creation
      */
     public static String createSelectDSLQuery(Map<String, String> searchCriteriaMap)
         throws InvalidParseOperationException, InvalidCreateOperationException {
@@ -147,6 +160,36 @@ public final class DslQueryHelper {
         }
 
         return select.getFinalSelect().toString();
+    }
+
+    /**
+     * @param searchCriteriaMap Criteria received from The IHM screen Empty Keys or Value is not allowed
+     * @return the JSONDSL File
+     * @throws InvalidParseOperationException thrown when an error occurred during parsing
+     * @throws InvalidCreateOperationException thrown when an error occurred during creation
+     */
+    public static String createUpdateDSLQuery(Map<String, String> searchCriteriaMap)
+        throws InvalidParseOperationException, InvalidCreateOperationException {
+
+        final Update update = new Update();
+
+        for (Entry<String, String> entry : searchCriteriaMap.entrySet()) {
+            String searchKeys = entry.getKey();
+            String searchValue = entry.getValue();
+
+            if (searchKeys.isEmpty() || searchValue.isEmpty()) {
+                throw new InvalidParseOperationException("Parameters should not be empty or null");
+            }
+            // Add root
+            if (searchKeys.equals(UiConstants.SELECT_BY_ID.toString())) {
+                update.addRoots(searchValue);
+                continue;
+            }
+            // Add Actions
+            update.addActions(new SetAction(searchKeys, searchValue));
+            // update.addActions(new AddAction(searchKeys, searchValue));
+        }
+        return update.getFinalUpdate().toString();
     }
 
 }

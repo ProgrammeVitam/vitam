@@ -1,0 +1,11 @@
+[Unit]
+Description=Workspace Rest
+After=network.target
+After=syslog.target
+
+[Service]
+Type=simple
+ExecStart=/vitam/${unix.name}/bin/wrapper.sh
+
+[Install]
+WantedBy=multi-user.target

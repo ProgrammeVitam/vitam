@@ -9,7 +9,8 @@
     </md-input-container>
 
     <button ng-if="showResult" class="btn btn-primary" type="button">
-      Résultats <span class="badge">{{totalResult}}</span>
+      <span ng-if = "totalResult > 0">Résultats <span class="badge">{{totalResult}}</span> </span>
+      <span ng-if = "totalResult == 0">Aucun résulat trouvé</span>
     </button>
     <button ng-if="error" class="btn btn-danger" type="button">
       {{errorMessage}}

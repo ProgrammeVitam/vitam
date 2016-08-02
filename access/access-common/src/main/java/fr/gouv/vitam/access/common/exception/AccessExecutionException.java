@@ -24,7 +24,7 @@
 package fr.gouv.vitam.access.common.exception;
 
 /**
- * Created by bsui on 16/06/16.
+ * AccessExecutionException throw when the execution in access module has an error
  */
 public class AccessExecutionException extends AccessException {
 
@@ -32,6 +32,7 @@ public class AccessExecutionException extends AccessException {
     private static final long serialVersionUID = 3109893413022252153L;
 
     /**
+     * constructor with message
      * @param message message to associate with the exception
      */
     public AccessExecutionException(String message) {
@@ -39,6 +40,7 @@ public class AccessExecutionException extends AccessException {
     }
 
     /**
+     * constructor with throwable
      * @param cause cause to associate with the exception
      */
     public AccessExecutionException(Throwable cause) {
@@ -46,6 +48,7 @@ public class AccessExecutionException extends AccessException {
     }
 
     /**
+     * constructor with message and throwable
      * @param message message to associate with the exception
      * @param cause cause to associate with the exception
      */
@@ -54,6 +57,7 @@ public class AccessExecutionException extends AccessException {
     }
 
     /**
+     * constructor with  message throwable anableSuppression and writableStackTrace
      * @param message associated message
      * @param cause associated cause
      * @param enableSuppression allow suppression or not

@@ -1,2 +1,4 @@
 ---
 # handlers file for base_host_vitam
+- name: restart docker
+  service: name=docker state=restarted

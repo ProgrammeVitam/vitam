@@ -51,6 +51,15 @@
     },
     {
     "workerGroupId" :"DefaultWorker",
+        "stepName":"Store ObjectGroup",
+        "distribution" : {
+        	"kind":"LIST",
+        	"element" : "ObjectGroup"
+        	},
+        "actions":[{"action":"StoreObjectGroup"}]
+    },
+    {
+    "workerGroupId" :"DefaultWorker",
         "stepName":"Index ObjectGroup",
           "distribution" : {
         	"kind":"LIST",

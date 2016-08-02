@@ -42,7 +42,7 @@ angular.module('archiveSearch')
   var criteriaSearch = {};
   $scope.getSearchResult = function getSearchResult(titleCriteria){
     if(titleCriteria!=='' && titleCriteria!== null && titleCriteria!== undefined){
-
+      // TODO :  Remove comment
       // Build title criteria and default selection
       criteriaSearch.Title = titleCriteria;
       criteriaSearch.projection_transactdate = "TransactedDate";
@@ -144,7 +144,6 @@ angular.module('archiveSearch')
 
 
     var displayFormCallBack = function (data) {
-
       if(data.$result == null || data.$result == undefined ||
         data.$hint == null || data.$hint == undefined) {
           $scope.error=true;
@@ -187,15 +186,13 @@ angular.module('archiveSearch')
     archiveDetailsService.findArchiveUnitDetails(archiveId, displayFormCallBack, failureCallback);
   }
 
-
-
+  // Mock search result
   // ******************* Mock response *************** //
   // $scope.showResult=true;
   // $scope.totalResult = 10;
-  // $scope.archiveRes =  [ {"_id":"1", "Title":"Archive1", "Date":"2016-01-01"},
+  // $scope.archiveUnitsSearchResult =  [ {"_id":"1", "Title":"Archive1", "Date":"2016-01-01"},
   // {"_id":"1", "Title":"Archive2", "Date":"2016-01-01"},
   // {"_id":"2", "Title":"Archive3", "Date":"2016-01-01"}];
   // ************************************************ //
-
 
 }]);

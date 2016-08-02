@@ -25,4 +25,11 @@ public class UnitRequestDTOTest {
 		unitRequetsDTO.setQueryDsl(SAMPLE_QUERY_DSL);
 		Assert.assertEquals(SAMPLE_QUERY_DSL, unitRequetsDTO.getQueryDsl());
 	}
+
+	@Test
+	public void givenUnitRequestDTO_when_instanciateWithDSL_then_getDSL() {
+		unitRequetsDTO = new UnitRequestDTO("fakeQuery");
+		Assert.assertEquals("fakeQuery", unitRequetsDTO.getQueryDsl());
+	}
+
 }

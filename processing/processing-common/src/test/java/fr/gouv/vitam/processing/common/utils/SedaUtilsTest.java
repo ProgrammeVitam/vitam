@@ -34,6 +34,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,16 +46,27 @@ import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.client.MetaDataClient;
 import fr.gouv.vitam.client.MetaDataClientFactory;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -67,21 +79,28 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore("javax.net.ssl.*")
+@PrepareForTest({WorkspaceClientFactory.class})
 public class SedaUtilsTest {
 
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
 
     private static final String SIP = "sip1.xml";
+    private static final String SIP_ARBORESCENCE = "SIP_Arborescence.xml";
     private static final String OBJ = "obj";
     private static final String ARCHIVE_UNIT = "archiveUnit.xml";
+    private static final String INGEST_TREE = "INGEST_TREE.json";
+    private static final String ARCHIVE_ID_TO_GUID_MAP = "ARCHIVE_ID_TO_GUID_MAP.txt";
     private static final String DIGESTMESSAGE = "ZGVmYXVsdA==";
     private static final String OBJECT_GROUP = "objectGroup.json";
     private WorkspaceClient workspaceClient;
-    private WorkspaceClientFactory workspaceFactory;
     private MetaDataClient metadataClient;
     private MetaDataClientFactory metadataFactory;
     private final InputStream seda = Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP);
+    private final InputStream seda_arborescence =
+        Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_ARBORESCENCE);
     private final InputStream archiveUnit = Thread.currentThread().getContextClassLoader()
         .getResourceAsStream(ARCHIVE_UNIT);
     private final InputStream objectGroup = Thread.currentThread().getContextClassLoader()
@@ -94,8 +113,8 @@ public class SedaUtilsTest {
 
     @Before
     public void setUp() {
+        PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
-        workspaceFactory = mock(WorkspaceClientFactory.class);
         metadataClient = mock(MetaDataClient.class);
         metadataFactory = mock(MetaDataClientFactory.class);
     }
@@ -105,9 +124,10 @@ public class SedaUtilsTest {
         throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageException,
         LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
         LogbookClientNotFoundException, InvalidParseOperationException, URISyntaxException {
+
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(seda);
-        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
-        utils = new SedaUtilsFactory().create(workspaceFactory, null);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        utils = new SedaUtilsFactory().create(metadataFactory);
         utils.extractSEDA(params);
 
         when(workspaceClient.computeObjectDigest(anyObject(), anyObject(), anyObject())).thenReturn(DIGESTMESSAGE);
@@ -123,12 +143,13 @@ public class SedaUtilsTest {
         assertEquals(utils.getUnitIdToGroupId().size(), 1);
     }
 
+    @Ignore
     @Test
     public void givenGuidWhenXmlExistThenReturnTrue() throws Exception {
         when(workspaceClient.getObject(params.getGuuid(), "SIP/manifest.xml")).thenReturn(seda);
-        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
 
-        utils = new SedaUtilsFactory().create(workspaceFactory, null);
+        utils = new SedaUtilsFactory().create(metadataFactory);
         assertTrue(utils.checkSedaValidation(params));
     }
 
@@ -137,18 +158,17 @@ public class SedaUtilsTest {
         final String str = "";
         final InputStream is = new ByteArrayInputStream(str.getBytes());
         when(workspaceClient.getObject("XXX", "SIP/manifest.xml")).thenReturn(is);
-        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
 
-        utils = new SedaUtilsFactory().create(workspaceFactory, null);
+        utils = new SedaUtilsFactory().create(metadataFactory);
         assertFalse(utils.checkSedaValidation(params));
     }
 
     @Test
     public void givenSedaHasMessageIdWhengetMessageIdThenReturnCorrect() throws Exception {
         when(workspaceClient.getObject(params.getGuuid(), "SIP/manifest.xml")).thenReturn(seda);
-        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
-
-        utils = new SedaUtilsFactory().create(workspaceFactory, null);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        utils = new SedaUtilsFactory().create(metadataFactory);
         assertEquals("Entrée_avec_groupe_d_objet", utils.getMessageIdentifier(params));
     }
 
@@ -157,10 +177,38 @@ public class SedaUtilsTest {
         when(metadataClient.insertUnit(anyObject())).thenReturn("");
         when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(archiveUnit);
-        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
-        utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        utils = new SedaUtilsFactory().create(metadataFactory);
 
+        // Create required temporary files
+        writeMapToTmpFileForTest();
+        saveTmpArchiveUnitTree();
+
+        // Update params
+        params.setObjectName("ID019G");
+
+        // Run index method
         utils.indexArchiveUnit(params);
+
+        // RollBack params modification
+        params.setObjectName(OBJ);
+    }
+
+    private void writeMapToTmpFileForTest()
+        throws IOException, URISyntaxException {
+        File sourceMapTmpFile = new File(Thread.currentThread().getContextClassLoader()
+            .getResource(ARCHIVE_ID_TO_GUID_MAP).toURI());
+        File mapTmpFile = PropertiesUtils
+            .fileFromTmpFolder(SedaUtils.ARCHIVE_ID_TO_GUID_MAP_FILE_NAME_PREFIX + OBJ + SedaUtils.TXT_EXTENSION);
+        FileUtils.copyFile(sourceMapTmpFile, mapTmpFile);
+    }
+
+    private void saveTmpArchiveUnitTree() throws InvalidParseOperationException, URISyntaxException, IOException {
+        File ingestTreeFile = new File(Thread.currentThread().getContextClassLoader()
+            .getResource(INGEST_TREE).toURI());
+        File treeTmpFile = PropertiesUtils
+            .fileFromTmpFolder(SedaUtils.ARCHIVE_TREE_TMP_FILE_NAME_PREFIX + OBJ + SedaUtils.JSON_EXTENSION);
+        FileUtils.copyFile(ingestTreeFile, treeTmpFile);
     }
 
     @Test(expected = ProcessingException.class)
@@ -168,8 +216,8 @@ public class SedaUtilsTest {
         when(metadataClient.insertUnit(anyObject())).thenReturn("");
         when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(errorExample);
-        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
-        utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        utils = new SedaUtilsFactory().create(metadataFactory);
 
         utils.indexArchiveUnit(params);
     }
@@ -179,8 +227,8 @@ public class SedaUtilsTest {
         when(metadataClient.insertUnit(anyObject())).thenThrow(new InvalidParseOperationException(""));
         when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(archiveUnit);
-        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
-        utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        utils = new SedaUtilsFactory().create(metadataFactory);
 
         utils.indexArchiveUnit(params);
     }
@@ -190,8 +238,8 @@ public class SedaUtilsTest {
         when(metadataClient.insertUnit(anyObject())).thenReturn("");
         when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(null);
-        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
-        utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        utils = new SedaUtilsFactory().create(metadataFactory);
 
         utils.indexArchiveUnit(params);
     }
@@ -200,8 +248,8 @@ public class SedaUtilsTest {
     public void givenNotExistArchiveUnitWhenIndexUnitThenThrowError() throws Exception {
         when(metadataClient.insertUnit(anyObject())).thenThrow(new MetaDataExecutionException(""));
         when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
-        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
-        utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        utils = new SedaUtilsFactory().create(metadataFactory);
 
         utils.indexArchiveUnit(params);
     }
@@ -212,8 +260,8 @@ public class SedaUtilsTest {
         when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
         when(workspaceClient.getObject(anyObject(), anyObject()))
             .thenThrow(new ContentAddressableStorageServerException(""));
-        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
-        utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        utils = new SedaUtilsFactory().create(metadataFactory);
 
         utils.indexArchiveUnit(params);
     }
@@ -222,8 +270,8 @@ public class SedaUtilsTest {
     public void givenCorrectObjectGroupWhenIndexObjectGroupThenOK() throws Exception {
         when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(objectGroup);
-        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
-        utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        utils = new SedaUtilsFactory().create(metadataFactory);
 
         utils.indexObjectGroup(params);
     }
@@ -233,9 +281,9 @@ public class SedaUtilsTest {
         when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
         when(workspaceClient.getObject(anyObject(), anyObject()))
             .thenThrow(new ContentAddressableStorageServerException(""));
-        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
 
-        utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
+        utils = new SedaUtilsFactory().create(metadataFactory);
         utils.indexObjectGroup(params);
     }
 
@@ -243,9 +291,9 @@ public class SedaUtilsTest {
     public void givenCreateObjectGroupErrorWhenIndexObjectGroupThenThrowError() throws Exception {
         when(metadataClient.insertObjectGroup(anyObject())).thenThrow(new MetaDataExecutionException(""));
         when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
-        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
 
-        utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
+        utils = new SedaUtilsFactory().create(metadataFactory);
         utils.indexObjectGroup(params);
     }
 
@@ -253,9 +301,9 @@ public class SedaUtilsTest {
     public void givenNotExistObjectGroupWhenIndexObjectGroupThenThrowError() throws Exception {
         when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(null);
-        when(workspaceFactory.create(anyObject())).thenReturn(workspaceClient);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
 
-        utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
+        utils = new SedaUtilsFactory().create(metadataFactory);
         utils.indexObjectGroup(params);
 
     }
@@ -268,7 +316,7 @@ public class SedaUtilsTest {
             new FileReader(PropertiesUtils.getResourcesPath("sip.xml").toString()));
         List<String> versionList = new ArrayList<String>();
 
-        utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
+        utils = new SedaUtilsFactory().create(metadataFactory);
         versionList = utils.manifestVersionList(evenReader);
         assertEquals(5, versionList.size());
         assertTrue(versionList.contains("PhysicalMaster"));
@@ -280,7 +328,7 @@ public class SedaUtilsTest {
 
     @Test
     public void givenCompareVersionList() throws Exception {
-        utils = new SedaUtilsFactory().create(workspaceFactory, metadataFactory);
+        utils = new SedaUtilsFactory().create(metadataFactory);
 
         final XMLInputFactory factory = XMLInputFactory.newInstance();
 
@@ -290,6 +338,66 @@ public class SedaUtilsTest {
         evenReader = factory.createXMLEventReader(new FileReader("src/test/resources/sip-with-wrong-version.xml"));
         assertEquals(1, utils.compareVersionList(evenReader, "src/test/resources/version.conf").size());
     }
+
+    @Test
+    public void givenCorrectManifestWhenArchiveUnitTreeThenOK()
+        throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageException,
+        LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
+        LogbookClientNotFoundException, InvalidParseOperationException, URISyntaxException {
+
+        when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(seda_arborescence);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        utils = new SedaUtilsFactory().create(new MetaDataClientFactory());
+        utils.extractSEDA(params);
+
+        assertEquals(utils.getUnitIdToGuid().size(), 6);
+
+        // Open saved Archive Tree Json file
+        File archiveTreeTmpFile = PropertiesUtils
+            .fileFromTmpFolder(SedaUtils.ARCHIVE_TREE_TMP_FILE_NAME_PREFIX + OBJ + SedaUtils.JSON_EXTENSION);
+        JsonNode archiveTree = JsonHandler.getFromFile(archiveTreeTmpFile);
+        assertTrue(archiveTree.has("ID027"));
+        assertTrue(archiveTree.has("ID029"));
+        assertTrue(archiveTree.get("ID029").has(SedaUtils.UP_FIELD));
+        assertTrue(archiveTree.get("ID029").get(SedaUtils.UP_FIELD).isArray());
+        assertTrue(archiveTree.get("ID029").get(SedaUtils.UP_FIELD).toString().contains("ID028"));
+        assertTrue(archiveTree.get("ID029").get(SedaUtils.UP_FIELD).toString().contains("ID032"));
+    }
+
+    @Test
+    public void givenCorrectObjectGroupWhenStoreObjectGroupThenOK() throws Exception {
+        String containerName = "aeaaaaaaaaaaaaabaa4quakwgip7nuaaaaaq";
+        WorkParams paramsObjectGroups =
+            new WorkParams().setGuuid(OBJ).setContainerName(containerName)
+                .setServerConfiguration(new ServerConfiguration().setUrlWorkspace(OBJ).setUrlMetada(OBJ))
+                .setObjectName("aeaaaaaaaaaaaaabaa4quakwgip76jaaaaaq.json").setCurrentStep("Store ObjectGroup");
+        when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
+        when(workspaceClient.getObject(containerName, "SIP/manifest.xml")).thenReturn(seda);
+        when(workspaceClient.getObject(containerName, "ObjectGroup/aeaaaaaaaaaaaaabaa4quakwgip76jaaaaaq.json"))
+            .thenReturn(objectGroup);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        utils = new SedaUtilsFactory().create(metadataFactory);
+
+        utils.retrieveStorageInformationForObjectGroup(paramsObjectGroups);
+    }
+
+    @Test(expected = ProcessingException.class)
+    public void givenCorrectObjectGroupWhenStoreObjectGroupThenJsonKO() throws Exception {
+        String containerName = "aeaaaaaaaaaaaaabaa4quakwgip7nuaaaaaq";
+        WorkParams paramsObjectGroups =
+            new WorkParams().setGuuid(OBJ).setContainerName(containerName)
+                .setServerConfiguration(new ServerConfiguration().setUrlWorkspace(OBJ).setUrlMetada(OBJ))
+                .setObjectName("aeaaaaaaaaaaaaabaa4quakwgip76jaaaaaq.json").setCurrentStep("Store ObjectGroup");
+        when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
+        when(workspaceClient.getObject(containerName, "SIP/manifest.xml")).thenReturn(seda);
+        when(workspaceClient.getObject(containerName, "aeaaaaaaaaaaaaabaa4quakwgip76jaaaaaq.json"))
+            .thenReturn(objectGroup);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        utils = new SedaUtilsFactory().create(metadataFactory);
+
+        utils.retrieveStorageInformationForObjectGroup(paramsObjectGroups);
+    }
+
 
     // @Test
     // public void givenCompareDigestMessage() throws FileNotFoundException,

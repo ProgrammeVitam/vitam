@@ -59,8 +59,14 @@ public class UserInterfaceTransactionManagerTest {
 	private static String ID_UNIT = "1";
 	private static String UNIT_DETAILS = "{_id: '1', Title: 'Archive 1', DescriptionLevel: 'Archive Mock'}";
 	private static String SEARCH_RESULT = "{$hint: {'total':'1'}, $result:[{'_id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}";
+    private static String UPDATE_FIELD_IMPACTED_RESULT =
+        "{$hint: {'total':'1'}, $result:[{'_id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}";
+    private static String UPDATE_UNIT_DSL_QUERY =
+        "{ \"$queries\": [$eq : { '#id' : 1 }], \"$filter\": {$orderby : { TransactedDate : 1 } }, " +
+            "\"$actions\": {#id : 1, Title : 1, TransactedDate:1 }}";
 	private static JsonNode unitDetails;
 	private static JsonNode searchResult;
+	private static JsonNode updateResult;
 
 	private static AccessClientFactory accessClientFactory;
 	private static AccessClient accessClient;
@@ -70,7 +76,7 @@ public class UserInterfaceTransactionManagerTest {
 			throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException {
 		unitDetails = JsonHandler.getFromString(UNIT_DETAILS);
 		searchResult = JsonHandler.getFromString(SEARCH_RESULT);
-
+	    updateResult = JsonHandler.getFromString(UPDATE_FIELD_IMPACTED_RESULT);
 		PowerMockito.mockStatic(AccessClientFactory.class);
 		accessClientFactory = PowerMockito.mock(AccessClientFactory.class);
 		accessClient = org.mockito.Mockito.mock(AccessClient.class);
@@ -97,5 +103,15 @@ public class UserInterfaceTransactionManagerTest {
 		JsonNode archiveDetails = UserInterfaceTransactionManager.getArchiveUnitDetails(SELECT_ID_DSL_QUERY, ID_UNIT);
 		assertTrue(archiveDetails.get("Title").textValue().equals("Archive 1"));
 	}
+	
+    @Test
+    public void testSuccessUpdateUnits()
+        throws AccessClientServerException, AccessClientNotFoundException, InvalidParseOperationException {
+        when(accessClient.updateUnitbyId(UPDATE_UNIT_DSL_QUERY, ID_UNIT)).thenReturn(updateResult);
+
+        // Test method
+        JsonNode updateResult = UserInterfaceTransactionManager.updateUnits(UPDATE_UNIT_DSL_QUERY, "1");
+        assertTrue(updateResult.get("$hint").get("total").textValue().equals("1"));
+    }
 
 }

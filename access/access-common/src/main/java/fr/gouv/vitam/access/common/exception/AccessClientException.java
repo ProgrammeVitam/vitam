@@ -37,6 +37,7 @@ public class AccessClientException extends VitamException {
 
 
     /**
+     * constructor with message
      * @param message associated message
      */
     public AccessClientException(String message) {
@@ -44,6 +45,7 @@ public class AccessClientException extends VitamException {
     }
 
     /**
+     * constructor with throwable
      * @param cause associated cause
      */
     public AccessClientException(Throwable cause) {
@@ -51,6 +53,7 @@ public class AccessClientException extends VitamException {
     }
 
     /**
+     * constructor with message and throwable
      * @param messsage associated message
      * @param cause associated cause
      */
@@ -59,6 +62,7 @@ public class AccessClientException extends VitamException {
     }
 
     /**
+     * constructor with  message throwable anableSuppression and writableStackTrace
      * @param message associated message
      * @param cause associated cause
      * @param enableSuppression allow suppression or not

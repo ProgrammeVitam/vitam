@@ -33,14 +33,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.api.exception.*;
 import org.apache.commons.lang.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import fr.gouv.vitam.api.exception.MetaDataAlreadyExistException;
-import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
-import fr.gouv.vitam.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.builder.request.construct.Select;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -57,6 +54,7 @@ public class MetaDataClient {
     private static final String RESOURCE_PATH = "/metadata/v1";
 
     private static final String SELECT_UNITS_QUERY_NULL = "Select units query is null";
+    private static final String UPDATE_UNITS_QUERY_NULL = "Update units query is null";
     private static final String INSERT_UNITS_QUERY_NULL = "Insert units query is null";
     private static final String BLANK_PARAM = "Unit id parameter is blank";
     private static final String X_HTTP_METHOD = "X-Http-Method-Override";
@@ -77,20 +75,22 @@ public class MetaDataClient {
     }
 
     /**
-     * @param query as String <br>
+     * @param insertQuery as String <br>
      *        null is not allowed
      * @return : response as String
      * @throws InvalidParseOperationException
-     * @throws MetaDataExecutionException 
-     * @throws MetaDataNotFoundException 
-     * @throws MetaDataAlreadyExistException 
-     * @throws MetaDataDocumentSizeException 
+     * @throws MetaDataExecutionException
+     * @throws MetaDataNotFoundException
+     * @throws MetaDataAlreadyExistException
+     * @throws MetaDataDocumentSizeException
      */
-    public String insertUnit(String insertQuery) throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException, MetaDataAlreadyExistException, MetaDataDocumentSizeException {
+    public String insertUnit(String insertQuery)
+        throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
+        MetaDataAlreadyExistException, MetaDataDocumentSizeException {
         if (StringUtils.isEmpty(insertQuery)) {
             throw new IllegalArgumentException(INSERT_UNITS_QUERY_NULL);
         }
-        
+
         final Response response = client.target(url).path("units").request(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .post(Entity.entity(insertQuery, MediaType.APPLICATION_JSON), Response.class);
@@ -121,7 +121,7 @@ public class MetaDataClient {
     /**
      * Search units by select query (DSL)
      * 
-     * @param query : select query {@link Select} as String <br>
+     * @param selectQuery : select query {@link Select} as String <br>
      *        Null is not allowed
      * @return Json object {$hint:{},$result:[{},{}]}
      * @throws MetaDataExecutionException thrown when internal Server Error (fatal technical exception thrown)
@@ -155,7 +155,7 @@ public class MetaDataClient {
     /**
      * Search units by query (DSL) and path unit id
      * 
-     * @param query : select query {@link Select} as String <br>
+     * @param selectQuery : select query {@link Select} as String <br>
      *        Null is not allowed
      * @param unitId : unit id <br>
      *        null and blank is not allowed
@@ -197,17 +197,59 @@ public class MetaDataClient {
     }
 
     /**
+     * Update units by query (DSL) and path unit id
+     * 
+     * @param query : update query {@link Select} as String <br>
+     *        Null is not allowed
+     * @param unitId : unit id <br>
+     *        null and blank is not allowed
+     * @return Json object {$hint:{},$result:[{},{}]}
+     * @throws MetaDataExecutionException thrown when internal Server Error (fatal technical exception thrown)
+     * @throws InvalidParseOperationException
+     * @throws MetaDataDocumentSizeException thrown when Query document Size is Too Large
+     * @throws IllegalArgumentException thrown when unit id is null or blank
+     */
+    public JsonNode updateUnitbyId(String updateQuery, String unitId)
+        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
+        IllegalArgumentException {
+        long time = System.currentTimeMillis();
+        // check parameters before call web service
+        // check update query
+        if (StringUtils.isBlank(updateQuery)) {
+            throw new InvalidParseOperationException(UPDATE_UNITS_QUERY_NULL);
+        }
+
+        final Response response =
+            client.target(url).path("units/" + unitId).request(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON).header(X_HTTP_METHOD, "GET")
+                .put(Entity.entity(updateQuery, MediaType.APPLICATION_JSON), Response.class);
+
+        if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+            throw new MetaDataExecutionException("Internal Server Error");
+        } else if (response.getStatus() == Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode()) {
+            throw new MetaDataDocumentSizeException("Document Size is Too Large");
+        } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
+            throw new InvalidParseOperationException("Invalid Parse Operation");
+        }
+
+        LOGGER.info(ELAPSED_TIME_MESSAGE + "update Units by Id :" + ((System.currentTimeMillis() - time) / 1000) + "s");
+        return response.readEntity(JsonNode.class);
+    }
+
+    /**
      * @param insertQuery as String
      * @return response as String contains the request result
      * @throws InvalidParseOperationException
-     * @throws MetaDataExecutionException 
-     * @throws MetaDataNotFoundException 
-     * @throws MetaDataAlreadyExistException 
-     * @throws MetaDataDocumentSizeException 
+     * @throws MetaDataExecutionException
+     * @throws MetaDataNotFoundException
+     * @throws MetaDataAlreadyExistException
+     * @throws MetaDataDocumentSizeException
      */
-    public String insertObjectGroup(String insertQuery) throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException, MetaDataAlreadyExistException, MetaDataDocumentSizeException {
+    public String insertObjectGroup(String insertQuery)
+        throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
+        MetaDataAlreadyExistException, MetaDataDocumentSizeException {
         ParametersChecker.checkParameter("Insert Request is a mandatory parameter", insertQuery);
-        
+
         final Response response = client.target(url).path("objectgroups").request(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .post(Entity.entity(insertQuery, MediaType.APPLICATION_JSON), Response.class);
@@ -226,5 +268,4 @@ public class MetaDataClient {
 
         return response.readEntity(String.class);
     }
-    
 }

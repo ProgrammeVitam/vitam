@@ -30,6 +30,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -217,16 +218,7 @@ public class MetaDataResource {
                 .build();
 
         } catch (final MetaDataExecutionException e) {
-            LOGGER.error(e.getMessage());
-            status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status)
-                .entity(new RequestResponseError().setError(
-                    new VitamError(status.getStatusCode())
-                        .setContext("ACCESS")
-                        .setState("code_vitam")
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase())))
-                .build();
+            return metadataExecutionExceptionTrace(e);
         } catch (final MetaDataDocumentSizeException e) {
             LOGGER.error(e.getMessage());
             status = Status.REQUEST_ENTITY_TOO_LARGE;
@@ -282,6 +274,27 @@ public class MetaDataResource {
     }
 
     /**
+     * Update unit by query and path parameter unit_id
+     * 
+     * @param updateRequest
+     * @param unitId
+     * @return {@link Response} will be contains an json filled by unit result
+     * @see #entity(java.lang.Object, java.lang.annotation.Annotation[])
+     * @see #type(javax.ws.rs.core.MediaType)
+     */
+    @Path("units/{id_unit}")
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateUnitbyId(String updateRequest, @PathParam("id_unit") String unitId,
+        @HeaderParam(X_HTTP_METHOD) String xhttpOverride) {
+        if (!"GET".equals(xhttpOverride)) {
+            return Response.status(Status.METHOD_NOT_ALLOWED).build();
+        }
+        return updateUnitbyId(updateRequest, unitId);
+    }
+
+    /**
      * Select unit by request and unit id
      */
     private Response selectUnitById(String selectRequest, String unitId) {
@@ -301,16 +314,7 @@ public class MetaDataResource {
                         .setDescription(status.getReasonPhrase())))
                 .build();
         } catch (final MetaDataExecutionException e) {
-            LOGGER.error(e.getMessage());
-            status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status)
-                .entity(new RequestResponseError().setError(
-                    new VitamError(status.getStatusCode())
-                        .setContext("ACCESS")
-                        .setState("code_vitam")
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase())))
-                .build();
+            return metadataExecutionExceptionTrace(e);
         } catch (final MetaDataDocumentSizeException e) {
             LOGGER.error(e.getMessage());
             status = Status.REQUEST_ENTITY_TOO_LARGE;
@@ -404,6 +408,58 @@ public class MetaDataResource {
             .entity(new RequestResponseOK()
                 .setHits(1, 0, 1)
                 .setQuery(queryJson))
+            .build();
+    }
+
+
+
+    /**
+     * Update unit by request and unit id
+     */
+    private Response updateUnitbyId(String selectRequest, String unitId) {
+        Status status;
+        JsonNode jsonResultNode;
+        try {
+            jsonResultNode = metaDataImpl.updateUnitbyId(selectRequest, unitId);
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(e.getMessage());
+            status = Status.BAD_REQUEST;
+            return Response.status(status)
+                .entity(new RequestResponseError().setError(
+                    new VitamError(status.getStatusCode())
+                        .setContext("ACCESS")
+                        .setState("code_vitam")
+                        .setMessage(status.getReasonPhrase())
+                        .setDescription(status.getReasonPhrase())))
+                .build();
+        } catch (final MetaDataExecutionException e) {
+            return metadataExecutionExceptionTrace(e);
+        } catch (final MetaDataDocumentSizeException e) {
+            LOGGER.error(e.getMessage());
+            status = Status.REQUEST_ENTITY_TOO_LARGE;
+            return Response.status(status)
+                .entity(new RequestResponseError().setError(
+                    new VitamError(status.getStatusCode())
+                        .setContext("ACCESS")
+                        .setState("code_vitam")
+                        .setMessage(status.getReasonPhrase())
+                        .setDescription(status.getReasonPhrase())))
+                .build();
+        }
+        return Response.status(Status.FOUND).entity(jsonResultNode).build();
+    }
+
+    private Response metadataExecutionExceptionTrace(final MetaDataExecutionException e) {
+        Status status;
+        LOGGER.error(e.getMessage());
+        status = Status.INTERNAL_SERVER_ERROR;
+        return Response.status(status)
+            .entity(new RequestResponseError().setError(
+                new VitamError(status.getStatusCode())
+                    .setContext("ACCESS")
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase())))
             .build();
     }
 }

@@ -30,26 +30,35 @@ import javax.ws.rs.core.Response;
  * Access Resource REST API
  */
 public interface AccessResource {
+
     /**
      * gets archive units with Json query
      *
-     * @param queryNode, null not allowed
+     * @param dslQuery, null not allowed
      * @param headerParam X-Http-Method-Override header
      * @return a archive unit result list
      */
-
     public Response getUnits(String dslQuery, String headerParam);
 
     /**
      * gets archive units by Id with Json query
      * 
-     * @param queryNode DSK, null not allowed
+     * @param dslQuery DSK, null not allowed
      * @param headerParam X-Http-Method-Override header
      * @param unit_id units identifier
      * @return a archive unit result list
      */
-
     public Response getUnitById(String dslQuery, String headerParam, String unit_id);
+
+    /**
+     * update archive units by Id with Json query
+     *
+     * @param dslQuery DSK, null not allowed
+     * @param unit_id units identifier
+     * @return a archive unit result list
+     */
+    public Response updateUnitById(String dslQuery, String unit_id);
+
 
     /**
      * Returns a response status

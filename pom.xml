@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>fr.gouv.vitam</groupId>
 	<artifactId>parent</artifactId>
-	<version>0.5.0-SNAPSHOT</version>
+	<version>0.6.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>vitam-parent</name>
 	<description>${project.artifactId}</description>
@@ -99,6 +99,7 @@
 		<vitam.docker.registry.pull>docker.programmevitam.fr</vitam.docker.registry.pull>
 		<vitam.docker.registry.push>docker.programmevitam.fr</vitam.docker.registry.push>
 		<vitam.docker.baseimage>vitam/java:0.2.0</vitam.docker.baseimage>
+		<vitam.docker.baseimage.antivirus>vitam/vitam-virus-java</vitam.docker.baseimage.antivirus>
 
 		<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
 		<!-- Sonar properties -->
@@ -152,7 +153,10 @@
 		<javax.servlet.version>3.1.0</javax.servlet.version>
 		<javax.inject.version>1</javax.inject.version>
 		<powermock.version>1.6.5</powermock.version>
-		<json-sanitize.version>1.1</json-sanitize.version>		
+		<json-sanitize.version>1.1</json-sanitize.version>
+		<commons-collections4.version>4.0</commons-collections4.version>
+		<unix.user>vitam</unix.user>
+		<unix.group>vitam</unix.group>
 	</properties>
 
 	<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
@@ -288,6 +292,9 @@
 								<Maven-build-timestamp>${maven.build.timestamp}</Maven-build-timestamp>
 								<!-- <Sealed>true</Sealed> -->
 							</manifestEntries>
+							<manifest>
+								<useUniqueVersions>false</useUniqueVersions>
+							</manifest>
 						</archive>
 					</configuration>
 				</plugin>
@@ -329,11 +336,11 @@
 					<artifactId>maven-surefire-report-plugin</artifactId>
 					<version>2.19.1</version>
 				</plugin>
-                <plugin>
-                    <groupId>org.owasp</groupId>
-                    <artifactId>dependency-check-maven</artifactId>
-                    <version>1.4.0</version>
-                </plugin>
+				<plugin>
+					<groupId>org.owasp</groupId>
+					<artifactId>dependency-check-maven</artifactId>
+					<version>1.4.0</version>
+				</plugin>
 
 				<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
 				<!-- Tools : These are miscellaneous tools available through Maven by 
@@ -416,6 +423,65 @@
 					<groupId>org.sonarsource.scanner.maven</groupId>
 					<artifactId>sonar-maven-plugin</artifactId>
 					<version>3.0.2</version>
+				</plugin>
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>rpm-maven-plugin</artifactId>
+					<version>2.1.5</version>
+					<configuration>
+						<name>vitam-${unix.name}</name>
+						<disabled>true</disabled>
+						<licence>CeCILL 2.1</licence>
+						<distribution>Vitam Project</distribution>
+						<group>Application/Archiving</group>
+						<packager>Vitam Package Team</packager>
+						<defineStatements />
+						<requires>
+							<require>java-1.8.0</require>
+							<require>vitam-user-${unix.user}</require>
+						</requires>
+						<defaultDirMode>750</defaultDirMode>
+						<defaultFileMode>640</defaultFileMode>
+						<defaultUsername>${unix.user}</defaultUsername>
+						<defaultGroupname>${unix.group}</defaultGroupname>
+						<mappings>
+							<mapping>
+								<directory>/vitam/${unix.name}/lib</directory>
+								<artifact />
+								<dependency />
+							</mapping>
+							<mapping>
+								<directory>/vitam/${unix.name}/conf</directory>
+								<sources>
+									<source>
+										<location>${basedir}/src/main/config</location>
+									</source>
+								</sources>
+							</mapping>
+
+							<mapping>
+								<directory>/vitam/${unix.name}/bin</directory>
+								<sources>
+									<source>
+										<location>${project.build.directory}/bin</location>
+									</source>
+								</sources>
+							</mapping>
+
+							<mapping>
+								<directory>/usr/lib/systemd/system/</directory>
+								<filemode>644</filemode>
+								<username>root</username>
+								<groupname>root</groupname>
+								<directoryIncluded>false</directoryIncluded>
+								<sources>
+									<source>
+										<location>${project.build.directory}/systemd</location>
+									</source>
+								</sources>
+							</mapping>
+						</mappings>
+					</configuration>
 				</plugin>
 			</plugins>
 		</pluginManagement>
@@ -520,6 +586,11 @@
 				</exclusions>
 			</dependency>
 			<dependency>
+				<groupId>org.glassfish.jersey.connectors</groupId>
+				<artifactId>jersey-jetty-connector</artifactId>
+				<version>${jersey.version}</version>
+			</dependency>
+			<dependency>
 				<groupId>org.glassfish.jersey.media</groupId>
 				<artifactId>jersey-media-json-jackson</artifactId>
 				<version>${jersey.version}</version>
@@ -536,6 +607,8 @@
 				<version>${jackson.version}</version>
 			</dependency>
 
+
+
 			<dependency>
 				<groupId>org.eclipse.jetty</groupId>
 				<artifactId>jetty-http</artifactId>
@@ -544,6 +617,11 @@
 			<dependency>
 				<groupId>org.eclipse.jetty</groupId>
 				<artifactId>jetty-server</artifactId>
+				<version>${jetty.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.eclipse.jetty</groupId>
+				<artifactId>jetty-client</artifactId>
 				<version>${jetty.version}</version>
 			</dependency>
 			<dependency>
@@ -723,6 +801,11 @@
 				<groupId>com.mikesamuel</groupId>
 				<artifactId>json-sanitizer</artifactId>
 				<version>${json-sanitize.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-collections4</artifactId>
+				<version>${commons-collections4.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
