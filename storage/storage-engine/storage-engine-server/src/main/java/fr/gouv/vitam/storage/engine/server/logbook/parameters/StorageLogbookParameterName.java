@@ -27,8 +27,8 @@
 package fr.gouv.vitam.storage.engine.server.logbook.parameters;
 
 /**
- * Enum with all possible logbook storage parameters <br />
- * <br />
+ * Enum with all possible logbook storage parameters <br>
+ * <br>
  * Use to set parameter value and to check emptiness or nullity
  */
 public enum StorageLogbookParameterName {
