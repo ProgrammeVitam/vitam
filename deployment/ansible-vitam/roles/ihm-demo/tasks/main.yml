@@ -26,6 +26,9 @@
   - "logback.xml"
   - "access-client.conf"
   - "ihm-demo.conf"
+  - "ingest-external-client.conf"
+  - "ingest-external-client-test.conf"
+  - "functional-administration-client.conf"
 
 - name: Deploy VITAM docker file
   docker:

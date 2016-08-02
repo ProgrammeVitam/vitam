@@ -4,11 +4,15 @@
 hosts-ihm-demo
 hosts-ingest
 hosts-access
-hosts-metadata
+hosts-mongodb
 hosts-logbook
+hosts-metadata
 hosts-workspace
 hosts-processing
-hosts-mongodb
+hosts-storageengine
+hosts-storageofferdefault
+hosts-ingest-external
+hosts-functional-administration
 
 [hosts-mongodb]
 vitam-iaas-mongodb-01.int2
@@ -33,6 +37,12 @@ vitam-iaas-processing-01.int2
 
 [hosts-ihm-demo]
 vitam-iaas-ihm-demo-01.int2
+
+[hosts-storageengine]
+vitam-iaas-access-01.int2
+
+[hosts-storageofferdefault]
+vitam-iaas-access-01.int2
 
 
 [hosts:vars]

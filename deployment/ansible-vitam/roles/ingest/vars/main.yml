@@ -7,5 +7,5 @@ vitam_folder_log: "{{vitam_folder_root}}/{{vitam_component}}/log"
 vitam_folder_data: "{{vitam_folder_root}}/{{vitam_component}}/data"
 
 vitam_docker_name: "{{vitam_component}}-{{vitam_environment}}"
-vitam_docker_port_http: 8100
+vitam_docker_port_http: "{{vitam_ingest_port}}"
 vitam_internal_http_port_web: 8082

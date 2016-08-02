@@ -22,6 +22,10 @@
   roles:
     - {role: vitam, vitam_component: ingest, java_args: '/vitam/ingest/conf/ingest-rest.properties totally_useless_second_argument_but_mandatory' } 
 
+- hosts: hosts-ingest-external
+  roles:
+    - {role: vitam, vitam_component: ingest-external } 
+
 - hosts: hosts-processing
   roles:
     - {role: vitam, vitam_component: processing,java_args: /vitam/processing/conf/processing.conf } 
@@ -33,3 +37,17 @@
 - hosts: hosts-ihm-demo
   roles:
     - {role: vitam, vitam_component: ihm-demo, java_args: /vitam/ihm-demo/conf/ihm-demo.conf } 
+
+- hosts: hosts-storage-engine
+  roles:
+    - {role: vitam, vitam_component: storage-engine, java_args: '/vitam/storage-engine/conf/driver-location.conf /vitam/storage-engine/conf/driver-mapping.conf /vitam/storage-engine/conf/static-offer.json /vitam/storage-engine/conf/static-strategy.json /vitam/storage-engine/conf/storage-engine.conf' }
+
+- hosts: hosts-storage-offer-default
+  roles:
+    - {role: vitam, vitam_component: storage-offer-default, java_args: /vitam/ihm-demo/conf/storage-offer.conf } 
+
+
+- hosts: hosts-functional-administration
+  roles:
+    - {role: vitam, vitam_component: functional-administration }
+

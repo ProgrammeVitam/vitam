@@ -21,3 +21,10 @@
     group: vitam
     recurse: yes
     mode: "{{vitam_folder_permission}}"
+
+- name: desactivate firewalld
+  service:
+    name=firewalld
+    state=stopped
+  notify: restart docker
+  when: (ansible_distribution == "CentOS" ) and  (ansible_distribution_major_version == "7")

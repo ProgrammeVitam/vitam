@@ -1,0 +1,13 @@
+---
+# vars file for access
+vitam_component: "storage-engine"
+internal_name: "storage-engine"
+
+vitam_folder_conf: "{{vitam_folder_root}}/{{vitam_component}}/conf"
+vitam_folder_log: "{{vitam_folder_root}}/{{vitam_component}}/log"
+vitam_folder_data: "{{vitam_folder_root}}/{{vitam_component}}/data"
+
+vitam_docker_name: "{{vitam_component}}-{{vitam_environment}}"
+vitam_docker_port_http: "{{vitam_storageengine_port}}"
+default_storage_url: "{{vitam_storageofferdefault_baseurl}}"
+vitam_docker_port_internal: 8082

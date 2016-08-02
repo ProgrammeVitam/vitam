@@ -1,0 +1,66 @@
+---
+#(user vitam / groupe vitam)
+- name: Ensure VITAM directories exist to persist VITAM data, configuration and logs
+  file: 
+    name={{item}} 
+    state=directory
+    owner={{local_user}}
+    group=vitam
+    mode={{vitam_folder_permission}}
+  with_items:
+  - "{{vitam_folder_conf}}"
+  - "{{vitam_folder_log}}"
+  - "{{vitam_folder_data}}"
+
+- name: Deploy configuration files
+  template:
+    src="{{item}}.j2"
+    dest="{{vitam_folder_conf}}/{{item}}"
+    owner={{local_user}}
+    group=vitam mode={{vitam_conf_permission}}
+  notify: restart container
+  with_items:
+  - "logbook-client.conf"
+  - "server-identity.conf"
+  - "setenv.sh"
+  - "logback.xml"
+  - "default-offer.conf"
+  - "default-storage.conf"
+
+- name: Deploy VITAM docker file
+  docker:
+    name: "{{vitam_docker_name}}"
+    image: "{{docker_registry_hostname}}/vitam/{{vitam_component}}:{{vitam_docker_tag}}"
+    state: started
+    restart_policy: always
+    pull: "{{pull_strategy}}"
+    ports:
+      - "{{vitam_docker_port_http}}:{{vitam_docker_port_internal}}"
+    volumes: 
+      - "{{vitam_folder_conf}}:/vitam/conf"
+      - "{{vitam_folder_log}}:/vitam/log"
+      - "{{vitam_folder_data}}:/vitam/data"
+
+- name: Install Apache package for displaying data content
+  yum:
+    name=httpd
+    state=latest
+  when: (ansible_distribution == "CentOS" )
+
+- name: Ensure  Apache autostart && Apache is started
+  service: 
+    name: httpd
+    enabled: yes
+    state: started
+  when: (ansible_distribution == "CentOS" )
+
+- name: add configuration file for mapping # + notify httpd restart
+  template:
+    src="{{item}}.j2"
+    dest="/etc/httpd/conf.d/{{item}}"
+    mode=0500
+    owner=root
+  when: (ansible_distribution == "CentOS" )
+  notify: restart apache
+  with_items:
+  - "httpd-offer-view.conf"

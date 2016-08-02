@@ -7,8 +7,15 @@ hosts-logbook
 hosts-metadata
 hosts-workspace
 hosts-ingest
+hosts-storageengine
+hosts-storageofferdefault
+hosts-ingest-external
+hosts-functional-administration
 
 [hosts-ihm-demo]
+{{local_docker0_ip}}
+
+[hosts-functional-administration]
 {{local_docker0_ip}}
 
 [hosts-ingest-web]
@@ -16,6 +23,9 @@ hosts-ingest
 
 [hosts-mongo-express]
 {{local_docker0_ip}}
+
+[hosts-ingest-external]
+vitam-prod-app-15.internet.agri
 
 [hosts-ingest]
 {{local_docker0_ip}}
@@ -38,6 +48,11 @@ hosts-ingest
 [hosts-mongodb]
 {{local_docker0_ip}}
 
+[hosts-storageengine]
+{{local_docker0_ip}}
+
+[hosts-storageofferdefault]
+{{local_docker0_ip}}
 
 [hosts:vars]
 ansible_become=true
@@ -47,6 +62,7 @@ docker_registry_hostname=docker.programmevitam.fr
 vitam_folder_permission=0775
 vitam_conf_permission=0775
 pull_strategy=missing
-local_user={{ansible_user_id}}
+local_user=vitam
+vitam_docker_tag=0.6.0-SNAPSHOT
 
 local_docker0_ip=172.17.0.1
