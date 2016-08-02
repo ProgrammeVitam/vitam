@@ -46,7 +46,7 @@ public class WebApplicationConfig {
     }
 
     /**
-     * @param port
+     * @param port port of the web application
      * @return WebApplicationConfig
      */
     public WebApplicationConfig setPort(int port) {
@@ -63,8 +63,8 @@ public class WebApplicationConfig {
     }
 
     /**
-     * @param virtualHosts
-     * @return
+     * @param serverHost server host of the web application
+     * @return WebApplicationConfig
      */
     public WebApplicationConfig setServerHost(String serverHost) {
         ParametersChecker.checkParameter("serverHost is mandatory", serverHost);
@@ -80,7 +80,7 @@ public class WebApplicationConfig {
     }
 
     /**
-     * @param defaultContext
+     * @param baseUrl url of the base
      * @return WebApplicationConfig
      */
     public WebApplicationConfig setBaseUrl(String baseUrl) {
@@ -97,7 +97,7 @@ public class WebApplicationConfig {
     }
 
     /**
-     * @param staticContent
+     * @param staticContent static content from server
      * @return WebApplicationConfig
      */
     public WebApplicationConfig setStaticContent(String staticContent) {
