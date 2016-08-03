@@ -47,4 +47,4 @@ Limites :
 
 - le **référentiel des stratégies de stockage** n'est pas encore implémenté, de ce fait la *stratégie de stockage* est définie de manière statique
 - seule l'**offre de stockage** utilisant une partie du module workspace est disponible
-- la vérification de la disponibilité n'est pas encore implémenté. 
+- la vérification de la disponibilité n'est pas encore implémenté.
