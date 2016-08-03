@@ -101,9 +101,9 @@ public abstract class RequestMultiple extends AbstractRequest {
 
     /**
      *
-     * @param queries
+     * @param queries list of query
      * @return this Request
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public final RequestMultiple addQueries(final Query... queries)
         throws InvalidCreateOperationException {
@@ -133,9 +133,9 @@ public abstract class RequestMultiple extends AbstractRequest {
 
     /**
      *
-     * @param roots
+     * @param roots string root
      * @return this Request
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException when query is invalid
      */
     public final RequestMultiple addRoots(final String... roots)
         throws InvalidParseOperationException {
@@ -148,7 +148,7 @@ public abstract class RequestMultiple extends AbstractRequest {
 
     /**
      *
-     * @param rootContent
+     * @param rootContent array of root 
      * @return this Request
      */
     public final RequestMultiple addRoots(final ArrayNode rootContent) {
@@ -160,9 +160,9 @@ public abstract class RequestMultiple extends AbstractRequest {
 
     /**
      *
-     * @param roots
+     * @param roots string of array root
      * @return this Request
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException when query is invalid
      */
     public final RequestMultiple parseRoots(String roots) throws InvalidParseOperationException {
         GlobalDatas.sanityParametersCheck(roots, GlobalDatas.NB_ROOTS);
@@ -228,7 +228,7 @@ public abstract class RequestMultiple extends AbstractRequest {
     }
 
     /**
-     * @param nth
+     * @param nth query position
      * @return the nth query
      */
     public final Query getNthQuery(int nth) {

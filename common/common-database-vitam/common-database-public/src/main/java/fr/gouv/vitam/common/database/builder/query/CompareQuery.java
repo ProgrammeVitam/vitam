@@ -44,9 +44,9 @@ public class CompareQuery extends Query {
      * Compare Query constructor
      *
      * @param compareQuery lt, gt, lte, gte, eq, ne, size
-     * @param variableName
-     * @param value
-     * @throws InvalidCreateOperationException
+     * @param variableName of query
+     * @param value of variable
+     * @throws InvalidCreateOperationException when not a compare query
      */
     public CompareQuery(final QUERY compareQuery, final String variableName,
         final long value)
@@ -74,9 +74,9 @@ public class CompareQuery extends Query {
      * Compare Query constructor
      *
      * @param compareQuery lt, gt, lte, gte, eq, ne
-     * @param variableName
-     * @param value
-     * @throws InvalidCreateOperationException
+     * @param variableName of query
+     * @param value of variable 
+     * @throws InvalidCreateOperationException when not a compare query
      */
     public CompareQuery(final QUERY compareQuery, final String variableName,
         final double value)
@@ -103,9 +103,9 @@ public class CompareQuery extends Query {
      * Compare Query constructor
      *
      * @param compareQuery lt, gt, lte, gte, eq, ne
-     * @param variableName
-     * @param value
-     * @throws InvalidCreateOperationException
+     * @param variableName of query
+     * @param value of variable
+     * @throws InvalidCreateOperationException when not a compare query
      */
     public CompareQuery(final QUERY compareQuery, final String variableName,
         final String value)
@@ -132,9 +132,9 @@ public class CompareQuery extends Query {
      * Compare Query constructor
      *
      * @param compareQuery lt, gt, lte, gte, eq, ne
-     * @param variableName
-     * @param value
-     * @throws InvalidCreateOperationException
+     * @param variableName of query
+     * @param value of variable
+     * @throws InvalidCreateOperationException when not a compare query
      */
     public CompareQuery(final QUERY compareQuery, final String variableName,
         final Date value)
@@ -161,9 +161,9 @@ public class CompareQuery extends Query {
      * Compare Query constructor
      *
      * @param compareQuery lt, gt, lte, gte, eq, ne
-     * @param variableName
-     * @param value
-     * @throws InvalidCreateOperationException
+     * @param variableName of query
+     * @param value of variable
+     * @throws InvalidCreateOperationException when not a compare query
      */
     public CompareQuery(final QUERY compareQuery, final String variableName,
         final boolean value)

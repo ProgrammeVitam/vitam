@@ -204,7 +204,7 @@ public class Query {
 
     /**
      *
-     * @param relativedepth
+     * @param relativedepth query's depth
      * @return the single request ready to be added to global Query (remove previous exact depth and depth if any)
      */
     public final Query setRelativeDepthLimit(final int relativedepth) {
@@ -217,7 +217,7 @@ public class Query {
     /**
      * Relative Depth, similar to {@link #setRelativeDepthLimit(int)}
      *
-     * @param relativedepth
+     * @param relativedepth query's depth
      * @return the single request ready to be added to global Query (remove previous exact depth and depth if any)
      */
     public final Query setDepthLimit(final int relativedepth) {
@@ -233,7 +233,7 @@ public class Query {
 
     /**
      *
-     * @param key
+     * @param key of node
      * @return the root node named key
      */
     public JsonNode getNode(String key) {
@@ -263,6 +263,7 @@ public class Query {
 
     /**
      * @param ready the ready to set
+     * @return this QUERY
      */
     protected Query setReady(final boolean ready) {
         this.ready = ready;
@@ -271,7 +272,7 @@ public class Query {
 
     /**
      *
-     * @param val
+     * @param val extra value
      * @return this Query
      */
     public Query setExtraInfo(int val) {

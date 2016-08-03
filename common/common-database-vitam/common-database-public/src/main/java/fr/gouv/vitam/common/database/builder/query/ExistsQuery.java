@@ -39,8 +39,8 @@ public class ExistsQuery extends Query {
      * Exists, Missing, IsNull Query constructor
      *
      * @param existsQuery exists, missing, isNull
-     * @param variableName
-     * @throws InvalidCreateOperationException
+     * @param variableName variable name
+     * @throws InvalidCreateOperationException when not valid
      */
     public ExistsQuery(final QUERY existsQuery, final String variableName)
         throws InvalidCreateOperationException {

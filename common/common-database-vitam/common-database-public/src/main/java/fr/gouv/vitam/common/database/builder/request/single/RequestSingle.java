@@ -79,9 +79,9 @@ public abstract class RequestSingle extends AbstractRequest {
 
     /**
      *
-     * @param query
+     * @param query of request
      * @return this Request
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException whern query is invalid
      */
     public final RequestSingle setQuery(final Query query)
         throws InvalidCreateOperationException {

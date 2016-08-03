@@ -59,8 +59,8 @@ public enum FunctionalAdminCollections {
     /**
      * Initialize the collection
      *
-     * @param db
-     * @param recreate
+     * @param db database type
+     * @param recreate true is as recreate type
      */
     protected void initialize(final MongoDatabase db, final boolean recreate) {
         vitamCollection.initialize(db, recreate);

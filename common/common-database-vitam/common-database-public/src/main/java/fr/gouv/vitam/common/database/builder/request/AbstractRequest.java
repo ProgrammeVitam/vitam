@@ -90,9 +90,9 @@ public abstract class AbstractRequest {
 
     /**
      *
-     * @param hints
+     * @param hints list of hint
      * @return this Request
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException when query is invalid
      */
     public final AbstractRequest addHintFilter(final String... hints)
         throws InvalidParseOperationException {
@@ -116,7 +116,7 @@ public abstract class AbstractRequest {
 
     /**
      *
-     * @param filterContent
+     * @param filterContent json filter
      * @return this Request
      */
     public final AbstractRequest addHintFilter(final JsonNode filterContent) {
@@ -137,9 +137,9 @@ public abstract class AbstractRequest {
 
     /**
      *
-     * @param filter
+     * @param filter a string filter
      * @return this Request
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException when query is invalid
      */
     public final AbstractRequest parseHintFilter(final String filter)
         throws InvalidParseOperationException {
@@ -150,9 +150,9 @@ public abstract class AbstractRequest {
 
     /**
      *
-     * @param filterContent
+     * @param filterContent json filter
      * @return this Request
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException when query is invalid
      */
     public AbstractRequest setFilter(final JsonNode filterContent)
         throws InvalidParseOperationException {
@@ -162,9 +162,9 @@ public abstract class AbstractRequest {
 
     /**
      *
-     * @param filter
+     * @param filter String filter
      * @return this Request
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException when query is invalid
      */
     public final AbstractRequest parseFilter(final String filter)
         throws InvalidParseOperationException {
@@ -194,7 +194,9 @@ public abstract class AbstractRequest {
     /**
      * Set the query of request: in case of multi-query request: re-initialize list of query 
      * 
-     * @param query
+     * @param query of request
+     * @return this request
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public abstract AbstractRequest setQuery(Query query) throws InvalidCreateOperationException;
     
@@ -214,23 +216,23 @@ public abstract class AbstractRequest {
     public abstract Set<String> getRoots();
 
     /**
-     * @return
+     * @return the projection json
      */
     public abstract JsonNode getProjection();
     
     /**
-     * @return
+     * @return the data
      */
     public abstract JsonNode getData();
     
     /**
-     * @return
+     * @return list of actions
      */
     public abstract List<Action> getActions();
     
     
     /**
-     * @return
+     * @return add projections
      */
     public abstract boolean getAllProjection();
     

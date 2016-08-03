@@ -44,7 +44,7 @@ public abstract class BuilderToken {
     }
 
     /**
-     * @formatter:off For a Select :<br>
+     *For a Select :<br>
      *                { $roots: roots, $query : query, $filter : filter, $projection : projection } or [ roots, query,
      *                filter, projection ]<br>
      *                For an Update : <br>
@@ -61,7 +61,7 @@ public abstract class BuilderToken {
      *                in leaves depth) Only one of $exactdepth and $depth might be set. If both are set, only $depth
      *                will be kept. <br>
      *                { expression, $exactdepth : exactdepth, $depth : /- depth }
-     * @formatter:on
+     * 
      */
     public static enum GLOBAL {
 
@@ -593,7 +593,7 @@ public abstract class BuilderToken {
      * {\@code
      *
      * Pour mettre à jour (update) :
-     * multiple update : { $multi : true/false } pour autoriser une mise à jour de plusieurs noeuds ou pas (si la requête présente plusieurs résultats mais $multi = false => erreur )
+     * multiple update : { $multi : true/false } pour autoriser une mise à jour de plusieurs noeuds ou pas (si la requête présente plusieurs résultats mais $multi = false is erreur )
      * action :
      *   { $set : { clef : valeur, clef : valeur, ... } } / { $unset : { clef : "", ... } } positionne ou ajoute (si elle n'existait pas) une valeur pour une clef ou efface la clef
      *   { $inc : { clef : valeur, clef : valeur, ... } } incrémente la valeur

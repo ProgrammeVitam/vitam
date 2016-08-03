@@ -49,19 +49,20 @@ public interface MongoDbAccessReferential {
     /**
      * insert documents
      * @param arrayNode of documents
-     * @param collection
+     * @param collection collection of Mongo for insert
      * @throws ReferentialException when error occurs
      */
     public void insertDocuments(ArrayNode arrayNode, FunctionalAdminCollections collection) throws ReferentialException;
     
     /**
      * Drop FileFormat collections
-     * @param collection
+     * @param collection  collection of Mongo for insert
      */
     public void deleteCollection(FunctionalAdminCollections collection);
     
     /**
      * @param id of vitam document
+     * @param collection collection of Mongo for insert 
      * @return vitam document
      * @throws ReferentialException when error occurs
      */
@@ -69,7 +70,7 @@ public interface MongoDbAccessReferential {
 
     /**
      * @param select filter
-     * @param collection
+     * @param collection collection of Mongo for insert
      * @return vitam document list
      * @throws ReferentialException  when error occurs
      */

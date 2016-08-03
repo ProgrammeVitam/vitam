@@ -44,7 +44,7 @@ public final class MongoDbAccessAdminFactory {
     /**
      * Creation of one MongoDbAccess
      *
-     * @param configuration
+     * @param configuration config of MongoDbAcess
      * @return the MongoDbAccess
      * @throws IllegalArgumentException if argument is null
      */

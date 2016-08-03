@@ -47,9 +47,9 @@ public class PushAction extends Action {
     /**
      * Push Action constructor
      *
-     * @param variableName
-     * @param value
-     * @throws InvalidCreateOperationException
+     * @param variableName key name
+     * @param value key value
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public PushAction(final String variableName, final String... value)
         throws InvalidCreateOperationException {
@@ -72,9 +72,9 @@ public class PushAction extends Action {
     /**
      * Push Action constructor
      *
-     * @param variableName
-     * @param value
-     * @throws InvalidCreateOperationException
+     * @param variableName key name
+     * @param value key value
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public PushAction(final String variableName, final long... value)
         throws InvalidCreateOperationException {
@@ -90,9 +90,9 @@ public class PushAction extends Action {
     /**
      * Push Action constructor
      *
-     * @param variableName
-     * @param value
-     * @throws InvalidCreateOperationException
+     * @param variableName key name
+     * @param value key value
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public PushAction(final String variableName, final boolean... value)
         throws InvalidCreateOperationException {
@@ -108,9 +108,9 @@ public class PushAction extends Action {
     /**
      * Push Action constructor
      *
-     * @param variableName
-     * @param value
-     * @throws InvalidCreateOperationException
+     * @param variableName key name
+     * @param value key value
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public PushAction(final String variableName, final double... value)
         throws InvalidCreateOperationException {
@@ -126,9 +126,9 @@ public class PushAction extends Action {
     /**
      * Push Action constructor
      *
-     * @param variableName
-     * @param value
-     * @throws InvalidCreateOperationException
+     * @param variableName key name
+     * @param value key value
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public PushAction(final String variableName, final Date... value)
         throws InvalidCreateOperationException {
@@ -144,9 +144,9 @@ public class PushAction extends Action {
     /**
      * Add other Push sub actions to Push Query
      *
-     * @param value
+     * @param value key value
      * @return the PushAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public final PushAction add(final String... value)
         throws InvalidCreateOperationException {
@@ -170,9 +170,9 @@ public class PushAction extends Action {
     /**
      * Add other Push sub actions to Push Query
      *
-     * @param value
+     * @param value key value
      * @return the PushAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public final PushAction add(final boolean... value)
         throws InvalidCreateOperationException {
@@ -189,9 +189,9 @@ public class PushAction extends Action {
     /**
      * Add other Push sub actions to Push Query
      *
-     * @param value
+     * @param value key value
      * @return the PushAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public final PushAction add(final long... value)
         throws InvalidCreateOperationException {
@@ -208,9 +208,9 @@ public class PushAction extends Action {
     /**
      * Add other Push sub actions to Push Query
      *
-     * @param value
+     * @param value key value
      * @return the PushAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public final PushAction add(final double... value)
         throws InvalidCreateOperationException {
@@ -227,9 +227,9 @@ public class PushAction extends Action {
     /**
      * Add other Push sub actions to Push Query
      *
-     * @param value
+     * @param value key value
      * @return the PushAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public final PushAction add(final Date... value)
         throws InvalidCreateOperationException {

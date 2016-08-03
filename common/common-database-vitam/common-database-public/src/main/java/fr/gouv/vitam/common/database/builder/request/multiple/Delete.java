@@ -48,7 +48,7 @@ public class Delete extends RequestMultiple {
     }
 
     /**
-     * @param filterContent
+     * @param filterContent json filter
      * @return this Delete
      */
     public final Delete setMult(final JsonNode filterContent) {
@@ -63,9 +63,9 @@ public class Delete extends RequestMultiple {
 
     /**
      *
-     * @param filterContent
+     * @param filterContent json filter
      * @return this Delete
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if filter invalid
      */
     @Override
     public final Delete setFilter(final JsonNode filterContent)

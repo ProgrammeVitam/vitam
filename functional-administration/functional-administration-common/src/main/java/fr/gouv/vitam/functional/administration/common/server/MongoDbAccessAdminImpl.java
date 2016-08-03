@@ -69,9 +69,9 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
     
     
     /**
-     * @param mongoClient
-     * @param dbname
-     * @param recreate
+     * @param mongoClient client of mongo
+     * @param dbname name of database
+     * @param recreate true if recreate type
      */
     protected MongoDbAccessAdminImpl(MongoClient mongoClient, String dbname, boolean recreate) {
         super(mongoClient, dbname, recreate);

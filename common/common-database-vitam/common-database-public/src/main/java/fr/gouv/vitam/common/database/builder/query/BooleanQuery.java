@@ -46,7 +46,7 @@ public class BooleanQuery extends Query {
      * BooleanQuery constructor
      *
      * @param booleanQuery and or not
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when not a boolean query or error 
      */
     public BooleanQuery(final QUERY booleanQuery) throws InvalidCreateOperationException {
         super();
@@ -75,9 +75,9 @@ public class BooleanQuery extends Query {
     /**
      * Add sub queries to Boolean Query
      *
-     * @param queries
+     * @param queries list of query
      * @return the BooleanQuery
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when not ready or error
      */
     public final BooleanQuery add(final Query... queries)
         throws InvalidCreateOperationException {

@@ -52,9 +52,9 @@ public class TermQuery extends Query {
     /**
      * Term Query constructor
      *
-     * @param variableName
-     * @param value
-     * @throws InvalidCreateOperationException
+     * @param variableName key name
+     * @param value key value 
+     * @throws InvalidCreateOperationException when query is invalid 
      */
     public TermQuery(final String variableName, final String value)
         throws InvalidCreateOperationException {
@@ -67,9 +67,9 @@ public class TermQuery extends Query {
     /**
      * Term Query constructor
      *
-     * @param variableName
-     * @param value
-     * @throws InvalidCreateOperationException
+     * @param variableName  key name
+     * @param value key value
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public TermQuery(final String variableName, final long value)
         throws InvalidCreateOperationException {
@@ -82,9 +82,9 @@ public class TermQuery extends Query {
     /**
      * Term Query constructor
      *
-     * @param variableName
-     * @param value
-     * @throws InvalidCreateOperationException
+     * @param variableName  key name
+     * @param value key value
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public TermQuery(final String variableName, final double value)
         throws InvalidCreateOperationException {
@@ -97,9 +97,9 @@ public class TermQuery extends Query {
     /**
      * Term Query constructor
      *
-     * @param variableName
-     * @param value
-     * @throws InvalidCreateOperationException
+     * @param variableName key name
+     * @param value key value
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public TermQuery(final String variableName, final boolean value)
         throws InvalidCreateOperationException {
@@ -112,9 +112,9 @@ public class TermQuery extends Query {
     /**
      * Term Query constructor
      *
-     * @param variableName
-     * @param value
-     * @throws InvalidCreateOperationException
+     * @param variableName key name
+     * @param value key value
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public TermQuery(final String variableName, final Date value)
         throws InvalidCreateOperationException {
@@ -127,8 +127,8 @@ public class TermQuery extends Query {
     /**
      * Term Query constructor from Map
      *
-     * @param variableNameValue
-     * @throws InvalidCreateOperationException
+     * @param variableNameValue map of name and value
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public TermQuery(final Map<String, Object> variableNameValue)
         throws InvalidCreateOperationException {
@@ -155,10 +155,10 @@ public class TermQuery extends Query {
     /**
      * Add other Term sub queries to Term Query
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return the TermQuery
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public final TermQuery add(final String variableName, final String value)
         throws InvalidCreateOperationException {
@@ -183,10 +183,10 @@ public class TermQuery extends Query {
     /**
      * Add other Term sub queries to Term Query
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return the TermQuery
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public final TermQuery add(final String variableName, final long value)
         throws InvalidCreateOperationException {
@@ -210,10 +210,10 @@ public class TermQuery extends Query {
     /**
      * Add other Term sub queries to Term Query
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return the TermQuery
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public final TermQuery add(final String variableName, final double value)
         throws InvalidCreateOperationException {
@@ -237,10 +237,10 @@ public class TermQuery extends Query {
     /**
      * Add other Term sub queries to Term Query
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return the TermQuery
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public final TermQuery add(final String variableName, final boolean value)
         throws InvalidCreateOperationException {
@@ -264,10 +264,10 @@ public class TermQuery extends Query {
     /**
      * Add other Term sub queries to Term Query
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return the TermQuery
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public final TermQuery add(final String variableName, final Date value)
         throws InvalidCreateOperationException {

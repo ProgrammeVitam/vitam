@@ -78,8 +78,9 @@ public class GlobalDatas {
     /**
      * Check the String if conforms to sanity check
      *
-     * @param arg
-     * @throws InvalidCreateOperationException if the sanity check is in error
+     * @param arg argument
+     * @param size limit
+     * @throws InvalidParseOperationException if the sanity check is in error
      */
     protected static final void sanityCheck(String arg, int size)
         throws InvalidParseOperationException {
@@ -93,7 +94,7 @@ public class GlobalDatas {
     /**
      * Check the String if conforms to sanity check
      *
-     * @param arg
+     * @param arg argument
      * @throws InvalidParseOperationException if the sanity check is in error
      */
     public static final void sanityValueCheck(String arg)
@@ -104,7 +105,7 @@ public class GlobalDatas {
     /**
      * Check the String if conforms to sanity check for small parameters
      *
-     * @param arg
+     * @param arg argument
      * @throws InvalidParseOperationException if the sanity check is in error
      */
     public static final void sanityParameterCheck(String arg)
@@ -119,7 +120,7 @@ public class GlobalDatas {
     /**
      * Check the String if conforms to sanity check for small parameters
      *
-     * @param arg
+     * @param arg argument
      * @param multipleParams how many parameters
      * @throws InvalidParseOperationException if the sanity check is in error
      */
@@ -129,7 +130,7 @@ public class GlobalDatas {
     }
 
     /**
-     * @param date
+     * @param date param
      * @return the corresponding Date in Json format
      * @throws IllegalArgumentException if date is null
      */
@@ -141,9 +142,9 @@ public class GlobalDatas {
 
     /**
      *
-     * @param value
+     * @param value of node
      * @return the JsonNode for Value
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when object is not json
      */
     public static final JsonNode getValueJsonNode(final Object value)
         throws InvalidCreateOperationException {
@@ -176,7 +177,7 @@ public class GlobalDatas {
     /**
      * Check the Variable name if conforms to sanity check
      *
-     * @param arg
+     * @param arg argument
      * @throws InvalidParseOperationException if the sanity check is in error
      * @throws IllegalArgumentException if arg is null
      */
