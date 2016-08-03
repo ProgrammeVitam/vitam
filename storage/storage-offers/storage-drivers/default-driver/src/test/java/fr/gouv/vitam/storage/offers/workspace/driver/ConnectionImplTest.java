@@ -39,7 +39,7 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.model.PutObjectRequest;
 import fr.gouv.vitam.storage.driver.model.PutObjectResult;
-import fr.gouv.vitam.storage.offers.workspace.core.ObjectInit;
+import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 
 public class ConnectionImplTest extends JerseyTest {
 
