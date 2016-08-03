@@ -38,10 +38,10 @@ public class SearchQuery extends fr.gouv.vitam.common.database.builder.query.Sea
     /**
      * For Parsing
      *
-     * @param req
-     * @param request
-     * @param adapter
-     * @throws InvalidParseOperationException
+     * @param req QUERY
+     * @param request JsonNode
+     * @param adapter VarNameAdapter
+     * @throws InvalidParseOperationException if could not parse to JSON
      */
     public SearchQuery(final QUERY req, final JsonNode request, final VarNameAdapter adapter)
         throws InvalidParseOperationException {

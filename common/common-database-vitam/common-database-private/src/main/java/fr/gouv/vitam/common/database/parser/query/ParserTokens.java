@@ -101,7 +101,7 @@ public class ParserTokens extends BuilderToken {
 
         /**
          *
-         * @param name
+         * @param name String
          * @return the corresponding PROJECTIONARGS
          * @throws IllegalArgumentException if not found
          */
@@ -121,7 +121,7 @@ public class ParserTokens extends BuilderToken {
 
         /**
          *
-         * @param name
+         * @param name String
          * @return True if this value is not allowed on set (insert, update)
          */
         public static boolean notAllowedOnSet(String name) {

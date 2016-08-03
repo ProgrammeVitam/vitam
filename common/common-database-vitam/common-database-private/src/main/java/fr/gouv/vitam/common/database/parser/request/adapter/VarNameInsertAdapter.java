@@ -44,7 +44,7 @@ public class VarNameInsertAdapter extends VarNameAdapter {
     /**
      * Constructor
      *
-     * @param adapter
+     * @param adapter VarNameAdapter
      */
     public VarNameInsertAdapter(VarNameAdapter adapter) {
         this.adapter = adapter;
@@ -53,9 +53,9 @@ public class VarNameInsertAdapter extends VarNameAdapter {
     /**
      * Check for Insert from Builder
      *
-     * @param rootNode
+     * @param rootNode JsonNode
      * @return the new JsonNode in replacement of rootNode
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if rootNode could not parse to JSON
      */
     public JsonNode getFixedVarNameJsonNode(JsonNode rootNode) throws InvalidParseOperationException {
         // Note: some values are not allowed, as #id

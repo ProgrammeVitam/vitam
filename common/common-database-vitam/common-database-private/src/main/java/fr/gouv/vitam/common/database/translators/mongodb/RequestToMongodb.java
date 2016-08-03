@@ -45,7 +45,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 public abstract class RequestToMongodb extends RequestToAbstract {
     
     /**
-     * @param requestParser
+     * @param requestParser AbstractParser of unknown type
      */
     public RequestToMongodb(AbstractParser<?> requestParser) {
         super(requestParser);
@@ -54,7 +54,7 @@ public abstract class RequestToMongodb extends RequestToAbstract {
     /**
      * Create the RequestToMongoDB adapted to the RequestParser
      *
-     * @param requestParser
+     * @param requestParser AbstractParser of unknown type
      * @return the associated RequestToMongoDb
      */
     public static RequestToMongodb getRequestToMongoDb(AbstractParser<?> requestParser) {
@@ -76,7 +76,7 @@ public abstract class RequestToMongodb extends RequestToAbstract {
      *
      * @param field Field from which the proposed values shall be found
      * @return the filter associated with the initial roots
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if field could not parse to JSON
      */
     public Bson getInitialRoots(final String field) throws InvalidParseOperationException {
         final Set<String> roots = requestParser.getRequest().getRoots();
@@ -85,8 +85,8 @@ public abstract class RequestToMongodb extends RequestToAbstract {
 
     /**
      *
-     * @param roots
-     * @param query
+     * @param roots Bson
+     * @param query Bson
      * @return the final request
      */
     public Bson getRequest(Bson roots, Bson query) {
@@ -96,11 +96,11 @@ public abstract class RequestToMongodb extends RequestToAbstract {
     /**
      * find(query)
      *
-     * @param nth
+     * @param nth int
      * @return the associated query for find (missing the source however, as initialRoots)
-     * @throws IllegalAccessException
-     * @throws IllegalAccessError
-     * @throws InvalidParseOperationException
+     * @throws IllegalAccessException if nth exceed the size of list
+     * @throws IllegalAccessError if query is full text
+     * @throws InvalidParseOperationException if could not get command by query
      */
     public Bson getNthQueries(final int nth) throws IllegalAccessException,
         IllegalAccessError, InvalidParseOperationException {

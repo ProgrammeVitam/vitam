@@ -41,9 +41,9 @@ public class QueryDepthHelper extends Query {
     /**
      * For Parsing operation
      *
-     * @param query
-     * @param exactDepth
-     * @param relativeDepth
+     * @param query Query
+     * @param exactDepth int depth exact
+     * @param relativeDepth int depth relative
      */
     public void setDepths(Query query, int exactDepth, int relativeDepth) {
         query.setParserExactdepth(exactDepth).setParserRelativeDepth(relativeDepth);
@@ -52,7 +52,7 @@ public class QueryDepthHelper extends Query {
     /**
      * For Execute operation
      *
-     * @param query
+     * @param query Query
      * @return the exact depth
      */
     public int getExactDepth(Query query) {
@@ -62,7 +62,7 @@ public class QueryDepthHelper extends Query {
     /**
      * For Execute operation
      *
-     * @param query
+     * @param query Query
      * @return the relative depth
      */
     public int getRelativeDepth(Query query) {

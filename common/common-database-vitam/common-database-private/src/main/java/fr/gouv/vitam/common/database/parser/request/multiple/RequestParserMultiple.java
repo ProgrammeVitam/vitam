@@ -87,7 +87,7 @@ public abstract class RequestParserMultiple  extends AbstractParser<RequestMulti
     }
 
     /**
-     * @param adapter
+     * @param adapter VarNameAdapter
      *
      */
     public RequestParserMultiple(VarNameAdapter adapter) {
@@ -137,7 +137,7 @@ public abstract class RequestParserMultiple  extends AbstractParser<RequestMulti
     /**
      *
      * @param query containing only the JSON query part (no filter neither roots)
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if query could not parse to JSON
      */
     protected void parseQueryOnly(final String query)
         throws InvalidParseOperationException {
@@ -164,8 +164,8 @@ public abstract class RequestParserMultiple  extends AbstractParser<RequestMulti
     /**
      * Will be used as extra arguments in the first query
      *
-     * @param rootNode
-     * @throws InvalidParseOperationException
+     * @param rootNode JsonNode the root of the request
+     * @throws InvalidParseOperationException if rootNode could not parse to JSON
      */
     protected void rootParse(final JsonNode rootNode)
         throws InvalidParseOperationException {
@@ -183,6 +183,9 @@ public abstract class RequestParserMultiple  extends AbstractParser<RequestMulti
 
     /**
      * Filter part
+     * 
+     * @param rootNode JsonNode The filter of the request
+     * @throws InvalidParseOperationException if rootNode could not parse to JSON
      */
     protected void filterParse(final JsonNode rootNode)
         throws InvalidParseOperationException {
@@ -201,8 +204,8 @@ public abstract class RequestParserMultiple  extends AbstractParser<RequestMulti
     /**
      * [ query, query ] or { query } if one level only
      *
-     * @param rootNode
-     * @throws InvalidParseOperationException
+     * @param rootNode JsonNode the query of the request
+     * @throws InvalidParseOperationException if rootNode could not parse to JSON
      */
     protected void queryParse(final JsonNode rootNode)
         throws InvalidParseOperationException {
@@ -237,9 +240,9 @@ public abstract class RequestParserMultiple  extends AbstractParser<RequestMulti
      * { expression, $exactdepth : exactdepth, $depth : /- depth }, $exactdepth and $depth being optional (mutual
      * exclusive)
      *
-     * @param command
-     * @throws InvalidParseOperationException
-     * @throws InvalidCreateOperationException
+     * @param command JsonNode
+     * @throws InvalidParseOperationException if query could not parse to JSON
+     * @throws InvalidCreateOperationException if could not create query in JSON
      */
     protected void analyzeRootQuery(final JsonNode command)
         throws InvalidParseOperationException,

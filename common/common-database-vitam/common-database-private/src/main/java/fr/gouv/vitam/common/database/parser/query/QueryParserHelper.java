@@ -42,7 +42,7 @@ public class QueryParserHelper extends QueryHelper {
     /**
      *
      * @param array primary list of path in the future PathQuery
-     * @param adapter
+     * @param adapter VarNameAdapter
      * @return a PathQuery
      */
     public static final PathQuery path(final JsonNode array, final VarNameAdapter adapter) {
@@ -51,10 +51,10 @@ public class QueryParserHelper extends QueryHelper {
 
     /**
      *
-     * @param command
-     * @param adapter
+     * @param command JsonNode
+     * @param adapter VarNameAdapter
      * @return a CompareQuery using EQ comparator
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if could not parse to JSON
      */
     public static final CompareQuery eq(final JsonNode command, final VarNameAdapter adapter)
         throws InvalidParseOperationException {
@@ -63,10 +63,10 @@ public class QueryParserHelper extends QueryHelper {
 
     /**
      *
-     * @param command
-     * @param adapter
+     * @param command JsonNode
+     * @param adapter VarNameAdapter
      * @return a CompareQuery using NE comparator
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if could not parse to JSON
      */
     public static final CompareQuery ne(final JsonNode command, final VarNameAdapter adapter)
         throws InvalidParseOperationException {
@@ -75,10 +75,10 @@ public class QueryParserHelper extends QueryHelper {
 
     /**
      *
-     * @param command
-     * @param adapter
+     * @param command JsonNode
+     * @param adapter VarNameAdapter
      * @return a CompareQuery using LT (less than) comparator
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if could not parse to JSON
      */
     public static final CompareQuery lt(final JsonNode command, final VarNameAdapter adapter)
         throws InvalidParseOperationException {
@@ -87,10 +87,10 @@ public class QueryParserHelper extends QueryHelper {
 
     /**
      *
-     * @param command
-     * @param adapter
+     * @param command JsonNode
+     * @param adapter VarNameAdapter
      * @return a CompareQuery using LTE (less than or equal) comparator
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if could not parse to JSON
      */
     public static final CompareQuery lte(final JsonNode command, final VarNameAdapter adapter)
         throws InvalidParseOperationException {
@@ -99,10 +99,10 @@ public class QueryParserHelper extends QueryHelper {
 
     /**
      *
-     * @param command
-     * @param adapter
+     * @param command JsonNode
+     * @param adapter VarNameAdapter
      * @return a CompareQuery using GT (greater than) comparator
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if could not parse to JSON
      */
     public static final CompareQuery gt(final JsonNode command, final VarNameAdapter adapter)
         throws InvalidParseOperationException {
@@ -111,10 +111,10 @@ public class QueryParserHelper extends QueryHelper {
 
     /**
      *
-     * @param command
-     * @param adapter
+     * @param command JsonNode
+     * @param adapter VarNameAdapter
      * @return a CompareQuery using GTE (greater than or equal) comparator
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if could not parse to JSON
      */
     public static final CompareQuery gte(final JsonNode command, final VarNameAdapter adapter)
         throws InvalidParseOperationException {
@@ -123,10 +123,10 @@ public class QueryParserHelper extends QueryHelper {
 
     /**
      *
-     * @param command
-     * @param adapter
+     * @param command JsonNode
+     * @param adapter VarNameAdapter
      * @return a CompareQuery using SIZE comparator
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if could not parse to JSON
      */
     public static final CompareQuery size(final JsonNode command, final VarNameAdapter adapter)
         throws InvalidParseOperationException {
@@ -135,11 +135,11 @@ public class QueryParserHelper extends QueryHelper {
 
     /**
      *
-     * @param command
-     * @param adapter
+     * @param command JsonNode
+     * @param adapter VarNameAdapter
      * @return an ExistsQuery
      * @throws InvalidCreateOperationException using Exists operator
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if could not parse to JSON
      */
     public static final ExistsQuery exists(final JsonNode command, final VarNameAdapter adapter)
         throws InvalidCreateOperationException, InvalidParseOperationException {
@@ -148,11 +148,11 @@ public class QueryParserHelper extends QueryHelper {
 
     /**
      *
-     * @param command
-     * @param adapter
+     * @param command JsonNode
+     * @param adapter VarNameAdapter
      * @return an ExistsQuery using Missing operator
-     * @throws InvalidCreateOperationException
-     * @throws InvalidParseOperationException
+     * @throws InvalidCreateOperationException using Exists operator
+     * @throws InvalidParseOperationException if could not parse to JSON
      */
     public static final ExistsQuery missing(final JsonNode command, final VarNameAdapter adapter)
         throws InvalidCreateOperationException, InvalidParseOperationException {
@@ -161,11 +161,11 @@ public class QueryParserHelper extends QueryHelper {
 
     /**
      *
-     * @param command
-     * @param adapter
+     * @param command JsonNode
+     * @param adapter VarNameAdapter
      * @return an ExistsQuery using isNull operator
-     * @throws InvalidCreateOperationException
-     * @throws InvalidParseOperationException
+     * @throws InvalidCreateOperationException using Exists operator
+     * @throws InvalidParseOperationException if could not parse to JSON
      */
     public static final ExistsQuery isNull(final JsonNode command, final VarNameAdapter adapter)
         throws InvalidCreateOperationException, InvalidParseOperationException {
@@ -174,10 +174,10 @@ public class QueryParserHelper extends QueryHelper {
 
     /**
      *
-     * @param command
-     * @param adapter
+     * @param command JsonNode
+     * @param adapter VarNameAdapter
      * @return an InQuery using IN operator
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if could not parse to JSON
      */
     public static final InQuery in(final JsonNode command, final VarNameAdapter adapter)
         throws InvalidParseOperationException {
@@ -186,10 +186,10 @@ public class QueryParserHelper extends QueryHelper {
 
     /**
      *
-     * @param command
-     * @param adapter
+     * @param command JsonNode
+     * @param adapter VarNameAdapter
      * @return an InQuery using NIN (not in) operator
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if could not parse to JSON
      */
     public static final InQuery nin(final JsonNode command, final VarNameAdapter adapter)
         throws InvalidParseOperationException {
@@ -198,10 +198,10 @@ public class QueryParserHelper extends QueryHelper {
 
     /**
      *
-     * @param command
-     * @param adapter
+     * @param command JsonNode
+     * @param adapter VarNameAdapter
      * @return a MatchQuery using MATCH operator
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if could not parse to JSON
      */
     public static final MatchQuery match(final JsonNode command, final VarNameAdapter adapter)
         throws InvalidParseOperationException {
@@ -210,10 +210,10 @@ public class QueryParserHelper extends QueryHelper {
 
     /**
      *
-     * @param command
-     * @param adapter
+     * @param command JsonNode
+     * @param adapter VarNameAdapter
      * @return a MatchQuery using MATCH_PHRASE operator
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if could not parse to JSON
      */
     public static final MatchQuery matchPhrase(final JsonNode command, final VarNameAdapter adapter)
         throws InvalidParseOperationException {
@@ -222,10 +222,10 @@ public class QueryParserHelper extends QueryHelper {
 
     /**
      *
-     * @param command
-     * @param adapter
+     * @param command JsonNode
+     * @param adapter VarNameAdapter
      * @return a MatchQuery using MATCH_PHRASE_PREFIX operator
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if could not parse to JSON
      */
     public static final MatchQuery matchPhrasePrefix(final JsonNode command, final VarNameAdapter adapter)
         throws InvalidParseOperationException {
@@ -234,10 +234,10 @@ public class QueryParserHelper extends QueryHelper {
 
     /**
      *
-     * @param command
-     * @param adapter
+     * @param command JsonNode
+     * @param adapter VarNameAdapter
      * @return a MatchQuery using PREFIX operator
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if could not parse to JSON
      */
     public static final MatchQuery prefix(final JsonNode command, final VarNameAdapter adapter)
         throws InvalidParseOperationException {
@@ -246,10 +246,10 @@ public class QueryParserHelper extends QueryHelper {
 
     /**
      *
-     * @param command
-     * @param adapter
+     * @param command JsonNode
+     * @param adapter VarNameAdapter
      * @return a SearchQuery using REGEX operator
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if could not parse to JSON
      */
     public static final SearchQuery regex(final JsonNode command, final VarNameAdapter adapter)
         throws InvalidParseOperationException {
@@ -258,10 +258,10 @@ public class QueryParserHelper extends QueryHelper {
 
     /**
      *
-     * @param command
-     * @param adapter
+     * @param command JsonNode
+     * @param adapter VarNameAdapter
      * @return a SearchQuery using SEARCH operator
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if could not parse to JSON
      */
     public static final SearchQuery search(final JsonNode command, final VarNameAdapter adapter)
         throws InvalidParseOperationException {
@@ -270,10 +270,10 @@ public class QueryParserHelper extends QueryHelper {
 
     /**
      *
-     * @param command
-     * @param adapter
+     * @param command JsonNode
+     * @param adapter VarNameAdapter
      * @return a TermQuery
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if could not parse to JSON
      */
     public static final TermQuery term(final JsonNode command, final VarNameAdapter adapter)
         throws InvalidParseOperationException {
@@ -282,10 +282,10 @@ public class QueryParserHelper extends QueryHelper {
 
     /**
      *
-     * @param command
-     * @param adapter
+     * @param command JsonNode
+     * @param adapter VarNameAdapter
      * @return a WildcardQuery
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if could not parse to JSON
      */
     public static final WildcardQuery wildcard(final JsonNode command, final VarNameAdapter adapter)
         throws InvalidParseOperationException {
@@ -294,10 +294,10 @@ public class QueryParserHelper extends QueryHelper {
 
     /**
      *
-     * @param command
-     * @param adapter
+     * @param command JsonNode
+     * @param adapter VarNameAdapter
      * @return a MltQuery using a FLT (fuzzy like this) operator
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if could not parse to JSON
      */
     public static final MltQuery flt(final JsonNode command, final VarNameAdapter adapter)
         throws InvalidParseOperationException {
@@ -306,10 +306,10 @@ public class QueryParserHelper extends QueryHelper {
 
     /**
      *
-     * @param command
-     * @param adapter
+     * @param command JsonNode
+     * @param adapter VarNameAdapter
      * @return a MltQuery using a MLT (more like this) operator
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if could not parse to JSON
      */
     public static final MltQuery mlt(final JsonNode command, final VarNameAdapter adapter)
         throws InvalidParseOperationException {
@@ -318,10 +318,10 @@ public class QueryParserHelper extends QueryHelper {
 
     /**
      *
-     * @param command
-     * @param adapter
+     * @param command JsonNode
+     * @param adapter VarNameAdapter
      * @return a RangeQuery
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if could not parse to JSON
      */
     public static final RangeQuery range(final JsonNode command, final VarNameAdapter adapter)
         throws InvalidParseOperationException {

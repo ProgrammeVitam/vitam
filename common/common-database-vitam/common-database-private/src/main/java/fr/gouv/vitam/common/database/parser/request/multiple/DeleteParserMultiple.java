@@ -44,7 +44,7 @@ public class DeleteParserMultiple extends RequestParserMultiple {
     }
 
     /**
-     * @param adapter
+     * @param adapter VarNameAdapter
      *
      */
     public DeleteParserMultiple(VarNameAdapter adapter) {
@@ -60,7 +60,7 @@ public class DeleteParserMultiple extends RequestParserMultiple {
      *
      * @param request containing a parsed JSON as { $roots: roots, $query : query, $filter : multi } or [ roots, query,
      *        multi ]
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if request could not parse to JSON
      */
     @Override
     public void parse(final JsonNode request) throws InvalidParseOperationException {

@@ -64,7 +64,7 @@ public abstract class RequestParserSingle extends AbstractParser<RequestSingle> 
     }
 
     /**
-     * @param adapter
+     * @param adapter VarNameAdapter
      *
      */
     public RequestParserSingle(VarNameAdapter adapter) {
@@ -105,7 +105,7 @@ public abstract class RequestParserSingle extends AbstractParser<RequestSingle> 
     /**
      *
      * @param jsonRequest containing a parsed JSON as [ {query}, {filter} ] or { $query : query, $filter : filter }
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if jsonRequest could not parse to JSON
      */
     protected void parseJson(final JsonNode jsonRequest) throws InvalidParseOperationException {
         super.parseJson(jsonRequest);
@@ -115,7 +115,7 @@ public abstract class RequestParserSingle extends AbstractParser<RequestSingle> 
     /**
      *
      * @param query containing only the JSON query part (no filter)
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if query could not parse to JSON or sanity check to query is in error
      */
     protected void parseQueryOnly(final String query)
         throws InvalidParseOperationException {
@@ -139,6 +139,9 @@ public abstract class RequestParserSingle extends AbstractParser<RequestSingle> 
 
     /**
      * Filter part
+     *
+     * @param rootNode JsonNode
+     * @throws InvalidParseOperationException if rootNode could not parse to JSON
      */
     protected void filterParse(final JsonNode rootNode)
         throws InvalidParseOperationException {
@@ -157,8 +160,8 @@ public abstract class RequestParserSingle extends AbstractParser<RequestSingle> 
     /**
      * { query } if one level only
      *
-     * @param rootNode
-     * @throws InvalidParseOperationException
+     * @param rootNode JsonNode
+     * @throws InvalidParseOperationException if rootNode could not parse to JSON
      */
     protected void queryParse(final JsonNode rootNode)
         throws InvalidParseOperationException {
@@ -177,9 +180,9 @@ public abstract class RequestParserSingle extends AbstractParser<RequestSingle> 
     /**
      * { expression }
      *
-     * @param command
-     * @throws InvalidParseOperationException
-     * @throws InvalidCreateOperationException
+     * @param command JsonNode
+     * @throws InvalidParseOperationException if command is null or command could not parse to JSON
+     * @throws InvalidCreateOperationException if could not set query to request or analyzeOneCommand is in error
      */
     protected void analyzeRootQuery(final JsonNode command)
         throws InvalidParseOperationException,

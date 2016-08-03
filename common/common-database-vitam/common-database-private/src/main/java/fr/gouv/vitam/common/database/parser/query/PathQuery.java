@@ -41,9 +41,9 @@ public class PathQuery extends fr.gouv.vitam.common.database.builder.query.PathQ
     /**
      * For Parsing
      *
-     * @param req
-     * @param request
-     * @param adapter
+     * @param req QUERY
+     * @param request JsonNode
+     * @param adapter VarNameAdapter
      */
     public PathQuery(final QUERY req, final JsonNode request, final VarNameAdapter adapter) {
         super();

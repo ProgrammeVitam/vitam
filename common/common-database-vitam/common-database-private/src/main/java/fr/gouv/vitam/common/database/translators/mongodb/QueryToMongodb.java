@@ -76,10 +76,10 @@ public class QueryToMongodb {
     }
 
     /**
-     * @param field
-     * @param roots
+     * @param field String
+     * @param roots Set of String
      * @return the filter associated with the roots
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if field is not in roots
      */
     public static Bson getRoots(final String field, final Set<String> roots) throws InvalidParseOperationException {
         if (roots.size() == 1) {
@@ -96,8 +96,8 @@ public class QueryToMongodb {
     /**
      * Merge a request and a root filter
      *
-     * @param command
-     * @param roots
+     * @param command Bson
+     * @param roots Bson
      * @return the complete request
      */
     public static Bson getFullCommand(final Bson command, final Bson roots) {
@@ -106,9 +106,9 @@ public class QueryToMongodb {
 
     /**
      *
-     * @param query
+     * @param query Query
      * @return the associated MongoDB BSON request
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if query could not parse to command
      */
     public static Bson getCommand(final Query query)
         throws InvalidParseOperationException {
@@ -167,7 +167,7 @@ public class QueryToMongodb {
     }
 
     /**
-     * @param content
+     * @param content JsonNode
      * @return the IsNull Command
      */
     private static Bson isNullCommand(final JsonNode content) {
@@ -176,7 +176,7 @@ public class QueryToMongodb {
     }
 
     /**
-     * @param content
+     * @param content JsonNode
      * @return the Path Command
      */
     private static Bson pathCommand(final JsonNode content) {
@@ -190,10 +190,10 @@ public class QueryToMongodb {
     }
 
     /**
-     * @param req
-     * @param content
+     * @param req QUERY
+     * @param content JsonNode
      * @return the Size Command
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if check unicity is in error
      */
     private static Bson sizeCommand(final QUERY req, final JsonNode content) throws InvalidParseOperationException {
         final Entry<String, JsonNode> element =
@@ -202,10 +202,10 @@ public class QueryToMongodb {
     }
 
     /**
-     * @param req
-     * @param content
+     * @param req QUERY
+     * @param content JsonNode
      * @return the Comparator Command
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException check unicity is in error
      */
     private static Bson comparatorCommand(final QUERY req, final JsonNode content)
         throws InvalidParseOperationException {
@@ -230,10 +230,10 @@ public class QueryToMongodb {
     }
 
     /**
-     * @param req
-     * @param content
+     * @param req QUERY
+     * @param content JsonNode
      * @return the Wildcard Command
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if check unicity is in error
      */
     private static Bson wildcardCommand(final QUERY req, final JsonNode content) throws InvalidParseOperationException {
         final Entry<String, JsonNode> element =
@@ -244,9 +244,9 @@ public class QueryToMongodb {
     }
 
     /**
-     * @param content
+     * @param content JsonNode
      * @return the Term Command
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if could not get JSON value
      */
     private static Bson termCommand(final JsonNode content) throws InvalidParseOperationException {
         final Iterator<Entry<String, JsonNode>> iterator = content.fields();
@@ -260,10 +260,10 @@ public class QueryToMongodb {
     }
 
     /**
-     * @param req
-     * @param content
+     * @param req QUERY
+     * @param content JsonNode
      * @return the Regex Command
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if check unicity is in error
      */
     private static Bson regexCommand(final QUERY req, final JsonNode content) throws InvalidParseOperationException {
         final Entry<String, JsonNode> element =
@@ -272,10 +272,10 @@ public class QueryToMongodb {
     }
 
     /**
-     * @param req
-     * @param content
+     * @param req QUERY
+     * @param content JsonNode
      * @return The Range command
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if could not get JSON value
      */
     private static Bson rangeCommand(final QUERY req, final JsonNode content) throws InvalidParseOperationException {
         final Entry<String, JsonNode> element =
@@ -304,10 +304,10 @@ public class QueryToMongodb {
     }
 
     /**
-     * @param req
-     * @param content
+     * @param req QUERY
+     * @param content JsonNode
      * @return the In Command
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if check unicity is in error or could not get JSON value
      */
     private static Bson inCommand(final QUERY req, final JsonNode content) throws InvalidParseOperationException {
         final Entry<String, JsonNode> element =
@@ -328,10 +328,10 @@ public class QueryToMongodb {
     }
 
     /**
-     * @param query
-     * @param req
+     * @param query Query
+     * @param req QUERY
      * @return the Boolean Command
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if could not compare two queries
      */
     private static Bson booleanCommand(final Query query, final QUERY req) throws InvalidParseOperationException {
         // using array of sub queries

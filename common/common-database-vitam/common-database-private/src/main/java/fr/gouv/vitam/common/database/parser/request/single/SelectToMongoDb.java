@@ -53,7 +53,7 @@ public class SelectToMongoDb {
     /**
      * Constructor from SelectParser
      *
-     * @param selectParser
+     * @param selectParser SelectParserSingle
      */
     public SelectToMongoDb(SelectParserSingle selectParser) {
         this.selectParser = selectParser;

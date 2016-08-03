@@ -38,10 +38,10 @@ public class RenameAction extends fr.gouv.vitam.common.database.builder.query.ac
     /**
      * For Parsing
      *
-     * @param action
-     * @param adapter
-     * @param request
-     * @throws InvalidParseOperationException
+     * @param action UPDATEACTION
+     * @param adapter VarNameAdapter
+     * @param request JsonNode
+     * @throws InvalidParseOperationException if could not parse to JSON
      */
     public RenameAction(final UPDATEACTION action, final JsonNode request, final VarNameAdapter adapter)
         throws InvalidParseOperationException {

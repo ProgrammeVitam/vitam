@@ -51,7 +51,7 @@ public class SelectParserMultiple extends RequestParserMultiple {
     }
 
     /**
-     * @param adapter
+     * @param adapter VarNameAdapter
      *
      */
     public SelectParserMultiple(VarNameAdapter adapter) {
@@ -67,7 +67,7 @@ public class SelectParserMultiple extends RequestParserMultiple {
      *
      * @param request containing a parsed JSON as [ {root}, {query}, {filter}, {projection} ] or { $roots: root, $query
      *        : query, $filter : filter, $projection : projection }
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if request could not parse to JSON
      */
     @Override
     public void parse(final JsonNode request) throws InvalidParseOperationException {
@@ -94,7 +94,7 @@ public class SelectParserMultiple extends RequestParserMultiple {
     /**
      *
      * @param query containing only the JSON request part (no filter neither projection nor roots)
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if request could not parse to JSON
      */
     @Override
     public void parseQueryOnly(final String query) throws InvalidParseOperationException {
@@ -105,8 +105,8 @@ public class SelectParserMultiple extends RequestParserMultiple {
     /**
      * $fields : {name1 : 0/1, name2 : 0/1, ...}, $usage : contractId
      *
-     * @param rootNode
-     * @throws InvalidParseOperationException
+     * @param rootNode JsonNode
+     * @throws InvalidParseOperationException if rootNode could not parse to JSON
      */
     protected void projectionParse(final JsonNode rootNode)
         throws InvalidParseOperationException {
