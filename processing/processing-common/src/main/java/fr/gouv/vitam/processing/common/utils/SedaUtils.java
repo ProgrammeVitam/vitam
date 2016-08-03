@@ -1900,10 +1900,12 @@ public class SedaUtils {
         } finally {
             IOUtils.closeQuietly(xmlFile);
             try {
-                reader.close();
+                if (reader != null) {
+                    reader.close();
+                }
             } catch (XMLStreamException e) {
                 // nothing to throw
-                LOGGER.info("Can not close XML reader SEDA");
+                LOGGER.info("Can not close XML reader SEDA", e);
             }
         }
 

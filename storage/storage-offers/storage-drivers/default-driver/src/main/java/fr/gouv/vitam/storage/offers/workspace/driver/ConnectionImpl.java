@@ -64,7 +64,7 @@ import fr.gouv.vitam.storage.driver.model.PutObjectResult;
 import fr.gouv.vitam.storage.driver.model.RemoveObjectRequest;
 import fr.gouv.vitam.storage.driver.model.RemoveObjectResult;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
-import fr.gouv.vitam.storage.offers.workspace.core.ObjectInit;
+import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 
 /**
  * Workspace Connection Implementation

@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;

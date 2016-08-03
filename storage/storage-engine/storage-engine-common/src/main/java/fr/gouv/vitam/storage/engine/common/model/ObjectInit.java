@@ -32,34 +32,91 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL 2.1 license and that you accept its terms.
  */
-
-package fr.gouv.vitam.storage.offers.workspace.core;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import org.junit.Test;
+package fr.gouv.vitam.storage.engine.common.model;
 
 import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 
 /**
- * Object init test implementation
+ * Object creation data.
  */
-public class ObjectInitTest {
+public class ObjectInit {
 
-    @Test
-    public void objectInitTest() {
-        ObjectInit objectInit = new ObjectInit();
-        objectInit.setId("id");
-        objectInit.setSize(1024);
-        objectInit.setType("Unit");
-        objectInit.setDigestAlgorithm(DigestType.SHA256);
+    private String id;
+    private long size;
+    /** TODO should be an enum */
+    private String type;
+    private DigestType digestAlgorithm;
 
-        assertNotNull(objectInit);
-        assertEquals("id", objectInit.getId());
-        assertEquals(1024, objectInit.getSize());
-        assertEquals("Unit", objectInit.getType());
-        assertEquals(DigestType.SHA256, objectInit.getDigestAlgorithm());
+    /**
+     * Get object offer ID
+     *
+     * @return the object offer ID
+     */
+    public String getId() {
+        return id;
     }
+
+    /**
+     * Set object offer ID
+     *
+     * @param id the ID to set
+     */
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    /**
+     * Get object size
+     *
+     * @return the object size
+     */
+    public long getSize() {
+        return size;
+    }
+
+    /**
+     * Set object size
+     *
+     * @param size the object size
+     */
+    public void setSize(long size) {
+        this.size = size;
+    }
+
+    /**
+     * Get object type
+     *
+     * @return the object type
+     */
+    public String getType() {
+        return type;
+    }
+
+    /**
+     * Set object type
+     *
+     * @param type the object type
+     */
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    /**
+     * Get digest algorithm
+     *
+     * @return the digest algorithm
+     */
+    public DigestType getDigestAlgorithm() {
+        return digestAlgorithm;
+    }
+
+    /**
+     * Set digest algorithm
+     *
+     * @param digestAlgorithm the digest algorithm
+     */
+    public void setDigestAlgorithm(DigestType digestAlgorithm) {
+        this.digestAlgorithm = digestAlgorithm;
+    }
+
 }
