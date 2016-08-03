@@ -40,9 +40,9 @@ public class MinAction extends Action {
     /**
      * Min Action constructor
      *
-     * @param variableName
-     * @param value
-     * @throws InvalidCreateOperationException
+     * @param variableName key name
+     * @param value key value
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public MinAction(final String variableName, final long value)
         throws InvalidCreateOperationException {
@@ -55,9 +55,9 @@ public class MinAction extends Action {
     /**
      * Min Action constructor
      *
-     * @param variableName
-     * @param value
-     * @throws InvalidCreateOperationException
+     * @param variableName key name
+     * @param value key value
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public MinAction(final String variableName, final double value)
         throws InvalidCreateOperationException {
@@ -70,9 +70,9 @@ public class MinAction extends Action {
     /**
      * Min Action constructor
      *
-     * @param variableName
-     * @param value
-     * @throws InvalidCreateOperationException
+     * @param variableName key name
+     * @param value key value
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public MinAction(final String variableName, final Date value)
         throws InvalidCreateOperationException {
@@ -85,9 +85,9 @@ public class MinAction extends Action {
     /**
      * Min Action constructor
      *
-     * @param variableName
-     * @param value
-     * @throws InvalidCreateOperationException
+     * @param variableName key name
+     * @param value key value
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public MinAction(final String variableName, final boolean value)
         throws InvalidCreateOperationException {
@@ -100,9 +100,9 @@ public class MinAction extends Action {
     /**
      * Min Action constructor
      *
-     * @param variableName
-     * @param value
-     * @throws InvalidCreateOperationException
+     * @param variableName key name
+     * @param value key value
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public MinAction(final String variableName, final String value)
         throws InvalidCreateOperationException {

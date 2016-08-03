@@ -38,9 +38,9 @@ public class PopAction extends Action {
     /**
      * Pop Action constructor
      *
-     * @param variableName
+     * @param variableName key name
      * @param way -1 for first, 1 for last
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public PopAction(final String variableName, final int way)
         throws InvalidCreateOperationException {
@@ -53,8 +53,8 @@ public class PopAction extends Action {
     /**
      * Pop Action constructor with default last position removal
      *
-     * @param variableName
-     * @throws InvalidCreateOperationException
+     * @param variableName key name
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public PopAction(final String variableName) throws InvalidCreateOperationException {
         super();

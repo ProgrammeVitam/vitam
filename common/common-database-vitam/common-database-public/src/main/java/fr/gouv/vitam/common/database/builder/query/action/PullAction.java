@@ -47,9 +47,9 @@ public class PullAction extends Action {
     /**
      * Pull Action constructor
      *
-     * @param variableName
-     * @param value
-     * @throws InvalidCreateOperationException
+     * @param variableName key name
+     * @param value key value
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public PullAction(final String variableName, final String... value)
         throws InvalidCreateOperationException {
@@ -72,9 +72,9 @@ public class PullAction extends Action {
     /**
      * Pull Action constructor
      *
-     * @param variableName
-     * @param value
-     * @throws InvalidCreateOperationException
+     * @param variableName key name
+     * @param value key value
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public PullAction(final String variableName, final long... value)
         throws InvalidCreateOperationException {
@@ -90,9 +90,9 @@ public class PullAction extends Action {
     /**
      * Pull Action constructor
      *
-     * @param variableName
-     * @param value
-     * @throws InvalidCreateOperationException
+     * @param variableName key name
+     * @param value key value
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public PullAction(final String variableName, final boolean... value)
         throws InvalidCreateOperationException {
@@ -108,9 +108,9 @@ public class PullAction extends Action {
     /**
      * Pull Action constructor
      *
-     * @param variableName
-     * @param value
-     * @throws InvalidCreateOperationException
+     * @param variableName key name
+     * @param value key value
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public PullAction(final String variableName, final double... value)
         throws InvalidCreateOperationException {
@@ -126,9 +126,9 @@ public class PullAction extends Action {
     /**
      * Pull Action constructor
      *
-     * @param variableName
-     * @param value
-     * @throws InvalidCreateOperationException
+     * @param variableName key name
+     * @param value key value
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public PullAction(final String variableName, final Date... value)
         throws InvalidCreateOperationException {
@@ -144,9 +144,9 @@ public class PullAction extends Action {
     /**
      * Add other Pull sub actions to Pull Query
      *
-     * @param value
+     * @param value key value
      * @return the PullAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public final PullAction add(final String... value)
         throws InvalidCreateOperationException {
@@ -170,9 +170,9 @@ public class PullAction extends Action {
     /**
      * Add other Pull sub actions to Pull Query
      *
-     * @param value
+     * @param value key value
      * @return the PullAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public final PullAction add(final boolean... value)
         throws InvalidCreateOperationException {
@@ -189,9 +189,9 @@ public class PullAction extends Action {
     /**
      * Add other Pull sub actions to Pull Query
      *
-     * @param value
+     * @param value key value
      * @return the PullAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public final PullAction add(final long... value)
         throws InvalidCreateOperationException {
@@ -208,9 +208,9 @@ public class PullAction extends Action {
     /**
      * Add other Pull sub actions to Pull Query
      *
-     * @param value
+     * @param value key value
      * @return the PullAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public final PullAction add(final double... value)
         throws InvalidCreateOperationException {
@@ -227,9 +227,9 @@ public class PullAction extends Action {
     /**
      * Add other Pull sub actions to Pull Query
      *
-     * @param value
+     * @param value key value
      * @return the PullAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public final PullAction add(final Date... value)
         throws InvalidCreateOperationException {

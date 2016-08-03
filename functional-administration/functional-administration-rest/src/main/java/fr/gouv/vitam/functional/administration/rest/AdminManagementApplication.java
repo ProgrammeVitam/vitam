@@ -61,7 +61,7 @@ public final class AdminManagementApplication extends AbstractVitamApplication<A
      * Main method to run the application (doing start and join)
      *
      * @param args command line parameters
-     * @throws IllegalStateException
+     * @throws IllegalStateException when state exception 
      */
     public static void main(String[] args) {
         try {
@@ -76,9 +76,9 @@ public final class AdminManagementApplication extends AbstractVitamApplication<A
     /**
      * Prepare the application to be run or started.
      *
-     * @param args
+     * @param args parameters as String array  
      * @return the VitamServer
-     * @throws IllegalStateException
+     * @throws IllegalStateException when state exception
      */
     public static VitamServer startApplication(String[] args) {
         try {

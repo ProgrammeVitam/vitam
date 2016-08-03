@@ -85,7 +85,7 @@ public class Update extends RequestMultiple {
     }
 
     /**
-     * @param filterContent
+     * @param filterContent json filter
      * @return this Update
      */
     public final Update setMult(final JsonNode filterContent) {
@@ -100,9 +100,9 @@ public class Update extends RequestMultiple {
 
     /**
      *
-     * @param filterContent
+     * @param filterContent json filter
      * @return this Update
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException when query is not valid
      */
     @Override
     public final Update setFilter(final JsonNode filterContent)
@@ -113,9 +113,9 @@ public class Update extends RequestMultiple {
 
     /**
      *
-     * @param action
+     * @param action list
      * @return this Update
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when action is not valid
      */
     public final Update addActions(final Action... action)
         throws InvalidCreateOperationException {

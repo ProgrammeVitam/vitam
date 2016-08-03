@@ -38,9 +38,9 @@ public class IncAction extends Action {
     /**
      * Inc Action constructor
      *
-     * @param variableName
-     * @param value
-     * @throws InvalidCreateOperationException
+     * @param variableName key name
+     * @param value key value
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public IncAction(final String variableName, final long value)
         throws InvalidCreateOperationException {
@@ -53,8 +53,8 @@ public class IncAction extends Action {
     /**
      * Inc Action constructor from variable name only (value to 1)
      *
-     * @param variableName
-     * @throws InvalidCreateOperationException
+     * @param variableName key name
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public IncAction(final String variableName) throws InvalidCreateOperationException {
         this(variableName, 1);

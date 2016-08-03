@@ -49,12 +49,12 @@ public class RangeQuery extends Query {
     /**
      * Range Query constructor
      *
-     * @param variableName
+     * @param variableName key name
      * @param from gt, gte
-     * @param valueFrom
+     * @param valueFrom start value
      * @param to lt, lte
-     * @param valueTo
-     * @throws InvalidCreateOperationException
+     * @param valueTo end value
+     * @throws InvalidCreateOperationException when can not create query
      *
      */
     public RangeQuery(final String variableName, final QUERY from, final long valueFrom,
@@ -97,12 +97,12 @@ public class RangeQuery extends Query {
     /**
      * Range Query constructor
      *
-     * @param variableName
+     * @param variableName key name
      * @param from gt, gte
-     * @param valueFrom
+     * @param valueFrom start value
      * @param to lt, lte
-     * @param valueTo
-     * @throws InvalidCreateOperationException
+     * @param valueTo end value
+     * @throws InvalidCreateOperationException when can not create query
      */
     public RangeQuery(final String variableName, final QUERY from, final double valueFrom,
         final QUERY to,
@@ -144,12 +144,12 @@ public class RangeQuery extends Query {
     /**
      * Range Query constructor
      *
-     * @param variableName
+     * @param variableName key name
      * @param from gt, gte
-     * @param valueFrom
+     * @param valueFrom start value
      * @param to lt, lte
-     * @param valueTo
-     * @throws InvalidCreateOperationException
+     * @param valueTo end value
+     * @throws InvalidCreateOperationException when can not create query
      */
     public RangeQuery(final String variableName, final QUERY from, final String valueFrom,
         final QUERY to,
@@ -193,12 +193,12 @@ public class RangeQuery extends Query {
     /**
      * Range Query constructor
      *
-     * @param variableName
+     * @param variableName key name
      * @param from gt, gte
-     * @param valueFrom
+     * @param valueFrom start value
      * @param to lt, lte
-     * @param valueTo
-     * @throws InvalidCreateOperationException
+     * @param valueTo end value
+     * @throws InvalidCreateOperationException when can not create query
      */
     public RangeQuery(final String variableName, final QUERY from, final Date valueFrom,
         final QUERY to, final Date valueTo)

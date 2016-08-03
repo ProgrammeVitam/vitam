@@ -68,7 +68,7 @@ public class AdminManagementResource {
     /**
      * Constructor
      *
-     * @param configuration
+     * @param configuration config for constructing AdminManagement
      */
     public AdminManagementResource(AdminManagementConfiguration configuration) {
         formatManagement = new ReferentialFormatFileImpl(configuration);
@@ -88,9 +88,8 @@ public class AdminManagementResource {
     }
 
     /**
-     * @param xmlPronom
-     * @return Response
-     * @throws FileFormatException
+     * @param xmlPronom as InputStream
+     * @return Response response jersey
      */
     @Path("format/check")
     @POST
@@ -113,9 +112,8 @@ public class AdminManagementResource {
 
     
     /**
-     * @param xmlPronom
-     * @return Response
-     * @throws FileFormatException
+     * @param xmlPronom as InputStream
+     * @return Response jersey response
      */
     @Path("format/import")
     @POST
@@ -142,9 +140,8 @@ public class AdminManagementResource {
     }
 
     /**
-     * @param puid
      * @return Response
-     * @throws FileFormatException
+     * @throws FileFormatException when delete exception
      */
     @Path("format/delete")
     @DELETE
@@ -155,14 +152,12 @@ public class AdminManagementResource {
     }
     
     /**
-     * @param formatId 
-     * @param id 
-     * @return Response
+     * @param formatId path param as String 
+     * @return Response jersey response
      * @throws InvalidParseOperationException 
-     * @throws IOException 
-     * @throws JsonMappingException 
-     * @throws JsonGenerationException 
-     * @throws ReferentialException
+     * @throws IOException when error json occurs 
+     * @throws JsonMappingException when error json occurs 
+     * @throws JsonGenerationException when error json occurs
      */
     @POST    
     @Path("format/{id_format}")
@@ -182,13 +177,12 @@ public class AdminManagementResource {
     }
     
     /**
-     * @param select 
-     * @return Response
-     * @throws IOException 
-     * @throws JsonMappingException 
-     * @throws JsonGenerationException 
-     * @throws InvalidParseOperationException 
-     * @throws ReferentialException
+     * @param select as String
+     * @return Response jersay Response
+     * @throws IOException  when error json occurs
+     * @throws JsonMappingException  when error json occurs
+     * @throws JsonGenerationException when error json occurs
+     * @throws InvalidParseOperationException when error json occurs
      */
     @Path("format/document")
     @POST

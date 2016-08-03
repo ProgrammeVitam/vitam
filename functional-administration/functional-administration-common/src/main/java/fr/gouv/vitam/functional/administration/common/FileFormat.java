@@ -59,6 +59,7 @@ public class FileFormat extends VitamDocument<FileFormat> {
     
     /**
      * constructor with Mongo Document
+     * @param document as Document of bson
      */
     public FileFormat(Document document) {
         super(document);

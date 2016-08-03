@@ -39,9 +39,9 @@ public class SearchQuery extends Query {
      * Search Query constructor
      *
      * @param searchQuery search, regex
-     * @param variableName
-     * @param value
-     * @throws InvalidCreateOperationException
+     * @param variableName key name
+     * @param value key value
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public SearchQuery(final QUERY searchQuery, final String variableName,
         final String value)

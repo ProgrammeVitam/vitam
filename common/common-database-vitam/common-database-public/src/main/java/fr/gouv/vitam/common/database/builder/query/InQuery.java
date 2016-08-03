@@ -60,9 +60,9 @@ public class InQuery extends Query {
      * In Query constructor
      *
      * @param inQuery in, nin
-     * @param variableName
-     * @param value
-     * @throws InvalidCreateOperationException
+     * @param variableName variable Name
+     * @param value of variable
+     * @throws InvalidCreateOperationException when can not create Query
      */
     public InQuery(final QUERY inQuery, final String variableName, final long value)
         throws InvalidCreateOperationException {
@@ -99,9 +99,9 @@ public class InQuery extends Query {
      * In Query constructor
      *
      * @param inQuery in, nin
-     * @param variableName
-     * @param value
-     * @throws InvalidCreateOperationException
+     * @param variableName variable Name
+     * @param value of variable
+     * @throws InvalidCreateOperationException when can not create Query
      */
     public InQuery(final QUERY inQuery, final String variableName, final double value)
         throws InvalidCreateOperationException {
@@ -138,9 +138,9 @@ public class InQuery extends Query {
      * In Query constructor
      *
      * @param inQuery in, nin
-     * @param variableName
-     * @param value
-     * @throws InvalidCreateOperationException
+     * @param variableName variable Name
+     * @param value of variable
+     * @throws InvalidCreateOperationException when can not create Query
      */
     public InQuery(final QUERY inQuery, final String variableName, final String value)
         throws InvalidCreateOperationException {
@@ -178,9 +178,9 @@ public class InQuery extends Query {
      * In Query constructor
      *
      * @param inQuery in, nin
-     * @param variableName
-     * @param value
-     * @throws InvalidCreateOperationException
+     * @param variableName variable Name
+     * @param value of variable
+     * @throws InvalidCreateOperationException when can not create Query
      */
     public InQuery(final QUERY inQuery, final String variableName, final Date value)
         throws InvalidCreateOperationException {
@@ -218,9 +218,9 @@ public class InQuery extends Query {
      * In Query constructor
      *
      * @param inQuery in, nin
-     * @param variableName
-     * @param value
-     * @throws InvalidCreateOperationException
+     * @param variableName variable Name
+     * @param value of variable
+     * @throws InvalidCreateOperationException when can not create Query
      */
     public InQuery(final QUERY inQuery, final String variableName, final boolean value)
         throws InvalidCreateOperationException {
@@ -257,9 +257,9 @@ public class InQuery extends Query {
      * In Query constructor
      *
      * @param inQuery in, nin
-     * @param variableName
-     * @param values
-     * @throws InvalidCreateOperationException
+     * @param variableName variable Name
+     * @param values of variable
+     * @throws InvalidCreateOperationException when can not create Query
      */
     public InQuery(final QUERY inQuery, final String variableName, final String... values)
         throws InvalidCreateOperationException {
@@ -305,9 +305,9 @@ public class InQuery extends Query {
      * In Query constructor
      *
      * @param inQuery in, nin
-     * @param variableName
-     * @param values
-     * @throws InvalidCreateOperationException
+     * @param variableName variable Name
+     * @param values of variable
+     * @throws InvalidCreateOperationException when can not create Query
      */
     public InQuery(final QUERY inQuery, final String variableName, final Date... values)
         throws InvalidCreateOperationException {
@@ -349,9 +349,9 @@ public class InQuery extends Query {
      * In Query constructor
      *
      * @param inQuery in, nin
-     * @param variableName
-     * @param values
-     * @throws InvalidCreateOperationException
+     * @param variableName variable Name
+     * @param values of variable
+     * @throws InvalidCreateOperationException when can not create Query
      */
     public InQuery(final QUERY inQuery, final String variableName, final long... values)
         throws InvalidCreateOperationException {
@@ -388,9 +388,9 @@ public class InQuery extends Query {
      * In Query constructor
      *
      * @param inQuery in, nin
-     * @param variableName
-     * @param values
-     * @throws InvalidCreateOperationException
+     * @param variableName variable Name
+     * @param values of variable
+     * @throws InvalidCreateOperationException when can not create Query
      */
     public InQuery(final QUERY inQuery, final String variableName, final double... values)
         throws InvalidCreateOperationException {
@@ -427,9 +427,9 @@ public class InQuery extends Query {
      * In Query constructor
      *
      * @param inQuery in, nin
-     * @param variableName
-     * @param values
-     * @throws InvalidCreateOperationException
+     * @param variableName variable Name
+     * @param values of variable
+     * @throws InvalidCreateOperationException when can not create Query
      */
     public InQuery(final QUERY inQuery, final String variableName,
         final boolean... values)
@@ -487,9 +487,9 @@ public class InQuery extends Query {
     /**
      * Add an In Value to an existing In Query
      *
-     * @param inValue
+     * @param inValue value of variable
      * @return the InQuery
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when can not add value
      */
     public final InQuery add(final String... inValue)
         throws InvalidCreateOperationException {
@@ -518,9 +518,9 @@ public class InQuery extends Query {
     /**
      * Add an In Value to an existing In Query
      *
-     * @param inValue
+     * @param inValue value of variable
      * @return the InQuery
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when can not add value
      */
     public final InQuery add(final Date... inValue)
         throws InvalidCreateOperationException {
@@ -545,9 +545,9 @@ public class InQuery extends Query {
     /**
      * Add an In Value to an existing In Query
      *
-     * @param inValue
+     * @param inValue value of variable
      * @return the InQuery
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when can not add value
      */
     public final InQuery add(final long... inValue)
         throws InvalidCreateOperationException {
@@ -571,9 +571,9 @@ public class InQuery extends Query {
     /**
      * Add an In Value to an existing In Query
      *
-     * @param inValue
+     * @param inValue value of variable
      * @return the InQuery
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when can not add value
      */
     public final InQuery add(final double... inValue)
         throws InvalidCreateOperationException {
@@ -597,9 +597,9 @@ public class InQuery extends Query {
     /**
      * Add an In Value to an existing In Query
      *
-     * @param inValue
+     * @param inValue value of variable
      * @return the InQuery
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when can not add value
      */
     public final InQuery add(final boolean... inValue)
         throws InvalidCreateOperationException {

@@ -39,10 +39,10 @@ public class UpdateActionHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return an AddAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public static final AddAction add(final String variableName, final String... value)
         throws InvalidCreateOperationException {
@@ -51,10 +51,10 @@ public class UpdateActionHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return an AddAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public static final AddAction add(final String variableName, final boolean... value)
         throws InvalidCreateOperationException {
@@ -63,10 +63,10 @@ public class UpdateActionHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return an AddAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public static final AddAction add(final String variableName, final long... value)
         throws InvalidCreateOperationException {
@@ -75,10 +75,10 @@ public class UpdateActionHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return an AddAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public static final AddAction add(final String variableName, final double... value)
         throws InvalidCreateOperationException {
@@ -87,10 +87,10 @@ public class UpdateActionHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return an AddAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public static final AddAction add(final String variableName, final Date... value)
         throws InvalidCreateOperationException {
@@ -99,10 +99,10 @@ public class UpdateActionHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return an IncAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public static final IncAction inc(final String variableName, final long value)
         throws InvalidCreateOperationException {
@@ -111,9 +111,9 @@ public class UpdateActionHelper {
 
     /**
      *
-     * @param variableName
+     * @param variableName key name
      * @return an IncAction using default value 1
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public static final IncAction inc(final String variableName)
         throws InvalidCreateOperationException {
@@ -122,10 +122,10 @@ public class UpdateActionHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return an MinAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public static final MinAction min(final String variableName, final long value)
         throws InvalidCreateOperationException {
@@ -134,10 +134,10 @@ public class UpdateActionHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return an MinAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public static final MinAction min(final String variableName, final double value)
         throws InvalidCreateOperationException {
@@ -146,10 +146,10 @@ public class UpdateActionHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return an MinAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public static final MinAction min(final String variableName, final boolean value)
         throws InvalidCreateOperationException {
@@ -158,10 +158,10 @@ public class UpdateActionHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return an MinAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public static final MinAction min(final String variableName, final String value)
         throws InvalidCreateOperationException {
@@ -170,10 +170,10 @@ public class UpdateActionHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return an MinAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public static final MinAction min(final String variableName, final Date value)
         throws InvalidCreateOperationException {
@@ -182,10 +182,10 @@ public class UpdateActionHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return an MaxAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public static final MaxAction max(final String variableName, final long value)
         throws InvalidCreateOperationException {
@@ -194,10 +194,10 @@ public class UpdateActionHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return an MaxAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public static final MaxAction max(final String variableName, final double value)
         throws InvalidCreateOperationException {
@@ -206,10 +206,10 @@ public class UpdateActionHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return an MaxAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public static final MaxAction max(final String variableName, final boolean value)
         throws InvalidCreateOperationException {
@@ -218,10 +218,10 @@ public class UpdateActionHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return an MaxAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public static final MaxAction max(final String variableName, final String value)
         throws InvalidCreateOperationException {
@@ -230,10 +230,10 @@ public class UpdateActionHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return an MaxAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public static final MaxAction max(final String variableName, final Date value)
         throws InvalidCreateOperationException {
@@ -242,10 +242,10 @@ public class UpdateActionHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return a PullAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public static final PullAction pull(final String variableName, final String... value)
         throws InvalidCreateOperationException {
@@ -254,10 +254,10 @@ public class UpdateActionHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return a PullAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public static final PullAction pull(final String variableName, final boolean... value)
         throws InvalidCreateOperationException {
@@ -266,10 +266,10 @@ public class UpdateActionHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return a PullAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public static final PullAction pull(final String variableName, final long... value)
         throws InvalidCreateOperationException {
@@ -278,10 +278,10 @@ public class UpdateActionHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return a PullAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public static final PullAction pull(final String variableName, final double... value)
         throws InvalidCreateOperationException {
@@ -290,10 +290,10 @@ public class UpdateActionHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return a PullAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public static final PullAction pull(final String variableName, final Date... value)
         throws InvalidCreateOperationException {
@@ -302,10 +302,10 @@ public class UpdateActionHelper {
 
     /**
      *
-     * @param variableName
+     * @param variableName key name
      * @param way -1 for first, 1 for last
      * @return a PopAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public static final PopAction pop(final String variableName, final int way)
         throws InvalidCreateOperationException {
@@ -314,9 +314,9 @@ public class UpdateActionHelper {
 
     /**
      *
-     * @param variableName
+     * @param variableName key name
      * @return a PopAction with default last position
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public static final PopAction pop(final String variableName)
         throws InvalidCreateOperationException {
@@ -325,10 +325,10 @@ public class UpdateActionHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return a PushAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public static final PushAction push(final String variableName, final String... value)
         throws InvalidCreateOperationException {
@@ -337,10 +337,10 @@ public class UpdateActionHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return a PushAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public static final PushAction push(final String variableName, final boolean... value)
         throws InvalidCreateOperationException {
@@ -349,10 +349,10 @@ public class UpdateActionHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return a PushAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public static final PushAction push(final String variableName, final long... value)
         throws InvalidCreateOperationException {
@@ -361,10 +361,10 @@ public class UpdateActionHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return a PushAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public static final PushAction push(final String variableName, final double... value)
         throws InvalidCreateOperationException {
@@ -373,10 +373,10 @@ public class UpdateActionHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return a PushAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public static final PushAction push(final String variableName, final Date... value)
         throws InvalidCreateOperationException {
@@ -385,10 +385,10 @@ public class UpdateActionHelper {
 
     /**
      *
-     * @param variableName
-     * @param newName
+     * @param variableName key name
+     * @param newName new key name
      * @return a RenameAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public static final RenameAction rename(final String variableName,
         final String newName)
@@ -398,10 +398,10 @@ public class UpdateActionHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return a SetAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public static final SetAction set(final String variableName, final String value)
         throws InvalidCreateOperationException {
@@ -410,10 +410,10 @@ public class UpdateActionHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return a SetAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public static final SetAction set(final String variableName, final boolean value)
         throws InvalidCreateOperationException {
@@ -422,10 +422,10 @@ public class UpdateActionHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return a SetAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public static final SetAction set(final String variableName, final long value)
         throws InvalidCreateOperationException {
@@ -434,10 +434,10 @@ public class UpdateActionHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return a SetAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public static final SetAction set(final String variableName, final double value)
         throws InvalidCreateOperationException {
@@ -446,10 +446,10 @@ public class UpdateActionHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return a SetAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public static final SetAction set(final String variableName, final Date value)
         throws InvalidCreateOperationException {
@@ -460,7 +460,7 @@ public class UpdateActionHelper {
      *
      * @param map map of variableName for values
      * @return a SectAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public static final SetAction set(final Map<String, ?> map)
         throws InvalidCreateOperationException {
@@ -469,9 +469,9 @@ public class UpdateActionHelper {
 
     /**
      *
-     * @param variableName
+     * @param variableName key name
      * @return an UnsetAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public static final UnsetAction unset(final String... variableName)
         throws InvalidCreateOperationException {

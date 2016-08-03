@@ -40,9 +40,9 @@ public class RenameAction extends Action {
     /**
      * Rename Action constructor
      *
-     * @param variableName
-     * @param newName
-     * @throws InvalidCreateOperationException
+     * @param variableName key name
+     * @param newName new key name
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public RenameAction(final String variableName, final String newName)
         throws InvalidCreateOperationException {

@@ -44,7 +44,7 @@ public class QueryHelper {
      *
      * @param pathes primary list of path in the future PathQuery
      * @return a PathQuery
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final PathQuery path(final String... pathes)
         throws InvalidCreateOperationException {
@@ -54,7 +54,7 @@ public class QueryHelper {
     /**
      *
      * @return a BooleanQuery for AND operator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final BooleanQuery and() throws InvalidCreateOperationException {
         return new BooleanQuery(QUERY.AND);
@@ -63,7 +63,7 @@ public class QueryHelper {
     /**
      *
      * @return a BooleanQuery for OR operator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final BooleanQuery or() throws InvalidCreateOperationException {
         return new BooleanQuery(QUERY.OR);
@@ -72,7 +72,7 @@ public class QueryHelper {
     /**
      *
      * @return a BooleanQuery for NOT operator (using AND internally)
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final BooleanQuery not() throws InvalidCreateOperationException {
         return new BooleanQuery(QUERY.NOT);
@@ -80,10 +80,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a CompareQuery using EQ comparator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final CompareQuery eq(final String variableName, final boolean value)
         throws InvalidCreateOperationException {
@@ -92,10 +92,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a CompareQuery using EQ comparator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final CompareQuery eq(final String variableName, final long value)
         throws InvalidCreateOperationException {
@@ -104,10 +104,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a CompareQuery using EQ comparator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final CompareQuery eq(final String variableName, final double value)
         throws InvalidCreateOperationException {
@@ -116,10 +116,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a CompareQuery using EQ comparator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final CompareQuery eq(final String variableName, final String value)
         throws InvalidCreateOperationException {
@@ -128,10 +128,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a CompareQuery using EQ comparator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final CompareQuery eq(final String variableName, final Date value)
         throws InvalidCreateOperationException {
@@ -140,10 +140,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a CompareQuery using NE (non equal) comparator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final CompareQuery ne(final String variableName, final boolean value)
         throws InvalidCreateOperationException {
@@ -152,10 +152,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a CompareQuery using NE (non equal) comparator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final CompareQuery ne(final String variableName, final long value)
         throws InvalidCreateOperationException {
@@ -164,10 +164,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a CompareQuery using NE (non equal) comparator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final CompareQuery ne(final String variableName, final double value)
         throws InvalidCreateOperationException {
@@ -176,10 +176,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a CompareQuery using NE (non equal) comparator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final CompareQuery ne(final String variableName, final String value)
         throws InvalidCreateOperationException {
@@ -188,10 +188,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a CompareQuery using NE (non equal) comparator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final CompareQuery ne(final String variableName, final Date value)
         throws InvalidCreateOperationException {
@@ -200,10 +200,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a CompareQuery using LT (less than) comparator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final CompareQuery lt(final String variableName, final boolean value)
         throws InvalidCreateOperationException {
@@ -212,10 +212,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a CompareQuery using LT (less than) comparator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final CompareQuery lt(final String variableName, final long value)
         throws InvalidCreateOperationException {
@@ -224,10 +224,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a CompareQuery using LT (less than) comparator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final CompareQuery lt(final String variableName, final double value)
         throws InvalidCreateOperationException {
@@ -236,10 +236,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a CompareQuery using LT (less than) comparator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final CompareQuery lt(final String variableName, final String value)
         throws InvalidCreateOperationException {
@@ -248,10 +248,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a CompareQuery using LT (less than) comparator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final CompareQuery lt(final String variableName, final Date value)
         throws InvalidCreateOperationException {
@@ -260,10 +260,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a CompareQuery using LTE (less than or equal) comparator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final CompareQuery lte(final String variableName, final boolean value)
         throws InvalidCreateOperationException {
@@ -272,10 +272,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a CompareQuery using LTE (less than or equal) comparator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final CompareQuery lte(final String variableName, final long value)
         throws InvalidCreateOperationException {
@@ -284,10 +284,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a CompareQuery using LTE (less than or equal) comparator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final CompareQuery lte(final String variableName, final double value)
         throws InvalidCreateOperationException {
@@ -296,10 +296,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a CompareQuery using LTE (less than or equal) comparator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final CompareQuery lte(final String variableName, final String value)
         throws InvalidCreateOperationException {
@@ -308,10 +308,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a CompareQuery using LTE (less than or equal) comparator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final CompareQuery lte(final String variableName, final Date value)
         throws InvalidCreateOperationException {
@@ -320,10 +320,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a CompareQuery using GT (greater than) comparator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final CompareQuery gt(final String variableName, final boolean value)
         throws InvalidCreateOperationException {
@@ -332,10 +332,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a CompareQuery using GT (greater than) comparator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final CompareQuery gt(final String variableName, final long value)
         throws InvalidCreateOperationException {
@@ -344,10 +344,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a CompareQuery using GT (greater than) comparator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final CompareQuery gt(final String variableName, final double value)
         throws InvalidCreateOperationException {
@@ -356,10 +356,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a CompareQuery using GT (greater than) comparator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final CompareQuery gt(final String variableName, final String value)
         throws InvalidCreateOperationException {
@@ -368,10 +368,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a CompareQuery using GT (greater than) comparator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final CompareQuery gt(final String variableName, final Date value)
         throws InvalidCreateOperationException {
@@ -380,10 +380,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a CompareQuery using GTE (greater than or equal) comparator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final CompareQuery gte(final String variableName, final boolean value)
         throws InvalidCreateOperationException {
@@ -392,10 +392,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a CompareQuery using GTE (greater than or equal) comparator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final CompareQuery gte(final String variableName, final long value)
         throws InvalidCreateOperationException {
@@ -404,10 +404,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a CompareQuery using GTE (greater than or equal) comparator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final CompareQuery gte(final String variableName, final double value)
         throws InvalidCreateOperationException {
@@ -416,10 +416,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a CompareQuery using GTE (greater than or equal) comparator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final CompareQuery gte(final String variableName, final String value)
         throws InvalidCreateOperationException {
@@ -428,10 +428,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a CompareQuery using GTE (greater than or equal) comparator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final CompareQuery gte(final String variableName, final Date value)
         throws InvalidCreateOperationException {
@@ -440,10 +440,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a CompareQuery using SIZE comparator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final CompareQuery size(final String variableName, final long value)
         throws InvalidCreateOperationException {
@@ -452,7 +452,7 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
+     * @param variableName key name
      * @return an ExistsQuery
      * @throws InvalidCreateOperationException using Exists operator
      */
@@ -463,9 +463,9 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
+     * @param variableName key name
      * @return an ExistsQuery using Missing operator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final ExistsQuery missing(final String variableName)
         throws InvalidCreateOperationException {
@@ -474,9 +474,9 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
+     * @param variableName key name
      * @return an ExistsQuery using isNull operator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final ExistsQuery isNull(final String variableName)
         throws InvalidCreateOperationException {
@@ -485,10 +485,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return an InQuery using IN operator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final InQuery in(final String variableName, final boolean... value)
         throws InvalidCreateOperationException {
@@ -497,10 +497,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return an InQuery using IN operator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final InQuery in(final String variableName, final long... value)
         throws InvalidCreateOperationException {
@@ -509,10 +509,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return an InQuery using IN operator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final InQuery in(final String variableName, final double... value)
         throws InvalidCreateOperationException {
@@ -521,10 +521,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return an InQuery using IN operator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final InQuery in(final String variableName, final String... value)
         throws InvalidCreateOperationException {
@@ -533,10 +533,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return an InQuery using IN operator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final InQuery in(final String variableName, final Date... value)
         throws InvalidCreateOperationException {
@@ -545,10 +545,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return an InQuery using NIN (not in) operator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final InQuery nin(final String variableName, final boolean... value)
         throws InvalidCreateOperationException {
@@ -557,10 +557,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return an InQuery using NIN (not in) operator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final InQuery nin(final String variableName, final long... value)
         throws InvalidCreateOperationException {
@@ -569,10 +569,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return an InQuery using NIN (not in) operator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final InQuery nin(final String variableName, final double... value)
         throws InvalidCreateOperationException {
@@ -581,10 +581,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return an InQuery using NIN (not in) operator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final InQuery nin(final String variableName, final String... value)
         throws InvalidCreateOperationException {
@@ -593,10 +593,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return an InQuery using NIN (not in) operator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final InQuery nin(final String variableName, final Date... value)
         throws InvalidCreateOperationException {
@@ -605,10 +605,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a MatchQuery using MATCH operator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final MatchQuery match(final String variableName, final String value)
         throws InvalidCreateOperationException {
@@ -617,10 +617,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a MatchQuery using MATCH_PHRASE operator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final MatchQuery matchPhrase(final String variableName,
         final String value)
@@ -630,10 +630,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a MatchQuery using MATCH_PHRASE_PREFIX operator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final MatchQuery matchPhrasePrefix(final String variableName,
         final String value)
@@ -643,10 +643,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a MatchQuery using PREFIX operator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final MatchQuery prefix(final String variableName, final String value)
         throws InvalidCreateOperationException {
@@ -655,10 +655,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a SearchQuery using REGEX operator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final SearchQuery regex(final String variableName, final String value)
         throws InvalidCreateOperationException {
@@ -667,10 +667,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a SearchQuery using SEARCH operator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final SearchQuery search(final String variableName, final String value)
         throws InvalidCreateOperationException {
@@ -679,10 +679,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a TermQuery
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final TermQuery term(final String variableName, final String value)
         throws InvalidCreateOperationException {
@@ -691,10 +691,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a TermQuery
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final TermQuery term(final String variableName, final long value)
         throws InvalidCreateOperationException {
@@ -703,10 +703,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a TermQuery
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final TermQuery term(final String variableName, final double value)
         throws InvalidCreateOperationException {
@@ -715,10 +715,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a TermQuery
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final TermQuery term(final String variableName, final boolean value)
         throws InvalidCreateOperationException {
@@ -727,10 +727,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a TermQuery
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final TermQuery term(final String variableName, final Date value)
         throws InvalidCreateOperationException {
@@ -739,9 +739,9 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableNameValue Map of VariableName of Value
+     * @param variableNameValue key nameValue Map of VariableName of Value
      * @return a TermQuery
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final TermQuery term(final Map<String, Object> variableNameValue)
         throws InvalidCreateOperationException {
@@ -750,10 +750,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value of key
      * @return a WildcardQuery
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final WildcardQuery wildcard(final String variableName,
         final String value)
@@ -763,10 +763,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param value
-     * @param variableName
+     * @param value of key
+     * @param variableName key name
      * @return a MltQuery using a FLT (fuzzy like this) operator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final MltQuery flt(final String value, final String... variableName)
         throws InvalidCreateOperationException {
@@ -775,10 +775,10 @@ public class QueryHelper {
 
     /**
      *
-     * @param value
-     * @param variableName
+     * @param value of key
+     * @param variableName key name
      * @return a MltQuery using a MLT (more like this) operator
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final MltQuery mlt(final String value, final String... variableName)
         throws InvalidCreateOperationException {
@@ -787,13 +787,13 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param min
-     * @param includeMin
-     * @param max
-     * @param includeMax
+     * @param variableName key name
+     * @param min value
+     * @param includeMin include min value
+     * @param max value
+     * @param includeMax include max value
      * @return a RangeQuery
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final RangeQuery range(final String variableName, final long min,
         final boolean includeMin, final long max,
@@ -805,13 +805,13 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param min
-     * @param includeMin
-     * @param max
-     * @param includeMax
+     * @param variableName key name
+     * @param min value
+     * @param includeMin include min value
+     * @param max value
+     * @param includeMax include max value
      * @return a RangeQuery
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final RangeQuery range(final String variableName, final double min,
         final boolean includeMin,
@@ -824,13 +824,13 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param min
-     * @param includeMin
-     * @param max
-     * @param includeMax
+     * @param variableName key name
+     * @param min value
+     * @param includeMin include min value
+     * @param max value
+     * @param includeMax include max value
      * @return a RangeQuery
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final RangeQuery range(final String variableName, final String min,
         final boolean includeMin,
@@ -843,13 +843,13 @@ public class QueryHelper {
 
     /**
      *
-     * @param variableName
-     * @param min
-     * @param includeMin
-     * @param max
-     * @param includeMax
+     * @param variableName key name
+     * @param min value
+     * @param includeMin include min value
+     * @param max value
+     * @param includeMax include max value
      * @return a RangeQuery
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when creating query errors
      */
     public static final RangeQuery range(final String variableName, final Date min,
         final boolean includeMin, final Date max,
