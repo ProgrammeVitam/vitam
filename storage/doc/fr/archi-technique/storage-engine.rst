@@ -147,8 +147,7 @@ Où VitamDriverImpl est l'implémentation du driver.
 
 Voici le fichier : :download:`fr.gouv.vitam.storage.driver.VitamDriver <samples/fr.gouv.vitam.storage.driver.VitamDriver>`
 
-| Le jar sera déposé via une interface graphique dans un répertoire défini dans le fichier de configuration
-driver-location.conf avec la clef **driverLocation**. Actuellement il faut le déposer manuellement.
+| Le jar sera déposé via une interface graphique dans un répertoire défini dans le fichier de configuration driver-location.conf avec la clef **driverLocation**. Actuellement il faut le déposer manuellement.
 | Le paramétrage des offres se fera également via une interface graphique.
 
 Cependant, il faut pouvoir redémarrer Vitam sans perdre l'association driver / offre ou démarrer Vitam avec des
@@ -180,5 +179,3 @@ actuelle, le DriverMapper a besoin d'un fichier de configuration, driver-mapping
 l'emplacement où seront enregistrés les fichiers permettant la persistance via la clef **driverMappingPath**. Une autre clef est
 nécessaire afin de définir le délimiteur dans ce fichier via la clef **delimiter**, le principe étant de mettre en place un
 fichier par driver comme un fichier CSV, les offres étant séparées par ce délimiteur.
-
-
