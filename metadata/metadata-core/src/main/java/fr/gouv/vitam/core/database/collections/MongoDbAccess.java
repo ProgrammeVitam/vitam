@@ -41,10 +41,10 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.MongoIterable;
 
-import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.FILTERARGS;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
+import fr.gouv.vitam.common.database.translators.mongodb.VitamDocumentCodec;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.core.database.collections.translator.mongodb.VitamDocumentCodec;
 
 /**
  * MongoDb Access base class

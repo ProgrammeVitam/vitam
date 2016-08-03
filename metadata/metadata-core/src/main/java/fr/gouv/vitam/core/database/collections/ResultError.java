@@ -25,7 +25,7 @@ package fr.gouv.vitam.core.database.collections;
 
 import java.util.Set;
 
-import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.FILTERARGS;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
 
 /**
  * Result Error only

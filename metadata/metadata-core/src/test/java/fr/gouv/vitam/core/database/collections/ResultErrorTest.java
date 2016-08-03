@@ -33,7 +33,7 @@ import java.util.Set;
 
 import org.junit.Test;
 
-import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.FILTERARGS;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
 
 public class ResultErrorTest {
     @Test

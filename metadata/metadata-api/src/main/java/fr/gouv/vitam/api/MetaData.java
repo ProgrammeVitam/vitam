@@ -29,8 +29,6 @@ import fr.gouv.vitam.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.builder.request.construct.Select;
-import fr.gouv.vitam.builder.request.construct.Update;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**

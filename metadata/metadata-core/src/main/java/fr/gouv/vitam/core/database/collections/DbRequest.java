@@ -58,31 +58,32 @@ import com.mongodb.client.result.UpdateResult;
 import fr.gouv.vitam.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.builder.request.construct.Delete;
-import fr.gouv.vitam.builder.request.construct.Insert;
-import fr.gouv.vitam.builder.request.construct.Request;
-import fr.gouv.vitam.builder.request.construct.Update;
-import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens;
-import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.FILTERARGS;
-import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.QUERY;
-import fr.gouv.vitam.builder.request.construct.query.Query;
+import fr.gouv.vitam.common.database.builder.request.multiple.Delete;
+import fr.gouv.vitam.common.database.builder.request.multiple.Insert;
+import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
+import fr.gouv.vitam.common.database.builder.request.multiple.Update;
+import fr.gouv.vitam.common.database.parser.query.ParserTokens;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
+import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.core.database.collections.MongoDbAccess.VitamCollections;
-import fr.gouv.vitam.core.database.collections.translator.RequestToAbstract;
-import fr.gouv.vitam.core.database.collections.translator.mongodb.DeleteToMongodb;
-import fr.gouv.vitam.core.database.collections.translator.mongodb.InsertToMongodb;
-import fr.gouv.vitam.core.database.collections.translator.mongodb.MongoDbHelper;
-import fr.gouv.vitam.core.database.collections.translator.mongodb.QueryToMongodb;
-import fr.gouv.vitam.core.database.collections.translator.mongodb.RequestToMongodb;
-import fr.gouv.vitam.core.database.collections.translator.mongodb.SelectToMongodb;
-import fr.gouv.vitam.core.database.collections.translator.mongodb.UpdateToMongodb;
+import fr.gouv.vitam.common.database.translators.RequestToAbstract;
+import fr.gouv.vitam.common.database.translators.mongodb.DeleteToMongodb;
+import fr.gouv.vitam.common.database.translators.mongodb.InsertToMongodb;
+import fr.gouv.vitam.common.database.translators.mongodb.MongoDbHelper;
+import fr.gouv.vitam.common.database.translators.mongodb.QueryToMongodb;
+import fr.gouv.vitam.common.database.translators.mongodb.RequestToMongodb;
+import fr.gouv.vitam.common.database.translators.mongodb.SelectToMongodb;
+import fr.gouv.vitam.common.database.translators.mongodb.UpdateToMongodb;
 import fr.gouv.vitam.core.database.configuration.GlobalDatasDb;
-import fr.gouv.vitam.parser.request.construct.query.QueryDepthHelper;
-import fr.gouv.vitam.parser.request.parser.GlobalDatasParser;
-import fr.gouv.vitam.parser.request.parser.RequestParser;
-import fr.gouv.vitam.parser.request.parser.query.PathQuery;
+import fr.gouv.vitam.common.database.parser.query.helper.QueryDepthHelper;
+import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
+//import fr.gouv.vitam.parser.request.parser.RequestParser;
+import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
+import fr.gouv.vitam.common.database.parser.query.PathQuery;
 
 /**
  * DB Request using MongoDB only
@@ -135,10 +136,10 @@ public class DbRequest {
      * @throws MetaDataAlreadyExistException 
      * @throws MetaDataNotFoundException 
      */
-    public Result execRequest(final RequestParser requestParser, final Result defaultStartSet)
+    public Result execRequest(final RequestParserMultiple requestParser, final Result defaultStartSet)
         throws InstantiationException, IllegalAccessException, MetaDataExecutionException,
         InvalidParseOperationException, MetaDataAlreadyExistException, MetaDataNotFoundException {
-        final Request request = requestParser.getRequest();
+        final RequestMultiple request = requestParser.getRequest();
         final RequestToAbstract requestToMongodb = RequestToMongodb.getRequestToMongoDb(requestParser);
         final int maxQuery = request.getNbQueries();
         Result roots;
@@ -257,7 +258,7 @@ public class DbRequest {
      * @return the valid root ids
      * @throws InvalidParseOperationException
      */
-    protected Result checkUnitStartupRoots(final RequestParser request, final Result defaultStartSet)
+    protected Result checkUnitStartupRoots(final RequestParserMultiple request, final Result defaultStartSet)
         throws InvalidParseOperationException {
         final Set<String> roots = request.getRequest().getRoots();
         final Set<String> newRoots = checkUnitAgainstRoots(roots, defaultStartSet);
@@ -278,7 +279,7 @@ public class DbRequest {
      * @return the valid root ids
      * @throws InvalidParseOperationException
      */
-    protected Result checkObjectGroupStartupRoots(final RequestParser request, final Result defaultStartSet)
+    protected Result checkObjectGroupStartupRoots(final RequestParserMultiple request, final Result defaultStartSet)
         throws InvalidParseOperationException {
         final Set<String> roots = request.getRequest().getRoots();
         if (defaultStartSet == null || defaultStartSet.getCurrentIds().isEmpty()) {

@@ -40,12 +40,12 @@ import fr.gouv.vitam.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.FILTERARGS;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.core.database.collections.DbRequest;
 import fr.gouv.vitam.core.database.collections.ResultError;
-import fr.gouv.vitam.parser.request.parser.GlobalDatasParser;
+import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 
 public class MetaDataImplTest {
 

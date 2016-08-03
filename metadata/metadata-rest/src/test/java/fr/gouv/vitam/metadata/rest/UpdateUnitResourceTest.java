@@ -27,7 +27,7 @@ import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.core.database.collections.MongoDbAccess;
-import fr.gouv.vitam.parser.request.parser.GlobalDatasParser;
+import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 
 public class UpdateUnitResourceTest {
 

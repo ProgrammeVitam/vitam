@@ -34,7 +34,7 @@ import org.bson.conversions.Bson;
 
 import com.mongodb.BasicDBList;
 
-import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.FILTERARGS;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
 import fr.gouv.vitam.core.database.collections.MongoDbAccess.VitamCollections;
 
 /**

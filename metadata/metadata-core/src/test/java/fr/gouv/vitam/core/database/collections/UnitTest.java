@@ -27,6 +27,7 @@
 package fr.gouv.vitam.core.database.collections;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -108,4 +109,32 @@ public class UnitTest {
         final VitamDocument<Unit> document = unit.checkId();
         assertEquals(8888, document.getDomainId());
     }
+    
+    @Test
+    public void givenUnitWhenGetFathersUnitIdThenReturnAList(){
+        final Unit unit = new Unit(s1);
+        assertNotNull(unit.getFathersUnitIds(true));
+        assertNotNull(unit.getFathersUnitIds(false));
+    }
+    
+    @Test
+    public void givenUnitWhenGetDepth(){
+        final Unit unit = new Unit(s1);
+        assertNotNull(unit.getDepths());
+        System.out.println(unit.getMaxDepth());
+        System.out.println(unit.getMinDepth());
+    }
+    
+    @Test
+    public void givenUnitWhenCleanStructureThenItemCleaned(){
+        final Unit unit = new Unit(s1);
+        unit.cleanStructure(true);
+    }
+    
+    @Test
+    public void givenUnitWhenGetObjectGroupId(){
+        final Unit unit = new Unit(s1);
+        unit.getObjectGroupId(true);
+        unit.getObjectGroupId(false);
+    }    
 }
