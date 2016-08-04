@@ -51,6 +51,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
@@ -166,13 +167,19 @@ public class AdminManagementResource {
     public Response findFileFormatByID(@PathParam("id_format") String formatId) throws InvalidParseOperationException, JsonGenerationException, JsonMappingException, IOException{        
         ParametersChecker.checkParameter("formatId is a mandatory parameter", formatId);        
         FileFormat fileFormat = null;        
-        try {            
+        try {
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(formatId));
             fileFormat = formatManagement.findDocumentById(formatId);
+
+            if(fileFormat==null) {
+                throw new ReferentialException("NO DATA for the specified formatId");
+            }
+
         }  catch (ReferentialException e) {
             LOGGER.error(e.getMessage());
             Status status = Status.NOT_FOUND;
             return Response.status(status).build();
-        }         
+        }
         return Response.status(Status.OK).entity(JsonHandler.toJsonNode(fileFormat)).build();
     }
     
@@ -192,8 +199,12 @@ public class AdminManagementResource {
         ParametersChecker.checkParameter("select is a mandatory parameter", select);        
         List<FileFormat> fileFormatList = new ArrayList<FileFormat>();                
         try {
+            SanityChecker.checkJsonAll(select);
             fileFormatList = formatManagement.findDocuments(select);
-        }  catch (ReferentialException e) {
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        }  catch (final ReferentialException e) {
             LOGGER.error(e.getMessage());
             Status status = Status.NOT_FOUND;
             return Response.status(status).build();

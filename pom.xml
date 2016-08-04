@@ -159,6 +159,7 @@
 		<unix.group>vitam</unix.group>
 		<esapi.version>2.1.0.1</esapi.version>
 		<xerces.version>2.11.0</xerces.version>
+		<cglib.version>2.2.2</cglib.version>
 	</properties>
 
 	<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
@@ -266,7 +267,7 @@
 						<threadCount>1</threadCount>
 						<perCoreThreadCount>false</perCoreThreadCount>
 						<forkCount>1</forkCount>
-						<reuseForks>true</reuseForks>
+						<reuseForks>false</reuseForks>
 					</configuration>
 				</plugin>
 				<plugin>
@@ -814,7 +815,12 @@
 				<version>${powermock.version}</version>
 				<scope>test</scope>
 			</dependency>
-
+			<dependency>
+				<groupId>org.powermock</groupId>
+				<artifactId>powermock-api-mockito-common</artifactId>
+				<version>${powermock.version}</version>
+				<scope>test</scope>
+			</dependency>
 			<dependency>
 				<groupId>de.flapdoodle.embed</groupId>
 				<artifactId>de.flapdoodle.embed.mongo</artifactId>
@@ -828,14 +834,15 @@
 				<scope>test</scope>
 			</dependency>
 			<dependency>
-				<groupId>com.mikesamuel</groupId>
-				<artifactId>json-sanitizer</artifactId>
-				<version>${json-sanitize.version}</version>
-			</dependency>
-			<dependency>
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-collections4</artifactId>
 				<version>${commons-collections4.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>cglib</groupId>
+				<artifactId>cglib</artifactId>
+				<version>${cglib.version}</version>
+				<scope>test</scope>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

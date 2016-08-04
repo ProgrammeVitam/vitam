@@ -116,19 +116,15 @@ public class WorkspaceResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response createContainer(Entry container) {
         // FIXME REVIEW should be changed to POST /containers/{containername}
-        // FIXME REVIEW missing try catch for this check
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), container);
 
         try {
+            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), container);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(container));
-        } catch (InvalidParseOperationException e) {
-            LOGGER.error(e);
-            // FIXME REVIEW should set a correct error (not 5xx but 4xx)
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
-        }
 
-        try {
             workspace.createContainer(container.getName());
+        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageAlreadyExistException e) {
             LOGGER.error(e.getMessage());
             return Response.status(Status.CONFLICT).entity(container.getName()).build();
@@ -148,10 +144,11 @@ public class WorkspaceResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteContainer(@PathParam("containerName") String containerName) {
-        // FIXME REVIEW true by default ? SHould not be!
+        // FIXME REVIEW true by default ? SHould not be! need to test if container is empty
 
         try {
             workspace.deleteContainer(containerName, true);
+
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(e.getMessage());
             return Response.status(Status.NOT_FOUND).entity(containerName).build();
@@ -195,13 +192,10 @@ public class WorkspaceResource {
      // FIXME REVIEW should be changed to POST /containers/{containername}/folders/{foldername}
         try {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(folder));
-        } catch (InvalidParseOperationException e) {
-            LOGGER.error(e);
-            // FIXME REVIEW should set a correct error (not 5xx but 4xx)
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
-        }
-        try {
             workspace.createFolder(containerName, folder.getName());
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageAlreadyExistException e) {
             LOGGER.error(e.getMessage());
             return Response.status(Status.CONFLICT).entity(containerName + "/" + folder.getName()).build();
@@ -357,9 +351,14 @@ public class WorkspaceResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response computeObjectDigest(@PathParam("containerName") String containerName,
         @PathParam("objectName") String objectName, @HeaderParam("X-digest-algorithm") String algo) {
-        // FIXME REVIEW missing try catch for this check
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
-            containerName, objectName);
+
+        try {
+            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+                    containerName, objectName);
+        } catch (IllegalArgumentException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        }
 
         if (algo != null) {
             LOGGER.info("X-digest-algorithm : " + algo);
@@ -406,9 +405,15 @@ public class WorkspaceResource {
     public Response unzipObject(InputStream stream,
         @PathParam("containerName") String containerName,
         @PathParam("folderName") String folderName) {
-        // FIXME REVIEW missing try catch for this check
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
-            containerName, folderName);
+
+        try {
+            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+                    containerName, folderName);
+        } catch (IllegalArgumentException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        }
+
         try {
             workspace.unzipObject(containerName, folderName, stream);
         } catch (final ContentAddressableStorageNotFoundException e) {
