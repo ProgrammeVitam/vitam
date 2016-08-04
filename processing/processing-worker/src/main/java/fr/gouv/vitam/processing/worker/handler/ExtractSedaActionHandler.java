@@ -74,7 +74,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         try {
             sedaUtils.extractSEDA(params);
         } catch (final ProcessingException e) {
-            response.setStatus(StatusCode.FATAL).setOutcomeMessages(HANDLER_ID, OutcomeMessage.EXTRACT_MANIFEST_KO);
+            response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID, OutcomeMessage.EXTRACT_MANIFEST_KO);
         }
 
         LOGGER.info("ExtractSedaActionHandler response: " + response.getStatus().value());
