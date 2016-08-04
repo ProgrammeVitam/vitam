@@ -61,9 +61,11 @@ public class ServerApplication {
 
 	/**
 	 * Start a service of IHM Web Application with the args as config
-	 *
-	 * @param args
-	 *            as String
+	 * 
+	 * @param args 
+	 *     as String
+	 * @throws URISyntaxException
+	 *     the string could not be passed as a URI reference
 	 */
 	public static void main(String[] args) throws URISyntaxException {
 		try {
@@ -108,6 +110,7 @@ public class ServerApplication {
 	 * @param configuration
 	 *            as WebApplicationConfig
 	 * @throws Exception
+	 *     the server could not be started        
 	 */
 	public static void run(WebApplicationConfig configuration) throws Exception {
 		server = new Server(configuration.getPort());
@@ -146,6 +149,7 @@ public class ServerApplication {
 	 * stop a workspace server
 	 *
 	 * @throws Exception
+	 *     the server could not be stopped
 	 */
 	public static void stop() throws Exception {
 		server.stop();

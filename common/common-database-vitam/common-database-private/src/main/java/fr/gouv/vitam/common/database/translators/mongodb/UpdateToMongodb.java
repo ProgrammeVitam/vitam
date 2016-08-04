@@ -41,7 +41,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 public class UpdateToMongodb extends RequestToMongodb {
 
     /**
-     * @param updateParser
+     * @param updateParser UpdateParserMultiple
      */
     public UpdateToMongodb(UpdateParserMultiple updateParser) {
         super(updateParser);
@@ -51,7 +51,7 @@ public class UpdateToMongodb extends RequestToMongodb {
      * gives the update part of updateOne(query, update)
      *
      * @return the orderBy MongoDB command
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if invalid parse operation
      */
     public Bson getFinalUpdate() throws InvalidParseOperationException {
         final List<Action> actions = requestParser.getRequest().getActions();

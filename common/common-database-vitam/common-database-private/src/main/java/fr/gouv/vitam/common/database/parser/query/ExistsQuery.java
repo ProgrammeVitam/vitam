@@ -38,10 +38,10 @@ public class ExistsQuery extends fr.gouv.vitam.common.database.builder.query.Exi
     /**
      * For Parsing
      *
-     * @param req
-     * @param request
-     * @param adapter
-     * @throws InvalidParseOperationException
+     * @param req QUERY
+     * @param request JsonNode
+     * @param adapter VarNameAdapter
+     * @throws InvalidParseOperationException could not parse to JSON
      */
     public ExistsQuery(final QUERY req, final JsonNode request, final VarNameAdapter adapter)
         throws InvalidParseOperationException {

@@ -65,8 +65,8 @@ public class VitamCollection {
     /**
      * Initialize the collection
      *
-     * @param db
-     * @param recreate
+     * @param db mongodb database
+     * @param recreate boolean if recreate the database
      */
     public void initialize(final MongoDatabase db, final boolean recreate) {
         collection = db.getCollection(name, getClasz());

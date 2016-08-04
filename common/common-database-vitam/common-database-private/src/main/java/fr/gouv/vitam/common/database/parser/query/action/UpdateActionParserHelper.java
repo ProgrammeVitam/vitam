@@ -41,10 +41,10 @@ public class UpdateActionParserHelper extends UpdateActionHelper {
 
     /**
      *
-     * @param data
-     * @param adapter
+     * @param data JsonNode
+     * @param adapter VarNameAdapter
      * @return an AddAction
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if could not parse to JSON
      */
     public static final AddAction add(final JsonNode data, final VarNameAdapter adapter)
         throws InvalidParseOperationException {
@@ -53,10 +53,10 @@ public class UpdateActionParserHelper extends UpdateActionHelper {
 
     /**
      *
-     * @param data
-     * @param adapter
+     * @param data JsonNode
+     * @param adapter VarNameAdapter
      * @return an IncAction
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if could not parse to JSON
      */
     public static final IncAction inc(final JsonNode data, final VarNameAdapter adapter)
         throws InvalidParseOperationException {
@@ -65,10 +65,10 @@ public class UpdateActionParserHelper extends UpdateActionHelper {
 
     /**
      *
-     * @param data
-     * @param adapter
+     * @param data JsonNode
+     * @param adapter VarNameAdapter
      * @return an MinAction
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if could not parse to JSON
      */
     public static final MinAction min(final JsonNode data, final VarNameAdapter adapter)
         throws InvalidParseOperationException {
@@ -77,10 +77,10 @@ public class UpdateActionParserHelper extends UpdateActionHelper {
 
     /**
      *
-     * @param data
-     * @param adapter
+     * @param data JsonNode
+     * @param adapter VarNameAdapter
      * @return an MaxAction
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if could not parse to JSON
      */
     public static final MaxAction max(final JsonNode data, final VarNameAdapter adapter)
         throws InvalidParseOperationException {
@@ -89,10 +89,10 @@ public class UpdateActionParserHelper extends UpdateActionHelper {
 
     /**
      *
-     * @param data
-     * @param adapter
+     * @param data JsonNode
+     * @param adapter VarNameAdapter
      * @return a PopAction
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if could not parse to JSON
      */
     public static final PopAction pop(final JsonNode data, final VarNameAdapter adapter)
         throws InvalidParseOperationException {
@@ -101,10 +101,10 @@ public class UpdateActionParserHelper extends UpdateActionHelper {
 
     /**
      *
-     * @param data
-     * @param adapter
+     * @param data JsonNode
+     * @param adapter VarNameAdapter
      * @return a PullAction
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if could not parse to JSON
      */
     public static final PullAction pull(final JsonNode data, final VarNameAdapter adapter)
         throws InvalidParseOperationException {
@@ -113,10 +113,10 @@ public class UpdateActionParserHelper extends UpdateActionHelper {
 
     /**
      *
-     * @param data
-     * @param adapter
+     * @param data JsonNode
+     * @param adapter VarNameAdapter
      * @return a PushAction
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if could not parse to JSON
      */
     public static final PushAction push(final JsonNode data, final VarNameAdapter adapter)
         throws InvalidParseOperationException {
@@ -125,10 +125,10 @@ public class UpdateActionParserHelper extends UpdateActionHelper {
 
     /**
      *
-     * @param data
-     * @param adapter
+     * @param data JsonNode
+     * @param adapter VarNameAdapter
      * @return a RenameAction
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if could not parse to JSON
      */
     public static final RenameAction rename(final JsonNode data, final VarNameAdapter adapter)
         throws InvalidParseOperationException {
@@ -137,10 +137,10 @@ public class UpdateActionParserHelper extends UpdateActionHelper {
 
     /**
      *
-     * @param data
-     * @param adapter
+     * @param data JsonNode
+     * @param adapter VarNameAdapter
      * @return a SetAction
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if could not parse to JSON
      */
     public static final SetAction set(final JsonNode data, final VarNameAdapter adapter)
         throws InvalidParseOperationException {
@@ -149,10 +149,10 @@ public class UpdateActionParserHelper extends UpdateActionHelper {
 
     /**
      *
-     * @param array
-     * @param adapter
+     * @param array JsonNode
+     * @param adapter VarNameAdapter
      * @return a UnsetAction
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if could not parse to JSON
      */
     public static final UnsetAction unset(final JsonNode array, final VarNameAdapter adapter)
         throws InvalidParseOperationException {

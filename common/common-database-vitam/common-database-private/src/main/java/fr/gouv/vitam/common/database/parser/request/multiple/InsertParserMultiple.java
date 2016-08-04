@@ -54,7 +54,7 @@ public class InsertParserMultiple extends RequestParserMultiple {
     }
 
     /**
-     * @param adapter
+     * @param adapter VarNameAdapter
      *
      */
     public InsertParserMultiple(VarNameAdapter adapter) {
@@ -71,7 +71,7 @@ public class InsertParserMultiple extends RequestParserMultiple {
      *
      * @param request containing a parsed JSON as [ {root}, {query}, {filter}, {data} ] or { $roots: root, $query :
      *        query, $filter : filter, $data : data}
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if request could not parse to JSON
      */
     @Override
     public void parse(final JsonNode request) throws InvalidParseOperationException {
@@ -103,8 +103,8 @@ public class InsertParserMultiple extends RequestParserMultiple {
     /**
      * {$data : { field: value, ... }
      *
-     * @param rootNode
-     * @throws InvalidParseOperationException
+     * @param rootNode JsonNode
+     * @throws InvalidParseOperationException if rootNode could not parse to JSON
      */
     protected void dataParse(final JsonNode rootNode)
         throws InvalidParseOperationException {

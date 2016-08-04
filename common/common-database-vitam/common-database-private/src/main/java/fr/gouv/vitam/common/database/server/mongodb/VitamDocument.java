@@ -57,7 +57,7 @@ public abstract class VitamDocument<E> extends Document {
     /**
      * Constructor from Json
      *
-     * @param content
+     * @param content String
      * @throws IllegalArgumentException if Id is not a GUID
      */
     public VitamDocument(String content) {
@@ -68,7 +68,7 @@ public abstract class VitamDocument<E> extends Document {
     /**
      * Constructor from Document
      *
-     * @param content
+     * @param content Document
      * @throws IllegalArgumentException if Id is not a GUID
      */
     public VitamDocument(Document content) {

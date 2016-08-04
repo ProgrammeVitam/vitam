@@ -38,10 +38,8 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
- * RequestParser Helper to get the correct Request Parser from String or from Json. <br/> Note however that is should be
- * better to create the correct Parser based one the source of the request: <br/> - POST: insert <br/> - PATCH: update <br/> -
- * DELETE: delete <br/> - GET: select <br/> - PUT: delete & insert <br/>
- *
+ * RequestParser Helper to get the correct Request Parser from String or from Json. <br> Note however that is should be
+ * better to create the correct Parser based one the source of the request: <br> - POST: insert <br> - PATCH: update <br> - DELETE: delete <br> - GET: select <br> - PUT: delete and insert
  */
 public class RequestParserHelper {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(RequestParserHelper.class);
@@ -51,29 +49,29 @@ public class RequestParserHelper {
     }
 
     /**
-     * Create one Parser according to: <br/> InsertParser if { $roots: root, $query : query, $filter : filter, $data :
-     * data} <br/> UpdateParser if { $roots: root, $query : query, $filter : filter, $action : action } <br/> SelectParser if {
-     * $roots: roots, $query : query, $filter : filter, $projection : projection } <br/> DeleteParser if { $roots: roots,
+     * Create one Parser according to: <br> InsertParser if { $roots: root, $query : query, $filter : filter, $data :
+     * data} <br> UpdateParser if { $roots: root, $query : query, $filter : filter, $action : action } <br> SelectParser if {
+     * $roots: roots, $query : query, $filter : filter, $projection : projection } <br> DeleteParser if { $roots: roots,
      * $query : query, $filter : multi }
      *
      * @param jsonRequest the request to parse
      * @return the appropriate RequestParser
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if jsonRequest could not parse to JSON
      */
     public static RequestParserMultiple getParser(JsonNode jsonRequest) throws InvalidParseOperationException {
         return getParser(jsonRequest, new VarNameAdapter());
     }
 
     /**
-     * Create one Parser according to: <br/> InsertParser if { $roots: root, $query : query, $filter : filter, $data :
-     * data} <br/> UpdateParser if { $roots: root, $query : query, $filter : filter, $action : action } <br/> SelectParser if {
-     * $roots: roots, $query : query, $filter : filter, $projection : projection } <br/> DeleteParser if { $roots: roots,
-     * $query : query, $filter : multi } <br/>
+     * Create one Parser according to: <br> InsertParser if { $roots: root, $query : query, $filter : filter, $data :
+     * data} <br> UpdateParser if { $roots: root, $query : query, $filter : filter, $action : action } <br> SelectParser if {
+     * $roots: roots, $query : query, $filter : filter, $projection : projection } <br> DeleteParser if { $roots: roots,
+     * $query : query, $filter : multi } <br>
      *
      * @param jsonRequest the request to parse
      * @param varNameAdapter the VarNameAdapter to use with the created Parser
      * @return the appropriate RequestParser
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if jsonRequest could not parse to JSON
      */
     public static RequestParserMultiple getParser(JsonNode jsonRequest, VarNameAdapter varNameAdapter)
         throws InvalidParseOperationException {

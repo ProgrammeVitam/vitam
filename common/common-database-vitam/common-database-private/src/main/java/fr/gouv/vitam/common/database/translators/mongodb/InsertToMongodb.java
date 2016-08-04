@@ -39,7 +39,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 public class InsertToMongodb extends RequestToMongodb {
 
     /**
-     * @param insertParser
+     * @param insertParser AbstractParser of unknown type
      */
     public InsertToMongodb(AbstractParser<?> insertParser) {
         super(insertParser);
@@ -49,8 +49,7 @@ public class InsertToMongodb extends RequestToMongodb {
      * insertOne(data)
      *
      * @return the projection
-     * @throws InvalidParseOperationException
-     * @throws MetaDataMaxDepthException
+     * @throws InvalidParseOperationException if could not parse to JSON
      */
     public Document getFinalData() throws InvalidParseOperationException {
         final JsonNode node = ((AbstractRequest) requestParser.getRequest()).getData();

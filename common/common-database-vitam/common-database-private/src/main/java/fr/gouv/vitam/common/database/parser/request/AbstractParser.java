@@ -125,7 +125,7 @@ public abstract class AbstractParser<E extends AbstractRequest> {
      *
      * @param jsonRequest containing a parsed JSON as [ {root}, {query}, {filter} ] or { $roots: root, $query : query,
      *        $filter : filter }
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if jsonRequest could not parse to JSON
      */
     public abstract void parse(final JsonNode jsonRequest) throws InvalidParseOperationException;
 
@@ -134,7 +134,7 @@ public abstract class AbstractParser<E extends AbstractRequest> {
      *
      * @param jsonRequest containing a parsed JSON as [ {root}, {query}, {filter} ] or { $roots: root, $query : query,
      *        $filter : filter }
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if jsonRequest could not parse to JSON
      */
     protected void parseJson(final JsonNode jsonRequest) throws InvalidParseOperationException {
         rootNode = jsonRequest;
@@ -188,7 +188,7 @@ public abstract class AbstractParser<E extends AbstractRequest> {
     /**
      * Check if the command is allowed using the "standard" database
      *
-     * @param query
+     * @param query QUERY
      * @return true if only valid in "index" database support
      */
     protected static boolean isCommandAsFullText(QUERY query) {
@@ -208,9 +208,9 @@ public abstract class AbstractParser<E extends AbstractRequest> {
     /**
      * Compute the QUERY from command
      *
-     * @param queryroot
+     * @param queryroot String
      * @return the QUERY
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if queryroot could not parse to JSON
      */
     public static final QUERY getRequestId(final String queryroot)
         throws InvalidParseOperationException {
@@ -332,25 +332,25 @@ public abstract class AbstractParser<E extends AbstractRequest> {
 
 
     /**
-     * @return
+     * @return int the depth of the query
      */
     public abstract int getLastDepth();
 
 
     /**
-     * @return
+     * @return FILTERARGS the filter argument
      */
     public abstract FILTERARGS model();
 
 
     /**
-     * @return
+     * @return true if not time out
      */
     public abstract boolean hintNoTimeout();
 
 
     /**
-     * @return
+     * @return true if not cache hint
      */
     public abstract boolean hintCache();
 

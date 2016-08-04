@@ -36,7 +36,7 @@ public class VarNameUpdateAdapter extends VarNameAdapter {
     /**
      * Constructor
      *
-     * @param adapter
+     * @param adapter VarNameAdapter
      */
     public VarNameUpdateAdapter(VarNameAdapter adapter) {
         this.adapter = adapter;

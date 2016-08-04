@@ -38,10 +38,10 @@ public class UnsetAction extends fr.gouv.vitam.common.database.builder.query.act
     /**
      * For Parsing
      *
-     * @param action
-     * @param adapter
-     * @param request
-     * @throws InvalidParseOperationException
+     * @param action UPDATEACTION
+     * @param adapter VarNameAdapter
+     * @param request ArrayNode
+     * @throws InvalidParseOperationException if could not parse to JSON
      */
     public UnsetAction(final UPDATEACTION action, final ArrayNode request, final VarNameAdapter adapter)
         throws InvalidParseOperationException {

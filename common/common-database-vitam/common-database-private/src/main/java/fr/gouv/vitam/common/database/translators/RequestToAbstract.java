@@ -52,7 +52,7 @@ public class RequestToAbstract {
 
     /**
      *
-     * @param requestParser
+     * @param requestParser AbstractParser in unknown type
      */
     public RequestToAbstract(AbstractParser<?> requestParser) {
         this.requestParser = requestParser;
@@ -173,7 +173,7 @@ public class RequestToAbstract {
     }
 
     /**
-     * @param nth
+     * @param nth int
      * @return the nth Query
      */
     public final Query getNthQuery(int nth) {
