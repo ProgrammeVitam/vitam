@@ -1,6 +1,0 @@
-{
-  "baseUrl" : "http://workspaceOfferService",
-  "parameters" : {
-    "user" : "bob"
-  }
-}

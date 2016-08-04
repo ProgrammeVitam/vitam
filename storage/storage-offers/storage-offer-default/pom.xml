@@ -8,6 +8,11 @@
 	</parent>
 	<artifactId>storage-offer-default</artifactId>
 	<name>Storage Offer Default (workspace based)</name>
+	<properties>
+		<unix.name>storage-offer-default</unix.name>
+		<unix.user>vitam</unix.user>
+		<unix.group>vitam</unix.group>
+	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>

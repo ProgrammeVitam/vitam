@@ -9,6 +9,8 @@
 	<name>Processing Management</name>
 	<properties>
 		<unix.name>processing</unix.name>
+		<unix.user>vitam</unix.user>
+		<unix.group>vitam</unix.group>
 	</properties>
 	<dependencies>
 		<dependency>

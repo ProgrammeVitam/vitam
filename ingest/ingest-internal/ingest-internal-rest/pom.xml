@@ -11,7 +11,9 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <start-class>fr.gouv.vitam.ingest.internal.upload.rest.UploadServiceImpl</start-class>
-	<unix.name>ingest-internal</unix.name>
+	    <unix.name>ingest-internal</unix.name>
+        <unix.user>vitam</unix.user>
+        <unix.group>vitam</unix.group>
     </properties>
 
     <build>

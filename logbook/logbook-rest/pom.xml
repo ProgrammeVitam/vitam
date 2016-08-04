@@ -9,6 +9,8 @@
 	<name>Logbook Rest</name>
 	<properties>
 		<unix.name>logbook</unix.name>
+		<unix.user>vitam</unix.user>
+		<unix.group>vitam</unix.group>
 	</properties>
 	<dependencies>
 		<dependency>
