@@ -176,7 +176,18 @@
 				<artifactId>jetty-maven-plugin</artifactId>
 				<version>${jetty.version}</version>
 			</plugin>
-
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.9</version>
+				<configuration>
+					<systemPropertyVariables>
+						<org.owasp.esapi.opsteam>AC001</org.owasp.esapi.opsteam>
+						<org.owasp.esapi.devteam>AC001</org.owasp.esapi.devteam>
+						<org.owasp.esapi.resources>../../common/common-private/src/main/resources/esapi</org.owasp.esapi.resources>
+					</systemPropertyVariables>
+				</configuration>
+			</plugin>
 		</plugins>
 
 	</build>

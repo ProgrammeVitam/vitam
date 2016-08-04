@@ -47,9 +47,9 @@ import org.junit.Test;
 public class StringUtilsTest {
     @Test
     public void testRandom() {
-        final byte[] byteArray0 = StringUtils.getRandom(1358);
+        final byte[] byteArray0 = StringUtils.getRandom(90);
         assertNotNull(byteArray0);
-        final byte[] byteArray1 = StringUtils.getRandom(1358);
+        final byte[] byteArray1 = StringUtils.getRandom(90);
         assertFalse(Arrays.equals(byteArray0, byteArray1));
         final byte[] byteArray2 = StringUtils.getBytesFromArraysToString(", ");
         assertArrayEquals(new byte[] {}, byteArray2);
@@ -63,7 +63,7 @@ public class StringUtilsTest {
     public void testBytesFromArrayToString() {
         final byte[] byteArray0 = StringUtils.getBytesFromArraysToString("7");
         assertArrayEquals(new byte[] {(byte) 7}, byteArray0);
-        final byte[] byteArray1 = StringUtils.getRandom(1358);
+        final byte[] byteArray1 = StringUtils.getRandom(90);
         final String sbyte = Arrays.toString(byteArray1);
         final byte[] byteArray2 = StringUtils.getBytesFromArraysToString(sbyte);
         assertArrayEquals(byteArray1, byteArray2);

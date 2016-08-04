@@ -26,6 +26,8 @@
  */
 package fr.gouv.vitam.common.logging;
 
+import java.lang.reflect.InvocationTargetException;
+
 /**
  * Creates an {@link VitamLogger} or changes the default factory implementation. This factory allows you to choose what
  * logging framework VITAM should use. The default factory is {@link LogbackLoggerFactory}. If SLF4J is not available,
@@ -43,6 +45,8 @@ package fr.gouv.vitam.common.logging;
 public abstract class VitamLoggerFactory {
     private static volatile VitamLoggerFactory defaultFactory;
     protected static VitamLogLevel currentLevel = null;
+    private static boolean initialized = false;
+    static Object serverIdentity = null;
 
     static {
         final String name = VitamLoggerFactory.class.getName();
@@ -65,6 +69,24 @@ public abstract class VitamLoggerFactory {
         }
 
         defaultFactory = f;
+        initIdentity();
+    }
+
+    private static void initIdentity() {
+        if (initialized) {
+            return;
+        }
+        try {
+            final Class<?> clasz = Class.forName("fr.gouv.vitam.common.ServerIdentity",
+                true, VitamLoggerFactory.class.getClassLoader());
+            serverIdentity = clasz.getMethod("getInstance").invoke(null);
+        } catch (ClassNotFoundException | NoClassDefFoundError e) {// NOSONAR ignore
+            // ignore
+        } catch (IllegalAccessException | IllegalArgumentException | // NOSONAR ignore
+            InvocationTargetException | NoSuchMethodException | SecurityException e) {// NOSONAR ignore
+            e.printStackTrace();// NOSONAR : no choice since no logger yet
+        }
+        initialized = true;
     }
 
     /**

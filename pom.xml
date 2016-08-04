@@ -157,6 +157,8 @@
 		<commons-collections4.version>4.0</commons-collections4.version>
 		<unix.user>vitam</unix.user>
 		<unix.group>vitam</unix.group>
+		<esapi.version>2.1.0.1</esapi.version>
+		<xerces.version>2.11.0</xerces.version>
 	</properties>
 
 	<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
@@ -264,7 +266,7 @@
 						<threadCount>1</threadCount>
 						<perCoreThreadCount>false</perCoreThreadCount>
 						<forkCount>1</forkCount>
-						<reuseForks>false</reuseForks>
+						<reuseForks>true</reuseForks>
 					</configuration>
 				</plugin>
 				<plugin>
@@ -644,6 +646,34 @@
 				<groupId>javax.servlet</groupId>
 				<artifactId>javax.servlet-api</artifactId>
 				<version>${javax.servlet.version}</version>
+			</dependency>
+
+			<!-- ########################## Security ########################## -->
+
+			<dependency>
+				<groupId>com.mikesamuel</groupId>
+				<artifactId>json-sanitizer</artifactId>
+				<version>${json-sanitize.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.owasp.esapi</groupId>
+				<artifactId>esapi</artifactId>
+				<version>${esapi.version}</version>
+				<exclusions>
+					<exclusion>
+						<artifactId>log4j</artifactId>
+						<groupId>log4j</groupId>
+					</exclusion>
+					<exclusion>
+						<artifactId>commons-fileupload</artifactId>
+						<groupId>commons-fileupload</groupId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			<dependency>
+				<groupId>xerces</groupId>
+				<artifactId>xercesImpl</artifactId>
+				<version>${xerces.version}</version>
 			</dependency>
 
 			<!-- ########################## Logger ########################## -->

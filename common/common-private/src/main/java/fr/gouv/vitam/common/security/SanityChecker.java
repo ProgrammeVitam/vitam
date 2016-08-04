@@ -29,7 +29,6 @@ package fr.gouv.vitam.common.security;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,14 +44,16 @@ import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
+import org.owasp.esapi.Validator;
+import org.owasp.esapi.errors.IntrusionException;
+import org.owasp.esapi.errors.ValidationException;
+import org.owasp.esapi.reference.DefaultValidator;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.json.JsonSanitizer;
 
-import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * Checker for Sanity of XML and Json <br>
@@ -63,138 +64,190 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  */
 
 public class SanityChecker {
-    // TODO : issue with public static which is not final
-    // defaut parameters for XML check
-    
-    private static int limitValueTagSize = 1000000;
-    private static double limitFileSize = 1000000000;
+    /**
+     * max size of xml file
+     */
+    private static long limitFileSize = 8000000000L;
+    /**
+     * max size of json
+     */
+    private static long limitJsonSize = 16000000;
+    /**
+     * max size of Json or Xml value field
+     */
+    private static int limitFieldSize = 10000000;
+    /**
+     * max size of parameter value field (low)
+     */
+    private static int limitParamSize = 1000;
+
+    // default parameters for XML check
     private static final String CDATA_TAG_UNESCAPED = "<![CDATA[";
     private static final String CDATA_TAG_ESCAPED = "&lt;![CDATA[";
     private static final String ENTITY_TAG_UNESCAPED = "<!ENTITY";
     private static final String ENTITY_TAG_ESCAPED = "&lt;!ENTITY";
+
+    // default parameters for Javascript check
     private static final String SCRIPT_TAG_UNESCAPED = "<script>";
     private static final String SCRIPT_TAG_ESCAPED = "&lt;script&gt;";
 
-    // defaut parameters for Json check
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SanityChecker.class);
+    private static final List<String> RULES = new ArrayList<>();
 
-    private static final String tagStart =
+    // default parameters for Json check
+    private static final String TAG_START =
         "\\<\\w+((\\s+\\w+(\\s*\\=\\s*(?:\".*?\"|'.*?'|[^'\"\\>\\s]+))?)+\\s*|\\s*)\\>";
-    private static final String tagEnd =
+    private static final String TAG_END =
         "\\</\\w+\\>";
-    private static final String tagSelfClosing =
+    private static final String TAG_SELF_CLOSING =
         "\\<\\w+((\\s+\\w+(\\s*\\=\\s*(?:\".*?\"|'.*?'|[^'\"\\>\\s]+))?)+\\s*|\\s*)/\\>";
-    private static final String htmlEntity =
+    private static final String HTML_ENTITY =
         "&[a-zA-Z][a-zA-Z0-9]+;";
-    private static final Pattern htmlPattern = Pattern.compile(
-        "(" + tagStart + ".*" + tagEnd + ")|(" + tagSelfClosing + ")|(" + htmlEntity + ")",
+    private static final Pattern HTML_PATTERN = Pattern.compile(
+        "(" + TAG_START + ".*" + TAG_END + ")|(" + TAG_SELF_CLOSING + ")|(" + HTML_ENTITY + ")",
         Pattern.DOTALL);
 
-    /**
-     *  max size of json value field  
-     */
-    private static final int limitSize = 100;
+    // Default ASCII for Param check
+    private static final Pattern UNPRINTABLE_PATTERN = Pattern.compile("[\\p{Cntrl}&&[^\r\n\t]]");
+    // ISSUE with integration
+    private static Validator ESAPI;
 
-    /**
-     * max size of json  
-     */
-    private static int limitJsonSize = 1000000000;
+    static {
+        init();
+    }
 
+    private SanityChecker() {
+        // Empty constructor
+    }
+
+    private static final void init() {
+        RULES.add(CDATA_TAG_UNESCAPED);
+        RULES.add(CDATA_TAG_ESCAPED);
+        RULES.add(ENTITY_TAG_UNESCAPED);
+        RULES.add(ENTITY_TAG_ESCAPED);
+        RULES.add(SCRIPT_TAG_UNESCAPED);
+        RULES.add(SCRIPT_TAG_ESCAPED);
+        // ISSUE with integration 
+        ESAPI = new DefaultValidator();
+    }
+    
     /**
-     * @return limitValueTagSize
+     * checkXMLAll : check xml sanity all aspect : size, tag size, invalid tag
+     * 
+     * @param xmlFile as File
+     * @throws InvalidParseOperationException when parse file error
+     * @throws IOException when read file error
+     * @throws InvalidParseOperationException when Sanity Check is in error
      */
-    public static int getLimitValueTagSize() {
-        return limitValueTagSize;
+    public static void checkXmlAll(File xmlFile) throws InvalidParseOperationException, IOException {
+        checkXmlSanityFileSize(xmlFile);
+        // First test tags through file reader (preventing XSS Bomb)
+        checkXmlSanityTags(xmlFile);
+        // Then through XML reader
+        checkXmlSanityTagValueSize(xmlFile);
     }
 
     /**
-     * @param limitValueTagSize limit of tag size
+     * checkJsonAll : Check sanity of json : size, invalid tag
+     * 
+     * @param json as JsonNode
+     * @throws InvalidParseOperationException when Sanity Check is in error
      */
-    public static void setLimitValueTagSize(int limitValueTagSize) {
-        SanityChecker.limitValueTagSize = limitValueTagSize;
+    public static void checkJsonAll(JsonNode json) throws InvalidParseOperationException {
+        String jsonish = JsonHandler.writeAsString(json);
+        String wellFormedJson = JsonSanitizer.sanitize(jsonish);
+        if (!wellFormedJson.equals(jsonish)) {
+            throw new InvalidParseOperationException("Json is not valid from Sanitize check");
+        }
+        checkJsonFileSize(jsonish);
+        checkJsonSanity(json);
     }
 
     /**
-     * @return limitFileSize
+     * checkJsonAll : Check sanity of json : size, invalid tag
+     * 
+     * @param json as String
+     * @throws InvalidParseOperationException when Sanity Check is in error
      */
-    public static double getLimitFileSize() {
-        return limitFileSize;
+    public static void checkJsonAll(String json) throws InvalidParseOperationException {
+        String wellFormedJson = JsonSanitizer.sanitize(json);
+        if (!wellFormedJson.equals(json)) {
+            throw new InvalidParseOperationException("Json is not valid from Sanitize check");
+        }
+        checkJsonFileSize(json);
+        checkJsonSanity(JsonHandler.getFromString(json));
     }
 
     /**
-     * @param limitFileSize limit of file size
+     * checkParameter : Check sanity of String: no javascript/xml tag, neither html tag
+     * 
+     * @param params
+     * @throws InvalidParseOperationException
      */
-    public static void setLimitFileSize(double limitFileSize) {
-        SanityChecker.limitFileSize = limitFileSize;
+    public static void checkParameter(String... params) throws InvalidParseOperationException {
+        for (String param : params) {
+            checkSanityTags(param, getLimitParamSize());
+            checkHtmlPattern(param);
+        }
     }
 
     /**
-     * @return limitJsonSize
-     */
-    public static int getLimitJsonSize() {
-        return limitJsonSize;
-    }
-
-    /**
-     * @param limitJsonSize limit of json size
-     */
-    public static void setLimitJsonSize(int limitJsonSize) {
-        SanityChecker.limitJsonSize = limitJsonSize;
-    }
-
-    /**
-     * checkXMLSanityTagValueSize
+     * check XML Sanity Tag and Value Size
      * 
      * @param xmlFile xml file
      * @throws IOException when read file error
-     * @throws InvalidParseOperationException when parse file error
+     * @throws InvalidParseOperationException when Sanity Check is in error
      */
-    public static void checkXMLSanityTagValueSize(File xmlFile)
+    protected static final void checkXmlSanityTagValueSize(File xmlFile)
         throws InvalidParseOperationException, IOException {
-        InputStream xmlStream = new FileInputStream(xmlFile);
+        try (final InputStream xmlStream = new FileInputStream(xmlFile)) {
 
-        final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
-        // read XML input stream
-        try {
-            XMLStreamReader reader = xmlInputFactory.createXMLStreamReader(xmlStream);
-            while (reader.hasNext()) {
-
-                int event = reader.next();
-                if (event == XMLStreamConstants.CHARACTERS) {
-                    if (!reader.getText().trim().equals("")) {
-                        checkSanitySizeValueTag(reader.getText().trim(), limitValueTagSize);
+            final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+            // Prevent XSS
+            xmlInputFactory.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.FALSE);
+            xmlInputFactory.setProperty("javax.xml.stream.isReplacingEntityReferences", Boolean.FALSE);
+            xmlInputFactory.setProperty("javax.xml.stream.isSupportingExternalEntities", Boolean.FALSE);
+            // read XML input stream
+            XMLStreamReader reader = null;
+            try {
+                reader = xmlInputFactory.createXMLStreamReader(xmlStream);
+                while (reader.hasNext()) {
+                    int event = reader.next();
+                    if (event == XMLStreamConstants.CDATA ||
+                        event == XMLStreamConstants.ENTITY_DECLARATION ||
+                        event == XMLStreamConstants.ENTITY_REFERENCE) {
+                        throw new InvalidParseOperationException("XML contains CDATA or ENTITY");
+                    }
+                    if (event == XMLStreamConstants.CHARACTERS) {
+                        String val = reader.getText().trim();
+                        if (!val.isEmpty()) {
+                            checkSanityTags(val, getLimitFieldSize());
+                        }
+                    }
+                }
+            } catch (XMLStreamException e) {
+                throw new InvalidParseOperationException("Bad XML format", e);
+            } finally {
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (XMLStreamException e) {// NOSONAR ignore exception
+                        // Ignore
                     }
                 }
             }
-        } catch (XMLStreamException e) {
-            LOGGER.error(e.getMessage());
-        }
-        xmlStream.close();
-    }
-
-    /**
-     * checkSanitySizeValueTag : check the size of one tag value
-     * 
-     * @param tagValue as String, exceed limit size as integer
-     * @return true if the value tag size not exceed limit
-     */
-    private static void checkSanitySizeValueTag(String tagValue, int size)
-        throws InvalidParseOperationException {
-        if (tagValue != null && tagValue.length() > size) {
-            throw new InvalidParseOperationException("Tag value size exceeds sanity check of " + size);
         }
     }
-
 
     /**
      * CheckXMLSanityFileSize : check size of xml file
      * 
      * @param xmlFile as File
      * @throws IOException when read file exception
+     * @throws InvalidParseOperationException when Sanity Check is in error
      */
-    public static void checkXMLSanityFileSize(File xmlFile) throws IOException {
-        if (xmlFile.length() > limitFileSize) {
-            throw new IOException("File size exceeds sanity check of " + xmlFile.length());
+    protected static final void checkXmlSanityFileSize(File xmlFile) throws InvalidParseOperationException {
+        if (xmlFile.length() > getLimitFileSize()) {
+            throw new InvalidParseOperationException("File size exceeds sanity check");
         }
     }
 
@@ -203,91 +256,91 @@ public class SanityChecker {
      * 
      * @param xmlFile : XML file path as String
      * @throws IOException when read file error
-     * @throws InvalidParseOperationException when parse file error
+     * @throws InvalidParseOperationException when Sanity Check is in error
      */
-
-    public static void checkXMLSanityTags(File xmlFile) throws InvalidParseOperationException, IOException {
-        Reader fileReader = null;
-        try {
-            fileReader = new FileReader(xmlFile);
-        } catch (FileNotFoundException e) {
-            LOGGER.error(e.getMessage());
-        }
-        BufferedReader bufReader = new BufferedReader(fileReader);
-        String line = null;
-        try {
-            line = bufReader.readLine();
-        } catch (IOException e) {
-            LOGGER.error(e.getMessage());
-        }
-        // TODO : use an iterator
-        while (line != null) {
-            checkSanityTags(line, CDATA_TAG_ESCAPED);
-            checkSanityTags(line, CDATA_TAG_UNESCAPED);
-            checkSanityTags(line, ENTITY_TAG_ESCAPED);
-            checkSanityTags(line, ENTITY_TAG_UNESCAPED);
-            checkSanityTags(line, CDATA_TAG_UNESCAPED);
-            checkSanityTags(line, SCRIPT_TAG_UNESCAPED);
-            checkSanityTags(line, SCRIPT_TAG_ESCAPED);
-            try {
-                line = bufReader.readLine();
-            } catch (IOException e) {
-                LOGGER.error(e.getMessage());
+    protected static final void checkXmlSanityTags(File xmlFile) throws InvalidParseOperationException, IOException {
+        try (final Reader fileReader = new FileReader(xmlFile)) {
+            try (final BufferedReader bufReader = new BufferedReader(fileReader)) {
+                String line = null;
+                while ((line = bufReader.readLine()) != null) {
+                    checkXmlSanityTags(line);
+                }
             }
         }
-        bufReader.close();
+    }
+
+    /**
+     * Check for all RULES
+     * 
+     * @param line line to check
+     * @throws InvalidParseOperationException when Sanity Check is in error
+     */
+    private static final void checkXmlSanityTags(String line) throws InvalidParseOperationException {
+        for (String rule : RULES) {
+            checkSanityTags(line, rule);
+        }
+    }
+
+    /**
+     * Check for all RULES and Esapi
+     * 
+     * @param line line to check
+     * @param limit limit size
+     * @throws InvalidParseOperationException when Sanity Check is in error
+     */
+    private static final void checkSanityTags(String line, int limit) throws InvalidParseOperationException {
+        checkSanityEsapi(line, limit);
+        checkXmlSanityTags(line);
+    }
+
+    /**
+     * Check using ESAPI from OWASP
+     * 
+     * @param line line to check
+     * @param limit limit size
+     * @throws InvalidParseOperationException when Sanity Check is in error
+     */
+    private static final void checkSanityEsapi(String line, int limit) throws InvalidParseOperationException {
+            if (line.length() > limit) {
+                throw new InvalidParseOperationException("Invalid input bytes length");
+            }
+            if (UNPRINTABLE_PATTERN.matcher(line).find()) {
+                throw new InvalidParseOperationException("Invalid input bytes");
+            }
+            // ESAPI.getValidPrintable Not OK
+            // Issue with integration of ESAPI
+            try {
+                ESAPI.getValidSafeHTML("CheckSafeHtml", line, limit, true);
+            } catch (NoClassDefFoundError e) {//NOSONAR Ignore and no LOG
+                // Ignore
+                throw new InvalidParseOperationException("Invalid ESAPI sanity check", e);
+            } catch (ValidationException | IntrusionException e) {
+                throw new InvalidParseOperationException("Invalid ESAPI sanity check", e);
+            }
     }
 
     /**
      * checkSanityTags : check if there is an invalid tag
      * 
-     * @param invalidTag, data to check as String
-     * @return boolean true if no invalid tag found else false
+     * @param invalidTag data to check as String
+     * @throws InvalidParseOperationException when Sanity Check is in error
      */
-    private static void checkSanityTags(String dataLine, String invalidTag) throws InvalidParseOperationException {
+    private static final void checkSanityTags(String dataLine, String invalidTag)
+        throws InvalidParseOperationException {
         if (dataLine != null && invalidTag != null && (dataLine.contains(invalidTag))) {
-            throw new InvalidParseOperationException("Invalid tag sanity check of : " + invalidTag);
+            throw new InvalidParseOperationException("Invalid tag sanity check");
         }
     }
 
     /**
-     * checkXMLAll : check xml sanity all aspect : size, tag size, invalid tag
+     * checkHtmlPattern : check against Html Pattern within value (not allowed)
      * 
-     * @param xmlFile as File
-     * @return boolean : true if all check ok else false
-     * @throws InvalidParseOperationException when parse file error
-     * @throws IOException when read file error
+     * @param param
+     * @throws InvalidParseOperationException when Sanity Check is in error
      */
-    public static boolean checkXMLAll(File xmlFile) throws InvalidParseOperationException, IOException {
-        try {
-            checkXMLSanityFileSize(xmlFile);
-            checkXMLSanityTagValueSize(xmlFile);
-            checkXMLSanityTags(xmlFile);
-        }catch (InvalidParseOperationException e){
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * checkJsonAll : Check sanity of json : size, invalid tag
-     * 
-     * @param json as JsonNode
-     * @return boolean true if sanity check of json is good, false if not
-     * @throws InvalidParseOperationException when parse json error
-     */
-    public static boolean checkJsonAll(JsonNode json) throws InvalidParseOperationException {
-        String jsonish = JsonHandler.writeAsString(json);
-        String wellFormedJson = JsonSanitizer.sanitize(jsonish);
-        try {
-            checkJsonFileSize(json);
-        } catch (InvalidParseOperationException e) {
-            return false;
-        }
-        if ((checkJsonSanity(JsonHandler.getFromString(wellFormedJson)).size() == 0)) {
-            return true;
-        } else {
-            return false;
+    private static final void checkHtmlPattern(String param) throws InvalidParseOperationException {
+        if (HTML_PATTERN.matcher(param).find()) {
+            throw new InvalidParseOperationException("HTML PATTERN found");
         }
     }
 
@@ -295,43 +348,22 @@ public class SanityChecker {
      * checkJsonSanity : check sanity of json and find invalid key
      * 
      * @param json as JsonNode
-     * @return list of the key whose value is in illegal size
+     * @throws InvalidParseOperationException when Sanity Check is in error
      */
-    public static List<String> checkJsonSanity(JsonNode json) {
-        List<String> invalidKeyList = new ArrayList<String>();
+    protected static final void checkJsonSanity(JsonNode json) throws InvalidParseOperationException {
         Iterator<Map.Entry<String, JsonNode>> fields = json.fields();
-
         while (fields.hasNext()) {
             Map.Entry<String, JsonNode> entry = fields.next();
-
             String key = entry.getKey();
+            checkSanityTags(key, getLimitFieldSize());
             JsonNode value = entry.getValue();
-
             if (!value.isValueNode()) {
-                invalidKeyList.addAll(checkJsonSanity(value));
+                checkJsonSanity(value);
             } else {
-                try {
-                    if (htmlPattern.matcher(JsonHandler.writeAsString(value)).find()) {
-                        invalidKeyList.add(key);
-                    } else {
-                        checkJsonValueSize(JsonHandler.writeAsString(value), limitSize);
-                    }
-                } catch (InvalidParseOperationException e) {
-                    LOGGER.error(e.getMessage());
-                    invalidKeyList.add(key);
-                }
+                final String svalue = JsonHandler.writeAsString(value);
+                checkSanityTags(svalue, getLimitFieldSize());
+                checkHtmlPattern(svalue);
             }
-        }
-
-        return invalidKeyList;
-    }
-
-    protected static final void checkJsonValueSize(String arg, int size)
-        throws InvalidParseOperationException {
-        ParametersChecker.checkParameter("size is a mandatory parameter", size);
-        if (arg != null && arg.length() > size) {
-            throw new InvalidParseOperationException(
-                "json value size exceeds sanity check of " + size);
         }
     }
 
@@ -339,14 +371,68 @@ public class SanityChecker {
      * checkJsonFileSize
      * 
      * @param json as JsonNode
-     * @return boolean : true if json size is not exceed limit else false
-     * @throws InvalidParseOperationException if json size exceed limit
+     * @throws InvalidParseOperationException when Sanity Check is in error
      */
-    public static void checkJsonFileSize(JsonNode json) throws InvalidParseOperationException {
-        if (JsonHandler.writeAsString(json).length() > limitJsonSize) {
+    private static final void checkJsonFileSize(String json) throws InvalidParseOperationException {
+        if (json.length() > getLimitJsonSize()) {
             throw new InvalidParseOperationException(
-                "Json size exceeds sanity check : " + JsonHandler.writeAsString(json).length());
+                "Json size exceeds sanity check : " + getLimitJsonSize());
         }
     }
 
+    /**
+     * @return the limit File Size (XML or JSON)
+     */
+    public static final long getLimitFileSize() {
+        return limitFileSize;
+    }
+
+    /**
+     * @param limitFileSize the limit File Size to set (XML or JSON)
+     */
+    public static final void setLimitFileSize(long limitFileSize) {
+        SanityChecker.limitFileSize = limitFileSize;
+    }
+
+    /**
+     * @return the limit Size of a Json
+     */
+    public static final long getLimitJsonSize() {
+        return limitJsonSize;
+    }
+
+    /**
+     * @param limitJsonSize the limit Size of a Json to set
+     */
+    public static final void setLimitJsonSize(long limitJsonSize) {
+        SanityChecker.limitJsonSize = limitJsonSize;
+    }
+
+    /**
+     * @return the limit Size of a Field in a Json
+     */
+    public static final int getLimitFieldSize() {
+        return limitFieldSize;
+    }
+
+    /**
+     * @param limitFieldSize the limit Size of a Field in a Json to set
+     */
+    public static final void setLimitFieldSize(int limitFieldSize) {
+        SanityChecker.limitFieldSize = limitFieldSize;
+    }
+
+    /**
+     * @return the limit Size of a parameter
+     */
+    public static final int getLimitParamSize() {
+        return limitParamSize;
+    }
+
+    /**
+     * @param limitParamSize the limit Size of a parameter to set
+     */
+    public static final void setLimitParamSize(int limitParamSize) {
+        SanityChecker.limitParamSize = limitParamSize;
+    }
 }

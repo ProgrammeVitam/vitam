@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- *
+ * 
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -24,56 +24,37 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.common;
+package fr.gouv.vitam.common.security;
 
-import java.util.concurrent.ThreadLocalRandom;
+import org.owasp.esapi.LogFactory;
+import org.owasp.esapi.Logger;
 
 /**
- * String utils
+ * Dummy Implementation of Logger Factory for Esapi
  */
-public final class StringUtils {
-    /**
-     * Random Generator
-     */
-    private static final ThreadLocalRandom RANDOM = ThreadLocalRandom.current();
+public class VitamLoggerLogFactory implements LogFactory {
+    private static final VitamLoggerLogFactory LOG_FACTORY = new VitamLoggerLogFactory();
 
-    private StringUtils() {
-        // empty
+    private VitamLoggerLogFactory() {
+        // Empty constructor
     }
 
     /**
-     * @param length
-     * @return a byte array with random values
+     * 
+     * @return the instance of this factory
      */
-    public static final byte[] getRandom(final int length) {
-        if (length <= 0) {
-            return SingletonUtils.getSingletonByteArray();
-        }
-        final byte[] result = new byte[length];
-        for (int i = 0; i < result.length; i++) {
-            result[i] = (byte) (RANDOM.nextInt(95) + 32);
-        }
-        return result;
+    public static LogFactory getInstance() {
+        return LOG_FACTORY;
     }
 
-    /**
-     * Revert Arrays.toString for bytes
-     *
-     * @param bytesString
-     * @return the array of bytes
-     * @throws IllegalArgumentException if bytesString is null or empty
-     */
-    public static final byte[] getBytesFromArraysToString(final String bytesString) {
-        ParametersChecker.checkParameter("Should not be null or empty", bytesString);
-        final String[] strings = bytesString.replace("[", "").replace("]", "").split(", ");
-        final byte[] result = new byte[strings.length];
-        try {
-            for (int i = 0; i < result.length; i++) {
-                result[i] = (byte) (Integer.parseInt(strings[i]) & 0xFF);
-            }
-        } catch (final NumberFormatException e) {
-            throw new IllegalArgumentException(e);
-        }
-        return result;
+    @Override
+    public Logger getLogger(String moduleName) {
+        return new VitamLoggerLog(moduleName);
     }
+
+    @Override
+    public Logger getLogger(@SuppressWarnings("rawtypes") Class clazz) {
+        return new VitamLoggerLog(clazz.getName());
+    }
+
 }

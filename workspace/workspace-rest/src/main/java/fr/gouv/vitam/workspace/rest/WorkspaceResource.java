@@ -108,22 +108,25 @@ public class WorkspaceResource {
      * creates a container into the workspace *
      *
      * @param container as entry json
-     * @return Response 
+     * @return Response
      */
     @Path("containers")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createContainer(Entry container){
-
+    public Response createContainer(Entry container) {
+        // FIXME REVIEW should be changed to POST /containers/{containername}
+        // FIXME REVIEW missing try catch for this check
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), container);
-        
+
         try {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(container));
         } catch (InvalidParseOperationException e) {
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(container.getName()).build();
+            LOGGER.error(e);
+            // FIXME REVIEW should set a correct error (not 5xx but 4xx)
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
-        
+
         try {
             workspace.createContainer(container.getName());
         } catch (final ContentAddressableStorageAlreadyExistException e) {
@@ -188,12 +191,16 @@ public class WorkspaceResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createFolder(@PathParam("containerName") String containerName, Entry folder){
+    public Response createFolder(@PathParam("containerName") String containerName, Entry folder) {
+     // FIXME REVIEW should be changed to POST /containers/{containername}/folders/{foldername}
         try {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(folder));
-        } catch (InvalidParseOperationException e) {    
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(folder.getName()).build();
-        }        try {
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error(e);
+            // FIXME REVIEW should set a correct error (not 5xx but 4xx)
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+        }
+        try {
             workspace.createFolder(containerName, folder.getName());
         } catch (final ContentAddressableStorageAlreadyExistException e) {
             LOGGER.error(e.getMessage());
@@ -209,8 +216,8 @@ public class WorkspaceResource {
     /**
      * deletes a folder in a container
      *
-     * @param containerName,  path param for container name
-     * @param folderName,  path param for folder name
+     * @param containerName path param for container name
+     * @param folderName path param for folder name
      * @return Response
      */
     @Path("/containers/{containerName}/folders/{folderName}")
@@ -233,8 +240,8 @@ public class WorkspaceResource {
     /**
      * checks if a folder exists in a container
      *
-     * @param containerName,   path param for container name
-     * @param folderName,  path param for folder name
+     * @param containerName, path param for container name
+     * @param folderName, path param for folder name
      * @return Response
      */
     @Path("/containers/{containerName}/folders/{folderName}")
@@ -256,8 +263,8 @@ public class WorkspaceResource {
     /**
      * puts an object into a container
      *
-     * @param stream, data input stream
-     * @param header, method for entry data
+     * @param stream data input stream
+     * @param header method for entry data
      * @param objectName name of data object
      * @param containerName name of container
      * @return Response
@@ -340,7 +347,7 @@ public class WorkspaceResource {
      * checks if a object exists in an container or compute object Digest
      *
      * @param containerName name of container
-     * @param objectName name of object     
+     * @param objectName name of object
      * @param algo path parameter of algo
      * @return Response
      */
@@ -350,24 +357,25 @@ public class WorkspaceResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response computeObjectDigest(@PathParam("containerName") String containerName,
         @PathParam("objectName") String objectName, @HeaderParam("X-digest-algorithm") String algo) {
-        
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(), containerName, objectName);
-        
-        if (algo!=null) {
+        // FIXME REVIEW missing try catch for this check
+        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            containerName, objectName);
+
+        if (algo != null) {
             LOGGER.info("X-digest-algorithm : " + algo);
-            String messageDigest=null;
+            String messageDigest = null;
             try {
-                messageDigest= workspace.computeObjectDigest(containerName, objectName, DigestType.fromValue(algo));
+                messageDigest = workspace.computeObjectDigest(containerName, objectName, DigestType.fromValue(algo));
             } catch (final ContentAddressableStorageNotFoundException e) {
                 LOGGER.error(e.getMessage());
                 return Response.status(Status.NOT_FOUND)
                     .header("X-digest-algorithm", algo)
-                    .entity(containerName+"/" + objectName).build();
+                    .entity(containerName + "/" + objectName).build();
             } catch (final ContentAddressableStorageException e) {
                 LOGGER.error(e.getMessage());
                 return Response.status(Status.INTERNAL_SERVER_ERROR)
                     .header("X-digest-algorithm", algo)
-                    .entity(containerName+"/" + objectName).build();
+                    .entity(containerName + "/" + objectName).build();
             }
 
             return Response.status(Status.OK)
@@ -398,14 +406,15 @@ public class WorkspaceResource {
     public Response unzipObject(InputStream stream,
         @PathParam("containerName") String containerName,
         @PathParam("folderName") String folderName) {
-        
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(), containerName, folderName);
+        // FIXME REVIEW missing try catch for this check
+        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            containerName, folderName);
         try {
-            workspace.unzipObject(containerName,folderName, stream);
+            workspace.unzipObject(containerName, folderName, stream);
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(e.getMessage());
             return Response.status(Status.NOT_FOUND).entity(containerName).build();
-        }catch (final ContentAddressableStorageAlreadyExistException e) {
+        } catch (final ContentAddressableStorageAlreadyExistException e) {
             LOGGER.error(e.getMessage());
             return Response.status(Status.CONFLICT).entity(containerName).build();
         } catch (final ContentAddressableStorageException e) {
@@ -440,7 +449,7 @@ public class WorkspaceResource {
         } catch (final ContentAddressableStorageException eAddressableStorageException) {
             LOGGER.error(eAddressableStorageException.getMessage());
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(Collections.<URI>emptyList()).build();
-        } 
+        }
 
         if (uriList == null || uriList.isEmpty()) {
             return Response.status(Status.NO_CONTENT).entity(Collections.<URI>emptyList()).build();
@@ -449,5 +458,5 @@ public class WorkspaceResource {
 
     }
 
-    }
+}
 
