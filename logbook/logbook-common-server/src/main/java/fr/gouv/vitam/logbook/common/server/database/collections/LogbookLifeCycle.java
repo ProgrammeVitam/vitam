@@ -37,13 +37,14 @@ import org.bson.conversions.Bson;
 import com.mongodb.BasicDBObject;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 
 /**
  * Abstract class for Logbook LifeCycle item
  */
-abstract class LogbookLifeCycle<T> extends LogbookDocument<LogbookLifeCycle<T>> {
+abstract class LogbookLifeCycle<T> extends VitamDocument<LogbookLifeCycle<T>> {
     private static final long serialVersionUID = 105654500015427902L;
 
     /**
@@ -59,7 +60,7 @@ abstract class LogbookLifeCycle<T> extends LogbookDocument<LogbookLifeCycle<T>> 
         for (final LogbookMongoDbName name : LogbookMongoDbName.values()) {
             append(name.getDbname(), map.get(name.getLogbookParameterName()));
         }
-        append(EVENTS, Arrays.asList(new String[0]));
+        append(LogbookDocument.EVENTS, Arrays.asList(new String[0]));
         checkId();
     }
 
@@ -134,7 +135,7 @@ abstract class LogbookLifeCycle<T> extends LogbookDocument<LogbookLifeCycle<T>> 
      */
     public final List<T> getLifeCycles(boolean all) {
         @SuppressWarnings("unchecked")
-        final ArrayList<Document> events = (ArrayList<Document>) get(EVENTS);
+        final ArrayList<Document> events = (ArrayList<Document>) get(LogbookDocument.EVENTS);
         final int nb = all ? events.size() : events.isEmpty() ? 1 : 2;
         final List<T> list = new ArrayList<>(nb);
         list.add(getLifeCycle(this));

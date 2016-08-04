@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.ihmdemo.appserver;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
@@ -47,8 +46,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.access.common.exception.AccessClientNotFoundException;
 import fr.gouv.vitam.access.common.exception.AccessClientServerException;
-import fr.gouv.vitam.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;

@@ -38,6 +38,7 @@ import org.bson.conversions.Bson;
 import com.mongodb.BasicDBObject;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
@@ -45,7 +46,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 /**
  * Logbook Operation item
  */
-public class LogbookOperation extends LogbookDocument<LogbookOperation> {
+public class LogbookOperation extends VitamDocument<LogbookOperation> {
     private static final long serialVersionUID = -8343195329673741173L;
 
     /**
@@ -61,7 +62,7 @@ public class LogbookOperation extends LogbookDocument<LogbookOperation> {
         for (final LogbookMongoDbName name : LogbookMongoDbName.values()) {
             append(name.getDbname(), map.get(name.getLogbookParameterName()));
         }
-        append(EVENTS, Arrays.asList(new String[0]));
+        append(LogbookDocument.EVENTS, Arrays.asList(new String[0]));
         checkId();
     }
 
@@ -130,7 +131,7 @@ public class LogbookOperation extends LogbookDocument<LogbookOperation> {
      */
     public List<LogbookOperationParameters> getOperations(boolean all) {
         @SuppressWarnings("unchecked")
-        final ArrayList<Document> events = (ArrayList<Document>) get(EVENTS);
+        final ArrayList<Document> events = (ArrayList<Document>) get(LogbookDocument.EVENTS);
         final int nb = all ? events.size() : events.isEmpty() ? 1 : 2;
         final List<LogbookOperationParameters> list = new ArrayList<>(nb);
         list.add(getOperation(this));

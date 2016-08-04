@@ -37,15 +37,16 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import fr.gouv.vitam.builder.request.construct.Select;
-import fr.gouv.vitam.builder.request.construct.Update;
-import fr.gouv.vitam.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.multiple.Select;
+import fr.gouv.vitam.common.database.builder.request.multiple.Update;
+import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserHelper;
+import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
+import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
+import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
+import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.parser.request.parser.RequestParser;
-import fr.gouv.vitam.parser.request.parser.RequestParserHelper;
-import fr.gouv.vitam.parser.request.parser.SelectParser;
-import fr.gouv.vitam.parser.request.parser.UpdateParser;
 
 /**
  * DslQueryHelper junit test
@@ -54,10 +55,10 @@ import fr.gouv.vitam.parser.request.parser.UpdateParser;
 public class DslQueryHelperTest {
 
     private static final String result =
-        "QUERY: Requests: \n" + "{\"$and\":[" + "{\"$eq\":{\"date\":\"2006-03-05\"}}," +
+        "QUERY: Requests: " + "{\"$and\":[" + "{\"$eq\":{\"date\":\"2006-03-05\"}}," +
             "{\"$eq\":{\"events.obIdIn\":\"name\"}}," + "{\"$eq\":{\"evTypeProc\":\"INGEST\"}}," +
             "{\"$eq\":{\"title\":\"Archive2\"}}]}\n" + "\tFilter: {\"$limit\":10000,\"$orderby\":{\"evDateTime\":-1}}\n" +
-            "\tRoots: []\n" + "\tProjection: {}\n" + "\tLastLevel: 1";
+            "\tProjection: {}";
 
     private static final String updateAction =
         "[ " + "{ $set : { mavar1 : 1, mavar2 : 1.2, mavar3 : true, mavar4 : 'ma chaine' } }," +
@@ -93,8 +94,8 @@ public class DslQueryHelperTest {
         
                 String request = DslQueryHelper.createSingleQueryDSL(myHashMap);
                 assertNotNull(request);
-                final SelectParser request2 = new SelectParser();
-                request2.parse(request);
+                final SelectParserSingle request2 = new SelectParserSingle();
+                request2.parse(JsonHandler.getFromString(request));
                 assertEquals(result, request2.toString());
             }
 
@@ -117,8 +118,8 @@ public class DslQueryHelperTest {
 
         JsonNode selectRequestJsonNode = JsonHandler.getFromString(selectRequest);
 
-        RequestParser selectParser = RequestParserHelper.getParser(selectRequestJsonNode);
-        assertTrue(selectParser instanceof SelectParser);
+        RequestParserMultiple selectParser = RequestParserHelper.getParser(selectRequestJsonNode);
+        assertTrue(selectParser instanceof SelectParserMultiple);
         assertTrue(((Select) selectParser.getRequest()).getNbQueries() == 1);
         assertTrue(((Select) selectParser.getRequest()).getRoots().size() == 1);
         assertTrue(((Select) selectParser.getRequest()).getFilter().get("$orderby") != null);
@@ -141,8 +142,8 @@ public class DslQueryHelperTest {
 
         JsonNode selectRequestJsonNode = JsonHandler.getFromString(selectRequest);
 
-        RequestParser selectParser = RequestParserHelper.getParser(selectRequestJsonNode);
-        assertTrue(selectParser instanceof SelectParser);
+        RequestParserMultiple selectParser = RequestParserHelper.getParser(selectRequestJsonNode);
+        assertTrue(selectParser instanceof SelectParserMultiple);
         assertTrue(((Select) selectParser.getRequest()).getNbQueries() == 0);
         assertTrue(((Select) selectParser.getRequest()).getRoots().size() == 0);
         assertTrue(((Select) selectParser.getRequest()).getFilter().get("$orderby") == null);
@@ -194,8 +195,8 @@ public class DslQueryHelperTest {
 
         JsonNode updateRequestJsonNode = JsonHandler.getFromString(updateRequest);
 
-        RequestParser updateParser = RequestParserHelper.getParser(updateRequestJsonNode);
-        assertTrue(updateParser instanceof UpdateParser);
+        RequestParserMultiple updateParser = RequestParserHelper.getParser(updateRequestJsonNode);
+        assertTrue(updateParser instanceof UpdateParserMultiple);
         assertTrue(((Update) updateParser.getRequest()).getActions().size() == 2);
         assertTrue(((Update) updateParser.getRequest()).getRoots().size() == 1);
 
@@ -217,8 +218,8 @@ public class DslQueryHelperTest {
 
         JsonNode updateRequestJsonNode = JsonHandler.getFromString(updateRequest);
 
-        RequestParser updateParser = RequestParserHelper.getParser(updateRequestJsonNode);
-        assertTrue(updateParser instanceof UpdateParser);
+        RequestParserMultiple updateParser = RequestParserHelper.getParser(updateRequestJsonNode);
+        assertTrue(updateParser instanceof UpdateParserMultiple);
         assertTrue(((Update) updateParser.getRequest()).getActions().size() == 1);
     }
 

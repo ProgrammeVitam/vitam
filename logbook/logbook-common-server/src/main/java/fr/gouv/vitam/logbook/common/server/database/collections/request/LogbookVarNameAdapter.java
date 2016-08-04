@@ -27,8 +27,8 @@
 package fr.gouv.vitam.logbook.common.server.database.collections.request;
 
 
+import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.parser.request.parser.VarNameAdapter;
 
 /**
  * Logbook VarName Adapater

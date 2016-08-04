@@ -53,8 +53,8 @@ import com.jayway.restassured.http.ContentType;
 
 import fr.gouv.vitam.access.common.exception.AccessClientNotFoundException;
 import fr.gouv.vitam.access.common.exception.AccessClientServerException;
-import fr.gouv.vitam.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;

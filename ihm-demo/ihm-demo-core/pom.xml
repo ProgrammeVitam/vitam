@@ -11,20 +11,14 @@
 	<name>ihm-core</name>
 
 	<dependencies>
-
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>metadata-builder</artifactId>
+			<artifactId>common-database-private</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>logbook-common-client</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>metadata-builder</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
