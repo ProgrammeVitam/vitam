@@ -47,7 +47,11 @@ Vérification de la capacité de l'offre
 
     // Etablissement d'une connexion avec l'offre de stockage et réalisation d'une opération
     try (Connection myConnection = myDriver.connect("http://my.storage.offer.com", parameters)) {
-        long capacityInBytes = myConnection.getStorageRemainingCapacity();
+        // Requête contant le tenantId afin de récupérer la capacité (objet permettant d'être enrichi dan le futur)
+        StorageCapacityRequest request = new StorageCapacityRequest();
+        request.setTenantId("tenantId");
+        // Récupération de la capacité
+        StorageCapacityResult capacity = myConnection.getStorageCapacity(request);
         // On peut ici verifier que l'espace disponible est suffisant par exemple
     } catch (StorageDriverException exc) {
         // Un problème est survenu lors de la communication avec le service distant
@@ -80,4 +84,3 @@ Put d'un objet dans l'offre de stockage
     }
 
    
-    

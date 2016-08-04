@@ -39,7 +39,7 @@ public final class BinaryObjectInfo {
     private String version;
     private URI uri;
     private String messageDigest;
-    private int size;
+    private long size;
     private DigestType algo;
 
     /**
@@ -113,7 +113,7 @@ public final class BinaryObjectInfo {
     /**
      * @return size
      */
-    public int getSize() {
+    public long getSize() {
         return size;
     }
 
@@ -121,8 +121,7 @@ public final class BinaryObjectInfo {
      * @param size the size of the binary data to set
      * @return BinaryObjectInfo
      */
-    public BinaryObjectInfo setSize(int size) {
-        ParametersChecker.checkParameter("size is a mandatory parameter", size);
+    public BinaryObjectInfo setSize(long size) {
         this.size = size;
         return this;
     }

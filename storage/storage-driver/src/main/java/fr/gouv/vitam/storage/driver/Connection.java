@@ -42,6 +42,8 @@ import fr.gouv.vitam.storage.driver.model.PutObjectRequest;
 import fr.gouv.vitam.storage.driver.model.PutObjectResult;
 import fr.gouv.vitam.storage.driver.model.RemoveObjectRequest;
 import fr.gouv.vitam.storage.driver.model.RemoveObjectResult;
+import fr.gouv.vitam.storage.driver.model.StorageCapacityRequest;
+import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 
 import java.io.File;
 
@@ -61,12 +63,13 @@ import java.io.File;
 public interface Connection extends AutoCloseable {
     /**
      * Retrieve the remaining storage capacity available on the distant offer.
-     * Return value MUST in bytes
+     * Return values MUST in bytes
      *
-     * @return the capacity available in bytes
+     * @param request the request contains information needed to get storage capacity
+     * @return the usable and used space in bytes
      * @throws StorageDriverException if any problem occurs during request
      */
-    long getStorageRemainingCapacity() throws StorageDriverException;
+    StorageCapacityResult getStorageCapacity(StorageCapacityRequest request) throws StorageDriverException;
 
     /**
      * Retrieve an object from the storage offer based on criterias defined in request argument.

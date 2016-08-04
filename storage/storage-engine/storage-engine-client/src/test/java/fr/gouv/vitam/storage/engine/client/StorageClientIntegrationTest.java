@@ -1,21 +1,24 @@
 package fr.gouv.vitam.storage.engine.client;
 
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -46,7 +49,13 @@ public class StorageClientIntegrationTest {
     private static StorageClient storageClient;
     private static WorkspaceApplication workspaceApplication;
     private static WorkspaceClient workspaceClient;
+    
+    
+    private static final String CONTAINER = "aeaaaaaaaaaam7mxaaaamakwfnzbudaaaaaq";
+    private static final String OBJECT =
+        "e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804.odp";
 
+    private static final String OBJECT_ID = "e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804";
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -60,11 +69,16 @@ public class StorageClientIntegrationTest {
         workspaceApplication = new WorkspaceApplication();
         workspaceApplication
             .configure(PropertiesUtils.getResourcesPath("workspace.conf").toString(), Integer.toString(workspacePort));
-
         RestAssured.port = serverPort;
         RestAssured.basePath = REST_URI;
         StorageConfiguration serverConfiguration =
-            PropertiesUtils.readYaml(PropertiesUtils.findFile(STORAGE_CONF), StorageConfiguration.class);
+            PropertiesUtils.readYaml(PropertiesUtils.findFile(STORAGE_CONF), StorageConfiguration.class);       
+        Pattern compiledPattern = Pattern.compile(":(\\d+)");        
+        Matcher matcher = compiledPattern.matcher(serverConfiguration.getUrlWorkspace());        
+        if (matcher.find()){
+            String seg[] = serverConfiguration.getUrlWorkspace().split(":(\\d+)");
+            serverConfiguration.setUrlWorkspace(seg[0]);
+        }
         serverConfiguration
             .setUrlWorkspace(serverConfiguration.getUrlWorkspace() + ":" + Integer.toString(workspacePort));
         PropertiesUtils.writeYaml(PropertiesUtils.findFile(STORAGE_CONF), serverConfiguration);
@@ -86,31 +100,45 @@ public class StorageClientIntegrationTest {
         storageClient = StorageClientFactory.getInstance().getStorageClient();
 
         workspaceClient = WorkspaceClientFactory.create("http://localhost:" + workspacePort);
-        createWorkspaceFiles();
+        destroyWorkspaceFiles();
+        createWorkspaceFiles();        
     }
 
     private static void createWorkspaceFiles()
         throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageServerException,
         FileNotFoundException {
-        workspaceClient.createContainer("aeaaaaaaaaaam7mxaaaamakwfnzbudaaaaaq");
-        workspaceClient.createFolder("aeaaaaaaaaaam7mxaaaamakwfnzbudaaaaaq", "SIP");
-        workspaceClient.createFolder("aeaaaaaaaaaam7mxaaaamakwfnzbudaaaaaq/SIP", "content");
-        FileInputStream stream = new FileInputStream(
-            PropertiesUtils.findFile(
-                "e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804.odp"));
-        workspaceClient.putObject("aeaaaaaaaaaam7mxaaaamakwfnzbudaaaaaq/SIP/content",
-            "e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804.odp",
-            stream);
+        try {
+            workspaceClient.createContainer(CONTAINER);
+        } catch (Exception e) {
+            LOGGER.error("Error creating container : " + e);
+        }
+        try {
+            FileInputStream stream = new FileInputStream(
+                PropertiesUtils.findFile(
+                    OBJECT));
+            workspaceClient.putObject(CONTAINER,
+                OBJECT_ID,
+                stream);            
+            workspaceClient.getObject(CONTAINER,OBJECT_ID);            
+        } catch (Exception e) {
+            LOGGER.error("Error getting or putting object : " + e);
+        }
 
     }
 
     private static void destroyWorkspaceFiles()
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        workspaceClient.deleteObject("aeaaaaaaaaaam7mxaaaamakwfnzbudaaaaaq/SIP/content",
-            "e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804.odp");
-        workspaceClient.deleteFolder("aeaaaaaaaaaam7mxaaaamakwfnzbudaaaaaq/SIP", "content");
-        workspaceClient.deleteFolder("aeaaaaaaaaaam7mxaaaamakwfnzbudaaaaaq", "SIP");
-        workspaceClient.deleteContainer("aeaaaaaaaaaam7mxaaaamakwfnzbudaaaaaq");
+        try {
+            workspaceClient.deleteObject(CONTAINER,
+                OBJECT_ID);
+        } catch (Exception e) {
+            LOGGER.error("Error deleting object : " + e);
+        }
+        try {
+            workspaceClient.deleteContainer(CONTAINER);
+        } catch (Exception e) {
+            LOGGER.error("Error deleting container : " + e);
+        }
     }
 
     @AfterClass
@@ -133,27 +161,28 @@ public class StorageClientIntegrationTest {
      * TODO test integration to finish (bug on exiting folder)
      */
     @Test
-    @Ignore
     public final void testStorage() throws VitamClientException, FileNotFoundException {
+        
         CreateObjectDescription description = new CreateObjectDescription();
-        description.setWorkspaceContainerGUID("aeaaaaaaaaaam7mxaaaamakwfnzbudaaaaaq");
-        description.setWorkspaceObjectURI(
-            "SIP/content/e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804.odp");
-
+        description.setWorkspaceContainerGUID(CONTAINER);
+        description.setWorkspaceObjectURI(OBJECT_ID);        
+        
         // status
         storageClient.getStatus();
         try {
-            storageClient.getStorageInfos("0", "default");
+            JsonNode node = storageClient.getStorageInformation("0", "default");
+            assertNotNull(node);
+ //            fail(SHOULD_RAIZED_AN_EXCEPTION);
+        } catch (VitamException svce) {
+            fail(SHOULD_RAIZED_AN_EXCEPTION);
+        }
+        //TODO : when implemented, uncomment this
+        /*try {
+            storageClient.exists("0", "default", StorageCollectionType.OBJECTS, "objectId");            
             fail(SHOULD_RAIZED_AN_EXCEPTION);
         } catch (StorageServerClientException svce) {
             // not yet implemented
-        }
-        try {
-            storageClient.exists("0", "default", StorageCollectionType.OBJECTS, "objectId");
-            fail(SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (StorageServerClientException svce) {
-            // not yet implemented
-        }
+        }*/
         try {
             storageClient.storeFileFromWorkspace("0", "default", StorageCollectionType.OBJECTS, "objectId",
                 description);
@@ -161,7 +190,8 @@ public class StorageClientIntegrationTest {
             fail(SHOULD_RAIZED_AN_EXCEPTION);
         }
 
-        try {
+        //TODO : when implemented, uncomment this
+        /*try {
             storageClient.exists("0", "default", StorageCollectionType.OBJECTS, "objectId");
             fail(SHOULD_RAIZED_AN_EXCEPTION);
         } catch (StorageServerClientException svce) {
@@ -170,21 +200,10 @@ public class StorageClientIntegrationTest {
         try {
             storageClient.delete("0", "default", StorageCollectionType.OBJECTS, "objectId");
             fail(SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (StorageServerClientException svce) {
+        } catch (Exception svce) {
             // not yet implemented
-        }
-
-        try {
-            workspaceClient.createContainer("aeaaaaaaaaaam7mxaaaamakwfnzbudaaaaaq");
-            workspaceClient.createFolder("aeaaaaaaaaaam7mxaaaamakwfnzbudaaaaaq", "SIP");
-            workspaceClient.createFolder("aeaaaaaaaaaam7mxaaaamakwfnzbudaaaaaq", "SIP/content");
-        } catch (ContentAddressableStorageAlreadyExistException | ContentAddressableStorageServerException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        }*/
 
     }
-
-
 
 }

@@ -45,6 +45,7 @@ import fr.gouv.vitam.processing.worker.handler.ActionHandler;
 import fr.gouv.vitam.processing.worker.handler.CheckConformityActionHandler;
 import fr.gouv.vitam.processing.worker.handler.CheckObjectsNumberActionHandler;
 import fr.gouv.vitam.processing.worker.handler.CheckSedaActionHandler;
+import fr.gouv.vitam.processing.worker.handler.CheckStorageAvailabilityActionHandler;
 import fr.gouv.vitam.processing.worker.handler.CheckVersionActionHandler;
 import fr.gouv.vitam.processing.worker.handler.ExtractSedaActionHandler;
 import fr.gouv.vitam.processing.worker.handler.IndexObjectGroupActionHandler;
@@ -110,6 +111,7 @@ public class WorkerImpl implements Worker {
         actions.put(CheckVersionActionHandler.getId(), new CheckVersionActionHandler(new SedaUtilsFactory()));
         actions.put(CheckConformityActionHandler.getId(), new CheckConformityActionHandler(new SedaUtilsFactory()));
         actions.put(StoreObjectGroupActionHandler.getId(), new StoreObjectGroupActionHandler(new SedaUtilsFactory()));
+        actions.put(CheckStorageAvailabilityActionHandler.getId(), new CheckStorageAvailabilityActionHandler(new SedaUtilsFactory()));
     }
 
     @Override

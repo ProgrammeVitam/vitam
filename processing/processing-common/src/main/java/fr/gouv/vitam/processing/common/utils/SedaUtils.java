@@ -1513,7 +1513,7 @@ public class SedaUtils {
                                 }
 
                                 if (tag == TAG_SIZE) {
-                                    final int size = Integer.parseInt(evenReader.getElementText());
+                                    final long size = Long.parseLong(evenReader.getElementText());
                                     binaryObjectInfo.setSize(size);
                                 }
                             }
@@ -1986,4 +1986,84 @@ public class SedaUtils {
             throw new ProcessingException(e);
         }
     }
+
+    /**
+     * Compute the total size of objects listed in the manifest.xml file
+     * 
+     * @param params worker parameters
+     * @return the computed size of all BinaryObjects
+     * @throws ProcessingException when error in getting binary object info
+     */
+    public long computeTotalSizeOfObjectsInManifest(WorkParams params)
+        throws ProcessingException {
+        ParametersChecker.checkParameter("WorkParams is a mandatory parameter", params);
+        final String containerId = params.getContainerName();
+        ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
+        final WorkspaceClient client = WorkspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
+        return computeBinaryObjectsSizeFromManifest(client, containerId);
+    }
+
+    /**
+     * Compute the total size of objects listed in the manifest.xml file
+     * 
+     * @param workspaceClient workspace client to be used.
+     * @param containerId the container guid
+     * @return the computed size of all BinaryObjects
+     * @throws ProcessingException when error in getting binary object info
+     */
+
+    private long computeBinaryObjectsSizeFromManifest(WorkspaceClient workspaceClient, String containerId)
+        throws ProcessingException {
+        long size = 0;
+        final SedaUtilInfo sedaUtilInfo = getSedaUtilInfo(workspaceClient, containerId);
+        final Map<String, BinaryObjectInfo> binaryObjectMap = sedaUtilInfo.getBinaryObjectMap();
+        for (final String mapKey : binaryObjectMap.keySet()) {
+            long binaryObjectSize = binaryObjectMap.get(mapKey).getSize();
+            if (binaryObjectSize > 0) {
+                size += binaryObjectSize;
+            }
+        }
+        return size;
+    }
+
+    /**
+     * Get the size of the manifest file
+     * 
+     * @param params worker parameters
+     * @return the size of the manifest
+     */
+    public long getManifestSize(WorkParams params)
+        throws ProcessingException {
+        ParametersChecker.checkParameter("WorkParams is a mandatory parameter", params);
+        final String containerId = params.getContainerName();
+        ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
+        final WorkspaceClient client = WorkspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
+        JsonNode jsonSeda = getObjectInformation(client, containerId, SEDA_FOLDER + "/" + SEDA_FILE);
+        if (jsonSeda == null || jsonSeda.get("size") == null) {
+            LOGGER.error("Error while getting object size : " + SEDA_FILE);
+            throw new ProcessingException("Json response cannot be null and must contains a 'size' attribute");
+        }
+        return jsonSeda.get("size").asLong();
+    }
+
+
+    /**
+     * Retrieve information about an object.
+     * 
+     * @param workspaceClient workspace connector
+     * @param containerId container id
+     * @param pathToObject path to the object
+     * @return JsonNode containing information about the object
+     * @throws ProcessingException throws when error occurs
+     */
+    private JsonNode getObjectInformation(WorkspaceClient workspaceClient, String containerId, String pathToObject)
+        throws ProcessingException {
+        try {
+            return workspaceClient.getObjectInformation(containerId, pathToObject);
+        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
+            LOGGER.error(SEDA_FILE + " Not Found");
+            throw new ProcessingException(e);
+        }
+    }
+
 }

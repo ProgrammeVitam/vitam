@@ -38,6 +38,8 @@ package fr.gouv.vitam.storage.offers.workspace.core;
 import java.io.IOException;
 import java.io.InputStream;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
@@ -124,4 +126,13 @@ public interface DefaultOfferService {
      * @return true if object exists, false otherwise
      */
     boolean isObjectExist(String containerName, String objectId);
+
+    /**
+     * Get container capacity
+     *
+     * @param containerName the container name
+     * @return Json with usableSpace information
+     * @throws ContentAddressableStorageNotFoundException thrown if the container does not exist
+     */
+    JsonNode getCapacity(String containerName) throws ContentAddressableStorageNotFoundException;
 }

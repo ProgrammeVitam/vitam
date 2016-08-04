@@ -26,15 +26,15 @@
  */
 package fr.gouv.vitam.storage.engine.server.distribution;
 
+import java.io.InputStream;
+
 import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
+
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
-
-import java.io.InputStream;
 
 /**
  * Interface Storage Distribution for Storage Operations
@@ -69,8 +69,10 @@ public interface StorageDistribution {
      * @param strategyId id of the strategy
      * @return a JsonNode containing informations about the storage
      * @throws StorageNotFoundException Thrown if the Container does not exist
+     * @throws StorageTechnicalException Thrown in case of any technical problem
      */
-    JsonNode getStorageInformation(String tenantId, String strategyId) throws StorageNotFoundException;
+    JsonNode getContainerInformation(String tenantId, String strategyId) throws StorageNotFoundException,
+        StorageTechnicalException;
 
     /**
      * Get Storage Container full content as an InputStream

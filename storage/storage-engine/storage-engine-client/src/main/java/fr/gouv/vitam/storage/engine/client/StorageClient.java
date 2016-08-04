@@ -43,15 +43,15 @@ public interface StorageClient extends BasicClient {
     String RESOURCE_PATH = "/storage/v1";
 
     /**
-     * Retrieve the server informations : capacity and availability
+     * Check if the storage of objects could be done, knowing a required size
      * 
      * @param tenantId the tenant id
      * @param strategyId the storage strategy id
-     * @return the capacity and availability of storage
+     * @return the capacity of the storage
      * @throws StorageNotFoundClientException if the Server got a NotFound result
      * @throws StorageServerClientException if the Server got an internal error
      */
-    JsonNode getStorageInfos(String tenantId, String strategyId)
+    JsonNode getStorageInformation(String tenantId, String strategyId)
         throws StorageNotFoundClientException, StorageServerClientException;
 
     /**
@@ -69,7 +69,7 @@ public interface StorageClient extends BasicClient {
      */
     StoredInfoResult storeJson(String tenantId, String strategyId, StorageCollectionType type, String guid,
         JsonNode data)
-            throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException;
+        throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException;
 
     /**
      * Store an object available in workspace by its vitam guid
@@ -86,7 +86,7 @@ public interface StorageClient extends BasicClient {
      */
     StoredInfoResult storeFileFromWorkspace(String tenantId, String strategyId, StorageCollectionType type, String guid,
         CreateObjectDescription description)
-            throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException;
+        throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException;
 
     /**
      * Check the existance of a tenant container in storage by its id

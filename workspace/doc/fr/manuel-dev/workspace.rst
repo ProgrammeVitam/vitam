@@ -5,7 +5,7 @@ paramètres (SanityChecker.checkJsonAll) transmis avec ESAPI.
 
 1- Consommer les services exposés par le module:
 	1.1 - Introduction
-	on peut consommer les services via le sous module workspaceClient notament via la class WorkspaceClient: 
+	on peut consommer les services via le sous module workspaceClient notament via la classe WorkspaceClient: 
 		Cette classe contient la liste des methodes suivantes :
 
 			- CreateContainer :
@@ -30,6 +30,15 @@ paramètres (SanityChecker.checkJsonAll) transmis avec ESAPI.
 				-Retourner :
 
 			Dans le cas echéant (unzip KO) la methode génère une exception avec un message internal server.
+
+         - getObjectInformation :
+            -Paramètres :
+               -containerName::String
+               -objectName::String
+            -Retourner :
+               -JsonNode
+               
+            La méthode retourne un Json contenant des informations sur un objet présent sur le workspace (et des exceptions en cas d'erreur : objet non existant, erreur server).
 
 	2.2 - Exemple d'utilisation
 

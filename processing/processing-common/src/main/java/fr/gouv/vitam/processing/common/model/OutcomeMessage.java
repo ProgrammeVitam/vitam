@@ -98,7 +98,18 @@ public enum OutcomeMessage {
     /**
      * KO : fail message
      */
-    INDEX_OBJECT_GROUP_KO("Erreur de l'index objectgroup");
+    INDEX_OBJECT_GROUP_KO("Erreur de l'index objectgroup"),   
+    
+    /**
+     * KO : fail message
+     */
+    STORAGE_OFFER_KO_UNAVAILABLE("Offre de stockage non disponible"),
+    
+    /**
+     * KO : fail message
+     */
+    STORAGE_OFFER_SPACE_KO("Disponibilité de l'offre de stockage insuffisante");
+    
 
     private String value;
 

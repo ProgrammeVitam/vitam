@@ -60,6 +60,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.client.MetaDataClient;
@@ -75,6 +76,7 @@ import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.WorkParams;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -397,6 +399,64 @@ public class SedaUtilsTest {
 
         utils.retrieveStorageInformationForObjectGroup(paramsObjectGroups);
     }
+
+    @Test
+    public void givenCorrectObjectGroupWhenCheckStorageAvailabilityThenOK() throws Exception {
+        when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(seda);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        utils = new SedaUtilsFactory().create(metadataFactory);
+        long totalSize = utils.computeTotalSizeOfObjectsInManifest(params);
+        assertTrue(totalSize > 0);
+    }
+
+    @Test(expected = ProcessingException.class)
+    public void givenCorrectObjectGroupWhenCheckStorageAvailabilityThenKO() throws Exception {
+        when(workspaceClient.getObject(anyObject(), anyObject()))
+            .thenThrow(new ContentAddressableStorageNotFoundException(""));
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        utils = new SedaUtilsFactory().create(metadataFactory);
+        utils.computeTotalSizeOfObjectsInManifest(params);
+    }
+
+    @Test
+    public void givenCorrectSedaFileWhenCheckStorageAvailabilityThenOK() throws Exception {
+        when(workspaceClient.getObjectInformation(anyObject(), anyObject()))
+            .thenReturn(getSedaTest());
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        utils = new SedaUtilsFactory().create(metadataFactory);        
+        long manifestSize = utils.getManifestSize(params);
+        assertTrue(manifestSize > 0);
+    }
+    @Test(expected = ProcessingException.class)
+    public void givenProblemWithSedaFileWhenCheckStorageAvailabilityThenKO() throws Exception {
+        when(workspaceClient.getObjectInformation(anyObject(), anyObject()))
+            .thenReturn(getSedaTestError());
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        utils = new SedaUtilsFactory().create(metadataFactory);        
+        utils.getManifestSize(params);
+    }
+
+    private JsonNode getSedaTest(){
+        ObjectNode jsonNodeObjectInformation = JsonHandler.createObjectNode();
+        jsonNodeObjectInformation.put("size", new Long(1024));
+        jsonNodeObjectInformation.put("object_name", "objectName");
+        jsonNodeObjectInformation.put("container_name", "containerName");
+        return jsonNodeObjectInformation;
+    }
+    
+    private JsonNode getSedaTestError(){
+        ObjectNode jsonNodeObjectInformation = JsonHandler.createObjectNode();
+        return jsonNodeObjectInformation;
+    }
+    
+    /*
+     * @Test(expected = ProcessingException.class) public void
+     * givenCorrectObjectGroupWhenCheckStorageAvailabilityThenKO() throws Exception {
+     * when(workspaceClient.getObject(anyObject(), anyObject())) .thenThrow(new
+     * ContentAddressableStorageNotFoundException(""));
+     * PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient); utils = new
+     * SedaUtilsFactory().create(metadataFactory); utils.computeTotalSizeOfObjectsAndManifest(params); }
+     */
 
 
     // @Test

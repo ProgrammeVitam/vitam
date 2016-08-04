@@ -28,6 +28,7 @@ package fr.gouv.vitam.storage.offers.workspace.rest;
 
 
 import static com.jayway.restassured.RestAssured.given;
+import static com.jayway.restassured.RestAssured.when;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -152,12 +153,31 @@ public class DefaultOfferResourceTest {
         File object = new File(container.getAbsolutePath(), "id1");
         Files.deleteIfExists(object.toPath());
         Files.deleteIfExists(container.toPath());
+        container = new File(conf.getStoragePath() + "/0");
+        Files.deleteIfExists(container.toPath());
     }
 
     @Test
-    public void getObjectsTest() {
-        given().when().get(OBJECTS_URI).then().statusCode(501);
+    public void getCapacityTestBadRequest() {
+        given().when().get(OBJECTS_URI).then().statusCode(400);
     }
+
+    @Test
+    public void getCapacityTestOk() {
+        // create tenant
+        ObjectInit objectInit = new ObjectInit();
+        given().header(GlobalDataRest.X_TENANT_ID, "0").header(GlobalDataRest.X_COMMAND, StorageConstants
+            .COMMAND_INIT).contentType(MediaType.APPLICATION_JSON)
+            .content(objectInit).when().post(OBJECTS_URI + "/" + "id1").then().statusCode(201);
+        // test
+        given().header(GlobalDataRest.X_TENANT_ID, "0").when().get(OBJECTS_URI).then().statusCode(200);
+    }
+
+    @Test
+    public void getCapacityTestServiceUnavailable() {
+        given().header(GlobalDataRest.X_TENANT_ID, "6").when().get(OBJECTS_URI).then().statusCode(503);
+    }
+
 
     @Test
     public void getObjectTest() {

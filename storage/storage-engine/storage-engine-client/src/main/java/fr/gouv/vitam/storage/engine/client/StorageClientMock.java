@@ -50,10 +50,7 @@ class StorageClientMock extends StorageClientRest implements StorageClient {
     private static final ServerIdentity SERVER_IDENTITY = ServerIdentity.getInstance();
 
     static final String MOCK_POST_RESULT = "{\"_id\": \"{id}\",\"status\": \"OK\"}";
-    /** TODO : update in item 546 */
-    static final String MOCK_INFOS_RESULT = "{\"id\": \"{id}\"," + "\"info\": \"container description - optional\"," +
-        "\"creation_time\": \"1990-12-31T23:59:60Z\"," + "\"last_access_time\": \"1990-12-31T23:59:60Z\"," +
-        "\"last_modified_time\": \"1990-12-31T23:59:60Z\"" + "}";
+    static final String MOCK_INFOS_RESULT = "{\"usableSpace\": 838860800" + "}";
 
     /**
      * Constructor
@@ -68,15 +65,15 @@ class StorageClientMock extends StorageClientRest implements StorageClient {
     }
 
     @Override
-    public JsonNode getStorageInfos(String tenantId, String strategyId)
+    public JsonNode getStorageInformation(String tenantId, String strategyId)
         throws StorageNotFoundClientException, StorageServerClientException {
-        return new ObjectMapper().convertValue(MOCK_INFOS_RESULT.replace("{id}", tenantId), JsonNode.class);
+        return new ObjectMapper().convertValue(MOCK_INFOS_RESULT, JsonNode.class);
     }
 
     @Override
     public StoredInfoResult storeJson(String tenantId, String strategyId, StorageCollectionType type, String guid,
         JsonNode data)
-            throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException {
+        throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException {
         return generateStoredInfoResult(guid);
     }
 
@@ -84,7 +81,7 @@ class StorageClientMock extends StorageClientRest implements StorageClient {
     public StoredInfoResult storeFileFromWorkspace(String tenantId, String strategyId, StorageCollectionType type,
         String guid,
         CreateObjectDescription description)
-            throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException {
+        throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException {
         return generateStoredInfoResult(guid);
     }
 

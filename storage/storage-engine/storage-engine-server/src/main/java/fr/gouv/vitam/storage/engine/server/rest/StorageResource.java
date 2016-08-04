@@ -28,6 +28,7 @@
 package fr.gouv.vitam.storage.engine.server.rest;
 
 import java.io.IOException;
+import java.util.Map;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -53,6 +54,7 @@ import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusMessage;
+import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.header.HttpHeaderHelper;
@@ -131,17 +133,33 @@ public class StorageResource {
     }
 
     /**
-     * Get a list of containers
-     * Note : this is NOT to be handled in item #72.
+     * Get storage information for a specific tenant/strategy
+     * For example the usable space
      *
      * @param headers http headers
-     * @return Response containing the storage information as json, or an error (412 or 404)
+     * @return Response containing the storage information as json, or an error (404, 500)
      */
     @GET
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getContainerInformation(@Context HttpHeaders headers) {
-        return Response.status(Status.NOT_IMPLEMENTED).build();
+    public Response getStorageInformation(@Context HttpHeaders headers) {
+        Response response = checkTenantStrategyHeader(headers);
+        if (response == null) {
+            Status status;
+            String tenantId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.TENANT_ID).get(0);
+            String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+            try {
+                JsonNode result = distribution.getContainerInformation(tenantId, strategyId);
+                return Response.status(Status.OK).entity(result).build();
+            } catch (StorageNotFoundException exc) {
+                LOGGER.error(exc);
+                status = Status.NOT_FOUND;
+            } catch (StorageTechnicalException exc) {
+                LOGGER.error(exc);
+                status = Status.INTERNAL_SERVER_ERROR;
+            }
+            return buildErrorResponse(status);
+        }
+        return response;
     }
 
     /**

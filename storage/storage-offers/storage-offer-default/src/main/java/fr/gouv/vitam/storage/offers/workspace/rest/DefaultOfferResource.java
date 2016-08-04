@@ -44,6 +44,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
 
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -52,9 +53,10 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusMessage;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
-import fr.gouv.vitam.storage.offers.workspace.core.DefaultOfferServiceImpl;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
+import fr.gouv.vitam.storage.offers.workspace.core.DefaultOfferServiceImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 
 /**
  * Default offer REST Resource
@@ -74,15 +76,26 @@ public class DefaultOfferResource {
     }
 
     /**
-     * Get the informations on the offer objects collection (free and used capacity, etc)
+     * Get the information on the offer objects collection (free and used capacity, etc)
      *
-     * @return informations on the offer objects collection
+     * @return information on the offer objects collection
+     *
+     * TODO: review path and java method name
      */
     @GET
     @Path("/objects")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getObjects() {
-        return Response.status(Response.Status.NOT_IMPLEMENTED).build();
+    public Response getCapacity(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
+        if (Strings.isNullOrEmpty(xTenantId)) {
+            LOGGER.error("Missing the tenant ID (X-Tenant-Id)");
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        try {
+            JsonNode result = DefaultOfferServiceImpl.getInstance().getCapacity(xTenantId);
+            return Response.status(Response.Status.OK).entity(result).build();
+        } catch (ContentAddressableStorageNotFoundException exc) {
+            return Response.status(Response.Status.SERVICE_UNAVAILABLE).build();
+        }
     }
 
     /**
