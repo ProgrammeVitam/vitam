@@ -11,6 +11,8 @@
 	<properties>
 		<jetty.version>9.3.8.v20160314</jetty.version>
 		<unix.name>workspace</unix.name>
+		<unix.user>vitam</unix.user>
+		<unix.group>vitam</unix.group>
 	</properties>
 	<dependencies>
 		<dependency>

@@ -29,6 +29,12 @@ vitam-iaas-workspace-01.int2
 [hosts-ingest]
 vitam-iaas-ingest-01.int2
 
+[hosts-ingest-external]
+vitam-iaas-ingest-02.int2
+
+[hosts-functional-administration]
+vitam-iaas-funcadm-01.int2
+
 [hosts-access]
 vitam-iaas-access-01.int2
 
@@ -39,10 +45,10 @@ vitam-iaas-processing-01.int2
 vitam-iaas-ihm-demo-01.int2
 
 [hosts-storageengine]
-vitam-iaas-access-01.int2
+vitam-iaas-storage-01.int2
 
 [hosts-storageofferdefault]
-vitam-iaas-access-01.int2
+vitam-iaas-defoffer-01.int2
 
 
 [hosts:vars]

@@ -15,6 +15,8 @@
 		<sonar.sources>src/main</sonar.sources>
 		<sonar.exclusions>**/bower_components/**</sonar.exclusions>
 		<unix.name>ihm-demo</unix.name>
+		<unix.user>vitam</unix.user>
+		<unix.group>vitam</unix.group>
 	</properties>
 
 	<dependencies>
