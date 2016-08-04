@@ -54,12 +54,15 @@ import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
+import fr.gouv.vitam.common.database.parser.request.single.SelectToMongoDb;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.database.translators.mongodb.QueryToMongodb;
+import fr.gouv.vitam.common.database.translators.mongodb.VitamDocumentCodec;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.core.database.collections.translator.mongodb.QueryToMongodb;
-import fr.gouv.vitam.core.database.collections.translator.mongodb.VitamDocumentCodec;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
@@ -67,8 +70,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.server.MongoDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.request.LogbookVarNameAdapter;
-import fr.gouv.vitam.logbook.common.server.database.collections.request.SelectParser;
-import fr.gouv.vitam.logbook.common.server.database.collections.request.SelectToMongoDb;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookException;
@@ -322,12 +323,12 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
     }
 
     @SuppressWarnings("rawtypes")
-    final LogbookDocument getLogbook(final LogbookCollections collection, final String id)
+    final VitamDocument getLogbook(final LogbookCollections collection, final String id)
         throws LogbookDatabaseException, LogbookNotFoundException {
         ParametersChecker.checkParameter("Logbook item", id);
-        LogbookDocument item = null;
+        VitamDocument item = null;
         try {
-            item = (LogbookDocument) collection.getCollection().find(eq(LogbookDocument.ID, id)).first();
+            item = (VitamDocument) collection.getCollection().find(eq(LogbookDocument.ID, id)).first();
         } catch (final MongoException e) {
             switch (getErrorCategory(e)) {
                 case EXECUTION_TIMEOUT:
@@ -365,12 +366,12 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
     }
 
     @SuppressWarnings("rawtypes")
-    final LogbookDocument getLogbookPerOperation(final LogbookCollections collection, String idOperation, String id)
+    final VitamDocument getLogbookPerOperation(final LogbookCollections collection, String idOperation, String id)
         throws LogbookDatabaseException, LogbookNotFoundException {
         ParametersChecker.checkParameter(LIFECYCLE_ITEM, idOperation, id);
-        LogbookDocument lifecycle = null;
+        VitamDocument lifecycle = null;
         try {
-            lifecycle = (LogbookDocument) collection.getCollection().find(and(eq(LogbookDocument.ID, id),
+            lifecycle = (VitamDocument) collection.getCollection().find(and(eq(LogbookDocument.ID, id),
                 or(eq(LogbookMongoDbName.eventIdentifierProcess.getDbname(), idOperation),
                     eq(LogbookDocument.EVENTS + '.' + LogbookMongoDbName.eventIdentifierProcess.getDbname(),
                         idOperation))))
@@ -418,7 +419,7 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
     private final MongoCursor select(final LogbookCollections collection, final JsonNode select)
         throws LogbookDatabaseException, LogbookNotFoundException {
         try {
-            final SelectParser parser = new SelectParser(new LogbookVarNameAdapter());
+            final SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
             parser.parse(select);
             parser.addProjection(DEFAULT_SLICE, DEFAULT_ALLKEYS);
             return selectExecute(collection, parser);
@@ -434,7 +435,7 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
      * @throws InvalidParseOperationException
      */
     @SuppressWarnings("rawtypes")
-    private MongoCursor selectExecute(final LogbookCollections collection, SelectParser parser)
+    private MongoCursor selectExecute(final LogbookCollections collection, SelectParserSingle parser)
         throws InvalidParseOperationException {
         final SelectToMongoDb selectToMongoDb = new SelectToMongoDb(parser);
         final Bson condition = QueryToMongodb.getCommand(selectToMongoDb.getSelect().getQuery());
@@ -456,7 +457,7 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
     }
 
     @SuppressWarnings("rawtypes")
-    final LogbookDocument getDocument(LogbookParameters item) {
+    final VitamDocument getDocument(LogbookParameters item) {
         if (item instanceof LogbookOperationParameters) {
             return new LogbookOperation((LogbookOperationParameters) item);
         } else if (item instanceof LogbookLifeCycleUnitParameters) {
@@ -517,7 +518,7 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
         throws LogbookDatabaseException, LogbookNotFoundException {
         ParametersChecker.checkParameter("Item cannot be null", item);
         @SuppressWarnings("rawtypes")
-        final LogbookDocument document = getDocument(item);
+        final VitamDocument document = getDocument(item);
         try {
             final UpdateResult result = collection.getCollection().updateOne(
                 eq(LogbookDocument.ID, document.getId()),
@@ -606,9 +607,9 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
         final LogbookParameters... items)
         throws LogbookDatabaseException, LogbookAlreadyExistsException {
         ParametersChecker.checkParameter("Item cannot be null", item);
-        final LogbookDocument document = getDocument(item);
+        final VitamDocument document = getDocument(item);
         if (items != null && items.length > 0) {
-            final List<LogbookDocument> events = new ArrayList<>(items.length);
+            final List<VitamDocument> events = new ArrayList<>(items.length);
             for (final LogbookParameters item2 : items) {
                 events.add(getDocument(item2));
             }
@@ -659,12 +660,12 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
         if (items == null || items.length == 0) {
             throw new IllegalArgumentException(AT_LEAST_ONE_ITEM_IS_NEEDED);
         }
-        final List<LogbookDocument> events = new ArrayList<>(items.length);
+        final List<VitamDocument> events = new ArrayList<>(items.length);
         for (final LogbookParameters item : items) {
             events.add(getDocument(item));
         }
         try {
-            final LogbookDocument item = events.get(0);
+            final VitamDocument item = events.get(0);
             final UpdateResult result = collection.getCollection().updateOne(
                 eq(LogbookDocument.ID, item.getId()),
                 Updates.pushEach(LogbookDocument.EVENTS, events));

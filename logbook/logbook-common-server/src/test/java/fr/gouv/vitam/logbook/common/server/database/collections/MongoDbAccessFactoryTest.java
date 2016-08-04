@@ -26,7 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.common.server.database.collections;
 
-import static fr.gouv.vitam.builder.request.construct.QueryHelper.exists;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -47,15 +47,15 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
-import fr.gouv.vitam.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.builder.singlerequest.Select;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.translators.mongodb.MongoDbHelper;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
-import fr.gouv.vitam.core.database.collections.translator.mongodb.MongoDbHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
