@@ -69,7 +69,7 @@ public class ExtractSedaActionHandlerTest {
         final WorkParams params =
             new WorkParams().setServerConfiguration(new ServerConfiguration().setUrlWorkspace("")).setGuuid("");
         final EngineResponse response = handler.execute(params);
-        assertEquals(response.getStatus(), StatusCode.FATAL);
+        assertEquals(response.getStatus(), StatusCode.KO);
     }
 
     @Test

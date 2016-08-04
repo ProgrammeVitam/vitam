@@ -205,9 +205,7 @@ public class AccessModuleImpl implements AccessModule {
     public JsonNode updateUnitbyId(JsonNode queryJson, String id_unit) throws IllegalArgumentException, InvalidParseOperationException, AccessExecutionException {
         JsonNode jsonNode = null;
         LogbookOperationParameters logbookOpParamStart, logbookOpParamEnd;
-
-        // TODO : Comment until to resolve lifeCycle update
-        // LogbookLifeCycleUnitParameters logbookLCParamStart, logbookLCParamEnd;
+        LogbookLifeCycleUnitParameters logbookLCParamStart, logbookLCParamEnd;
 
         if (StringUtils.isEmpty(id_unit)) {
             throw new IllegalArgumentException(ID_CHECK_FAILED);
@@ -226,13 +224,18 @@ public class AccessModuleImpl implements AccessModule {
             logbookOperationClient = logbookOperationClient == null
                 ? LogbookClientFactory.getInstance().getLogbookOperationClient() : logbookOperationClient;
 
-            // FIXME : Update lifeCycle issue aborted, only logbook operation is created
+            logbookLifeCycleClient = logbookLifeCycleClient == null
+                ? LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient() : logbookLifeCycleClient;
 
             // Create logbook operation
             logbookOpParamStart = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
                 LogbookOutcome.STARTED, "update archiveunit:" + id_unit, id_unit);
             logbookOperationClient.create(logbookOpParamStart);
 
+            // update logbook lifecycle
+            logbookLCParamStart = getLogbookLifeCycleUpdateUnitParameters(updateOpGuidStart, LogbookOutcome.STARTED,
+                queryJson.toString(), queryJson.toString(), id_unit);
+            logbookLifeCycleClient.update(logbookLCParamStart);
 
             //call update
             jsonNode = metaDataClient.updateUnitbyId(queryJson.toString(), id_unit);
@@ -240,6 +243,14 @@ public class AccessModuleImpl implements AccessModule {
             logbookOpParamEnd = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
                 LogbookOutcome.OK, "update archiveunit:" + id_unit, id_unit);
             logbookOperationClient.update(logbookOpParamEnd);
+
+            // update logbook lifecycle
+            logbookLCParamEnd = getLogbookLifeCycleUpdateUnitParameters(updateOpGuidStart, LogbookOutcome.OK,
+                queryJson.toString(), queryJson.toString(), id_unit);
+            logbookLifeCycleClient.update(logbookLCParamEnd);
+
+            // commit logbook lifecycle
+            logbookLifeCycleClient.commit(logbookLCParamEnd);
 
         } catch (final InvalidParseOperationException ipoe) {
             rollBackLogbook(updateOpGuidStart, queryJson, id_unit);
@@ -314,9 +325,7 @@ public class AccessModuleImpl implements AccessModule {
 
     private LogbookOperationParameters getLogbookOperationUpdateUnitParameters(GUID eventIdentifier, GUID eventIdentifierProcess, LogbookOutcome logbookOutcome,
                                                                                String outcomeDetailMessage, String eventIdentifierRequest) {
-
         LogbookTypeProcess eventTypeProcess = LogbookTypeProcess.UPDATE;
-
         LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters();
         parameters.putParameterValue(LogbookParameterName.eventIdentifier, eventIdentifier!=null ? eventIdentifier.toString() : "evtId NA");
         parameters.putParameterValue(LogbookParameterName.eventType, eventType);
@@ -325,6 +334,7 @@ public class AccessModuleImpl implements AccessModule {
         parameters.putParameterValue(LogbookParameterName.outcome, logbookOutcome!=null ? logbookOutcome.toString() : "outcome NA");
         parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, outcomeDetailMessage);
         parameters.putParameterValue(LogbookParameterName.eventIdentifierRequest, eventIdentifierRequest);
+        parameters.putParameterValue(LogbookParameterName.objectIdentifier, eventIdentifierRequest);
 
         return parameters;
     }
