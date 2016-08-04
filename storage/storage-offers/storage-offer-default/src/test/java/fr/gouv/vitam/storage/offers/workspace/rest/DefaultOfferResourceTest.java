@@ -69,7 +69,7 @@ import fr.gouv.vitam.common.model.StatusMessage;
 import fr.gouv.vitam.common.server.BasicVitamServer;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
-import fr.gouv.vitam.storage.offers.workspace.core.ObjectInit;
+import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
 
 /**

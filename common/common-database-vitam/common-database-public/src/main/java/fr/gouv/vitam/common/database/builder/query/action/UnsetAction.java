@@ -42,8 +42,8 @@ public class UnsetAction extends Action {
     /**
      * UnSet Action constructor from list of variable names
      *
-     * @param variableNames
-     * @throws InvalidCreateOperationException
+     * @param variableNames list of key name
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public UnsetAction(final String... variableNames)
         throws InvalidCreateOperationException {
@@ -56,9 +56,9 @@ public class UnsetAction extends Action {
     /**
      * Add other UnSet sub actions to UnSet Query
      *
-     * @param variableNames
+     * @param variableNames list of key name
      * @return the UnSetAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public final UnsetAction add(final String... variableNames)
         throws InvalidCreateOperationException {

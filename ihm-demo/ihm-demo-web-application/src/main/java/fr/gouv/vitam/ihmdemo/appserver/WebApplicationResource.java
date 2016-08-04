@@ -150,10 +150,11 @@ public class WebApplicationResource {
     }
 
     /**
-     * @param search
-     *            options
+     * @param options
+     *          the queries for searching
      * @return Response
      * @throws InvalidParseOperationException
+     *              could not be transfered to Json
      */
     @POST
     @Path("/logbook/operations")
@@ -183,10 +184,11 @@ public class WebApplicationResource {
     /**
      * @param operationId
      *            id of operation
-     * @param search
-     *            options
+     * @param options
+     *          the queries for searching
      * @return Response
      * @throws InvalidParseOperationException
+     *              could not be transfered to Json
      */
     @POST
     @Path("/logbook/operations/{idOperation}")
@@ -250,6 +252,7 @@ public class WebApplicationResource {
      * @param unitId archive unit id
      * @return archive unit details
      * @throws InvalidParseOperationException
+     *              could not be transfered to Json
      */
     @PUT
     @Path("/archiveupdate/units/{id}")
@@ -293,10 +296,11 @@ public class WebApplicationResource {
     }
     
     /**
-     * @param search
-     *            options
+     * @param options
+     *          the queries for searching
      * @return Response
      * @throws InvalidParseOperationException
+     *              could not be transfered to Json
      */
     @POST
     @Path("/admin/formats")
@@ -326,10 +330,11 @@ public class WebApplicationResource {
     /**
      * @param formatId
      *            id of format
-     * @param search
-     *            options
+     * @param options
+     *          the queries for searching
      * @return Response
      * @throws InvalidParseOperationException
+     *              could not be transfered to Json
      */
     @POST
     @Path("/admin/formats/{idFormat}")
@@ -355,15 +360,14 @@ public class WebApplicationResource {
 	/***
 	 * check the referential format
 	 * 
-	 * @param input the file xml
+	 * @param input the format file xml
 	 * @return If the formet is valid, return ok. If not, return the list of errors 
-	 * @throws IOException 
 	 */
 	@POST
 	@Path("/format/check")
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response checkRefFormat(InputStream input) throws IOException{
+	public Response checkRefFormat(InputStream input) {
 	    AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
 	    try {
             client.checkFormat(input);
@@ -376,8 +380,8 @@ public class WebApplicationResource {
     /**
      * Upload the referential format in the base
      * 
-     * @param input
-     * @return
+     * @param input the format file xml
+     * @return Response
      */
     @POST
     @Path("/format/upload")
@@ -398,7 +402,7 @@ public class WebApplicationResource {
     /**
      * Delete the referential format in the base
      * 
-     * @return
+     * @return Response
      */
     @Path("/format/delete")
     @DELETE

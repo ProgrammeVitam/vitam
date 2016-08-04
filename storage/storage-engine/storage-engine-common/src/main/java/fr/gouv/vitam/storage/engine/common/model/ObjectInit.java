@@ -2,8 +2,8 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
- * This software is a computer program whose purpose is to implement a digital 
+ *
+ * This software is a computer program whose purpose is to implement a digital
  * archiving back-office system managing high volumetry securely and efficiently.
  *
  * This software is governed by the CeCILL 2.1 license under French law and
@@ -32,64 +32,91 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL 2.1 license and that you accept its terms.
  */
-package fr.gouv.vitam.functional.administration.common.server;
+package fr.gouv.vitam.storage.engine.common.model;
 
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-
-import fr.gouv.vitam.common.database.collections.VitamCollection;
-import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
-import fr.gouv.vitam.functional.administration.common.FileFormat;
+import fr.gouv.vitam.common.digest.DigestType;
 
 /**
- * All collections in functional admin module
+ * Object creation data.
  */
-public enum FunctionalAdminCollections {
-    /**
-     * Formats Collection
-     */
-    FORMATS(FileFormat.class);
-    
-    private VitamCollection vitamCollection;
+public class ObjectInit {
 
-    private FunctionalAdminCollections(final Class<?> clasz) {
-        vitamCollection = VitamCollectionHelper.getCollection(clasz);
+    private String id;
+    private long size;
+    /** TODO should be an enum */
+    private String type;
+    private DigestType digestAlgorithm;
+
+    /**
+     * Get object offer ID
+     *
+     * @return the object offer ID
+     */
+    public String getId() {
+        return id;
     }
 
     /**
-     * Initialize the collection
+     * Set object offer ID
      *
-     * @param db database type
-     * @param recreate true is as recreate type
+     * @param id the ID to set
      */
-    protected void initialize(final MongoDatabase db, final boolean recreate) {
-        vitamCollection.initialize(db, recreate);
+    public void setId(String id) {
+        this.id = id;
     }
 
     /**
+     * Get object size
      *
-     * @return the name of the collection
+     * @return the object size
      */
-    protected String getName() {
-        return vitamCollection.getName();
+    public long getSize() {
+        return size;
     }
 
     /**
+     * Set object size
      *
-     * @return the associated MongoCollection
+     * @param size the object size
      */
-    @SuppressWarnings("rawtypes")
-    protected MongoCollection getCollection() {
-        return vitamCollection.getCollection();
+    public void setSize(long size) {
+        this.size = size;
     }
 
+    /**
+     * Get object type
+     *
+     * @return the object type
+     */
+    public String getType() {
+        return type;
+    }
 
     /**
+     * Set object type
      *
-     * @return the associated class
+     * @param type the object type
      */
-    protected Class<?> getClasz() {
-        return vitamCollection.getClasz();
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    /**
+     * Get digest algorithm
+     *
+     * @return the digest algorithm
+     */
+    public DigestType getDigestAlgorithm() {
+        return digestAlgorithm;
+    }
+
+    /**
+     * Set digest algorithm
+     *
+     * @param digestAlgorithm the digest algorithm
+     */
+    public void setDigestAlgorithm(DigestType digestAlgorithm) {
+        this.digestAlgorithm = digestAlgorithm;
     }
 
 }

@@ -34,32 +34,32 @@ public class InvalidCreateOperationException extends Exception {
     private static final long serialVersionUID = 8781463864293772663L;
 
     /**
-     * @param arg0
+     * @param arg0 String
      */
     public InvalidCreateOperationException(final String arg0) {
         super(arg0);
     }
 
     /**
-     * @param arg0
+     * @param arg0 Exception
      */
     public InvalidCreateOperationException(final Throwable arg0) {
         super(arg0);
     }
 
     /**
-     * @param arg0
-     * @param arg1
+     * @param arg0 String
+     * @param arg1 Throwable
      */
     public InvalidCreateOperationException(final String arg0, final Throwable arg1) {
         super(arg0, arg1);
     }
 
     /**
-     * @param arg0
-     * @param arg1
-     * @param arg2
-     * @param arg3
+     * @param arg0 string
+     * @param arg1 Throwable
+     * @param arg2 enough suppression
+     * @param arg3 enough write track
      */
     public InvalidCreateOperationException(final String arg0, final Throwable arg1,
         final boolean arg2, final boolean arg3) {

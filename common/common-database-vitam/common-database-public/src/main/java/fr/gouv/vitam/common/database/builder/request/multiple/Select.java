@@ -119,7 +119,7 @@ public class Select extends RequestMultiple {
 
     /**
      *
-     * @param filterContent
+     * @param filterContent content json
      * @return this Query
      */
     public final Select setLimitFilter(final JsonNode filterContent) {
@@ -144,9 +144,9 @@ public class Select extends RequestMultiple {
 
     /**
      *
-     * @param filter
+     * @param filter string filter
      * @return this Query
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException when query is invalid
      */
     public final Select parseLimitFilter(final String filter)
         throws InvalidParseOperationException {
@@ -157,9 +157,9 @@ public class Select extends RequestMultiple {
 
     /**
      *
-     * @param variableNames
+     * @param variableNames list of key name
      * @return this Query
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException when query is invalid
      */
     public final Select addOrderByAscFilter(final String... variableNames)
         throws InvalidParseOperationException {
@@ -168,9 +168,9 @@ public class Select extends RequestMultiple {
 
     /**
      *
-     * @param variableNames
+     * @param variableNames list of key name
      * @return this Query
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException when query is invalid
      */
     public final Select addOrderByDescFilter(final String... variableNames)
         throws InvalidParseOperationException {
@@ -180,9 +180,9 @@ public class Select extends RequestMultiple {
     /**
      *
      * @param way the way of the operation
-     * @param variableNames
+     * @param variableNames list of key name
      * @return this Query
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException when query is invalid
      */
     private final Select addOrderByFilter(final int way, final String... variableNames)
         throws InvalidParseOperationException {
@@ -205,9 +205,9 @@ public class Select extends RequestMultiple {
 
     /**
      *
-     * @param filterContent
+     * @param filterContent json filter
      * @return this Query
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException when query is invalid
      */
     public final Select addOrderByFilter(final JsonNode filterContent)
         throws InvalidParseOperationException {
@@ -227,9 +227,9 @@ public class Select extends RequestMultiple {
 
     /**
      *
-     * @param filter
+     * @param filter string filter
      * @return this Query
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException when query is invalid
      */
     public final Select parseOrderByFilter(final String filter)
         throws InvalidParseOperationException {
@@ -240,9 +240,9 @@ public class Select extends RequestMultiple {
 
     /**
      *
-     * @param filterContent
+     * @param filterContent json filter
      * @return this Query
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException when query is invalid
      */
     @Override
     public final Select setFilter(final JsonNode filterContent)
@@ -253,9 +253,9 @@ public class Select extends RequestMultiple {
 
     /**
      *
-     * @param variableNames
+     * @param variableNames list of key name
      * @return this Query
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException when query is invalid
      */
     public final Select addUsedProjection(final String... variableNames)
         throws InvalidParseOperationException {
@@ -264,9 +264,9 @@ public class Select extends RequestMultiple {
 
     /**
      *
-     * @param variableNames
+     * @param variableNames list of key name
      * @return this Query
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException when query is invalid
      */
     public final Select addUnusedProjection(final String... variableNames)
         throws InvalidParseOperationException {
@@ -276,9 +276,9 @@ public class Select extends RequestMultiple {
     /**
      *
      * @param way the way of the operation
-     * @param variableNames
+     * @param variableNames list of key name
      * @return this Query
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException when query is invalid
      */
     private final Select addXxxProjection(final int way, final String... variableNames)
         throws InvalidParseOperationException {
@@ -304,7 +304,7 @@ public class Select extends RequestMultiple {
 
     /**
      *
-     * @param projectionContent
+     * @param projectionContent json projection
      * @return this Query
      */
     public final Select addProjection(final JsonNode projectionContent) {
@@ -322,9 +322,9 @@ public class Select extends RequestMultiple {
 
     /**
      *
-     * @param projection
+     * @param projection string projection
      * @return this Query
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException when query is invalid
      */
     public final Select parseProjection(final String projection)
         throws InvalidParseOperationException {
@@ -335,9 +335,9 @@ public class Select extends RequestMultiple {
 
     /**
      *
-     * @param usage
+     * @param usage string
      * @return this Query
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException when query is invalid
      */
     public final Select setUsageProjection(final String usage)
         throws InvalidParseOperationException {
@@ -354,9 +354,9 @@ public class Select extends RequestMultiple {
 
     /**
      *
-     * @param projectionContent
+     * @param projectionContent json projection
      * @return this Query
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException when query is invalid
      */
     public final Select setUsageProjection(final JsonNode projectionContent)
         throws InvalidParseOperationException {
@@ -370,9 +370,9 @@ public class Select extends RequestMultiple {
 
     /**
      *
-     * @param projectionContent
+     * @param projectionContent json projection
      * @return this Query
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException when query is invalid
      */
     public final Select setProjection(final JsonNode projectionContent)
         throws InvalidParseOperationException {

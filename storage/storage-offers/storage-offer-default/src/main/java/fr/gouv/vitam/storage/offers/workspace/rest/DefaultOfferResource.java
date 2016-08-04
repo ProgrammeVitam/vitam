@@ -53,7 +53,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusMessage;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.offers.workspace.core.DefaultOfferServiceImpl;
-import fr.gouv.vitam.storage.offers.workspace.core.ObjectInit;
+import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 
 /**

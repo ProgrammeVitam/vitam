@@ -37,8 +37,9 @@ import javax.xml.stream.XMLStreamException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.mongodb.client.MongoCursor;
-
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.configuration.DbConfiguration;
@@ -51,18 +52,39 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.operations.client.LogbookClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookClientFactory;
 
 /**
  * ReferentialFormatFileImpl implementing the ReferentialFormatFile interface
  */
 public class ReferentialFormatFileImpl implements ReferentialFile {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PronomParser.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReferentialFormatFileImpl.class);
     private final MongoDbAccessAdminImpl mongoAccess;
-    private final String COLLECTION_NAME = "FileFormat";    
-    
+    private final String COLLECTION_NAME = "FileFormat";
+    private final String MESSAGE_LOGBOOK_IMPORT = "Succès de l'import du Référentiel de format : ";
+    private final String MESSAGE_LOGBOOK_IMPORT_ERROR = "Erreur de l'import du Référentiel de format";
+    private final String MESSAGE_LOGBOOK_DELETE = "Succès de suppression du Référentiel de format";
+
+    private static LogbookClient client = LogbookClientFactory.getInstance().getLogbookOperationClient();
+    private String EVENT_TYPE_CREATE = "CREATE";
+    private String EVENT_TYPE_DELETE = "DELETE";
+    // TODO: should change to REFERENTIAL_FORMAT
+    private LogbookTypeProcess LOGBOOK_PROCESS_TYPE = LogbookTypeProcess.INGEST;
+
     /**
      * Constructor
+     * 
      * @param dbConfiguration
      */
     public ReferentialFormatFileImpl(DbConfiguration dbConfiguration) {
@@ -72,24 +94,95 @@ public class ReferentialFormatFileImpl implements ReferentialFile {
     @Override
     public void importFile(InputStream xmlPronom) throws ReferentialException, DatabaseConflictException {
         ParametersChecker.checkParameter("Pronom file is a mandatory parameter", xmlPronom);
+
+        GUID eip = GUIDFactory.newGUID();
+        LogbookOperationParameters logbookParametersStart =
+            LogbookParametersFactory.newLogbookOperationParameters(
+                eip, EVENT_TYPE_CREATE, eip, LOGBOOK_PROCESS_TYPE, LogbookOutcome.STARTED,
+                "start importing referential file ", eip);
+        try {
+            client.create(logbookParametersStart);
+        } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
+            LogbookClientServerException e) {
+            LOGGER.error(e.getMessage());
+        }
+
+        eip = GUIDFactory.newGUID();
         try {
             ArrayNode pronomList = PronomParser.getPronom(xmlPronom);
             if (this.mongoAccess.getMongoDatabase().getCollection(COLLECTION_NAME).count() == 0) {
                 this.mongoAccess.insertDocuments(pronomList, FunctionalAdminCollections.FORMATS);
+
+                LogbookOperationParameters logbookParametersEnd =
+                    LogbookParametersFactory.newLogbookOperationParameters(
+                        eip, EVENT_TYPE_CREATE, eip, LOGBOOK_PROCESS_TYPE, LogbookOutcome.OK,
+                        MESSAGE_LOGBOOK_IMPORT + " version " + pronomList.get(0).get("VersionPronom").textValue() +  " du fichier de signature PRONOM (DROID_SignatureFile)",
+                        eip);
+
+                try {
+                    client.update(logbookParametersEnd);
+                } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
+                    LogbookClientServerException e) {
+                    LOGGER.error(e.getMessage());
+                }
             } else {
+                LogbookOperationParameters logbookParametersEnd =
+                    LogbookParametersFactory.newLogbookOperationParameters(eip, EVENT_TYPE_CREATE, eip,
+                        LOGBOOK_PROCESS_TYPE, LogbookOutcome.ERROR, MESSAGE_LOGBOOK_IMPORT_ERROR, eip);
+                try {
+                    client.update(logbookParametersEnd);
+                } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
+                    LogbookClientServerException e1) {
+                    LOGGER.error(e1.getMessage());
+                }
+
                 throw new DatabaseConflictException("File format collection is not empty");
-            }                
+            }
         } catch (ReferentialException e) {
             LOGGER.error(e.getMessage());
+            LogbookOperationParameters logbookParametersEnd =
+                LogbookParametersFactory.newLogbookOperationParameters(eip, EVENT_TYPE_CREATE, eip,
+                    LOGBOOK_PROCESS_TYPE, LogbookOutcome.ERROR, MESSAGE_LOGBOOK_IMPORT_ERROR, eip);
+            try {
+                client.update(logbookParametersEnd);
+            } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
+                LogbookClientServerException e1) {
+                LOGGER.error(e1.getMessage());
+            }
             throw new ReferentialException(e);
         }
     }
 
     @Override
     public void deleteCollection() {
+        GUID eip = GUIDFactory.newGUID();
+        LogbookOperationParameters logbookParametersStart = LogbookParametersFactory.newLogbookOperationParameters(
+            eip, EVENT_TYPE_DELETE, eip, LOGBOOK_PROCESS_TYPE, LogbookOutcome.STARTED,
+            "start deleting referential format from database ", eip);
+        try {
+            client.create(logbookParametersStart);
+        } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
+            LogbookClientServerException e) {
+            LOGGER.error(e.getMessage());
+        }
+
         this.mongoAccess.deleteCollection(FunctionalAdminCollections.FORMATS);
+
+        eip = GUIDFactory.newGUID();
+        LogbookOperationParameters logbookParametersEnd =
+            LogbookParametersFactory.newLogbookOperationParameters(
+                eip, EVENT_TYPE_DELETE, eip, LOGBOOK_PROCESS_TYPE, LogbookOutcome.OK, MESSAGE_LOGBOOK_DELETE,
+                eip);
+
+        try {
+            client.update(logbookParametersEnd);
+        } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
+            LogbookClientServerException e) {
+            LOGGER.error(e.getMessage());
+        }
+
     }
-  
+
     @Override
     public void checkFile(InputStream xmlPronom) throws ReferentialException {
         ParametersChecker.checkParameter("Pronom file is a mandatory parameter", xmlPronom);
@@ -118,7 +211,8 @@ public class ReferentialFormatFileImpl implements ReferentialFile {
     @Override
     public List<FileFormat> findDocuments(JsonNode select) throws ReferentialException {
         try {
-            MongoCursor<FileFormat> formats = (MongoCursor<FileFormat>) this.mongoAccess.select(select, FunctionalAdminCollections.FORMATS);
+            MongoCursor<FileFormat> formats =
+                (MongoCursor<FileFormat>) this.mongoAccess.select(select, FunctionalAdminCollections.FORMATS);
             final List<FileFormat> result = new ArrayList<>();
             if (formats == null || !formats.hasNext()) {
                 throw new FileFormatNotFoundException("Format not found");
@@ -132,5 +226,4 @@ public class ReferentialFormatFileImpl implements ReferentialFile {
             throw new FileFormatException(e);
         }
     }
-
 }

@@ -32,7 +32,7 @@ import fr.gouv.vitam.common.database.parser.request.AbstractParser;
 public class DeleteToMongodb extends RequestToMongodb {
 
     /**
-     * @param deleteParser
+     * @param deleteParser AbstractParser of unknown type
      */
     public DeleteToMongodb(AbstractParser<?> deleteParser) {
         super(deleteParser);

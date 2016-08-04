@@ -19,23 +19,22 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 public interface AdminManagementClient {
     
     /**
-     * @param stream
-     * @throws  ReferentialException
+     * @param stream as InputStream;
+     * @throws  ReferentialException when check exception occurs
      */
     void checkFormat(InputStream stream) throws  ReferentialException;
     
     
     /**
-     * @param stream
-     * @throws  ReferentialException
-     * @throws DatabaseConflictException 
+     * @param stream as InputStream
+     * @throws  ReferentialException when import exception occurs
+     * @throws DatabaseConflictException conflict exception occurs
      */
     void importFormat(InputStream stream) throws  ReferentialException, DatabaseConflictException;
     
     
     /**
-     * @param puid
-     * @throws  ReferentialException
+     * @throws  ReferentialException when delete exception occurs
      */
     void deleteFormat() throws  ReferentialException;
     
@@ -49,22 +48,22 @@ public interface AdminManagementClient {
 
 
     /**
-     * @param id
+     * @param id as String
      * @return JsonNode 
-     * @throws ReferentialException 
-     * @throws InvalidParseOperationException 
+     * @throws ReferentialException check exception occurs 
+     * @throws InvalidParseOperationException when json exception occurs 
      */
     JsonNode getFormatByID(String id) throws  ReferentialException, InvalidParseOperationException;
 
 
     /**
-     * @param query
-     * @return JsonNode
-     * @throws  ReferentialException
-     * @throws InvalidParseOperationException 
-     * @throws IOException 
-     * @throws JsonMappingException 
-     * @throws JsonGenerationException 
+     * @param query as JsonNode
+     * @return JsonNode 
+     * @throws  ReferentialException when referential format exception occurs
+     * @throws InvalidParseOperationException when json exception occurs
+     * @throws IOException when io data exception occurs
+     * @throws JsonMappingException when json exception occurs
+     * @throws JsonGenerationException when json exception occurs
      */
     JsonNode getFormats(JsonNode query) throws  ReferentialException, InvalidParseOperationException, JsonGenerationException, JsonMappingException, IOException;
 }

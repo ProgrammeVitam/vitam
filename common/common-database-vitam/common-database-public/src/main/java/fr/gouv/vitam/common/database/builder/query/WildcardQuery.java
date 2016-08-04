@@ -38,9 +38,9 @@ public class WildcardQuery extends Query {
     /**
      * Wildcard Query constructor
      *
-     * @param variableName
-     * @param value
-     * @throws InvalidCreateOperationException
+     * @param variableName key name
+     * @param value key value
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public WildcardQuery(final String variableName, final String value)
         throws InvalidCreateOperationException {

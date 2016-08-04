@@ -63,9 +63,9 @@ public class UpdateActionToMongodb {
 
     /**
      *
-     * @param action
+     * @param action Action
      * @return the associated MongoDB BSON request
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if invalid parse operation
      */
     public static Bson getCommand(final Action action)
         throws InvalidParseOperationException {

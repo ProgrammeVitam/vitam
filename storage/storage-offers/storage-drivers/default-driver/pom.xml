@@ -26,11 +26,6 @@
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>workspace-offer</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>${junit.version}</version>
@@ -58,6 +53,18 @@
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>common-junit</artifactId>
 			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jhades</groupId>
+			<artifactId>jhades</artifactId>
+			<version>${jhades.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.jayway.restassured</groupId>
+			<artifactId>rest-assured</artifactId>
+			<version>${rest-assured.version}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

@@ -65,7 +65,7 @@ angular.module('ihm.demo')
     		$mdDialog.show(confirm).then(uploadAction, cancelAction);
     	} else if (uploader.queue[0].url == serviceURI + uploadFormat) {
     		var confirm = $mdDialog.confirm()
-    			.title('Fichier importé')
+    			.title('Referentiel de formats importé')
     			.ok("Fermer");
     		$mdDialog.show(confirm).then(function(){
     			$route.reload();
@@ -87,8 +87,8 @@ angular.module('ihm.demo')
     		var confirm = $mdDialog.confirm()
     		            	.title('Format est déjà chargé dans la base.' +  
     		        				' Si vous voulez télécharger un nouveau format, appuyez sur le bouton Supprimer.')
-    		            	.ok("close");
-    		$mdDialog.show(confirm);
+    		            	.ok("Fermer");
+    		    		$mdDialog.show(confirm)
     	}
     	
     };

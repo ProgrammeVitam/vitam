@@ -45,7 +45,7 @@ import fr.gouv.vitam.common.database.parser.request.AbstractParser;
 public class SelectToMongodb extends RequestToMongodb {
 
     /**
-     * @param selectParser
+     * @param selectParser AbstractParser of unknown type
      */
     public SelectToMongodb(AbstractParser<?> selectParser) {
         super(selectParser);

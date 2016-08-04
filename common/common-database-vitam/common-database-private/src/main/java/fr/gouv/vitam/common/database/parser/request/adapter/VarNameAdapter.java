@@ -48,9 +48,9 @@ public class VarNameAdapter {
 
     /**
      *
-     * @param name
+     * @param name String
      * @return null
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException invalid parse operation exception
      */
     public String getVariableName(String name) throws InvalidParseOperationException {
         return null;
@@ -59,9 +59,9 @@ public class VarNameAdapter {
     /**
      * Set Vars = Value (Json)
      *
-     * @param currentObject
-     * @param request
-     * @throws InvalidParseOperationException
+     * @param currentObject ObjectNode
+     * @param request JsonNode
+     * @throws InvalidParseOperationException invalid parse operation exception
      */
     public void setVarsValue(ObjectNode currentObject, JsonNode request) throws InvalidParseOperationException {
         final Iterator<Entry<String, JsonNode>> iterator = request.fields();
@@ -79,10 +79,10 @@ public class VarNameAdapter {
     /**
      * Set simple Var (no value)
      *
-     * @param req
-     * @param currentObject
-     * @param request
-     * @throws InvalidParseOperationException
+     * @param req QUERY
+     * @param currentObject ObjectNode
+     * @param request JsonNode
+     * @throws InvalidParseOperationException invalid parse operation exception
      */
     public void setVar(QUERY req, ObjectNode currentObject, JsonNode request) throws InvalidParseOperationException {
         String variableName = request.asText();
@@ -96,8 +96,8 @@ public class VarNameAdapter {
     /**
      * Set an array of Var (no Value)
      *
-     * @param array
-     * @throws InvalidParseOperationException
+     * @param array ArrayNode
+     * @throws InvalidParseOperationException invalid parse operation exception
      */
     public void setVarArray(ArrayNode array) throws InvalidParseOperationException {
         final ArrayNode copy = array.deepCopy();
@@ -115,8 +115,8 @@ public class VarNameAdapter {
     /**
      * Check if no arguments is using any fix '#' Parameter
      *
-     * @param request
-     * @throws InvalidParseOperationException
+     * @param request JsonNode
+     * @throws InvalidParseOperationException invalid parse operation exception
      */
     public void checkNoParameter(JsonNode request) throws InvalidParseOperationException {
         final Iterator<Entry<String, JsonNode>> iterator = request.fields();

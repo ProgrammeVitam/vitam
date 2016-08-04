@@ -53,6 +53,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
 
 /**

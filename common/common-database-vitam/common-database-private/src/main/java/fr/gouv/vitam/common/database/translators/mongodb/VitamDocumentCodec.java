@@ -54,7 +54,7 @@ public class VitamDocumentCodec<T extends Document> implements CollectibleCodec<
     /**
      * Constructor
      *
-     * @param clazz
+     * @param clazz class of unknown type
      */
     public VitamDocumentCodec(Class<T> clazz) {
         try {

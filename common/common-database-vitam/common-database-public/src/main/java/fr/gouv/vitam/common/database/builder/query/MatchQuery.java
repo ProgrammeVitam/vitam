@@ -45,9 +45,9 @@ public class MatchQuery extends Query {
      * Match Query constructor
      *
      * @param matchQuery match, match_phrase, match_phrase_prefix
-     * @param variableName
-     * @param value
-     * @throws InvalidCreateOperationException
+     * @param variableName variable name
+     * @param value of variable
+     * @throws InvalidCreateOperationException when not valid
      */
     public MatchQuery(final QUERY matchQuery, final String variableName,
         final String value)
@@ -72,7 +72,7 @@ public class MatchQuery extends Query {
      *
      * @param max max expansions for Match type request only (not regex, search)
      * @return this MatchQuery
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when not valid
      */
     public final MatchQuery setMatchMaxExpansions(final int max)
         throws InvalidCreateOperationException {

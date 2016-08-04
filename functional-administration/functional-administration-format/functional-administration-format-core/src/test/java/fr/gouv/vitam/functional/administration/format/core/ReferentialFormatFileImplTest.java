@@ -71,7 +71,7 @@ public class ReferentialFormatFileImplTest {
         mongodExecutable.stop();
         junitHelper.releasePort(port);
     }
-
+    
     @Test
     public void testFormatXML() throws FileNotFoundException, ReferentialException {
         formatFile.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));        

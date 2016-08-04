@@ -2,8 +2,8 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
- * This software is a computer program whose purpose is to implement a digital 
+ *
+ * This software is a computer program whose purpose is to implement a digital
  * archiving back-office system managing high volumetry securely and efficiently.
  *
  * This software is governed by the CeCILL 2.1 license under French law and
@@ -32,64 +32,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL 2.1 license and that you accept its terms.
  */
-package fr.gouv.vitam.functional.administration.common.server;
-
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-
-import fr.gouv.vitam.common.database.collections.VitamCollection;
-import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
-import fr.gouv.vitam.functional.administration.common.FileFormat;
 
 /**
- * All collections in functional admin module
+ * Common object for storage exchanges
  */
-public enum FunctionalAdminCollections {
-    /**
-     * Formats Collection
-     */
-    FORMATS(FileFormat.class);
-    
-    private VitamCollection vitamCollection;
-
-    private FunctionalAdminCollections(final Class<?> clasz) {
-        vitamCollection = VitamCollectionHelper.getCollection(clasz);
-    }
-
-    /**
-     * Initialize the collection
-     *
-     * @param db database type
-     * @param recreate true is as recreate type
-     */
-    protected void initialize(final MongoDatabase db, final boolean recreate) {
-        vitamCollection.initialize(db, recreate);
-    }
-
-    /**
-     *
-     * @return the name of the collection
-     */
-    protected String getName() {
-        return vitamCollection.getName();
-    }
-
-    /**
-     *
-     * @return the associated MongoCollection
-     */
-    @SuppressWarnings("rawtypes")
-    protected MongoCollection getCollection() {
-        return vitamCollection.getCollection();
-    }
-
-
-    /**
-     *
-     * @return the associated class
-     */
-    protected Class<?> getClasz() {
-        return vitamCollection.getClasz();
-    }
-
-}
+package fr.gouv.vitam.storage.engine.common.model;

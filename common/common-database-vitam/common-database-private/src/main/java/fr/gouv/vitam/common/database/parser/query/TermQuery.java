@@ -38,10 +38,10 @@ public class TermQuery extends fr.gouv.vitam.common.database.builder.query.TermQ
     /**
      * For Parsing
      *
-     * @param req
-     * @param request
-     * @param adapter
-     * @throws InvalidParseOperationException
+     * @param req QUERY
+     * @param request VarNameAdapter
+     * @param adapter JsonNode
+     * @throws InvalidParseOperationException if could not parse to JSON
      */
     public TermQuery(final QUERY req, final JsonNode request, final VarNameAdapter adapter)
         throws InvalidParseOperationException {

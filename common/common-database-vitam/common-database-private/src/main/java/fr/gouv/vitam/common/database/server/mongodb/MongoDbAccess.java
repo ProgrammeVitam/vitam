@@ -62,7 +62,7 @@ public abstract class MongoDbAccess {
     }
 
     /**
-     * @param mongoClient
+     * @param mongoClient MongoClient
      * @return MongoDbAccess
      */
     public MongoDbAccess setMongoClient(MongoClient mongoClient) {
@@ -78,7 +78,7 @@ public abstract class MongoDbAccess {
     }
 
     /**
-     * @param mongoDatabase
+     * @param mongoDatabase MongoDatabase
      * @return MongoDbAccess
      */
     public MongoDbAccess setMongoDatabase(MongoDatabase mongoDatabase) {
@@ -94,7 +94,7 @@ public abstract class MongoDbAccess {
     }
 
     /**
-     * @param mongoAdmin
+     * @param mongoAdmin MongoDatabase
      * @return MongoDbAccess
      */
     public MongoDbAccess setMongoAdmin(MongoDatabase mongoAdmin) {

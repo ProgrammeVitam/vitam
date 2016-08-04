@@ -21,8 +21,8 @@ Driver
 
 Objet technique responsable d'établir une connexion avec le service de stockage en fonction des
     paramètres qui lui sont fournis. C'est aussi lui qui est responsable de déterminer si le service est disponible ou
-    non. La méthode connect, permet de récupérer un objet Connection afin de pouvoir effectuer des actions sur l'offre de stockage.    
-    
+    non. La méthode connect, permet de récupérer un objet Connection afin de pouvoir effectuer des actions sur l'offre de stockage.
+
 Serveur
 *******
 
@@ -104,9 +104,7 @@ REST API
 - body :
 
   - GUID
-  - ObjectInit contenant la taille (taille finale), le type (unit/objectgroup/logbook/etc), le digest-type (type de
-  digest) ainsi qu'un identifiant vide à l'envoi qui sera rempli pour l'offre. Il s'agit de l'identifiant de l'objet
-  sur l'offre. Dans l'implémentation par défaut, c'est le GUID.
+  - ObjectInit contenant la taille (taille finale), le type (unit/objectgroup/logbook/etc), le digest-type (type de digest) ainsi qu'un identifiant vide à l'envoi qui sera rempli pour l'offre. Il s'agit de l'identifiant de l'objet sur l'offre. Dans l'implémentation par défaut, c'est le GUID.
 
 - response :
 
@@ -134,8 +132,7 @@ REST API
 - response :
 
   - code : 201
-  - contenu : un json avec une clef unique, digest, le digest du fichier complet sur l'offre pour le END, le digest
-  du morceau envoyé pour le WRITE
+  - contenu : un json avec une clef unique, digest, le digest du fichier complet sur l'offre pour le END, le digest du morceau envoyé pour le WRITE
 
 
 **HEAD /objects/{id}**
@@ -191,9 +188,10 @@ Le module core du Workspace est utilisé pour gérer le stockage des objets.
 L'arborescence cible est la suivante :
 
 - pour chaque tenant un dossier est créé dans le workspace (équivalent du container) : /idTenant
+
 TODO:
-- pour chaque type d'objet, un sous-dossier est créé dans le dossier tenant (units, logbooks, objectgroups,
-objects) : /idTenant/objectgroups
+
+- pour chaque type d'objet, un sous-dossier est créé dans le dossier tenant (units, logbooks, objectgroups, objects) : /idTenant/objectgroups
 
 Chaque objet, selon son type et le tenant associé, est stocké dans le dossier adéquat.
 Si le dossier cible n'existe pas à l'écriture de l'objet, il est créé automatiquement.

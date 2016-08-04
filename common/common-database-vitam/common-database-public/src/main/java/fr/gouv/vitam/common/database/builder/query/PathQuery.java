@@ -42,8 +42,8 @@ public class PathQuery extends Query {
     /**
      * Path Query constructor
      *
-     * @param pathes
-     * @throws InvalidCreateOperationException
+     * @param pathes node's branch
+     * @throws InvalidCreateOperationException when query is not valid
      */
     public PathQuery(final String... pathes) throws InvalidCreateOperationException {
         super();
@@ -70,9 +70,9 @@ public class PathQuery extends Query {
     /**
      * Add other paths (at end) to a PATH Query
      *
-     * @param pathes
+     * @param pathes node's branch
      * @return this PathQuery
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is not valid
      */
     public final PathQuery add(final String... pathes)
         throws InvalidCreateOperationException {

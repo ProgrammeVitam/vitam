@@ -62,9 +62,9 @@ public class MltQuery extends Query {
      * MoreLikeThis Query constructor
      *
      * @param mltQuery flt, mlt
-     * @param value
-     * @param variableNames
-     * @throws InvalidCreateOperationException
+     * @param value to compare
+     * @param variableNames criteria of query 
+     * @throws InvalidCreateOperationException when query is not valid
      */
     public MltQuery(final QUERY mltQuery, final String value,
         final String... variableNames)
@@ -115,9 +115,9 @@ public class MltQuery extends Query {
     /**
      * Add a variable into the Mlt Query
      *
-     * @param variableName
+     * @param variableName variable name
      * @return the MltQuery
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is not valid
      */
     public final MltQuery add(final String... variableName)
         throws InvalidCreateOperationException {

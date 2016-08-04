@@ -54,9 +54,9 @@ public class SetAction extends Action {
     /**
      * Set Action constructor
      *
-     * @param variableName
-     * @param value
-     * @throws InvalidCreateOperationException
+     * @param variableName key name
+     * @param value key value
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public SetAction(final String variableName, final String value)
         throws InvalidCreateOperationException {
@@ -69,8 +69,8 @@ public class SetAction extends Action {
     /**
      * Set Action constructor from Map
      *
-     * @param variableNameValue
-     * @throws InvalidCreateOperationException
+     * @param variableNameValue map of key and Value
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public SetAction(final Map<String, ?> variableNameValue)
         throws InvalidCreateOperationException {
@@ -98,9 +98,9 @@ public class SetAction extends Action {
     /**
      * Set Action constructor
      *
-     * @param variableName
-     * @param value
-     * @throws InvalidCreateOperationException
+     * @param variableName key name
+     * @param value key value
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public SetAction(final String variableName, final long value)
         throws InvalidCreateOperationException {
@@ -113,9 +113,9 @@ public class SetAction extends Action {
     /**
      * Set Action constructor
      *
-     * @param variableName
-     * @param value
-     * @throws InvalidCreateOperationException
+     * @param variableName key name
+     * @param value key value
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public SetAction(final String variableName, final boolean value)
         throws InvalidCreateOperationException {
@@ -128,9 +128,9 @@ public class SetAction extends Action {
     /**
      * Set Action constructor
      *
-     * @param variableName
-     * @param value
-     * @throws InvalidCreateOperationException
+     * @param variableName key name
+     * @param value key value
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public SetAction(final String variableName, final double value)
         throws InvalidCreateOperationException {
@@ -143,9 +143,9 @@ public class SetAction extends Action {
     /**
      * Set Action constructor
      *
-     * @param variableName
-     * @param value
-     * @throws InvalidCreateOperationException
+     * @param variableName key name
+     * @param value key value
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public SetAction(final String variableName, final Date value)
         throws InvalidCreateOperationException {
@@ -170,10 +170,10 @@ public class SetAction extends Action {
     /**
      * Add other Set sub actions to Set Query
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return the SetAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public final SetAction add(final String variableName, final String value)
         throws InvalidCreateOperationException {
@@ -198,10 +198,10 @@ public class SetAction extends Action {
     /**
      * Add other Set sub actions to Set Query
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return the SetAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public final SetAction add(final String variableName, final boolean value)
         throws InvalidCreateOperationException {
@@ -225,10 +225,10 @@ public class SetAction extends Action {
     /**
      * Add other Set sub actions to Set Query
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return the SetAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public final SetAction add(final String variableName, final long value)
         throws InvalidCreateOperationException {
@@ -252,10 +252,10 @@ public class SetAction extends Action {
     /**
      * Add other Set sub actions to Set Query
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return the SetAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public final SetAction add(final String variableName, final double value)
         throws InvalidCreateOperationException {
@@ -279,10 +279,10 @@ public class SetAction extends Action {
     /**
      * Add other Set sub actions to Set Query
      *
-     * @param variableName
-     * @param value
+     * @param variableName key name
+     * @param value key value
      * @return the SetAction
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when query is invalid
      */
     public final SetAction add(final String variableName, final Date value)
         throws InvalidCreateOperationException {

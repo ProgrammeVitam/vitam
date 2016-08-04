@@ -73,7 +73,7 @@ public class Insert extends RequestMultiple {
     }
 
     /**
-     * @param filterContent
+     * @param filterContent json filter
      * @return this Insert
      */
     public final Insert setMult(final JsonNode filterContent) {
@@ -88,9 +88,9 @@ public class Insert extends RequestMultiple {
 
     /**
      *
-     * @param filterContent
+     * @param filterContent json filter
      * @return this Insert
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException when query is invalid
      */
     @Override
     public final Insert setFilter(final JsonNode filterContent)
@@ -102,7 +102,7 @@ public class Insert extends RequestMultiple {
     /**
      * Note that if previous attributes have the same name, they will be replaced.
      *
-     * @param data
+     * @param data list of json data
      * @return this Insert
      */
     public final Insert addData(final ObjectNode... data) {
@@ -119,9 +119,9 @@ public class Insert extends RequestMultiple {
 
     /**
      *
-     * @param dataContent
+     * @param dataContent json data
      * @return this Insert
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException when query is invalid
      */
     public final Insert setData(final JsonNode dataContent)
         throws InvalidParseOperationException {
@@ -134,9 +134,9 @@ public class Insert extends RequestMultiple {
 
     /**
      *
-     * @param data
+     * @param data string data
      * @return this Insert
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException when query is invalid
      */
     public final Insert parseData(final String data)
         throws InvalidParseOperationException {

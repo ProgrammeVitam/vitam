@@ -52,7 +52,7 @@ public class SelectParserSingle extends RequestParserSingle {
     }
 
     /**
-     * @param adapter
+     * @param adapter VarNameAdapter
      *
      */
     public SelectParserSingle(VarNameAdapter adapter) {
@@ -68,7 +68,7 @@ public class SelectParserSingle extends RequestParserSingle {
      *
      * @param request containing a parsed JSON as [ {query}, {filter}, {projection} ] or { $query : query, $filter :
      *        filter, $projection : projection }
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if request could not parse to JSON
      */
     @Override
     public void parse(final JsonNode request) throws InvalidParseOperationException {
@@ -77,7 +77,7 @@ public class SelectParserSingle extends RequestParserSingle {
     }
 
     /**
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if rootNode could parse to projection
      */
     private void internalParseSelect() throws InvalidParseOperationException {
         if (rootNode.isArray()) {
@@ -95,7 +95,7 @@ public class SelectParserSingle extends RequestParserSingle {
     /**
      *
      * @param query containing only the JSON request part (no filter neither projection nor roots)
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if query could not parse to projection
      */
     @Override
     public void parseQueryOnly(final String query) throws InvalidParseOperationException {
@@ -106,8 +106,8 @@ public class SelectParserSingle extends RequestParserSingle {
     /**
      * $fields : {name1 : 0/1, name2 : 0/1, ...}, $usage : contractId
      *
-     * @param rootNode
-     * @throws InvalidParseOperationException
+     * @param rootNode JsonNode
+     * @throws InvalidParseOperationException if rootNode could not parse to projection or check sanity to rootNode is in error
      */
     public void projectionParse(final JsonNode rootNode)
         throws InvalidParseOperationException {
@@ -135,7 +135,7 @@ public class SelectParserSingle extends RequestParserSingle {
      *
      * @param slice the projection to add
      * @param allFields the default fields to add if none exists yet
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if slice or allFields is null or check sanity to them is in error
      */
     public void addProjection(final ObjectNode slice, final ObjectNode allFields)
         throws InvalidParseOperationException {

@@ -73,7 +73,7 @@ public class GlobalDatasParser extends GlobalDatas {
     /**
      * Check the Request if conforms to sanity check
      *
-     * @param arg
+     * @param arg String
      * @throws InvalidParseOperationException if the sanity check is in error
      */
     public static final void sanityRequestCheck(String arg)
@@ -84,7 +84,7 @@ public class GlobalDatasParser extends GlobalDatas {
     /**
      * calculate JsonNode depth
      *
-     * @param jsonNode
+     * @param jsonNode JsonNode
      * @return number of child of JsonNode
      */
     public static final int getJsonNodedepth(JsonNode jsonNode) {
@@ -115,9 +115,9 @@ public class GlobalDatasParser extends GlobalDatas {
 
     /**
      *
-     * @param value
+     * @param value JsonNode
      * @return the Object for Value
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if value could not parse to JSON
      */
     public static final Object getValue(final JsonNode value)
         throws InvalidParseOperationException {
