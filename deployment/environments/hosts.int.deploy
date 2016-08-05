@@ -2,11 +2,12 @@
 
 [hosts:children]
 hosts-ihm-demo
+hosts-ingest
+hosts-access
 hosts-mongodb
 hosts-logbook
 hosts-metadata
 hosts-workspace
-hosts-ingest
 hosts-storageengine
 hosts-storageofferdefault
 hosts-ingest-external
