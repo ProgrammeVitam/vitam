@@ -147,6 +147,7 @@ public class SedaUtils {
     private static final String TAG_CONTENT = "Content";
     private static final String TAG_MANAGEMENT = "Management";
     private static final String TAG_OG = "_og";
+    private static final String TAG_ID = "_id";
     public static final String LIFE_CYCLE_EVENT_TYPE_PROCESS = "INGEST";
     public static final String UNIT_LIFE_CYCLE_CREATION_EVENT_TYPE = "CREATE_LF_UNIT";
     private static final String OG_LIFE_CYCLE_CREATION_EVENT_TYPE = "CREATE_LF_OG";
@@ -466,6 +467,7 @@ public class SedaUtils {
                         stack--;
                         if (stack == 0) {
                             // Create objectgroup reference id
+                        	groupGuid= objectGroupIdToGuid.get(unitIdToGroupId.get(elementID));
                             writer.add(eventFactory.createStartElement("", "", TAG_OG));
                             writer.add(eventFactory.createCharacters(groupGuid));
                             writer.add(eventFactory.createEndElement("", "", TAG_OG));
@@ -477,7 +479,6 @@ public class SedaUtils {
                 }
                 if (event.isStartElement() &&
                     event.asStartElement().getName().getLocalPart() == DATA_OBJECT_GROUP_REFERENCEID) {
-                    groupGuid = GUIDFactory.newGUID().toString();
                     final String groupId = reader.getElementText();
                     unitIdToGroupId.put(elementID, groupId);
                     if (objectGroupIdToUnitId.get(groupId) == null) {
@@ -490,6 +491,7 @@ public class SedaUtils {
                         objectGroupIdToUnitId.put(groupId, archiveUnitList);
                     }
                     // Create new startElement for group with new guid
+                    groupGuid= objectGroupIdToGuid.get(unitIdToGroupId.get(elementID));
                     writer.add(eventFactory.createStartElement("", NAMESPACE_URI, DATA_OBJECT_GROUP_REFERENCEID));
                     writer.add(eventFactory.createCharacters(groupGuid));
                     writer.add(eventFactory.createEndElement("", NAMESPACE_URI, DATA_OBJECT_GROUP_REFERENCEID));
@@ -1008,7 +1010,9 @@ public class SedaUtils {
             binaryNode.put("nb", entry.getValue().size());
             final ArrayNode arrayNode = JsonHandler.createArrayNode();
             for (final JsonNode node : entry.getValue()) {
-                arrayNode.add(node);
+            	String id = node.findValue(TAG_ID).textValue();
+            	((ObjectNode)node).put(TAG_ID, binaryDataObjectIdToGuid.get(id));
+            	arrayNode.add(node);
             }
             binaryNode.set("versions", arrayNode);
             qualifierObject.set(entry.getKey(), binaryNode);
