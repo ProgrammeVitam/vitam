@@ -124,6 +124,7 @@ public class ProcessEngineImpl implements ProcessEngine {
                 /**
                  * call process distribute to manage steps
                  */
+            	String messageIdentifier=null;
                 for (final Step step : workFlow.getSteps()) {
                     LogbookParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
                         GUIDFactory.newGUID(),
@@ -140,7 +141,9 @@ public class ProcessEngineImpl implements ProcessEngine {
                     final List<EngineResponse> stepResponse =
                         processDistributor.distribute(workParams, step, workflowId);
                     final StatusCode stepStatus = processResponse.getGlobalProcessStatusCode(stepResponse);
-                    final String messageIdentifier = ProcessResponse.getMessageIdentifierFromResponse(stepResponse);
+                    if(messageIdentifier==null){
+                    	messageIdentifier = ProcessResponse.getMessageIdentifierFromResponse(stepResponse);
+                    }
                     stepsResponses.put(step.getStepName(), stepResponse);
 
                     if (!messageIdentifier.isEmpty()) {
