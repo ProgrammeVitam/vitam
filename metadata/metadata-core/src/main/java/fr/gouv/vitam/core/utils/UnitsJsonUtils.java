@@ -34,8 +34,8 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.core.database.collections.Result;
-import fr.gouv.vitam.parser.request.parser.RequestParser;
-import fr.gouv.vitam.parser.request.parser.SelectParser;
+import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
+import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 
 /**
  * Units metadata tools
@@ -56,7 +56,7 @@ public class UnitsJsonUtils {
      *         $result array of units(can be empty)
      * @throws InvalidParseOperationException thrown when json query is not valid
      */
-    public static JsonNode populateJSONObjectResponse(Result result, RequestParser selectRequest)
+    public static JsonNode populateJSONObjectResponse(Result result, RequestParserMultiple selectRequest)
         throws InvalidParseOperationException {
 
         ObjectNode jsonUnitListResponse = JsonHandler.createObjectNode();
@@ -71,7 +71,7 @@ public class UnitsJsonUtils {
             ObjectNode contextNode = JsonHandler.createObjectNode();
             jsonUnitListResponse.set("$context", contextNode);
 
-            if (result.getNbResult() > 0 && (selectRequest instanceof SelectParser ||
+            if (result.getNbResult() > 0 && (selectRequest instanceof SelectParserMultiple ||
                 result.getFinal().get("Result") != null)) {
                 jsonUnitListResponse.set("$result", getJsonUnitObject(result.getFinal().get("Result")));
             } else {

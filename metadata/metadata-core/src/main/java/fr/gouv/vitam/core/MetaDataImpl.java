@@ -35,19 +35,21 @@ import fr.gouv.vitam.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.builder.request.construct.Request;
-import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens;
+import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.core.database.collections.MongoDbVarNameAdapter;
 import fr.gouv.vitam.core.database.collections.Result;
 import fr.gouv.vitam.core.utils.UnitsJsonUtils;
-import fr.gouv.vitam.parser.request.parser.GlobalDatasParser;
-import fr.gouv.vitam.parser.request.parser.InsertParser;
-import fr.gouv.vitam.parser.request.parser.RequestParser;
-import fr.gouv.vitam.parser.request.parser.SelectParser;
-import fr.gouv.vitam.parser.request.parser.UpdateParser;
+
+import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
+import fr.gouv.vitam.common.database.parser.request.multiple.InsertParserMultiple;
+import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
+import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
+import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 
 /**
  * MetaDataImpl implements a MetaData interface
@@ -89,7 +91,7 @@ public final class MetaDataImpl implements MetaData {
         }
 
         try {
-            final InsertParser insertParser = new InsertParser(new MongoDbVarNameAdapter());
+            final InsertParserMultiple insertParser = new InsertParserMultiple(new MongoDbVarNameAdapter());
             insertParser.parse(insertRequest);
             result = dbRequestFactory.create().execRequest(insertParser, result);
         } catch (final InvalidParseOperationException e) {
@@ -118,9 +120,9 @@ public final class MetaDataImpl implements MetaData {
         }
 
         try {
-            InsertParser insertParser = new InsertParser(new MongoDbVarNameAdapter());
+            InsertParserMultiple insertParser = new InsertParserMultiple(new MongoDbVarNameAdapter());
             insertParser.parse(objectGroupRequest);
-            insertParser.getRequest().addHintFilter(ParserTokens.FILTERARGS.OBJECTGROUPS.exactToken());
+            insertParser.getRequest().addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
             result = dbRequestFactory.create().execRequest(insertParser, result);
         } catch (final InvalidParseOperationException e) {
             throw e;
@@ -172,11 +174,11 @@ public final class MetaDataImpl implements MetaData {
         }
         try {
             // parse Select request
-            RequestParser selectRequest = new SelectParser();
-            selectRequest.parse(selectQuery);
+            RequestParserMultiple selectRequest = new SelectParserMultiple();
+            selectRequest.parse(JsonHandler.getFromString(selectQuery));
             // Reset $roots (add or override unit_id on roots)
             if (unitId != null && !unitId.isEmpty()) {
-                Request request = selectRequest.getRequest();
+                RequestMultiple request = selectRequest.getRequest();
                 if (request != null) {
                     LOGGER.debug("Reset $roots unit_id by :" + unitId);
                     request.resetRoots().addRoots(unitId);
@@ -223,11 +225,11 @@ public final class MetaDataImpl implements MetaData {
         }
         try {
             // parse Update request
-            RequestParser updateRequest = new UpdateParser();
-            updateRequest.parse(updateQuery);
+            RequestParserMultiple updateRequest = new UpdateParserMultiple();
+            updateRequest.parse(JsonHandler.getFromString(updateQuery));
             // Reset $roots (add or override unit_id on roots)
             if (unitId != null && !unitId.isEmpty()) {
-                Request request = updateRequest.getRequest();
+                RequestMultiple request = updateRequest.getRequest();
                 if (request != null) {
                     LOGGER.debug("Reset $roots unit_id by :" + unitId);
                     request.resetRoots().addRoots(unitId);

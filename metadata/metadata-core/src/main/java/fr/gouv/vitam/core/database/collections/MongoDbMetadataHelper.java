@@ -46,8 +46,8 @@ import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 
 import fr.gouv.vitam.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.UPDATEACTION;
-import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.UPDATEACTIONARGS;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTIONARGS;
 import fr.gouv.vitam.core.database.collections.MongoDbAccess.VitamCollections;
 
 /**

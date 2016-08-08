@@ -49,16 +49,16 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.UpdateOptions;
 
 import fr.gouv.vitam.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.UPDATEACTION;
-import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.UPDATEACTIONARGS;
 import fr.gouv.vitam.common.SingletonUtils;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTIONARGS;
+import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
+import fr.gouv.vitam.common.database.translators.mongodb.MongoDbHelper;
 import fr.gouv.vitam.common.guid.GUIDObjectType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.core.database.collections.MongoDbAccess.VitamCollections;
-import fr.gouv.vitam.core.database.collections.translator.mongodb.MongoDbHelper;
 import fr.gouv.vitam.core.database.configuration.GlobalDatasDb;
-import fr.gouv.vitam.parser.request.parser.GlobalDatasParser;
 
 /**
  * Unit class:<br>
