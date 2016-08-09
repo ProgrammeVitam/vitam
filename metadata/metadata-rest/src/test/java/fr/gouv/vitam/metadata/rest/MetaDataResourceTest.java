@@ -58,11 +58,11 @@ import fr.gouv.vitam.api.model.DatabaseCursor;
 import fr.gouv.vitam.api.model.RequestResponseError;
 import fr.gouv.vitam.api.model.RequestResponseOK;
 import fr.gouv.vitam.api.model.VitamError;
+import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.core.database.collections.MongoDbAccess;
-import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
+import fr.gouv.vitam.core.database.collections.MetadataCollections;
 
 public class MetaDataResourceTest {
     private static final String DATA =
@@ -150,7 +150,7 @@ public class MetaDataResourceTest {
 
     @After
     public void tearDown() {
-        MongoDbAccess.VitamCollections.C_UNIT.getCollection().drop();
+        MetadataCollections.C_UNIT.getCollection().drop();
     }
 
     /**

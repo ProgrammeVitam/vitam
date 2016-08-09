@@ -89,8 +89,8 @@ public class UnitLRU implements Map<String, Unit> {
     public Unit get(Object key) {
         Unit unit = LRU_UNIT_CACHED.get((String) key);
         if (unit == null) {
-            unit = (Unit) MongoDbMetadataHelper.select(MongoDbAccess.VitamCollections.C_UNIT,
-                eq(VitamDocument.ID, key), Unit.UNIT_VITAM_PROJECTION).first();
+            unit = (Unit) MongoDbMetadataHelper.select(MetadataCollections.C_UNIT,
+                eq(MetadataDocument.ID, key), Unit.UNIT_VITAM_PROJECTION).first();
             if (unit == null) {
                 return null;
             }

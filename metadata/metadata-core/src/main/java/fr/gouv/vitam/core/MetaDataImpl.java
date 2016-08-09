@@ -35,21 +35,21 @@ import fr.gouv.vitam.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.core.database.collections.MongoDbVarNameAdapter;
-import fr.gouv.vitam.core.database.collections.Result;
-import fr.gouv.vitam.core.utils.UnitsJsonUtils;
-
+import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.parser.request.multiple.InsertParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.application.configuration.DbConfiguration;
+import fr.gouv.vitam.core.database.collections.MongoDbVarNameAdapter;
+import fr.gouv.vitam.core.database.collections.Result;
+import fr.gouv.vitam.core.utils.UnitsJsonUtils;
 
 /**
  * MetaDataImpl implements a MetaData interface
@@ -72,7 +72,7 @@ public final class MetaDataImpl implements MetaData {
      */
     // FIXME REVIEW should be private and adding public static final Metadata newMetadata(...) calling this private
     // constructor
-    public MetaDataImpl(MetaDataConfiguration configuration, MongoDbAccessFactory mongoDbAccessFactory,
+    public MetaDataImpl(MetaDataConfiguration configuration, MongoDbAccessMetadataFactory mongoDbAccessFactory,
         DbRequestFactory dbRequestFactory) {
         mongoDbAccessFactory.create(configuration);
         // FIXME REVIEW should check null

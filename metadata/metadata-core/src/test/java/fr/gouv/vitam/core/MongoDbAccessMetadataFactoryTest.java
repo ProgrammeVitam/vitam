@@ -24,18 +24,17 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.core.database.collections;
+
+package fr.gouv.vitam.core;
+
+
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
-import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientOptions;
-import com.mongodb.ServerAddress;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
@@ -44,19 +43,16 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
+import fr.gouv.vitam.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.core.database.collections.MongoDbAccess.VitamCollections;
+import fr.gouv.vitam.core.MongoDbAccessMetadataFactory;
+import fr.gouv.vitam.core.database.collections.MongoDbAccessMetadataImpl;
 
-public class MongoDbAccessTest {
+public class MongoDbAccessMetadataFactoryTest {
+
     private static final String DATABASE_HOST = "localhost";
-    private static final String DEFAULT_MONGO =
-        "ObjectGroup\n" + "Unit\n" + "Unit Document{{v=1, key=Document{{_id=1}}, name=_id_, ns=vitam-test.Unit}}\n" +
-            "Unit Document{{v=1, key=Document{{_id=hashed}}, name=_id_hashed, ns=vitam-test.Unit}}\n" +
-            "ObjectGroup Document{{v=1, key=Document{{_id=1}}, name=_id_, ns=vitam-test.ObjectGroup}}\n" +
-            "ObjectGroup Document{{v=1, key=Document{{_id=hashed}}, name=_id_hashed, ns=vitam-test.ObjectGroup}}\n";
-    static MongoDbAccess mongoDbAccess;
+    static MongoDbAccessMetadataImpl mongoDbAccess;
     static MongodExecutable mongodExecutable;
-    static MongoClient mongoClient;
     static MongodProcess mongod;
     private static JunitHelper junitHelper;
     private static int port;
@@ -71,57 +67,25 @@ public class MongoDbAccessTest {
             .net(new Net(port, Network.localhostIsIPv6()))
             .build());
         mongod = mongodExecutable.start();
-
-        final MongoClientOptions options = MongoDbAccess.getMongoClientOptions();
-
-        mongoClient = new MongoClient(new ServerAddress(DATABASE_HOST, port), options);
     }
 
+    /**
+     * @throws java.lang.Exception
+     */
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        mongoDbAccess.closeFinal();
         mongod.stop();
         mongodExecutable.stop();
         junitHelper.releasePort(port);
     }
 
-    @After
-    public void tearDown() throws Exception {
-        for (final VitamCollections col : VitamCollections.values()) {
-            if (col.getCollection() != null) {
-                col.getCollection().drop();
-            }
-        }
-        mongoDbAccess.getMongoDatabase().drop();
-    }
-
     @Test
-    public void givenMongoDbAccessConstructorWhenCreateWithRecreateThenAddDefaultCollections() {
-        mongoDbAccess = new MongoDbAccess(mongoClient, "vitam-test", true);
-        assertEquals(DEFAULT_MONGO, mongoDbAccess.toString());
-        assertEquals("Unit", VitamCollections.C_UNIT.getName());
-        assertEquals("ObjectGroup", VitamCollections.C_OBJECTGROUP.getName());
-        assertEquals(0, MongoDbAccess.getUnitSize());
-        assertEquals(0, MongoDbAccess.getObjectGroupSize());
-    }
-
-    @Test
-    public void givenMongoDbAccessConstructorWhenCreateWithoutRecreateThenAddNothing() {
-        mongoDbAccess = new MongoDbAccess(mongoClient, "vitam-test", false);
-        assertEquals("", mongoDbAccess.toString());
-    }
-
-    @Test
-    public void givenMongoDbAccessWhenFlushOnDisKThenDoNothing() {
-        mongoDbAccess = new MongoDbAccess(mongoClient, "vitam-test", false);
-        mongoDbAccess.flushOnDisk();
-    }
-
-    @Test
-    public void givenMongoDbAccessWhenNoDocumentAndRemoveIndexThenThrowError() {
-        mongoDbAccess = new MongoDbAccess(mongoClient, "vitam-test", false);
-        MongoDbAccess.resetIndexAfterImport();
-        MongoDbAccess.removeIndexBeforeImport();
+    public void testCreateFn() {
+        mongoDbAccess =
+            new MongoDbAccessMetadataFactory().create(new MetaDataConfiguration(DATABASE_HOST, port, "vitam-test"));
+        assertNotNull(mongoDbAccess);
+        assertEquals("vitam-test", mongoDbAccess.getMongoDatabase().getName());
+        mongoDbAccess.close();
     }
 
 }

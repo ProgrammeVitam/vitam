@@ -101,7 +101,6 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.core.database.collections.MongoDbAccess.VitamCollections;
 import fr.gouv.vitam.common.database.parser.request.multiple.DeleteParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.InsertParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
@@ -129,7 +128,7 @@ public class DbRequestTest {
     private static final String EMPTY_VAR = "EmptyVar";
     static final int tenantId = 0;
     static final int platformId = 10;
-    static MongoDbAccess mongoDbAccess;
+    static MongoDbAccessMetadataImpl mongoDbAccess;
     static MongodExecutable mongodExecutable;
     static MongoClient mongoClient;
     static MongoDbVarNameAdapter mongoDbVarNameAdapter;
@@ -158,10 +157,10 @@ public class DbRequestTest {
             .build());
         mongod = mongodExecutable.start();
 
-        final MongoClientOptions options = MongoDbAccess.getMongoClientOptions();
+        final MongoClientOptions options = MongoDbAccessMetadataImpl.getMongoClientOptions();
 
         mongoClient = new MongoClient(new ServerAddress(DATABASE_HOST, port), options);
-        mongoDbAccess = new MongoDbAccess(mongoClient, "vitam-test", CREATE);
+        mongoDbAccess = new MongoDbAccessMetadataImpl(mongoClient, "vitam-test", CREATE);
         mongoDbVarNameAdapter = new MongoDbVarNameAdapter();
     }
 
@@ -171,13 +170,13 @@ public class DbRequestTest {
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         if (DROP) {
-            for (final VitamCollections col : VitamCollections.values()) {
+            for (final MetadataCollections col : MetadataCollections.values()) {
                 if (col.getCollection() != null) {
                     col.getCollection().drop();
                 }
             }
         }
-        mongoDbAccess.closeFinal();
+        mongoDbAccess.close();
         mongod.stop();
         mongodExecutable.stop();
         junitHelper.releasePort(port);
@@ -265,7 +264,7 @@ public class DbRequestTest {
             executeRequest(dbRequest, deleteParser);
         } finally {
             // clean
-            VitamCollections.C_UNIT.getCollection().deleteOne(new Document(VitamDocument.ID, uuid.toString()));
+            MetadataCollections.C_UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid.toString()));
         }
     }
 
@@ -352,7 +351,7 @@ public class DbRequestTest {
             executeRequest(dbRequest, requestParser);
         } finally {
             // clean
-            VitamCollections.C_UNIT.getCollection().deleteOne(new Document(VitamDocument.ID, uuid.toString()));
+            MetadataCollections.C_UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid.toString()));
         }
     }
 
@@ -454,7 +453,7 @@ public class DbRequestTest {
             executeRequest(dbRequest, requestParser);
         } finally {
             // clean
-            VitamCollections.C_UNIT.getCollection().deleteOne(new Document(VitamDocument.ID, uuid.toString()));
+            MetadataCollections.C_UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid.toString()));
         }
     }
 
@@ -586,8 +585,8 @@ public class DbRequestTest {
             executeRequest(dbRequest, requestParser);
         } finally {
             // clean
-            VitamCollections.C_UNIT.getCollection().deleteOne(new Document(VitamDocument.ID, uuid.toString()));
-            VitamCollections.C_UNIT.getCollection().deleteOne(new Document(VitamDocument.ID, uuid2.toString()));
+            MetadataCollections.C_UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid.toString()));
+            MetadataCollections.C_UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid2.toString()));
         }
     }
 
@@ -600,12 +599,12 @@ public class DbRequestTest {
 
         requestParser = RequestParserHelper.getParser(createInsertRequestWithUUID(uuid), mongoDbVarNameAdapter);
         executeRequest(dbRequest, requestParser);
-        assertEquals(1, VitamCollections.C_UNIT.getCollection().count());
+        assertEquals(1, MetadataCollections.C_UNIT.getCollection().count());
 
         requestParser =
             RequestParserHelper.getParser(createInsertChild2ParentRequest(uuid2, uuid), mongoDbVarNameAdapter);
         executeRequest(dbRequest, requestParser);
-        assertEquals(2, VitamCollections.C_UNIT.getCollection().count());
+        assertEquals(2, MetadataCollections.C_UNIT.getCollection().count());
     }
 
     /**
@@ -870,7 +869,7 @@ public class DbRequestTest {
 
     @Test
     public void testMongoDbAccess() {
-        for (final VitamCollections col : VitamCollections.values()) {
+        for (final MetadataCollections col : MetadataCollections.values()) {
             if (col.getCollection() != null) {
                 col.getCollection().drop();
             }
@@ -878,7 +877,7 @@ public class DbRequestTest {
         final MongoDatabase db = mongoDbAccess.getMongoDatabase();
         assertEquals(0, db.getCollection("Unit").count());
         assertEquals(0, db.getCollection("Objectgroup").count());
-        mongoDbAccess = new MongoDbAccess(mongoClient, "vitam-test", CREATE);
+        mongoDbAccess = new MongoDbAccessMetadataImpl(mongoClient, "vitam-test", CREATE);
         assertNotNull(mongoDbAccess.toString());
     }
 

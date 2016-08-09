@@ -35,10 +35,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
@@ -49,6 +51,7 @@ public class UnitTest {
     private static final String sub1 = "{\"_id\":\"id2\",\"description\":\"description1\"}";
     private static final String sub2 = "{\"_id\":\"id3\",\"champ\":\"champ1\"}";
 
+    private static final String s = "{\"_id\":\"id4\", \"title\":\"title1\", \"_up\":\"id2\", \"_uds\":\"id1\"}";
 
     @Test
     public void testUnitInitialization() throws InvalidParseOperationException {
@@ -65,8 +68,9 @@ public class UnitTest {
     }
 
     @Test
-    public void testAddUnits() {
+    public void testAddUnits() throws MetaDataExecutionException {
         final Unit unit = new Unit(s1);
+        final Unit unit1 = new Unit(s2);
         final Unit subUnit1 = new Unit(sub1);
         final Unit subUnit2 = new Unit(sub2);
         unit.put("_min", 2);
@@ -74,16 +78,18 @@ public class UnitTest {
 
         final List<Unit> units = new ArrayList<Unit>();
         units.add(subUnit1);
-        units.add(subUnit2);
+        units.add(subUnit2);        
         // TODO REVIEW add multiple units at once seems in error
-        // unit.addUnit(units);
+        //unit.addUnits(units);        
     }
+
 
     @Test
     public void testloadDocument() {
         final Unit unit = new Unit(s1);
         unit.load("{\"_dom\":\"dom1\"}");
-        assertEquals("Unit: Document{{_id=id1, title=title1, _dom=dom1}}", unit.toString());
+        String s = unit.toString();
+        assertEquals("Unit: Document{{_id=id1, title=title1, _dom=dom1}}", s);
     }
 
     @Test
@@ -106,35 +112,33 @@ public class UnitTest {
         final Unit unit = new Unit(s1);
         unit.put("_dom", 8888);
         assertEquals(8888, unit.getDomainId());
-        final VitamDocument<Unit> document = unit.checkId();
+        final MetadataDocument<Unit> document = unit.checkId();
         assertEquals(8888, document.getDomainId());
     }
-    
+
     @Test
-    public void givenUnitWhenGetFathersUnitIdThenReturnAList(){
+    public void givenUnitWhenGetFathersUnitIdThenReturnAList() {
         final Unit unit = new Unit(s1);
         assertNotNull(unit.getFathersUnitIds(true));
         assertNotNull(unit.getFathersUnitIds(false));
     }
-    
+
     @Test
-    public void givenUnitWhenGetDepth(){
+    public void givenUnitWhenGetDepth() {
         final Unit unit = new Unit(s1);
         assertNotNull(unit.getDepths());
-        System.out.println(unit.getMaxDepth());
-        System.out.println(unit.getMinDepth());
     }
-    
+
     @Test
-    public void givenUnitWhenCleanStructureThenItemCleaned(){
+    public void givenUnitWhenCleanStructureThenItemCleaned() {
         final Unit unit = new Unit(s1);
         unit.cleanStructure(true);
     }
-    
+
     @Test
-    public void givenUnitWhenGetObjectGroupId(){
+    public void givenUnitWhenGetObjectGroupId() {
         final Unit unit = new Unit(s1);
         unit.getObjectGroupId(true);
         unit.getObjectGroupId(false);
-    }    
+    }
 }

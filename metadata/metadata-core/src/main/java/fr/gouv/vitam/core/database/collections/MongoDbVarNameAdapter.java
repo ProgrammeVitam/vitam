@@ -63,7 +63,7 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
                     return ObjectGroup.OBJECTFORMAT;
                 case ID:
                     // Valid for OG
-                    return VitamDocument.ID;
+                    return MetadataDocument.ID;
                 case NBUNITS:
                     // Valid for OG
                     return Unit.NBCHILD;
@@ -71,7 +71,7 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
                     return ObjectGroup.OBJECTSIZE;
                 case TYPE:
                     // Valid for OG
-                    return VitamDocument.TYPE;
+                    return MetadataDocument.TYPE;
                 default:
                     break;
             }

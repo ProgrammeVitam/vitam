@@ -1,4 +1,4 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,22 +23,45 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-package fr.gouv.vitam.core.database.collections.translator.mongodb;
+ */
+package fr.gouv.vitam.core;
 
-import static org.junit.Assert.assertEquals;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.bson.BsonDocument;
-import org.bson.conversions.Bson;
-import org.junit.Test;
+import com.mongodb.MongoClient;
+import com.mongodb.ServerAddress;
 
-public class MongoDbHelperTest {
-    private static final String test = "{ \"data\" : 1 }";
-
-    @Test
-    public void testBsonToStringFn() {
-        final Bson bson = BsonDocument.parse(test);
-        assertEquals(test, MongoDbHelper.bsonToString(bson, false));
-        assertEquals("{\n  \"data\" : 1\n}", MongoDbHelper.bsonToString(bson, true));
+import fr.gouv.vitam.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.server.application.configuration.DbConfiguration;
+import fr.gouv.vitam.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.core.database.collections.MongoDbAccessMetadataImpl;
+/**
+ * Factory to get MongoDbAccess for Metadata
+ */
+public class MongoDbAccessMetadataFactory {
+    
+    /**
+     * Creation of one MongoDbAccess
+     *
+     * @param configuration config of MongoDbAcess
+     * @return the MongoDbAccess
+     * @throws IllegalArgumentException if argument is null
+     */
+    public MongoDbAccessMetadataImpl create(MetaDataConfiguration configuration) {
+        ParametersChecker.checkParameter("configuration is a mandatory parameter", configuration);
+        List<Class<?>> classList = new ArrayList<>();
+        for (MetadataCollections e : MetadataCollections.class.getEnumConstants()) {
+            classList.add(e.getClasz());
+        }
+        MetadataCollections.class.getEnumConstants();
+        return new MongoDbAccessMetadataImpl(
+            new MongoClient(new ServerAddress(
+                configuration.getHost(),
+                configuration.getPort()),
+                VitamCollection.getMongoClientOptions(classList)),
+            configuration.getDbName(), true);
     }
 }

@@ -26,8 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.core.database.collections;
 
-import fr.gouv.vitam.core.database.collections.MongoDbAccess.VitamCollections;
-
 /**
  *
  * Structure Access
@@ -37,16 +35,16 @@ enum VitamLinks {
     /**
      * Unit to Unit N-N link but asymmetric where only childs reference their fathers (so only "_up" link)
      */
-    UNIT_TO_UNIT(VitamCollections.C_UNIT, LinkType.SYM_LINK_N_N, VitamDocument.UNUSED, VitamCollections.C_UNIT, VitamDocument.UP),
+    UNIT_TO_UNIT(MetadataCollections.C_UNIT, LinkType.SYM_LINK_N_N, MetadataDocument.UNUSED, MetadataCollections.C_UNIT, MetadataDocument.UP),
     /**
      * Unit to ObjectGroup N-1 link. This link is symmetric.
      */
-    UNIT_TO_OBJECTGROUP(VitamCollections.C_UNIT, LinkType.SYM_LINK_N1, VitamDocument.OG, VitamCollections.C_OBJECTGROUP, VitamDocument.UP);
+    UNIT_TO_OBJECTGROUP(MetadataCollections.C_UNIT, LinkType.SYM_LINK_N1, MetadataDocument.OG, MetadataCollections.C_OBJECTGROUP, MetadataDocument.UP);
 
-    protected VitamCollections col1;
+    protected MetadataCollections col1;
     protected LinkType type;
     protected String field1to2;
-    protected VitamCollections col2;
+    protected MetadataCollections col2;
     protected String field2to1;
 
     /**
@@ -56,8 +54,8 @@ enum VitamLinks {
      * @param col2
      * @param field2to1
      */
-    private VitamLinks(final VitamCollections col1, final LinkType type,
-        final String field1to2, final VitamCollections col2,
+    private VitamLinks(final MetadataCollections col1, final LinkType type,
+        final String field1to2, final MetadataCollections col2,
         final String field2to1) {
         this.col1 = col1;
         this.type = type;

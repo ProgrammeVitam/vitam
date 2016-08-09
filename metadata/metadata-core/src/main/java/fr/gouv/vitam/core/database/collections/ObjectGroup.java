@@ -25,6 +25,7 @@ package fr.gouv.vitam.core.database.collections;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.bson.BSONObject;
 import org.bson.Document;
@@ -40,7 +41,6 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDObjectType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.core.database.collections.MongoDbAccess.VitamCollections;
 
 /**
  * ObjectGroup:<br>
@@ -53,7 +53,7 @@ import fr.gouv.vitam.core.database.collections.MongoDbAccess.VitamCollections;
  *                diffusion, ... }, ... ] }
  * @formatter:on
  */
-public class ObjectGroup extends VitamDocument<ObjectGroup> {
+public class ObjectGroup extends MetadataDocument<ObjectGroup> {
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(ObjectGroup.class);
     private static final long serialVersionUID = -1761786017392977575L;
@@ -71,7 +71,7 @@ public class ObjectGroup extends VitamDocument<ObjectGroup> {
      */
     public static final BasicDBObject OBJECTGROUP_VITAM_PROJECTION =
         new BasicDBObject(NB_COPY, 1).append(TYPE, 1)
-            .append(DOMID, 1).append(VitamDocument.UP, 1).append(VitamDocument.ID, 1);
+            .append(DOMID, 1).append(MetadataDocument.UP, 1).append(MetadataDocument.ID, 1);
     /**
      * Strategy
      */
@@ -185,14 +185,14 @@ public class ObjectGroup extends VitamDocument<ObjectGroup> {
     }
 
     @Override
-    protected VitamCollections getVitamCollections() {
-        return MongoDbAccess.VitamCollections.C_OBJECTGROUP;
+    protected MetadataCollections getMetadataCollections() {
+        return MetadataCollections.C_OBJECTGROUP;
     }
 
     @SuppressWarnings("unchecked")
     @Override
     protected MongoCollection<ObjectGroup> getCollection() {
-        return (MongoCollection<ObjectGroup>) MongoDbAccess.VitamCollections.C_OBJECTGROUP.getCollection();
+        return (MongoCollection<ObjectGroup>) MetadataCollections.C_OBJECTGROUP.getCollection();
     }
 
     /**
@@ -216,7 +216,7 @@ public class ObjectGroup extends VitamDocument<ObjectGroup> {
     @Override
     protected boolean updated() throws MetaDataExecutionException {
         final ObjectGroup vt =
-            (ObjectGroup) MongoDbMetadataHelper.findOneNoAfterLoad(getVitamCollections(), getId());
+            (ObjectGroup) MongoDbMetadataHelper.findOneNoAfterLoad(getMetadataCollections(), getId());
         BasicDBObject update = null;
         if (vt != null) {
             final List<BasicDBObject> list = new ArrayList<>();
@@ -250,7 +250,7 @@ public class ObjectGroup extends VitamDocument<ObjectGroup> {
     @Override
     public boolean load() {
         final ObjectGroup vt =
-            (ObjectGroup) MongoDbMetadataHelper.findOneNoAfterLoad(getVitamCollections(), getId());
+            (ObjectGroup) MongoDbMetadataHelper.findOneNoAfterLoad(getMetadataCollections(), getId());
         if (vt == null) {
             return false;
         }
@@ -318,13 +318,14 @@ public class ObjectGroup extends VitamDocument<ObjectGroup> {
     protected static void addIndexes() {
         // if not set, Unit and Tree are worst
         for (final BasicDBObject index : indexes) {
-            MongoDbAccess.VitamCollections.C_OBJECTGROUP.getCollection().createIndex(index);
+            MetadataCollections.C_OBJECTGROUP.getCollection().createIndex(index);
         }
     }
 
     protected static void dropIndexes() {
         for (final BasicDBObject index : indexes) {
-            MongoDbAccess.VitamCollections.C_OBJECTGROUP.getCollection().dropIndex(index);
+            MetadataCollections.C_OBJECTGROUP.getCollection().dropIndex(index);
         }
     }
+
 }

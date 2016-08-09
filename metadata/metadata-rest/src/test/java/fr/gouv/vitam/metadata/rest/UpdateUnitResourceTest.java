@@ -26,7 +26,7 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.core.database.collections.MongoDbAccess;
+import fr.gouv.vitam.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 
 public class UpdateUnitResourceTest {
@@ -101,7 +101,7 @@ public class UpdateUnitResourceTest {
 
     @After
     public void tearDown() {
-        MongoDbAccess.VitamCollections.C_UNIT.getCollection().drop();
+        MetadataCollections.C_UNIT.getCollection().drop();
     }
     // Unit by ID (request and uri)
 

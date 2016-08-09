@@ -41,18 +41,18 @@ import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
+import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.core.database.collections.DbRequest;
 import fr.gouv.vitam.core.database.collections.ResultError;
-import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 
 public class MetaDataImplTest {
 
     private MetaDataImpl metaDataImpl;
     private DbRequest request;
     private DbRequestFactory dbRequestFactory;
-    private MongoDbAccessFactory mongoDbAccessFactory;
+    private MongoDbAccessMetadataFactory mongoDbAccessFactory;
 
     // TODO REVIEW UPPERCASE
     private static final String dataInsert = "{ \"data\": \"test\" }";
@@ -97,7 +97,7 @@ public class MetaDataImplTest {
     @Before
     public void setUp() throws Exception {
         request = mock(DbRequest.class);
-        mongoDbAccessFactory = mock(MongoDbAccessFactory.class);
+        mongoDbAccessFactory = mock(MongoDbAccessMetadataFactory.class);
         dbRequestFactory = mock(DbRequestFactory.class);
         when(dbRequestFactory.create()).thenReturn(request);
         when(mongoDbAccessFactory.create(null)).thenReturn(null);

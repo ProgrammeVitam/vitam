@@ -14,7 +14,6 @@
 	<modules>
 		<module>common-public</module>
 		<module>common-private</module>
-	    <module>common-database</module>
     	<module>common-junit</module>
     	<module>common-database-vitam</module>
 	</modules>
