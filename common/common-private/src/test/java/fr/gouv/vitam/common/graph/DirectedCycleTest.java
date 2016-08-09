@@ -1,6 +1,7 @@
 package fr.gouv.vitam.common.graph;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 
@@ -9,18 +10,18 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.exception.CycleFoundException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
 public class DirectedCycleTest {
 
-    @Test(expected = CycleFoundException.class)
+    @Test
     public void given_CyclycGraph_then_throwException() throws Exception {
         File file = PropertiesUtils.getResourcesFile("ingest_cyc.json");
         JsonNode json = JsonHandler.getFromFile(file);
         DirectedGraph g = new DirectedGraph(json);
-        new DirectedCycle(g);
 
+        DirectedCycle dc = new DirectedCycle(g);
+        assertTrue(dc.isCyclic());
     }
 
     @Test
@@ -29,15 +30,5 @@ public class DirectedCycleTest {
         JsonNode json = JsonHandler.getFromFile(file);
         DirectedGraph g = new DirectedGraph(json);
         assertNotNull(new DirectedCycle(g));
-    }
-
-
-
-    public void given_CyclycGraph_then_throwException_cyc2() throws Exception {
-        File file = PropertiesUtils.getResourcesFile("ingest_cyc_2.json");
-        JsonNode json = JsonHandler.getFromFile(file);
-        DirectedGraph g = new DirectedGraph(json);
-        new DirectedCycle(g);
-
     }
 }
