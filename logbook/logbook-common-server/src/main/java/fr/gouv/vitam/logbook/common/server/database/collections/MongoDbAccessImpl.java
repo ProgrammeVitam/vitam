@@ -106,8 +106,11 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
     static final ObjectNode DEFAULT_SLICE = JsonHandler.createObjectNode();
     static final ObjectNode DEFAULT_ALLKEYS = JsonHandler.createObjectNode();
 
+    static final int LAST_EVENT_SLICE = -1;
+    static final int TWO_LAST_EVENTS_SLICE = -2;
+
     static {
-        DEFAULT_SLICE.putObject(LogbookDocument.EVENTS).put(SLICE, -1);
+        DEFAULT_SLICE.putObject(LogbookDocument.EVENTS).put(SLICE, LAST_EVENT_SLICE);
         for (final LogbookMongoDbName name : LogbookMongoDbName.values()) {
             DEFAULT_ALLKEYS.put(name.getDbname(), 1);
         }
@@ -256,7 +259,12 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
     public MongoCursor<LogbookOperation> getLogbookOperations(JsonNode select)
         throws LogbookDatabaseException, LogbookNotFoundException {
         ParametersChecker.checkParameter(SELECT_PARAMETER_IS_NULL, select);
-        return select(LogbookCollections.OPERATION, select);
+
+        // Temporary fix as the obIdIn (MessageIdentifier in the SEDA manifest) is only available on the 2 to last
+        // Logbook operation event . Must be removed when the processing will be reworked
+        ObjectNode operationSlice = JsonHandler.createObjectNode();
+        operationSlice.putObject(LogbookDocument.EVENTS).put(SLICE, TWO_LAST_EVENTS_SLICE);
+        return select(LogbookCollections.OPERATION, select, operationSlice);
     }
 
     @SuppressWarnings("unchecked")
@@ -418,10 +426,16 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
     @SuppressWarnings("rawtypes")
     private final MongoCursor select(final LogbookCollections collection, final JsonNode select)
         throws LogbookDatabaseException, LogbookNotFoundException {
+        return select(collection, select, DEFAULT_SLICE);
+    }
+
+    @SuppressWarnings("rawtypes")
+    private final MongoCursor select(final LogbookCollections collection, final JsonNode select, final ObjectNode slice)
+        throws LogbookDatabaseException, LogbookNotFoundException {
         try {
             final SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
             parser.parse(select);
-            parser.addProjection(DEFAULT_SLICE, DEFAULT_ALLKEYS);
+            parser.addProjection(slice, DEFAULT_ALLKEYS);
             return selectExecute(collection, parser);
         } catch (final InvalidParseOperationException e) {
             throw new LogbookDatabaseException(e);

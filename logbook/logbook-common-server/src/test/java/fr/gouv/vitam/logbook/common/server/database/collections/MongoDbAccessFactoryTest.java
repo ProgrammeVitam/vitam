@@ -261,7 +261,7 @@ public class MongoDbAccessFactoryTest {
             assertNotNull(operation);
             assertNotNull(operation.toString());
             assertNotNull(operation.toStringDirect());
-            assertEquals(2, operation.getOperations(true).size());
+            assertEquals(3, operation.getOperations(true).size());
             assertEquals(2, operation.getOperations(false).size());
         }
         node = JsonHandler.getFromString("{ $query: { $eq: { _id: \"" + eip + "\"} }, $projection: { " +
@@ -271,7 +271,7 @@ public class MongoDbAccessFactoryTest {
             assertTrue(cursor.hasNext());
             final LogbookOperation operation = cursor.next();
             assertNotNull(operation);
-            assertEquals(2, operation.getOperations(true).size());
+            assertEquals(3, operation.getOperations(true).size());
             assertEquals(2, operation.getOperations(false).size());
         }
         final LogbookOperation operation2 = mongoDbAccess.getLogbookOperation(eip);
