@@ -6,6 +6,8 @@ After=syslog.target
 [Service]
 Type=simple
 ExecStart=/vitam/${unix.name}/bin/wrapper.sh
+User=${unix.user}
+Group=${unix.group}
 
 [Install]
 WantedBy=multi-user.target
