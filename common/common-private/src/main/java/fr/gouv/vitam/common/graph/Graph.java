@@ -68,8 +68,8 @@ public class Graph {
      * 
      * @param JsonGraph { "ID027" : { }, "ID028" : { "_up" : [ "ID027" ] }, "ID029" : { "_up" : [ "ID028" ] }}
      */
-    public Graph(JsonNode JsonGraph) {
-        Iterator<Entry<String, JsonNode>> iterator = JsonGraph.fields();
+    public Graph(JsonNode jsonGraph) {
+        Iterator<Entry<String, JsonNode>> iterator = jsonGraph.fields();
         roots = new HashSet<>();
         indexMapping = new DualHashBidiMap<Integer, String>();
         this.maxSize = 0;
@@ -88,7 +88,7 @@ public class Graph {
 
         // parse json to create graph
 
-        Iterator<Entry<String, JsonNode>> levelIterator = JsonGraph.fields();
+        Iterator<Entry<String, JsonNode>> levelIterator = jsonGraph.fields();
         while (levelIterator.hasNext()) {
             Entry<String, JsonNode> cycle = levelIterator.next();
 
@@ -104,7 +104,6 @@ public class Graph {
                 final JsonNode arrNode = up.get("_up");
 
                 for (final JsonNode idParent : arrNode) {
-                    // System.out.println(_idParent);
 
                     addEdge(getIndex(idParent.textValue()), getIndex(idChild));
 

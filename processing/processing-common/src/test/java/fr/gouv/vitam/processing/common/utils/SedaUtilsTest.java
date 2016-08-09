@@ -361,7 +361,7 @@ public class SedaUtilsTest {
         assertTrue(archiveTree.get("ID029").has(SedaUtils.UP_FIELD));
         assertTrue(archiveTree.get("ID029").get(SedaUtils.UP_FIELD).isArray());
         assertTrue(archiveTree.get("ID029").get(SedaUtils.UP_FIELD).toString().contains("ID028"));
-        assertTrue(archiveTree.get("ID029").get(SedaUtils.UP_FIELD).toString().contains("ID032"));
+        assertTrue(archiveTree.get("ID029").get(SedaUtils.UP_FIELD).toString().contains("ID030"));
     }
 
     @Test
