@@ -1,28 +1,10 @@
 package fr.gouv.vitam.functional.administration.rest;
 
-import static com.jayway.restassured.RestAssured.get;
-import static com.jayway.restassured.RestAssured.given;
-import static com.jayway.restassured.RestAssured.with;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-
-import javax.ws.rs.core.Response.Status;
-
-import org.jhades.JHades;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
-
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -44,6 +26,20 @@ import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
+import org.jhades.JHades;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+import static com.jayway.restassured.RestAssured.*;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 
 public class AdminManagementResourceTest {
 
@@ -207,8 +203,33 @@ public class AdminManagementResourceTest {
             .pathParam("id_format", jsonDocument.get(0).get("_id").asText())
             .when().post(GET_BYID_FORMAT_URI + FORMAT_ID_URI)
             .then().statusCode(Status.OK.getStatusCode());            
-    }     
-    
+    }
+
+    @Test
+    public void givenFileFormatByIDWhenNotFoundThenThrowReferentialException() throws InvalidCreateOperationException, InvalidParseOperationException {
+        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
+        Select select = new Select();
+        select.setQuery(eq("PUID", "x-fmt/2"));
+        with()
+            .contentType(ContentType.BINARY).body(stream)
+            .when().post(IMPORT_FORMAT_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        String document =
+            given()
+                .contentType(ContentType.JSON)
+                .body(select.getFinalSelect())
+                .when().post(GET_DOCUMENT_FORMAT_URI).getBody().asString();
+        JsonNode jsonDocument = JsonHandler.getFromString(document);
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(jsonDocument)
+            .pathParam("id_format", "fake_identifier")
+            .when().post(GET_BYID_FORMAT_URI + FORMAT_ID_URI)
+            .then().statusCode(Status.NOT_FOUND.getStatusCode());
+    }
+
 
     @Test
     public void getDocument() throws InvalidCreateOperationException {
@@ -226,4 +247,28 @@ public class AdminManagementResourceTest {
             .when().post(GET_DOCUMENT_FORMAT_URI)
             .then().statusCode(Status.OK.getStatusCode());            
     }
+
+
+    @Test
+    public void givenFindDocumentWhenNotFoundThenThrowReferentialException()
+        throws IOException, InvalidParseOperationException, InvalidCreateOperationException {
+
+        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
+        Select select = new Select();
+        select.setQuery(eq("fakeName", "fakeValue"));
+
+        with()
+            .contentType(ContentType.BINARY).body(stream)
+            .when().post(IMPORT_FORMAT_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .when().post(GET_DOCUMENT_FORMAT_URI)
+            .then().statusCode(Status.NOT_FOUND.getStatusCode());
+    }
+
+
+
 }

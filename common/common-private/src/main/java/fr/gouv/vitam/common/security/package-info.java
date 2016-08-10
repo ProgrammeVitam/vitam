@@ -25,6 +25,6 @@
  * accept its terms.
  */
 /**
- * 
+ * Security package for Vitam
  */
 package fr.gouv.vitam.common.security;

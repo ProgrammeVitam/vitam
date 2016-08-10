@@ -28,7 +28,6 @@ package fr.gouv.vitam.common.logging;
 
 import java.io.ObjectStreamException;
 import java.io.Serializable;
-import java.lang.reflect.InvocationTargetException;
 
 import fr.gouv.vitam.common.ServerIdentityInterface;
 
@@ -49,14 +48,7 @@ public abstract class AbstractVitamLogger implements VitamLogger, Serializable {
 
     private final String name;
 
-    private static boolean initialized = false;
-    private static boolean hasServerIdentity = false;
-    private static Object serverIdentity = null;
-
-    static {
-        // Initialization for ServerIdentity
-        initLogger();
-    }
+    private static boolean hasServerIdentity = VitamLoggerFactory.serverIdentity != null;
 
     /**
      * Creates a new instance.
@@ -66,24 +58,6 @@ public abstract class AbstractVitamLogger implements VitamLogger, Serializable {
             throw new IllegalArgumentException("name must not be null");
         }
         this.name = name;
-    }
-
-    private static void initLogger() {
-        if (initialized) {
-            return;
-        }
-        try {
-            final Class<?> clasz = Class.forName("fr.gouv.vitam.common.ServerIdentity",
-                true, VitamLoggerFactory.class.getClassLoader());
-            hasServerIdentity = true;
-            serverIdentity = clasz.getMethod("getInstance").invoke(null);
-        } catch (ClassNotFoundException | NoClassDefFoundError e) {// NOSONAR ignore
-            // ignore
-        } catch (IllegalAccessException | IllegalArgumentException | // NOSONAR ignore
-            InvocationTargetException | NoSuchMethodException | SecurityException e) {// NOSONAR ignore
-            e.printStackTrace();// NOSONAR : no choice since no logger yet
-        }
-        initialized = true;
     }
 
     @Override
@@ -316,7 +290,7 @@ public abstract class AbstractVitamLogger implements VitamLogger, Serializable {
      */
     static final String getMessagePrepend() {
         if (hasServerIdentity) {
-            return ((ServerIdentityInterface) serverIdentity).getLoggerMessagePrepend();
+            return ((ServerIdentityInterface) VitamLoggerFactory.serverIdentity).getLoggerMessagePrepend();
         }
         return "";
     }

@@ -4,7 +4,8 @@ Access-rest
 Présentation
 ************
 
-API REST appelées par le client access interne 
+API REST appelées par le client access interne. Il y a un controle des paramètres (SanityChecker.checkJsonAll) transmis
+avec ESAPI.
 
 Packages:
 **********
@@ -43,11 +44,19 @@ classe de démarrage du serveur d'application.
 
 classe controlleur REST
 
-la classe contient actuellement une méthode : 
+la classe contient actuellement 4 méthodes :
+-getStatus()
+    récupère le status du controlleur REST
+
+ .. code-block:: java
+ @GET
+ @Path("/status")
+ public Response getStatus() {
+     return Response.status(200).entity("OK_status").build();
+ }
+
 -getUnits()
-//TODO (future itération , ajouter la méthode de modification des métadonnées ?)
- 
- 
+
  .. code-block:: java
  @POST
     @Path("/units")
@@ -66,8 +75,36 @@ la classe contient actuellement une méthode :
             }
             ....
             
- NB : the post X-Http-Method-Override header        
- 
+ NB : the post X-Http-Method-Override header
+
+-getUnitById()
+    récupère un unit avec son id
+
+
+ .. code-block:: java
+    @POST
+    @Path("/units/{id_unit}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getUnitById(String queryDsl,
+        @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride,
+        @PathParam("id_unit") String id_unit) {
+    ...
+
+
+
+-updateUnitById()
+    mise à jour d'un unit par son id avec une requête json
+
+ .. code-block:: java
+    @PUT
+    @Path("/units/{id_unit}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateUnitById(String queryDsl,
+                                   @PathParam("id_unit") String id_unit) {
+    ...
+
  La méthode HTTP GET n'est pas compatible, on utilisera une méthode HTTP POST dont l'entête contiendra "X-HTTP-Method-GET" 
  
 le controlleur REST appelle une api qui communique avec le moteur de données (accessModule, cf access-module.rst)

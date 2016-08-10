@@ -43,6 +43,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.VitamError;
+import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.parser.request.parser.GlobalDatasParser;
 
 /**
@@ -86,6 +87,7 @@ public class AccessResourceImpl implements AccessResource {
         JsonNode queryJson = null;
         try {
             if (xhttpOverride != null && "GET".equalsIgnoreCase(xhttpOverride)) {
+                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(queryDsl));
                 GlobalDatasParser.sanityRequestCheck(queryDsl);
                 queryJson = JsonHandler.getFromString(queryDsl);
                 result = accessModule.selectUnit(queryJson);
@@ -93,7 +95,7 @@ public class AccessResourceImpl implements AccessResource {
                 throw new AccessExecutionException("There is no 'X-Http-Method-Override:GET' as a header");
             }
         } catch (final InvalidParseOperationException e) {
-            LOGGER.error(e.getMessage(), e);
+            LOGGER.error("Bad request Exception ", e);
             // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
             return Response.status(status)
@@ -141,7 +143,7 @@ public class AccessResourceImpl implements AccessResource {
         JsonNode result = null;
         try {
             if (xhttpOverride != null && "GET".equalsIgnoreCase(xhttpOverride)) {
-
+                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(queryDsl));
                 GlobalDatasParser.sanityRequestCheck(queryDsl);
                 queryJson = JsonHandler.getFromString(queryDsl);
                 result = accessModule.selectUnitbyId(queryJson, id_unit);
@@ -149,7 +151,7 @@ public class AccessResourceImpl implements AccessResource {
                 throw new AccessExecutionException("There is no 'X-Http-Method-Override:GET' as a header");
             }
         } catch (final InvalidParseOperationException e) {
-            LOGGER.error(e.getMessage(), e);
+            LOGGER.error("Bad request Exception ", e);
             // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
             return Response.status(status)
@@ -196,11 +198,12 @@ public class AccessResourceImpl implements AccessResource {
         JsonNode queryJson = null;
         JsonNode result = null;
         try {
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(queryDsl));
             GlobalDatasParser.sanityRequestCheck(queryDsl);
             queryJson = JsonHandler.getFromString(queryDsl);
             result = accessModule.updateUnitbyId(queryJson, id_unit);
         } catch (final InvalidParseOperationException e) {
-            LOGGER.error(e.getMessage(), e);
+            LOGGER.error("Bad request Exception ", e);
             // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
             return Response.status(status)

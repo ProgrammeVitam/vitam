@@ -157,6 +157,9 @@
 		<commons-collections4.version>4.0</commons-collections4.version>
 		<unix.user>vitam</unix.user>
 		<unix.group>vitam</unix.group>
+		<esapi.version>2.1.0.1</esapi.version>
+		<xerces.version>2.11.0</xerces.version>
+		<cglib.version>2.2.2</cglib.version>
 	</properties>
 
 	<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
@@ -646,6 +649,34 @@
 				<version>${javax.servlet.version}</version>
 			</dependency>
 
+			<!-- ########################## Security ########################## -->
+
+			<dependency>
+				<groupId>com.mikesamuel</groupId>
+				<artifactId>json-sanitizer</artifactId>
+				<version>${json-sanitize.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.owasp.esapi</groupId>
+				<artifactId>esapi</artifactId>
+				<version>${esapi.version}</version>
+				<exclusions>
+					<exclusion>
+						<artifactId>log4j</artifactId>
+						<groupId>log4j</groupId>
+					</exclusion>
+					<exclusion>
+						<artifactId>commons-fileupload</artifactId>
+						<groupId>commons-fileupload</groupId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			<dependency>
+				<groupId>xerces</groupId>
+				<artifactId>xercesImpl</artifactId>
+				<version>${xerces.version}</version>
+			</dependency>
+
 			<!-- ########################## Logger ########################## -->
 
 			<dependency>
@@ -784,7 +815,12 @@
 				<version>${powermock.version}</version>
 				<scope>test</scope>
 			</dependency>
-
+			<dependency>
+				<groupId>org.powermock</groupId>
+				<artifactId>powermock-api-mockito-common</artifactId>
+				<version>${powermock.version}</version>
+				<scope>test</scope>
+			</dependency>
 			<dependency>
 				<groupId>de.flapdoodle.embed</groupId>
 				<artifactId>de.flapdoodle.embed.mongo</artifactId>
@@ -798,14 +834,15 @@
 				<scope>test</scope>
 			</dependency>
 			<dependency>
-				<groupId>com.mikesamuel</groupId>
-				<artifactId>json-sanitizer</artifactId>
-				<version>${json-sanitize.version}</version>
-			</dependency>
-			<dependency>
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-collections4</artifactId>
 				<version>${commons-collections4.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>cglib</groupId>
+				<artifactId>cglib</artifactId>
+				<version>${cglib.version}</version>
+				<scope>test</scope>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

@@ -81,13 +81,11 @@ public final class SystemPropertyUtil {
 
     private static Platform m_os = null;
 
-    // Retrieve all system properties at once so that there's no need to deal
-    // with
-    // security exceptions from next time. Otherwise, we might end up with
-    // logging every
-    // security exceptions on every system property access or introducing more
-    // complexity
-    // just because of less verbose logging.
+    /*
+     * Retrieve all system properties at once so that there's no need to deal with security exceptions from next time.
+     * Otherwise, we might end up with logging every security exceptions on every system property access or introducing
+     * more complexity just because of less verbose logging.
+     */
     static {
         refresh();
     }
@@ -140,7 +138,7 @@ public final class SystemPropertyUtil {
         }
         String tmpFolder = getVitamTmpFolder();
         File tmpDirectory = new File(tmpFolder);
-        if (! tmpDirectory.isDirectory()) {
+        if (!tmpDirectory.isDirectory()) {
             tmpDirectory.mkdirs();
         }
     }
@@ -586,7 +584,7 @@ public final class SystemPropertyUtil {
                 // Unix
             }
             if (os.indexOf("sunos") >= 0) {
-                m_os = Platform.SOLARIS; 
+                m_os = Platform.SOLARIS;
                 // Solaris
             }
         }
