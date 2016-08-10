@@ -60,8 +60,7 @@ public class ObjectGroupTest {
     @Test
     public void givenObjectGroupWhenGetCollection(){
         final ObjectGroup group = new ObjectGroup();
-        group.getVitamCollections();
-        group.getCollection();
+        group.getMetadataCollections();
     }
     
     @Test
@@ -69,5 +68,4 @@ public class ObjectGroupTest {
         final ObjectGroup group = new ObjectGroup(go);
         assertFalse(group.isImmediateParent(groupGUID));
     }        
-
 }

@@ -33,7 +33,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.BasicVitamServer;
 import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.parser.request.parser.GlobalDatasParser;
+import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;

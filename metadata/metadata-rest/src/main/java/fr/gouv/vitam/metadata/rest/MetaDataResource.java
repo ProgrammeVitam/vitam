@@ -53,7 +53,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.core.MetaDataImpl;
-import fr.gouv.vitam.core.MongoDbAccessFactory;
+import fr.gouv.vitam.core.MongoDbAccessMetadataFactory;
 import fr.gouv.vitam.core.database.collections.DbRequest;
 
 /**
@@ -77,7 +77,7 @@ public class MetaDataResource {
 
     // TODO: comment
     public MetaDataResource(MetaDataConfiguration configuration) {
-        metaDataImpl = new MetaDataImpl(configuration, new MongoDbAccessFactory(), DbRequest::new);
+        metaDataImpl = new MetaDataImpl(configuration, new MongoDbAccessMetadataFactory(), DbRequest::new);
         LOGGER.info("init MetaData Resource server");
     }
 

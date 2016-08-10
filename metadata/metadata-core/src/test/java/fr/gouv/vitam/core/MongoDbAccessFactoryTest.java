@@ -42,12 +42,14 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.core.database.collections.MongoDbAccess;
+import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.core.database.collections.MongoDbAccessMetadataImpl;
+
 
 public class MongoDbAccessFactoryTest {
 
     private static final String DATABASE_HOST = "localhost";
-    static MongoDbAccess mongoDbAccess;
+    static MongoDbAccessMetadataImpl mongoDbAccess;
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
     private static JunitHelper junitHelper;
@@ -77,11 +79,10 @@ public class MongoDbAccessFactoryTest {
 
     @Test
     public void testCreateFn() {
-        mongoDbAccess = new MongoDbAccessFactory()
-            .create(new MetaDataConfiguration(DATABASE_HOST, port, "vitam-test"));
+        mongoDbAccess = new MongoDbAccessMetadataFactory().create(new MetaDataConfiguration(DATABASE_HOST, port, "vitam-test"));
         assertNotNull(mongoDbAccess);
         assertEquals("vitam-test", mongoDbAccess.getMongoDatabase().getName());
-        mongoDbAccess.closeFinal();
+        mongoDbAccess.close();
     }
 
 }

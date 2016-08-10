@@ -38,7 +38,6 @@ import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.core.database.collections.MongoDbAccess.VitamCollections;
 
 /**
  * The default Vitam Type object to be stored in the database (MongoDb/ElasticSearch mode)
@@ -46,10 +45,10 @@ import fr.gouv.vitam.core.database.collections.MongoDbAccess.VitamCollections;
  * @param <E> Class associated with this Document
  *
  */
-public abstract class VitamDocument<E> extends Document {
+public abstract class MetadataDocument<E> extends Document {
     private static final long serialVersionUID = 7912599149562030658L;
     private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(VitamDocument.class);
+        VitamLoggerFactory.getInstance(MetadataDocument.class);
     /**
      * Default ID field name
      */
@@ -78,14 +77,14 @@ public abstract class VitamDocument<E> extends Document {
     /**
      * Empty constructor
      */
-    public VitamDocument() {}
+    public MetadataDocument() {}
 
     /**
      * Constructor from Json
      *
      * @param content
      */
-    public VitamDocument(JsonNode content) {
+    public MetadataDocument(JsonNode content) {
         super(Document.parse(content.toString()));
         checkId();
     }
@@ -95,7 +94,7 @@ public abstract class VitamDocument<E> extends Document {
      *
      * @param content
      */
-    public VitamDocument(Document content) {
+    public MetadataDocument(Document content) {
         super(content);
         checkId();
     }
@@ -105,7 +104,7 @@ public abstract class VitamDocument<E> extends Document {
      *
      * @param content
      */
-    public VitamDocument(String content) {
+    public MetadataDocument(String content) {
         super(Document.parse(content));
         checkId();
     }
@@ -124,7 +123,7 @@ public abstract class VitamDocument<E> extends Document {
      * @param tenantId
      * @return this
      */
-    VitamDocument<E> checkId() {
+    public MetadataDocument<E> checkId() {
         final String id = getId();
         if (id != null) {
             try {
@@ -137,7 +136,7 @@ public abstract class VitamDocument<E> extends Document {
         return this;
     }
 
-    VitamDocument<E> testAndCheckId() {
+    MetadataDocument<E> testAndCheckId() {
         if (! containsKey(DOMID)) {
             return checkId();
         }
@@ -165,7 +164,7 @@ public abstract class VitamDocument<E> extends Document {
      * @param json
      * @return this
      */
-    public final VitamDocument<E> load(final String json) {
+    public final MetadataDocument<E> load(final String json) {
         putAll(Document.parse(json));
         getAfterLoad();
         checkId();
@@ -177,14 +176,14 @@ public abstract class VitamDocument<E> extends Document {
      *
      * @return this
      */
-    public abstract VitamDocument<E> getAfterLoad();
+    public abstract MetadataDocument<E> getAfterLoad();
 
     /**
      * To be called before any collection.insert() or update if HashMap values is changed.
      *
      * @return this
      */
-    public abstract VitamDocument<E> putBeforeSave();
+    public abstract MetadataDocument<E> putBeforeSave();
 
     /**
      *
@@ -196,7 +195,7 @@ public abstract class VitamDocument<E> extends Document {
      *
      * @return the associated VitamCollection
      */
-    protected abstract VitamCollections getVitamCollections();
+    protected abstract MetadataCollections getMetadataCollections();
 
     /**
      * Save the object. Implementation should call putBeforeSave before the real save operation (insert or update)
@@ -204,7 +203,7 @@ public abstract class VitamDocument<E> extends Document {
      * @return this
      * @throws MetaDataExecutionException
      */
-    public abstract VitamDocument<E> save() throws MetaDataExecutionException;
+    public abstract MetadataDocument<E> save() throws MetaDataExecutionException;
 
     /**
      * Update the object to the database
@@ -213,7 +212,7 @@ public abstract class VitamDocument<E> extends Document {
      * @return this
      * @throws MetaDataExecutionException 
      */
-    public VitamDocument<E> update(final Bson update)
+    public MetadataDocument<E> update(final Bson update)
         throws MetaDataExecutionException {
         try {
             getCollection().updateOne(eq(ID, getId()), update);
@@ -248,7 +247,7 @@ public abstract class VitamDocument<E> extends Document {
      * @throws MetaDataExecutionException 
      */
     @SuppressWarnings("unchecked")
-    protected final VitamDocument<E> insert() throws MetaDataExecutionException {
+    protected final MetadataDocument<E> insert() throws MetaDataExecutionException {
         testAndCheckId();
         try {
             getCollection().insertOne((E) this);
@@ -267,12 +266,12 @@ public abstract class VitamDocument<E> extends Document {
      * @throws MetaDataExecutionException 
      */
     @SuppressWarnings("unchecked")
-    protected final VitamDocument<E> updateOrSave()
+    protected final MetadataDocument<E> updateOrSave()
         throws MetaDataExecutionException {
         testAndCheckId();
         final String id = this.getId();
         try {
-            if (MongoDbMetadataHelper.exists(getVitamCollections(), id)) {
+            if (MongoDbMetadataHelper.exists(getMetadataCollections(), id)) {
                 getCollection().replaceOne(eq(ID, id), (E) this);
             } else {
                 getCollection().insertOne((E) this);
@@ -291,7 +290,7 @@ public abstract class VitamDocument<E> extends Document {
      * @return this
      * @throws MetaDataExecutionException 
      */
-    protected final VitamDocument<E> forceSave()
+    protected final MetadataDocument<E> forceSave()
         throws MetaDataExecutionException {
         testAndCheckId();
         try {
@@ -310,7 +309,7 @@ public abstract class VitamDocument<E> extends Document {
      * @return this
      * @throws MetaDataExecutionException 
      */
-    public final VitamDocument<E> delete() throws MetaDataExecutionException {
+    public final MetadataDocument<E> delete() throws MetaDataExecutionException {
         try {
             getCollection().deleteOne(eq(ID, this.getId()));
         } catch (MongoException e) {

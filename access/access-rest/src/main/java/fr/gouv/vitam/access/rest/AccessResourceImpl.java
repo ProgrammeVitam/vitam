@@ -35,7 +35,6 @@ import fr.gouv.vitam.access.api.AccessResource;
 import fr.gouv.vitam.access.common.exception.AccessExecutionException;
 import fr.gouv.vitam.access.config.AccessConfiguration;
 import fr.gouv.vitam.access.core.AccessModuleImpl;
-import fr.gouv.vitam.api.exception.MetadataInvalidUpdateException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -44,7 +43,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.VitamError;
 import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.parser.request.parser.GlobalDatasParser;
+import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 
 /**
  * AccessResourceImpl implements AccessResource

@@ -69,7 +69,7 @@ import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.core.database.collections.MongoDbAccess.VitamCollections;
+
 import fr.gouv.vitam.common.database.translators.RequestToAbstract;
 import fr.gouv.vitam.common.database.translators.mongodb.DeleteToMongodb;
 import fr.gouv.vitam.common.database.translators.mongodb.InsertToMongodb;
@@ -234,7 +234,7 @@ public class DbRequest {
                 result = newResult;
                 // Clean cache
                 for (final String id : result.getCurrentIds()) {
-                    MongoDbAccess.LRU.remove(id);
+                    MongoDbMetadataHelper.LRU.remove(id);
                 }
             }
         } else {
@@ -263,12 +263,12 @@ public class DbRequest {
         final Set<String> roots = request.getRequest().getRoots();
         final Set<String> newRoots = checkUnitAgainstRoots(roots, defaultStartSet);
         if (newRoots.isEmpty()) {
-            return MongoDbAccess.createOneResult(FILTERARGS.UNITS);
+            return MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS);
         }
         if (!newRoots.containsAll(roots)) {
             LOGGER.debug("Not all roots are preserved");
         }
-        return MongoDbAccess.createOneResult(FILTERARGS.UNITS, newRoots);
+        return MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS, newRoots);
     }
 
     /**
@@ -284,14 +284,14 @@ public class DbRequest {
         final Set<String> roots = request.getRequest().getRoots();
         if (defaultStartSet == null || defaultStartSet.getCurrentIds().isEmpty()) {
             // no limitation: using roots
-            return MongoDbAccess.createOneResult(FILTERARGS.OBJECTGROUPS, roots);
+            return MongoDbMetadataHelper.createOneResult(FILTERARGS.OBJECTGROUPS, roots);
         }
         if (roots.isEmpty()) {
-            return MongoDbAccess.createOneResult(FILTERARGS.OBJECTGROUPS);
+            return MongoDbMetadataHelper.createOneResult(FILTERARGS.OBJECTGROUPS);
         }
         @SuppressWarnings("unchecked")
         final FindIterable<ObjectGroup> iterable =
-            (FindIterable<ObjectGroup>) MongoDbMetadataHelper.select(VitamCollections.C_OBJECTGROUP,
+            (FindIterable<ObjectGroup>) MongoDbMetadataHelper.select(MetadataCollections.C_OBJECTGROUP,
                 MongoDbMetadataHelper.queryForAncestorsOrSame(roots, defaultStartSet.getCurrentIds()),
                 ObjectGroup.OBJECTGROUP_VITAM_PROJECTION);
         final MongoCursor<ObjectGroup> cursor = iterable.iterator();
@@ -305,12 +305,12 @@ public class DbRequest {
             cursor.close();
         }
         if (newRoots.isEmpty()) {
-            return MongoDbAccess.createOneResult(FILTERARGS.OBJECTGROUPS);
+            return MongoDbMetadataHelper.createOneResult(FILTERARGS.OBJECTGROUPS);
         }
         if (!newRoots.containsAll(roots)) {
             LOGGER.debug("Not all roots are preserved");
         }
-        return MongoDbAccess.createOneResult(FILTERARGS.OBJECTGROUPS, newRoots);
+        return MongoDbMetadataHelper.createOneResult(FILTERARGS.OBJECTGROUPS, newRoots);
     }
 
     /**
@@ -329,7 +329,7 @@ public class DbRequest {
             return current;
         }
         @SuppressWarnings("unchecked")
-        final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper.select(VitamCollections.C_UNIT,
+        final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.C_UNIT,
             MongoDbMetadataHelper.queryForAncestorsOrSame(current, defaultStartSet.getCurrentIds()),
             MongoDbMetadataHelper.ID_PROJECTION);
         final MongoCursor<Unit> cursor = iterable.iterator();
@@ -371,14 +371,14 @@ public class DbRequest {
             // Check if path is compatible with previous
             if (previous.getCurrentIds().isEmpty()) {
                 previous.clear();
-                return MongoDbAccess.createOneResult(collectionType, ((PathQuery) realQuery).getPaths());
+                return MongoDbMetadataHelper.createOneResult(collectionType, ((PathQuery) realQuery).getPaths());
             }
             final Set<String> newRoots = checkUnitAgainstRoots(((PathQuery) realQuery).getPaths(), previous);
             previous.clear();
             if (newRoots.isEmpty()) {
-                return MongoDbAccess.createOneResult(collectionType);
+                return MongoDbMetadataHelper.createOneResult(collectionType);
             }
-            return MongoDbAccess.createOneResult(collectionType, newRoots);
+            return MongoDbMetadataHelper.createOneResult(collectionType, newRoots);
         }
         // Not PATH
         int exactDepth = QueryDepthHelper.HELPER.getExactDepth(realQuery);
@@ -425,21 +425,21 @@ public class DbRequest {
      */
     protected Result exactDepthUnitQuery(Query realQuery, Result previous, int exactDepth)
         throws InvalidParseOperationException {
-        final Result result = MongoDbAccess.createOneResult(FILTERARGS.UNITS);
+        final Result result = MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS);
         final Bson query = QueryToMongodb.getCommand(realQuery);
-        final Bson roots = QueryToMongodb.getRoots(VitamDocument.UP, previous.getCurrentIds());
+        final Bson roots = QueryToMongodb.getRoots(MetadataDocument.UP, previous.getCurrentIds());
         final Bson finalQuery = and(query, roots, lte(Unit.MINDEPTH, exactDepth), gte(Unit.MAXDEPTH, exactDepth));
         previous.clear();
         LOGGER.debug(QUERY2 + MongoDbHelper.bsonToString(finalQuery, false));
         @SuppressWarnings("unchecked")
         final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper.select(
-            MongoDbAccess.VitamCollections.C_UNIT, finalQuery, Unit.UNIT_VITAM_PROJECTION);
+            MetadataCollections.C_UNIT, finalQuery, Unit.UNIT_VITAM_PROJECTION);
         final MongoCursor<Unit> cursor = iterable.iterator();
         try {
             while (cursor.hasNext()) {
                 final Unit unit = cursor.next();
                 final String id = unit.getId();
-                MongoDbAccess.LRU.put(id, unit);
+                MongoDbMetadataHelper.LRU.put(id, unit);
                 result.addId(id);
             }
         } finally {
@@ -476,13 +476,13 @@ public class DbRequest {
                 // Relative parent: previous has future result in their _up
                 // so future result ids are in previous UNITDEPTHS
                 final Set<String> fathers = aggregateUnitDepths(previous.getCurrentIds(), relativeDepth);
-                roots = QueryToMongodb.getRoots(VitamDocument.ID, fathers);
+                roots = QueryToMongodb.getRoots(MetadataDocument.ID, fathers);
             } else if (relativeDepth == 0) {
                 // same level: previous is in IDs of result
-                roots = QueryToMongodb.getRoots(VitamDocument.ID, previous.getCurrentIds());
+                roots = QueryToMongodb.getRoots(MetadataDocument.ID, previous.getCurrentIds());
             } else if (relativeDepth == 1) {
                 // immediate step: previous is in UNIT_TO_UNIT of result
-                roots = QueryToMongodb.getRoots(VitamDocument.UP,
+                roots = QueryToMongodb.getRoots(MetadataDocument.UP,
                     previous.getCurrentIds());
             } else {
                 // relative depth: previous is in UNITUPS of result
@@ -495,13 +495,13 @@ public class DbRequest {
             query = QueryToMongodb.getFullCommand(query, roots);
         }
         LOGGER.debug(QUERY2 + MongoDbHelper.bsonToString(query, false));
-        result = MongoDbAccess.createOneResult(FILTERARGS.UNITS);
+        result = MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS);
         if (GlobalDatasDb.PRINT_REQUEST) {
             LOGGER.warn("Req1LevelMD: {}", realQuery);
         }
         @SuppressWarnings("unchecked")
         final FindIterable<Unit> iterable =
-            (FindIterable<Unit>) MongoDbMetadataHelper.select(MongoDbAccess.VitamCollections.C_UNIT, query,
+            (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.C_UNIT, query,
                 Unit.UNIT_VITAM_PROJECTION);
         final MongoCursor<Unit> cursor = iterable.iterator();
         try {
@@ -524,7 +524,7 @@ public class DbRequest {
                     }
                 }
                 final String id = unit.getId();
-                MongoDbAccess.LRU.put(id, unit);
+                MongoDbMetadataHelper.LRU.put(id, unit);
                 result.addId(id);
             }
         } finally {
@@ -547,16 +547,16 @@ public class DbRequest {
      */
     protected Set<String> aggregateUnitDepths(Set<String> ids, int relativeDepth) {
         // Select all items from ids
-        final Bson match = match(in(VitamDocument.ID, ids));
+        final Bson match = match(in(MetadataDocument.ID, ids));
         // aggregate all UNITDEPTH in one (ignoring depth value)
-        final Bson group = group(new BasicDBObject(VitamDocument.ID, "all"),
+        final Bson group = group(new BasicDBObject(MetadataDocument.ID, "all"),
             addToSet("deptharray", ParserTokens.DEFAULT_PREFIX + Unit.UNITDEPTHS));
         LOGGER.debug("Depth: " + MongoDbHelper.bsonToString(match, false) + " " +
             MongoDbHelper.bsonToString(group, false));
         final List<Bson> pipeline = Arrays.asList(match, group);
         @SuppressWarnings("unchecked")
         final AggregateIterable<Unit> aggregateIterable =
-            (AggregateIterable<Unit>) MongoDbAccess.VitamCollections.C_UNIT.getCollection().aggregate(pipeline);
+            (AggregateIterable<Unit>) MetadataCollections.C_UNIT.getCollection().aggregate(pipeline);
         final Unit aggregate = aggregateIterable.first();
         final Set<String> set = new HashSet<String>();
         if (aggregate != null) {
@@ -584,26 +584,26 @@ public class DbRequest {
      * @throws InvalidParseOperationException
      */
     protected Result sameDepthUnitQuery(Query realQuery, Result previous) throws InvalidParseOperationException {
-        final Result result = MongoDbAccess.createOneResult(FILTERARGS.UNITS);
+        final Result result = MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS);
         final Bson query = QueryToMongodb.getCommand(realQuery);
         Bson finalQuery;
         if (previous.getCurrentIds().isEmpty()) {
             finalQuery = query;
         } else {
-            final Bson roots = QueryToMongodb.getRoots(VitamDocument.UP, previous.getCurrentIds());
+            final Bson roots = QueryToMongodb.getRoots(MetadataDocument.UP, previous.getCurrentIds());
             finalQuery = and(query, roots);
         }
         previous.clear();
         LOGGER.debug(QUERY2 + MongoDbHelper.bsonToString(finalQuery, false));
         @SuppressWarnings("unchecked")
         final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper
-            .select(MongoDbAccess.VitamCollections.C_UNIT, finalQuery, Unit.UNIT_VITAM_PROJECTION);
+            .select(MetadataCollections.C_UNIT, finalQuery, Unit.UNIT_VITAM_PROJECTION);
         final MongoCursor<Unit> cursor = iterable.iterator();
         try {
             while (cursor.hasNext()) {
                 final Unit unit = cursor.next();
                 final String id = unit.getId();
-                MongoDbAccess.LRU.put(id, unit);
+                MongoDbMetadataHelper.LRU.put(id, unit);
                 result.addId(id);
             }
         } finally {
@@ -625,20 +625,20 @@ public class DbRequest {
      * @throws InvalidParseOperationException
      */
     protected Result objectGroupQuery(Query realQuery, Result previous) throws InvalidParseOperationException {
-        final Result result = MongoDbAccess.createOneResult(FILTERARGS.OBJECTGROUPS);
+        final Result result = MongoDbMetadataHelper.createOneResult(FILTERARGS.OBJECTGROUPS);
         final Bson query = QueryToMongodb.getCommand(realQuery);
         Bson finalQuery;
         if (previous.getCurrentIds().isEmpty()) {
             finalQuery = query;
         } else {
-            final Bson roots = QueryToMongodb.getRoots(VitamDocument.UP, previous.getCurrentIds());
+            final Bson roots = QueryToMongodb.getRoots(MetadataDocument.UP, previous.getCurrentIds());
             finalQuery = and(query, roots);
         }
         previous.clear();
         LOGGER.debug(QUERY2 + MongoDbHelper.bsonToString(finalQuery, false));
         @SuppressWarnings("unchecked")
         final FindIterable<ObjectGroup> iterable = (FindIterable<ObjectGroup>) MongoDbMetadataHelper.select(
-            MongoDbAccess.VitamCollections.C_OBJECTGROUP, finalQuery,
+            MetadataCollections.C_OBJECTGROUP, finalQuery,
             ObjectGroup.OBJECTGROUP_VITAM_PROJECTION);
         final MongoCursor<ObjectGroup> cursor = iterable.iterator();
         try {
@@ -663,7 +663,7 @@ public class DbRequest {
      */
     protected Result lastSelectFilterProjection(SelectToMongodb requestToMongodb, Result last)
         throws InvalidParseOperationException, MetaDataExecutionException {
-        final Bson roots = QueryToMongodb.getRoots(VitamDocument.ID, last.getCurrentIds());
+        final Bson roots = QueryToMongodb.getRoots(MetadataDocument.ID, last.getCurrentIds());
         final Bson projection = requestToMongodb.getFinalProjection();
         final Bson orderBy = requestToMongodb.getFinalOrderBy();
         final int offset = requestToMongodb.getFinalOffset();
@@ -675,7 +675,7 @@ public class DbRequest {
         if (model == FILTERARGS.UNITS) {
             @SuppressWarnings("unchecked")
             final FindIterable<Unit> iterable =
-                (FindIterable<Unit>) MongoDbMetadataHelper.select(MongoDbAccess.VitamCollections.C_UNIT,
+                (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.C_UNIT,
                     roots, projection, orderBy, offset, limit);
             final MongoCursor<Unit> cursor = iterable.iterator();
             try {
@@ -694,7 +694,7 @@ public class DbRequest {
         @SuppressWarnings("unchecked")
         final FindIterable<ObjectGroup> iterable =
             (FindIterable<ObjectGroup>) MongoDbMetadataHelper.select(
-                MongoDbAccess.VitamCollections.C_OBJECTGROUP,
+                MetadataCollections.C_OBJECTGROUP,
                 roots, projection, orderBy, offset, limit);
         final MongoCursor<ObjectGroup> cursor = iterable.iterator();
         try {
@@ -721,21 +721,21 @@ public class DbRequest {
      */
     protected Result lastUpdateFilterProjection(UpdateToMongodb requestToMongodb, Result last)
         throws InvalidParseOperationException, MetaDataExecutionException {
-        final Bson roots = QueryToMongodb.getRoots(VitamDocument.ID, last.getCurrentIds());
+        final Bson roots = QueryToMongodb.getRoots(MetadataDocument.ID, last.getCurrentIds());
         final Bson update = requestToMongodb.getFinalUpdate();
         final FILTERARGS model = requestToMongodb.model();
         LOGGER.debug(
             "To Update: " + MongoDbHelper.bsonToString(roots, false) + " " + MongoDbHelper.bsonToString(update, false));
         try {
             if (model == FILTERARGS.UNITS) {
-                final UpdateResult result = MongoDbMetadataHelper.update(MongoDbAccess.VitamCollections.C_UNIT,
+                final UpdateResult result = MongoDbMetadataHelper.update(MetadataCollections.C_UNIT,
                     roots, update, last.getCurrentIds().size());
                 last.setNbResult(result.getModifiedCount());
                 return last;
             }
             // OBJECTGROUPS:
             final UpdateResult result =
-                MongoDbMetadataHelper.update(MongoDbAccess.VitamCollections.C_OBJECTGROUP,
+                MongoDbMetadataHelper.update(MetadataCollections.C_OBJECTGROUP,
                     roots, update, last.getCurrentIds().size());
             last.setNbResult(result.getModifiedCount());
             return last;
@@ -765,13 +765,13 @@ public class DbRequest {
         try {
             if (model == FILTERARGS.UNITS) {
                 final Unit unit = new Unit(data);
-                if (MongoDbMetadataHelper.exists(VitamCollections.C_UNIT, unit.getId())) {
+                if (MongoDbMetadataHelper.exists(MetadataCollections.C_UNIT, unit.getId())) {
                     // Should not exist
                     throw new MetaDataAlreadyExistException("Unit already exists: " + unit.getId());
                 }
                 unit.save();
                 for (final String id : last.getCurrentIds()) {
-                    final Unit parentUnit = MongoDbAccess.LRU.get(id);
+                    final Unit parentUnit = MongoDbMetadataHelper.LRU.get(id);
                     if (parentUnit != null) {
                         parentUnit.addUnit(unit);
                     } else {
@@ -786,7 +786,7 @@ public class DbRequest {
             }
             // OBJECTGROUPS:
             final ObjectGroup og = new ObjectGroup(data);
-            if (MongoDbMetadataHelper.exists(VitamCollections.C_OBJECTGROUP, og.getId())) {
+            if (MongoDbMetadataHelper.exists(MetadataCollections.C_OBJECTGROUP, og.getId())) {
                 // Should not exist
                 throw new MetaDataAlreadyExistException("ObjectGroup already exists: " + og.getId());
             }
@@ -797,7 +797,7 @@ public class DbRequest {
             }
             og.save();
             for (final String id : last.getCurrentIds()) {
-                final Unit parentUnit = MongoDbAccess.LRU.get(id);
+                final Unit parentUnit = MongoDbMetadataHelper.LRU.get(id);
                 if (parentUnit != null) {
                     parentUnit.addObjectGroup(og);
                 } else {
@@ -827,19 +827,19 @@ public class DbRequest {
      */
     protected Result lastDeleteFilterProjection(DeleteToMongodb requestToMongodb, Result last)
         throws InvalidParseOperationException, MetaDataExecutionException {
-        final Bson roots = QueryToMongodb.getRoots(VitamDocument.ID, last.getCurrentIds());
+        final Bson roots = QueryToMongodb.getRoots(MetadataDocument.ID, last.getCurrentIds());
         LOGGER.debug("To Delete: " + MongoDbHelper.bsonToString(roots, false));
         final FILTERARGS model = requestToMongodb.model();
         try {
             if (model == FILTERARGS.UNITS) {
-                final DeleteResult result = MongoDbMetadataHelper.delete(MongoDbAccess.VitamCollections.C_UNIT,
+                final DeleteResult result = MongoDbMetadataHelper.delete(MetadataCollections.C_UNIT,
                     roots, last.getCurrentIds().size());
                 last.setNbResult(result.getDeletedCount());
                 return last;
             }
             // OBJECTGROUPS:
             final DeleteResult result =
-                MongoDbMetadataHelper.delete(MongoDbAccess.VitamCollections.C_OBJECTGROUP,
+                MongoDbMetadataHelper.delete(MetadataCollections.C_OBJECTGROUP,
                     roots, last.getCurrentIds().size());
             last.setNbResult(result.getDeletedCount());
             return last;
