@@ -43,6 +43,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
@@ -57,6 +58,7 @@ import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.storage.offers.workspace.core.DefaultOfferServiceImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 /**
  * Default offer REST Resource
@@ -94,25 +96,47 @@ public class DefaultOfferResource {
             JsonNode result = DefaultOfferServiceImpl.getInstance().getCapacity(xTenantId);
             return Response.status(Response.Status.OK).entity(result).build();
         } catch (ContentAddressableStorageNotFoundException exc) {
+            LOGGER.error(exc);
             return Response.status(Response.Status.SERVICE_UNAVAILABLE).build();
+        } catch (ContentAddressableStorageServerException exc) {
+            LOGGER.error(exc);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
 
     /**
      * Get the object data or digest from its id.
      * <p>
-     * HEADER "X-type" (optional) : data (dfault) or digest
+     * HEADER X-Tenant-Id (mandatory) : tenant's identifier HEADER "X-type" (optional) : data (dfault) or digest
      * </p>
      *
      * @param objectId object id
+     * @param headers http header
      * @return object data or digest
+     * @throws IOException when there is an error of get object
      */
     @GET
     @Path("/objects/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(value = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_OCTET_STREAM})
-    public Response getObject(@PathParam("id") String objectId) {
-        return Response.status(Response.Status.NOT_IMPLEMENTED).build();
+    public Response getObject(@PathParam("id") String objectId, @Context HttpHeaders headers) throws IOException {
+        String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
+        if (Strings.isNullOrEmpty(xTenantId)) {
+            LOGGER.error("Missing the tenant ID (X-Tenant-Id)");
+            return Response.status(Response.Status.PRECONDITION_FAILED).build();
+        }
+        InputStream stream = null;
+        try {
+            stream = DefaultOfferServiceImpl.getInstance().getObject(xTenantId, objectId);
+            return Response.ok(stream, MediaType.APPLICATION_OCTET_STREAM).header("Content-Length", stream.available())
+                .build();
+        } catch (ContentAddressableStorageNotFoundException e) {
+            LOGGER.error(e);
+            return Response.status(Status.NOT_FOUND).entity(objectId).build();
+        } catch (ContentAddressableStorageException e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(objectId).build();
+        }
     }
 
     /**
@@ -123,7 +147,7 @@ public class DefaultOfferResource {
      * </p>
      *
      * @param objectGUID the GUID Of the object
-     * @param headers    http header
+     * @param headers http header
      * @param objectInit data for object creation
      * @return structured response with the object id
      */
@@ -148,9 +172,11 @@ public class DefaultOfferResource {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         try {
-            objectInit = DefaultOfferServiceImpl.getInstance().createContainer(xTenantId, objectInit, objectGUID);
-            return Response.status(Response.Status.CREATED).entity(objectInit).build();
+            ObjectInit objectInitFilled =
+                DefaultOfferServiceImpl.getInstance().createContainer(xTenantId, objectInit, objectGUID);
+            return Response.status(Response.Status.CREATED).entity(objectInitFilled).build();
         } catch (ContentAddressableStorageException exc) {
+            LOGGER.error(exc);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -163,7 +189,7 @@ public class DefaultOfferResource {
      * </p>
      *
      * @param objectId object id
-     * @param headers    http header
+     * @param headers http header
      * @param input object data
      * @return structured response with the object id (and new digest ?)
      */

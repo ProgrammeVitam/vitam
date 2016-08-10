@@ -45,7 +45,7 @@ Pour instancier son client en mode Production :
 Les services
 ************
 
-Le client propose actuellement 4 fonctionnalités nécéssitant toutes deux paramètres obligatoires :
+Le client propose actuellement des fonctionnalités nécéssitant toutes deux paramètres obligatoires :
 
 - l'identifiant du tenant (valeur de test "0")
 - l'identifiant de la stratégie de stockage (valeur de test "default")
@@ -58,9 +58,9 @@ Ces fonctionnalités sont :
 
 	JsonNode result = client.getContainerInformation("0", "default");
 
- - l'envoi d'un objet sur une offre de stockage selon une stratégie donnée :
-   - pour les objets contenus dans le workspace (objets binaires) :
-   
+- l'envoi d'un objet sur une offre de stockage selon une stratégie donnée :
+	- pour les objets contenus dans le workspace (objets binaires) :
+
 .. code-block:: java
 
 	JsonNode result = storeFileFromWorkspace("0", "default", StorageCollectionType.OBJECTS, "aeaaaaaaaaaam7mxaaaamakv3x3yehaaaaaq");
@@ -97,6 +97,11 @@ Ces fonctionnalités sont :
 
    boolean deleted = delete("0", "default", StorageCollectionType.OBJECTS, "aeaaaaaaaaaam7mxaaaamakv3x3yehaaaaaq");
 
+- la récupération d'un objet (InputStream) contenu dans un container :
+
+.. code-block:: java
+
+   InputStream stream = client.getContainerObject("0", "default", "aeaaaaaaaaaam7mxaaaamakv3x3yehaaaaaq");
 
 - La récupération du status est également disponible :
 

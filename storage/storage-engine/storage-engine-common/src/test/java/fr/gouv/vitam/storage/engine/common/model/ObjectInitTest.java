@@ -33,24 +33,29 @@
  * knowledge of the CeCILL 2.1 license and that you accept its terms.
  */
 
-package fr.gouv.vitam.storage.driver.exception;
+package fr.gouv.vitam.storage.engine.common.model;
 
+import fr.gouv.vitam.common.digest.DigestType;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
 /**
- * StorageDriverExceptionTest
+ * ObjectInit Test
  */
-public class StorageDriverExceptionTest {
+public class ObjectInitTest {
 
     @Test
-    public void testGetDriverInfo() throws Exception {
-        StorageDriverException exc = new StorageDriverException("drivername", StorageDriverException.ErrorCode
-            .INTERNAL_SERVER_ERROR, "message");
-        exc = new StorageDriverException("drivername", StorageDriverException.ErrorCode.NOT_FOUND, exc);
-        exc = new StorageDriverException("drivername", StorageDriverException.ErrorCode.PRECONDITION_FAILED,
-            "message", exc);
-        assertEquals("drivername", exc.getDriverInfo());
+    public void testPojo() throws Exception {
+        ObjectInit objectInit = new ObjectInit();
+        objectInit.setId("id");
+        objectInit.setDigestAlgorithm(DigestType.MD5);
+        objectInit.setSize(1);
+        objectInit.setType("type");
+
+        assertEquals("id", objectInit.getId());
+        assertEquals(DigestType.MD5, objectInit.getDigestAlgorithm());
+        assertEquals(1, objectInit.getSize());
+        assertEquals("type", objectInit.getType());
     }
 }

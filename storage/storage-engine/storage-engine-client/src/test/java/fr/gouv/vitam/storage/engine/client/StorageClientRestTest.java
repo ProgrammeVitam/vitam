@@ -28,11 +28,13 @@ package fr.gouv.vitam.storage.engine.client;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.InputStream;
 import java.time.LocalDateTime;
 
 import javax.ws.rs.Consumes;
@@ -44,10 +46,13 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
@@ -67,6 +72,8 @@ import fr.gouv.vitam.common.model.StatusMessage;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.StorageConstants;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 
@@ -227,6 +234,14 @@ public class StorageClientRestTest extends JerseyTest {
         public Response deleteObjectGroup(@PathParam("id_objectgroup") String idObjectGroup) {
             return expectedResponse.delete();
         }
+
+        @Path("/objects/{id_object}")
+        @GET
+        @Produces({MediaType.APPLICATION_OCTET_STREAM, StorageConstants.APPLICATION_ZIP})
+        @Consumes(MediaType.APPLICATION_JSON)
+        public Response getObject(@Context HttpHeaders headers, @PathParam("id_object") String objectId) {
+            return expectedResponse.get();
+        }
     }
 
     public StorageClientRestTest() {
@@ -311,6 +326,12 @@ public class StorageClientRestTest extends JerseyTest {
     public void createJsonWithDataIllegalArgumentException() throws Exception {
         when(mock.post()).thenReturn(Response.status(Response.Status.CREATED).build());
         client.storeJson(null, "idStrategy", StorageCollectionType.UNITS, "idUnit", null);
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void createJsonWithContainersIllegalArgumentException() throws Exception {
+        when(mock.post()).thenReturn(Response.status(Response.Status.CREATED).build());
+        client.storeJson(null, "idStrategy", StorageCollectionType.CONTAINERS, "idContainer", null);
     }
 
     /** FIXME : Waiting for server */
@@ -467,6 +488,11 @@ public class StorageClientRestTest extends JerseyTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
+    public void deleteContainerWithIllegalArgumentException() throws Exception {
+        client.delete("idTenant", "idStrategy", StorageCollectionType.CONTAINERS, "guid");
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
     public void deleteWithTenantIllegalArgumentException() throws Exception {
         when(mock.delete()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
         client.exists("", "idStrategy", StorageCollectionType.OBJECTS, "idObject");
@@ -531,6 +557,33 @@ public class StorageClientRestTest extends JerseyTest {
     public void failsStatusExecution() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.NOT_IMPLEMENTED).build());
         client.getStatus();
+    }
+
+    @Test(expected = StorageServerClientException.class)
+    public void failsGetContainerObjectExecutionWhenPreconditionFailed() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        client.getContainerObject("idTenant", "idStrategy", "guid");
+    }
+
+    @Test(expected = StorageServerClientException.class)
+    public void failsGetContainerObjectExecutionWhenInternalServerError() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        client.getContainerObject("idTenant", "idStrategy", "guid");
+    }
+
+    @Test(expected = StorageNotFoundException.class)
+    public void failsGetContainerObjectExecutionWhenNotFound() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        client.getContainerObject("idTenant", "idStrategy", "guid");
+    }
+    
+    @Test
+    public void successGetContainerObjectExecutionWhenFound() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("Vitam test")).build());
+        InputStream stream = client.getContainerObject("idTenant", "idStrategy", "guid");
+        InputStream stream2 = IOUtils.toInputStream("Vitam test");
+        assertNotNull(stream);
+        assertTrue(IOUtils.contentEquals(stream, stream2));
     }
 
     private StoredInfoResult generateStoredInfoResult(String guid) {

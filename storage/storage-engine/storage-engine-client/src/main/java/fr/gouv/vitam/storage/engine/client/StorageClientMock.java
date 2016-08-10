@@ -26,7 +26,10 @@
  */
 package fr.gouv.vitam.storage.engine.client;
 
+import java.io.InputStream;
 import java.time.LocalDateTime;
+
+import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -53,6 +56,7 @@ class StorageClientMock extends StorageClientRest implements StorageClient {
 
     static final String MOCK_POST_RESULT = "{\"_id\": \"{id}\",\"status\": \"OK\"}";
     static final String MOCK_INFOS_RESULT = "{\"usableSpace\": 838860800" + "}";
+    static final String MOCK_GET_FILE_CONTENT = "Vitam test";
 
     /**
      * Constructor
@@ -111,6 +115,11 @@ class StorageClientMock extends StorageClientRest implements StorageClient {
     public boolean exists(String tenantId, String strategyId, StorageCollectionType type, String guid)
         throws StorageServerClientException {
         return true;
+    }
+
+    @Override
+    public InputStream getContainerObject(String tenantId, String strategyId, String guid) {
+        return IOUtils.toInputStream(MOCK_GET_FILE_CONTENT);
     }
 
     private StoredInfoResult generateStoredInfoResult(String guid) {

@@ -43,6 +43,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 
+import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
@@ -66,10 +67,11 @@ import fr.gouv.vitam.storage.driver.model.RemoveObjectResult;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityRequest;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
+import fr.gouv.vitam.storage.engine.common.header.VitamHttpHeader;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 
 /**
- * Workspace Connection Implementation 
+ * Workspace Connection Implementation
  */
 // TODO: always close javax.ws.rs.core.Response (because can make problems)
 public class ConnectionImpl implements Connection {
@@ -81,7 +83,7 @@ public class ConnectionImpl implements Connection {
     private static final String RESOURCE_PATH = "/offer/v1";
     private static final String STATUS_PATH = "/status";
     private static final String OBJECTS_PATH = "/objects";
-    private static final int CHUNK_SIZE = 1024*1024;
+    private static final int CHUNK_SIZE = 1024 * 1024;
 
     private static final String INTERNAL_SERVER_ERROR =
         "Internal Server Error, could not connect to the distant offer service.";
@@ -126,7 +128,8 @@ public class ConnectionImpl implements Connection {
                     handleResponseStatus(response, StorageCapacityResult.class);
                 return storageCapacityResult;
             }
-            throw new StorageDriverException(driverName, response.getStatusInfo().getReasonPhrase());
+            throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
+                response.getStatusInfo().getReasonPhrase());
         } finally {
             Optional.ofNullable(response).ifPresent(Response::close);
         }
@@ -134,7 +137,48 @@ public class ConnectionImpl implements Connection {
 
     @Override
     public GetObjectResult getObject(GetObjectRequest request) throws StorageDriverException {
-        throw new UnsupportedOperationException(NOT_YET_IMPLEMENTED);
+        ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
+        ParametersChecker.checkParameter(GUID_IS_A_MANDATORY_PARAMETER, request.getGuid());
+        ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
+        Response response = null;
+        InputStream stream;
+        try {
+            response =
+                getClient().target(getServiceUrl()).path(OBJECTS_PATH + "/" + request.getGuid()).request()
+                    .header(VitamHttpHeader.TENANT_ID.getName(), request.getTenantId())
+                    .accept(MediaType.APPLICATION_OCTET_STREAM).method(HttpMethod.GET);
+
+            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case OK:
+                    // TODO : this is ugly but necessarily in order to close the response and avoid concurrent issues
+                    // to be improved (https://jersey.java.net/documentation/latest/client.html#d0e5170) and
+                    // remove the IOUtils.toByteArray after correction of concurrent problem
+                    InputStream streamClosedAutomatically = response.readEntity(InputStream.class);
+                    try {
+                        stream = new ByteArrayInputStream(IOUtils.toByteArray(streamClosedAutomatically));
+                    } catch (IOException e) {
+                        LOGGER.error(e);
+                        throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.NOT_FOUND,
+                            e.getMessage());
+                    }
+                    GetObjectResult result = new GetObjectResult();
+                    result.setObject(stream);
+                    return result;
+                case NOT_FOUND:
+                    throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.NOT_FOUND, "Object " +
+                        "not found");
+                case PRECONDITION_FAILED:
+                    throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.PRECONDITION_FAILED,
+                        "Precondition failed");
+                default:
+                    LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
+                    throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
+                        INTERNAL_SERVER_ERROR);
+            }
+        } finally {
+            Optional.ofNullable(response).ifPresent(Response::close);
+        }
     }
 
     @Override
@@ -162,7 +206,8 @@ public class ConnectionImpl implements Connection {
                 performPutRequests(request.getTenantId(), stream, handleResponseStatus(response, ObjectInit.class));
             return finalResult;
         } catch (IllegalArgumentException exc) {
-            throw new StorageDriverException(driverName, exc.getMessage());
+            throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.PRECONDITION_FAILED, exc
+                .getMessage());
         } finally {
             Optional.ofNullable(response).ifPresent(Response::close);
         }
@@ -191,7 +236,8 @@ public class ConnectionImpl implements Connection {
             if (Response.Status.OK.getStatusCode() == response.getStatus()) {
                 return response;
             } else {
-                throw new StorageDriverException(driverName, INTERNAL_SERVER_ERROR);
+                throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
+                    INTERNAL_SERVER_ERROR);
             }
         } finally {
             Optional.ofNullable(response).ifPresent(Response::close);
@@ -241,15 +287,19 @@ public class ConnectionImpl implements Connection {
             case OK:
                 return response.readEntity(responseType);
             case INTERNAL_SERVER_ERROR:
-                throw new StorageDriverException(driverName, status.getReasonPhrase());
+                throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
+                    status.getReasonPhrase());
             case NOT_FOUND:
                 // TODO: make a *NotFoundException for this case
-                throw new StorageDriverException(driverName, status.getReasonPhrase());
+                throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.NOT_FOUND, status
+                    .getReasonPhrase());
             case SERVICE_UNAVAILABLE:
-                throw new StorageDriverException(driverName, status.getReasonPhrase());
+                throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.NOT_FOUND, status
+                    .getReasonPhrase());
             default:
                 LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
-                throw new StorageDriverException(driverName, INTERNAL_SERVER_ERROR);
+                throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
+                    INTERNAL_SERVER_ERROR);
         }
     }
 

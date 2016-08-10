@@ -77,6 +77,7 @@ public interface Connection extends AutoCloseable {
      * @param request the request to send. It contains informations needed to retrieve a given object.
      * @return a result that may contains metadatas as well as the binary file
      * @throws StorageDriverException if any problem occurs during request
+     * @throws IllegalArgumentException if request is wrong
      */
     GetObjectResult getObject(GetObjectRequest request) throws StorageDriverException;
 
