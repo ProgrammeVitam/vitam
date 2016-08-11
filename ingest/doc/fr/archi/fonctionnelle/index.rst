@@ -5,5 +5,6 @@ Architecture Fonctionnelle
 .. toctree::
    :maxdepth: 2
 
-   basics.rst
+   ingest-internal.rst
+   ingest-external.rst
  
