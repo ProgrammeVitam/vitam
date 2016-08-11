@@ -46,6 +46,8 @@ import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -423,7 +425,7 @@ public class SedaUtilsTest {
         when(workspaceClient.getObjectInformation(anyObject(), anyObject()))
             .thenReturn(getSedaTest());
         PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
-        utils = new SedaUtilsFactory().create(metadataFactory);        
+        utils = new SedaUtilsFactory().create(metadataFactory);
         long manifestSize = utils.getManifestSize(params);
         assertTrue(manifestSize > 0);
     }
@@ -432,7 +434,7 @@ public class SedaUtilsTest {
         when(workspaceClient.getObjectInformation(anyObject(), anyObject()))
             .thenReturn(getSedaTestError());
         PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
-        utils = new SedaUtilsFactory().create(metadataFactory);        
+        utils = new SedaUtilsFactory().create(metadataFactory);
         utils.getManifestSize(params);
     }
 
@@ -443,12 +445,12 @@ public class SedaUtilsTest {
         jsonNodeObjectInformation.put("container_name", "containerName");
         return jsonNodeObjectInformation;
     }
-    
+
     private JsonNode getSedaTestError(){
         ObjectNode jsonNodeObjectInformation = JsonHandler.createObjectNode();
         return jsonNodeObjectInformation;
     }
-    
+
     /*
      * @Test(expected = ProcessingException.class) public void
      * givenCorrectObjectGroupWhenCheckStorageAvailabilityThenKO() throws Exception {

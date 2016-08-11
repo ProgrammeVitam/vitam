@@ -26,9 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.rest;
 
-import java.io.File;
-import java.io.FileReader;
-
+import fr.gouv.vitam.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.common.server.VitamServerFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -36,13 +39,7 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-
-import fr.gouv.vitam.api.config.MetaDataConfiguration;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.VitamServerFactory;
+import java.io.File;
 
 /**
  * MetaData web server application
@@ -51,6 +48,7 @@ public class MetaDataApplication {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetaDataApplication.class);
 
     private static Server server;
+    private static VitamServer vitamServer;
     private MetaDataConfiguration configuration;
 
     private static final String CONFIG_FILE_IS_A_MANDATORY_ARGUMENT = "Config file is a mandatory argument";
@@ -64,12 +62,19 @@ public class MetaDataApplication {
     public static void main(String[] args) {
         try {
             new MetaDataApplication().configure(args);
-            server.join();
+
+            //TODO centraliser ce join dans un abstract parent
+            if (server!=null && server.isStarted()) {
+                server.join();
+            } else if (vitamServer!=null && vitamServer.getServer()!=null &&
+                vitamServer.getServer().isStarted()) {
+
+                vitamServer.getServer().join();
+            }
         } catch (final Exception e) {
             LOGGER.error(e.getMessage());
             System.exit(1);
         }
-
     }
 
 
@@ -84,19 +89,20 @@ public class MetaDataApplication {
 
         if (arguments.length >= 1) {
             try {
-                final FileReader yamlFile = new FileReader(new File(arguments[0]));
-                final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-                configuration = mapper.readValue(yamlFile, MetaDataConfiguration.class);
-                int serverPort = VitamServerFactory.getDefaultPort();
+                final File yamlFile = PropertiesUtils.findFile(arguments[0]);
+                configuration = PropertiesUtils.readYaml(yamlFile, MetaDataConfiguration.class);
 
+                //TODO ne plus gerer le port en 2e parametres.
+                //TODO Essayer de le setter dans le fichier de conf jetty
                 if (arguments.length >= 2) {
-                    serverPort = Integer.parseInt(arguments[1]);
+                    int serverPort = Integer.parseInt(arguments[1]);
                     if (serverPort <= 0) {
                         serverPort = VitamServerFactory.getDefaultPort();
                     }
+                    run(configuration, serverPort);
+                } else {
+                    run(configuration);
                 }
-                run(configuration, serverPort);
-
             } catch (final Exception e) {
                 LOGGER.error(e.getMessage());
                 throw new RuntimeException(e.getMessage());
@@ -110,13 +116,35 @@ public class MetaDataApplication {
     }
 
     /**
+     * run a server instance with the configuration only
+     *
+     * @param configuration as MetaDataConfiguration
+     * @throws Exception
+     */
+
+    public static void run(MetaDataConfiguration configuration) throws Exception {
+        final ResourceConfig resourceConfig = new ResourceConfig();
+        resourceConfig.register(JacksonFeature.class);
+        resourceConfig.register(new MetaDataResource(configuration));
+
+        final ServletContainer servletContainer = new ServletContainer(resourceConfig);
+        final ServletHolder sh = new ServletHolder(servletContainer);
+        final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+        context.setContextPath("/");
+        context.addServlet(sh, "/*");
+        String jettyConfig = configuration.getJettyConfig();
+        vitamServer = VitamServerFactory.newVitamServerByJettyConf(jettyConfig);
+        vitamServer.getServer().setHandler(context);
+        vitamServer.getServer().start();
+    }
+
+    /**
      * run a server instance with the configuration and port
      *
      * @param configuration as MetaDataConfiguration
      * @param serverPort port number of launched server
      * @throws Exception
      */
-
     public static void run(MetaDataConfiguration configuration, int serverPort) throws Exception {
         final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(JacksonFeature.class);
@@ -131,14 +159,20 @@ public class MetaDataApplication {
         server.setHandler(context);
         server.start();
     }
-    
+
     /**
      * Stops the server
      * @throws Exception
      */
     public static void stop() throws Exception {
-        if (server.isStarted()) {
+
+        //TODO centraliser ce stop dans un abstract parent
+        if (server!=null && server.isStarted()) {
             server.stop();
+        } else if (vitamServer!=null && vitamServer.getServer()!=null &&
+            vitamServer.getServer().isStarted()) {
+
+            vitamServer.getServer().stop();
         }
     }
 

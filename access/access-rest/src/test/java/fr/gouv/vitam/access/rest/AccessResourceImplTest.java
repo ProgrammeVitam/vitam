@@ -31,7 +31,6 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.BasicVitamServer;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import org.junit.AfterClass;
@@ -48,7 +47,7 @@ import static com.jayway.restassured.RestAssured.*;
 public class AccessResourceImplTest {
 
     // URI
-    private static final String ACCESS_CONF = "access.conf";
+    private static final String ACCESS_CONF = "access-test.conf";
     private static final String ACCESS_RESOURCE_URI = "access/v1";
     private static final String ACCESS_STATUS_URI = "/status";
     private static final String ACCESS_UNITS_URI = "/units";
@@ -83,7 +82,6 @@ public class AccessResourceImplTest {
     private static final String ID_UNIT = "identifier5";
     private static JunitHelper junitHelper;
     private static int port;
-    private static int serverPort;
 
 
     @BeforeClass
@@ -91,16 +89,15 @@ public class AccessResourceImplTest {
         junitHelper = new JunitHelper();
         port = junitHelper.findAvailablePort();
         try {
-            vitamServer = AccessApplication.startApplication(new String[] {
-                PropertiesUtils.getResourcesFile(ACCESS_CONF).getAbsolutePath(),
-                Integer.toString(port)});
-            ((BasicVitamServer) vitamServer).start();
+            AccessApplication.startApplication(new String[] {
+                PropertiesUtils.getResourcesFile(ACCESS_CONF).getAbsolutePath(), Integer.toString(port)} );
 
             RestAssured.port = port;
             RestAssured.basePath = ACCESS_RESOURCE_URI;
 
             LOGGER.debug("Beginning tests");
-        } catch (FileNotFoundException | VitamApplicationServerException e) {
+
+        } catch (FileNotFoundException e) {
             LOGGER.error(e);
             throw new IllegalStateException(
                 "Cannot start the Access Application Server", e);
@@ -111,12 +108,11 @@ public class AccessResourceImplTest {
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
         try {
-            ((BasicVitamServer) vitamServer).stop();
-            junitHelper.releasePort(serverPort);
+            AccessApplication.stop();
+            junitHelper.releasePort(port);
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
         }
-
     }
 
     // Status
@@ -163,11 +159,12 @@ public class AccessResourceImplTest {
     public void givenStartedServer_WhenBadRequest_ThenReturnError_BadRequest() throws Exception {
         given()
             .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
-            .body(buildDSLWithOptions(QUERY_TEST, DATA2))
-            .when().post(ACCESS_UNITS_URI).then().statusCode(Status.BAD_REQUEST.getStatusCode());
+            .body(buildDSLWithOptions(QUERY_TEST, DATA2)).
+        when()
+            .post(ACCESS_UNITS_URI).
+        then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
-
-
 
     @Test
     public void givenStartedServer_When_Empty_Http_Get_ThenReturnError_METHOD_NOT_ALLOWED() throws Exception {

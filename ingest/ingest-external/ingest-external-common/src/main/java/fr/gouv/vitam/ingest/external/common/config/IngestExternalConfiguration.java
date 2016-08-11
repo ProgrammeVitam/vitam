@@ -41,7 +41,8 @@ public class IngestExternalConfiguration {
 
     private String path;
     private String host;
-    private int port; 
+    private int port;
+    private String jettyConfig;
     
     /**
      * IngestExternalConfiguration empty constructor for YAMLFactory
@@ -98,4 +99,21 @@ public class IngestExternalConfiguration {
         return this;
     }
 
+    /**
+     *
+     * @return jettyConfig
+     */
+    public String getJettyConfig() {
+        return jettyConfig;
+    }
+
+    /**
+     *
+     * @param jettyConfig
+     * @return IngestExternalConfiguration
+     */
+    public IngestExternalConfiguration setJettyConfig(String jettyConfig) {
+        this.jettyConfig = jettyConfig;
+        return this;
+    }
 }

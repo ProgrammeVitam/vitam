@@ -30,6 +30,8 @@ package fr.gouv.vitam.common.server;
 import org.eclipse.jetty.server.Handler;
 
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.xml.XmlConfiguration;
 
 /**
  * Interface for every Vitam REST Server
@@ -65,4 +67,16 @@ public interface VitamServer {
      * @return the associated handler
      */
     public Handler getHandler();
+
+    /**
+     * retrieve the jettyServer
+     * @return the jetty server
+     */
+    public Server getServer();
+
+    /**
+     * get the configuration of jetty
+     * @return the config
+     */
+    public XmlConfiguration getServerConfiguration();
 }

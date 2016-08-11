@@ -21,70 +21,20 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.access.config;
+package fr.gouv.vitam.ingest.internal.upload.rest;
 
+import org.junit.Test;
 
-/**
- * AccessConfiguration contains database access informations
- */
-public class AccessConfiguration {
+import static org.junit.Assert.assertEquals;
 
-    private String urlMetaData;
-    private String jettyConfig;
+public class IngestInternalConfigurationTest {
 
-
-    /**
-     * AccessConfiguration empty constructor for YAMLFactory
-     */
-    public AccessConfiguration() {
-        // Empty constructor
+    @Test
+    public void givenIngestConfigurationWhenSetPropertiesThenGetSameProperties() {
+        IngestInternalConfiguration config = new IngestInternalConfiguration();
+        assertEquals("processingUrl", config.setProcessingUrl("processingUrl").getProcessingUrl());
+        assertEquals("workspaceUrl", config.setWorkspaceUrl("workspaceUrl").getWorkspaceUrl());
+        assertEquals("jettyConfig", config.setJettyConfig("jettyConfig").getJettyConfig());
     }
 
-    /**
-     * AccessConfiguration constructor
-     *
-     * @param urlMetaData
-     */
-    public AccessConfiguration(String urlMetaData) {
-        this.urlMetaData = urlMetaData;
-    }
-
-
-    /**
-     * getter UrlMetaData
-     *
-     * @return -url MetaData for type String
-     */
-    public String getUrlMetaData() {
-        return urlMetaData;
-    }
-
-    /**
-     * setter UrlMetaData
-     *
-     * @param urlMetaData
-     */
-    // TODO @return missing
-    public AccessConfiguration setUrlMetaData(String urlMetaData) {
-        this.urlMetaData = urlMetaData;
-        return this;
-    }
-
-    /**
-     * getter jettyConfig
-     * @return
-     */
-    public String getJettyConfig() {
-        return jettyConfig;
-    }
-
-    /**
-     * setter jettyConfig
-     * @param jettyConfig the jetty config
-     * @return
-     */
-    public AccessConfiguration setJettyConfig(String jettyConfig) {
-        this.jettyConfig = jettyConfig;
-        return this;
-    }
 }

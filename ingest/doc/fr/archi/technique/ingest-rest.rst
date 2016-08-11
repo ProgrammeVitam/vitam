@@ -22,3 +22,27 @@ La logique technique actuelle est la suivante :
 		
 		2.4) Fermeture de la page des opérations.
 
+
+-IngestInternalApplication.java
+
+classe de démarrage du serveur d'application de l'ingest interne.
+
+.. code-block:: java
+
+    // démarrage
+    public static void main(String[] args) {
+        try {
+            final VitamServer vitamServer = startApplication(args);
+            vitamServer.run();
+        } catch (final VitamApplicationServerException exc) {
+            LOGGER.error(exc);
+            throw new IllegalStateException("Cannot start the Ingest Internal  Application Server", exc);
+        }
+    }
+
+    Dans le startApplication on effectue le start de VitamServer. Le join est effectuer dans
+    run. Le startApplication permet d'être lancer par les tests unitaires. Il peut être configurer
+    avec un port d'écoute par les tests.
+
+    Dans le fichier de configuration, le paramètre jettyConfig est à
+    paramétrer avec le nom du fichier de configuration de jetty.
