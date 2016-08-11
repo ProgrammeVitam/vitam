@@ -160,6 +160,7 @@ public class SedaUtils {
     public static final String OBJECT_GROUP_ID_TO_GUID_MAP_FILE_NAME_PREFIX = "OBJECT_GROUP_ID_TO_GUID_MAP_";
     public static final String BDO_TO_OBJECT_GROUP_ID_MAP_FILE_NAME_PREFIX = "BDO_TO_OBJECT_GROUP_ID_MAP_";
     public static final String ARCHIVE_ID_TO_GUID_MAP_FILE_NAME_PREFIX = "ARCHIVE_ID_TO_GUID_MAP_";
+    public static final String BINARY_DATA_OBJECT_ID_TO_GUID_MAP_FILE_NAME_PREFIX = "BINARY_DATA_OBJECT_ID_TO_GUID_MAP_";
     public static final String TXT_EXTENSION = ".txt";
     private static final String LEVEL = "level_";
     private static final String EXEC = "Exec";
@@ -389,15 +390,18 @@ public class SedaUtils {
             if (directedCycle.isCyclic()) {
                 throw new CycleFoundException(GRAPH_CYCLE_MSG);
             }
-            // Save unitToGuidMap
-            saveArchiveUnitIdToGuidMap(containerId);
-
-
+            // Save unitToGuid Map
+            saveMap(containerId,unitIdToGuid.toString(),ARCHIVE_ID_TO_GUID_MAP_FILE_NAME_PREFIX );
+            
             // 2- create graph and create level
             createIngestLevelStackFile(client, containerId, new Graph(archiveUnitTree).getGraphWithLongestPaths());
 
             checkArchiveUnitIdReference();
             saveObjectGroupsToWorkspace(client, containerId);
+            
+            // Save binaryDataObjectIdToGuid Map
+            saveMap(containerId, binaryDataObjectIdToGuid.toString(), BINARY_DATA_OBJECT_ID_TO_GUID_MAP_FILE_NAME_PREFIX);
+            
         } catch (final XMLStreamException e) {
             LOGGER.error(CANNOT_READ_SEDA);
             throw new ProcessingException(e);
@@ -901,29 +905,12 @@ public class SedaUtils {
         }
     }
 
-    private void saveObjectGroupBdoMaps(String containerId) throws IOException {
-        // Save binaryDataObjectIdToObjectGroupId and objectGroupIdToGuid
+    private void saveMap(String containerId, String map, String fileNamePrefix) throws IOException {
+    	
         final File firstMapTmpFile = PropertiesUtils
-            .fileFromTmpFolder(BDO_TO_OBJECT_GROUP_ID_MAP_FILE_NAME_PREFIX + containerId + TXT_EXTENSION);
+            .fileFromTmpFolder(fileNamePrefix + containerId + TXT_EXTENSION);
         final FileWriter firstMapTmpFileWriter = new FileWriter(firstMapTmpFile);
-        firstMapTmpFileWriter.write(binaryDataObjectIdToObjectGroupId.toString());
-        firstMapTmpFileWriter.flush();
-        firstMapTmpFileWriter.close();
-
-        final File secondMapTmpFile = PropertiesUtils
-            .fileFromTmpFolder(OBJECT_GROUP_ID_TO_GUID_MAP_FILE_NAME_PREFIX + containerId + TXT_EXTENSION);
-        final FileWriter secondMapTmpFileWriter = new FileWriter(secondMapTmpFile);
-        secondMapTmpFileWriter.write(objectGroupIdToGuid.toString());
-        secondMapTmpFileWriter.flush();
-        secondMapTmpFileWriter.close();
-    }
-
-    private void saveArchiveUnitIdToGuidMap(String containerId) throws IOException {
-        // Save unitIdToGuid
-        final File firstMapTmpFile = PropertiesUtils
-            .fileFromTmpFolder(ARCHIVE_ID_TO_GUID_MAP_FILE_NAME_PREFIX + containerId + TXT_EXTENSION);
-        final FileWriter firstMapTmpFileWriter = new FileWriter(firstMapTmpFile);
-        firstMapTmpFileWriter.write(unitIdToGuid.toString());
+        firstMapTmpFileWriter.write(map);
         firstMapTmpFileWriter.flush();
         firstMapTmpFileWriter.close();
     }
@@ -934,7 +921,10 @@ public class SedaUtils {
 
         // Save maps
         try {
-            saveObjectGroupBdoMaps(containerId);
+         // Save binaryDataObjectIdToObjectGroupId
+            saveMap(containerId, binaryDataObjectIdToObjectGroupId.toString(), BDO_TO_OBJECT_GROUP_ID_MAP_FILE_NAME_PREFIX);
+         //  Save objectGroupIdToGuid
+            saveMap(containerId, objectGroupIdToGuid.toString(), OBJECT_GROUP_ID_TO_GUID_MAP_FILE_NAME_PREFIX);
         } catch (IOException e1) {
             LOGGER.error("Can not write to tmp folder ", e1);
             throw new ProcessingException(e1);
@@ -1888,13 +1878,35 @@ public class SedaUtils {
         if (versions == null || versions.isEmpty()) {
             return binaryObjectsToStore;
         }
+        
+
+    	final File objectIdToGuidMapFile = PropertiesUtils
+    			.fileFromTmpFolder(BINARY_DATA_OBJECT_ID_TO_GUID_MAP_FILE_NAME_PREFIX + containerId + TXT_EXTENSION);
+
+    	String objectIdToGuidStoredContent;
+		try {
+			objectIdToGuidStoredContent = FileUtil.readFile(objectIdToGuidMapFile);
+		} catch (IOException e) {
+			LOGGER.error(e);
+            throw new ProcessingException(e);
+		}
+    	Map<String, Object> objectIdToGuidStoredMap = getMapFromString(objectIdToGuidStoredContent);
+
+    	Map<Object, String> guidToUnitIdMap =
+    			objectIdToGuidStoredMap.entrySet()
+    			.stream()
+    			.collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
+        
         for (JsonNode version : versions) {
             for (JsonNode binaryObject : version) {
-                Optional<Entry<String, BinaryObjectInfo>> objectEntry =
-                    sedaUtilInfo.getBinaryObjectMap().entrySet().stream()
-                        .filter(entry -> entry.getKey().equals(binaryObject.get("_id").asText())).findFirst();
-                if (objectEntry.isPresent()) {
-                    binaryObjectsToStore.add(objectEntry.get().getValue());
+         
+            	String binaryObjectId=guidToUnitIdMap.get(binaryObject.get("_id").asText());
+            	
+            	Optional<Entry<String, BinaryObjectInfo>> objectEntry =
+            			sedaUtilInfo.getBinaryObjectMap().entrySet().stream()
+            			.filter(entry -> entry.getKey().equals(binaryObjectId)).findFirst();
+            	if (objectEntry.isPresent()) {
+            		binaryObjectsToStore.add(objectEntry.get().getValue());
                 }
             }
         }
