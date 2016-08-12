@@ -1,0 +1,3 @@
+---
+# vars file for storage-offer-default
+vitam_folder_data: "{{vitam_folder_root}}/storage-offer-default/data"

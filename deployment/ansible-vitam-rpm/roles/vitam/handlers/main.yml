@@ -1,2 +1,6 @@
 ---
 # handlers file for common
+- name: restart rsyslog
+  service:
+    name: rsyslog
+    state: restarted

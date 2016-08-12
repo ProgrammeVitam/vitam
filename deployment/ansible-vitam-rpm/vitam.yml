@@ -7,7 +7,7 @@
 
 - hosts: hosts-logbook
   roles:
-    - {role: vitam, vitam_component: logbook } 
+    - {role: vitam, vitam_component: logbook, java_args: /vitam/logbook/conf/logbook.conf } 
 
 - hosts: hosts-metadata
   roles:
@@ -20,11 +20,12 @@
 
 - hosts: hosts-ingest
   roles:
-    - {role: vitam, vitam_component: ingest, java_args: '/vitam/ingest/conf/ingest-rest.properties totally_useless_second_argument_but_mandatory' } 
+    - {role: vitam, vitam_component: ingest-internal, java_args: /vitam/ingest/conf/ingest-internal.conf } 
 
 - hosts: hosts-ingest-external
   roles:
-    - {role: vitam, vitam_component: ingest-external } 
+    - {role: vitam, vitam_component: ingest-external, java_args: /vitam/ingest/conf/ingest-external.conf}
+    - ingest-external
 
 - hosts: hosts-processing
   roles:
@@ -40,14 +41,19 @@
 
 - hosts: hosts-storage-engine
   roles:
-    - {role: vitam, vitam_component: storage-engine, java_args: '/vitam/storage-engine/conf/driver-location.conf /vitam/storage-engine/conf/driver-mapping.conf /vitam/storage-engine/conf/static-offer.json /vitam/storage-engine/conf/static-strategy.json /vitam/storage-engine/conf/storage-engine.conf' }
+    - {role: vitam, vitam_component: storage-engine, java_args: '/vitam/storage-engine/conf/storage-engine.conf' }
+    - storage-engine
 
 - hosts: hosts-storage-offer-default
   roles:
-    - {role: vitam, vitam_component: storage-offer-default, java_args: /vitam/ihm-demo/conf/storage-offer.conf } 
+    - {role: vitam, vitam_component: storage-offer-default, java_args: /vitam/ihm-demo/conf/storage-offer.conf }
+    - storage-offer-default
 
 
 - hosts: hosts-functional-administration
   roles:
-    - {role: vitam, vitam_component: functional-administration }
+    - {role: vitam, vitam_component: functional-administration, java_args: /vitam/functional-administration/conf/functional-administration.conf }
 
+- hosts: hosts-log-server
+  roles:
+    - log-server

@@ -1,0 +1,6 @@
+---
+# vars file for log-server
+elasticsearch_user: "elasticsearch"
+elasticsearch_max_open_files: "65535"
+
+elasticsearch_port: "9200"

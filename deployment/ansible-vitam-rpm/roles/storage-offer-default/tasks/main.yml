@@ -1,0 +1,30 @@
+---
+# tasks file for storage-offer-default
+- name: Install Apache package for displaying data content
+  yum:
+    name=httpd
+    state=latest
+  when: (ansible_distribution == "CentOS" )
+
+- name: Ensure  Apache autostart && Apache is started
+  service: 
+    name: httpd
+    enabled: yes
+    state: started
+  when: (ansible_distribution == "CentOS" )
+
+- name: add vitam group to apache user
+  user:
+    name=apache
+    groups=vitam
+
+- name: add configuration file for mapping # + notify httpd restart
+  template:
+    src="{{item}}.j2"
+    dest="/etc/httpd/conf.d/{{item}}"
+    mode=0500
+    owner=root
+  when: (ansible_distribution == "CentOS" )
+  notify: restart apache
+  with_items:
+  - "httpd-offer-view.conf"

@@ -1,0 +1,11 @@
+---
+# tasks file for engine-external
+- name: installe epel-release
+  yum:
+    name=epel-release
+    state=present
+
+- name: install ClamAV packages
+  yum:
+    name=clamav,clamav-update,clamav-server,clamav-data,clamav-update,clamav-filesystem,clamav,clamav-scanner-systemd,clamav-devel,clamav-lib,clamav-server-systemd
+    state=latest
