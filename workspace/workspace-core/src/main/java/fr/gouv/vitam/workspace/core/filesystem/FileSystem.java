@@ -26,15 +26,20 @@
  */
 package fr.gouv.vitam.workspace.core.filesystem;
 
+import java.awt.*;
+import java.io.File;
 import java.util.Properties;
 
 import org.jclouds.ContextBuilder;
 import org.jclouds.blobstore.BlobStoreContext;
 import org.jclouds.filesystem.reference.FilesystemConstants;
+import org.jclouds.providers.ProviderMetadata;
 
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.model.ContainerInformation;
 import fr.gouv.vitam.workspace.core.ContentAddressableStorageAbstract;
 
 
@@ -58,7 +63,34 @@ public class FileSystem extends ContentAddressableStorageAbstract {
         props.setProperty(FilesystemConstants.PROPERTY_BASEDIR, configuration.getStoragePath());
         LOGGER.info("Get File System Context");
         return ContextBuilder.newBuilder("filesystem").overrides(props).buildView(BlobStoreContext.class);
-
     }
 
+    @Override
+    public ContainerInformation getContainerInformation(String containerName) throws
+        ContentAddressableStorageNotFoundException {
+        File baseDirFile = getBaseDir(containerName);
+        long usableSpace = baseDirFile.getUsableSpace();
+        long totalSpace = baseDirFile.getTotalSpace();
+        long usedSpace = totalSpace - usableSpace;
+        ContainerInformation containerInformation = new ContainerInformation();
+        containerInformation.setUsableSpace(usableSpace);
+        containerInformation.setUsedSpace(usedSpace);
+        return containerInformation;
+    }
+
+    private File getBaseDir(String containerName) throws ContentAddressableStorageNotFoundException {
+        ProviderMetadata providerMetadata = context.unwrap().getProviderMetadata();
+        Properties properties = providerMetadata.getDefaultProperties();
+        String baseDir = properties.getProperty(FilesystemConstants.PROPERTY_BASEDIR);
+        File baseDirFile;
+        if (containerName != null) {
+            baseDirFile = new File(baseDir, containerName);
+        } else {
+            baseDirFile = new File(baseDir);
+        }
+        if (!baseDirFile.exists()) {
+            throw new ContentAddressableStorageNotFoundException("Storage not found");
+        }
+        return baseDirFile;
+    }
 }

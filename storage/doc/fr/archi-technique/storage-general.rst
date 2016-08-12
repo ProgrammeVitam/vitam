@@ -48,3 +48,13 @@ Limites :
 - le **référentiel des stratégies de stockage** n'est pas encore implémenté, de ce fait la *stratégie de stockage* est définie de manière statique
 - seule l'**offre de stockage** utilisant une partie du module workspace est disponible
 - la vérification de la disponibilité n'est pas encore implémenté.
+
+Itération 7
+-----------
+
+Implémentation de la disponibilité / capacité.
+
+Limites :
+
+- Une seule offre, ainsi la logique est simplifiée au niveau du distributeur qui ne gère alors pas le multi-offres
+- La gestion des erreurs est très basique, il serait certainement intéressant de gérer ces erreurs plus finement

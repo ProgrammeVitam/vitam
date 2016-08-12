@@ -47,11 +47,14 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.io.ByteStreams;
 
 import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
@@ -61,6 +64,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExi
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.api.model.ContainerInformation;
 import fr.gouv.vitam.workspace.core.filesystem.FileSystem;
 
 /**
@@ -176,6 +180,15 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     @Override
     public boolean isObjectExist(String containerName, String objectId) {
         return defaultStorage.isExistingObject(containerName, objectId);
+    }
+
+    @Override
+    public JsonNode getCapacity(String containerName) throws ContentAddressableStorageNotFoundException {
+        ObjectNode result = JsonHandler.createObjectNode();
+        ContainerInformation containerInformation = defaultStorage.getContainerInformation(containerName);
+        result.put("usableSpace", containerInformation.getUsableSpace());
+        result.put("usedSpace", containerInformation.getUsedSpace());
+        return result;
     }
 
     private DigestType getDigestAlgoFor(String id) {

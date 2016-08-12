@@ -49,6 +49,8 @@ import java.nio.file.Paths;
 import org.junit.After;
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
@@ -195,5 +197,27 @@ public class DefaultOfferServiceTest {
         }
         objectInit.setSize(file.length());
         return objectInit;
+    }
+
+    @Test
+    public void getCapacityOk() throws Exception {
+        DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
+        assertNotNull(offerService);
+
+        // container
+        ObjectInit objectInit = getObjectInit(false);
+        objectInit = offerService.createContainer(CONTAINER_PATH, objectInit, OBJECT_ID);
+        // check
+        assertEquals(OBJECT_ID, objectInit.getId());
+        StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+            StorageConfiguration.class);
+        File container = new File(conf.getStoragePath() + CONTAINER_PATH);
+        assertTrue(container.exists());
+        assertTrue(container.isDirectory());
+
+        JsonNode jsonNode = offerService.getCapacity(CONTAINER_PATH);
+        assertNotNull(jsonNode);
+        assertNotNull(jsonNode.get("usableSpace"));
+        assertNotNull(jsonNode.get("usedSpace"));
     }
 }

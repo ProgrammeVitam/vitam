@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -49,11 +50,14 @@ import org.jclouds.blobstore.domain.StorageMetadata;
 import org.jclouds.blobstore.domain.StorageType;
 import org.jclouds.blobstore.options.ListContainerOptions;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.workspace.api.ContentAddressableStorage;
@@ -61,6 +65,7 @@ import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.model.ContainerInformation;
 import fr.gouv.vitam.workspace.common.ErrorMessage;
 import fr.gouv.vitam.workspace.common.UriUtils;
 import fr.gouv.vitam.workspace.common.WorkspaceMessage;
@@ -74,8 +79,8 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(ContentAddressableStorageAbstract.class);
 
-    private final BlobStoreContext context;
-
+    // TODO: passed to protected but is it desired ? Better with getter ?
+    protected final BlobStoreContext context;
 
     private static final String TMP_FOLDER = "/tmp/";
     private static final String EMPTY_STRING = "";
@@ -111,11 +116,6 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
                 throw new ContentAddressableStorageAlreadyExistException(
                     ErrorMessage.CONTAINER_ALREADY_EXIST.getMessage() + containerName);
             }
-
-        } catch (final ContentAddressableStorageAlreadyExistException e) {
-            // FIXME REVIEW You already log the same message before throwing the exception
-            LOGGER.error(e.getMessage());
-            throw e;
         } finally {
             context.close();
         }
@@ -136,10 +136,6 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
                 blobStore.clearContainer(containerName);
             }
 
-        } catch (final ContentAddressableStorageNotFoundException e) {
-            // FIXME REVIEW You already log the same message before throwing the exception
-            LOGGER.error(e.getMessage());
-            throw e;
         } finally {
             context.close();
         }
@@ -173,10 +169,6 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
                 blobStore.deleteContainerIfEmpty(containerName);
             }
 
-        } catch (final ContentAddressableStorageNotFoundException e) {
-            // FIXME REVIEW You already log the same message before throwing the exception
-            LOGGER.error(e.getMessage());
-            throw e;
         } finally {
             context.close();
         }
@@ -327,10 +319,6 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
             }
 
             blobStore.removeBlob(containerName, objectName);
-        } catch (final ContentAddressableStorageNotFoundException e) {
-            // FIXME REVIEW You already log the same message before throwing the exception
-            LOGGER.error(e.getMessage());
-            throw e;
         } finally {
             context.close();
         }
@@ -445,6 +433,9 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
        extractZippedInputStreamOnContainer(containerName, folderName, inputStreamObject);
     }
 
+    @Override
+    public abstract ContainerInformation getContainerInformation(String containerName) throws ContentAddressableStorageNotFoundException;
+
     /**
      * extract compressed SIP and push the objects on the SIP folder
      *
@@ -493,6 +484,42 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
 
     }
 
+    
+    @Override
+    public JsonNode getObjectInformation(String containerName, String objectName) throws ContentAddressableStorageException {
+        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            containerName, objectName);
+        ObjectNode jsonNodeObjectInformation = null;
+        try {
+            final BlobStore blobStore = context.getBlobStore();
+
+            if (!isExistingObject(containerName, objectName)) {
+                LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
+                throw new ContentAddressableStorageNotFoundException(
+                    ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
+            }
+            final Blob blob = blobStore.getBlob(containerName, objectName);
+            if (null != blob && null != blob.getMetadata()) {
+                Long size = blob.getMetadata().getSize();
+                jsonNodeObjectInformation = JsonHandler.createObjectNode();
+                jsonNodeObjectInformation.put("size", size);
+                jsonNodeObjectInformation.put("object_name", objectName);
+                jsonNodeObjectInformation.put("container_name", containerName);
+            }
+        } catch (final ContainerNotFoundException e) {
+            LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
+            throw new ContentAddressableStorageNotFoundException(e);
+        } catch (final ContentAddressableStorageNotFoundException e) {
+            LOGGER.error(e.getMessage());
+            throw e;
+        } catch (final Exception e) {
+            LOGGER.error(e.getMessage());
+            throw new ContentAddressableStorageException(e);
+        } finally {
+            context.close();
+        }
+        return jsonNodeObjectInformation;        
+    }
 
     private String getExtensionFile(String name) {
 

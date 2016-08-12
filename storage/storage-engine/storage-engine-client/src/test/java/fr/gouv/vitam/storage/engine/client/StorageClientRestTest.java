@@ -237,31 +237,30 @@ public class StorageClientRestTest extends JerseyTest {
     @Test
     public void getContainerInfos() throws Exception {
         when(mock.get()).thenReturn(Response.status(Response.Status.OK).build());
-        client.getStorageInfos("idTenant", "idStrategy");
+        client.getStorageInformation("idTenant", "idStrategy");
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void getContainerInfosWithTenantIllegalArgumentException() throws Exception {
         when(mock.get()).thenReturn(Response.status(Response.Status.OK).build());
-        client.getStorageInfos("", "idStrategy");
+        client.getStorageInformation("", "idStrategy");
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void getContainerInfosWithStrategyIllegalArgumentException() throws Exception {
         when(mock.get()).thenReturn(Response.status(Response.Status.OK).build());
-        client.getStorageInfos("idTenant", null);
-    }
-
-    @Test(expected = VitamClientException.class)
-    public void getContainerInfosException() throws Exception {
-        when(mock.get()).thenReturn(Response.status(Status.NOT_IMPLEMENTED).build());
-        client.getStorageInfos("idTenant", "idStrategy");
+        client.getStorageInformation("idTenant", null);
     }
 
     @Test(expected = StorageNotFoundClientException.class)
     public void getContainerInfosNotFound() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.getStorageInfos("idTenant", "idStrategy");
+        client.getStorageInformation("idTenant", "idStrategy");
+    }
+    @Test(expected = StorageServerClientException.class)
+    public void getContainerInfosInternalServerError() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        client.getStorageInformation("idTenant", "idStrategy");
     }
 
     @Test

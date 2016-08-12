@@ -56,13 +56,13 @@ public class StorageClientMockTest {
     }
 
     @Test
-    public void storageInfos() throws VitamClientException {
+    public void storageInfos() throws Exception {
         JsonNode expectedResult =
-            new ObjectMapper().convertValue(StorageClientMock.MOCK_INFOS_RESULT.replace("{id}", "idTenant"),
+            new ObjectMapper().convertValue(StorageClientMock.MOCK_INFOS_RESULT,
                 JsonNode.class);
         StorageClientFactory.setConfiguration(StorageClientFactory.StorageClientType.MOCK_STORAGE, null);
         final StorageClient client = StorageClientFactory.getInstance().getStorageClient();
-        JsonNode result = client.getStorageInfos("idTenant", "idStrategy");
+        JsonNode result = client.getStorageInformation("idTenant", "idStrategy");
         assertEquals(result, expectedResult);
     }
 

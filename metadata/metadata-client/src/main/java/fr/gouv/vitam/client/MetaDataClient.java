@@ -138,7 +138,7 @@ public class MetaDataClient {
             client.target(url).path("units").request(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON).header(X_HTTP_METHOD, "GET")
                 .post(Entity.entity(selectQuery, MediaType.APPLICATION_JSON), Response.class);
-
+        
         if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
             throw new MetaDataExecutionException("Internal Server Error");
         } else if (response.getStatus() == Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode()) {

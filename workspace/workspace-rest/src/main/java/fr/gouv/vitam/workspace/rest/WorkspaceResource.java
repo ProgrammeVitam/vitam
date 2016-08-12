@@ -49,19 +49,22 @@ import javax.ws.rs.core.Response.Status;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.model.ContainerInformation;
 import fr.gouv.vitam.workspace.common.Entry;
 import fr.gouv.vitam.workspace.common.ErrorMessage;
-import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.workspace.core.ContentAddressableStorageAbstract;
 import fr.gouv.vitam.workspace.core.filesystem.FileSystem;
 
@@ -336,6 +339,34 @@ public class WorkspaceResource {
         return Response.ok(stream, MediaType.APPLICATION_OCTET_STREAM).header("Content-Length", stream.available())
             .header("Content-Disposition", "attachment; filename=\"" + objectName + "\"").build();
     }
+    
+    /**
+     * gets an objects from a container in the workspace
+     *
+     * @param containerName name of container
+     * @param objectName name of object
+     * @return Response
+     * @throws IOException when there is an error of get object
+     */
+    @Path("containers/{containerName}/objects/{objectName:.*}")
+    @GET
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getObjectInformation(@PathParam("containerName") String containerName,
+        @PathParam("objectName") String objectName) throws IOException {
+        JsonNode jsonResultNode;
+        try {
+            jsonResultNode = workspace.getObjectInformation(containerName, objectName);            
+        } catch (final ContentAddressableStorageNotFoundException e) {
+            LOGGER.error(e.getMessage());
+            return Response.status(Status.NOT_FOUND).entity(containerName).build();
+        } catch (final ContentAddressableStorageException e) {
+            LOGGER.error(e.getMessage());
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
+        }
+
+        return Response.status(Status.OK).entity(jsonResultNode).build();
+    }
 
     /**
      * checks if a object exists in an container or compute object Digest
@@ -463,5 +494,23 @@ public class WorkspaceResource {
 
     }
 
+    /**
+     * Get container information like capacity
+     *
+     * @param containerName the container name
+     * @return a Json with usableSpace and usedSpace information
+     */
+    @Path("/container/{containerName}")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getContainerInformation(@PathParam("containerName") String containerName) {
+        try {
+            ContainerInformation containerInformation = workspace.getContainerInformation(containerName);
+            return Response.status(Status.OK).entity(containerInformation).build();
+        } catch (ContentAddressableStorageNotFoundException exc) {
+            LOGGER.error(exc.getMessage());
+            return Response.status(Status.NOT_FOUND).entity(containerName).build();
+        }
+    }
 }
 

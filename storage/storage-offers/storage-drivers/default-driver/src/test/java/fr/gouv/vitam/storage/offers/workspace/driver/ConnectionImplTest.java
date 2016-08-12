@@ -39,6 +39,8 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.model.PutObjectRequest;
 import fr.gouv.vitam.storage.driver.model.PutObjectResult;
+import fr.gouv.vitam.storage.driver.model.StorageCapacityRequest;
+import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 
 public class ConnectionImplTest extends JerseyTest {
@@ -77,6 +79,13 @@ public class ConnectionImplTest extends JerseyTest {
         @Path("/status")
         @Produces(MediaType.APPLICATION_JSON)
         public Response getStatus() {
+            return expectedResponse.get();
+        }
+
+        @GET
+        @Path("/objects")
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getContainerInformation() {
             return expectedResponse.get();
         }
 
@@ -228,12 +237,6 @@ public class ConnectionImplTest extends JerseyTest {
         connection.putObject(request);
     }
 
-
-    @Test(expected = UnsupportedOperationException.class)
-    public void getStorageRemainingCapacityNotImplemented() throws Exception {
-        connection.getStorageRemainingCapacity();
-    }
-
     @Test(expected = UnsupportedOperationException.class)
     public void putObjectNotImplemented() throws Exception {
         connection.putObject(null, null);
@@ -249,6 +252,24 @@ public class ConnectionImplTest extends JerseyTest {
         connection.getObject(null);
     }
 
+    @Test
+    public void getStorageCapacityOK() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(getStorageCapacityResult()).build());
+        StorageCapacityRequest request = new StorageCapacityRequest();
+        request.setTenantId("0");
+        StorageCapacityResult result = connection.getStorageCapacity(request);
+        assertNotNull(result);
+        assertNotNull(result.getUsableSpace());
+        assertNotNull(result.getUsedSpace());
+    }
+
+    @Test(expected = StorageDriverException.class)
+    public void getStorageCapacityException() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        StorageCapacityRequest request = new StorageCapacityRequest();
+        request.setTenantId("0");
+        connection.getStorageCapacity(request);
+    }
 
     private PutObjectRequest getPutObjectRequest(boolean dataS, boolean digestA, boolean guid, boolean tenantId)
         throws Exception {
@@ -283,6 +304,13 @@ public class ConnectionImplTest extends JerseyTest {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode actualObj = mapper.readTree("{\"digest\":\"aaakkkk" + uniqueId + "\"}");
         return actualObj;
+    }
+
+    private JsonNode getStorageCapacityResult() throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode result = mapper.readTree("{\"usableSpace\":\"100000\"," +
+            "\"usedSpace\":\"100000\"}");
+        return result;
     }
 
 }

@@ -30,11 +30,14 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.api.model.ContainerInformation;
 
 /**
  * The ContentAddressableStorage interface.
@@ -236,4 +239,26 @@ public interface ContentAddressableStorage {
     public String computeObjectDigest(String containerName, String objectName, DigestType algo)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, ContentAddressableStorageException;
 
+    /**
+     * Get container information like capacity
+     *
+     * @param containerName the container name
+     * @return container information like usableSpace and usedSpace
+     * @throws ContentAddressableStorageNotFoundException thrown when storage is not available or container does not
+     * exist
+     */
+    ContainerInformation getContainerInformation(String containerName) throws ContentAddressableStorageNotFoundException;
+    
+    /**
+     * Retrieves information about an object at location containerName/objectName
+     *
+     * @param containerName container where the object is.
+     * @param objectName fully qualified name relative to the container.
+     * @return the object informations as a JsonNode object
+     *
+     * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
+     * @throws ContentAddressableStorageException Thrown when get action failed due some other failure 
+     */
+    public JsonNode getObjectInformation(String containerName, String objectName)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
 }

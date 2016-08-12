@@ -41,6 +41,15 @@
     },
     {
     "workerGroupId" :"DefaultWorker",
+        "stepName":"Check Storage Availability",
+        "distribution" : {
+        	"kind":"REF",
+        	"element" : "SIP/manifest.xml"
+        	},
+        "actions":[{"action":"CheckStorageAvailability"}]
+    },    
+    {
+    "workerGroupId" :"DefaultWorker",
         "stepName":"Index Unit",
           "distribution" : {
         	"kind":"LIST",
@@ -57,7 +66,7 @@
         	"element" : "ObjectGroup"
         	},
         "actions":[{"action":"StoreObjectGroup"}]
-    },
+    },    
     {
     "workerGroupId" :"DefaultWorker",
         "stepName":"Index ObjectGroup",

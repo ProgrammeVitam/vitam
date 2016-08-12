@@ -52,53 +52,53 @@ Le client propose actuellement 4 fonctionnalités nécéssitant toutes deux para
 
 Ces fonctionnalités sont :
 
-- la récupération des informations sur une offre de stockage pour une stratégie (disponibilité et capacité -- pas encore implémenté côté serveur) :
+- la récupération des informations sur une offre de stockage pour une stratégie (disponibilité et capacité) :
 
 .. code-block:: java
 
-	JsonNode result = client.getStorageInfos("0", "default");
+	JsonNode result = client.getContainerInformation("0", "default");
 
-- l'envoi d'un objet sur une offre de stockage selon une stratégie donnée :
-	- pour les objets contenus dans le workspace (objets binaires) :
+ - l'envoi d'un objet sur une offre de stockage selon une stratégie donnée :
+   - pour les objets contenus dans le workspace (objets binaires) :
+   
+.. code-block:: java
 
-	.. code-block:: java
+	JsonNode result = storeFileFromWorkspace("0", "default", StorageCollectionType.OBJECTS, "aeaaaaaaaaaam7mxaaaamakv3x3yehaaaaaq");
 
-		JsonNode result = storeFileFromWorkspace("0", "default", StorageCollectionType.OBJECTS, "aeaaaaaaaaaam7mxaaaamakv3x3yehaaaaaq");
+   - pour les metadatas Json (objectGroup, unit, logbook -- pas encore implémenté côté serveur) :
 
-	- pour les metadatas Json (objectGroup, unit, logbook -- pas encore implémenté côté serveur) :
-
-	.. code-block:: java
+.. code-block:: java
 
 		JsonNode result = storeJson("0", "default", StorageCollectionType.UNIT, "aeaaaaaaaaaam7mxaaaamakv3x3yehaaaaaq");
 
-- la vérification de l'existance d'un objet dans l'offre de stockage selon  une stratégie donnée :
-  - pour les conteneurs (pas encore implémenté côté serveur) :
+ - la vérification de l'existance d'un objet dans l'offre de stockage selon  une stratégie donnée :
+   - pour les conteneurs (pas encore implémenté côté serveur) :
 
-	.. code-block:: java
+.. code-block:: java
 
 		boolean exist = existsContainer("0", "default");
 
-	- pour les autres objets (object, objectGroup, unit, logbook -- implémenté côté serveur uniquement pour object) :
+   - pour les autres objets (object, objectGroup, unit, logbook -- implémenté côté serveur uniquement pour object) :
 
-	.. code-block:: java
+.. code-block:: java
 
 		boolean exist = exists("0", "default", StorageCollectionType.OBJECTS, "aeaaaaaaaaaam7mxaaaamakv3x3yehaaaaaq");
 
-- la suppression d'un objet dans l'offre de stockage selon  une stratégie donnée :
-	- pour les conteneurs  (pas encore implémenté côté serveur) :
+ - la suppression d'un objet dans l'offre de stockage selon  une stratégie donnée :
+   - pour les conteneurs  (pas encore implémenté côté serveur) :
 
-	.. code-block:: java
+.. code-block:: java
 
-		boolean deleted = deleteContainer("0", "default");
+   boolean deleted = deleteContainer("0", "default");   
 
-	- pour les autres objets (object, objectGroup, unit, logbook -- implémenté côté serveur uniquement pour object) :
+   - pour les autres objets (object, objectGroup, unit, logbook -- implémenté côté serveur uniquement pour object) :
 
-	.. code-block:: java
+.. code-block:: java
 
-		boolean deleted = delete("0", "default", StorageCollectionType.OBJECTS, "aeaaaaaaaaaam7mxaaaamakv3x3yehaaaaaq");
+   boolean deleted = delete("0", "default", StorageCollectionType.OBJECTS, "aeaaaaaaaaaam7mxaaaamakv3x3yehaaaaaq");
 
 
-La récupération du status est également disponible :
+- La récupération du status est également disponible :
 
 .. code-block:: java
 
