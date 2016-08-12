@@ -48,6 +48,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
+import fr.gouv.vitam.api.exception.MetaDataExecutionException;
+import fr.gouv.vitam.api.exception.MetadataInvalidSelectException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 
@@ -115,6 +117,14 @@ public class SelectMetaDataClientTest extends JerseyTest {
         public Response selectUnitbyId(String insertRequest) {
             return expectedResponse.get();
         }
+        
+        @Path("objectgroups/{id_og}")
+        @POST
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response selectObjectGrouptbyId(String selectRequest) {
+            return expectedResponse.get();
+        }
     }
 
     @Test(expected = Exception.class)
@@ -176,6 +186,47 @@ public class SelectMetaDataClientTest extends JerseyTest {
     public void given_InvalidRequest_When_SelectBYiD_ThenReturn_BadRequest() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         client.selectUnitbyId(QUERY_ID, "unitId");
+    }
+    
+    
+    @Test(expected = MetaDataExecutionException.class)
+    public void given_internal_server_error_whenSelectObjectGroupById_ThenReturn_MetaDataExecutionException() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        client.selectObjectGrouptbyId(QUERY_ID, "ogId");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void given_blankQuery_whenSelectObjectGroupById_ThenReturn_MetadataInvalidSelectException() throws Exception {        
+        client.selectObjectGrouptbyId("", "");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void given_QueryAndBlankUnitId_whenSelectObjectGroupById_ThenReturn_internal_server_error() throws Exception {
+        client.selectObjectGrouptbyId(QUERY_ID, "");
+    }
+
+    @Test(expected = MetaDataDocumentSizeException.class)
+    public void given_EntityTooLargeRequest_When_selectObjectGroupById_ThenReturn_RequestEntityTooLarge() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.REQUEST_ENTITY_TOO_LARGE).build());
+        client.selectObjectGrouptbyId(QUERY_ID, "ogId");
+    }
+
+    @Test(expected = InvalidParseOperationException.class)
+    public void given_InvalidRequest_When_SelectObjectGroupById_ThenReturn_BadRequest() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+        client.selectObjectGrouptbyId(QUERY_ID, "ogId");
+    }
+    
+    @Test(expected = MetadataInvalidSelectException.class)
+    public void given_InvalidRequest_When_SelectObjectGroupById_ThenReturn_PreconditionFailed() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        client.selectObjectGrouptbyId(QUERY_ID, "ogId");
+    }
+    
+    @Test
+    public void given_ValidRequest_When_SelectObjectGroupById_ThenReturn_OK() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.OK).build());
+        client.selectObjectGrouptbyId(QUERY_ID, "ogId");
     }
 
 }

@@ -91,6 +91,26 @@ public interface MetaData {
         MetaDataDocumentSizeException;
 
     /**
+     * Search ObjectGroups by its Id and a Select Query <br>
+     * for this method, the roots will be filled<br>
+     * for example request :{
+     * <h3>$roots:[{id:"id"}]</h3>,<br>
+     * $query{}, ..}
+     *
+     * @param selectQuery the query to filter results and make projections
+     * @param objectGroupId the objectgroup id
+     * @return JsonNode {$hits{},$context{},$result:[{}....{}],} <br>
+     *         $context will be added later (Access)</br>
+     *         $result array of objectgroups(can be empty)
+     * @throws InvalidParseOperationException Thrown when json format is not correct
+     * @throws MetaDataExecutionException Throw if error occurs when send Unit to database
+     * @throws MetaDataDocumentSizeException Throw if Unit size is too big
+     *
+     */
+    JsonNode selectObjectGroupById(String selectQuery, String objectGroupId)
+        throws InvalidParseOperationException, MetaDataDocumentSizeException, MetaDataExecutionException;
+
+    /**
      * Update UNITs by Id {@link Update}Query <br>
      * for this method, the roots will be filled<br>
      * for example request :{
