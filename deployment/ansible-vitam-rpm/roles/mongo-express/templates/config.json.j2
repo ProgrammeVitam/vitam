@@ -1,0 +1,32 @@
+{
+        "auths": {
+                "{{docker_registry_private}}": {
+                        "auth": "{{docker_credentials | b64encode}}",
+                        "email": "{{app_jenkins_remote_email}}"
+                },
+                "{{docker_registry_proxy}}": {
+                        "auth": "{{docker_credentials | b64encode}}",
+                        "email": "{{app_jenkins_remote_email}}"
+                },
+                "{{docker_registry_group}}": {
+                        "auth": "{{docker_credentials | b64encode}}",
+                        "email": "{{app_jenkins_remote_email}}"
+                },
+                "{{docker_registry_private_long}}": {
+                        "auth": "{{docker_credentials | b64encode}}",
+                        "email": "{{app_jenkins_remote_email}}"
+                },
+                "{{docker_registry_proxy_long}}": {
+                        "auth": "{{docker_credentials | b64encode}}",
+                        "email": "{{app_jenkins_remote_email}}"
+                },
+                "{{docker_registry_group_long}}": {
+                        "auth": "{{docker_credentials | b64encode}}",
+                        "email": "{{app_jenkins_remote_email}}"
+                },
+                "{{docker_registry_externe}}": {
+                        "auth": "{{docker_credentials | b64encode}}",
+                        "email": "{{app_jenkins_remote_email}}"
+                }
+        }
+}

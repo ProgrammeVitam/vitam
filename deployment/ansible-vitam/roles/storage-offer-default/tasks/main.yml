@@ -26,6 +26,7 @@
   - "logback.xml"
   - "default-offer.conf"
   - "default-storage.conf"
+  - "antisamy-esapi.xml.j2"
 
 - name: Deploy VITAM docker file
   docker:

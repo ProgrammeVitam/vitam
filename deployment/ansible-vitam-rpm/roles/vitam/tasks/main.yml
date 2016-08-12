@@ -1,10 +1,22 @@
 ---
 # tasks file for common
+- name: yum install rsyslog
+  yum:
+    name: rsyslog
+    state: latest
+
+- name: add rsyslog conf for VITAM "log central"
+  template:
+    src: vitam_transport.conf.j2
+    dest: /etc/rsyslog.d/vitam_transport.conf
+  notify:
+    - restart rsyslog
 
 - name: Install rpm
   yum: 
     name: "{{ rpm_name }}"
     state: latest
+    update_cache: yes
 # OMA : question : lastest ou fixer la version dans les fichiers d'inventaire ???
 
 - name: Deploy common configuration files
@@ -19,6 +31,7 @@
     - "server-identity.conf"
     - "logback.xml"
     - "setenv.sh"
+    - "antisamy-esapi.xml"
 
 - name: Deploy specific configuration files (can override the common configuration files)
   template:
@@ -45,6 +58,7 @@
     owner: "{{ vitam_user}}"
     group: "{{ vitam_group }}"
     mode: "0750"
+    recurse: yes # Added if someone uses root...
   with_items:
     - app
     - bin
@@ -52,8 +66,12 @@
     - lib
     - log 
     - data
+    - tmp
 
-- name: start service
+- name: systemctl reload-daemon
+  command: systemctl daemon-reload
+
+- name: (re)-start service
   service: 
     name: "{{ vitam_component }}"
     enabled: true

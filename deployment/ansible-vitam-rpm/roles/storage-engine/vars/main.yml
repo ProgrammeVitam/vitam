@@ -1,0 +1,6 @@
+---
+# vars file for storage-engine
+vitam_component: "storage-engine"
+vitam_folder_conf: "{{vitam_folder_root}}/{{vitam_component}}/conf"
+vitam_folder_log: "{{vitam_folder_root}}/{{vitam_component}}/log"
+vitam_folder_data: "{{vitam_folder_root}}/{{vitam_component}}/data"

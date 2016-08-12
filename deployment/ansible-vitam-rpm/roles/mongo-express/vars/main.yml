@@ -2,3 +2,21 @@
 # vars file for mongo-express
 vitam_docker_port_http: 8081
 vitam_docker_port_internal: 8081
+
+local_username: "root"
+
+app_jenkins_remote_username: "app-jenkins"
+app_jenkins_remote_password: "Jcq2<5rQ]aN52{H]"
+app_jenkins_remote_email: "support.vitam@programmevitam.fr"
+
+#docker_registry_hostname: "vitam-prod-app-6.internet.agri:8082"
+docker_registry_externe: "docker.programmevitam.fr"
+docker_registry_private: "vitam-prod-app-6:8082"
+docker_registry_proxy: "vitam-prod-app-6:8083"
+docker_registry_group: "vitam-prod-app-6:8084"
+docker_registry_private_long: "vitam-prod-app-6.internet.agri:8082"
+docker_registry_proxy_long: "vitam-prod-app-6.internet.agri:8083"
+docker_registry_group_long: "vitam-prod-app-6.internet.agri:8084"
+docker_registry_hostname: "docker.programmevitam.fr"
+
+docker_credentials: "{{app_jenkins_remote_username}}:{{app_jenkins_remote_password}}"

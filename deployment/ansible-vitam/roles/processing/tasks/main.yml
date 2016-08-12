@@ -27,6 +27,7 @@
   - "logback.xml"
   - "version.conf"
   - "storage-client.conf"
+  - "antisamy-esapi.xml.j2"
 
 - name: Deploy VITAM docker file
   docker:

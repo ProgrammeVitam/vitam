@@ -28,7 +28,7 @@
   - "setenv.sh"
   - "logback.xml"
   - "scan-clamav.sh"
-
+  - "antisamy-esapi.xml.j2"
 
 - name: Deploy VITAM docker file
   docker:

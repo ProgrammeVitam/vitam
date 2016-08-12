@@ -1,0 +1,9 @@
+---
+# tasks file for storage-engine
+- name: copy file for driver in data
+  copy:
+    src=fr.gouv.vitam.storage.offers.workspace.driver.DriverImpl
+    dest={{vitam_folder_data}}/fr.gouv.vitam.storage.offers.workspace.driver.DriverImpl
+    owner={{local_user}}
+    group=vitam
+    mode={{vitam_conf_permission}}

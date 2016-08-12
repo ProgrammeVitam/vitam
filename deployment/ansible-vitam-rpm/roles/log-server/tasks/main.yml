@@ -1,0 +1,184 @@
+---
+# tasks file for log-server
+- name: install java (prerequisite for other components)
+  yum:
+    name=java-1.8.0
+    state=latest
+
+# - name: import ElasticSearch key
+#   rpm_key: 
+#     state=present 
+#     key=https://packages.elastic.co/GPG-KEY-elasticsearch
+#     validate_certs=no
+#   environment:
+#     https_proxy: https://{{https_reverse_proxy}}
+
+# - name: copy elastic repository file
+#   copy:
+#     src=elastic.repo
+#     dest=/etc/yum.repos.d/elastic.repo
+#     owner=root
+#     mode=0644
+
+
+- name: install elasticsearch rpm
+  yum:
+    name: elasticsearch
+    state: latest
+
+- name: create elasticsearch home directory
+  file:
+    path: /home/elasticsearch
+    state: directory
+    owner: elasticsearch
+    mode: 0700
+
+- name: systemctl reload-daemon # see https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-repositories.html
+  command: systemctl daemon-reload
+
+- name: add ElasticSearch autostart at boot
+  service:
+    name=elasticsearch
+    enabled=yes
+    state=started
+
+# Descendre plug-in HEAD
+
+# Kibana
+# - name: copy kibana repository file
+#   copy:
+#     src=kibana.repo
+#     dest=/etc/yum.repos.d/kibana.repo
+#     owner=root
+#     mode=0644
+
+
+- name: install kibana rpm
+  yum:
+    name: kibana
+    state: latest
+
+- name: systemctl reload-daemon # see https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-repositories.html
+  command: systemctl daemon-reload
+
+- name: add kibana autostart at boot
+  service:
+    name=kibana
+    enabled=yes
+    state=started
+
+# Logstash
+# - name: copy logstash repository file
+#   copy:
+#     src=logstash.repo
+#     dest=/etc/yum.repos.d/logstash.repo
+#     owner=root
+#     mode=0644
+
+
+# - name: install logstash rpm
+#   yum:
+#     name: logstash
+#     state: latest
+
+- name: install logstash rpm
+  yum:
+    name: logstash-all-plugins
+    state: latest
+
+
+
+# Post-install configuration
+- name: Configure limits max_open_files
+  lineinfile:
+    dest=/etc/security/limits.conf
+    regexp='^{{ elasticsearch_user }}     -    nofile    {{ elasticsearch_max_open_files }}'
+    insertafter=EOF
+    line='{{ elasticsearch_user }}     -    nofile    {{ elasticsearch_max_open_files }}'
+  when: elasticsearch_max_open_files is defined
+  notify: restart elasticsearch
+
+
+- name: change IP address for elasticsearch listening
+  replace: 
+    dest: /etc/elasticsearch/elasticsearch.yml 
+    regexp: '^# network.host:.*$' 
+    replace: "network.host: {{vitam_log_host}}"
+  notify:
+    - restart elasticsearch
+
+- name: change port for elasticsearch
+  replace: 
+    dest: /etc/elasticsearch/elasticsearch.yml 
+    regexp: '^# network.port:.*$'
+    replace: 'network.port: {{elasticsearch_port}}'
+  notify:
+    - restart elasticsearch
+
+- name : get HEAD plug-in
+  become_user: elasticsearch
+  command: /usr/share/elasticsearch/bin/plugin install -DproxyPort={{proxy_port}} -DproxyHost={{proxy_host}} mobz/elasticsearch-head
+  args:
+    chdir: /usr/share/elasticsearch/bin 
+    creates: /usr/share/elasticsearch/plugins/head
+  environment:
+    http_proxy: http://{{ https_reverse_proxy }}
+    https_proxy: https://{{ https_reverse_proxy }}
+
+
+- name: change port for elasticsearch listening
+  replace: 
+    dest: /etc/elasticsearch/elasticsearch.yml 
+    regexp: '^# http\.port:.*$'
+    replace: 'http.port: {{elasticsearch_port}}'
+  notify:
+    - restart elasticsearch
+
+# - name : get ALL logstash plug-in 
+#   get_url:
+# #    url: https://download.elastic.co/logstash/logstash/packages/centos/logstash-all-plugins-2.3.4-1.noarch.rpm
+# #    dest: /tmp/logstash-all-plugins-2.3.4-1.noarch.rpm
+#     url:  https://download.elastic.co/logstash/logstash/logstash-all-plugins-2.3.4.tar.gz
+#     dest: /tmp/logstash-all-plugins-2.3.4-1.noarch.tar.gz
+#     mode: 0755
+#     use_proxy: yes
+#     validate_certs: no
+#   environment:
+#     http_proxy: http://{{ https_reverse_proxy }}
+#     https_proxy: https://{{ https_reverse_proxy }}
+#   args:
+#     creates: /tmp/logstash-all-plugins-2.3.4-1.noarch.tar.gz
+
+# - name: install downloaded packages
+#  command: tar xvzf /tmp/logstash-all-plugins-2.3.4-1.noarch.tar.gz
+#   args:
+#     chdir: /opt
+#     creates: /opt/logstash-2.3.4
+
+# - name: rename historic logstash
+#   command: mv /opt/logstash /opt/logstash.packages
+#   args:
+#     creates: /opt/logstash.packages
+
+# - name: create symbolic link on new version
+#   command: ln -sfn /opt/logstash-2.3.4 /opt/logstash
+
+- name: copy default file for Kibana
+  copy:
+    src: kibana
+    dest: /etc/default/kibana
+    mode: 0644
+
+- name: configure connect Kibana to elasticsearch
+  replace:
+    dest: /opt/kibana/config/kibana.yml 
+    regexp: '^# elasticsearch\.url:.*$'
+    replace: "elasticsearch.url: \"http://{{vitam_log_host}}:{{elasticsearch_port}}\""
+  notify:
+    - restart kibana
+
+
+# - name: set up cluster name for elasticsearch
+#    lineinfile: 'dest=/opt/elasticsearch/config/elasticsearch.yml state=present regexp="^" insertafter="EOF" line="cluster.name: {{ ansible_eth0["ipv4"]["address"] }}"'
+# - name: set up node name for elasticsearch
+#    lineinfile: 'dest=/opt/elasticsearch/config/elasticsearch.yml state=present regexp="^" insertafter="EOF" line="node.name: {{ ansible_eth0["ipv4"]["address"] }}"'
