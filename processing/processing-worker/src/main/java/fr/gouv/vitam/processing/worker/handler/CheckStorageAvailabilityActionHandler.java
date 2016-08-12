@@ -97,8 +97,10 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
             totalSizeToBeStored = objectsSizeInSip + manifestSize;
 
             JsonNode storageCapacityNode = STORAGE_CLIENT.getStorageInformation(DEFAULT_TENANT, DEFAULT_STRATEGY);
+            // TODO : add JsonNode to POJO functionality in JsonHandler. For the moment we have to convert to
+            // JsonNode to a string then convert it back to a POJO.
             StorageInformation information =
-                JsonHandler.getFromString(storageCapacityNode.asText(), StorageInformation.class);
+                JsonHandler.getFromString(JsonHandler.writeAsString(storageCapacityNode), StorageInformation.class);
             long storageCapacity = information.getUsableSpace();
             if (storageCapacity >= totalSizeToBeStored) {
                 response.setStatus(StatusCode.OK);
