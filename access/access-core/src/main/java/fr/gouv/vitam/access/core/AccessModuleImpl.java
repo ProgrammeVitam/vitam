@@ -70,6 +70,7 @@ public class AccessModuleImpl implements AccessModule {
     private MetaDataClient metaDataClient;
     private static final String BLANK_REQUEST = "the request is blank";
     private static final String SANITY_CHECK_FAILED = "Sanity Check Failed ";
+    // TODO remove unused
     private static final String ID_CHECK_FAILED = "the unit_id should be filled";
     private String eventType = "Update_archive_unit_unitary";           //Event Type
 
@@ -228,11 +229,13 @@ public class AccessModuleImpl implements AccessModule {
                 ? LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient() : logbookLifeCycleClient;
 
             // Create logbook operation
+                // TODO: interest of this private method ?
             logbookOpParamStart = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
                 LogbookOutcome.STARTED, "update archiveunit:" + id_unit, id_unit);
             logbookOperationClient.create(logbookOpParamStart);
 
             // update logbook lifecycle
+            // TODO: interest of this private method ?
             logbookLCParamStart = getLogbookLifeCycleUpdateUnitParameters(updateOpGuidStart, LogbookOutcome.STARTED,
                 queryJson.toString(), queryJson.toString(), id_unit);
             logbookLifeCycleClient.update(logbookLCParamStart);
@@ -240,11 +243,13 @@ public class AccessModuleImpl implements AccessModule {
             //call update
             jsonNode = metaDataClient.updateUnitbyId(queryJson.toString(), id_unit);
 
+            // TODO: interest of this private method ?
             logbookOpParamEnd = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
                 LogbookOutcome.OK, "update archiveunit:" + id_unit, id_unit);
             logbookOperationClient.update(logbookOpParamEnd);
 
             // update logbook lifecycle
+            // TODO: interest of this private method ?
             logbookLCParamEnd = getLogbookLifeCycleUpdateUnitParameters(updateOpGuidStart, LogbookOutcome.OK,
                 queryJson.toString(), queryJson.toString(), id_unit);
             logbookLifeCycleClient.update(logbookLCParamEnd);
@@ -289,10 +294,11 @@ public class AccessModuleImpl implements AccessModule {
 
     private void rollBackLogbook(GUID updateOpGuidStart, JsonNode queryJson, String objectIdentifier) {
         try {
+            // TODO: interest of this private method ?
             LogbookOperationParameters logbookOpParamEnd = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
                     LogbookOutcome.ERROR, "Echec de l'écriture de la mise à jour des métadonnées", objectIdentifier);
             logbookOperationClient.update(logbookOpParamEnd);
-
+            // TODO: interest of this private method ?
             LogbookLifeCycleUnitParameters logbookParametersEnd = getLogbookLifeCycleUpdateUnitParameters(updateOpGuidStart, LogbookOutcome.ERROR,
                     queryJson.toString(), queryJson.toString(), objectIdentifier);
             logbookLifeCycleClient.rollback(logbookParametersEnd);
@@ -311,6 +317,7 @@ public class AccessModuleImpl implements AccessModule {
         final GUID updateGuid = GUIDFactory.newUnitGUID(tenantId); //eventidentifier
 
         LogbookLifeCycleUnitParameters parameters = LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
+        // FIXME not using predefined constructor using parameters tends to bad content without check on values (evIdP, outcome)
         parameters.putParameterValue(LogbookParameterName.eventIdentifier, updateGuid.toString());
         parameters.putParameterValue(LogbookParameterName.eventType, eventType);
         parameters.putParameterValue(LogbookParameterName.eventIdentifierProcess, eventIdentifierProcess!=null ? eventIdentifierProcess.toString() : "evtIdP NA");
@@ -327,6 +334,7 @@ public class AccessModuleImpl implements AccessModule {
                                                                                String outcomeDetailMessage, String eventIdentifierRequest) {
         LogbookTypeProcess eventTypeProcess = LogbookTypeProcess.UPDATE;
         LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters();
+        // FIXME not using predefined constructor using parameters tends to bad content without check on values (evId, evIdP, outcome)
         parameters.putParameterValue(LogbookParameterName.eventIdentifier, eventIdentifier!=null ? eventIdentifier.toString() : "evtId NA");
         parameters.putParameterValue(LogbookParameterName.eventType, eventType);
         parameters.putParameterValue(LogbookParameterName.eventIdentifierProcess, eventIdentifierProcess!=null ? eventIdentifierProcess.toString() : "evtIdP NA");

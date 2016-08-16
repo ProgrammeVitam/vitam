@@ -37,6 +37,8 @@ package fr.gouv.vitam.common.database.parser.request;
 /**
  * 
  */
+//FIXME comment
+// FIXME : never used ???
 public enum DslRequestType {
     SINGLE("single"),
     /**
@@ -47,7 +49,7 @@ public enum DslRequestType {
     private final String type;
 
     /**
-     * Constructor Add DEFAULT_PREFIX before the exactToken ($+exactToken)
+     * Constructor
      */
     private DslRequestType(String dslType) {
         type = dslType;

@@ -56,6 +56,7 @@ class FSProvider implements StorageStrategyProvider, StorageOfferProvider {
      * TODO : Use custom ObjectMapper because the ObjectMapper used in JsonHandler requires UPPER Camel case
      * json attribute to be able to map automatically json properties (ie: without field annotation) to java
      * attributes. Need a discussion on this with Frédéric.
+     * TODO you can force Json variable to start with UpperCamelCase too ! so using the default ObjectMapper (which is UpperCamelCase since Seda is so)
      */
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private StorageStrategy storageStrategy;

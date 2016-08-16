@@ -63,6 +63,7 @@ public class AccessConfiguration {
      *
      * @param urlMetaData
      */
+    // TODO @return missing
     public AccessConfiguration setUrlMetaData(String urlMetaData) {
         this.urlMetaData = urlMetaData;
         return this;

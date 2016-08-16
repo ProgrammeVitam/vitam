@@ -57,6 +57,7 @@ public class DirectedCycle {
         marked = new boolean[graph.getVertices()];
         onStack = new boolean[graph.getVertices()];
         edgeTo = new int[graph.getVertices()];
+        // FIXME n² or even worth => while merging Graph and DIrectedGraph, you can have the "real" roots (from Graph) so using it
         for (int v = 0; v < graph.getVertices(); v++) {
             if (!marked[v] && cycle == null) {
                 depthFirstSearch(graph, v);
@@ -88,6 +89,8 @@ public class DirectedCycle {
                 depthFirstSearch(graph, w);
             } else if (onStack[w]) {
                 // trace back directed cycle
+                // FIXME you reallocate memory (stack) how many times ??? Clean such as GC is not under pressure
+                // FIXME If I understand correctly, once here, we have a cycle (cycle != null), so why doing the next computation ?
                 cycle = new Stack<Integer>();
                 for (int x = root; x != w; x = edgeTo[x]) {
                     cycle.push(x);

@@ -196,6 +196,7 @@ public class StorageResource {
     @GET
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_OCTET_STREAM, StorageConstants.APPLICATION_ZIP})
+    // TODO si le résultat est une liste alors getContainers (s ajouté)
     public Response getContainer(@Context HttpHeaders headers) throws IOException {
         return Response.status(Status.NOT_IMPLEMENTED).build();
     }
@@ -491,6 +492,7 @@ public class StorageResource {
      * @param logbookId the id of the logbookId
      * @return Response NOT_IMPLEMENTED
      */
+    // FIXME always sending position from Workspace, not directly data (json)
     @Path("/logbooks/{id_logbook}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
@@ -592,6 +594,7 @@ public class StorageResource {
         return Response.status(Status.NOT_IMPLEMENTED).build();
     }
 
+    // FIXME always sending position from Workspace, not directly data (json)
     /**
      * Post a new unit metadata
      *
@@ -700,6 +703,7 @@ public class StorageResource {
         return Response.status(Status.NOT_IMPLEMENTED).build();
     }
 
+    // FIXME always sending position from Workspace, not directly data (json)
     /**
      * Get a Object Group
      * <p>

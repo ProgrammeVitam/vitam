@@ -62,7 +62,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
  * XML: check if XML file is not exceed the limit size, and it does not contain CDATA, ENTITY or SCRIPT tag
  *
  */
-
+// FIXME pom.xml contient maven-jar-plugin version 3.0.2 : pourquoi ! Erreur/Warning dans Eclipse
 public class SanityChecker {
     /**
      * max size of xml file

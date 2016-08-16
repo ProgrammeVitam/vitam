@@ -35,7 +35,7 @@ import fr.gouv.vitam.common.ParametersChecker;
  *
  */
 public class IngestExternalError {
-
+// FIXME aucun getter ?
     private int code;
     private String context;
     private String state;

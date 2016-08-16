@@ -49,6 +49,7 @@ public class RequestResponse {
      *
      * @param query the query of type JsonNode which will be setted for RequestResponse
      */
+    // TODO @return missing
     public RequestResponse setQuery(JsonNode query) {
         this.query = query;
         return this;
