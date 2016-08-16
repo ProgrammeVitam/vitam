@@ -23,12 +23,20 @@
  *******************************************************************************/
 package fr.gouv.vitam.core;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.core.database.collections.ObjectGroup;
+import fr.gouv.vitam.core.database.collections.Result;
+import fr.gouv.vitam.core.database.collections.ResultDefault;
 import org.bson.BsonDocument;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -56,6 +64,9 @@ public class MetaDataImplTest {
 
     // TODO REVIEW UPPERCASE
     private static final String dataInsert = "{ \"data\": \"test\" }";
+
+    private static final String SAMPLE_OBJECTGROUP_FILENAME = "sample_objectGroup_document.json";
+    private static JsonNode sampleObjectGroup;
 
     private static final String QUERY =
         "{ \"$queries\": [{ \"$path\": \"aaaaa\" }],\"$filter\": { },\"$projection\": {}}";
@@ -92,6 +103,11 @@ public class MetaDataImplTest {
         }
 
         return sb.toString();
+    }
+
+    @BeforeClass
+    public static void loadStaticResources() throws Exception {
+        sampleObjectGroup = JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_OBJECTGROUP_FILENAME));
     }
 
     @Before
@@ -342,4 +358,20 @@ public class MetaDataImplTest {
         metaDataImpl.updateUnitbyId(QUERY, "unitId");
     }
 
+    @Test
+    public void testSelectObjectGroupById() throws Exception {
+        Result result = new ResultDefault(FILTERARGS.OBJECTGROUPS);
+        result.addId("ogId");
+        result.setNbResult(1);
+        result.addFinal(new ObjectGroup(sampleObjectGroup));
+        when(request.execRequest(anyObject(), anyObject())).thenReturn(result);
+        metaDataImpl = new MetaDataImpl(null, mongoDbAccessFactory, dbRequestFactory);
+        JsonNode jsonNode = metaDataImpl.selectObjectGroupById(QUERY, "ogId");
+        ArrayNode resultArray = (ArrayNode) jsonNode.get("$result");
+        assertEquals(1,resultArray.size());
+        ObjectNode objectGroupDocument = (ObjectNode) resultArray.get(0);
+        String resultedObjectGroup = JsonHandler.unprettyPrint(objectGroupDocument);
+        String expectedObjectGroup = JsonHandler.unprettyPrint(sampleObjectGroup);
+        assertEquals(expectedObjectGroup, resultedObjectGroup);
+    }
 }

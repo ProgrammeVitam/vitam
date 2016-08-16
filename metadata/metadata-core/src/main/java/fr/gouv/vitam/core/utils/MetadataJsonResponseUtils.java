@@ -38,28 +38,35 @@ import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultip
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 
 /**
- * Units metadata tools
+ * The purpose of this class is to centralize the generation of a metadata json response
  */
-public class UnitsJsonUtils {
+public final class MetadataJsonResponseUtils {
 
     private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(UnitsJsonUtils.class);
+        VitamLoggerFactory.getInstance(MetadataJsonResponseUtils.class);
+
+    /**
+     * Hide default public constructor
+     */
+    private MetadataJsonResponseUtils(){
+        // Nothing to do
+    }
 
     /**
      * create Json response
      * 
-     * @param result contains final unit(s) list <br>
+     * @param result contains final unit(s)/ObjectGroup(s) list <br>
      *        can be empty
      * @param selectRequest
      * @return JsonNode {$hits{},$context{},$result:[{}....{}],} <br>
      *         $context will be added later (Access)</br>
-     *         $result array of units(can be empty)
+     *         $result array of units or ObjectGroup (can be empty)
      * @throws InvalidParseOperationException thrown when json query is not valid
      */
     public static JsonNode populateJSONObjectResponse(Result result, RequestParserMultiple selectRequest)
         throws InvalidParseOperationException {
 
-        ObjectNode jsonUnitListResponse = JsonHandler.createObjectNode();
+        ObjectNode jsonListResponse = JsonHandler.createObjectNode();
 
         if (result != null && result.getFinal() != null) {
             ObjectNode hitsNode = JsonHandler.createObjectNode();
@@ -67,23 +74,23 @@ public class UnitsJsonUtils {
             hitsNode.put("size", result.getNbResult());
             hitsNode.put("limit", result.getNbResult());
             hitsNode.put("time_out", false);
-            jsonUnitListResponse.set("$hint", hitsNode);
+            jsonListResponse.set("$hint", hitsNode);
             ObjectNode contextNode = JsonHandler.createObjectNode();
-            jsonUnitListResponse.set("$context", contextNode);
+            jsonListResponse.set("$context", contextNode);
 
             if (result.getNbResult() > 0 && (selectRequest instanceof SelectParserMultiple ||
                 result.getFinal().get("Result") != null)) {
-                jsonUnitListResponse.set("$result", getJsonUnitObject(result.getFinal().get("Result")));
+                jsonListResponse.set("$result", getMetadataJsonObject(result.getFinal().get("Result")));
             } else {
-                jsonUnitListResponse.set("$result", JsonHandler.createObjectNode());
+                jsonListResponse.set("$result", JsonHandler.createObjectNode());
             }
         }
-        LOGGER.debug("MetaDataImpl / selectUnitsByQuery /Results: " + jsonUnitListResponse.toString());
-        return jsonUnitListResponse;
+        LOGGER.debug("MetaDataImpl / selectUnitsByQuery /Results: " + jsonListResponse.toString());
+        return jsonListResponse;
     }
 
-    private static JsonNode getJsonUnitObject(Object unit) throws InvalidParseOperationException {
-        return JsonHandler.toJsonNode(unit);
+    private static JsonNode getMetadataJsonObject(Object unitOrObjectGroup) throws InvalidParseOperationException {
+        return JsonHandler.toJsonNode(unitOrObjectGroup);
     }
 
 

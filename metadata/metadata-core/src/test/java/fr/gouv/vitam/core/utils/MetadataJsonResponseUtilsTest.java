@@ -14,7 +14,7 @@ import fr.gouv.vitam.core.database.collections.Result;
 import fr.gouv.vitam.core.database.collections.ResultDefault;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 
-public class UnitsJsonUtilsTest {
+public class MetadataJsonResponseUtilsTest {
 
     private static Result buildResult(int nbrResult) {
         Result result = new ResultDefault(FILTERARGS.UNITS, new ArrayList<String>());
@@ -24,12 +24,12 @@ public class UnitsJsonUtilsTest {
 
     @Test
     public void given_resultwith_nbreresult_0_thenReturn_JsonNode() throws Exception {
-        JsonNode jsonNode = UnitsJsonUtils.populateJSONObjectResponse(buildResult(0), new SelectParserMultiple());
+        JsonNode jsonNode = MetadataJsonResponseUtils.populateJSONObjectResponse(buildResult(0), new SelectParserMultiple());
         assertNotNull(jsonNode);
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void given_resultwith_nbreresult_2_thenthrow_InvalidParseOperationException() throws Exception {
-        UnitsJsonUtils.populateJSONObjectResponse(buildResult(2), new SelectParserMultiple());
+        MetadataJsonResponseUtils.populateJSONObjectResponse(buildResult(2), new SelectParserMultiple());
     }
 }

@@ -46,10 +46,9 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.application.configuration.DbConfiguration;
 import fr.gouv.vitam.core.database.collections.MongoDbVarNameAdapter;
 import fr.gouv.vitam.core.database.collections.Result;
-import fr.gouv.vitam.core.utils.UnitsJsonUtils;
+import fr.gouv.vitam.core.utils.MetadataJsonResponseUtils;
 
 /**
  * MetaDataImpl implements a MetaData interface
@@ -143,7 +142,7 @@ public final class MetaDataImpl implements MetaData {
         MetaDataDocumentSizeException {
         LOGGER.info("Begin selectUnitsByQuery ...");
         LOGGER.debug("SelectUnitsByQuery/ selectQuery: " + selectQuery);
-        return selectUnit(selectQuery, null);
+        return selectMetadataObject(selectQuery, null);
 
     }
 
@@ -153,12 +152,18 @@ public final class MetaDataImpl implements MetaData {
         MetaDataDocumentSizeException {
         LOGGER.info("Begin selectUnitsById .../id:" + unitId);
         LOGGER.debug("SelectUnitsById/ selectQuery: " + selectQuery);
-        return selectUnit(selectQuery, unitId);
+        return selectMetadataObject(selectQuery, unitId);
     }
 
+    @Override
+    public JsonNode selectObjectGroupById(String selectQuery, String objectGroupId)
+        throws InvalidParseOperationException, MetaDataDocumentSizeException, MetaDataExecutionException {
+        LOGGER.debug("SelectObjectGroupById - objectGroupId : " + objectGroupId);
+        LOGGER.debug("SelectObjectGroupById - selectQuery : " + selectQuery);
+        return selectMetadataObject(selectQuery, objectGroupId);
+    }
 
-
-    private JsonNode selectUnit(String selectQuery, String unitId)
+    private JsonNode selectMetadataObject(String selectQuery, String unitOrObjectGroupId)
         throws MetaDataExecutionException, InvalidParseOperationException,
         MetaDataDocumentSizeException {
         Result result = null;
@@ -176,32 +181,19 @@ public final class MetaDataImpl implements MetaData {
             // parse Select request
             RequestParserMultiple selectRequest = new SelectParserMultiple();
             selectRequest.parse(JsonHandler.getFromString(selectQuery));
-            // Reset $roots (add or override unit_id on roots)
-            if (unitId != null && !unitId.isEmpty()) {
+            // Reset $roots (add or override id on roots)
+            if (unitOrObjectGroupId != null && !unitOrObjectGroupId.isEmpty()) {
                 RequestMultiple request = selectRequest.getRequest();
                 if (request != null) {
-                    LOGGER.debug("Reset $roots unit_id by :" + unitId);
-                    request.resetRoots().addRoots(unitId);
+                    LOGGER.debug("Reset $roots id with :" + unitOrObjectGroupId);
+                    request.resetRoots().addRoots(unitOrObjectGroupId);
                 }
             }
             // Execute DSL request
             result = dbRequestFactory.create().execRequest(selectRequest, result);
-            jsonNodeResponse = UnitsJsonUtils.populateJSONObjectResponse(result, selectRequest);
+            jsonNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, selectRequest);
 
-        } catch (final MetaDataExecutionException e) {
-            LOGGER.error(e);
-            throw e;
-        } catch (final InvalidParseOperationException e) {
-            LOGGER.error(e);
-            throw e;
-        } catch (final InstantiationException e) {
-            LOGGER.error(e);
-            throw new MetaDataExecutionException(e);
-        } catch (final IllegalAccessException e) {
-            LOGGER.error(e);
-            throw new MetaDataExecutionException(e);
-        } catch (MetaDataAlreadyExistException | MetaDataNotFoundException e) {
-            // Should not happen there
+        } catch (final InstantiationException | IllegalAccessException | MetaDataAlreadyExistException | MetaDataNotFoundException e) {
             LOGGER.error(e);
             throw new MetaDataExecutionException(e);
         }
@@ -237,7 +229,7 @@ public final class MetaDataImpl implements MetaData {
             }
             // Execute DSL request
             result = dbRequestFactory.create().execRequest(updateRequest, result);
-            jsonNodeResponse = UnitsJsonUtils.populateJSONObjectResponse(result, updateRequest);
+            jsonNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, updateRequest);
         } catch (final MetaDataExecutionException e) {
             LOGGER.error(e);
             throw e;
