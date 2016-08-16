@@ -32,6 +32,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.time.LocalDateTime;
 
+import fr.gouv.vitam.common.json.JsonHandler;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -57,9 +58,7 @@ public class StorageClientMockTest {
 
     @Test
     public void storageInfos() throws Exception {
-        JsonNode expectedResult =
-            new ObjectMapper().convertValue(StorageClientMock.MOCK_INFOS_RESULT,
-                JsonNode.class);
+        JsonNode expectedResult = JsonHandler.getFromString(StorageClientMock.MOCK_INFOS_RESULT);
         StorageClientFactory.setConfiguration(StorageClientFactory.StorageClientType.MOCK_STORAGE, null);
         final StorageClient client = StorageClientFactory.getInstance().getStorageClient();
         JsonNode result = client.getStorageInformation("idTenant", "idStrategy");

@@ -34,7 +34,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.client.SSLClientConfiguration;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.StatusMessage;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
@@ -67,7 +69,11 @@ class StorageClientMock extends StorageClientRest implements StorageClient {
     @Override
     public JsonNode getStorageInformation(String tenantId, String strategyId)
         throws StorageNotFoundClientException, StorageServerClientException {
-        return new ObjectMapper().convertValue(MOCK_INFOS_RESULT, JsonNode.class);
+        try {
+            return JsonHandler.getFromString(MOCK_INFOS_RESULT);
+        } catch (InvalidParseOperationException e) {
+            throw new StorageServerClientException(e);
+        }
     }
 
     @Override
