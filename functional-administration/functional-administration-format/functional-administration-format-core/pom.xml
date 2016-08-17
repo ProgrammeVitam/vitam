@@ -10,10 +10,6 @@
 	</parent>
 	<artifactId>functional-administration-format-core</artifactId>
 	<name>functional-administration-format-core</name>
-	<url>http://maven.apache.org</url>
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
