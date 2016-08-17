@@ -12,7 +12,6 @@
 	<artifactId>functional-administration-rest</artifactId>
 	<version>0.7.0-SNAPSHOT</version>
 	<name>functional-administration-rest</name>
-	<url>http://maven.apache.org</url>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<unix.name>functional-administration</unix.name>
@@ -192,7 +191,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.19.1</version>
 				<configuration>
 					<systemPropertyVariables>
 						<org.owasp.esapi.opsteam>AC001</org.owasp.esapi.opsteam>

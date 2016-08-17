@@ -15,9 +15,7 @@
 				<plugin>
 					<!-- Run the Junit unit tests in an isolated classloader and not Parallel. -->
 					<artifactId>maven-surefire-plugin</artifactId>
-					<version>2.19.1</version>
 					<configuration>
-						<argLine>-Xmx2048m -Dvitam.tmp.folder=/tmp ${coverageAgent}</argLine>
 						<parallel>classes</parallel>
 						<threadCount>1</threadCount>
 						<perCoreThreadCount>false</perCoreThreadCount>
@@ -71,12 +69,9 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-all</artifactId>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.glassfish.jersey.test-framework.providers</groupId>

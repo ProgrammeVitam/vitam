@@ -45,11 +45,6 @@
 			<artifactId>logbook-operations-client</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>functional-administration-client</artifactId>
-			<version>${project.version}</version>
-		</dependency>
 		<!-- Jetty -->
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
@@ -105,16 +100,6 @@
 		</resources>
 
 		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
-					<encoding>${project.build.sourceEncoding}</encoding>
-				</configuration>
-			</plugin>
-
 			<plugin>
 				<!-- Dependency manipulation (copy, unpack) and analysis. -->
 				<artifactId>maven-dependency-plugin</artifactId>

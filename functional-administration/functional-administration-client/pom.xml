@@ -10,10 +10,6 @@
 	</parent>
 	<artifactId>functional-administration-client</artifactId>
 	<name>functional-administration-client</name>
-	<url>http://maven.apache.org</url>
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
