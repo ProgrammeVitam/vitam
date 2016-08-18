@@ -30,6 +30,7 @@ package fr.gouv.vitam.functional.administration.format.core;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+//FIXME unused import
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -97,6 +98,7 @@ public class PronomParser {
         List<String> extensions = new ArrayList<String>();
         List<String> priorityOverIdList = new ArrayList<String>();
 
+        // FIXME l'algorithme est faux et ne tient pas compte des X-FMT et des FMT (cf https://dev.programmevitam.fr/plugins/tracker/?aid=561&group_id=108)
         try {
             final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
             XMLEventReader eventReader = xmlInputFactory.createXMLEventReader(xmlPronom);

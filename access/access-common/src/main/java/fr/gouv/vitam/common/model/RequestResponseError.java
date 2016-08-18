@@ -48,6 +48,7 @@ public class RequestResponseError extends RequestResponse {
      *
      * @param error the error message of type VitamError which will be setted for RequestResponseError
      */
+    // TODO @return missing
     public RequestResponseError setError(VitamError error) {
         this.error = error;
         return this;

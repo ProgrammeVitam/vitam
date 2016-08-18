@@ -131,6 +131,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             throw new ContentAddressableStorageException("Container does not exist");
         }
         String path = TMP_DIRECTORY + objectId;
+        // FIXME utiliser Digest (common)
         MessageDigest messageDigest;
         try {
             messageDigest = MessageDigest.getInstance(getDigestAlgoFor(objectId).getName());
@@ -140,6 +141,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         }
         DigestInputStream digestObjectPArt = new DigestInputStream(objectPart, messageDigest);
         try (FileOutputStream fOut = new FileOutputStream(path, true)) {
+            // FIXME très très mauvaise pratique (si le fichier fait 2 To => 2 To en mémoire)
             fOut.write(ByteStreams.toByteArray(digestObjectPArt));
             fOut.flush();
         } catch (IOException exc) {
@@ -148,11 +150,14 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         }
         // ending remove it
         if (ending) {
+            // FIXME double écriture !!! DigestInputStream est un InputStream, donc le passer directement en paramètre de putObject
+            // ou mieux : faire une écriture par bloc (buffer) et mettre à jour le Digest au fur et à mesure ainsi
             try (InputStream in = new FileInputStream(path)) {
                 defaultStorage.putObject(containerName, objectId, in);
                 // do we validate the transfer before remove temp file ?
                 Files.deleteIfExists(Paths.get(path));
                 // TODO: to optimize (big file case) !
+                // FIXME pourquoi calculer 2 fois le digest ?
                 String digest = defaultStorage.computeObjectDigest(containerName, objectId, getDigestAlgoFor(objectId));
                 // remove digest algo
                 digestTypeFor.remove(objectId);
@@ -189,10 +194,13 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         ObjectNode result = JsonHandler.createObjectNode();
         ContainerInformation containerInformation = defaultStorage.getContainerInformation(containerName);
         result.put("usableSpace", containerInformation.getUsableSpace());
+        // FIXME cette implémentation retourne l'espace "total" utilisé et non l'espace utilisé par ce container !
         result.put("usedSpace", containerInformation.getUsedSpace());
         return result;
     }
 
+    // FIXME : si cela avait été un enum spécifique, il n'y aurait pas le risque d'avoir un digest de type inconnu, ce qui rend alors
+    // le calcul faux sémantiquement ici (aurait dans ce cas dû générer une exception)
     private DigestType getDigestAlgoFor(String id) {
         return digestTypeFor.get(id) != null ? digestTypeFor.get(id) : DigestType.SHA256;
     }

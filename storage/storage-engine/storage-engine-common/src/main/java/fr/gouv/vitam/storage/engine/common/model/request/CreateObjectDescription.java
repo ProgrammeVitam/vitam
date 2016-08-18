@@ -30,6 +30,7 @@ package fr.gouv.vitam.storage.engine.common.model.request;
 /**
  * Simple object holding data used to retrieve an Object from the workspace
  */
+// FIXME missing package-info
 public class CreateObjectDescription {
     private String workspaceContainerGUID;
     private String workspaceObjectURI;

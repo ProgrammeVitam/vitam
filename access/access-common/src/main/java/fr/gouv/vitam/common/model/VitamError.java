@@ -119,6 +119,7 @@ public final class VitamError {
      * @param list of errors as List
      * @return the VitamError object with the list of errors is filled
      */
+    // TODO bad comment: parameter name
     public VitamError addAllErrors(List<VitamError> errors) {
         if (this.errors == null || this.errors.isEmpty()) {
             this.errors = new ArrayList<>();

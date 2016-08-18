@@ -53,6 +53,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 /**
  * 
  */
+// FIXME comment
 public abstract class AbstractRequest {
     protected ObjectNode filter;
 

@@ -70,6 +70,7 @@ public interface StorageClient extends BasicClient {
      * @throws StorageNotFoundClientException if the Server got a NotFound result
      * @throws StorageServerClientException if the Server got an internal error
      */
+    // FIXME pourquoi un JsonNode alors que c'est un fichier dans Workspace donc un InputStream via un chemin d'accès ? Ici cela suppose que le flux est passé pare le client !
     StoredInfoResult storeJson(String tenantId, String strategyId, StorageCollectionType type, String guid,
         JsonNode data)
         throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException;

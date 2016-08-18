@@ -84,6 +84,7 @@ public class DefaultOfferResource {
      *
      * TODO: review path and java method name
      */
+    // FIXME il manque le /container/id/
     @GET
     @Path("/objects")
     @Produces(MediaType.APPLICATION_JSON)

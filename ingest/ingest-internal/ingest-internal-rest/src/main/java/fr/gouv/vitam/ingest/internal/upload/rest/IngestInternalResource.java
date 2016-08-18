@@ -97,6 +97,7 @@ public class IngestInternalResource implements UploadService {
      * IngestInternalResource constructor
      *
      */
+ // TODO commentaire incomplet
     public IngestInternalResource(IngestInternalConfiguration configuration) {
         this.configuration=configuration;
     }

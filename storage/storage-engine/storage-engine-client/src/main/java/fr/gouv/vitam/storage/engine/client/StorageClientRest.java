@@ -139,6 +139,7 @@ class StorageClientRest extends AbstractClient implements StorageClient {
             ParametersChecker.checkParameter(OBJECT_DESCRIPTION_URI_MUST_HAVE_A_VALID_VALUE,
                 description.getWorkspaceObjectURI());
         }
+        // FIXME tout enregistrement est un flux donc test à supprimer
         if (!StorageCollectionType.OBJECTS.equals(type)) {
             throw new IllegalArgumentException("Type of storage object cannot be " + type.getCollectionName());
         }

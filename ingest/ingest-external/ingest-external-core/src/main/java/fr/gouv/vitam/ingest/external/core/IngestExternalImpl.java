@@ -68,6 +68,8 @@ public class IngestExternalImpl implements IngestExternal {
 
     private static final String INGEST_EXT = "Ingest external";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalImpl.class);
+    // FIXME non paramétré et qui plus est, devrait être plutôt "scan.sh" (ou mieux faire l'objet d'une classe standard remplaçable qui pourrait être
+    // réimplémenté autrement, mais pas l'objet de cette story à ce stade)
     private static final String SCRIPT_SCAN_CLAMAV = "scan-clamav.sh";
     private final IngestExternalConfiguration config;
     

@@ -524,6 +524,7 @@ public abstract class BuilderToken {
         /**
          * Constructor Add DEFAULT_HASH_PREFIX before the exactToken (#+exactToken)
          */
+        // FIXME disparition de DEFAULT_HASH_PREFIX ?
         private PROJECTIONARGS(String realName) {
             exactToken = realName;
         }

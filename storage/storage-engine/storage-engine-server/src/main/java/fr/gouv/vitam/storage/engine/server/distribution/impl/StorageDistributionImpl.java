@@ -103,6 +103,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     private static final String NOT_IMPLEMENTED_MSG = "Not yet implemented";
     private static final int NB_RETRY = 3;
     private final WorkspaceClient workspaceClient;
+    // FIXME see API
     // TODO : later, the digest type may be retrieve via REST parameters. Fot the moment (as of US 72 dev) there is no
     // specification about that
     private final DigestType digestType;
@@ -117,6 +118,8 @@ public class StorageDistributionImpl implements StorageDistribution {
         WorkspaceClientFactory factory = new WorkspaceClientFactory();
         workspaceClient = factory.create(configuration.getUrlWorkspace());
         // TODO : a real design discussion is needed : should we force it ? Should we negociate it with the offer ?
+        // FIXME Might be negotiated but limited to available digestType from Vitam (MD5, SHA-1, SHA-256, SHA-512, ...)
+        // Just to note, I prefer SHA-512 (more CPU but more accurate and already the default for Vitam, notably to allow check of duplicated files)
         digestType = DigestType.SHA256;
     }
 
@@ -154,6 +157,8 @@ public class StorageDistributionImpl implements StorageDistribution {
             for (OfferReference offerReference : offerReferences) {
                 // TODO: sequential process for now (we have only 1 offer anyway) but storing object should be
                 // processed in parallel for each driver, in order to not be blocked on 1 driver storage process
+                // TODO special notice: when parallel, try to get only once the inputstream and then multiplexing it to multiple intputstreams as needed
+                // 1 IS => 3 IS (if 3 offers) where this special class handles one IS as input to 3 IS as output
                 boolean success =
                     tryAndRetryStoreObjectInOffer(createObjectDescription, tenantId, objectId, category, jsonData,
                         offerReference);
@@ -222,6 +227,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         PutObjectRequest putObjectRequest = null;
         PutObjectResult putObjectResult;
         boolean objectStored = false;
+        // FIXME use Digest from common
         MessageDigest messageDigest = null;
         int i = 0;
         while (i < NB_RETRY && !objectStored) {
@@ -391,6 +397,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         String digest, String digestAlgorithm, String size, String agentIdentifiers, String agentIdentifierRequester,
         String outcomeDetailMessage, String objectIdentifierIncome, StorageLogbookOutcome outcome) {
         StorageLogbookParameters parameters = new StorageLogbookParameters();
+        // FIXME oups, date hard coded !
         parameters.putParameterValue(StorageLogbookParameterName.eventDateTime, "2016-07-29T11:56:35.914");
         parameters.putParameterValue(StorageLogbookParameterName.outcome, outcome.name());
         parameters.putParameterValue(StorageLogbookParameterName.objectIdentifier,

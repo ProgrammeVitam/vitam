@@ -68,7 +68,8 @@ public class StorageLogbookParameters {
     @JsonIgnore
     private final Map<StorageLogbookParameterName, String> mapParameters = new TreeMap<>();
 
-
+    // FIXME create a constructor with mandatory parameters ! Date must be set by the constructor
+    // FIXME set explicit setter for only non mandatories elements and remove putParameterValue
     /**
      * Put parameter value on parameters map
      *

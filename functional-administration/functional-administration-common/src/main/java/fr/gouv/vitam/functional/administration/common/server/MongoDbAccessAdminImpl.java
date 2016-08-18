@@ -105,6 +105,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
     /**
      * deleteCollection implement
      */
+    // FIXME delete the collection without any check on legal to do so (does any object using this referential ?) ?
     public void deleteCollection(FunctionalAdminCollections collection) {
         collection.getCollection().drop();
     }

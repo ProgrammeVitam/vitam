@@ -52,6 +52,7 @@ public interface StorageDistribution {
      * @param objectId        the workspace URI of the data to be retrieve (and stored in offer)
      * @param createObjectDescription object additional informations
      * @param category                the category of the data to store (unit, object...)
+     * FIXME should never be json
      * @param jsonData                the data to store. <em>MUST</em> be null for data of category Object since the binary content is
      *                                retrieved on workspace based on the objectId parameter.
      * @return a StoredInfoResult containing informations about the created Data
@@ -74,6 +75,7 @@ public interface StorageDistribution {
     JsonNode getContainerInformation(String tenantId, String strategyId) throws StorageNotFoundException,
         StorageTechnicalException;
 
+    // FIXME: what is the inputStream for a Container ?
     /**
      * Get Storage Container full content as an InputStream
      * <p>
@@ -114,6 +116,7 @@ public interface StorageDistribution {
     void deleteContainer(String tenantId, String strategyId) throws StorageTechnicalException, StorageNotFoundException;
 
 
+    // FIXME see list/count/size API
     /**
      * Get Container Objects Information
      * <p>
@@ -154,6 +157,7 @@ public interface StorageDistribution {
     JsonNode getContainerObjectInformations(String tenantId, String strategyId, String objectId)
         throws StorageNotFoundException;
 
+    // FIXME missing digest which is mandatory for a delete
     /**
      * Delete an object
      *
@@ -164,6 +168,7 @@ public interface StorageDistribution {
      */
     void deleteObject(String tenantId, String strategyId, String objectId) throws StorageNotFoundException;
 
+    // FIXME see list/count/size API
     /**
      * Retrieve a list of logbook ids associated to a given tenant
      * <p>
@@ -191,7 +196,7 @@ public interface StorageDistribution {
     JsonNode getContainerLogbook(String tenantId, String strategyId, String logbookId)
         throws StorageNotFoundException;
 
-
+    // FIXME missing digest which is mandatory for a delete
     /**
      * Delete a logbook
      *
@@ -203,6 +208,7 @@ public interface StorageDistribution {
     void deleteLogbook(String tenantId, String strategyId, String logbookId) throws StorageNotFoundException;
 
 
+    // FIXME see list/count/size API
     /**
      * Get Container Units Information
      * <p>
@@ -229,6 +235,7 @@ public interface StorageDistribution {
      */
     JsonNode getContainerUnit(String tenantId, String strategyId, String unitId) throws StorageNotFoundException;
 
+    // FIXME missing digest which is mandatory for a delete
     /**
      * Delete an unit
      *
@@ -241,6 +248,7 @@ public interface StorageDistribution {
         throws StorageNotFoundException;
 
 
+    // FIXME see list/count/size API
     /**
      * Get Container ObjectGroups Information
      * <p>

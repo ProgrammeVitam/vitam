@@ -74,6 +74,7 @@ public class Graph {
         indexMapping = new DualHashBidiMap<Integer, String>();
         this.maxSize = 0;
         // number of vertice
+        // FIXME use jsonGraph.size();
         while (iterator.hasNext()) {
             maxSize++;
             iterator.next();
@@ -121,6 +122,7 @@ public class Graph {
 
     private int addMapIdToIndex(String idXml) {
         if (indexMapping != null) {
+            // FIXME since called many times, better to assign one for all this inverseBidiMap to a private variable
             BidiMap<String, Integer> xmlIdToIndex = indexMapping.inverseBidiMap();
             if (!xmlIdToIndex.containsKey(idXml)) {
                 count++;
@@ -135,6 +137,7 @@ public class Graph {
      * 
      * @param data
      */
+    // FIXME public ?
     public void addVertex(int data) {
         vertices[size++] = new Vertex(data);
     }
@@ -145,6 +148,7 @@ public class Graph {
      * @param source
      * @param destination
      */
+    // FIXME public ?
     public void addEdge(int source, int destination) {
         vertices[source - 1].adj = new Neighbour(destination - 1, vertices[source - 1].adj);
     }
@@ -162,6 +166,7 @@ public class Graph {
             this.data = data;
         }
     }
+    // FIXME use native Stack (ou Deque si des fonctions plus riches sont nécessaires) from Java instead of this, so as to minimize memory usage
     /**
      * Stack class
      * 
@@ -309,6 +314,7 @@ public class Graph {
                 }
             }
         }
+        // FIXME free all internal structures (except longestsPath) before ending
         return longestsPath;
     }
 
@@ -337,6 +343,7 @@ public class Graph {
     private int getIndex(String id) {
         int key = 0;
         if (indexMapping != null) {
+            // FIXME better to directly get the private xmlIdToIndex.get(id) and checking if not null
             if (indexMapping.containsValue(id)) {
                 BidiMap<String, Integer> xmlIdToIndex = indexMapping.inverseBidiMap();
                 key = xmlIdToIndex.get(id);

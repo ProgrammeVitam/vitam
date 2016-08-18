@@ -64,6 +64,7 @@ public final class GUIDFactory {
      * @return a new GUID
      * @throws IllegalArgumentException if any of the argument are out of range
      */
+    @Deprecated
     public static final GUID newGUID(final int objectType) {
         return new GUIDImplPrivate(objectType, 0, serverIdentity.getPlatformId(), false);
     }
@@ -76,6 +77,7 @@ public final class GUIDFactory {
      * @return a new GUID
      * @throws IllegalArgumentException if any of the argument are out of range
      */
+    @Deprecated
     public static final GUID newGUID(final int objectType, final int tenantId) {
         return new GUIDImplPrivate(objectType, tenantId, serverIdentity.getPlatformId(), false);
     }
@@ -86,6 +88,7 @@ public final class GUIDFactory {
      * @param worm True if Worm GUID
      * @return a new GUID
      */
+    @Deprecated
     public static final GUID newGUID(final boolean worm) {
         return new GUIDImplPrivate(0, 0, serverIdentity.getPlatformId(), worm);
     }
@@ -98,6 +101,7 @@ public final class GUIDFactory {
      * @return a new GUID
      * @throws IllegalArgumentException if any of the argument are out of range
      */
+    @Deprecated
     public static final GUID newGUID(final int objectType, final boolean worm) {
         return new GUIDImplPrivate(objectType, 0, serverIdentity.getPlatformId(), worm);
     }
@@ -111,6 +115,7 @@ public final class GUIDFactory {
      * @return a new GUID
      * @throws IllegalArgumentException if any of the argument are out of range
      */
+    @Deprecated
     public static final GUID newGUID(final int objectType, final int tenantId, final boolean worm) {
         return new GUIDImplPrivate(objectType, tenantId, serverIdentity.getPlatformId(), worm);
     }

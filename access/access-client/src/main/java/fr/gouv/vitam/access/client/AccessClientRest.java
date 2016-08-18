@@ -93,7 +93,7 @@ public class AccessClientRest implements AccessClient {
         if (StringUtils.isBlank(selectQuery)) {
             throw new IllegalArgumentException("select DSL is blank");
         }
-
+        // FIXME newRequestIdGUID
         final GUID guid = GUIDFactory.newGUID();
 
         final Response response = client.target(serviceUrl).path("units").request(MediaType.APPLICATION_JSON)
@@ -131,6 +131,7 @@ public class AccessClientRest implements AccessClient {
             throw new IllegalArgumentException(BLANK_UNIT_ID);
         }
 
+        // FIXME newRequestIdGUID
         final GUID guid = GUIDFactory.newGUID();
 
         final Response response =
@@ -169,6 +170,7 @@ public class AccessClientRest implements AccessClient {
         if (StringUtils.isEmpty(unitId)) {
             throw new IllegalArgumentException(BLANK_UNIT_ID);
         }
+        // FIXME newRequestIdGUID
 
         final GUID guid = GUIDFactory.newGUID();
 

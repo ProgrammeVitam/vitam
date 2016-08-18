@@ -111,6 +111,7 @@ public class ConnectionImpl implements Connection {
         final ClientConfig config = new ClientConfig();
         config.register(JacksonJsonProvider.class);
         config.register(JacksonFeature.class);
+        // TODO: multipart ?
         config.register(MultiPartFeature.class);
         client = ClientBuilder.newClient(config);
     }
