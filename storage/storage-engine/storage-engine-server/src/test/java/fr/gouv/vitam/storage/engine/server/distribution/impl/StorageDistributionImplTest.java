@@ -261,10 +261,38 @@ public class StorageDistributionImplTest {
         customDistribution.getContainerInformation("daFakeTenant", STRATEGY_ID);
     }
 
+    @Test
+    public void testGetContainerObjectIllegalArgumentException() throws Exception {
+        try {
+            simpleDistribution.getContainerObject(null, null, null);
+            fail("Exception excepted");
+        } catch(IllegalArgumentException exc) {
+            // nothing, exception needed
+        }
+        try {
+            simpleDistribution.getContainerObject(TENANT_ID, null, null);
+            fail("Exception excepted");
+        } catch(IllegalArgumentException exc) {
+            // nothing, exception needed
+        }
+        try {
+            simpleDistribution.getContainerObject(TENANT_ID, STRATEGY_ID, null);
+            fail("Exception excepted");
+        } catch(IllegalArgumentException exc) {
+            // nothing, exception needed
+        }
+    }
+
+    @Test
+    public void testGetContainerObjectNotFoundException() throws Exception {
+        simpleDistribution.getContainerObject(TENANT_ID, STRATEGY_ID, "0");
+    }
+
     @Test(expected = UnsupportedOperationException.class)
     public void testGetStorageContainer() throws Exception {
         simpleDistribution.getStorageContainer(null, null);
     }
+
 
     @Test(expected = UnsupportedOperationException.class)
     public void testCreateContainer() throws Exception {
@@ -279,11 +307,6 @@ public class StorageDistributionImplTest {
     @Test(expected = UnsupportedOperationException.class)
     public void testGetContainerObjects() throws Exception {
         simpleDistribution.getContainerObjects(null, null);
-    }
-
-    @Test(expected = UnsupportedOperationException.class)
-    public void testGetContainerObject() throws Exception {
-        simpleDistribution.getContainerObject(null, null, null);
     }
 
     @Test(expected = UnsupportedOperationException.class)

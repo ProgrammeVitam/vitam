@@ -28,7 +28,7 @@
 package fr.gouv.vitam.storage.engine.server.rest;
 
 import java.io.IOException;
-import java.util.Map;
+import java.io.InputStream;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -48,18 +48,17 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusMessage;
-import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.header.HttpHeaderHelper;
 import fr.gouv.vitam.storage.engine.common.header.VitamHttpHeader;
-import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.RequestResponseError;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
@@ -291,10 +290,27 @@ public class StorageResource {
     @Path("/objects/{id_object}")
     @GET
     @Produces({MediaType.APPLICATION_OCTET_STREAM, StorageConstants.APPLICATION_ZIP})
-    @Consumes(MediaType.APPLICATION_JSON)
     public Response getObject(@Context HttpHeaders headers, @PathParam("id_object") String objectId)
         throws IOException {
-        return Response.status(Status.NOT_IMPLEMENTED).build();
+        Response response = checkTenantStrategyHeader(headers);
+        if (response == null) {
+            Status status;
+            String tenantId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.TENANT_ID).get(0);
+            String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+            try {
+                InputStream result = distribution.getContainerObject(tenantId, strategyId, objectId);
+                return Response.status(Status.OK).entity(result).build();
+            } catch (StorageNotFoundException exc) {
+                LOGGER.error(exc);
+                status = Status.NOT_FOUND;
+            } catch (StorageTechnicalException exc) {
+                LOGGER.error(exc);
+                status = Status.INTERNAL_SERVER_ERROR;
+            }
+            // If here, an error occurred
+            return buildErrorResponse(status);
+        }
+        return response;
     }
 
 
@@ -801,12 +817,12 @@ public class StorageResource {
     }
 
     private Response buildErrorResponse(Status status) {
-        return Response.status(status).entity(new RequestResponseError().setError(
+        return Response.status(status).entity((new RequestResponseError().setError(
             new VitamError(status.getStatusCode())
                 .setContext("storage")
                 .setState("code_vitam")
                 .setMessage(status.getReasonPhrase())
-                .setDescription(status.getReasonPhrase())))
+                .setDescription(status.getReasonPhrase()))).toString())
             .build();
     }
 

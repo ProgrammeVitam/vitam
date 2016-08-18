@@ -38,6 +38,7 @@ package fr.gouv.vitam.storage.engine.common.model.response;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -48,6 +49,10 @@ import static org.junit.Assert.*;
 public class VitamErrorTest {
 
     private static VitamError vitamError = new VitamError(1);
+
+    private static final String ERROR_JSON = "{\"code\":\"0\",\"context\":\"context\",\"state\":\"state\"," +
+        "\"message\":\"message\",\"description\":\"description\",\"errors\":[{\"code\":\"1\",\"context\":\"\"," +
+        "\"state\":\"\",\"message\":\"\",\"description\":\"\",\"errors\":[]}]}";
     @Test
     public void testSetGetCode() throws Exception {
         vitamError.setCode(2);
@@ -84,5 +89,16 @@ public class VitamErrorTest {
         errorList.add(vitamError);
         vitamError.setErrors(errorList);
         assertTrue(vitamError.getErrors().contains(vitamError));
+    }
+
+    @Test
+    public void testToString() throws Exception {
+        VitamError error = new VitamError(0);
+        error.setMessage("message");
+        error.setDescription("description");
+        error.setState("state");
+        error.setContext("context");
+        error.setErrors(Collections.singletonList(new VitamError(1)));
+        assertEquals(ERROR_JSON, error.toString());
     }
 }

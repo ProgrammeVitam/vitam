@@ -49,7 +49,7 @@ public class CreateObjectDescription {
      */
     public CreateObjectDescription(String workspaceContainerGUID, String workspaceObjectURI) {
         this.workspaceContainerGUID = workspaceContainerGUID;
-        this.workspaceContainerGUID = workspaceContainerGUID;
+        this.workspaceObjectURI = workspaceObjectURI;
     }
 
     public String getWorkspaceObjectURI() {

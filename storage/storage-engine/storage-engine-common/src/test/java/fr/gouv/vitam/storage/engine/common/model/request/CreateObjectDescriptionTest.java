@@ -57,4 +57,11 @@ public class CreateObjectDescriptionTest {
         createObjectDescription.setWorkspaceContainerGUID("GUID");
         assertEquals("GUID", createObjectDescription.getWorkspaceContainerGUID());
     }
+
+    @Test
+    public void testConstructorWithParam() throws Exception {
+        CreateObjectDescription createObjectDescription = new CreateObjectDescription("containerGUID", "objectURI");
+        assertEquals("containerGUID", createObjectDescription.getWorkspaceContainerGUID());
+        assertEquals("objectURI", createObjectDescription.getWorkspaceObjectURI());
+    }
 }

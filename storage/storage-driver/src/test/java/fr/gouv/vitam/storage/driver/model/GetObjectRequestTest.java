@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -24,59 +24,35 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.storage.offers.workspace.driver;
 
-import java.util.Properties;
+package fr.gouv.vitam.storage.driver.model;
 
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.storage.driver.Driver;
-import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
+import static org.junit.Assert.assertEquals;
+
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 /**
- * Workspace Driver Implementation
+ * TEst for GetObjectRequest
  */
-public class DriverImpl implements Driver {
+public class GetObjectRequestTest {
+    private static GetObjectRequest getObjectRequest;
 
-    private static final String DRIVER_NAME = "WorkspaceDriver";
-    private static final String URL_IS_A_MANDATORY_PARAMETER = "Url is a mandatory parameter";
-
-    @Override
-    public ConnectionImpl connect(String url, Properties parameters) throws StorageDriverException {
-        try {
-            ParametersChecker.checkParameter(URL_IS_A_MANDATORY_PARAMETER, url);
-        } catch (IllegalArgumentException exc) {
-            throw new StorageDriverException(DRIVER_NAME, StorageDriverException.ErrorCode.PRECONDITION_FAILED,
-                URL_IS_A_MANDATORY_PARAMETER);
-        }
-        try {
-            ConnectionImpl connection = new ConnectionImpl(url, DRIVER_NAME);
-            connection.getStatus();
-            return connection;
-        } catch (StorageDriverException exception) {
-            throw new StorageDriverException(DRIVER_NAME, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
-                exception.getMessage());
-        }
-
+    @BeforeClass
+    public static void init() {
+        getObjectRequest = new GetObjectRequest();
     }
 
-    @Override
-    public boolean isStorageOfferAvailable(String url, Properties parameters) throws StorageDriverException {
-        return true;
+    @Test
+    public void testGetSetTenantId() throws Exception {
+        getObjectRequest.setTenantId("ff");
+        assertEquals("ff", getObjectRequest.getTenantId());
     }
 
-    @Override
-    public String getName() {
-        return DRIVER_NAME;
-    }
-
-    @Override
-    public int getMajorVersion() {
-        return 0;
-    }
-
-    @Override
-    public int getMinorVersion() {
-        return 0;
+    @Test
+    public void testGetSetObjectId() throws Exception {
+        getObjectRequest.setGuid("ff");
+        assertEquals("ff", getObjectRequest.getGuid());
     }
 
 }

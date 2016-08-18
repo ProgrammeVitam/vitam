@@ -39,5 +39,25 @@ package fr.gouv.vitam.storage.driver.model;
  * Holds every needed parameters that may be needed to retrieve an object on the distant storage offer
  */
 public class GetObjectRequest {
-    // TODO : implements me
+
+    private String tenantId;
+
+    private String guid;
+
+    public String getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(String tenantId) {
+        this.tenantId = tenantId;
+    }
+
+
+    public String getGuid() {
+        return guid;
+    }
+
+    public void setGuid(String guid) {
+        this.guid = guid;
+    }
 }

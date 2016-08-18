@@ -1,9 +1,11 @@
 package fr.gouv.vitam.storage.engine.client;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -25,6 +27,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.BasicVitamServer;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
 import fr.gouv.vitam.storage.engine.server.rest.StorageApplication;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
@@ -37,7 +40,7 @@ import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
 
 public class StorageClientIntegrationTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageClientIntegrationTest.class);
-    private static final String SHOULD_RAIZED_AN_EXCEPTION = "Should have raized an exception";
+    private static final String SHOULD_NOT_RAIZED_AN_EXCEPTION = "Should not have raized an exception";
 
 
     private static final String REST_URI = StorageClient.RESOURCE_PATH;
@@ -172,14 +175,14 @@ public class StorageClientIntegrationTest {
         try {
             JsonNode node = storageClient.getStorageInformation("0", "default");
             assertNotNull(node);
- //            fail(SHOULD_RAIZED_AN_EXCEPTION);
+ //            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         } catch (VitamException svce) {
-            fail(SHOULD_RAIZED_AN_EXCEPTION);
+            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
         //TODO : when implemented, uncomment this
         /*try {
             storageClient.exists("0", "default", StorageCollectionType.OBJECTS, "objectId");            
-            fail(SHOULD_RAIZED_AN_EXCEPTION);
+            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         } catch (StorageServerClientException svce) {
             // not yet implemented
         }*/
@@ -187,19 +190,26 @@ public class StorageClientIntegrationTest {
             storageClient.storeFileFromWorkspace("0", "default", StorageCollectionType.OBJECTS, "objectId",
                 description);
         } catch (StorageServerClientException svce) {
-            fail(SHOULD_RAIZED_AN_EXCEPTION);
+            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
+        }
+        
+        try {
+            InputStream stream = storageClient.getContainerObject("0", "default", OBJECT_ID);
+            assertNotNull(stream);
+        } catch (StorageServerClientException | StorageNotFoundException svce) {
+            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
 
         //TODO : when implemented, uncomment this
         /*try {
             storageClient.exists("0", "default", StorageCollectionType.OBJECTS, "objectId");
-            fail(SHOULD_RAIZED_AN_EXCEPTION);
+            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         } catch (StorageServerClientException svce) {
             // not yet implemented
         }
         try {
             storageClient.delete("0", "default", StorageCollectionType.OBJECTS, "objectId");
-            fail(SHOULD_RAIZED_AN_EXCEPTION);
+            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         } catch (Exception svce) {
             // not yet implemented
         }*/

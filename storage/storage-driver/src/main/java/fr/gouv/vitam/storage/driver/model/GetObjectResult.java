@@ -35,9 +35,20 @@
 
 package fr.gouv.vitam.storage.driver.model;
 
+import java.io.InputStream;
+
 /**
  * Holds result data that come as a result of a request to retrieve an object on the distant storage offer
  */
 public class GetObjectResult {
-    // TODO : implements me
+
+    private InputStream object;
+
+    public InputStream getObject() {
+        return object;
+    }
+
+    public void setObject(InputStream object) {
+        this.object = object;
+    }
 }

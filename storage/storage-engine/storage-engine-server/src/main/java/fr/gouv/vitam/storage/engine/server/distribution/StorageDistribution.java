@@ -137,8 +137,10 @@ public interface StorageDistribution {
      * @param objectId   id of the object
      * @return an object as an InputStream
      * @throws StorageNotFoundException Thrown if the Container or the object does not exist
+     * @throws StorageTechnicalException thrown if a technical error happened
      */
-    InputStream getContainerObject(String tenantId, String strategyId, String objectId) throws StorageNotFoundException;
+    InputStream getContainerObject(String tenantId, String strategyId, String objectId) throws
+        StorageNotFoundException, StorageTechnicalException;
 
     /**
      * Get a specific Object informations
