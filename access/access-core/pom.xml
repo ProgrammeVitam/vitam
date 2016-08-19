@@ -48,9 +48,14 @@
             <artifactId>logbook-operations-client</artifactId>
             <version>${project.version}</version>
         </dependency>
-		 <dependency>
+		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>metadata-client</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>storage-engine-client</artifactId>
 			<version>${project.version}</version>
 		</dependency>
         <dependency>

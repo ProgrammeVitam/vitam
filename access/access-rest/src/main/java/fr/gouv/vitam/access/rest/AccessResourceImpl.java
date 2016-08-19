@@ -23,13 +23,35 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.rest;
 
+import java.io.InputStream;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import org.eclipse.jetty.http.HttpHeader;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.api.AccessModule;
 import fr.gouv.vitam.access.api.AccessResource;
 import fr.gouv.vitam.access.common.exception.AccessExecutionException;
 import fr.gouv.vitam.access.config.AccessConfiguration;
 import fr.gouv.vitam.access.core.AccessModuleImpl;
+import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.ParametersChecker;
+
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -38,18 +60,10 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.VitamError;
 import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
+import fr.gouv.vitam.common.server.application.VitamHttpHeader;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.PUT;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 
 /**
  * AccessResourceImpl implements AccessResource
@@ -74,6 +88,16 @@ public class AccessResourceImpl implements AccessResource {
     public AccessResourceImpl(AccessConfiguration configuration) {
 
         accessModule = new AccessModuleImpl(configuration);
+        LOGGER.info("AccessResource initialized");
+    }
+
+    /**
+     * Test constructor
+     *
+     * @param accessModule
+     */
+    AccessResourceImpl(AccessModule accessModule) {
+        this.accessModule = accessModule;
         LOGGER.info("AccessResource initialized");
     }
 
@@ -104,17 +128,13 @@ public class AccessResourceImpl implements AccessResource {
             // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
             return Response.status(status)
-                .entity(new RequestResponseError().setError(
-                    new VitamError(status.getStatusCode()).setContext(ACCESS_MODULE).setState(CODE_VITAM)
-                        .setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase())))
+                .entity(getErrorEntity(status))
                 .build();
         } catch (final AccessExecutionException e) {
             LOGGER.error(e.getMessage(), e);
             status = Status.METHOD_NOT_ALLOWED;
             return Response.status(status)
-                .entity(new RequestResponseError().setError(
-                    new VitamError(status.getStatusCode()).setContext(ACCESS_MODULE).setState(CODE_VITAM)
-                        .setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase())))
+                .entity(getErrorEntity(status))
                 .build();
         }
         LOGGER.info("End of execution of DSL Vitam from Access");
@@ -160,23 +180,13 @@ public class AccessResourceImpl implements AccessResource {
             // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
             return Response.status(status)
-                .entity(new RequestResponseError().setError(
-                    new VitamError(status.getStatusCode())
-                        .setContext(ACCESS_MODULE)
-                        .setState(CODE_VITAM)
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase())))
+                .entity(getErrorEntity(status))
                 .build();
         } catch (final AccessExecutionException e) {
             LOGGER.error(e.getMessage(), e);
             status = Status.METHOD_NOT_ALLOWED;
             return Response.status(status)
-                .entity(new RequestResponseError().setError(
-                    new VitamError(status.getStatusCode())
-                        .setContext(ACCESS_MODULE)
-                        .setState(CODE_VITAM)
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase())))
+                .entity(getErrorEntity(status))
                 .build();
         }
         LOGGER.info("End of execution of DSL Vitam from Access");
@@ -212,26 +222,128 @@ public class AccessResourceImpl implements AccessResource {
             // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
             return Response.status(status)
-                    .entity(new RequestResponseError().setError(
-                            new VitamError(status.getStatusCode())
-                                    .setContext(ACCESS_MODULE)
-                                    .setState(CODE_VITAM)
-                                    .setMessage(status.getReasonPhrase())
-                                    .setDescription(status.getReasonPhrase())))
+                    .entity(getErrorEntity(status))
                     .build();
         } catch (final AccessExecutionException e) {
             LOGGER.error(e.getMessage(), e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                    .entity(new RequestResponseError().setError(
-                            new VitamError(status.getStatusCode())
-                                    .setContext(ACCESS_MODULE)
-                                    .setState(CODE_VITAM)
-                                    .setMessage(status.getReasonPhrase())
-                                    .setDescription(status.getReasonPhrase())))
+                    .entity(getErrorEntity(status))
                     .build();
         }
         LOGGER.info("End of execution of DSL Vitam from Access");
         return Response.status(Status.OK).entity(result).build();
+    }
+
+    @Override
+    @GET
+    @Path("/objects/{id_object_group}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getObjectGroup(@PathParam("id_object_group") String idObjectGroup, String query) {
+        JsonNode result;
+        Status status;
+        try {
+            ParametersChecker.checkParameter("Must have a dsl query", query);
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(query));
+            JsonNode queryJson = JsonHandler.getFromString(query);
+            result = accessModule.selectObjectGroupById(queryJson, idObjectGroup);
+        } catch (InvalidParseOperationException exc) {
+            LOGGER.error(exc);
+            status = Status.BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status)).build();
+        } catch(IllegalArgumentException exc) {
+            LOGGER.error(exc);
+            status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status)).build();
+        } catch (AccessExecutionException exc) {
+            LOGGER.error(exc);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(getErrorEntity(status)).build();
+        }
+        return Response.status(Status.OK).entity(result).build();
+    }
+
+    @Override
+    @POST
+    @Path("/objects/{id_object_group}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getObjectGroup(@HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xHttpOverride,
+        @PathParam("id_object_group") String idObjectGroup, String query) {
+        if (!"GET".equalsIgnoreCase(xHttpOverride)) {
+            Status status = Status.METHOD_NOT_ALLOWED;
+            return Response.status(status).entity(getErrorEntity(status)).build();
+        }
+        return getObjectGroup(idObjectGroup, query);
+    }
+
+    @Override
+    @GET
+    @Path("/objects/{id_object_group}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public Response getObjectStream(@Context HttpHeaders headers, @PathParam("id_object_group") String idObjectGroup,
+        String query) {
+        if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.TENANT_ID) || !HttpHeaderHelper.hasValuesFor
+            (headers, VitamHttpHeader.QUALIFIER) || !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader
+            .VERSION)) {
+            LOGGER.error("At least one required header is missing. Required headers: (" + VitamHttpHeader.TENANT_ID
+                .name() + ", " +VitamHttpHeader.QUALIFIER.name() + ", " + VitamHttpHeader.VERSION.name() + ")");
+            return Response.status(Status.PRECONDITION_FAILED).entity(getErrorEntity(Status.PRECONDITION_FAILED).
+                toString()).build();
+        }
+        String xQualifier = headers.getRequestHeader(GlobalDataRest.X_QUALIFIER).get(0);
+        String xVersion = headers.getRequestHeader(GlobalDataRest.X_VERSION).get(0);
+        String xTenantId = headers.getRequestHeader(GlobalDataRest.X_TENANT_ID).get(0);
+        InputStream result;
+        try {
+            HttpHeaderHelper.checkVitamHeaders(headers);
+            ParametersChecker.checkParameter("Must have a dsl query", query);
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(query));
+            JsonNode queryJson = JsonHandler.getFromString(query);
+            result = accessModule.getOneObjectFromObjectGroup(idObjectGroup, queryJson, xQualifier, Integer.valueOf
+                (xVersion), xTenantId);
+        } catch (InvalidParseOperationException exc) {
+            LOGGER.error(exc);
+            return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST).toString()).build();
+        } catch(IllegalArgumentException exc) {
+            LOGGER.error(exc);
+            return Response.status(Status.PRECONDITION_FAILED).entity(getErrorEntity(Status.PRECONDITION_FAILED).
+                toString()).build();
+        } catch (AccessExecutionException exc) {
+            LOGGER.error(exc.getMessage(), exc);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR)
+                .toString()).build();
+        } catch(MetaDataNotFoundException | StorageNotFoundException exc) {
+            LOGGER.error(exc);
+            return Response.status(Status.NOT_FOUND).entity(getErrorEntity(Status.NOT_FOUND).toString()).build();
+        }
+        return Response.status(Status.OK).header("X-Qualifier", xQualifier).header("X-Version", xVersion).entity
+            (result).build();
+    }
+
+    @Override
+    @POST
+    @Path("/objects/{id_object_group}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public Response getObjectStreamPost(@Context HttpHeaders headers, @PathParam ("id_object_group") String
+        idObjectGroup, String query) {
+        if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.METHOD_OVERRIDE)) {
+            return Response.status(Status.PRECONDITION_FAILED).entity(getErrorEntity(Status.PRECONDITION_FAILED).
+                toString()).build();
+        }
+        String xHttpOverride = headers.getRequestHeader(GlobalDataRest.X_HTTP_METHOD_OVERRIDE).get(0);
+        if (!"GET".equalsIgnoreCase(xHttpOverride)) {
+            return Response.status(Status.METHOD_NOT_ALLOWED).entity(getErrorEntity(Status.METHOD_NOT_ALLOWED)
+                .toString()).build();
+        }
+        return getObjectStream(headers, idObjectGroup, query);
+    }
+
+    private RequestResponseError getErrorEntity(Status status) {
+        return new RequestResponseError().setError(new VitamError(status.getStatusCode()).setContext(ACCESS_MODULE)
+            .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase()));
     }
 }

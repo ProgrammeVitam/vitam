@@ -33,13 +33,14 @@
  * knowledge of the CeCILL 2.1 license and that you accept its terms.
  */
 
-package fr.gouv.vitam.storage.engine.common.header;
+package fr.gouv.vitam.common.server.application;
+
+import fr.gouv.vitam.common.GlobalDataRest;
 
 /**
  * Enum use to represent possible HTTP header for Vitam application. Also define a regular expression to check if values
  * from HTTP headers are right
  *
- * TODO: This enum is based on api-design enum, someday we should make it common vitam and refactor
  */
 public enum VitamHttpHeader {
 
@@ -47,16 +48,24 @@ public enum VitamHttpHeader {
      * The X_STRATEGY_ID header, used in HEAD requests to ask for a particular strategy
      * TODO : change regex to be more precise (something like ^\s*\w+$ or \s*\w+\s*$)
      */
-    STRATEGY_ID("X-Strategy-Id", ".+"),
+    STRATEGY_ID(GlobalDataRest.X_STRATEGY_ID, ".+"),
     /**
-     * The X_STRATEGY_ID header, used in HEAD requests to ask for a particular strategy
+     * The X_STRATEGY_ID header, used in requests to use a particular strategy
      * TODO : change regex to be more precise (something like ^\s*\w+$ or \s*\w+\s*$)
      */
-    TENANT_ID("X-Tenant-Id", ".+"),
+    TENANT_ID(GlobalDataRest.X_TENANT_ID, ".+"),
     /**
      * The X-Http-Method-Override header, used in requests to handle unsupported Http methods with body
      */
-    METHOD_OVERRIDE("X-Http-Method-Override", "get|patch|delete");
+    METHOD_OVERRIDE(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "get|patch|delete"),
+    /**
+     * The X-Qualifier header, used to get an object
+     */
+    QUALIFIER(GlobalDataRest.X_QUALIFIER, ".+"),
+    /**
+     * The X-Version header, used to get an object
+     */
+    VERSION(GlobalDataRest.X_VERSION, "[0-9]+");
 
     private String name;
     private String regExp;

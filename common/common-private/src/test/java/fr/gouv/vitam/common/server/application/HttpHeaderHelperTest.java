@@ -33,13 +33,12 @@
  * knowledge of the CeCILL 2.1 license and that you accept its terms.
  */
 
-package fr.gouv.vitam.storage.engine.common.header;
+package fr.gouv.vitam.common.server.application;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+
 import java.util.Collections;
 import java.util.List;
 
@@ -48,8 +47,6 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
-import fr.gouv.vitam.storage.engine.common.header.HttpHeaderHelper;
-import fr.gouv.vitam.storage.engine.common.header.VitamHttpHeader;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;

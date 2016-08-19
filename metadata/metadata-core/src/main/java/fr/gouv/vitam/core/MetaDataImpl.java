@@ -24,6 +24,8 @@
 package fr.gouv.vitam.core;
 
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -49,6 +51,11 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.core.database.collections.MongoDbVarNameAdapter;
 import fr.gouv.vitam.core.database.collections.Result;
 import fr.gouv.vitam.core.utils.MetadataJsonResponseUtils;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * MetaDataImpl implements a MetaData interface
@@ -142,7 +149,7 @@ public final class MetaDataImpl implements MetaData {
         MetaDataDocumentSizeException {
         LOGGER.info("Begin selectUnitsByQuery ...");
         LOGGER.debug("SelectUnitsByQuery/ selectQuery: " + selectQuery);
-        return selectMetadataObject(selectQuery, null);
+        return selectMetadataObject(selectQuery, null, null);
 
     }
 
@@ -152,7 +159,7 @@ public final class MetaDataImpl implements MetaData {
         MetaDataDocumentSizeException {
         LOGGER.info("Begin selectUnitsById .../id:" + unitId);
         LOGGER.debug("SelectUnitsById/ selectQuery: " + selectQuery);
-        return selectMetadataObject(selectQuery, unitId);
+        return selectMetadataObject(selectQuery, unitId, null);
     }
 
     @Override
@@ -160,10 +167,14 @@ public final class MetaDataImpl implements MetaData {
         throws InvalidParseOperationException, MetaDataDocumentSizeException, MetaDataExecutionException {
         LOGGER.debug("SelectObjectGroupById - objectGroupId : " + objectGroupId);
         LOGGER.debug("SelectObjectGroupById - selectQuery : " + selectQuery);
-        return selectMetadataObject(selectQuery, objectGroupId);
+        return selectMetadataObject(selectQuery, objectGroupId, Collections.singletonList(BuilderToken.FILTERARGS
+            .OBJECTGROUPS));
     }
 
-    private JsonNode selectMetadataObject(String selectQuery, String unitOrObjectGroupId)
+    // TODO : maybe do not encapsulate all exception in a MetaDataExecutionException. We may need to know if it is
+    // NOT_FOUND for example
+    private JsonNode selectMetadataObject(String selectQuery, String unitOrObjectGroupId, List<BuilderToken
+            .FILTERARGS> filters)
         throws MetaDataExecutionException, InvalidParseOperationException,
         MetaDataDocumentSizeException {
         Result result = null;
@@ -187,6 +198,16 @@ public final class MetaDataImpl implements MetaData {
                 if (request != null) {
                     LOGGER.debug("Reset $roots id with :" + unitOrObjectGroupId);
                     request.resetRoots().addRoots(unitOrObjectGroupId);
+                }
+            }
+            if (filters != null && !filters.isEmpty()) {
+                RequestMultiple request = selectRequest.getRequest();
+                if (request != null) {
+                    String[] hints = filters.stream()
+                        .map(BuilderToken.FILTERARGS::exactToken)
+                        .toArray(String[]::new);
+                    LOGGER.debug("Adding given $hint filters: " + Arrays.toString(hints));
+                    request.addHintFilter(hints);
                 }
             }
             // Execute DSL request

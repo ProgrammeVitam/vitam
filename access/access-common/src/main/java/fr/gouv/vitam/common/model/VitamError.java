@@ -27,6 +27,7 @@ package fr.gouv.vitam.common.model;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.StringJoiner;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -191,5 +192,36 @@ public final class VitamError {
      */
     public List<VitamError> getErrors() {
         return errors;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\"code\":\"");
+        sb.append(code);
+        sb.append("\",\"context\":\"");
+        if (context != null) {
+            sb.append(context.replaceAll("\"", "'"));
+        }
+        sb.append("\",\"state\":\"");
+        if (state != null) {
+            sb.append(state.replaceAll("\"", "'"));
+        }
+        sb.append("\",\"message\":\"");
+        if (message != null) {
+            sb.append(message.replaceAll("\"", "'"));
+        }
+        sb.append("\",\"description\":\"");
+        if (description != null) {
+            sb.append(description.replaceAll("\"", "'"));
+        }
+        sb.append("\",\"errors\":[");
+        StringJoiner joiner = new StringJoiner(",");
+        for (VitamError error : errors) {
+            joiner.add(error.toString());
+        }
+        sb.append(joiner.toString());
+        sb.append("]}");
+        return sb.toString();
     }
 }

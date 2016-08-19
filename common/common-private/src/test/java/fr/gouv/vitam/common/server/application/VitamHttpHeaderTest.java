@@ -33,13 +33,12 @@
  * knowledge of the CeCILL 2.1 license and that you accept its terms.
  */
 
-package fr.gouv.vitam.storage.engine.common.header;
+package fr.gouv.vitam.common.server.application;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
-import fr.gouv.vitam.storage.engine.common.header.VitamHttpHeader;
 import org.junit.Test;
 
 public class VitamHttpHeaderTest {

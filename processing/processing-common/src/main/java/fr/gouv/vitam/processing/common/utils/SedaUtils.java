@@ -1848,10 +1848,10 @@ public class SedaUtils {
      * of Sedautils, it has to be refactored to StoreObjectGroupActionHandler
      * 
      * @param params worker parameters
-     * @return list binary data object informations
+     * @return tha map of binary data object information with their object GUID as key
      * @throws ProcessingException throws when error occurs
      */
-    public List<BinaryObjectInfo> retrieveStorageInformationForObjectGroup(WorkParams params)
+    public Map<String, BinaryObjectInfo> retrieveStorageInformationForObjectGroup(WorkParams params)
         throws ProcessingException {
         ParametersChecker.checkParameter("Work parameters is a mandatory parameter", params);
         final String containerId = params.getContainerName();
@@ -1862,7 +1862,7 @@ public class SedaUtils {
         final WorkspaceClient workspaceClient =
             WorkspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
         // retrieve SEDA FILE and get the list of objectsDatas
-        List<BinaryObjectInfo> binaryObjectsToStore = new ArrayList<>();
+        Map<String, BinaryObjectInfo> binaryObjectsToStore = new HashMap<>();
         // Get binary objects informations of the SIP
         SedaUtilInfo sedaUtilInfo = getSedaUtilInfo(workspaceClient, containerId);
         // Get objectGroup objects ids
@@ -1892,21 +1892,19 @@ public class SedaUtils {
 		}
     	Map<String, Object> objectIdToGuidStoredMap = getMapFromString(objectIdToGuidStoredContent);
 
-    	Map<Object, String> guidToUnitIdMap =
+    	Map<Object, String> guidToObjectIdMap =
     			objectIdToGuidStoredMap.entrySet()
     			.stream()
     			.collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
         
         for (JsonNode version : versions) {
             for (JsonNode binaryObject : version) {
-         
-            	String binaryObjectId=guidToUnitIdMap.get(binaryObject.get("_id").asText());
-            	
+                String binaryObjectId=guidToObjectIdMap.get(binaryObject.get("_id").asText());
             	Optional<Entry<String, BinaryObjectInfo>> objectEntry =
             			sedaUtilInfo.getBinaryObjectMap().entrySet().stream()
             			.filter(entry -> entry.getKey().equals(binaryObjectId)).findFirst();
             	if (objectEntry.isPresent()) {
-            		binaryObjectsToStore.add(objectEntry.get().getValue());
+                    binaryObjectsToStore.put(binaryObject.get("_id").asText(), objectEntry.get().getValue());
                 }
             }
         }

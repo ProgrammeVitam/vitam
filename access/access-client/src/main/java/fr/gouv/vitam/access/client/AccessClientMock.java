@@ -26,6 +26,10 @@
  */
 package fr.gouv.vitam.access.client;
 
+import java.io.InputStream;
+
+import org.apache.commons.io.IOUtils;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.access.common.exception.AccessClientNotFoundException;
@@ -37,6 +41,8 @@ import fr.gouv.vitam.common.json.JsonHandler;
  * Mock client implementation for access
  */
 public class AccessClientMock implements AccessClient {
+
+    static final String MOCK_GET_FILE_CONTENT = "Vitam test";
 
     @Override
     public JsonNode selectUnits(String selectQuery)
@@ -52,19 +58,25 @@ public class AccessClientMock implements AccessClient {
             "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"1\" }}, $projection: {}, $filter: {}},$result:[{'_id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}");
     }
 
-    /**
-     * update Unit By Id
-     *
-     * @param updateQuery
-     * @param unitId
-     * @return Object JsonNode
-     * @throws InvalidParseOperationException
-     * @throws AccessClientServerException
-     * @throws AccessClientNotFoundException
-     */
     @Override
-    public JsonNode updateUnitbyId(String updateQuery, String unitId) throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException {
+    public JsonNode updateUnitbyId(String updateQuery, String unitId)
+        throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException {
         return JsonHandler.getFromString(
-                "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"ArchiveUnit1\" }}, $projection: {}, $filter: {}},$result:[{'_id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}");
+            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"ArchiveUnit1\" }}, $projection: {}, $filter: {}},$result:[{'_id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}");
+    }
+
+    @Override
+    public JsonNode selectObjectbyId(String selectObjectQuery, String objectId)
+        throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException {
+        return JsonHandler.getFromString(
+            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"1\" }}, $projection: {}, $filter: {}},$result:" +
+                "[{'_id': '1', 'name': 'abcdef', 'creation_date': '2015-07-14T17:07:14Z', 'fmt': 'ftm/123', 'numerical_information': '55.3'}]}");
+
+    }
+
+    @Override
+    public InputStream getObjectAsInputStream(String selectObjectQuery, String objectGroupId, String usage, int version)
+        throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException {
+        return IOUtils.toInputStream(MOCK_GET_FILE_CONTENT);
     }
 }

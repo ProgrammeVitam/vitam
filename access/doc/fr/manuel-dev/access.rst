@@ -1,5 +1,5 @@
 Access
-#######
+######
 
 Utilisation
 ###########
@@ -46,20 +46,20 @@ Par défaut, le client est en mode Mock. Il est possible de récupérer directem
   Si les paramètres de productions sont introuvables, le client passe en mode Mock par défaut.
   Il est possible de récupérer directement le mock :
 
-    .. code-block:: java
+.. code-block:: java
 
       // Changer la configuration du Factory client
-      AccessClientFactory.setConfiguration(AccessClientType.MOCK_OPERATIONS);
+      AccessClientFactory.setConfiguration(AccessClientType.MOCK);
      
       // Récupération explicite du client mock
         final AccessClient client = AccessClientFactory.getInstance().getAccessOperationClient();
        
-    - Pour instancier son client en mode Production :
+ - Pour instancier son client en mode Production :
 
-    .. code-block:: java
+.. code-block:: java
 
       // Changer la configuration du Factory
-       AccessClientFactory.setConfiguration(AccessClientType.MOCK_OPERATIONS);
+       AccessClientFactory.setConfiguration(AccessClientType.PRODUCTION);
       // Récupération explicite du client
       AccessClient client = AccessClientFactory.getInstance().getAccessOperationClient();
 
@@ -73,15 +73,19 @@ Le premier argument contient le nom du fichier de configuration access.conf (il 
 Le client
 *********
 
-    Le client propose actuellement deux méthodes : selectUnits(String dslQuery); selectUnitbyId(selectUnitbyId(String sqlQuery, String id););
+    Le client propose actuellement plusieurs méthodes : selectUnits(String dslQuery); selectUnitbyId(String sqlQuery, String id);
+    updateUnitbyId(String updateQuery, String unitId);selectObjectbyId(String selectObjectQuery, String objectId);
+    getObjectAsInputStream(String selectObjectQuery, String objectGroupId, String usage, int version);
+    
     Paramètre de la fonction : String dsl, selectUnitbyId(String sqlQuery, String id)
     //TODO (Itérations futures : ajouter méthode modification des métadonnées ?)
 
-    Le client récupère une réponse au format Json.
+    Le client récupère une réponse au format Json ou au format InputStream.
 
-    Exemple d'usage générique
-    =========================
-    .. code-block:: java
+Exemple d'usage générique
+=========================
+
+.. code-block:: java
 
     // Récupération du client dans le module ihm-demo
      AccessClient client = AccessClientFactory.getInstance().getAccessOperationClient();
@@ -93,6 +97,12 @@ Le client
     
     // Recherche des Units par Identification
      JsonNode selectUnitbyId(String sqlQuery, String id)
+     
+     //Recherche d'object par ID + un DSL selectObjectQuery 
+     JsonNode jsonObject = client.selectObjectbyId(String selectObjectQuery, String id);
+     
+     //Récupération d'un objet au format input stream
+     InputStream stream = client.getObjectAsInputStream(String selectObjectQuery, String objectGroupId, String usage, int version);
 
 Exemple d'usage générique
 =========================

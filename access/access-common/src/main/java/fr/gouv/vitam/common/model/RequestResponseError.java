@@ -53,4 +53,18 @@ public class RequestResponseError extends RequestResponse {
         this.error = error;
         return this;
     }
+
+    /**
+     * Override toString method for rest's resources which return an application/octet_stream
+     *
+     * @return a json of errors (error.toString()) list
+     */
+    @Override
+    public String toString() {
+        if (error != null) {
+            return error.toString();
+        }
+        return "";
+    }
+
 }

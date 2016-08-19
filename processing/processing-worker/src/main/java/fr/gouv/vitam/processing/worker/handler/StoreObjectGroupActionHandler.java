@@ -27,6 +27,7 @@
 package fr.gouv.vitam.processing.worker.handler;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.io.FilenameUtils;
 
@@ -121,9 +122,10 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
             updateLifeCycleParametersLogbookByStep(params, SedaUtils.LIFE_CYCLE_EVENT_TYPE_PROCESS);
             updateLifeCycle();
 
-            List<BinaryObjectInfo> storageObjectInfos = sedaUtils.retrieveStorageInformationForObjectGroup(params);
-            for (BinaryObjectInfo storageObjectInfo : storageObjectInfos) {
-                storeObject(params, storageObjectInfo);
+            Map<String, BinaryObjectInfo> storageObjectInfos = sedaUtils.retrieveStorageInformationForObjectGroup
+                (params);
+            for (Map.Entry<String, BinaryObjectInfo> storageObjectInfo : storageObjectInfos.entrySet()) {
+                storeObject(params, storageObjectInfo.getKey(), storageObjectInfo.getValue());
             }
         } catch (final ProcessingException e) {
             LOGGER.error(e);
@@ -158,11 +160,13 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
      * Store a binary data object with the storage engine.
      * 
      * @param params worker parameters
+     * @param objectGUID the object guid
      * @param storageObjectInfo informations on the binary data object needed by the storage engine
      * @throws ProcessingException throws when error occurs
      */
-    private void storeObject(WorkParams params, BinaryObjectInfo storageObjectInfo)
+    private void storeObject(WorkParams params, String objectGUID, BinaryObjectInfo storageObjectInfo)
         throws ProcessingException {
+        LOGGER.debug("Storing object with guid: " + objectGUID);
         try {
             // update lifecycle of objectGroup with detail of object : STARTED
             updateLifeCycleParametersLogbookForBdo(params, storageObjectInfo.getId());
@@ -174,7 +178,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
             description.setWorkspaceObjectURI(SIP + storageObjectInfo.getUri().toString());
             StoredInfoResult result =
                 STORAGE_CLIENT.storeFileFromWorkspace(DEFAULT_TENANT, DEFAULT_STRATEGY, StorageCollectionType.OBJECTS,
-                    storageObjectInfo.getMessageDigest(), description);
+                    objectGUID, description);
 
             // update lifecycle of objectGroup with detail of object : OK
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcome,

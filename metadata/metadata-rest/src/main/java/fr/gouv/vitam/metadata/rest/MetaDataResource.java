@@ -299,6 +299,7 @@ public class MetaDataResource {
 
     /**
      * Select unit by request and unit id
+     * TODO : maybe produce NOT_FOUND when unit is not found?
      */
     private Response selectUnitById(String selectRequest, String unitId) {
         Status status;
@@ -511,6 +512,7 @@ public class MetaDataResource {
 
     /**
      * Select unit by request and unit id
+     * TODO : maybe produce NOT_FOUND when objectGroup is not found?
      */
     private Response selectObjectGroupById(String selectRequest, String objectGroupId) {
         Status status;
@@ -518,7 +520,7 @@ public class MetaDataResource {
         try {
             jsonResultNode = metaDataImpl.selectObjectGroupById(selectRequest, objectGroupId);
         } catch (final InvalidParseOperationException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             status = Status.BAD_REQUEST;
             return Response.status(status)
                 .entity(new RequestResponseError().setError(
@@ -531,7 +533,7 @@ public class MetaDataResource {
         } catch (final MetaDataExecutionException e) {
             return metadataExecutionExceptionTrace(e);
         } catch (final MetaDataDocumentSizeException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             status = Status.REQUEST_ENTITY_TOO_LARGE;
             return Response.status(status)
                 .entity(new RequestResponseError().setError(

@@ -23,6 +23,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.client;
 
+import java.io.InputStream;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.access.common.exception.AccessClientNotFoundException;
@@ -34,15 +36,14 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
  */
 public interface AccessClient {
 
-
     /**
      * Select Units
      * 
-     * @param selectQuery
-     * @return Object JsonNode
-     * @throws InvalidParseOperationException
-     * @throws AccessClientServerException
-     * @throws AccessClientNotFoundException
+     * @param selectQuery the query used to select units
+     * @return JsonNode object including DSL queries and results
+     * @throws InvalidParseOperationException if the query is not well formatted
+     * @throws AccessClientServerException if the server encountered an exception
+     * @throws AccessClientNotFoundException if the requested unit does not exist
      */
     JsonNode selectUnits(String selectQuery)
         throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException;
@@ -50,12 +51,12 @@ public interface AccessClient {
     /**
      * select Unit By Id
      * 
-     * @param sqlQuery
-     * @param id
-     * @return Object JsonNode
-     * @throws InvalidParseOperationException
-     * @throws AccessClientServerException
-     * @throws AccessClientNotFoundException
+     * @param sqlQuery the query to be executed
+     * @param id the id of the unit
+     * @return JsonNode object including DSL queries, context and results
+     * @throws InvalidParseOperationException if the query is not well formatted
+     * @throws AccessClientServerException if the server encountered an exception
+     * @throws AccessClientNotFoundException if the requested unit does not exist
      */
     JsonNode selectUnitbyId(String sqlQuery, String id)
         throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException;
@@ -63,14 +64,43 @@ public interface AccessClient {
     /**
      * update Unit By Id
      *
-     * @param updateQuery
-     * @param unitId
-     * @return Object JsonNode
-     * @throws InvalidParseOperationException
-     * @throws AccessClientServerException
-     * @throws AccessClientNotFoundException
+     * @param updateQuery the query to be executed as an update
+     * @param unitId the id of the unit
+     * @return JsonNode object including DSL queries, context and results
+     * @throws InvalidParseOperationException if the query is not well formatted
+     * @throws AccessClientServerException if the server encountered an exception
+     * @throws AccessClientNotFoundException if the requested unit does not exist
      */
     JsonNode updateUnitbyId(String updateQuery, String unitId)
-            throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException;
+        throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException;
+
+    /**
+     * Retrieve an ObjectGroup as Json data based on the provided ObjectGroup id
+     * 
+     * @param selectObjectQuery the query to be executed
+     * @param objectId the Id of the ObjectGroup
+     * @return JsonNode object including DSL queries, context and results
+     * @throws InvalidParseOperationException if the query is not well formatted
+     * @throws AccessClientServerException if the server encountered an exception
+     * @throws AccessClientNotFoundException if the requested object does not exist
+     */
+    JsonNode selectObjectbyId(String selectObjectQuery, String objectId)
+        throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException;
+
+    /**
+     * Retrieve an Object data as an input stream
+     * 
+     * @param selectObjectQuery the query to be executed
+     * @param objectGroupId the Id of the ObjectGroup
+     * @param usage the requested usage
+     * @param version the requested version of the usage
+     * @return InputStream the object data
+     * @throws InvalidParseOperationException if the query is not well formatted
+     * @throws AccessClientServerException if the server encountered an exception
+     * @throws AccessClientNotFoundException if the requested object does not exist
+     */
+    InputStream getObjectAsInputStream(String selectObjectQuery, String objectGroupId, String usage, int version)
+        throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException;
+
 
 }

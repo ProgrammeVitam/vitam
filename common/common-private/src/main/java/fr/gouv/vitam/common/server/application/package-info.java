@@ -27,6 +27,6 @@
 
 /**
  * Contains generic VitamApplication interface and an abstract implementation to be used as a base for every module
- * specific web application.
+ * specific web application. Also contains utility structure and helpers to handle application headers.
  */
 package fr.gouv.vitam.common.server.application;
