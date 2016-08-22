@@ -1,6 +1,6 @@
-###########
+####################################
 architecture-fontionnelle-processing
-###########
+####################################
 
 .. caution::
 
@@ -23,7 +23,8 @@ Sommaire
    management.rst   
    engine.rst
    distributor.rst
-   worker.rst   
+   worker.rst
+   monitoring.rst   
    	
 
 

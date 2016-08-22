@@ -35,7 +35,9 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.Action;
+import fr.gouv.vitam.processing.common.model.ActionType;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
+import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.model.WorkParams;
 import fr.gouv.vitam.processing.common.utils.ContainerExtractionUtilsFactory;
@@ -111,7 +113,8 @@ public class WorkerImpl implements Worker {
         actions.put(CheckVersionActionHandler.getId(), new CheckVersionActionHandler(new SedaUtilsFactory()));
         actions.put(CheckConformityActionHandler.getId(), new CheckConformityActionHandler(new SedaUtilsFactory()));
         actions.put(StoreObjectGroupActionHandler.getId(), new StoreObjectGroupActionHandler(new SedaUtilsFactory()));
-        actions.put(CheckStorageAvailabilityActionHandler.getId(), new CheckStorageAvailabilityActionHandler(new SedaUtilsFactory()));
+        actions.put(CheckStorageAvailabilityActionHandler.getId(),
+            new CheckStorageAvailabilityActionHandler(new SedaUtilsFactory()));
     }
 
     @Override
@@ -137,12 +140,28 @@ public class WorkerImpl implements Worker {
 
         for (final Action action : step.getActions()) {
 
-            final ActionHandler actionHandler = getActionHandler(action.getActionKey());
+            final ActionHandler actionHandler = getActionHandler(action.getActionDefinition().getActionKey());
             if (actionHandler == null) {
-                throw new HandlerNotFoundException(action.getActionKey() + HANDLER_NOT_FOUND);
+                throw new HandlerNotFoundException(action.getActionDefinition().getActionKey() + HANDLER_NOT_FOUND);
             }
+            EngineResponse actionResponse = actionHandler.execute(workParams);
+            // if the action has been defined as Non Blocking, then if a KO or a FATAL has been received, we change it
+            // to WARNING
+            if (ActionType.NOBLOCK.equals(action.getActionDefinition().getActionType()) &&
+                (StatusCode.KO.equals(actionResponse.getStatus()) ||
+                    StatusCode.FATAL.equals(actionResponse.getStatus()))) {                
+                actionResponse.setStatus(StatusCode.WARNING);
 
-            responses.add(actionHandler.execute(workParams));
+            }
+            responses.add(actionResponse);
+            // if the action has been defined as Blocking, then, we check the action Status then break the process
+            // (actions) if
+            // the status is KO
+            if (ActionType.BLOCK.equals(action.getActionDefinition().getActionType()) &&
+                (StatusCode.KO.equals(actionResponse.getStatus()) ||
+                    StatusCode.FATAL.equals(actionResponse.getStatus()))) {
+                break;
+            }
         }
 
         LOGGER.info(ELAPSED_TIME_MESSAGE + (System.currentTimeMillis() - time) / 1000 + "s / for step name :" +

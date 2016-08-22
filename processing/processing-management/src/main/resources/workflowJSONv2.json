@@ -6,7 +6,8 @@
 	{
 	"workerGroupId" :"worker2",
 		"stepName":"Traiter_archives",
-		"actions":[{"action":"storeAction"}]
+		"stepType":"NOBLOCK",
+		"actions":[{"action":{"actionKey": "storeAction", "actionType":"NOBLOCK"}}]
 	}
 	]
 }

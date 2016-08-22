@@ -19,7 +19,11 @@
 			<artifactId>processing-distributor</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>processing-monitoring</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>

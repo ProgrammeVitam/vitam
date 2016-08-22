@@ -17,5 +17,6 @@
 		<module>processing-distributor</module>
 		<module>processing-distributor-client</module>
 		<module>processing-worker</module>
+		<module>processing-monitoring</module>		
 	</modules>
 </project>

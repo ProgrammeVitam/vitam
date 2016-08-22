@@ -52,6 +52,9 @@ public class WorkParamsTest {
         assertEquals(TEST, new WorkParams().setObjectName(TEST).getObjectName());
         final ServerConfiguration config = new ServerConfiguration().setUrlMetada(TEST);
         assertEquals(TEST, new WorkParams().setServerConfiguration(config).getServerConfiguration().getUrlMetada());
+        
+        assertEquals(TEST, new WorkParams().setAdditionalProperty(TEST, TEST).getAdditionalProperties().get(TEST));
+        
     }
 
 }

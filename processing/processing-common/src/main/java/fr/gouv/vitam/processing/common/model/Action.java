@@ -28,34 +28,31 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  *
- * step class is a collection of actions event
+ * Action class containing an actionDefinition
  *
  */
 @JsonIgnoreProperties(ignoreUnknown = false)
 public class Action {
 
     @JsonProperty("action")
-    private String actionKey;
+    private ActionDefinition actionDefinition;
 
     /**
      *
-     * @return ({String}) ID of action object or bean
+     * @return the definition of the Action
      */
-    public String getActionKey() {
-        if (actionKey == null) {
-            return "";
-        }
-        return actionKey;
+    public ActionDefinition getActionDefinition() {
+        return actionDefinition;
     }
 
     /**
-     * set action key
+     * set the action definition
      *
-     * @param actionKey
+     * @param actionDefinition the definition of the action
+     * @return Action object updated
      */
-    // TODO missing returns
-    public Action setActionKey(String actionKey) {
-        this.actionKey = actionKey;
+    public Action setActionDefinition(ActionDefinition actionDefinition) {
+        this.actionDefinition = actionDefinition;
         return this;
     }
 

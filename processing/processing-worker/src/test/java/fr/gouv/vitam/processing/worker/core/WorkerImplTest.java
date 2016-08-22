@@ -39,6 +39,8 @@ import org.junit.Test;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.Action;
+import fr.gouv.vitam.processing.common.model.ActionDefinition;
+import fr.gouv.vitam.processing.common.model.ActionType;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.model.StatusCode;
@@ -82,18 +84,23 @@ public class WorkerImplTest {
         workerImpl = new WorkerImplFactory().create();
         final Step step = new Step();
         final List<Action> actions = new ArrayList<Action>();
-        actions.add(new Action());
+        Action action = new Action();
+        action.setActionDefinition(new ActionDefinition());
+        actions.add(action);
         step.setActions(actions);
         workerImpl.run(new WorkParams(), step);
     }
 
     @Test
-    public void test() throws Exception {
+    public void actionNoBlockTest() throws Exception {
         final Step step = new Step();
         step.setStepName("Traiter_archives");
         final List<Action> actions = new ArrayList<Action>();
         final Action action = new Action();
-        action.setActionKey(ExtractSedaActionHandler.getId());
+        final ActionDefinition actionDefinition = new ActionDefinition();
+        actionDefinition.setActionKey(ExtractSedaActionHandler.getId());
+        actionDefinition.setActionType(ActionType.NOBLOCK);
+        action.setActionDefinition(actionDefinition);
         actions.add(action);
         step.setActions(actions);
 
@@ -103,4 +110,46 @@ public class WorkerImplTest {
         workerImpl = new WorkerImplFactory().create(ExtractSedaActionHandler.getId(), actionHandler);
         workerImpl.run(new WorkParams(), step);
     }
+
+    @Test
+    public void actionBlockTest() throws Exception {
+        final Step step = new Step();
+        step.setStepName("Traiter_archives");
+        final List<Action> actions = new ArrayList<Action>();
+        final Action action = new Action();
+        final ActionDefinition actionDefinition = new ActionDefinition();
+        actionDefinition.setActionKey(ExtractSedaActionHandler.getId());
+        actionDefinition.setActionType(ActionType.BLOCK);
+        action.setActionDefinition(actionDefinition);
+        actions.add(action);
+        step.setActions(actions);
+
+        final ActionHandler actionHandler = mock(ExtractSedaActionHandler.class);
+        final EngineResponse response = new ProcessResponse().setStatus(StatusCode.FATAL);
+        when(actionHandler.execute(anyObject())).thenReturn(response);
+        workerImpl = new WorkerImplFactory().create(ExtractSedaActionHandler.getId(), actionHandler);
+        workerImpl.run(new WorkParams(), step);
+    }
+    
+    @Test
+    public void actionBlockTestWarning() throws Exception {
+        final Step step = new Step();
+        step.setStepName("Traiter_archives");
+        final List<Action> actions = new ArrayList<Action>();
+        final Action action = new Action();
+        final ActionDefinition actionDefinition = new ActionDefinition();
+        actionDefinition.setActionKey(ExtractSedaActionHandler.getId());
+        actionDefinition.setActionType(ActionType.NOBLOCK);
+        action.setActionDefinition(actionDefinition);
+        actions.add(action);
+        step.setActions(actions);
+
+        final ActionHandler actionHandler = mock(ExtractSedaActionHandler.class);
+        final EngineResponse response = new ProcessResponse().setStatus(StatusCode.FATAL);
+        when(actionHandler.execute(anyObject())).thenReturn(response);
+        workerImpl = new WorkerImplFactory().create(ExtractSedaActionHandler.getId(), actionHandler);
+        workerImpl.run(new WorkParams(), step);
+    }
+    
+    
 }

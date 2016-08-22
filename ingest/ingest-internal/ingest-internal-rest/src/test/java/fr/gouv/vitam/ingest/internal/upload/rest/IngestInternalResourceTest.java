@@ -71,7 +71,9 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.exception.ProcessingInternalServerException;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageZipException;
@@ -166,8 +168,9 @@ public class IngestInternalResourceTest {
         resourceConfig.register(JacksonFeature.class);
         resourceConfig.register(MultiPartFeature.class);
         IngestInternalConfiguration configuration = new IngestInternalConfiguration();
-        configuration.setWorkspaceUrl("http://localhost:XXXX");
-        configuration.setProcessingUrl("http://localhost:YYYY");
+        // url is here just for validation, not used
+        configuration.setWorkspaceUrl("http://localhost:8888");
+        configuration.setProcessingUrl("http://localhost:9999");
 
         resourceConfig.register(new IngestInternalResource(configuration, workspaceClient, processingClient));
 
@@ -199,6 +202,7 @@ public class IngestInternalResourceTest {
 
         Mockito.doReturn("OK").when(processingClient).executeVitamProcess(Mockito.anyObject(),
             Mockito.anyObject());
+
         InputStream inputStream =
             Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
         RestAssured.given()
@@ -212,12 +216,33 @@ public class IngestInternalResourceTest {
     }
 
     @Test
+    public void givenNoZipWhenUploadSipAsStreamThenReturnKO()
+        throws Exception {
+        reset(workspaceClient);
+        reset(processingClient);
+        
+        UploadResponseDTO uploadResponseDTOReal = RestAssured.given()
+            .multiPart("part", operationList, MediaType.APPLICATION_JSON)
+            .then().statusCode(Status.OK.getStatusCode())
+            .when().post(UPLOAD_URI).andReturn().getBody().as(UploadResponseDTO.class);
+
+        assertNotNull(uploadResponseDTOReal);
+        assertEquals(uploadResponseDTOReal.getVitamCode(), "500");
+        assertEquals(uploadResponseDTOReal.getVitamStatus(), "upload failed");
+        assertEquals(uploadResponseDTOReal.getMessage(), "file upload finished in error");
+
+    }
+    
+    @Test
     public void givenUnzipNonZipErrorWhenUploadSipAsStreamThenReturnKO()
         throws Exception {
         reset(workspaceClient);
         reset(processingClient);
         Mockito.doThrow(new ContentAddressableStorageZipException("Test")).when(workspaceClient)
             .unzipObject(Mockito.anyString(), Mockito.anyString(), Mockito.anyObject());
+
+        Mockito.doReturn("OK").when(processingClient).executeVitamProcess(Mockito.anyObject(),
+            Mockito.anyObject());
 
         InputStream inputStreamZip =
             Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_mauvais_format.pdf");
@@ -278,6 +303,52 @@ public class IngestInternalResourceTest {
 
         inputStream.close();
 
+    }
+
+    @Test
+    public void givenProcessBadRequestWhenUploadSipAsStreamThenRaiseAnExceptionProcessingException()
+        throws Exception {
+        reset(workspaceClient);
+        reset(processingClient);
+        Mockito.doThrow(new ProcessingBadRequestException("Test")).when(processingClient).executeVitamProcess(
+            Mockito.anyObject(),
+            Mockito.anyObject());
+        InputStream inputStream =
+            Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
+
+        UploadResponseDTO uploadResponseDTOReal = RestAssured.given()
+            .multiPart("part", operationList, MediaType.APPLICATION_JSON)
+            .multiPart("part", "SIP_bordereau_avec_objet_OK", inputStream)
+            .then().statusCode(Status.OK.getStatusCode())
+            .when().post(UPLOAD_URI).andReturn().getBody().as(UploadResponseDTO.class);
+
+        assertNotNull(uploadResponseDTOReal);
+        assertEquals(uploadResponseDTOReal.getVitamCode(), "500");
+        assertEquals(uploadResponseDTOReal.getVitamStatus(), "processing failed");
+        assertEquals(uploadResponseDTOReal.getMessage(), "process workflow finished in error");
+    }
+
+    @Test
+    public void givenProcessInternalExceptionWhenUploadSipAsStreamThenRaiseAnExceptionProcessingException()
+        throws Exception {
+        reset(workspaceClient);
+        reset(processingClient);
+        Mockito.doThrow(new ProcessingInternalServerException("Test")).when(processingClient).executeVitamProcess(
+            Mockito.anyObject(),
+            Mockito.anyObject());
+        InputStream inputStream =
+            Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
+
+        UploadResponseDTO uploadResponseDTOReal = RestAssured.given()
+            .multiPart("part", operationList, MediaType.APPLICATION_JSON)
+            .multiPart("part", "SIP_bordereau_avec_objet_OK", inputStream)
+            .then().statusCode(Status.OK.getStatusCode())
+            .when().post(UPLOAD_URI).andReturn().getBody().as(UploadResponseDTO.class);
+
+        assertNotNull(uploadResponseDTOReal);
+        assertEquals(uploadResponseDTOReal.getVitamCode(), "500");
+        assertEquals(uploadResponseDTOReal.getVitamStatus(), "processing failed");
+        assertEquals(uploadResponseDTOReal.getMessage(), "process workflow finished in error");
     }
 
     @Test

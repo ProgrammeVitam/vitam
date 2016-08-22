@@ -27,14 +27,18 @@
 package fr.gouv.vitam.processing.management.client;
 
 import static com.jayway.restassured.RestAssured.get;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
@@ -46,7 +50,12 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.metadata.rest.MetaDataApplication;
+import fr.gouv.vitam.processing.common.exception.ProcessingInternalServerException;
+import fr.gouv.vitam.processing.common.model.Action;
+import fr.gouv.vitam.processing.common.model.ProcessStep;
+import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementApplication;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -80,7 +89,7 @@ public class ProcessingIntegrationTest {
     private WorkspaceClient workspaceClient;
     private ProcessingManagementClient processingClient;
 
-
+    private static ProcessMonitoringImpl processMonitoring;
     private static final String WORKSPACE_URL = "http://localhost:" + PORT_SERVICE_WORKSPACE;
     private static final String PROCESSING_URL = "http://localhost:" + PORT_SERVICE_PROCESSING;
 
@@ -88,7 +97,8 @@ public class ProcessingIntegrationTest {
     private static String CONTAINER_NAME = GUIDFactory.newGUID().toString();
     private static String SIP_FILE_OK_NAME = "SIP.zip";
     private static String SIP_ARBO_COMPLEXE_FILE_OK = "SIP_arbor_OK.zip";
-
+    private static String SIP_WITHOUT_MANIFEST = "SIP_no_manifest.zip";
+    private static String SIP_NB_OBJ_INCORRECT_IN_MANIFEST = "SIP_Conformity_KO.zip";    
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -117,6 +127,7 @@ public class ProcessingIntegrationTest {
         workspaceApplication.configure(CONFIG_WORKSPACE_PATH, Integer.toString(PORT_SERVICE_WORKSPACE));
 
         CONTAINER_NAME = GUIDFactory.newGUID().toString();
+        processMonitoring = ProcessMonitoringImpl.getInstance();
     }
 
     @AfterClass
@@ -157,8 +168,7 @@ public class ProcessingIntegrationTest {
 
         InputStream zipInputStreamSipObject =
             Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_FILE_OK_NAME);
-        WorkspaceClientFactory worspaceClienFactory = new WorkspaceClientFactory();
-        workspaceClient = worspaceClienFactory.create(WORKSPACE_URL);
+        workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
         workspaceClient.createContainer(CONTAINER_NAME);
         workspaceClient.unzipObject(CONTAINER_NAME, SIP_FOLDER, zipInputStreamSipObject);
 
@@ -166,8 +176,15 @@ public class ProcessingIntegrationTest {
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
         processingClient = new ProcessingManagementClient(PROCESSING_URL);
-        String s = processingClient.executeVitamProcess(CONTAINER_NAME, WORFKLOW_NAME);
-        assertFalse(s.contains("FATAL"));
+        String ret = processingClient.executeVitamProcess(CONTAINER_NAME, WORFKLOW_NAME);
+        assertNotNull(ret);
+        JsonNode node = JsonHandler.getFromString(ret);
+        assertNotNull(node);
+        assertEquals("OK", node.get("status").asText());
+
+        // checkMonitoring - meaning something has been added in the monitoring tool
+        Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(node.get("processId").asText());
+        assertNotNull(map);
     }
 
     @Test
@@ -180,8 +197,7 @@ public class ProcessingIntegrationTest {
 
         InputStream zipInputStreamSipObject =
             Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_ARBO_COMPLEXE_FILE_OK);
-        WorkspaceClientFactory worspaceClienFactory = new WorkspaceClientFactory();
-        workspaceClient = worspaceClienFactory.create(WORKSPACE_URL);
+        workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
         workspaceClient.createContainer(containerName);
         workspaceClient.unzipObject(containerName, SIP_FOLDER, zipInputStreamSipObject);
 
@@ -189,7 +205,57 @@ public class ProcessingIntegrationTest {
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
         processingClient = new ProcessingManagementClient(PROCESSING_URL);
-        String s = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
-        assertFalse(s.contains("FATAL"));
+        String ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+        assertNotNull(ret);
+        JsonNode node = JsonHandler.getFromString(ret);
+        assertNotNull(node);
+
+        assertEquals("OK", node.get("status").asText());
+    }
+    
+    @Test(expected = ProcessingInternalServerException.class)
+    public void testWorkflowWithSipNoManifest() throws Exception {
+        String containerName = GUIDFactory.newManifestGUID(0).getId();
+
+        // workspace client dezip SIP in workspace
+        RestAssured.port = PORT_SERVICE_WORKSPACE;
+        RestAssured.basePath = WORKSPACE_PATH;
+
+        InputStream zipInputStreamSipObject =
+            Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_WITHOUT_MANIFEST);
+        workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
+        workspaceClient.createContainer(containerName);
+        workspaceClient.unzipObject(containerName, SIP_FOLDER, zipInputStreamSipObject);
+
+        // call processing
+        RestAssured.port = PORT_SERVICE_PROCESSING;
+        RestAssured.basePath = PROCESSING_PATH;
+        processingClient = new ProcessingManagementClient(PROCESSING_URL);
+        processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);        
+    }
+
+    @Test
+    public void testWorkflowWithManifestIncorrectObjectNumber() throws Exception {
+        String containerName = GUIDFactory.newManifestGUID(0).getId();
+
+        // workspace client dezip SIP in workspace
+        RestAssured.port = PORT_SERVICE_WORKSPACE;
+        RestAssured.basePath = WORKSPACE_PATH;
+
+        InputStream zipInputStreamSipObject =
+            Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_NB_OBJ_INCORRECT_IN_MANIFEST);
+        workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
+        workspaceClient.createContainer(containerName);
+        workspaceClient.unzipObject(containerName, SIP_FOLDER, zipInputStreamSipObject);
+
+        // call processing
+        RestAssured.port = PORT_SERVICE_PROCESSING;
+        RestAssured.basePath = PROCESSING_PATH;
+        processingClient = new ProcessingManagementClient(PROCESSING_URL);
+        String ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+        assertNotNull(ret);
+        JsonNode node = JsonHandler.getFromString(ret);
+        assertNotNull(node);
+        assertEquals("WARNING", node.get("status").asText());
     }
 }

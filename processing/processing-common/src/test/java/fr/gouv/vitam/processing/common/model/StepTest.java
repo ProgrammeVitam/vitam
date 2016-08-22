@@ -40,6 +40,7 @@ public class StepTest {
     @Test
     public void testConstructor() {
         assertEquals("", new Step().getStepName());
+        assertEquals(null, new Step().getStepType());
         assertEquals("", new Step().getWorkerGroupId());
         assertEquals("", new Step().getWorkerGroupId());
         assertEquals(true, new Step().getActions().isEmpty());
@@ -51,6 +52,7 @@ public class StepTest {
         final List<Action> actions = new ArrayList<>();
         actions.add(new Action());
         assertEquals(TEST, new Step().setStepName(TEST).getStepName());
+        assertEquals(StepType.BLOCK, new Step().setStepType(StepType.BLOCK).getStepType());
         assertEquals(TEST, new Step().setWorkerGroupId(TEST).getWorkerGroupId());
         assertEquals(false, new Step().setActions(actions).getActions().isEmpty());
     }

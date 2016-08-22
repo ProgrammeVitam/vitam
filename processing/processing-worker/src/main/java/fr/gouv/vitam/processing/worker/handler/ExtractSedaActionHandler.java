@@ -77,7 +77,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID, OutcomeMessage.EXTRACT_MANIFEST_KO);
         }
 
-        LOGGER.info("ExtractSedaActionHandler response: " + response.getStatus().value());
+        LOGGER.info("ExtractSedaActionHandler response: " + response.getStatus().name());
         return response;
     }
 

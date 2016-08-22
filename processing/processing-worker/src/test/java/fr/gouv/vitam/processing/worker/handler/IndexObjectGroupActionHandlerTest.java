@@ -35,7 +35,7 @@ public class IndexObjectGroupActionHandlerTest {
     }
 
     @Test
-    public void givenWorkspaceNotExistWhenExecuteThenReturnResponseFATAL()
+    public void givenWorkspaceNotExistWhenExecuteThenReturnResponseWARNING()
         throws XMLStreamException, IOException, ProcessingException {
         Mockito.doThrow(new ProcessingException("")).when(sedaUtils).indexObjectGroup(anyObject());
         when(factory.create()).thenReturn(sedaUtils);
@@ -44,7 +44,7 @@ public class IndexObjectGroupActionHandlerTest {
         final WorkParams params =
             new WorkParams().setServerConfiguration(new ServerConfiguration().setUrlWorkspace("")).setGuuid("");
         final EngineResponse response = handler.execute(params);
-        assertEquals(response.getStatus(), StatusCode.FATAL);
+        assertEquals(response.getStatus(), StatusCode.WARNING);
     }
 
     @Test

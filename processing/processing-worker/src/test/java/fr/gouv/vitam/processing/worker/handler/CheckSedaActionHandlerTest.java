@@ -46,6 +46,7 @@ import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.model.WorkParams;
 import fr.gouv.vitam.processing.common.utils.SedaUtils;
+import fr.gouv.vitam.processing.common.utils.SedaUtils.CheckSedaValidationStatus;
 import fr.gouv.vitam.processing.common.utils.SedaUtilsFactory;
 
 public class CheckSedaActionHandlerTest {
@@ -60,11 +61,10 @@ public class CheckSedaActionHandlerTest {
         sedaUtils = mock(SedaUtils.class);
     }
 
-    @Ignore // TODO
     @Test
     public void givenWorkspaceWhenXmlNotExistThenReturnResponseFATAL()
         throws XMLStreamException, IOException, ProcessingException {
-        Mockito.doThrow(new ProcessingException("")).when(sedaUtils.checkSedaValidation(anyObject()));
+        when(sedaUtils.getMessageIdentifier(anyObject())).thenThrow(new ProcessingException(""));
         when(factory.create()).thenReturn(sedaUtils);
         handler = new CheckSedaActionHandler(factory);
         assertEquals(CheckSedaActionHandler.getId(), HANDLER_ID);
@@ -77,7 +77,7 @@ public class CheckSedaActionHandlerTest {
     @Test
     public void givenWorkspaceWhenXmlExistThenReturnResponseOK()
         throws XMLStreamException, IOException, ProcessingException {
-        Mockito.doReturn(true).when(sedaUtils).checkSedaValidation(anyObject());
+        Mockito.doReturn(CheckSedaValidationStatus.VALID).when(sedaUtils).checkSedaValidation(anyObject());
         when(factory.create()).thenReturn(sedaUtils);
         handler = new CheckSedaActionHandler(factory);
         assertEquals(CheckSedaActionHandler.getId(), HANDLER_ID);
@@ -90,7 +90,7 @@ public class CheckSedaActionHandlerTest {
     @Test
     public void givenWorkspaceWhenXmlIsEmptyThenReturnResponseKO()
         throws XMLStreamException, IOException, ProcessingException {
-        Mockito.doReturn(false).when(sedaUtils).checkSedaValidation(anyObject());
+        Mockito.doReturn(CheckSedaValidationStatus.NOT_XSD_VALID).when(sedaUtils).checkSedaValidation(anyObject());
         when(factory.create()).thenReturn(sedaUtils);
         handler = new CheckSedaActionHandler(factory);
         assertEquals(CheckSedaActionHandler.getId(), HANDLER_ID);

@@ -41,6 +41,12 @@ import fr.gouv.vitam.common.SingletonUtils;
  */
 
 public class ProcessResponse implements EngineResponse {
+
+    /**
+     * Process Id
+     */
+    private String processId;
+    
     /**
      * Enum status code
      */
@@ -133,6 +139,7 @@ public class ProcessResponse implements EngineResponse {
      * setStepResponses, set the response at each step of workflow processing
      *
      * @param stepResponses the stepResponses to set
+     * @return the updated ProcessResponse object
      */
     public ProcessResponse setStepResponses(Map<String, List<EngineResponse>> stepResponses) {
         if (stepResponses != null && !stepResponses.isEmpty()) {
@@ -158,7 +165,6 @@ public class ProcessResponse implements EngineResponse {
                     break;
                 } else if (StatusCode.KO == response.getStatus()) {
                     statusCode = StatusCode.KO;
-                    continue;
                 } else if (StatusCode.WARNING == response.getStatus() && status != StatusCode.KO) {
                     statusCode = StatusCode.WARNING;
                 }
@@ -218,9 +224,9 @@ public class ProcessResponse implements EngineResponse {
     @Override
     public String getValue() {
         if (status == null) {
-            return StatusCode.FATAL.value();
+            return StatusCode.FATAL.name();
         }
-        return status.value();
+        return status.name();
     }
 
     @Override
@@ -253,4 +259,24 @@ public class ProcessResponse implements EngineResponse {
         numberErrors = number;
         return this;
     }
+
+    /**
+     * @return the processId
+     */
+    public String getProcessId() {
+        return processId;
+    }
+
+    /**
+     * @param processId the processId to set
+     *
+     * @return the updated ProcessResponse object
+     */
+    public ProcessResponse setProcessId(String processId) {
+        this.processId = processId;
+        return this;
+    }
+    
+    
+    
 }
