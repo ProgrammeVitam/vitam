@@ -1,11 +1,9 @@
 /**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
- * contact.vitam@culture.gouv.fr <<<<<<< HEAD
+ * contact.vitam@culture.gouv.fr
  *
- * This software is a computer program whose purpose is to implement a digital =======
- *
- * This software is a computer program whose purpose is to implement a digital >>>>>>> refactoring and prepare to move
+ * This software is a computer program whose purpose is to implement a digital refactoring and prepare to move
  * the client factory archiving back-office system managing high volumetry securely and efficiently.
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
@@ -47,6 +45,7 @@ public enum LogbookOutcome {
     WARNING,
     /**
      * To be used for the second call of one operation entry in status Error
+     * TODO replace by KO
      */
     ERROR,
     /**

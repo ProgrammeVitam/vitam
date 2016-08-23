@@ -63,6 +63,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExi
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageZipException;
 import fr.gouv.vitam.workspace.api.model.ContainerInformation;
 import fr.gouv.vitam.workspace.common.Entry;
 import fr.gouv.vitam.workspace.common.ErrorMessage;
@@ -345,7 +346,7 @@ public class WorkspaceClient implements ContentAddressableStorage {
     @Override
     public void unzipObject(String containerName, String folderName, InputStream inputStreamObject)
         throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException,
-        ContentAddressableStorageAlreadyExistException {
+        ContentAddressableStorageAlreadyExistException, ContentAddressableStorageZipException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, folderName);
 
@@ -366,6 +367,10 @@ public class WorkspaceClient implements ContentAddressableStorage {
                     LOGGER.error(ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
                     throw new ContentAddressableStorageAlreadyExistException(
                         ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
+                } else if (Status.BAD_REQUEST.getStatusCode() == response.getStatus() &&
+                    "application/json".equals(response.getHeaderString("Content-Type"))) {
+                    LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+                    throw new ContentAddressableStorageZipException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
                 } else {
                     LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
                     throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());

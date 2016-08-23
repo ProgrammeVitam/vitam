@@ -71,6 +71,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExi
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageZipException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
@@ -97,14 +98,25 @@ public class IngestInternalResource implements UploadService {
      * IngestInternalResource constructor
      *
      */
- // TODO commentaire incomplet
+    // TODO commentaire incomplet
     public IngestInternalResource(IngestInternalConfiguration configuration) {
-        this.configuration=configuration;
+        this.configuration = configuration;
+        this.workspaceClient = WorkspaceClientFactory.create(configuration.getWorkspaceUrl());
+        this.processingClient = ProcessingManagementClientFactory.create(configuration.getProcessingUrl());
     }
+
+    IngestInternalResource(IngestInternalConfiguration configuration, WorkspaceClient workspaceClient,
+        ProcessingManagementClient processingClient) {
+        this.configuration = configuration;
+        this.workspaceClient = workspaceClient;
+        this.processingClient = processingClient;
+    }
+
 
     /**
      *
      * Get IngestInternalServer Status
+     * 
      * @return status
      */
     @Override
@@ -134,30 +146,34 @@ public class IngestInternalResource implements UploadService {
 
             ParametersChecker.checkParameter("partList is a Mandatory parameter", partList);
 
-            LogbookOperationParametersList logbookOperationParametersList= partList.get(0).getValueAs(LogbookOperationParametersList.class);
+            LogbookOperationParametersList logbookOperationParametersList =
+                partList.get(0).getValueAs(LogbookOperationParametersList.class);
 
-            ParametersChecker.checkParameter("logbookOperationParametersList is a Mandatory parameter", logbookOperationParametersList);
+            ParametersChecker.checkParameter("logbookOperationParametersList is a Mandatory parameter",
+                logbookOperationParametersList);
             int tenantId = 0; // default tenanId
             // guid for the container in the workspace
             final GUID containerGUID = GUIDFactory.newGUID();
-            final GUID ingestGuid = GUIDReader.getGUID(logbookOperationParametersList.getLogbookOperationList().get(0).getMapParameters().get(LogbookParameterName.eventIdentifier));
+            final GUID ingestGuid = GUIDReader.getGUID(logbookOperationParametersList.getLogbookOperationList().get(0)
+                .getMapParameters().get(LogbookParameterName.eventIdentifier));
 
             logbookClient = logbookInitialisation(ingestGuid, containerGUID, tenantId);
 
             // Log Ingest External operations
             VITAM_LOGGER.info("Log Ingest External operations");
 
-            for(LogbookParameters logbookParameters: logbookOperationParametersList.getLogbookOperationList() ){
-            	 parameters.putParameterValue(LogbookParameterName.eventType, INGEST_EXT);
-            	callLogbookUpdate(logbookClient, parameters, logbookParameters.getStatus(), logbookParameters.getMapParameters().get(LogbookParameterName.outcomeDetailMessage));
+            for (LogbookParameters logbookParameters : logbookOperationParametersList.getLogbookOperationList()) {
+                parameters.putParameterValue(LogbookParameterName.eventType, INGEST_EXT);
+                callLogbookUpdate(logbookClient, parameters, logbookParameters.getStatus(),
+                    logbookParameters.getMapParameters().get(LogbookParameterName.outcomeDetailMessage));
             }
-           
-            parameters.putParameterValue(LogbookParameterName.eventType, INGEST_INT);
-            
-            InputStream uploadedInputStream=null;
 
-            if (partList.size()==2) {
-                uploadedInputStream= partList.get(1).getValueAs(InputStream.class);
+            parameters.putParameterValue(LogbookParameterName.eventType, INGEST_INT);
+
+            InputStream uploadedInputStream = null;
+
+            if (partList.size() == 2) {
+                uploadedInputStream = partList.get(1).getValueAs(InputStream.class);
 
 
                 ParametersChecker.checkParameter("HTTP Request must contains 2 multiparts part", uploadedInputStream);
@@ -165,23 +181,50 @@ public class IngestInternalResource implements UploadService {
                 // Save sip file
                 VITAM_LOGGER.info("Starting up the save file sip");
                 // workspace
-                pushSipStreamToWorkspace(configuration.getWorkspaceUrl(), containerGUID.getId(), uploadedInputStream, parameters);
+                parameters.putParameterValue(LogbookParameterName.eventType, "Upload SIP");
+                callLogbookUpdate(logbookClient, parameters, LogbookOutcome.STARTED, "Start Upload SIP");
+                pushSipStreamToWorkspace(configuration.getWorkspaceUrl(), containerGUID.getId(), uploadedInputStream,
+                    parameters);
+                String uploadSIPMsg = " Succes de la récupération du SIP : fichier " +
+                    parameters.getParameterValue(LogbookParameterName.objectIdentifierIncome) +
+                    " au format conforme";
 
+                callLogbookUpdate(logbookClient, parameters, LogbookOutcome.OK, uploadSIPMsg);
                 // processing
-                logbookClient = callProcessingEngine(parameters, logbookClient, containerGUID.getId());
+                callProcessingEngine(parameters, logbookClient, containerGUID.getId());
             } else {
-                callLogbookUpdate(logbookClient, parameters, LogbookOutcome.ERROR, "Update logbook");
+                callLogbookUpdate(logbookClient, parameters, LogbookOutcome.ERROR, "process workflow finished");
             }
             final UploadResponseDTO uploadResponseDTO =
                 UploadSipHelper.getUploadResponseDTO("Sip file", 200, "success",
                     "201", "success", "200", "success");
             response = Response.ok(uploadResponseDTO, "application/json").build();
 
+        } catch (final ContentAddressableStorageZipException e) {
+
+            if (parameters != null) {
+                try {
+                    String errorMsg = " Échec de la récupération du SIP : fichier " +
+                        parameters.getParameterValue(LogbookParameterName.objectIdentifierIncome) +
+                        " au format non conforme";
+                    callLogbookUpdate(logbookClient, parameters, LogbookOutcome.ERROR, errorMsg);
+                    parameters.putParameterValue(LogbookParameterName.eventType, INGEST_INT);
+                    callLogbookUpdate(logbookClient, parameters, LogbookOutcome.ERROR, "process workflow finished");
+                } catch (final LogbookClientException e1) {
+                    VITAM_LOGGER.error(e1.getMessage(), e1);
+                }
+            }
+
+            VITAM_LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
+            final UploadResponseDTO uploadResponseDTO =
+                UploadSipHelper.getUploadResponseDTO("Sip file", 500, e.getMessage(),
+                    "500", "workspace failed", "500", "Zip error");
+            response = Response.ok(uploadResponseDTO, "application/json").build();
         } catch (final ContentAddressableStorageException e) {
 
             if (parameters != null) {
                 try {
-                    logbookClient = callLogbookUpdate(logbookClient, parameters, LogbookOutcome.ERROR,"error workspace");
+                    callLogbookUpdate(logbookClient, parameters, LogbookOutcome.ERROR, "error workspace");
                 } catch (final LogbookClientException e1) {
                     VITAM_LOGGER.error(e1.getMessage(), e1);
                 }
@@ -192,11 +235,12 @@ public class IngestInternalResource implements UploadService {
                 UploadSipHelper.getUploadResponseDTO("Sip file", 500, e.getMessage(),
                     "500", "workspace failed", "500", "error workspace");
             response = Response.ok(uploadResponseDTO, "application/json").build();
-        } catch (final  InvalidGuidOperationException | InvalidParseOperationException | ProcessingException | LogbookClientException  e) {
+        } catch (final InvalidGuidOperationException | InvalidParseOperationException | ProcessingException |
+            LogbookClientException e) {
 
             if (parameters != null) {
                 try {
-                    logbookClient = callLogbookUpdate(logbookClient, parameters, LogbookOutcome.ERROR, "error ingest");
+                    callLogbookUpdate(logbookClient, parameters, LogbookOutcome.ERROR, "error ingest");
                 } catch (final LogbookClientException e1) {
                     VITAM_LOGGER.error(e1.getMessage(), e1);
                 }
@@ -208,7 +252,7 @@ public class IngestInternalResource implements UploadService {
                     "500", "upload failed", "500", "error ingest");
             response = Response.ok(uploadResponseDTO, "application/json").build();
 
-        } 
+        }
         return response;
     }
 
@@ -221,7 +265,7 @@ public class IngestInternalResource implements UploadService {
             ingestGuid, INGEST_INT, containerGUID,
             LogbookTypeProcess.INGEST, LogbookOutcome.STARTED,
             ingestGuid != null ? ingestGuid.toString() : "outcomeDetailMessage",
-                ingestGuid);
+            ingestGuid);
 
         VITAM_LOGGER.debug("call journal...");
         final LogbookClient client = LogbookClientFactory.getInstance().getLogbookOperationClient();
@@ -231,8 +275,9 @@ public class IngestInternalResource implements UploadService {
 
     }
 
-    private LogbookClient callLogbookUpdate(LogbookClient client, LogbookParameters parameters, LogbookOutcome logbookOutcome, String outcomeDetailMessage)
-        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
+    private LogbookClient callLogbookUpdate(LogbookClient client, LogbookParameters parameters,
+        LogbookOutcome logbookOutcome, String outcomeDetailMessage)
+            throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
 
         parameters.setStatus(logbookOutcome);
         parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, outcomeDetailMessage);
@@ -246,41 +291,40 @@ public class IngestInternalResource implements UploadService {
      * @param urlWorkspace
      * @param containerName
      * @param uploadedInputStream
-     * @throws ContentAddressableStorageServerException 
+     * @throws ContentAddressableStorageServerException
+     * @throws ContentAddressableStorageZipException Thrown if file is not a valid zip
      */
     private void pushSipStreamToWorkspace(final String urlWorkspace, final String containerName,
         final InputStream uploadedInputStream, final LogbookParameters parameters)
-            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageAlreadyExistException, ContentAddressableStorageServerException {
+            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageAlreadyExistException,
+            ContentAddressableStorageZipException, ContentAddressableStorageServerException {
 
         parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, "Try to push stream to workspace...");
         VITAM_LOGGER.info("Try to push stream to workspace...");
 
         // call workspace
-        if (workspaceClient == null) {
-            workspaceClient = WorkspaceClientFactory.create(urlWorkspace);
-        }
         if (!workspaceClient.isExistingContainer(containerName)) {
             workspaceClient.createContainer(containerName);
             workspaceClient.unzipObject(containerName, FOLDER_SIP, uploadedInputStream);
-        }else {
-            throw new ContentAddressableStorageAlreadyExistException( containerName + "already exist");
+        } else {
+            throw new ContentAddressableStorageAlreadyExistException(containerName + "already exist");
         }
 
         VITAM_LOGGER.info(" -> push stream to workspace finished");
         parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, "-> push stream to workspace finished");
     }
 
-    private LogbookClient callProcessingEngine(final LogbookParameters parameters, final LogbookClient client,
+    private void callProcessingEngine(final LogbookParameters parameters, final LogbookClient client,
         final String containerName) throws InvalidParseOperationException,
-    ProcessingException, LogbookClientNotFoundException, LogbookClientBadRequestException,
-    LogbookClientServerException {
+            ProcessingException, LogbookClientNotFoundException, LogbookClientBadRequestException,
+            LogbookClientServerException {
         parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, "Try to call processing...");
         VITAM_LOGGER.info("Try to call processing...");
         final String workflowId = "DefaultIngestWorkflow";
 
-        processingClient =   ProcessingManagementClientFactory.create(configuration.getProcessingUrl());
         final String processingRetour = processingClient.executeVitamProcess(containerName, workflowId);
         VITAM_LOGGER.info(" -> process workflow finished " + processingRetour);
-        return callLogbookUpdate(client, parameters, LogbookOutcome.OK, "process workflow finished");
+        callLogbookUpdate(client, parameters, LogbookOutcome.OK, "process workflow finished");
     }
+
 }

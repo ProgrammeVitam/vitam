@@ -34,9 +34,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
 import java.util.zip.ZipInputStream;
 
 import org.apache.commons.io.FilenameUtils;
@@ -65,6 +65,7 @@ import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageZipException;
 import fr.gouv.vitam.workspace.api.model.ContainerInformation;
 import fr.gouv.vitam.workspace.common.ErrorMessage;
 import fr.gouv.vitam.workspace.common.UriUtils;
@@ -324,16 +325,16 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
         }
 
     }
-    
+
     @Override
     public String computeObjectDigest(String containerName, String objectName, DigestType algo)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
-        
+
         ParametersChecker.checkParameter(ErrorMessage.ALGO_IS_A_MANDATORY_PARAMETER.getMessage(),
             algo);
-        try{
-            InputStream stream = getObject(containerName,objectName);
-            Digest digest= new Digest(algo);
+        try {
+            InputStream stream = getObject(containerName, objectName);
+            Digest digest = new Digest(algo);
             digest.update(stream);
             return digest.toString();
         } catch (final IOException e) {
@@ -418,7 +419,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
         if (!isExistingContainer(containerName)) {
             throw new ContentAddressableStorageNotFoundException(ErrorMessage.CONTAINER_NOT_FOUND.getMessage());
         }
-        
+
         if (inputStreamObject == null) {
             throw new ContentAddressableStorageException(ErrorMessage.STREAM_IS_NULL.getMessage());
         }
@@ -428,13 +429,14 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
             throw new ContentAddressableStorageAlreadyExistException(ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
         }
         LOGGER.info("create folder name " + folderName);
-        
-       createFolder(containerName, folderName);
-       extractZippedInputStreamOnContainer(containerName, folderName, inputStreamObject);
+
+        createFolder(containerName, folderName);
+        extractZippedInputStreamOnContainer(containerName, folderName, inputStreamObject);
     }
 
     @Override
-    public abstract ContainerInformation getContainerInformation(String containerName) throws ContentAddressableStorageNotFoundException;
+    public abstract ContainerInformation getContainerInformation(String containerName)
+        throws ContentAddressableStorageNotFoundException;
 
     /**
      * extract compressed SIP and push the objects on the SIP folder
@@ -442,41 +444,56 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
      * @param containerName: GUID
      * @param folderName: folder Name
      * @param inputStreamObject :compressed SIP stream
-     * @throws ContentAddressableStorageException
+     * @throws ContentAddressableStorageZipException if the file is not a zip or an empty zip
+     * @throws ContentAddressableStorageException if an IOException occure when unzipping the file
      */
-    private void extractZippedInputStreamOnContainer(String containerName, String folderName, InputStream inputStreamObject)
-        throws ContentAddressableStorageException {
+    private void extractZippedInputStreamOnContainer(String containerName, String folderName,
+        InputStream inputStreamObject)
+            throws ContentAddressableStorageException {
 
         try {
             ZipEntry zipEntry;
             final ZipInputStream zInputStream =
                 new ZipInputStream(inputStreamObject);
-            
+
+            boolean isEmpty = true;
             while ((zipEntry = zInputStream.getNextEntry()) != null) {
 
                 LOGGER.info("containerName : " + containerName + "    / ZipEntryName : " + zipEntry.getName());
-
+                isEmpty = false;
                 if (zipEntry.isDirectory()) {
                     continue;
                 }
 
                 final File tempFile = File.createTempFile(TMP_FOLDER, DOT + getExtensionFile(zipEntry.getName()));
                 // tempFile will be deleted on exit
+                // FIXME Si le temp file est absolument nécessaire, alors ne pas utiliser deleteOnExit mais un delete
+                // explicite (car sinon on remplit le filesystem jusqu'à la fin de la VM, hors plantage brutal)
                 tempFile.deleteOnExit();
                 final FileOutputStream fileOutputStream = new FileOutputStream(tempFile);
-
+                // FIXME should use zInputStream.closeEntry()
+                // FIXME Why use a copy of the stream ?
                 IOUtils.copy(zInputStream, fileOutputStream);
                 // put object on container Guid
-                
-                putObject(containerName, folderName + File.separator + zipEntry.getName(), new FileInputStream(tempFile));
-                
+
+                putObject(containerName, folderName + File.separator + zipEntry.getName(),
+                    new FileInputStream(tempFile));
+
                 // close outpuStram
                 fileOutputStream.close();
                 // exit && delete tempFile
+                // FIXME Si le temp file est absolument nécessaire, alors ne pas utiliser deleteOnExit mais un delete
+                // explicite (car sinon on remplit le filesystem jusqu'à la fin de la VM, hors plantage brutal)
                 tempFile.exists();
             }
             zInputStream.close();
 
+            if (isEmpty) {
+                throw new ContentAddressableStorageZipException("File is empty or not a zip file");
+            }
+        } catch (final ZipException e) {
+            LOGGER.error(e.getMessage());
+            throw new ContentAddressableStorageZipException(e);
         } catch (final IOException e) {
             LOGGER.error(e.getMessage());
             throw new ContentAddressableStorageException(e);
@@ -484,9 +501,10 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
 
     }
 
-    
+
     @Override
-    public JsonNode getObjectInformation(String containerName, String objectName) throws ContentAddressableStorageException {
+    public JsonNode getObjectInformation(String containerName, String objectName)
+        throws ContentAddressableStorageException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName);
         ObjectNode jsonNodeObjectInformation = null;
@@ -518,7 +536,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
         } finally {
             context.close();
         }
-        return jsonNodeObjectInformation;        
+        return jsonNodeObjectInformation;
     }
 
     private String getExtensionFile(String name) {

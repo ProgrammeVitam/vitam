@@ -37,6 +37,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExi
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageZipException;
 import fr.gouv.vitam.workspace.api.model.ContainerInformation;
 
 /**
@@ -148,7 +149,7 @@ public interface ContentAddressableStorage {
      *
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
      * @throws ContentAddressableStorageException Thrown when put action failed due some other failure
-     * @throws ContentAddressableStorageAlreadyExistException  Thrown when object creating exists
+     * @throws ContentAddressableStorageAlreadyExistException Thrown when object creating exists
      */
     public void putObject(String containerName, String objectName, InputStream stream)
         throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageNotFoundException,
@@ -163,7 +164,7 @@ public interface ContentAddressableStorage {
      *
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
      * @throws ContentAddressableStorageException Thrown when get action failed due some other failure
-     * @throws ContentAddressableStorageAlreadyExistException  Thrown when object creating exists 
+     * @throws ContentAddressableStorageAlreadyExistException Thrown when object creating exists
      */
     public InputStream getObject(String containerName, String objectName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
@@ -217,12 +218,14 @@ public interface ContentAddressableStorage {
      * @throws ContentAddressableStorageAlreadyExistException Thrown when folder exists
      * @throws ContentAddressableStorageServerException Thrown when internal server error happens
      * @throws ContentAddressableStorageException Thrown when get action failed due some other failure
+     * @throws ContentAddressableStorageZipException Thrown when the file is not a zip or an empty zip
      */
-
     public void unzipObject(String containerName, String folderName, InputStream inputStreamObject)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageAlreadyExistException,  ContentAddressableStorageServerException, ContentAddressableStorageException;
-    
-    
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageAlreadyExistException,
+        ContentAddressableStorageServerException, ContentAddressableStorageZipException,
+        ContentAddressableStorageException;
+
+
 
     /**
      * compute Object Digest using a defined algorithm
@@ -237,7 +240,8 @@ public interface ContentAddressableStorage {
      * @return the digest object as String
      */
     public String computeObjectDigest(String containerName, String objectName, DigestType algo)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, ContentAddressableStorageException;
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
+        ContentAddressableStorageException;
 
     /**
      * Get container information like capacity
@@ -245,10 +249,11 @@ public interface ContentAddressableStorage {
      * @param containerName the container name
      * @return container information like usableSpace and usedSpace
      * @throws ContentAddressableStorageNotFoundException thrown when storage is not available or container does not
-     * exist
+     *         exist
      */
-    ContainerInformation getContainerInformation(String containerName) throws ContentAddressableStorageNotFoundException;
-    
+    ContainerInformation getContainerInformation(String containerName)
+        throws ContentAddressableStorageNotFoundException;
+
     /**
      * Retrieves information about an object at location containerName/objectName
      *
@@ -257,7 +262,7 @@ public interface ContentAddressableStorage {
      * @return the object informations as a JsonNode object
      *
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
-     * @throws ContentAddressableStorageException Thrown when get action failed due some other failure 
+     * @throws ContentAddressableStorageException Thrown when get action failed due some other failure
      */
     public JsonNode getObjectInformation(String containerName, String objectName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;

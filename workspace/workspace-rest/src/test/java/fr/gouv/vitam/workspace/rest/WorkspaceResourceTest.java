@@ -29,6 +29,7 @@ package fr.gouv.vitam.workspace.rest;
 import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.with;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,31 +38,31 @@ import java.io.InputStream;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
+import org.apache.commons.io.IOUtils;
+import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.config.EncoderConfig;
 import com.jayway.restassured.http.ContentType;
+
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
 import fr.gouv.vitam.workspace.common.Entry;
-import org.apache.commons.io.IOUtils;
-import org.apache.http.entity.*;
-import org.junit.*;
-import org.junit.rules.TemporaryFolder;
-
-import javax.ws.rs.core.Response.Status;
-import java.io.*;
-
-import static com.jayway.restassured.RestAssured.*;
+import fr.gouv.vitam.workspace.common.RequestResponseError;
+import fr.gouv.vitam.workspace.common.VitamError;
 
 
 public class WorkspaceResourceTest {
@@ -82,6 +83,16 @@ public class WorkspaceResourceTest {
     public static final String X_DIGEST = "X-digest";
     private static JunitHelper junitHelper;
     private static int port;
+
+    private static final String SHOULD_NOT_RAIZED_AN_EXCEPTION = "Should not raized an exception";
+    private static final ObjectMapper OBJECT_MAPPER;
+
+    static {
+
+        OBJECT_MAPPER = new ObjectMapper(new JsonFactory());
+        OBJECT_MAPPER.disable(SerializationFeature.INDENT_OUTPUT);
+    }
+
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -423,6 +434,31 @@ public class WorkspaceResourceTest {
                 .content(stream).when()
                 .put("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_SIP).then()
                 .statusCode(Status.CONFLICT.getStatusCode());
+        }
+    }
+
+    @Test
+    public void givenNonZipWhenUnzipThenReturnKO() throws IOException {
+        try (InputStream stream =
+            Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_mauvais_format.pdf")) {
+
+            with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
+                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
+            try {
+                RequestResponseError response = new RequestResponseError().setError(
+                    new VitamError(Status.BAD_REQUEST.getStatusCode())
+                        .setContext("WORKSPACE")
+                        .setState("vitam_code")
+                        .setMessage(Status.BAD_REQUEST.getReasonPhrase())
+                        .setDescription(Status.BAD_REQUEST.getReasonPhrase()));
+
+                given().contentType(ContentType.BINARY).body(stream)
+                    .then().contentType(ContentType.JSON).statusCode(Status.BAD_REQUEST.getStatusCode())
+                    .body(Matchers.equalTo(OBJECT_MAPPER.writeValueAsString(response))).when()
+                    .put("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_SIP);
+            } catch (JsonProcessingException exc) {
+                fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
+            }
         }
     }
 
