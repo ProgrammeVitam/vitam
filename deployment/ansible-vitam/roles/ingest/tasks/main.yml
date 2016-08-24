@@ -26,8 +26,7 @@
   - "server-identity.conf"
   - "setenv.sh"
   - "logback.xml"
-  - "antisamy-esapi.xml.j2"
-
+  - "antisamy-esapi.xml"
 
 - name: Deploy VITAM docker file
   docker:

@@ -1,0 +1,16 @@
+[Unit]
+Description=Consul is a distributed, highly-available, and multi-datacenter aware tool for service discovery, configuration, and orchestration.
+Documentation=http://www.consul.io
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=vitam
+Group=vitam
+EnvironmentFile=-/vitam/conf/vitam-consul/sysconfig/consul
+ExecStart=/vitam/bin/vitam-consul/consul $CMD_OPTS
+ExecReload=/bin/kill -HUP $MAINPID
+KillSignal=SIGINT
+
+[Install]
+WantedBy=multi-user.target

@@ -2,5 +2,13 @@
 # vars file for log-server
 elasticsearch_user: "elasticsearch"
 elasticsearch_max_open_files: "65535"
-
 elasticsearch_port: "9200"
+cluster_name: "{{environnement}}_log"
+
+elasticsearch_log_dir: "/vitam/log/elasticsearch"
+elasticsearch_data_dir: "/vitam/data/elasticsearch"
+
+logstash_log_dir: "/vitam/log/logstash"
+logstash_conf_dir: "/vitam/conf/logstash"
+logstash_confextra_dir: "{{logstash_conf_dir}}/extra"
+logstash_data_dir: "/vitam/data/logstash"

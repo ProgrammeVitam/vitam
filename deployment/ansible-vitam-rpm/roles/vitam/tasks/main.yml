@@ -1,23 +1,33 @@
 ---
-# tasks file for common
-- name: yum install rsyslog
-  yum:
-    name: rsyslog
-    state: latest
+# - name: ensure java is installed
+#   yum:
+#     name: java-1.8.0-openjdk
+#     state: installed
 
-- name: add rsyslog conf for VITAM "log central"
-  template:
-    src: vitam_transport.conf.j2
-    dest: /etc/rsyslog.d/vitam_transport.conf
-  notify:
-    - restart rsyslog
-
-- name: Install rpm
+- name: Install rpm {{ rpm_name }}
   yum: 
-    name: "{{ rpm_name }}"
+    name: "{{ rpm_name }}-{{rpm_version}}"
     state: latest
     update_cache: yes
 # OMA : question : lastest ou fixer la version dans les fichiers d'inventaire ???
+
+- name: Check that the directories exists (must be removed when the RPM plugin will be patched)
+  file: 
+    path: "/vitam/{{ item }}/{{ vitam_component }}"
+    state: directory
+    owner: "{{ vitam_user}}"
+    group: "{{ vitam_group }}"
+    mode: "0750"
+    recurse: yes # Added if someone uses root...
+  with_items:
+    - app
+    - bin
+    - conf
+    - data
+    - lib
+    - log
+    - tmp
+
 
 - name: Deploy common configuration files
   template:
@@ -33,6 +43,34 @@
     - "setenv.sh"
     - "antisamy-esapi.xml"
 
+- name: Deploy wrapper.sh
+  template:
+    src: "{{item}}.j2"
+    dest: "{{vitam_folder_bin}}/{{item}}"
+    owner: "{{ vitam_user}}"
+    group: "{{ vitam_group }}"
+    mode: "0750"
+  with_items:
+    - "wrapper.sh"
+
+# KWA : a fixer ASAP !
+- name: Ensure consul config dir is OK
+  file:
+    path: "{{vitam_folder_root}}/conf/vitam-consul"
+    state: directory
+    owner: "{{ vitam_user }}"
+    group: "{{ vitam_group }}"
+# KWA : a fixer ASAP !
+- name: Deploy consul agent service declaration
+  template:
+    src: "service-componentid.json.j2"
+    dest: "{{vitam_folder_root}}/conf/vitam-consul/service-{{ vitam_component }}.json"
+    owner: "{{ vitam_user }}"
+    group: "{{ vitam_group }}"
+    mode: "0640"
+  notify:
+    - restart consul
+
 - name: Deploy specific configuration files (can override the common configuration files)
   template:
     src: "{{role_path}}/templates/{{ vitam_component }}/{{item}}.j2"
@@ -42,31 +80,31 @@
     mode: "{{vitam_conf_permission}}"
   with_items: "{{ lookup('pipe','find {{role_path}}/templates/{{ vitam_component }}/ -type f  -exec basename {} .j2 \\;').split('\n') }}"
 
+# OMA : disabled as now template due to directories changes
+# - name: Install systemd wrapper.sh (must be included in the RPM)
+#   copy: 
+#     src: wrapper.sh
+#     dest: "/vitam/bin/{{ vitam_component }}/wrapper.sh"
+#     owner: "{{ vitam_user}}"
+#     group: "{{ vitam_group }}"
+#     mode: "0750"
 
-- name: Install systemd wrapper.sh (must be included in the RPM)
-  copy: 
-    src: wrapper.sh
-    dest: "/vitam/{{ vitam_component }}/bin/wrapper.sh"
-    owner: "{{ vitam_user}}"
-    group: "{{ vitam_group }}"
-    mode: "0750"
-
-- name: Check that the directories exists (must be removed when the RPM plugin will be patched)
-  file: 
-    path: "/vitam/{{ vitam_component }}/{{ item }}"
-    state: directory
-    owner: "{{ vitam_user}}"
-    group: "{{ vitam_group }}"
-    mode: "0750"
-    recurse: yes # Added if someone uses root...
-  with_items:
-    - app
-    - bin
-    - conf
-    - lib
-    - log 
-    - data
-    - tmp
+# - name: Check that the directories exists (must be removed when the RPM plugin will be patched)
+#   file: 
+#     path: "/vitam/{{ vitam_component }}/{{ item }}"
+#     state: directory
+#     owner: "{{ vitam_user}}"
+#     group: "{{ vitam_group }}"
+#     mode: "0750"
+#     recurse: yes # Added if someone uses root...
+#   with_items:
+#     - app
+#     - bin
+#     - conf
+#     - lib
+#     - log 
+#     - data
+#     - tmp
 
 - name: systemctl reload-daemon
   command: systemctl daemon-reload

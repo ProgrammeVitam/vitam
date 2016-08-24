@@ -1,5 +1,8 @@
+Pré-requis
+##########
+
 Description
----------------
+===========
 
 * Plate-forme Linux
 * Packages VITAM (au moment de la rédaction du document, aucun formalisme n'a été défini pour ce point.)
@@ -12,8 +15,6 @@ Le déploiement est orchestré depuis un poste ou serveur d'administration, les 
  * il est vivement conseillé d'avoir configuré une authentification ssh par certificat vers les serveurs cible
  * tous les serveurs cible doivent avoir accès au registry docker vitam (docker.programmevitam.fr) => A commenter, car cela n'est nécessaire que dans une installation docker.
 
-Rappel d'architecture technique
----------------------------------
 
-.. include:: ../archi/technique/20-it-services.rst
+.. include:: ../archi/technique/10-it-services.rst
 

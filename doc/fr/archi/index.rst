@@ -1,12 +1,12 @@
 ###########
-|DEX|
+|doc_title|
 ###########
 
 .. toctree::
    :numbered:
    :maxdepth: 3
 
-   preamble.rst
+   introduction.rst
    perimetre/_toc.rst
    fonctionnelle-archivistes/_toc.rst
    fonctionnelle-exploitation/_toc.rst
@@ -14,11 +14,15 @@
    securite/_toc.rst
 
 
-#######
-Annexes
-#######
 
-.. toctree::
-   :maxdepth: 1
+.. only:: latex
 
-   glossary.rst
+  Annexes
+  #######
+
+   .. Following is to add the figure and tables list at the end of the latex document
+   .. raw:: latex
+
+      \listoffigures
+      \listoftables
+

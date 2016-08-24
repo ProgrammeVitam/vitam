@@ -2,11 +2,12 @@
 
 [hosts:children]
 hosts-ihm-demo
+hosts-ingest
+hosts-access
 hosts-mongodb
 hosts-logbook
 hosts-metadata
 hosts-workspace
-hosts-ingest
 hosts-storageengine
 hosts-storageofferdefault
 hosts-ingest-external
@@ -18,14 +19,11 @@ hosts-functional-administration
 [hosts-functional-administration]
 {{local_docker0_ip}}
 
-[hosts-ingest-web]
-{{local_docker0_ip}}
-
 [hosts-mongo-express]
 {{local_docker0_ip}}
 
 [hosts-ingest-external]
-vitam-prod-app-15.internet.agri
+{{local_docker0_ip}}
 
 [hosts-ingest]
 {{local_docker0_ip}}
@@ -63,6 +61,6 @@ vitam_folder_permission=0775
 vitam_conf_permission=0775
 pull_strategy=missing
 local_user=vitam
-vitam_docker_tag=0.6.0-SNAPSHOT
+vitam_docker_tag=0.7.0-SNAPSHOT
 
 local_docker0_ip=172.17.0.1

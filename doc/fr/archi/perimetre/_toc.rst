@@ -1,22 +1,23 @@
-Périmètre de la solution
-########################
 
-.. todo:: Les sous-sections suivantes sont à compléter.
+.. Périmètre de la solution
+.. ########################
 
-Périmètre métier archivistique
-==============================
+.. .. todo:: Les sous-sections suivantes sont à compléter.
 
-Vision métier
--------------
+.. Périmètre métier archivistique
+.. ==============================
 
-.. (référence à la documentation métier ?)
+.. Vision métier
+.. -------------
+
+.. .. (référence à la documentation métier ?)
 	      
-Périmètre métier exploitation
-=============================
+.. Périmètre métier exploitation
+.. =============================
 	
-Limites de la solution
-======================
+.. Limites de la solution
+.. ======================
 
-.. - Volumétrie supportée
+.. .. - Volumétrie supportée
    
-   - Contraintes sur les interfaces
+..    - Contraintes sur les interfaces

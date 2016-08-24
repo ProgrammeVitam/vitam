@@ -5,54 +5,59 @@
   roles:
     - mongodb
 
+- hosts: hosts-consul-server
+  serial: 1
+  roles:
+    - {role: consul, server: true } 
+
 - hosts: hosts-logbook
   roles:
-    - {role: vitam, vitam_component: logbook, java_args: /vitam/logbook/conf/logbook.conf } 
+    - {role: vitam, vitam_component: logbook, java_args: /vitam/conf/logbook/logbook.conf } 
 
 - hosts: hosts-metadata
   roles:
-    - {role: vitam, vitam_component: metadata, vitam_user: vitamdb, vitam_group: vitamdb , java_args: /vitam/metadata/conf/metadata.conf} 
+    - {role: vitam, vitam_component: metadata, java_args: /vitam/conf/metadata/metadata.conf} 
 
 - hosts: hosts-workspace
   roles:
-    - {role: vitam, vitam_component: workspace ,java_args: /vitam/workspace/conf/workspace.conf }
+    - {role: vitam, vitam_component: workspace ,java_args: /vitam/conf/workspace/workspace.conf }
 
 
 - hosts: hosts-ingest
   roles:
-    - {role: vitam, vitam_component: ingest-internal, java_args: /vitam/ingest/conf/ingest-internal.conf } 
+    - {role: vitam, vitam_component: ingest-internal, java_args: /vitam/conf/ingest/ingest-internal.conf } 
 
 - hosts: hosts-ingest-external
   roles:
-    - {role: vitam, vitam_component: ingest-external, java_args: /vitam/ingest/conf/ingest-external.conf}
+    - {role: vitam, vitam_component: ingest-external, java_args: /vitam/conf/ingest/ingest-external.conf}
     - ingest-external
 
 - hosts: hosts-processing
   roles:
-    - {role: vitam, vitam_component: processing,java_args: /vitam/processing/conf/processing.conf } 
+    - {role: vitam, vitam_component: processing,java_args: /vitam/conf/processing/processing.conf } 
 
 - hosts: hosts-access
   roles:
-    - {role: vitam, vitam_component: access, java_args: /vitam/access/conf/access.conf } 
+    - {role: vitam, vitam_component: access, java_args: /vitam/conf/access/access.conf } 
 
 - hosts: hosts-ihm-demo
   roles:
-    - {role: vitam, vitam_component: ihm-demo, java_args: /vitam/ihm-demo/conf/ihm-demo.conf } 
+    - {role: vitam, vitam_component: ihm-demo, java_args: /vitam/conf/ihm-demo/ihm-demo.conf } 
 
 - hosts: hosts-storage-engine
   roles:
-    - {role: vitam, vitam_component: storage-engine, java_args: '/vitam/storage-engine/conf/storage-engine.conf' }
+    - {role: vitam, vitam_component: storage-engine, java_args: '/vitam/conf/storage-engine/storage-engine.conf' }
     - storage-engine
 
 - hosts: hosts-storage-offer-default
   roles:
-    - {role: vitam, vitam_component: storage-offer-default, java_args: /vitam/ihm-demo/conf/storage-offer.conf }
+    - {role: vitam, vitam_component: storage-offer-default, java_args: /vitam/conf/storage-offer-default/default-offer.conf }
     - storage-offer-default
 
 
 - hosts: hosts-functional-administration
   roles:
-    - {role: vitam, vitam_component: functional-administration, java_args: /vitam/functional-administration/conf/functional-administration.conf }
+    - {role: vitam, vitam_component: functional-administration, java_args: /vitam/conf/functional-administration/functional-administration.conf }
 
 - hosts: hosts-log-server
   roles:
