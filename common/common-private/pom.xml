@@ -8,7 +8,7 @@
 	</parent>
 	<artifactId>common-private</artifactId>
 	<name>common-private</name>
-
+	
 	<dependencies>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
