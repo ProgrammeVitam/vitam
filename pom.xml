@@ -449,12 +449,12 @@
 						<defaultGroupname>${unix.group}</defaultGroupname>
 						<mappings>
 							<mapping>
-								<directory>/vitam/${unix.name}/lib</directory>
+								<directory>/vitam/lib/${unix.name}</directory>
 								<artifact />
 								<dependency />
 							</mapping>
 							<mapping>
-								<directory>/vitam/${unix.name}/conf</directory>
+								<directory>/vitam/conf/${unix.name}</directory>
 								<sources>
 									<source>
 										<location>${basedir}/src/main/config</location>
@@ -463,7 +463,7 @@
 							</mapping>
 
 							<mapping>
-								<directory>/vitam/${unix.name}/bin</directory>
+								<directory>/vitam/bin/${unix.name}</directory>
 								<sources>
 									<source>
 										<location>${project.build.directory}/bin</location>

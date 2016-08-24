@@ -9,8 +9,8 @@
 	<artifactId>metadata-rest</artifactId>
 	<name>metadata Rest</name>
 	<properties>
-		<unix.user>vitamdb</unix.user>
-		<unix.group>vitamdb</unix.group>
+		<unix.user>vitam</unix.user>
+		<unix.group>vitam</unix.group>
 		<unix.name>metadata</unix.name>
 	</properties>
 	<dependencies>

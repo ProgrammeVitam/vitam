@@ -33,14 +33,28 @@
     owner: elasticsearch
     mode: 0700
 
+- name: ensure elasticsearch directories exist
+  file:
+    path: "/vitam/{{item}}/elasticsearch"
+    owner: elasticsearch
+    state: directory
+    mode: 0755
+  with_items:
+    - data
+    - log
+    - conf
+    - lib
+
+
+
 - name: systemctl reload-daemon # see https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-repositories.html
   command: systemctl daemon-reload
 
 - name: add ElasticSearch autostart at boot
   service:
-    name=elasticsearch
-    enabled=yes
-    state=started
+    name: elasticsearch
+    enabled: yes
+    state: started
 
 # Descendre plug-in HEAD
 
@@ -63,9 +77,9 @@
 
 - name: add kibana autostart at boot
   service:
-    name=kibana
-    enabled=yes
-    state=started
+    name: kibana
+    enabled: yes
+    state: started
 
 # Logstash
 # - name: copy logstash repository file
@@ -81,15 +95,33 @@
 #     name: logstash
 #     state: latest
 
-- name: install logstash rpm
+- name: install logstash rpm from repo
   yum:
     name: logstash-all-plugins
     state: latest
 
+- name: ensure logstash directories exist
+  file:
+    path: "/vitam/{{item}}/logstash"
+    owner: logstash
+    state: directory
+    mode: 0755
+  with_items:
+    - data
+    - log
+    - conf
+    - lib
+
+- name: ensure json conf extra  directory exists
+  file:
+    path: "{{logstash_confextra_dir}}"
+    owner: logstash
+    state: directory
+    mode: 0755
 
 
 # Post-install configuration
-- name: Configure limits max_open_files
+- name: Configure limits max_open_files for Elasticsearch
   lineinfile:
     dest=/etc/security/limits.conf
     regexp='^{{ elasticsearch_user }}     -    nofile    {{ elasticsearch_max_open_files }}'
@@ -107,24 +139,13 @@
   notify:
     - restart elasticsearch
 
-- name: change port for elasticsearch
+- name: change port for elasticsearch listening
   replace: 
     dest: /etc/elasticsearch/elasticsearch.yml 
     regexp: '^# network.port:.*$'
     replace: 'network.port: {{elasticsearch_port}}'
   notify:
     - restart elasticsearch
-
-- name : get HEAD plug-in
-  become_user: elasticsearch
-  command: /usr/share/elasticsearch/bin/plugin install -DproxyPort={{proxy_port}} -DproxyHost={{proxy_host}} mobz/elasticsearch-head
-  args:
-    chdir: /usr/share/elasticsearch/bin 
-    creates: /usr/share/elasticsearch/plugins/head
-  environment:
-    http_proxy: http://{{ https_reverse_proxy }}
-    https_proxy: https://{{ https_reverse_proxy }}
-
 
 - name: change port for elasticsearch listening
   replace: 
@@ -133,6 +154,124 @@
     replace: 'http.port: {{elasticsearch_port}}'
   notify:
     - restart elasticsearch
+
+- name: change data storage for elasticsearch
+  replace: 
+    dest: /etc/elasticsearch/elasticsearch.yml 
+    regexp: '^# path.data:.*$'
+    replace: 'path.data: {{elasticsearch_data_dir}}'
+  notify:
+    - restart elasticsearch
+
+- name: change log for elasticsearch
+  replace: 
+    dest: /etc/elasticsearch/elasticsearch.yml 
+    regexp: '^# path.logs:.*$'
+    replace: 'path.logs: {{elasticsearch_log_dir}}'
+  notify:
+    - restart elasticsearch
+
+- name: change cluster name for elasticsearch
+  replace: 
+    dest: /etc/elasticsearch/elasticsearch.yml 
+    regexp: '^# cluster.name:.*$'
+    replace: 'cluster.name: {{cluster_name}}'
+  notify:
+    - restart elasticsearch
+
+# OMA : copied from https://hobo.house/2016/04/08/automate-elk-stack-and-clients-with-ansible/
+- name: Define CONF_DIR
+  replace: 
+      dest: /etc/sysconfig/elasticsearch
+      regexp: '^#CONF_DIR=.*$'
+      replace: 'CONF_DIR=/etc/elasticsearch'
+  register: elasticsearch_updated
+  notify:
+    - restart elasticsearch
+
+# - name: Define DATA_DIR
+#   replace: 
+#       dest: /etc/sysconfig/elasticsearch
+#       regexp: '^#DATA_DIR=.*$'
+#       replace: 'DATA_DIR={{elasticsearch_data_dir}}'
+#   register: elasticsearch_updated
+#   notify:
+#     - restart elasticsearch
+
+# - name: Define LOG_DIR
+#   replace: 
+#       dest: /etc/sysconfig/elasticsearch
+#       regexp: '^#LOG_DIR=.*$'
+#       replace: 'LOG_DIR={{elasticsearch_log_dir}}'
+#   register: elasticsearch_updated
+#   notify:
+#     - restart elasticsearch
+
+- name: Apply heapsize tuning for systems with greater than 64G memory
+  replace: 
+      dest: /etc/sysconfig/elasticsearch
+      regexp: '^#ES_HEAP_SIZE=.*$'
+      replace: 'ES_HEAP_SIZE=32g'
+  when: ansible_memory_mb.real.total|int >= 65536
+  register: elasticsearch_updated
+  notify:
+    - restart elasticsearch
+
+
+- name: Apply heapsize tuning for systems with greater than 64G memory
+  replace: 
+      dest: /etc/sysconfig/elasticsearch
+      regexp: '^#ES_HEAP_SIZE=.*$'
+      replace: 'ES_HEAP_SIZE=32g'
+  when: ansible_memory_mb.real.total|int >= 65536
+  register: elasticsearch_updated
+  notify:
+    - restart elasticsearch
+# OMA : copied from https://hobo.house/2016/04/08/automate-elk-stack-and-clients-with-ansible/
+- name: Update elasticsearch startup with heap size at half the memory
+  replace: 
+      dest: /etc/sysconfig/elasticsearch
+      regexp: '^#ES_HEAP_SIZE=.*$'
+      replace: 'ES_HEAP_SIZE={{ (ansible_memory_mb.real.total / 2) | int }}m' 
+  when: ansible_memory_mb.real.total|int < 65536
+  register: elasticsearch_updated
+  notify:
+    - restart elasticsearch
+
+- name: add directives in elasticsearch
+  blockinfile:
+    backup: yes
+    dest: /etc/elasticsearch/elasticsearch.yml
+    marker: "# {mark} ANSIBLE MANAGED BLOCK"
+    block: |
+      index.number_of_replicas: 0
+      index.refresh_interval: 10s
+
+
+# OMA: prévoir pour Easticsaerch aussi l'arborescence des data, log et work_dir ???
+
+# Dans elasticsearch.yml
+# indices.memory.index_buffer_size: 30%
+# index.translog.flush_threshold_ops: 50000
+# index.refresh_interval: 30s
+# refresh_interval_in_millis: 30000
+# threadpool.search.queue_size: 12000
+
+
+- name : get HEAD plug-in for Elasticsearch
+  become_user: elasticsearch
+  command: /usr/share/elasticsearch/bin/plugin install -DproxyPort={{proxy_port}} -DproxyHost={{proxy_host}} mobz/elasticsearch-head
+  args:
+    chdir: /usr/share/elasticsearch/bin 
+    creates: /usr/share/elasticsearch/plugins/head
+  environment:
+    http_proxy: http://{{ https_reverse_proxy }}
+    https_proxy: https://{{ https_reverse_proxy }}
+  notify:
+    - restart elasticsearch
+
+
+
 
 # - name : get ALL logstash plug-in 
 #   get_url:
@@ -163,13 +302,14 @@
 # - name: create symbolic link on new version
 #   command: ln -sfn /opt/logstash-2.3.4 /opt/logstash
 
-- name: copy default file for Kibana
-  copy:
-    src: kibana
-    dest: /etc/default/kibana
-    mode: 0644
+# - name: copy default file for Kibana
+#   copy:
+#     src: kibana
+#     dest: /etc/default/kibana
+#     mode: 0644
+#     owner: root
 
-- name: configure connect Kibana to elasticsearch
+- name: configure Kibana connection to elasticsearch
   replace:
     dest: /opt/kibana/config/kibana.yml 
     regexp: '^# elasticsearch\.url:.*$'
@@ -177,8 +317,91 @@
   notify:
     - restart kibana
 
+# OMA : pour changer le port Kibana, modifier /opt/kibana/config/kibana.yml ligne # server.port: 5601
 
 # - name: set up cluster name for elasticsearch
 #    lineinfile: 'dest=/opt/elasticsearch/config/elasticsearch.yml state=present regexp="^" insertafter="EOF" line="cluster.name: {{ ansible_eth0["ipv4"]["address"] }}"'
 # - name: set up node name for elasticsearch
 #    lineinfile: 'dest=/opt/elasticsearch/config/elasticsearch.yml state=present regexp="^" insertafter="EOF" line="node.name: {{ ansible_eth0["ipv4"]["address"] }}"'
+
+- name: create conf subdir for logstash
+  file:
+    path: /opt/logstash/conf
+    state: directory
+    owner: logstash
+    mode: 0755
+
+- name: copy default logstash file (preferIPv4)
+  copy:
+    src: logstash
+    dest: /etc/default/logstash
+    owner: root
+    mode: 0644
+
+- name: Update heap for logstash
+  replace: 
+      dest: /etc/sysconfig/logstash
+      regexp: '^#LS_HEAP_SIZE=.*$'
+      replace: 'LS_HEAP_SIZE="{{ (ansible_memory_mb.real.total / 4) | int }}m"' 
+  register: logstash_updated
+
+- name: Define log file for logstash
+  replace: 
+      dest: /etc/sysconfig/logstash
+      regexp: '^#LS_LOG_FILE=.*$'
+      replace: 'LS_LOG_FILE="{{logstash_log_dir}}/logstash.log"' 
+  register: logstash_updated
+
+- name: Define gc log file for logstash
+  replace: 
+      dest: /etc/sysconfig/logstash
+      regexp: '^#LS_GC_LOG_FILE=.*$'
+      replace: 'LS_GC_LOG_FILE="{{logstash_log_dir}}/gc.log"' 
+  register: logstash_updated
+
+- name: Define config dir for logstash
+  replace: 
+      dest: /etc/sysconfig/logstash
+      regexp: '^#LS_CONF_DIR=.*$'
+      replace: 'LS_CONF_DIR="{{logstash_conf_dir}}"' 
+  register: logstash_updated
+
+- name: configure Kibana connection to elasticsearch
+  replace:
+    dest: /opt/kibana/config/kibana.yml 
+    regexp: '^# elasticsearch\.url:.*$'
+    replace: "elasticsearch.url: \"http://{{vitam_log_host}}:{{elasticsearch_port}}\""
+
+
+- name: configure logstash parser
+  template:
+    src: "{{item}}.j2"
+    dest: "{{logstash_conf_dir}}/{{item}}"
+    owner: logstash
+  with_items:
+    - "logstash-vitam.conf"
+
+
+- name: add json extra conf
+  template:
+    src: "{{item}}.j2"
+    dest: "{{logstash_confextra_dir}}/{{item}}"
+    owner: logstash
+  with_items:
+    - "elasticsearch-template.json"
+  notify:
+    - restart logstash
+
+- name: restart logstash
+  service:
+    name: logstash
+    state: restarted
+
+# - name: create symbolic link for parser
+#   file: 
+#     src: /opt/logstash/conf/logstash-vitam.conf
+#     dest: /etc/logstash/conf.d/logstash-vitam.conf
+#     state: link
+#   notify:
+#     - restart logstash
+

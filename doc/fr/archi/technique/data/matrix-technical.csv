@@ -1,0 +1,2 @@
+Cluster/Composant source,Cluster/Composant cible,Protocole,Port cible,Description
+\*,logstash-01.log.vitam,syslog/tcp,10514,Envoi des logs au concentrateur

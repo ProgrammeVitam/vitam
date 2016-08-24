@@ -1,67 +1,35 @@
+Première installation
+#####################
+
 Les fichiers de déploiement sont disponibles dans la version VITAM livrée dans le répertoire ``deployment`` Ils consistent en 2 parties :
  
  * le playbook ansible, présent dans le répertoire « ansible-vitam », qui est indépendant de l'environnement à déployer
  * les fichiers d'inventaire (1 par environnement à déployer) ; des fichiers d'exemple sont disponibles dans le répertoire ``environments``
 
-Pour configurer le déploiement, il est nécessaire de créer (dans n'importe quel répertoire en dehors du répertoire ``environments`` un nouveau fichier d'inventaire comportant les informations suivantes (les informations délimitées par les balises < > sont à compléter):
-
-.. code-block:: bash
+Pour configurer le déploiement, il est nécessaire de créer (dans n'importe quel répertoire en dehors du répertoire ``environments`` un nouveau fichier d'inventaire comportant les informations suivantes :
 
 
-	[hosts]
+.. literalinclude:: ../../../../deployment/environments/hosts.int
+   :language: ini
+   :linenos:
 
-	[hosts:children]
-	hosts-ihm-demo
-	hosts-mongodb
-	hosts-logbook
-	hosts-metadata
-	hosts-workspace
-	hosts-ingest-web
+Pour chaque type de "host" (lignes 16 à 54), indiquer le serveur défini pour chaque fonction.
 
-	[hosts-ihm-demo]
-	<hostname du serveur où déployer le composant ihm-demo>
+Ensuite, dans la section ``hosts:vars``, renseigner comme suit :
 
-	[hosts-ingest-web]
-	<hostname du serveur où déployer le composant ingest-web>
+.. csv-table:: Définition des variables
+   :header: "Clé", "Description","Valeur"
+   :widths: 10, 10,10
 
-	[hosts-mongo-express]
-	<hostname du serveur où déployer le composant mongo-express>
-
-	[hosts-metadata]
-	<hostname du serveur où déployer le composant metadata>
-
-	[hosts-logbook]
-	<hostname du serveur où déployer le composant logbook>
-
-	[hosts-workspace]
-	<hostname du serveur où déployer le composant workspace>
-
-	[hosts-processing]
-	<hostname du serveur où déployer le composant processing>
-
-	[hosts-metadata-mongodb]
-	<hostname du serveur où déployer la base de données mongo>
-
-	[hosts:vars]
-	ansible_ssh_user=<nom de l'utilisateur admin (sudoer) configuré sur les serveurs cible>
-	ansible_become=true
-	vitam_environment=<nom court de l'environnement (ex : int, preprod, prod)>
-	docker_registry_hostname=docker.programmevitam.fr
-	vitam_mongodb_host=<hostname du serveur où est déployé la base de données mongo>
-	vitam_logbook_host=<hostname du serveur où est déployé le serveur logbook>
-	vitam_logbook_port=8204
-	vitam_folder_permission=<permission des dossiers de stockage VITAM (conseillé : 0755)>
-	vitam_conf_permission=<permission des dossiers de stockage VITAM (conseillé : 0500)>
-	pull_strategy=always
-	local_user=vitam
-
-
-.. note:: fichier d'exemple d'itération 5
-
-../../../../deployment/environments/hosts.int  (ou une arbo du genre...) est à réfléchir/afficher quant à un exemple réel lié à la version.
-
-
-.. TODO:: faire également référence à la release note, si procédure supplémentaire particulière
+   "ansible_ssh_user","Utilisateurs ansible sur les machines sur lesquelles VITAM sera déployé",""
+   "ansible_become","Propriété interne à ansible pour passer root",""
+   "vitam_environment", "Environnement (int, pprd,prod, ...) ; suffixe les noms des docker",""
+   "docker_registry_hostname","Repository des docker",""
+   "vitam_folder_permission","Droits Unix par défaut des arborescences créées pour VITAM",""
+   "vitam_conf_permission","Droits sur les fichiers de configuration déployés pour VITAM",""
+   "pull_strategy","Stratégie lors du ``docker pull``",""
+   "local_user","Utilisateur créé sur les hôtes des docker pour le mapping correct entre docker et hôte",""
+   "vitam_docker_tag","Tag des *containers* au téléchargement ; assimilable à la version",""
 
 Le déploiement s'effectue depuis la machine "ansible" et va distribuer la solution VITAM selon l'inventaire correctement renseigné.
 

@@ -24,6 +24,7 @@ Les variables attendues pour ce rôle sont :
   + {{ gc_opts }} : paramétrage du garbage collector (valeur par défaut : "" ) 
   + {{ java_opts }} : autres variables à passer à la JVM (valeur par défaut : "")
   + {{ java_args }} : arguments à passer à la JVM (valeur par défaut : "")
+  + {{ port }} : port d'écoute du service vitam (valeur par défaut : 8082)
 
 Dependencies
 ------------

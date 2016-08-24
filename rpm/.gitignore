@@ -1,0 +1,6 @@
+.pki
+BUILD
+BUILDROOT
+RPMS
+SRPMS
+*.zip

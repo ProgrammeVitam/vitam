@@ -1,0 +1,2 @@
+Cluster/Composant source,Cluster/Composant cible,Protocole,Port cible,Description
+ingest-external.vitam,ingest-internal.vitam,http,9000,

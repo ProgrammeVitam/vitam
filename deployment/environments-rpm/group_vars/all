@@ -3,6 +3,8 @@ vitam_folder_root: /vitam
 docker_registry_httponly: yes
 vitam_docker_tag: latest
 
+syslog_facility: local0
+
 
 # Internal components communication configuration
 

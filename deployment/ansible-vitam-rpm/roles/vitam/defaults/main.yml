@@ -7,3 +7,4 @@ gc_opts: ""
 java_opts: ""
 java_args: ""
 rpm_name: "vitam-{{ vitam_component }}"
+port: 8082

@@ -29,8 +29,7 @@
   - "ingest-external-client.conf"
   - "ingest-external-client-test.conf"
   - "functional-administration-client.conf"
-  - "antisamy-esapi.xml.j2"
-
+  - "antisamy-esapi.xml"
 
 - name: Deploy VITAM docker file
   docker:

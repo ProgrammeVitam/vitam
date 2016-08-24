@@ -29,7 +29,7 @@
   - "driver-mapping.conf"
   - "static-strategy.json"
   - "static-offer.json"
-  - "antisamy-esapi.xml.j2"
+  - "antisamy-esapi.xml"
 
 - name: copy file for driver in data
   copy:

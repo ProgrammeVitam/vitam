@@ -1,0 +1,42 @@
+---
+
+- name: Install rpm
+  yum:
+    name: "{{consul_component}}"
+    state: latest
+    update_cache: yes
+
+- name: Check that the directories exist 
+  file: 
+    path: "/vitam/{{ item }}/{{consul_component}}"
+    state: directory
+    owner: "{{ vitam_user}}"
+    group: "{{ vitam_group }}"
+    mode: "0750"
+    recurse: yes # Added if someone uses root...
+  with_items:
+    - app
+    - bin
+    - conf
+    - lib
+    - log 
+    - data
+    - tmp
+
+
+- name: Deploy common configuration files
+  template:
+    src: "{{item}}.j2"
+    dest: "{{consul_folder_conf}}/{{item}}"
+    owner: "{{ vitam_user}}"
+    group: "{{ vitam_group }}"
+    mode: "0640"
+  with_items:
+    - "consul.json"
+
+- name: (re-)start consul
+  service: 
+    name: "{{consul_component}}"
+    enabled: true
+  notify:
+      - restart consul

@@ -1,0 +1,239 @@
+# ----------------------------------------------------------------------
+# fichier de config et de parsing logstash des logs VITAM
+# Version logstash : logstash-2.3.4
+#
+# --------------------------------------
+# date creation : Aug/08/2016
+# date modif    : Aug/22/2016
+# Auteur        : stephane.saadi@thalesgroup.com
+#
+# -----------------------------------------------------------------------
+
+input { 
+        stdin {
+                type => "stdin"
+        }
+        exec {
+                type => "stats_sys"
+                command => "vmstat -n | tail -1 > /tmp/vmstat.log; printf `hostname `;cat /tmp/vmstat.log"
+                #command => "/home/Tools/logstash/tools/stats_sys.sh"
+                #envoi le nb toute les 60 secondes
+                interval => 900
+                #vmstat -n 60 | unbuffer -p awk -v MYHOST=$(hostname) '{print MYHOST ":" $0}' | netcat -u 10.222.13.69 5515
+        }
+        file {
+                type => "import_vitam"
+                path => "{{logstash_log_dir}}/vitam-logback.log"
+                #exclude => "*.gz"
+                sincedb_path => "/tmp/data"
+                #start_position => beginning
+                codec => multiline {
+                        pattern => "^%{TIMESTAMP_ISO8601:timestamp}"
+                        negate => true
+                        what => previous
+                }
+        }
+        file {
+                type => "import_elastic"
+                path => "{{elasticsearch_log_dir}}/{{cluster_name}}.log"
+                sincedb_path => "/tmp/data"
+                #start_position => beginning
+                codec => multiline {
+                        pattern => "^\[%{TIMESTAMP_ISO8601:timestamp}\]"
+                        negate => true
+                        what => previous
+                }
+        }
+        # --- syslog input etc ...
+        syslog {
+                port => 10514
+                type => syslog_input
+        }
+}
+# -----------------------------------------------------
+filter {
+  mutate {
+    gsub => [ "message", "\t", ' ' ]
+    gsub => [ "message", "\n", '' ]
+    gsub => [ "message", "\%2A", '*' ]
+    gsub => [ "message", "\%3A", ':' ]
+  }
+  #---------------------------
+  if [type] == "syslog_input" {
+    grok {
+      break_on_match => false
+      keep_empty_captures => true
+      match => [ "program", "(?:(vitam[-._])?)(?<prog_name>[^.]*)" ]
+    }
+    mutate {
+      add_field => [ "type_input", "syslog" ]
+    }
+  }
+  #---------------------------
+  if [type] == "import_vitam" {
+    mutate { add_field => [ "type_input", "%{type}" ] }
+    grok {
+      break_on_match => false
+      keep_empty_captures => true
+      match => [ "path", "(?:%{UNIXPATH:path_file})/(?<program>[^.]*)"]
+      match => [ "program", "(?<type>[^_]*)[_|-](?<module>[^_]*)[_|-](?<environnement>[^_]*)_(?<instance>[^_-]*)(%{GREEDYDATA:todo})" ]
+      overwrite => [ "type" ]
+    }
+  }
+  #---------------------------
+  if [type] == "import_elastic" {
+    mutate { add_field => [ "type_input", "%{type}" ] }
+    grok {
+      break_on_match => false
+      keep_empty_captures => true
+      match => [ "path", "(?:%{UNIXPATH:path_file})/(?<program>[^.]*)"]
+      match => [ "program", "(?<type>[^_]*)[_|-](?<module>[^_]*)[_|-](?<environnement>[^_]*)_(?<instance>[^_-]*)(%{GREEDYDATA:todo})" ]
+    }
+  }
+  #---------------------------
+  if [program] =~ "vitam-" {
+      mutate { replace => { type => "logback" } }
+  } else if [program] =~ "elastic" {
+      mutate { replace => { type => "elastic" } }
+  } else if [program] =~ "mongo" {
+      mutate { replace => { type => "mongo" } }
+  } else if [program] =~ "script" {
+      mutate { replace => { type => "script" } }
+  }
+  # --------------------------------------------------
+  if [type] =~ "logback" {
+      grok {
+        break_on_match => false
+        keep_empty_captures => true
+
+        # 2016-08-04 13:53:00,161 [main] INFO  fr.gouv.vitam.access.rest.AccessApplication - fr.gouv.vitam.access.rest.AccessApplication.startApplication(AccessApplication.java:122) : [access_1:access:425367] AccessApplication Starts on default
+        # 2016-08-04 13:51:55,661 [main] INFO  org.godb.driver.cluster - com.godb.connection.SingleServerCluster.<init>(SingleServerCluster.java:45) : Cluster created with settings {hosts=[vitam-prod-app-17.internet.agri:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+
+        match => [ "message", "%{TIMESTAMP_ISO8601:timestamp}(%{SPACE:space}) \[(?<module_name>[^\]]*)\] (?:%{SPACE:space}?)%{WORD:err_level}(?:%{SPACE:space}?)(?:%{GREEDYDATA:msg_data})"]
+        match => [ "msg_data",
+                   "(?<class_name>[^\b]*)%{SPACE:space}-%{SPACE:space}(?<module_acces>[^\b]*)(%{SPACE:space}) : (?:%{GREEDYDATA:msg_info})" ]
+
+        overwrite => [ "timestamp" ]
+      }
+  }
+  # --------------------------------------------------
+  if [type] =~ "mongo" {
+      grok {
+        break_on_match => false
+        keep_empty_captures => true
+        match => [ "message", "(?:%{GREEDYDATA:msg_info})" ]
+        # "timestamp" => "Aug 19 20:09:00",
+        match => [ "timestamp", "(%{MONTH:mois} %{MONTHDAY:jour} %{HOUR:hr}:%{MINUTE:mn}:%{SECOND:sec})" ]
+      }
+      mutate { add_field => [ "date_msg", "%{+YYYY}-%{+MM}-%{jour} %{hr}:%{mn}:%{sec}" ] }
+      mutate { replace => { timestamp => "%{date_msg}" } }
+      date {
+        locale => fr
+        #timezone => "UTC"
+        match => [ "timestamp" , "yyyy-MM-dd HH:mm:ss" ]
+        target => [ "@timestamp" ]
+      }
+  }
+  # --------------------------------------------------
+  if [type] =~ "elastic" {
+      grok {
+        break_on_match => false
+        keep_empty_captures => true
+
+        match => [ "message", "(?:\[)%{TIMESTAMP_ISO8601:timestamp}(?:\])\[(?<err_level>[^ ]*)(?:%{SPACE:space}?)(?:\])\[(?<module_name>[^ ]*)(?:%{SPACE:space}?)(?:\])(?:%{SPACE:space}?)\[(?<cluster_name>[^\]]*)(?:\])(?:%{SPACE:space}?)(?:%{GREEDYDATA:msg_info})" ]
+
+        overwrite => [ "timestamp" ]
+      }
+  }
+  # --------------------------------------------------
+  if [type] =~ "stats_sys" {
+     grok {
+       # format vmstat.log:
+       # procs -----------memory---------- ---swap-- -----io---- -system-- -----cpu------
+       # r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st
+       # "10.222.4.146:  0  0  76324 1985848      0 2157164    0    0     4    16    5    1  0  0 99  0  0\n"
+       match => [ "message",
+                  "(?:%{IPORHOST:hostname})(?:%{SPACE:space})%{NUMBER:r:int}%{SPACE:space}%{NUMBER:b:int}%{SPACE:space}%{NUMBER:swapd:int}%{SPACE:space}%{NUMBER:free:int}%{SPACE:space}%{NUMBER:buff:int}%{SPACE:space}%{NUMBER:cache:int}%{SPACE:space}%{NUMBER:si:int}%{SPACE:space}%{NUMBER:so:int}%{SPACE:space}%{NUMBER:bi:int}%{SPACE:space}%{NUMBER:bo:int}%{SPACE:space}%{NUMBER:in:int}%{SPACE:space}%{NUMBER:cs:int}%{SPACE:space}%{NUMBER:us:int}%{SPACE:space}%{NUMBER:sy:int}%{SPACE:space}%{NUMBER:id:int}%{SPACE:space}%{NUMBER:wa:int}%{SPACE:space}%{NUMBER:st:int}"
+                ]
+     }
+  }
+  # --------------------------------------------------
+  if "_grokparsefailure" not in [tags] {
+     if [type] =~ "logback" or [type] =~ "elastic" or [type] =~ "scripts" {
+         date {
+           locale => fr
+           #timezone => "UTC"
+           #format date fichier log vitam 2016-08-05 23:35:16,573
+           match => [ "timestamp" , "yyyy-MM-dd HH:mm:ss,SSS" ]
+           target => [ "@timestamp" ]
+         }
+     }
+     mutate {
+        remove_field => [
+                "syslog_program",
+                #"syslog_timestamp", "syslog_program", "syslog_message",
+                #"message", 
+                #"msg_data",
+                "space", "date_msg", "mois", "jour", "hr", "mn", "sec", 
+                "severity", "facility", "facility_label", "severity_label", "priority",
+                "taille_bdy", "msg_err",
+                "httpversion",
+                "request",
+                "request_info",
+                "useragent",
+                "path",
+                #"timestamp",
+                "@version"
+                           ]
+     }
+  }
+  # --------------------------------------------------
+  if [type] =~ "stdin" {
+      mutate {
+        add_tag => [ "drop" ]
+      }
+  }
+}
+# -----------------------------------------------------
+output {
+  if "_grokparsefailure" not in [tags] {
+    if "drop" not in [tags] {
+      if [type] =~ "logback" or [type] =~ "elastic" or [type] =~ "mongo" or [type] =~ "scripts" {
+        elasticsearch {
+
+        #flush_size => 10000
+        #idle_flush_time => 1
+        #idle_flush_time => 2
+        #workers => 20
+
+        #index => "logstash-%{type}-%{+YYYY.MM.dd}"
+        index => "logstash-vitam-%{+YYYY.MM.dd}"
+        hosts => ["vitam-iaas-log-01.int3:9200"]
+        #template_overwrite => true
+        #manage_template => true
+        template => "{{logstash_confextra_dir}}/elasticsearch-template.json"
+        }
+      } else {
+        elasticsearch {
+        index => "logstash-%{type}-%{+YYYY.MM.dd}"
+        hosts => ["vitam-iaas-log-01.int3:9200"]
+        }
+      }
+    }
+  } else {
+    if [type] =~ "logback" or [type] =~ "elastic" or [type] =~ "mongo" or [type] =~ "scripts" {
+        elasticsearch {
+          index => "logstash-failure-%{+YYYY.MM.dd}"
+          hosts => ["vitam-iaas-log-01.int3:9200"]
+          template => "{{logstash_confextra_dir}}/elasticsearch-template.json"
+        }
+     }
+  }
+  # -----------------------------------------------------
+  stdout {
+    #debug => debug_format => "json"
+    codec => rubydebug
+  }
+}
+
+
