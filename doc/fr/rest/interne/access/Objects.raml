@@ -1,0 +1,11 @@
+# root endpoint request
+displayName: Objects
+description: API qui définie l'accès à tous les Objets.
+type: { complexCollection: { queryModel: query, exampleQueryModel: !include ../samples/query.sample, answearModel: answearList, exampleAnswearModel: !include ../samples/answearList.sample, updateModel: update, exampleUpdateModel: !include ../samples/update.sample, createModel: create, exampleCreateModel: !include ../samples/create.sample } }
+
+/{id_object}: !include Object.raml
+
+/check:
+  displayName: Objects Check
+  description: API qui permet de vérifier un ensemble d'Objets d'un même groupe (similaire à /object_groups/id\_object\_group/check).
+  type: collection

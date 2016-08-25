@@ -1,0 +1,17 @@
+# root endpoint request
+displayName: Freeze Access Contracts
+description: Opérations sur les Contrats d'Accès de Gel
+type: { collection-write: { createModel: freeze_access_contract, exampleModel: !include ../samples/referentials/freeze_access_contract.sample, answearModel: freeze_access_contract, exampleAnswearModel: !include ../samples/referentials/freeze_access_contract.sample } }
+is: [ standardErrors ]
+patch:
+
+/{id_contract}:
+  displayName: Freeze Access Contract
+  type: { collection-item-write: { createModel: freeze_access_contract, exampleModel: !include ../samples/referentials/freeze_access_contract.sample, answearModel: freeze_access_contract, exampleAnswearModel: !include ../samples/referentials/freeze_access_contract.sample } }
+  is: [ standardErrors ]
+  patch:
+  delete:
+
+  /stats:
+    displayName: Access Contract Statistic
+    type: { stats: { answearModel: genericObject, exampleAnswearModel: !include ../samples/statistic.sample, name: un Contrat d'Accès de Gel } }

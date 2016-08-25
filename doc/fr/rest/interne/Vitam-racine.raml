@@ -1,0 +1,31 @@
+#%RAML 0.8
+title: API de la racine Vitam 'http://server/api'
+baseUri: http://server/api
+version: v0.0.1
+protocols: [ HTTP, HTTPS ]
+
+documentation:
+  - title: Home
+    content: !include docs-fr/home.md
+      
+mediaType: application/json
+
+schemas:
+  - error: !include schema/error.json
+  - version: !include schema/version.json
+
+traits: !include traits/Traits.raml
+
+resourceTypes:
+  - base: !include resourceTypes/Base.raml
+
+/:
+  type: base
+  get:
+    description: L'application Front-Office récupère par cette API les versions supportées par la racine VITAM.
+    responses:
+        200:
+          description: API d'accès aux versions supportées par la racine VITAM.
+          body:
+            schema: version
+            example: !include samples/version.sample

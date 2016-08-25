@@ -1,0 +1,39 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Create",
+    "description": "A create in Vitam DSL",
+    "type": "object",
+    "required": [
+        "queries",
+        "data"
+    ],
+    "properties": {
+        "$roots": {
+            "description": "Contains all root ids",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "$queries": {
+            "description": "Contains all queries",
+            "type": "array",
+            "items": {
+                "type": "object"
+            }
+        },
+        "$filter": {
+            "description": "Contains filter to apply",
+            "type": "object",
+            "properties": {
+                "$mult": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "$data": {
+            "description": "Contains data to insert",
+            "type": "object"
+        }
+    }
+}

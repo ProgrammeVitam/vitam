@@ -1,0 +1,17 @@
+# root endpoint request
+displayName: Applications
+description: Administration des Applications versantes et front-offices.
+type: { collection-write: { createModel: genericObject, exampleModel: !include ../samples/sampleApplication.sample, answearModel: genericObject, exampleAnswearModel: !include ../samples/sampleApplication.sample } }
+is: [ standardErrors ]
+patch:
+
+/{id_user}:
+  displayName: Application
+  type: { collection-item-write: { createModel: genericObject, exampleModel: !include ../samples/sampleApplication.sample, answearModel: genericObject, exampleAnswearModel: !include ../samples/sampleApplication.sample } }
+  is: [ standardErrors ]
+  patch:
+  delete:
+
+  /stats:
+    displayName: Application Statistic
+    type: { stats: { answearModel: genericObject, exampleAnswearModel: !include ../samples/statistic.sample, name: une Application } }

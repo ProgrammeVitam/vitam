@@ -1,0 +1,33 @@
+#%RAML 0.8
+title: Worker API
+baseUri: http://server/worker/api/{version}
+version: v0.0.1
+protocols: [ HTTP, HTTPS ]
+
+mediaType: application/json
+
+traits: !include traits/Traits.raml
+
+resourceTypes: !include resourceTypes/ResourceTypes.raml
+
+/tasks:
+  # root endpoint request
+  displayName: AsyncTasks
+  description: Administration des Tâches Asynchrones.
+  type: { collection-write-nopatch: { createModel: genericObject, exampleModel: !include ../samples/genericSample.sample, answearModel: genericObject, exampleAnswearModel: !include ../samples/genericSample.sample } }
+  is: [ standardErrors ]
+  post:
+    description: Permet de soumettre une opération (sur un item)
+
+  /{id_async}:
+    displayName: AsyncTask
+    type: { collection-item-write: { createModel: task_status, exampleModel: !include ../samples/task_status.sample, answearModel: async_status, exampleAnswearModel: !include ../samples/async_status.sample } }
+    is: [ standardErrors ]
+    get:
+      description: Permet de récuprérer le statut actuel d'une opération sur un item
+
+/status:
+  displayName: Worker's Status
+  description: Statut du worker, comme sa charge actuelle, sa capacité, son modèle (classe de Worker).
+  type: { collection }
+  is: [ standardErrors ]

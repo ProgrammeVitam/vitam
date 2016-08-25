@@ -1,0 +1,3850 @@
+<!DOCTYPE HTML><html><head><title>Moteur de Données API documentation</title><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="generator" content="https://github.com/kevinrenskers/raml2html 2.4.0"><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.1/styles/default.min.css"><script type="text/javascript" src="https://code.jquery.com/jquery-1.11.0.min.js"></script><script type="text/javascript" src="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.1/highlight.min.js"></script><script type="text/javascript">
+      $(document).ready(function() {
+        $('.page-header pre code, .top-resource-description pre code').each(function(i, block) {
+          hljs.highlightBlock(block);
+        });
+
+        $('[data-toggle]').click(function() {
+          var selector = $(this).data('target') + ' pre code';
+          $(selector).each(function(i, block) {
+            hljs.highlightBlock(block);
+          });
+        });
+
+        // open modal on hashes like #_action_get
+        $(window).bind('hashchange', function(e) {
+          var anchor_id = document.location.hash.substr(1); //strip #
+          var element = $('#' + anchor_id);
+
+          // do we have such element + is it a modal?  --> show it
+          if (element.length && element.hasClass('modal')) {
+            element.modal('show');
+          }
+        });
+
+        // execute hashchange on first page load
+        $(window).trigger('hashchange');
+
+        // remove url fragment on modal hide
+        $('.modal').on('hidden.bs.modal', function() {
+          if(history && history.replaceState) {
+            history.replaceState({}, '', '#');
+          }
+        });
+      });
+    </script><style>
+      .hljs {
+        background: transparent;
+      }
+      .parent {
+        color: #999  !important;
+      }
+      .list-group-item > .badge {
+        float: none;
+        margin-right: 6px;
+      }
+      .panel-title > .methods {
+        float: right;
+      }
+      .badge {
+        border-radius: 0;
+        text-transform: uppercase;
+        width: 70px;
+        font-weight: normal;
+        color: #f3f3f6  !important;
+        line-height: normal;
+      }
+      .badge_get {
+        background-color: #63a8e2  !important;
+      }
+      .badge_post {
+        background-color: #6cbd7d  !important;
+      }
+      .badge_put {
+        background-color: #22bac4  !important;
+      }
+      .badge_delete {
+        background-color: #d26460  !important;
+      }
+      .badge_patch {
+        background-color: #ccc444  !important;
+      }
+      .list-group, .panel-group {
+        margin-bottom: 0;
+      }
+      .panel-group .panel+.panel-white {
+        margin-top: 0;
+      }
+      .panel-group .panel-white {
+        border-bottom: 1px solid #F5F5F5  !important;
+        border-radius: 0;
+      }
+      .panel-white:last-child {
+        border-bottom-color: white;
+        -webkit-box-shadow: none;
+        box-shadow: none;
+      }
+      .panel-white .panel-heading {
+        background: white;
+      }
+      .tab-pane ul {
+        padding-left: 2em;
+      }
+      .tab-pane h2 {
+        font-size: 1.2em;
+        padding-bottom: 4px;
+        border-bottom: 1px solid #ddd  !important;
+      }
+      .tab-pane h3 {
+        font-size: 1.1em;
+      }
+      .tab-content {
+        border-left: 1px solid #ddd;
+        border-right: 1px solid #ddd;
+        border-bottom: 1px solid #ddd;
+        padding: 10px;
+      }
+      #sidebar {
+        margin-top: 30px;
+        padding-right: 5px;
+        overflow: auto;
+        height: 90%;
+      }
+      .top-resource-description {
+        border-bottom: 1px solid #ddd;
+        background: #fcfcfc;
+        padding: 15px 15px 0 15px;
+        margin: -15px -15px 10px -15px;
+      }
+      .resource-description {
+        border-bottom: 1px solid #fcfcfc;
+        background: #fcfcfc;
+        padding: 15px 15px 0 15px;
+        margin: -15px -15px 10px -15px;
+      }
+      .resource-description p:last-child {
+        margin: 0;
+      }
+      .list-group .badge {
+        float: left;
+      }
+      .method_description {
+        margin-left: 85px;
+      }
+      .method_description p:last-child {
+        margin: 0;
+      }
+      .list-group-item {
+        cursor: pointer;
+      }
+      .list-group-item:hover {
+        background-color: #f5f5f5;
+      }
+    </style></head><body data-spy="scroll" data-target="#sidebar"><div class="container"><div class="row"><div class="col-md-9" role="main"><div class="page-header"><h1>Moteur de Données API documentation <small>version v0.0.5</small></h1><p>http://server-internal/metadata/v0.0.5</p><h3 id="Units"><a href="#Units">Units</a></h3><p>Le principe proposé serait le suivant:</p><ul><li>Pas de PUT à ce stade</li><li>Un seul ObjectGroup par Unit max</li><li>Une requête depuis un Unit signifie recherche relative depuis celui-ci (roots = this)</li><li>Accept: application/json signifie les métadonnées au format d&#39;un seul Json</li><li>Accept: application/zip signifie les métadonnées au format de multiples Json regroupés</li><li>Accept: application/octet-stream n&#39;est pas pris en compte par ce moteur mais il retournera l&#39;ID de l&#39;Object</li></ul><h3 id="ObjectGroups"><a href="#ObjectGroups">ObjectGroups</a></h3><p>Le principe proposé serait le suivant:</p><ul><li>Pas de PUT à ce stade</li><li>Une requête depuis un objectgroup signifie recherche relative depuis celui-ci (roots = this)</li><li>Accept: application/json signifie les métadonnées au format d&#39;un seul Json</li><li>Accept: application/zip signifie les métadonnées au format de multiples Json regroupés</li><li>Accept: application/octet-stream n&#39;est pas pris en compte par ce moteur mais il retournera l&#39;ID de l&#39;Object</li></ul><p>Questions ou remarques:</p><ul><li>Comment accéder aux Object d&#39;un ObjectGroup ?</li><li>Est-ce au moteur de données de faire le ZIP ? Ou faut il que ce soit l&#39;appelant ?</li></ul></div><div class="panel panel-default"><div class="panel-heading"><h3 id="units" class="panel-title">Query on Units collection</h3></div><div class="panel-body"><div class="top-resource-description"><p>API interne du moteur de données sur les Units.</p></div><div class="panel-group"><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_units"><span class="parent"></span>/units</a> <span class="methods"><a href="#units_get"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a> <a href="#units_delete"><span class="badge badge_delete">delete <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a></span></h4></div><div id="panel_units" class="panel-collapse collapse"><div class="panel-body"><div class="list-group"><div onclick="window.location.href = '#units_get'" class="list-group-item"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Liste du contenu dans la collection units.</p></div><div class="clearfix"></div></div><div onclick="window.location.href = '#units_delete'" class="list-group-item"><span class="badge badge_delete">delete <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Permet de détruire des Units</p></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="units_get"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent"></span>/units</h4></div><div class="modal-body"><div class="alert alert-info"><p>Liste du contenu dans la collection units.</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#units_get_request" data-toggle="tab">Request</a></li><li><a href="#units_get_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="units_get_request"><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>collectionQuery</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "$queries": [
+    { "$path": "aaaaa" }
+  ],
+  "$filter": { },
+  "$projection": {}
+}</code></pre></div><div class="tab-pane" id="units_get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>collectionList</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "$hits": {
+    "total": 2,
+    "size": 2,
+    "offset": 0,
+    "limit": 100
+  },
+  "$context": {
+    "$query":
+      { "$path": "aaaaa" }
+  },
+  "$results": [ { obect: "object1" }, { obect: "object2" } ]
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for units"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in units"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in units",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="units_delete"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_delete">delete <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent"></span>/units</h4></div><div class="modal-body"><div class="alert alert-info"><p>Permet de détruire des Units</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#units_delete_request" data-toggle="tab">Request</a></li><li><a href="#units_delete_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="units_delete_request"><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>collectionQuery</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "queries": [
+    { "$path": "aaaaa" }
+  ],
+  "filter": { }
+}</code></pre></div><div class="tab-pane" id="units_delete_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>collectionList</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "$hits": {
+    "total": 2,
+    "size": 2,
+    "offset": 0,
+    "limit": 100
+  },
+  "$context": {
+    "$query":
+      { "$path": "aaaaa" }
+  },
+  "$results": [ { obect: "object1" }, { obect: "object2" } ]
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for units"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in units"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in units",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div></div></div></div></div></div></div><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_units__id_unit_"><span class="parent">/units</span>/{id_unit}</a> <span class="methods"><a href="#units__id_unit__get"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a> <a href="#units__id_unit__post"><span class="badge badge_post">post <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a> <a href="#units__id_unit__put"><span class="badge badge_put">put <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a> <a href="#units__id_unit__delete"><span class="badge badge_delete">delete <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a></span></h4></div><div id="panel_units__id_unit_" class="panel-collapse collapse"><div class="panel-body"><div class="resource-description"><p>API interne du moteur de données sur 1 Unit.</p></div><div class="list-group"><div onclick="window.location.href = '#units__id_unit__get'" class="list-group-item"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Permet d&#39;accéder aux informations d&#39;un Unit à partir de ce Unit</p></div><div class="clearfix"></div></div><div onclick="window.location.href = '#units__id_unit__post'" class="list-group-item"><span class="badge badge_post">post <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Permet de créer un nouvel Unit, la requête contenant les éventuels parents</p></div><div class="clearfix"></div></div><div onclick="window.location.href = '#units__id_unit__put'" class="list-group-item"><span class="badge badge_put">put <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Permet de mettre à jour un Unit à partir de ce Unit</p></div><div class="clearfix"></div></div><div onclick="window.location.href = '#units__id_unit__delete'" class="list-group-item"><span class="badge badge_delete">delete <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Permet d&#39;effacer un Unit à partir de ce Unit</p></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="units__id_unit__get"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent">/units</span>/{id_unit}</h4></div><div class="modal-body"><div class="alert alert-info"><p>Permet d&#39;accéder aux informations d&#39;un Unit à partir de ce Unit</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#units__id_unit__get_request" data-toggle="tab">Request</a></li><li><a href="#units__id_unit__get_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="units__id_unit__get_request"><h3>URI Parameters</h3><ul><li><strong>id_unit</strong>: <em>required (string)</em></li></ul><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>collectionQuery</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "$queries": [
+    { "$path": "aaaaa" }
+  ],
+  "$filter": { },
+  "$projection": {}
+}</code></pre></div><div class="tab-pane" id="units__id_unit__get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "QueryAnswear",
+    "description": "A typical answear in Vitam DSL",
+    "type": "object",
+    "required": [
+        "hits",
+        "context",
+        "results"
+    ],
+    "properties": {
+        "hits": {
+            "description": "Contains hits related to reply",
+            "type": "object",
+            "properties": {
+                "total": {
+                    "type": "integer"
+                },
+                "size": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "time_out": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "context": {
+            "description": "Contains Query related to this to reply",
+            "type": "object",
+            "properties": {
+                "queries": {
+                    "description": "Contains all queries",
+                    "type": "array",
+                    "items": {
+                        "type": "object"
+                    },
+                    "minItems": 1
+                },
+                "filter": {
+                    "description": "Contains filter to apply",
+                    "type": "object",
+                    "properties": {
+                        "$limit": {
+                            "type": "integer"
+                        },
+                        "$offset": {
+                            "type": "integer"
+                        },
+                        "$orderby": {
+                            "type": "array",
+                            "items": {
+                                "type": "object"
+                            }
+                        },
+                        "$hint": {
+                            "type": "string"
+                        },
+                        "$mult": {
+                            "type": "boolean"
+                        }
+                    }
+                },
+                "projection": {
+                    "description": "Contains projection to apply",
+                    "type": "object",
+                    "properties": {
+                        "$field": {
+                            "type": "object"
+                        },
+                        "$usage": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "data": {
+                    "description": "Contains data to insert",
+                    "type": "object"
+                },
+                "action": {
+                    "description": "Contains actions to apply as update",
+                    "type": "object"
+                }
+            }
+        },
+        "results": {
+            "description": "Contains real reply",
+            "type": "array",
+            "items": {
+                "type": "object"
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "hits": {
+    "total": 1,
+    "size": 1,
+    "offset": 0,
+    "limit": 100,
+    "time_out": false,
+    "next": "async_id_next"
+  },
+  "context": {
+    "queries": [
+      { "$path": "aaaaa" }
+    ]
+  },
+  "results": [
+    {
+      "name": "abcdef",
+      "status": "online",
+      "since": "2015-07-14T17:07:14Z",
+      "float_value": 55.0
+    }
+  ]
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for units"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in units"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in units",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="units__id_unit__post"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_post">post <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent">/units</span>/{id_unit}</h4></div><div class="modal-body"><div class="alert alert-info"><p>Permet de créer un nouvel Unit, la requête contenant les éventuels parents</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#units__id_unit__post_request" data-toggle="tab">Request</a></li><li><a href="#units__id_unit__post_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="units__id_unit__post_request"><h3>URI Parameters</h3><ul><li><strong>id_unit</strong>: <em>required (string)</em></li></ul><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>collectionQuery</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "queries": [
+    { "$path": "aaaaa" }
+  ],
+  "filter": { },
+  "data": { "_id": "value" }
+}</code></pre></div><div class="tab-pane" id="units__id_unit__post_response"><h2>HTTP status code <a href="http://httpstatus.es/201" target="_blank">201</a></h2><p>Created</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "QueryAnswear",
+    "description": "A typical answear in Vitam DSL",
+    "type": "object",
+    "required": [
+        "hits",
+        "context",
+        "results"
+    ],
+    "properties": {
+        "hits": {
+            "description": "Contains hits related to reply",
+            "type": "object",
+            "properties": {
+                "total": {
+                    "type": "integer"
+                },
+                "size": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "time_out": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "context": {
+            "description": "Contains Query related to this to reply",
+            "type": "object",
+            "properties": {
+                "queries": {
+                    "description": "Contains all queries",
+                    "type": "array",
+                    "items": {
+                        "type": "object"
+                    },
+                    "minItems": 1
+                },
+                "filter": {
+                    "description": "Contains filter to apply",
+                    "type": "object",
+                    "properties": {
+                        "$limit": {
+                            "type": "integer"
+                        },
+                        "$offset": {
+                            "type": "integer"
+                        },
+                        "$orderby": {
+                            "type": "array",
+                            "items": {
+                                "type": "object"
+                            }
+                        },
+                        "$hint": {
+                            "type": "string"
+                        },
+                        "$mult": {
+                            "type": "boolean"
+                        }
+                    }
+                },
+                "projection": {
+                    "description": "Contains projection to apply",
+                    "type": "object",
+                    "properties": {
+                        "$field": {
+                            "type": "object"
+                        },
+                        "$usage": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "data": {
+                    "description": "Contains data to insert",
+                    "type": "object"
+                },
+                "action": {
+                    "description": "Contains actions to apply as update",
+                    "type": "object"
+                }
+            }
+        },
+        "results": {
+            "description": "Contains real reply",
+            "type": "array",
+            "items": {
+                "type": "object"
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "hits": {
+    "total": 1,
+    "size": 1,
+    "offset": 0,
+    "limit": 100,
+    "time_out": false,
+    "next": "async_id_next"
+  },
+  "context": {
+    "queries": [
+      { "$path": "aaaaa" }
+    ]
+  },
+  "results": [
+    {
+      "name": "abcdef",
+      "status": "online",
+      "since": "2015-07-14T17:07:14Z",
+      "float_value": 55.0
+    }
+  ]
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for units"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in units"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in units",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="units__id_unit__put"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_put">put <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent">/units</span>/{id_unit}</h4></div><div class="modal-body"><div class="alert alert-info"><p>Permet de mettre à jour un Unit à partir de ce Unit</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#units__id_unit__put_request" data-toggle="tab">Request</a></li><li><a href="#units__id_unit__put_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="units__id_unit__put_request"><h3>URI Parameters</h3><ul><li><strong>id_unit</strong>: <em>required (string)</em></li></ul><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul></div><div class="tab-pane" id="units__id_unit__put_response"><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for units"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in units"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in units",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="units__id_unit__delete"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_delete">delete <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent">/units</span>/{id_unit}</h4></div><div class="modal-body"><div class="alert alert-info"><p>Permet d&#39;effacer un Unit à partir de ce Unit</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#units__id_unit__delete_request" data-toggle="tab">Request</a></li><li><a href="#units__id_unit__delete_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="units__id_unit__delete_request"><h3>URI Parameters</h3><ul><li><strong>id_unit</strong>: <em>required (string)</em></li></ul><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>collectionQuery</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "queries": [
+    { "$path": "aaaaa" }
+  ],
+  "filter": { }
+}</code></pre></div><div class="tab-pane" id="units__id_unit__delete_response"><h2>HTTP status code <a href="http://httpstatus.es/204" target="_blank">204</a></h2><p>No Content</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for units"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in units"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in units",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div></div></div></div></div></div></div><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_units__id_unit__objectgroup"><span class="parent">/units/{id_unit}</span>/objectgroup</a> <span class="methods"><a href="#units__id_unit__objectgroup_get"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a> <a href="#units__id_unit__objectgroup_put"><span class="badge badge_put">put <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a> <a href="#units__id_unit__objectgroup_delete"><span class="badge badge_delete">delete <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a></span></h4></div><div id="panel_units__id_unit__objectgroup" class="panel-collapse collapse"><div class="panel-body"><div class="resource-description"><p>API interne du moteur de données sur 1 ObjectGroup.</p></div><div class="list-group"><div onclick="window.location.href = '#units__id_unit__objectgroup_get'" class="list-group-item"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Permet d&#39;accéder aux informations d&#39;un ObjectGroup attaché à ce Unit</p></div><div class="clearfix"></div></div><div onclick="window.location.href = '#units__id_unit__objectgroup_put'" class="list-group-item"><span class="badge badge_put">put <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Permet d&#39;associer un ObjectGroup pré-existant à ce Unit (s&#39;il n&#39;existe pas =&gt; 404)</p></div><div class="clearfix"></div></div><div onclick="window.location.href = '#units__id_unit__objectgroup_delete'" class="list-group-item"><span class="badge badge_delete">delete <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Permet d&#39;effacer l&#39;ObjectGroup rattaché à ce Unit (supprime le lien)</p></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="units__id_unit__objectgroup_get"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent">/units/{id_unit}</span>/objectgroup</h4></div><div class="modal-body"><div class="alert alert-info"><p>Permet d&#39;accéder aux informations d&#39;un ObjectGroup attaché à ce Unit</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#units__id_unit__objectgroup_get_request" data-toggle="tab">Request</a></li><li><a href="#units__id_unit__objectgroup_get_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="units__id_unit__objectgroup_get_request"><h3>URI Parameters</h3><ul><li><strong>id_unit</strong>: <em>required (string)</em></li></ul><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li><li><strong>Accept</strong>: <em>(one of application/json, application/zip, application/octet-stream)</em><p>Permet de spécifier si un résultat doit contenir uniquement des métadonnées (&#39;<em>application/json</em>&#39;), un DIP complet (un ZIP contenant les métadonnées et les objets) ou seulement des <em>Objects</em> avec un contenu binaire (&#39;<em>application/octet-stream</em>&#39;).</p></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Query",
+    "description": "A query in Vitam DSL",
+    "type": "object",
+    "required": [
+        "$queries"
+    ],
+    "properties": {
+        "$roots": {
+            "description": "Contains all root ids",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },      
+        "$queries": {
+            "description": "Contains all queries",
+            "type": "array",
+            "items": {
+                "type": "object"
+            }
+        },
+        "$filter": {
+            "description": "Contains filter to apply",
+            "type": "object",
+            "properties": {
+                "offset": {
+                    "type": "integer"
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "orderby": {
+                    "type": "array",
+                    "items": {
+                        "type": "object"
+                    },
+                    "minItems": 1
+                },
+                "hint": {
+                    "type": "string",
+                    "enum": [
+                        null, "cache", "nocache"
+                      ]
+                }
+            }
+        },
+        "$projection": {
+            "description": "Contains projection to apply",
+            "type": "object",
+            "properties": {
+                "field": {
+                    "type": "object"
+                },
+                "usage": {
+                    "type": "string"
+                }
+            }            
+        },
+        "$data": {
+          "description": "Contains data to insert",
+          "type": "object"
+        },
+        "$action": {
+          "description": "Contains actions to apply as update",
+          "type": "object"
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "$queries": [
+    { "$path": "aaaaa" }
+  ],
+  "$filter": { },
+  "$projection": {}
+}</code></pre></div><div class="tab-pane" id="units__id_unit__objectgroup_get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "QueryAnswear",
+    "description": "A typical answear in Vitam DSL",
+    "type": "object",
+    "required": [
+        "hits",
+        "context",
+        "results"
+    ],
+    "properties": {
+        "hits": {
+            "description": "Contains hits related to reply",
+            "type": "object",
+            "properties": {
+                "total": {
+                    "type": "integer"
+                },
+                "size": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "time_out": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "context": {
+            "description": "Contains Query related to this to reply",
+            "type": "object",
+            "properties": {
+                "queries": {
+                    "description": "Contains all queries",
+                    "type": "array",
+                    "items": {
+                        "type": "object"
+                    },
+                    "minItems": 1
+                },
+                "filter": {
+                    "description": "Contains filter to apply",
+                    "type": "object",
+                    "properties": {
+                        "$limit": {
+                            "type": "integer"
+                        },
+                        "$offset": {
+                            "type": "integer"
+                        },
+                        "$orderby": {
+                            "type": "array",
+                            "items": {
+                                "type": "object"
+                            }
+                        },
+                        "$hint": {
+                            "type": "string"
+                        },
+                        "$mult": {
+                            "type": "boolean"
+                        }
+                    }
+                },
+                "projection": {
+                    "description": "Contains projection to apply",
+                    "type": "object",
+                    "properties": {
+                        "$field": {
+                            "type": "object"
+                        },
+                        "$usage": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "data": {
+                    "description": "Contains data to insert",
+                    "type": "object"
+                },
+                "action": {
+                    "description": "Contains actions to apply as update",
+                    "type": "object"
+                }
+            }
+        },
+        "results": {
+            "description": "Contains real reply",
+            "type": "array",
+            "items": {
+                "type": "object"
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "hits": {
+    "total": 1,
+    "size": 1,
+    "offset": 0,
+    "limit": 100,
+    "time_out": false,
+    "next": "async_id_next"
+  },
+  "context": {
+    "queries": [
+      { "$path": "aaaaa" }
+    ]
+  },
+  "results": [
+    {
+      "id": "$id_object$",
+      "name": "abcdef",
+      "creation_date": "2015-07-14T17:07:14Z",
+      "fmt": "ftm/123",
+      "numerical_information": 55.3
+    }
+  ]
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for objectgroup"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in objectgroup"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in objectgroup",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="units__id_unit__objectgroup_put"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_put">put <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent">/units/{id_unit}</span>/objectgroup</h4></div><div class="modal-body"><div class="alert alert-info"><p>Permet d&#39;associer un ObjectGroup pré-existant à ce Unit (s&#39;il n&#39;existe pas =&gt; 404)</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#units__id_unit__objectgroup_put_request" data-toggle="tab">Request</a></li><li><a href="#units__id_unit__objectgroup_put_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="units__id_unit__objectgroup_put_request"><h3>URI Parameters</h3><ul><li><strong>id_unit</strong>: <em>required (string)</em></li></ul><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul></div><div class="tab-pane" id="units__id_unit__objectgroup_put_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Generic Object",
+    "description": "A Generic Object",
+    "type": "object"
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "id": "$id_object$",
+  "name": "abcdef",
+  "creation_date": "2015-07-14T17:07:14Z",
+  "fmt": "ftm/123",
+  "numerical_information": 55.3
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for objectgroup"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in objectgroup"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in objectgroup",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="units__id_unit__objectgroup_delete"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_delete">delete <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent">/units/{id_unit}</span>/objectgroup</h4></div><div class="modal-body"><div class="alert alert-info"><p>Permet d&#39;effacer l&#39;ObjectGroup rattaché à ce Unit (supprime le lien)</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#units__id_unit__objectgroup_delete_request" data-toggle="tab">Request</a></li><li><a href="#units__id_unit__objectgroup_delete_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="units__id_unit__objectgroup_delete_request"><h3>URI Parameters</h3><ul><li><strong>id_unit</strong>: <em>required (string)</em></li></ul><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Delete",
+    "description": "A delete in Vitam DSL",
+    "type": "object",
+    "required": [
+        "queries"
+    ],
+    "properties": {
+        "$roots": {
+            "description": "Contains all root ids",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "$queries": {
+            "description": "Contains all queries",
+            "type": "array",
+            "items": {
+                "type": "object"
+            }
+        },
+        "$filter": {
+            "description": "Contains filter to apply",
+            "type": "object",
+            "properties": {
+                "$mult": {
+                    "type": "boolean"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "queries": [
+    { "$path": "aaaaa" }
+  ],
+  "filter": { }
+}</code></pre></div><div class="tab-pane" id="units__id_unit__objectgroup_delete_response"><h2>HTTP status code <a href="http://httpstatus.es/204" target="_blank">204</a></h2><p>No Content</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for objectgroup"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in objectgroup"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in objectgroup",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div></div></div></div></div></div></div></div></div></div><div class="panel panel-default"><div class="panel-heading"><h3 id="objectgroups" class="panel-title">Query on ObjectGroups collection</h3></div><div class="panel-body"><div class="top-resource-description"><p>API interne du moteur de données sur les ObjectGroups.</p></div><div class="panel-group"><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_objectgroups"><span class="parent"></span>/objectgroups</a> <span class="methods"><a href="#objectgroups_get"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a> <a href="#objectgroups_delete"><span class="badge badge_delete">delete <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a></span></h4></div><div id="panel_objectgroups" class="panel-collapse collapse"><div class="panel-body"><div class="list-group"><div onclick="window.location.href = '#objectgroups_get'" class="list-group-item"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Liste du contenu dans la collection objectgroups.</p></div><div class="clearfix"></div></div><div onclick="window.location.href = '#objectgroups_delete'" class="list-group-item"><span class="badge badge_delete">delete <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Permet de détruire des ObjectGroups</p></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="objectgroups_get"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent"></span>/objectgroups</h4></div><div class="modal-body"><div class="alert alert-info"><p>Liste du contenu dans la collection objectgroups.</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#objectgroups_get_request" data-toggle="tab">Request</a></li><li><a href="#objectgroups_get_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="objectgroups_get_request"><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>collectionQuery</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "$queries": [
+    { "$path": "aaaaa" }
+  ],
+  "$filter": { },
+  "$projection": {}
+}</code></pre></div><div class="tab-pane" id="objectgroups_get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>collectionList</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "$hits": {
+    "total": 2,
+    "size": 2,
+    "offset": 0,
+    "limit": 100
+  },
+  "$context": {
+    "$query":
+      { "$path": "aaaaa" }
+  },
+  "$results": [ { obect: "object1" }, { obect: "object2" } ]
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for objectgroups"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in objectgroups"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in objectgroups",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="objectgroups_delete"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_delete">delete <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent"></span>/objectgroups</h4></div><div class="modal-body"><div class="alert alert-info"><p>Permet de détruire des ObjectGroups</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#objectgroups_delete_request" data-toggle="tab">Request</a></li><li><a href="#objectgroups_delete_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="objectgroups_delete_request"><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>collectionQuery</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "queries": [
+    { "$path": "aaaaa" }
+  ],
+  "filter": { }
+}</code></pre></div><div class="tab-pane" id="objectgroups_delete_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>collectionList</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "$hits": {
+    "total": 2,
+    "size": 2,
+    "offset": 0,
+    "limit": 100
+  },
+  "$context": {
+    "$query":
+      { "$path": "aaaaa" }
+  },
+  "$results": [ { obect: "object1" }, { obect: "object2" } ]
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for objectgroups"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in objectgroups"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in objectgroups",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div></div></div></div></div></div></div><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_objectgroups__id_og_"><span class="parent">/objectgroups</span>/{id_og}</a> <span class="methods"><a href="#objectgroups__id_og__get"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a> <a href="#objectgroups__id_og__post"><span class="badge badge_post">post <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a> <a href="#objectgroups__id_og__patch"><span class="badge badge_patch">patch <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a> <a href="#objectgroups__id_og__delete"><span class="badge badge_delete">delete <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a></span></h4></div><div id="panel_objectgroups__id_og_" class="panel-collapse collapse"><div class="panel-body"><div class="resource-description"><p>API interne du moteur de données sur 1 ObjectGroup.</p></div><div class="list-group"><div onclick="window.location.href = '#objectgroups__id_og__get'" class="list-group-item"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Permet d&#39;accéder aux informations d&#39;un ObjectGroup</p></div><div class="clearfix"></div></div><div onclick="window.location.href = '#objectgroups__id_og__post'" class="list-group-item"><span class="badge badge_post">post <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Permet de créer un nouvel ObjectGroup</p></div><div class="clearfix"></div></div><div onclick="window.location.href = '#objectgroups__id_og__patch'" class="list-group-item"><span class="badge badge_patch">patch <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Permet de mettre à jour un ObjectGroup</p></div><div class="clearfix"></div></div><div onclick="window.location.href = '#objectgroups__id_og__delete'" class="list-group-item"><span class="badge badge_delete">delete <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Permet d&#39;effacer un ObjectGroup</p></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="objectgroups__id_og__get"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent">/objectgroups</span>/{id_og}</h4></div><div class="modal-body"><div class="alert alert-info"><p>Permet d&#39;accéder aux informations d&#39;un ObjectGroup</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#objectgroups__id_og__get_request" data-toggle="tab">Request</a></li><li><a href="#objectgroups__id_og__get_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="objectgroups__id_og__get_request"><h3>URI Parameters</h3><ul><li><strong>id_og</strong>: <em>required (string)</em></li></ul><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>collectionQuery</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "$queries": [
+    { "$path": "aaaaa" }
+  ],
+  "$filter": { },
+  "$projection": {}
+}</code></pre></div><div class="tab-pane" id="objectgroups__id_og__get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "QueryAnswear",
+    "description": "A typical answear in Vitam DSL",
+    "type": "object",
+    "required": [
+        "hits",
+        "context",
+        "results"
+    ],
+    "properties": {
+        "hits": {
+            "description": "Contains hits related to reply",
+            "type": "object",
+            "properties": {
+                "total": {
+                    "type": "integer"
+                },
+                "size": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "time_out": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "context": {
+            "description": "Contains Query related to this to reply",
+            "type": "object",
+            "properties": {
+                "queries": {
+                    "description": "Contains all queries",
+                    "type": "array",
+                    "items": {
+                        "type": "object"
+                    },
+                    "minItems": 1
+                },
+                "filter": {
+                    "description": "Contains filter to apply",
+                    "type": "object",
+                    "properties": {
+                        "$limit": {
+                            "type": "integer"
+                        },
+                        "$offset": {
+                            "type": "integer"
+                        },
+                        "$orderby": {
+                            "type": "array",
+                            "items": {
+                                "type": "object"
+                            }
+                        },
+                        "$hint": {
+                            "type": "string"
+                        },
+                        "$mult": {
+                            "type": "boolean"
+                        }
+                    }
+                },
+                "projection": {
+                    "description": "Contains projection to apply",
+                    "type": "object",
+                    "properties": {
+                        "$field": {
+                            "type": "object"
+                        },
+                        "$usage": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "data": {
+                    "description": "Contains data to insert",
+                    "type": "object"
+                },
+                "action": {
+                    "description": "Contains actions to apply as update",
+                    "type": "object"
+                }
+            }
+        },
+        "results": {
+            "description": "Contains real reply",
+            "type": "array",
+            "items": {
+                "type": "object"
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "hits": {
+    "total": 1,
+    "size": 1,
+    "offset": 0,
+    "limit": 100,
+    "time_out": false,
+    "next": "async_id_next"
+  },
+  "context": {
+    "queries": [
+      { "$path": "aaaaa" }
+    ]
+  },
+  "results": [
+    {
+      "id": "$id_object$",
+      "name": "abcdef",
+      "creation_date": "2015-07-14T17:07:14Z",
+      "fmt": "ftm/123",
+      "numerical_information": 55.3
+    }
+  ]
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for objectgroups"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in objectgroups"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in objectgroups",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="objectgroups__id_og__post"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_post">post <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent">/objectgroups</span>/{id_og}</h4></div><div class="modal-body"><div class="alert alert-info"><p>Permet de créer un nouvel ObjectGroup</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#objectgroups__id_og__post_request" data-toggle="tab">Request</a></li><li><a href="#objectgroups__id_og__post_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="objectgroups__id_og__post_request"><h3>URI Parameters</h3><ul><li><strong>id_og</strong>: <em>required (string)</em></li></ul><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>collectionQuery</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "queries": [
+    { "$path": "aaaaa" }
+  ],
+  "filter": { },
+  "data": { "_id": "value" }
+}</code></pre></div><div class="tab-pane" id="objectgroups__id_og__post_response"><h2>HTTP status code <a href="http://httpstatus.es/201" target="_blank">201</a></h2><p>Created</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "QueryAnswear",
+    "description": "A typical answear in Vitam DSL",
+    "type": "object",
+    "required": [
+        "hits",
+        "context",
+        "results"
+    ],
+    "properties": {
+        "hits": {
+            "description": "Contains hits related to reply",
+            "type": "object",
+            "properties": {
+                "total": {
+                    "type": "integer"
+                },
+                "size": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "time_out": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "context": {
+            "description": "Contains Query related to this to reply",
+            "type": "object",
+            "properties": {
+                "queries": {
+                    "description": "Contains all queries",
+                    "type": "array",
+                    "items": {
+                        "type": "object"
+                    },
+                    "minItems": 1
+                },
+                "filter": {
+                    "description": "Contains filter to apply",
+                    "type": "object",
+                    "properties": {
+                        "$limit": {
+                            "type": "integer"
+                        },
+                        "$offset": {
+                            "type": "integer"
+                        },
+                        "$orderby": {
+                            "type": "array",
+                            "items": {
+                                "type": "object"
+                            }
+                        },
+                        "$hint": {
+                            "type": "string"
+                        },
+                        "$mult": {
+                            "type": "boolean"
+                        }
+                    }
+                },
+                "projection": {
+                    "description": "Contains projection to apply",
+                    "type": "object",
+                    "properties": {
+                        "$field": {
+                            "type": "object"
+                        },
+                        "$usage": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "data": {
+                    "description": "Contains data to insert",
+                    "type": "object"
+                },
+                "action": {
+                    "description": "Contains actions to apply as update",
+                    "type": "object"
+                }
+            }
+        },
+        "results": {
+            "description": "Contains real reply",
+            "type": "array",
+            "items": {
+                "type": "object"
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "hits": {
+    "total": 1,
+    "size": 1,
+    "offset": 0,
+    "limit": 100,
+    "time_out": false,
+    "next": "async_id_next"
+  },
+  "context": {
+    "queries": [
+      { "$path": "aaaaa" }
+    ]
+  },
+  "results": [
+    {
+      "id": "$id_object$",
+      "name": "abcdef",
+      "creation_date": "2015-07-14T17:07:14Z",
+      "fmt": "ftm/123",
+      "numerical_information": 55.3
+    }
+  ]
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for objectgroups"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in objectgroups"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in objectgroups",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="objectgroups__id_og__patch"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_patch">patch <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent">/objectgroups</span>/{id_og}</h4></div><div class="modal-body"><div class="alert alert-info"><p>Permet de mettre à jour un ObjectGroup</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#objectgroups__id_og__patch_request" data-toggle="tab">Request</a></li><li><a href="#objectgroups__id_og__patch_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="objectgroups__id_og__patch_request"><h3>URI Parameters</h3><ul><li><strong>id_og</strong>: <em>required (string)</em></li></ul><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>collectionQuery</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "queries": [
+    { "$path": "aaaaa" }
+  ],
+  "filter": { },
+  "action": { "$add": { "realfield": 1 } }
+}</code></pre></div><div class="tab-pane" id="objectgroups__id_og__patch_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "QueryAnswear",
+    "description": "A typical answear in Vitam DSL",
+    "type": "object",
+    "required": [
+        "hits",
+        "context",
+        "results"
+    ],
+    "properties": {
+        "hits": {
+            "description": "Contains hits related to reply",
+            "type": "object",
+            "properties": {
+                "total": {
+                    "type": "integer"
+                },
+                "size": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "time_out": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "context": {
+            "description": "Contains Query related to this to reply",
+            "type": "object",
+            "properties": {
+                "queries": {
+                    "description": "Contains all queries",
+                    "type": "array",
+                    "items": {
+                        "type": "object"
+                    },
+                    "minItems": 1
+                },
+                "filter": {
+                    "description": "Contains filter to apply",
+                    "type": "object",
+                    "properties": {
+                        "$limit": {
+                            "type": "integer"
+                        },
+                        "$offset": {
+                            "type": "integer"
+                        },
+                        "$orderby": {
+                            "type": "array",
+                            "items": {
+                                "type": "object"
+                            }
+                        },
+                        "$hint": {
+                            "type": "string"
+                        },
+                        "$mult": {
+                            "type": "boolean"
+                        }
+                    }
+                },
+                "projection": {
+                    "description": "Contains projection to apply",
+                    "type": "object",
+                    "properties": {
+                        "$field": {
+                            "type": "object"
+                        },
+                        "$usage": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "data": {
+                    "description": "Contains data to insert",
+                    "type": "object"
+                },
+                "action": {
+                    "description": "Contains actions to apply as update",
+                    "type": "object"
+                }
+            }
+        },
+        "results": {
+            "description": "Contains real reply",
+            "type": "array",
+            "items": {
+                "type": "object"
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "hits": {
+    "total": 1,
+    "size": 1,
+    "offset": 0,
+    "limit": 100,
+    "time_out": false,
+    "next": "async_id_next"
+  },
+  "context": {
+    "queries": [
+      { "$path": "aaaaa" }
+    ]
+  },
+  "results": [
+    {
+      "id": "$id_object$",
+      "name": "abcdef",
+      "creation_date": "2015-07-14T17:07:14Z",
+      "fmt": "ftm/123",
+      "numerical_information": 55.3
+    }
+  ]
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for objectgroups"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in objectgroups"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in objectgroups",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="objectgroups__id_og__delete"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_delete">delete <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent">/objectgroups</span>/{id_og}</h4></div><div class="modal-body"><div class="alert alert-info"><p>Permet d&#39;effacer un ObjectGroup</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#objectgroups__id_og__delete_request" data-toggle="tab">Request</a></li><li><a href="#objectgroups__id_og__delete_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="objectgroups__id_og__delete_request"><h3>URI Parameters</h3><ul><li><strong>id_og</strong>: <em>required (string)</em></li></ul><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>collectionQuery</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "queries": [
+    { "$path": "aaaaa" }
+  ],
+  "filter": { }
+}</code></pre></div><div class="tab-pane" id="objectgroups__id_og__delete_response"><h2>HTTP status code <a href="http://httpstatus.es/204" target="_blank">204</a></h2><p>No Content</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for objectgroups"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in objectgroups"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in objectgroups",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div></div></div></div></div></div></div></div></div></div><div class="panel panel-default"><div class="panel-heading"><h3 id="status" class="panel-title">Metadata Engine Status</h3></div><div class="panel-body"><div class="top-resource-description"><p>Statut du moteur de données.</p></div><div class="panel-group"><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_status"><span class="parent"></span>/status</a> <span class="methods"><a href="#status_get"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a></span></h4></div><div id="panel_status" class="panel-collapse collapse"><div class="panel-body"><div class="list-group"><div onclick="window.location.href = '#status_get'" class="list-group-item"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Affichage du statut du Module / Moteur</p></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="status_get"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent"></span>/status</h4></div><div class="modal-body"><div class="alert alert-info"><p>Affichage du statut du Module / Moteur</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#status_get_request" data-toggle="tab">Request</a></li><li><a href="#status_get_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="status_get_request"><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul></div><div class="tab-pane" id="status_get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Status of one Module/Engine",
+  "type": "object",
+  "properties": {
+    "id": {
+      "description": "Id of this instance of the Module/Engine",
+      "type": "string"
+    },
+    "service": {
+      "description": "generic service name for this kind of Module/Engine",
+      "type": "string"
+    },
+    "start": {
+      "description": "start date of this instance",
+      "type": "string"
+    },
+    "dependencies": {
+      "description": "dependencies with other Module/Engine (not the same kind)",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "service": {
+            "description": "generic service name for the Module/Engine on which this instance depends",
+            "type": "string"
+          }
+        }
+      }
+    },
+    "status": {
+      "description": "status of this instance",
+      "type": "string"
+    }
+  }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "id": "abcdef",
+  "service": "serviceName",
+  "start": "2015-07-14T17:07:14Z",
+  "dependencies": [
+    { 
+      "service": "name"
+    }
+  ],
+  "status": "200"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for status"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in status"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in status",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div></div></div></div></div></div></div></div></div></div></div><div class="col-md-3"><div id="sidebar" class="hidden-print affix" role="complementary"><ul class="nav nav-pills nav-stacked"><li><a href="#units">Query on Units collection</a></li><li><a href="#objectgroups">Query on ObjectGroups collection</a></li><li><a href="#status">Metadata Engine Status</a></li></ul></div></div></div></div></body></html>

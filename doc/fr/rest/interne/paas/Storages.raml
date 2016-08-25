@@ -1,0 +1,17 @@
+# root endpoint request
+displayName: Storages
+description: API d'administration du stockage.
+type: { collection-write: { createModel: ccfn, exampleModel: !include ../samples/referentials/ccfn.sample, answearModel: ccfn, exampleAnswearModel: !include ../samples/referentials/ccfn.sample } }
+is: [ standardErrors ]
+patch:
+
+/{id}:
+  displayName: Storage
+  type: { collection-item-write: { createModel: ccfn, exampleModel: !include ../samples/referentials/ccfn.sample, answearModel: ccfn, exampleAnswearModel: !include ../samples/referentials/ccfn.sample } }
+  is: [ standardErrors ]
+  patch:
+  delete:
+
+  /stats:
+    displayName: Storage Statistic
+    type: { stats: { answearModel: genericObject, exampleAnswearModel: !include ../samples/statistic.sample, name: un Stockage } }

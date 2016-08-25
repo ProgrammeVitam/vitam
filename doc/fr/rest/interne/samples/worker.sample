@@ -1,0 +1,6 @@
+{
+  "name" : "workername",
+  "pool" : "poolname",
+  "capacity" : 10,
+  "status" : "Active"
+}

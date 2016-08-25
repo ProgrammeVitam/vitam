@@ -1,0 +1,63 @@
+    description: API générique de gestion d'une collection de <<resourcePathName>>.
+    type: base
+    get:
+      is: [ standardErrors ]
+      description: Query.
+      body:
+        application/json:
+          schema: <<queryModel>>
+          example: <<exampleQueryModel>>
+      responses:
+        200:
+          body:
+            application/json:
+              schema: <<answearModel>>
+              example: <<exampleAnswearModel>>
+    put?:
+      description: Update.
+      body:
+        application/json:
+          schema: <<updateModel>>
+          example: <<exampleUpdateModel>>
+      responses:
+        200:
+          body:
+            application/json:
+              schema: <<answearModel>>
+              example: <<exampleAnswearModel>>
+    patch?:
+      description: Update.
+      body:
+        application/json:
+          schema: <<updateModel>>
+          example: <<exampleUpdateModel>>
+      responses:
+        200:
+          body:
+            application/json:
+              schema: <<answearModel>>
+              example: <<exampleAnswearModel>>
+    post?:
+      description: Create.
+      body:
+        application/json:
+          schema: <<createModel>>
+          example: <<exampleCreateModel>>
+      responses:
+        201:
+          body:
+            application/json:
+              schema: <<answearModel>>
+              example: <<exampleAnswearModel>>
+    delete?:
+      description: Delete.
+      body:
+        application/json:
+          schema: <<queryModel>>
+          example: <<exampleQueryModel>>
+      responses:
+        200:
+          body:
+            application/json:
+              schema: <<answearModel>>
+              example: <<exampleAnswearModel>>

@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Description of one Container",
+  "type": "object",
+  "properties": {
+    "id": {
+      "description": "Container Id",
+      "type": "string"
+    },
+    "info": {
+      "description": "Associated free text information",
+      "type": "string"
+    },
+    "creation_time": {
+      "type": "string"
+    },
+    "last_access_time": {
+      "type": "string"
+    },
+    "last_modified_time": {
+      "type": "string"
+    }
+  }
+}

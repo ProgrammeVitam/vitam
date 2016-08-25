@@ -1,0 +1,11 @@
+# root endpoint request
+displayName: ObjectGroup
+description: API qui définie l'accès à un unique Groupe d'Objet.
+type: object-group-item
+
+/objects: !include Objects.raml
+  
+/check:
+  displayName: Object Group Check
+  description: API qui permet de vérifier un Groupe d'Objet particulier.
+  type: object-group-item-check

@@ -1,0 +1,59 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "AsyncStatus",
+    "description": "An Asynchronous task status in Vitam DSL",
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "state"
+    ],
+    "properties": {
+        "id": {
+            "description": "Unique identifier of the asynchronous task.",
+            "type": "string"
+        },
+        "type": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "State of the asynchronous task.",
+            "type": "string"
+        },
+        "task_status": {
+          "type": "string",
+          "enum": [
+            "cancel",
+            "commit"
+          ]
+        },
+        "start_date": {
+            "description": "Start date of the asynchronous task.",
+            "type": "date"
+        },
+        "end_date": {
+            "description": "End date of the asynchronous task (may be null).",
+            "type": "date"
+        },
+        "expiration_date": {
+            "description": "Expiration date of the asynchronous task result (may be null).",
+            "type": "date"
+        },
+        "result_link": {
+            "description": "Link to the asynchronous task result (may be null), default being same_uri/result.",
+            "type": "string"
+        },
+        "error": {
+            "description": "Error information of the asynchronous task.",
+            "type": "object",
+            "$ref": "file://./error.json#"
+        }
+    }
+}

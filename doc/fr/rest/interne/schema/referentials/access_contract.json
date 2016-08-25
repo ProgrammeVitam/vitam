@@ -1,0 +1,98 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Access Contract description",
+  "type": "object",
+  "required": [
+    "id",
+    "preservation_ids",
+    "default_preservation_id",
+    "access_group_id",
+    "actors",
+    "max_responses",
+    "active"
+  ],
+  "properties": {
+    "id": {
+      "description": "Contract's Identifier",
+      "type": "string"
+    },
+    "verbose": {
+      "description": "Shall any usage of this contract be logged verbosely, from 0 to 5",
+      "type": "integer"
+    },
+    "preservation_ids": {
+      "description": "Preservation related Contract's Identifiers (usage versions allowed in result)",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "default_preservation_id": {
+      "description": "Default Preservation related Contract's Identifier to be used when no option is passed in access (to determine which one to use)",
+      "type": "string"
+    },
+    "access_group_id": {
+      "description": "Access Group's Identifier",
+      "type": "string"
+    },
+    "actors": {
+      "description": "Actor's Identifiers with their callback, their roles and the default output format for metadata",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string"
+          },
+          "callback": {
+            "type": "string"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "output": {
+            "type": "string",
+            "enum": [
+                "json",
+                "xml",
+                "csv"
+            ]
+          }
+        }
+      }
+    },
+    "criteria_rules": {
+      "description": "String representing additional criteria to apply to request",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "response_rules": {
+      "description": "String representing additional filters to apply to response",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "frequency": {
+      "description": "Max frequency allowed in format seconds|hours|days|months|years",
+      "type": "string"
+    },
+    "max_responses": {
+      "description": "Max number of responses",
+      "type": "integer"
+    },
+    "access_trace": {
+      "description": "Shall we trace every access in log",
+      "type": "boolean"
+    },
+    "active": {
+      "description": "This contract activation status",
+      "type": "boolean"
+    }
+  }
+}

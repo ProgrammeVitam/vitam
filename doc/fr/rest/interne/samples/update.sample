@@ -1,0 +1,7 @@
+{
+  "queries": [
+    { "$path": "aaaaa" }
+  ],
+  "filter": { },
+  "action": { "$add": { "realfield": 1 } }
+}

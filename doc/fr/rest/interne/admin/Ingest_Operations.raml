@@ -1,0 +1,13 @@
+# root endpoint request
+displayName: Operations
+description: Opérations sur les Opérations de versement
+type: { collection-write: { createModel: ingest_operations, exampleModel: !include ../samples/referentials/ingest_operations.sample, answearModel: ingest_operations, exampleAnswearModel: !include ../samples/referentials/ingest_operations.sample } }
+is: [ standardErrors ]
+patch:
+
+/{id_operation}:
+  displayName: Operation
+  type: { collection-item-write: { createModel: ingest_operations, exampleModel: !include ../samples/referentials/ingest_operations.sample, answearModel: ingest_operations, exampleAnswearModel: !include ../samples/referentials/ingest_operations.sample } }
+  is: [ standardErrors ]
+  patch:
+  delete:

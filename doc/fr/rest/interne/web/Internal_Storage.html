@@ -1,0 +1,1119 @@
+<!DOCTYPE HTML><html><head><title>Moteur de Stockage API documentation</title><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="generator" content="https://github.com/kevinrenskers/raml2html 2.4.0"><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.1/styles/default.min.css"><script type="text/javascript" src="https://code.jquery.com/jquery-1.11.0.min.js"></script><script type="text/javascript" src="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.1/highlight.min.js"></script><script type="text/javascript">
+      $(document).ready(function() {
+        $('.page-header pre code, .top-resource-description pre code').each(function(i, block) {
+          hljs.highlightBlock(block);
+        });
+
+        $('[data-toggle]').click(function() {
+          var selector = $(this).data('target') + ' pre code';
+          $(selector).each(function(i, block) {
+            hljs.highlightBlock(block);
+          });
+        });
+
+        // open modal on hashes like #_action_get
+        $(window).bind('hashchange', function(e) {
+          var anchor_id = document.location.hash.substr(1); //strip #
+          var element = $('#' + anchor_id);
+
+          // do we have such element + is it a modal?  --> show it
+          if (element.length && element.hasClass('modal')) {
+            element.modal('show');
+          }
+        });
+
+        // execute hashchange on first page load
+        $(window).trigger('hashchange');
+
+        // remove url fragment on modal hide
+        $('.modal').on('hidden.bs.modal', function() {
+          try {
+            if (history && history.replaceState) {
+                history.replaceState({}, '', '#');
+            }
+          } catch(e) {}
+        });
+      });
+    </script><style>
+      .hljs {
+        background: transparent;
+      }
+      .parent {
+        color: #999;
+      }
+      .list-group-item > .badge {
+        float: none;
+        margin-right: 6px;
+      }
+      .panel-title > .methods {
+        float: right;
+      }
+      .badge {
+        border-radius: 0;
+        text-transform: uppercase;
+        width: 70px;
+        font-weight: normal;
+        color: #f3f3f6;
+        line-height: normal;
+      }
+      .badge_get {
+        background-color: #63a8e2;
+      }
+      .badge_post {
+        background-color: #6cbd7d;
+      }
+      .badge_put {
+        background-color: #22bac4;
+      }
+      .badge_delete {
+        background-color: #d26460;
+      }
+      .badge_patch {
+        background-color: #ccc444;
+      }
+      .list-group, .panel-group {
+        margin-bottom: 0;
+      }
+      .panel-group .panel+.panel-white {
+        margin-top: 0;
+      }
+      .panel-group .panel-white {
+        border-bottom: 1px solid #F5F5F5;
+        border-radius: 0;
+      }
+      .panel-white:last-child {
+        border-bottom-color: white;
+        -webkit-box-shadow: none;
+        box-shadow: none;
+      }
+      .panel-white .panel-heading {
+        background: white;
+      }
+      .tab-pane ul {
+        padding-left: 2em;
+      }
+      .tab-pane h2 {
+        font-size: 1.2em;
+        padding-bottom: 4px;
+        border-bottom: 1px solid #ddd;
+      }
+      .tab-pane h3 {
+        font-size: 1.1em;
+      }
+      .tab-content {
+        border-left: 1px solid #ddd;
+        border-right: 1px solid #ddd;
+        border-bottom: 1px solid #ddd;
+        padding: 10px;
+      }
+      #sidebar {
+        margin-top: 30px;
+        padding-right: 5px;
+        overflow: auto;
+        height: 90%;
+      }
+      .top-resource-description {
+        border-bottom: 1px solid #ddd;
+        background: #fcfcfc;
+        padding: 15px 15px 0 15px;
+        margin: -15px -15px 10px -15px;
+      }
+      .resource-description {
+        border-bottom: 1px solid #fcfcfc;
+        background: #fcfcfc;
+        padding: 15px 15px 0 15px;
+        margin: -15px -15px 10px -15px;
+      }
+      .resource-description p:last-child {
+        margin: 0;
+      }
+      .list-group .badge {
+        float: left;
+      }
+      .method_description {
+        margin-left: 85px;
+      }
+      .method_description p:last-child {
+        margin: 0;
+      }
+      .list-group-item {
+        cursor: pointer;
+      }
+      .list-group-item:hover {
+        background-color: #f5f5f5;
+      }
+    </style></head><body data-spy="scroll" data-target="#sidebar"><div class="container"><div class="row"><div class="col-md-9" role="main"><div class="page-header"><h1>Moteur de Stockage API documentation <small>version v0.0.6</small></h1><p>http://server-internal/storage/v0.0.6</p><h3 id="Containers"><a href="#Containers">Containers</a></h3><p>Le principe proposé serait le suivant:</p><ul><li>Accès principal au travers d&#39;un Container = Tenant</li><li>3 types sous-jacents:<ul><li>Objects: pour les éléments binaires (non modifiable = WORM)</li><li>Logbooks: pour les journaux (tous) (non modifiable = WORM)</li><li>Metadatas: pour les Units et ObjectGroups (modifiable = WMRM =&gt; PUT)</li></ul></li></ul><p>Questions ou remarques:</p><ul><li>Le moteur de stockage est responsable de mettre le "Folder" sous-jacent nécessaire pour séparer les types.</li></ul></div><div class="panel panel-default"><div class="panel-heading"><h3 class="panel-title">Containers Administration</h3></div><div class="panel-body"><div class="top-resource-description"><p>API de gestion de Containers.</p></div><div class="panel-group"><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_"><span class="parent"></span>/</a> <span class="methods"><a href="#_get"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a> <a href="#_post"><span class="badge badge_post">post <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a> <a href="#_delete"><span class="badge badge_delete">delete <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a> <a href="#_head"><span class="badge badge_head">head <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a></span></h4></div><div id="panel_" class="panel-collapse collapse"><div class="panel-body"><div class="list-group"><div onclick="window.location.href = '#_get'" class="list-group-item"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Permet d&#39;accéder aux informations d&#39;un container</p></div><div class="clearfix"></div></div><div onclick="window.location.href = '#_post'" class="list-group-item"><span class="badge badge_post">post <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Permet de créer un nouveau container (nouveau tenant)</p></div><div class="clearfix"></div></div><div onclick="window.location.href = '#_delete'" class="list-group-item"><span class="badge badge_delete">delete <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Permet d&#39;effacer un Container (si vide)</p></div><div class="clearfix"></div></div><div onclick="window.location.href = '#_head'" class="list-group-item"><span class="badge badge_head">head <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Permet de tester l&#39;existence du Container</p></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="_get"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent"></span>/</h4></div><div class="modal-body"><div class="alert alert-info"><p>Permet d&#39;accéder aux informations d&#39;un container</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#_get_request" data-toggle="tab">Request</a></li><li><a href="#_get_response" data-toggle="tab">Response</a></li><li><a href="#_get_securedby" data-toggle="tab">Security</a></li></ul><div class="tab-content"><div class="tab-pane active" id="_get_request"><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li><li><strong>X-Tenant-Id</strong>: <em>required (string)</em><p>Identifiant unique du tenant.</p><p><strong>Example</strong>:</p><pre>tenantId1</pre></li><li><strong>X-Strategy-Id</strong>: <em>required (string)</em><p>Identifiant de la Stratégie pour Offres de stockage et Copies (conservation)</p></li><li><strong>Accept</strong>: <em>(one of application/json, application/zip, application/octet-stream)</em><p>Permet de spécifier si un résultat doit contenir uniquement des métadonnées (&#39;<em>application/json</em>&#39;), un DIP complet (un ZIP contenant les métadonnées et les objets) ou seulement des <em>Objects</em> avec un contenu binaire (&#39;<em>application/octet-stream</em>&#39;).</p></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>projection</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "projection": {
+    "field": { "#all": 1, "#id": 1 }
+  }
+}</code></pre></div><div class="tab-pane" id="_get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>containerInfo</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "id": "abcdef",
+  "info": "container description - optional",
+  "creation_time": "1990-12-31T23:59:60Z",
+  "last_access_time": "1990-12-31T23:59:60Z",
+  "last_modified_time": "1990-12-31T23:59:60Z"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for "
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in "
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in ",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div><div class="tab-pane" id="_get_securedby">Secured by x-vitam-platform-key<h3>Headers</h3><ul><li><strong>x-vitam-key</strong>: <em>(string)</em></li></ul></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="_post"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_post">post <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent"></span>/</h4></div><div class="modal-body"><div class="alert alert-info"><p>Permet de créer un nouveau container (nouveau tenant)</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#_post_request" data-toggle="tab">Request</a></li><li><a href="#_post_response" data-toggle="tab">Response</a></li><li><a href="#_post_securedby" data-toggle="tab">Security</a></li></ul><div class="tab-content"><div class="tab-pane active" id="_post_request"><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li><li><strong>X-Tenant-Id</strong>: <em>required (string)</em><p>Identifiant unique du tenant.</p><p><strong>Example</strong>:</p><pre>tenantId1</pre></li><li><strong>X-Strategy-Id</strong>: <em>required (string)</em><p>Identifiant de la Stratégie pour Offres de stockage et Copies (conservation)</p></li></ul></div><div class="tab-pane" id="_post_response"><h2>HTTP status code <a href="http://httpstatus.es/201" target="_blank">201</a></h2><p>Created</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>containerInfo</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "id": "abcdef",
+  "info": "container description - optional",
+  "creation_time": "1990-12-31T23:59:60Z",
+  "last_access_time": "1990-12-31T23:59:60Z",
+  "last_modified_time": "1990-12-31T23:59:60Z"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for "
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in "
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in ",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div><div class="tab-pane" id="_post_securedby">Secured by x-vitam-platform-key<h3>Headers</h3><ul><li><strong>x-vitam-key</strong>: <em>(string)</em></li></ul></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="_delete"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_delete">delete <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent"></span>/</h4></div><div class="modal-body"><div class="alert alert-info"><p>Permet d&#39;effacer un Container (si vide)</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#_delete_request" data-toggle="tab">Request</a></li><li><a href="#_delete_response" data-toggle="tab">Response</a></li><li><a href="#_delete_securedby" data-toggle="tab">Security</a></li></ul><div class="tab-content"><div class="tab-pane active" id="_delete_request"><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li><li><strong>X-Tenant-Id</strong>: <em>required (string)</em><p>Identifiant unique du tenant.</p><p><strong>Example</strong>:</p><pre>tenantId1</pre></li><li><strong>X-Strategy-Id</strong>: <em>required (string)</em><p>Identifiant de la Stratégie pour Offres de stockage et Copies (conservation)</p></li></ul></div><div class="tab-pane" id="_delete_response"><h2>HTTP status code <a href="http://httpstatus.es/204" target="_blank">204</a></h2><p>No Content</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for "
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in "
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in ",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div><div class="tab-pane" id="_delete_securedby">Secured by x-vitam-platform-key<h3>Headers</h3><ul><li><strong>x-vitam-key</strong>: <em>(string)</em></li></ul></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="_head"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_head">head <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent"></span>/</h4></div><div class="modal-body"><div class="alert alert-info"><p>Permet de tester l&#39;existence du Container</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#_head_request" data-toggle="tab">Request</a></li><li><a href="#_head_response" data-toggle="tab">Response</a></li><li><a href="#_head_securedby" data-toggle="tab">Security</a></li></ul><div class="tab-content"><div class="tab-pane active" id="_head_request"><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li><li><strong>X-Tenant-Id</strong>: <em>required (string)</em><p>Identifiant unique du tenant.</p><p><strong>Example</strong>:</p><pre>tenantId1</pre></li><li><strong>X-Strategy-Id</strong>: <em>required (string)</em><p>Identifiant de la Stratégie pour Offres de stockage et Copies (conservation)</p></li></ul></div><div class="tab-pane" id="_head_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for "
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in "
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in ",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div><div class="tab-pane" id="_head_securedby">Secured by x-vitam-platform-key<h3>Headers</h3><ul><li><strong>x-vitam-key</strong>: <em>(string)</em></li></ul></div></div></div></div></div></div></div></div></div></div><div class="panel panel-default"><div class="panel-heading"><h3 id="objects" class="panel-title">Objects operations</h3></div><div class="panel-body"><div class="top-resource-description"><p>Pour gérer la création de nouveaux Objects, sur la base d&#39;une stratégie de stockage à appliquer</p></div><div class="panel-group"><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_objects"><span class="parent"></span>/objects</a> <span class="methods"><a href="#objects_get"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a></span></h4></div><div id="panel_objects" class="panel-collapse collapse"><div class="panel-body"><div class="list-group"><div onclick="window.location.href = '#objects_get'" class="list-group-item"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Liste du contenu binaire pour ce tenant.</p></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="objects_get"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent"></span>/objects</h4></div><div class="modal-body"><div class="alert alert-info"><p>Liste du contenu binaire pour ce tenant.</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#objects_get_request" data-toggle="tab">Request</a></li><li><a href="#objects_get_response" data-toggle="tab">Response</a></li><li><a href="#objects_get_securedby" data-toggle="tab">Security</a></li></ul><div class="tab-content"><div class="tab-pane active" id="objects_get_request"><h3>Headers</h3><ul><li><strong>X-Tenant-Id</strong>: <em>required (string)</em><p>Identifiant unique du tenant.</p><p><strong>Example</strong>:</p><pre>tenantId1</pre></li><li><strong>X-Strategy-Id</strong>: <em>required (string)</em><p>Identifiant de la Stratégie pour Offres de stockage et Copies (conservation)</p></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>collectionQuery</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "query": "name=&#39;abcdef*&#39;&amp;since&gt;&#39;2015-07-14&#39;"
+}</code></pre></div><div class="tab-pane" id="objects_get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>collectionList</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "hits": {
+    "total": 10,
+    "size": 3,
+    "offset": 0,
+    "limit": 100,
+    "time_out": false,
+    "next": "async_id_next"
+  },
+  "context": {
+    "query": "name=&#39;abcdef*&#39;&amp;since&gt;&#39;2015-07-14&#39;"
+  },
+  "results": [ "id1", "id2", "id3" ]
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for objects"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in objects"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in objects",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div><div class="tab-pane" id="objects_get_securedby">Secured by x-vitam-platform-key<h3>Headers</h3><ul><li><strong>x-vitam-key</strong>: <em>(string)</em></li></ul></div></div></div></div></div></div></div><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_objects__id_object_"><span class="parent">/objects</span>/{id_object}</a> <span class="methods"><a href="#objects__id_object__get"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a> <a href="#objects__id_object__post"><span class="badge badge_post">post <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a> <a href="#objects__id_object__delete"><span class="badge badge_delete">delete <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a> <a href="#objects__id_object__head"><span class="badge badge_head">head <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a></span></h4></div><div id="panel_objects__id_object_" class="panel-collapse collapse"><div class="panel-body"><div class="list-group"><div onclick="window.location.href = '#objects__id_object__get'" class="list-group-item"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Permet de lire un Object</p></div><div class="clearfix"></div></div><div onclick="window.location.href = '#objects__id_object__post'" class="list-group-item"><span class="badge badge_post">post <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Permet de créer une nouveau Object.</p></div><div class="clearfix"></div></div><div onclick="window.location.href = '#objects__id_object__delete'" class="list-group-item"><span class="badge badge_delete">delete <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Permet de détruire un Object</p></div><div class="clearfix"></div></div><div onclick="window.location.href = '#objects__id_object__head'" class="list-group-item"><span class="badge badge_head">head <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Permet d&#39;obtenir des informations sur l&#39;objet</p></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="objects__id_object__get"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent">/objects</span>/{id_object}</h4></div><div class="modal-body"><div class="alert alert-info"><p>Permet de lire un Object</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#objects__id_object__get_request" data-toggle="tab">Request</a></li><li><a href="#objects__id_object__get_response" data-toggle="tab">Response</a></li><li><a href="#objects__id_object__get_securedby" data-toggle="tab">Security</a></li></ul><div class="tab-content"><div class="tab-pane active" id="objects__id_object__get_request"><h3>URI Parameters</h3><ul><li><strong>id_object</strong>: <em>required (string)</em></li></ul><h3>Headers</h3><ul><li><strong>Accept</strong>: <em>(one of application/json, application/zip, application/octet-stream)</em><p>Permet de spécifier si un résultat doit contenir uniquement des métadonnées (&#39;<em>application/json</em>&#39;), un DIP complet (un ZIP contenant les métadonnées et les objets) ou seulement des <em>Objects</em> avec un contenu binaire (&#39;<em>application/octet-stream</em>&#39;).</p></li><li><strong>X-Tenant-Id</strong>: <em>required (string)</em><p>Identifiant unique du tenant.</p><p><strong>Example</strong>:</p><pre>tenantId1</pre></li><li><strong>X-Strategy-Id</strong>: <em>required (string)</em><p>Identifiant de la Stratégie pour Offres de stockage et Copies (conservation)</p></li></ul></div><div class="tab-pane" id="objects__id_object__get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: binary/octet-stream</strong></p><p><strong>Example</strong>:</p><pre><code>Binary Sample Object File</code></pre><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>storedInfo</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "id": "abcdef",
+  "info": "stored description - optional",
+  "objectGroupId": "for Object",
+  "unitIds": [ "for Object and ObjectGroup", "id2" ],
+  "creation_time": "1990-12-31T23:59:60Z",
+  "last_access_time": "1990-12-31T23:59:60Z",
+  "last_checked_time": "1990-12-31T23:59:60Z",
+  "last_modified_time": "1990-12-31T23:59:60Z"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for objects"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in objects"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in objects",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div><div class="tab-pane" id="objects__id_object__get_securedby">Secured by x-vitam-platform-key<h3>Headers</h3><ul><li><strong>x-vitam-key</strong>: <em>(string)</em></li></ul></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="objects__id_object__post"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_post">post <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent">/objects</span>/{id_object}</h4></div><div class="modal-body"><div class="alert alert-info"><p>Permet de créer une nouveau Object.</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#objects__id_object__post_request" data-toggle="tab">Request</a></li><li><a href="#objects__id_object__post_response" data-toggle="tab">Response</a></li><li><a href="#objects__id_object__post_securedby" data-toggle="tab">Security</a></li></ul><div class="tab-content"><div class="tab-pane active" id="objects__id_object__post_request"><h3>URI Parameters</h3><ul><li><strong>id_object</strong>: <em>required (string)</em></li></ul><h3>Headers</h3><ul><li><strong>X-Tenant-Id</strong>: <em>required (string)</em><p>Identifiant unique du tenant.</p><p><strong>Example</strong>:</p><pre>tenantId1</pre></li><li><strong>X-Strategy-Id</strong>: <em>required (string)</em><p>Identifiant de la Stratégie pour Offres de stockage et Copies (conservation)</p></li></ul><h3>Body</h3><p><strong>Media Type: binary/octet-stream</strong></p><p><strong>Media Type: multipart/form-data</strong></p><strong>Form Parameters</strong><ul><li><strong>objectGroupId</strong>: <em>(string)</em><p>Id of the parent ObjectGroup</p></li><li><strong>unitId</strong>: <em>(string)</em><p>Ids of the parent Units, comma separated</p></li><li><strong>file</strong>: <em>required (file)</em><p>The file to be uploaded</p></li></ul></div><div class="tab-pane" id="objects__id_object__post_response"><h2>HTTP status code <a href="http://httpstatus.es/201" target="_blank">201</a></h2><p>Created</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>storedInfo</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "id": "abcdef",
+  "info": "stored description - optional",
+  "objectGroupId": "for Object",
+  "unitIds": [ "for Object and ObjectGroup", "id2" ],
+  "creation_time": "1990-12-31T23:59:60Z",
+  "last_access_time": "1990-12-31T23:59:60Z",
+  "last_checked_time": "1990-12-31T23:59:60Z",
+  "last_modified_time": "1990-12-31T23:59:60Z"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for objects"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in objects"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in objects",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div><div class="tab-pane" id="objects__id_object__post_securedby">Secured by x-vitam-platform-key<h3>Headers</h3><ul><li><strong>x-vitam-key</strong>: <em>(string)</em></li></ul></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="objects__id_object__delete"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_delete">delete <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent">/objects</span>/{id_object}</h4></div><div class="modal-body"><div class="alert alert-info"><p>Permet de détruire un Object</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#objects__id_object__delete_request" data-toggle="tab">Request</a></li><li><a href="#objects__id_object__delete_response" data-toggle="tab">Response</a></li><li><a href="#objects__id_object__delete_securedby" data-toggle="tab">Security</a></li></ul><div class="tab-content"><div class="tab-pane active" id="objects__id_object__delete_request"><h3>URI Parameters</h3><ul><li><strong>id_object</strong>: <em>required (string)</em></li></ul><h3>Headers</h3><ul><li><strong>X-Tenant-Id</strong>: <em>required (string)</em><p>Identifiant unique du tenant.</p><p><strong>Example</strong>:</p><pre>tenantId1</pre></li><li><strong>X-DigestValue</strong>: <em>required (string)</em><p>Digest of the object to delete</p></li><li><strong>X-DigestAlgo</strong>: <em>required (string)</em><p>Algorithm used by the digest among MD5, SHA-256, SHA-512</p></li><li><strong>X-Strategy-Id</strong>: <em>required (string)</em><p>Identifiant de la Stratégie pour Offres de stockage et Copies (conservation)</p></li></ul></div><div class="tab-pane" id="objects__id_object__delete_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Headers</h3><ul><li><strong>X-Strategy-Id</strong>: <em>(string)</em><p>Identifiant de la Stratégie pour Offres de stockage et Copies (conservation)</p></li><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>storedInfo</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "id": "abcdef",
+  "info": "stored description - optional",
+  "objectGroupId": "for Object",
+  "unitIds": [ "for Object and ObjectGroup", "id2" ],
+  "creation_time": "1990-12-31T23:59:60Z",
+  "last_access_time": "1990-12-31T23:59:60Z",
+  "last_checked_time": "1990-12-31T23:59:60Z",
+  "last_modified_time": "1990-12-31T23:59:60Z"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for objects"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in objects"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in objects",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div><div class="tab-pane" id="objects__id_object__delete_securedby">Secured by x-vitam-platform-key<h3>Headers</h3><ul><li><strong>x-vitam-key</strong>: <em>(string)</em></li></ul></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="objects__id_object__head"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_head">head <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent">/objects</span>/{id_object}</h4></div><div class="modal-body"><div class="alert alert-info"><p>Permet d&#39;obtenir des informations sur l&#39;objet</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#objects__id_object__head_request" data-toggle="tab">Request</a></li><li><a href="#objects__id_object__head_response" data-toggle="tab">Response</a></li><li><a href="#objects__id_object__head_securedby" data-toggle="tab">Security</a></li></ul><div class="tab-content"><div class="tab-pane active" id="objects__id_object__head_request"><h3>URI Parameters</h3><ul><li><strong>id_object</strong>: <em>required (string)</em></li></ul><h3>Headers</h3><ul><li><strong>X-digest-algorithm</strong>: <em>(string)</em><p>Digest Algorithm</p></li><li><strong>X-Tenant-Id</strong>: <em>required (string)</em><p>Identifiant unique du tenant.</p><p><strong>Example</strong>:</p><pre>tenantId1</pre></li><li><strong>X-Strategy-Id</strong>: <em>required (string)</em><p>Identifiant de la Stratégie pour Offres de stockage et Copies (conservation)</p></li></ul></div><div class="tab-pane" id="objects__id_object__head_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Headers</h3><ul><li><strong>X-digest</strong>: <em>(string)</em><p>Digests value in order of Strategy, comma separated</p></li><li><strong>X-digest-algorithm</strong>: <em>(string)</em><p>Digest Algorithm</p></li><li><strong>X-Strategy-Id</strong>: <em>(string)</em><p>Identifiant de la Stratégie pour Offres de stockage et Copies (conservation)</p></li><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for objects"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in objects"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in objects",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div><div class="tab-pane" id="objects__id_object__head_securedby">Secured by x-vitam-platform-key<h3>Headers</h3><ul><li><strong>x-vitam-key</strong>: <em>(string)</em></li></ul></div></div></div></div></div></div></div></div></div></div><div class="panel panel-default"><div class="panel-heading"><h3 id="logbooks" class="panel-title">Logbooks operations</h3></div><div class="panel-body"><div class="top-resource-description"><p>Pour gérer la création de nouveaux Journaux, sur la base d&#39;une stratégie de stockage à appliquer</p></div><div class="panel-group"><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_logbooks"><span class="parent"></span>/logbooks</a> <span class="methods"><a href="#logbooks_get"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a></span></h4></div><div id="panel_logbooks" class="panel-collapse collapse"><div class="panel-body"><div class="list-group"><div onclick="window.location.href = '#logbooks_get'" class="list-group-item"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Liste du contenu d&#39;une collection.</p></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="logbooks_get"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent"></span>/logbooks</h4></div><div class="modal-body"><div class="alert alert-info"><p>Liste du contenu d&#39;une collection.</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#logbooks_get_request" data-toggle="tab">Request</a></li><li><a href="#logbooks_get_response" data-toggle="tab">Response</a></li><li><a href="#logbooks_get_securedby" data-toggle="tab">Security</a></li></ul><div class="tab-content"><div class="tab-pane active" id="logbooks_get_request"><h3>Headers</h3><ul><li><strong>X-Tenant-Id</strong>: <em>required (string)</em><p>Identifiant unique du tenant.</p><p><strong>Example</strong>:</p><pre>tenantId1</pre></li><li><strong>X-Strategy-Id</strong>: <em>required (string)</em><p>Identifiant de la Stratégie pour Offres de stockage et Copies (conservation)</p></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>collectionQuery</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "query": "name=&#39;abcdef*&#39;&amp;since&gt;&#39;2015-07-14&#39;"
+}</code></pre></div><div class="tab-pane" id="logbooks_get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>collectionList</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "hits": {
+    "total": 10,
+    "size": 3,
+    "offset": 0,
+    "limit": 100,
+    "time_out": false,
+    "next": "async_id_next"
+  },
+  "context": {
+    "query": "name=&#39;abcdef*&#39;&amp;since&gt;&#39;2015-07-14&#39;"
+  },
+  "results": [ "id1", "id2", "id3" ]
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for logbooks"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in logbooks"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in logbooks",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div><div class="tab-pane" id="logbooks_get_securedby">Secured by x-vitam-platform-key<h3>Headers</h3><ul><li><strong>x-vitam-key</strong>: <em>(string)</em></li></ul></div></div></div></div></div></div></div><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_logbooks__id_logbook_"><span class="parent">/logbooks</span>/{id_logbook}</a> <span class="methods"><a href="#logbooks__id_logbook__get"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a> <a href="#logbooks__id_logbook__post"><span class="badge badge_post">post <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a> <a href="#logbooks__id_logbook__delete"><span class="badge badge_delete">delete <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a> <a href="#logbooks__id_logbook__head"><span class="badge badge_head">head <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a></span></h4></div><div id="panel_logbooks__id_logbook_" class="panel-collapse collapse"><div class="panel-body"><div class="resource-description"><p>API de Gestion standard d&#39;un item d&#39;une collection de logbooks autorisant les écritures et/ou les effacements.</p></div><div class="list-group"><div onclick="window.location.href = '#logbooks__id_logbook__get'" class="list-group-item"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Permet de lire un Journal</p></div><div class="clearfix"></div></div><div onclick="window.location.href = '#logbooks__id_logbook__post'" class="list-group-item"><span class="badge badge_post">post <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Permet de créer un nouveau Journal</p></div><div class="clearfix"></div></div><div onclick="window.location.href = '#logbooks__id_logbook__delete'" class="list-group-item"><span class="badge badge_delete">delete <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Permet de détruire un Journal</p></div><div class="clearfix"></div></div><div onclick="window.location.href = '#logbooks__id_logbook__head'" class="list-group-item"><span class="badge badge_head">head <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Permet d&#39;obtenir des informations sur le journal</p></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="logbooks__id_logbook__get"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent">/logbooks</span>/{id_logbook}</h4></div><div class="modal-body"><div class="alert alert-info"><p>Permet de lire un Journal</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#logbooks__id_logbook__get_request" data-toggle="tab">Request</a></li><li><a href="#logbooks__id_logbook__get_response" data-toggle="tab">Response</a></li><li><a href="#logbooks__id_logbook__get_securedby" data-toggle="tab">Security</a></li></ul><div class="tab-content"><div class="tab-pane active" id="logbooks__id_logbook__get_request"><h3>URI Parameters</h3><ul><li><strong>id_logbook</strong>: <em>required (string)</em></li></ul><h3>Headers</h3><ul><li><strong>X-Tenant-Id</strong>: <em>required (string)</em><p>Identifiant unique du tenant.</p><p><strong>Example</strong>:</p><pre>tenantId1</pre></li><li><strong>X-Strategy-Id</strong>: <em>required (string)</em><p>Identifiant de la Stratégie pour Offres de stockage et Copies (conservation)</p></li><li><strong>Accept</strong>: <em>(one of application/json, application/zip, application/octet-stream)</em><p>Permet de spécifier si un résultat doit contenir uniquement des métadonnées (&#39;<em>application/json</em>&#39;), un DIP complet (un ZIP contenant les métadonnées et les objets) ou seulement des <em>Objects</em> avec un contenu binaire (&#39;<em>application/octet-stream</em>&#39;).</p></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>projection</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "projection": {
+    "field": { "#all": 1, "#id": 1 }
+  }
+}</code></pre></div><div class="tab-pane" id="logbooks__id_logbook__get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>logbooks</code></pre><p><strong>Example</strong>:</p><pre><code>[
+ {
+    "eventIdentifier": "entryId",
+    "eventType": "CheckSeda",
+    "eventDateTime": "2015-07-14T17:32:05Z",
+    "eventIdentifierProcess": "workflowId",
+    "eventTypeProcess": "Ingest",
+    "outcome" : "STARTED",
+    "eventOutcomeDetail": "404_123456",
+    "eventOutcomeDetailMessage": "Error message",
+    "agentIdentifier": "server_identifier",
+    "agentIdentifierApplication": "remoteApplicationId",
+    "agentIdentifierApplicationSession": "X-AID",
+    "eventIdentifierRequest": "W-Request-Id",
+    "agentIdentifierSubmission": "Submission_agency_Id",
+    "agentIdentifierOriginating": "Originating_agency_Id",
+    "objectIdentifier": "Object_or_SIP_Id",
+    "objectIdentifierRequest": "Request_selecting_objects",
+    "objectIdentifierIncome": "MessageIdentifier_in_SEDA"
+  }, {
+    "eventIdentifier": "entryId",
+    "eventType": "CheckSeda",
+    "eventDateTime": "2015-07-14T17:32:05Z",
+    "eventIdentifierProcess": "workflowId",
+    "eventTypeProcess": "Ingest",
+    "outcome" : "OK",
+    "eventOutcomeDetail": "404_123456",
+    "eventOutcomeDetailMessage": "Error message",
+    "agentIdentifier": "server_identifier",
+    "agentIdentifierApplication": "remoteApplicationId",
+    "agentIdentifierApplicationSession": "X-AID",
+    "eventIdentifierRequest": "W-Request-Id",
+    "agentIdentifierSubmission": "Submission_agency_Id",
+    "agentIdentifierOriginating": "Originating_agency_Id",
+    "objectIdentifier": "Object_or_SIP_Id",
+    "objectIdentifierRequest": "Request_selecting_objects",
+    "objectIdentifierIncome": "MessageIdentifier_in_SEDA"
+  }
+]</code></pre><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for logbooks"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in logbooks"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in logbooks",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div><div class="tab-pane" id="logbooks__id_logbook__get_securedby">Secured by x-vitam-platform-key<h3>Headers</h3><ul><li><strong>x-vitam-key</strong>: <em>(string)</em></li></ul></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="logbooks__id_logbook__post"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_post">post <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent">/logbooks</span>/{id_logbook}</h4></div><div class="modal-body"><div class="alert alert-info"><p>Permet de créer un nouveau Journal</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#logbooks__id_logbook__post_request" data-toggle="tab">Request</a></li><li><a href="#logbooks__id_logbook__post_response" data-toggle="tab">Response</a></li><li><a href="#logbooks__id_logbook__post_securedby" data-toggle="tab">Security</a></li></ul><div class="tab-content"><div class="tab-pane active" id="logbooks__id_logbook__post_request"><h3>URI Parameters</h3><ul><li><strong>id_logbook</strong>: <em>required (string)</em></li></ul><h3>Headers</h3><ul><li><strong>X-Tenant-Id</strong>: <em>required (string)</em><p>Identifiant unique du tenant.</p><p><strong>Example</strong>:</p><pre>tenantId1</pre></li><li><strong>X-Strategy-Id</strong>: <em>required (string)</em><p>Identifiant de la Stratégie pour Offres de stockage et Copies (conservation)</p></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>logbooks</code></pre><p><strong>Example</strong>:</p><pre><code>[
+ {
+    "eventIdentifier": "entryId",
+    "eventType": "CheckSeda",
+    "eventDateTime": "2015-07-14T17:32:05Z",
+    "eventIdentifierProcess": "workflowId",
+    "eventTypeProcess": "Ingest",
+    "outcome" : "STARTED",
+    "eventOutcomeDetail": "404_123456",
+    "eventOutcomeDetailMessage": "Error message",
+    "agentIdentifier": "server_identifier",
+    "agentIdentifierApplication": "remoteApplicationId",
+    "agentIdentifierApplicationSession": "X-AID",
+    "eventIdentifierRequest": "W-Request-Id",
+    "agentIdentifierSubmission": "Submission_agency_Id",
+    "agentIdentifierOriginating": "Originating_agency_Id",
+    "objectIdentifier": "Object_or_SIP_Id",
+    "objectIdentifierRequest": "Request_selecting_objects",
+    "objectIdentifierIncome": "MessageIdentifier_in_SEDA"
+  }, {
+    "eventIdentifier": "entryId",
+    "eventType": "CheckSeda",
+    "eventDateTime": "2015-07-14T17:32:05Z",
+    "eventIdentifierProcess": "workflowId",
+    "eventTypeProcess": "Ingest",
+    "outcome" : "OK",
+    "eventOutcomeDetail": "404_123456",
+    "eventOutcomeDetailMessage": "Error message",
+    "agentIdentifier": "server_identifier",
+    "agentIdentifierApplication": "remoteApplicationId",
+    "agentIdentifierApplicationSession": "X-AID",
+    "eventIdentifierRequest": "W-Request-Id",
+    "agentIdentifierSubmission": "Submission_agency_Id",
+    "agentIdentifierOriginating": "Originating_agency_Id",
+    "objectIdentifier": "Object_or_SIP_Id",
+    "objectIdentifierRequest": "Request_selecting_objects",
+    "objectIdentifierIncome": "MessageIdentifier_in_SEDA"
+  }
+]</code></pre></div><div class="tab-pane" id="logbooks__id_logbook__post_response"><h2>HTTP status code <a href="http://httpstatus.es/201" target="_blank">201</a></h2><p>Created</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>logbooks</code></pre><p><strong>Example</strong>:</p><pre><code>[
+ {
+    "eventIdentifier": "entryId",
+    "eventType": "CheckSeda",
+    "eventDateTime": "2015-07-14T17:32:05Z",
+    "eventIdentifierProcess": "workflowId",
+    "eventTypeProcess": "Ingest",
+    "outcome" : "STARTED",
+    "eventOutcomeDetail": "404_123456",
+    "eventOutcomeDetailMessage": "Error message",
+    "agentIdentifier": "server_identifier",
+    "agentIdentifierApplication": "remoteApplicationId",
+    "agentIdentifierApplicationSession": "X-AID",
+    "eventIdentifierRequest": "W-Request-Id",
+    "agentIdentifierSubmission": "Submission_agency_Id",
+    "agentIdentifierOriginating": "Originating_agency_Id",
+    "objectIdentifier": "Object_or_SIP_Id",
+    "objectIdentifierRequest": "Request_selecting_objects",
+    "objectIdentifierIncome": "MessageIdentifier_in_SEDA"
+  }, {
+    "eventIdentifier": "entryId",
+    "eventType": "CheckSeda",
+    "eventDateTime": "2015-07-14T17:32:05Z",
+    "eventIdentifierProcess": "workflowId",
+    "eventTypeProcess": "Ingest",
+    "outcome" : "OK",
+    "eventOutcomeDetail": "404_123456",
+    "eventOutcomeDetailMessage": "Error message",
+    "agentIdentifier": "server_identifier",
+    "agentIdentifierApplication": "remoteApplicationId",
+    "agentIdentifierApplicationSession": "X-AID",
+    "eventIdentifierRequest": "W-Request-Id",
+    "agentIdentifierSubmission": "Submission_agency_Id",
+    "agentIdentifierOriginating": "Originating_agency_Id",
+    "objectIdentifier": "Object_or_SIP_Id",
+    "objectIdentifierRequest": "Request_selecting_objects",
+    "objectIdentifierIncome": "MessageIdentifier_in_SEDA"
+  }
+]</code></pre><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for logbooks"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in logbooks"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in logbooks",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div><div class="tab-pane" id="logbooks__id_logbook__post_securedby">Secured by x-vitam-platform-key<h3>Headers</h3><ul><li><strong>x-vitam-key</strong>: <em>(string)</em></li></ul></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="logbooks__id_logbook__delete"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_delete">delete <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent">/logbooks</span>/{id_logbook}</h4></div><div class="modal-body"><div class="alert alert-info"><p>Permet de détruire un Journal</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#logbooks__id_logbook__delete_request" data-toggle="tab">Request</a></li><li><a href="#logbooks__id_logbook__delete_response" data-toggle="tab">Response</a></li><li><a href="#logbooks__id_logbook__delete_securedby" data-toggle="tab">Security</a></li></ul><div class="tab-content"><div class="tab-pane active" id="logbooks__id_logbook__delete_request"><h3>URI Parameters</h3><ul><li><strong>id_logbook</strong>: <em>required (string)</em></li></ul><h3>Headers</h3><ul><li><strong>X-Tenant-Id</strong>: <em>required (string)</em><p>Identifiant unique du tenant.</p><p><strong>Example</strong>:</p><pre>tenantId1</pre></li><li><strong>X-DigestValue</strong>: <em>required (string)</em><p>Digest of the object to delete</p></li><li><strong>X-DigestAlgo</strong>: <em>required (string)</em><p>Algorithm used by the digest among MD5, SHA-256, SHA-512</p></li><li><strong>X-Strategy-Id</strong>: <em>required (string)</em><p>Identifiant de la Stratégie pour Offres de stockage et Copies (conservation)</p></li></ul></div><div class="tab-pane" id="logbooks__id_logbook__delete_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Headers</h3><ul><li><strong>X-Strategy-Id</strong>: <em>(string)</em><p>Identifiant de la Stratégie pour Offres de stockage et Copies (conservation)</p></li><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h2>HTTP status code <a href="http://httpstatus.es/204" target="_blank">204</a></h2><p>No Content</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for logbooks"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in logbooks"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in logbooks",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div><div class="tab-pane" id="logbooks__id_logbook__delete_securedby">Secured by x-vitam-platform-key<h3>Headers</h3><ul><li><strong>x-vitam-key</strong>: <em>(string)</em></li></ul></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="logbooks__id_logbook__head"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_head">head <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent">/logbooks</span>/{id_logbook}</h4></div><div class="modal-body"><div class="alert alert-info"><p>Permet d&#39;obtenir des informations sur le journal</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#logbooks__id_logbook__head_request" data-toggle="tab">Request</a></li><li><a href="#logbooks__id_logbook__head_response" data-toggle="tab">Response</a></li><li><a href="#logbooks__id_logbook__head_securedby" data-toggle="tab">Security</a></li></ul><div class="tab-content"><div class="tab-pane active" id="logbooks__id_logbook__head_request"><h3>URI Parameters</h3><ul><li><strong>id_logbook</strong>: <em>required (string)</em></li></ul><h3>Headers</h3><ul><li><strong>X-digest-algorithm</strong>: <em>(string)</em><p>Digest Algorithm</p></li><li><strong>X-Tenant-Id</strong>: <em>required (string)</em><p>Identifiant unique du tenant.</p><p><strong>Example</strong>:</p><pre>tenantId1</pre></li><li><strong>X-Strategy-Id</strong>: <em>required (string)</em><p>Identifiant de la Stratégie pour Offres de stockage et Copies (conservation)</p></li></ul></div><div class="tab-pane" id="logbooks__id_logbook__head_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Headers</h3><ul><li><strong>X-digest</strong>: <em>(string)</em><p>Digests value in order of Strategy, comma separated</p></li><li><strong>X-digest-algorithm</strong>: <em>(string)</em><p>Digest Algorithm</p></li><li><strong>X-Strategy-Id</strong>: <em>(string)</em><p>Identifiant de la Stratégie pour Offres de stockage et Copies (conservation)</p></li><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for logbooks"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in logbooks"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in logbooks",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div><div class="tab-pane" id="logbooks__id_logbook__head_securedby">Secured by x-vitam-platform-key<h3>Headers</h3><ul><li><strong>x-vitam-key</strong>: <em>(string)</em></li></ul></div></div></div></div></div></div></div></div></div></div><div class="panel panel-default"><div class="panel-heading"><h3 id="units" class="panel-title">Unit Metadatas operations</h3></div><div class="panel-body"><div class="top-resource-description"><p>Pour gérer la création de nouvelles Units, sur la base d&#39;une stratégie de stockage à appliquer</p></div><div class="panel-group"><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_units"><span class="parent"></span>/units</a> <span class="methods"><a href="#units_get"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a></span></h4></div><div id="panel_units" class="panel-collapse collapse"><div class="panel-body"><div class="list-group"><div onclick="window.location.href = '#units_get'" class="list-group-item"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Liste du contenu d&#39;une collection.</p></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="units_get"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent"></span>/units</h4></div><div class="modal-body"><div class="alert alert-info"><p>Liste du contenu d&#39;une collection.</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#units_get_request" data-toggle="tab">Request</a></li><li><a href="#units_get_response" data-toggle="tab">Response</a></li><li><a href="#units_get_securedby" data-toggle="tab">Security</a></li></ul><div class="tab-content"><div class="tab-pane active" id="units_get_request"><h3>Headers</h3><ul><li><strong>X-Tenant-Id</strong>: <em>required (string)</em><p>Identifiant unique du tenant.</p><p><strong>Example</strong>:</p><pre>tenantId1</pre></li><li><strong>X-Strategy-Id</strong>: <em>required (string)</em><p>Identifiant de la Stratégie pour Offres de stockage et Copies (conservation)</p></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>collectionQuery</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "query": "name=&#39;abcdef*&#39;&amp;since&gt;&#39;2015-07-14&#39;"
+}</code></pre></div><div class="tab-pane" id="units_get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>collectionList</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "hits": {
+    "total": 10,
+    "size": 3,
+    "offset": 0,
+    "limit": 100,
+    "time_out": false,
+    "next": "async_id_next"
+  },
+  "context": {
+    "query": "name=&#39;abcdef*&#39;&amp;since&gt;&#39;2015-07-14&#39;"
+  },
+  "results": [ "id1", "id2", "id3" ]
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for units"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in units"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in units",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div><div class="tab-pane" id="units_get_securedby">Secured by x-vitam-platform-key<h3>Headers</h3><ul><li><strong>x-vitam-key</strong>: <em>(string)</em></li></ul></div></div></div></div></div></div></div><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_units__id_md_"><span class="parent">/units</span>/{id_md}</a> <span class="methods"><a href="#units__id_md__get"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a> <a href="#units__id_md__post"><span class="badge badge_post">post <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a> <a href="#units__id_md__put"><span class="badge badge_put">put <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a> <a href="#units__id_md__delete"><span class="badge badge_delete">delete <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a> <a href="#units__id_md__head"><span class="badge badge_head">head <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a></span></h4></div><div id="panel_units__id_md_" class="panel-collapse collapse"><div class="panel-body"><div class="resource-description"><p>API de Gestion standard d&#39;un item d&#39;une collection de units autorisant les écritures et/ou les effacements.</p></div><div class="list-group"><div onclick="window.location.href = '#units__id_md__get'" class="list-group-item"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Permet de lire un Unit Metadata</p></div><div class="clearfix"></div></div><div onclick="window.location.href = '#units__id_md__post'" class="list-group-item"><span class="badge badge_post">post <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Permet de créer un nouveau Unit Metadata</p></div><div class="clearfix"></div></div><div onclick="window.location.href = '#units__id_md__put'" class="list-group-item"><span class="badge badge_put">put <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Permet de mettre à jour un Unit Metadata (404 si non pré-existant)</p></div><div class="clearfix"></div></div><div onclick="window.location.href = '#units__id_md__delete'" class="list-group-item"><span class="badge badge_delete">delete <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Permet de détruire un Unit Metadata</p></div><div class="clearfix"></div></div><div onclick="window.location.href = '#units__id_md__head'" class="list-group-item"><span class="badge badge_head">head <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Permet d&#39;obtenir des informations sur la métadonnée</p></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="units__id_md__get"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent">/units</span>/{id_md}</h4></div><div class="modal-body"><div class="alert alert-info"><p>Permet de lire un Unit Metadata</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#units__id_md__get_request" data-toggle="tab">Request</a></li><li><a href="#units__id_md__get_response" data-toggle="tab">Response</a></li><li><a href="#units__id_md__get_securedby" data-toggle="tab">Security</a></li></ul><div class="tab-content"><div class="tab-pane active" id="units__id_md__get_request"><h3>URI Parameters</h3><ul><li><strong>id_md</strong>: <em>required (string)</em></li></ul><h3>Headers</h3><ul><li><strong>X-Tenant-Id</strong>: <em>required (string)</em><p>Identifiant unique du tenant.</p><p><strong>Example</strong>:</p><pre>tenantId1</pre></li><li><strong>X-Strategy-Id</strong>: <em>required (string)</em><p>Identifiant de la Stratégie pour Offres de stockage et Copies (conservation)</p></li><li><strong>Accept</strong>: <em>(one of application/json, application/zip, application/octet-stream)</em><p>Permet de spécifier si un résultat doit contenir uniquement des métadonnées (&#39;<em>application/json</em>&#39;), un DIP complet (un ZIP contenant les métadonnées et les objets) ou seulement des <em>Objects</em> avec un contenu binaire (&#39;<em>application/octet-stream</em>&#39;).</p></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>projection</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "projection": {
+    "field": { "#all": 1, "#id": 1 }
+  }
+}</code></pre></div><div class="tab-pane" id="units__id_md__get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>genericObject</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "id": "$id_unit$",
+  "name": "abcdef",
+  "creation_date": "2015-07-14T17:07:14Z",
+  "description": "one description of unit",
+  "numerical_information": 55.3
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for units"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in units"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in units",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div><div class="tab-pane" id="units__id_md__get_securedby">Secured by x-vitam-platform-key<h3>Headers</h3><ul><li><strong>x-vitam-key</strong>: <em>(string)</em></li></ul></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="units__id_md__post"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_post">post <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent">/units</span>/{id_md}</h4></div><div class="modal-body"><div class="alert alert-info"><p>Permet de créer un nouveau Unit Metadata</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#units__id_md__post_request" data-toggle="tab">Request</a></li><li><a href="#units__id_md__post_response" data-toggle="tab">Response</a></li><li><a href="#units__id_md__post_securedby" data-toggle="tab">Security</a></li></ul><div class="tab-content"><div class="tab-pane active" id="units__id_md__post_request"><h3>URI Parameters</h3><ul><li><strong>id_md</strong>: <em>required (string)</em></li></ul><h3>Headers</h3><ul><li><strong>X-Tenant-Id</strong>: <em>required (string)</em><p>Identifiant unique du tenant.</p><p><strong>Example</strong>:</p><pre>tenantId1</pre></li><li><strong>X-Strategy-Id</strong>: <em>required (string)</em><p>Identifiant de la Stratégie pour Offres de stockage et Copies (conservation)</p></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>genericObject</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "id": "$id_unit$",
+  "name": "abcdef",
+  "creation_date": "2015-07-14T17:07:14Z",
+  "description": "one description of unit",
+  "numerical_information": 55.3
+}</code></pre></div><div class="tab-pane" id="units__id_md__post_response"><h2>HTTP status code <a href="http://httpstatus.es/201" target="_blank">201</a></h2><p>Created</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>genericObject</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "id": "$id_unit$",
+  "name": "abcdef",
+  "creation_date": "2015-07-14T17:07:14Z",
+  "description": "one description of unit",
+  "numerical_information": 55.3
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for units"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in units"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in units",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div><div class="tab-pane" id="units__id_md__post_securedby">Secured by x-vitam-platform-key<h3>Headers</h3><ul><li><strong>x-vitam-key</strong>: <em>(string)</em></li></ul></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="units__id_md__put"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_put">put <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent">/units</span>/{id_md}</h4></div><div class="modal-body"><div class="alert alert-info"><p>Permet de mettre à jour un Unit Metadata (404 si non pré-existant)</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#units__id_md__put_request" data-toggle="tab">Request</a></li><li><a href="#units__id_md__put_response" data-toggle="tab">Response</a></li><li><a href="#units__id_md__put_securedby" data-toggle="tab">Security</a></li></ul><div class="tab-content"><div class="tab-pane active" id="units__id_md__put_request"><h3>URI Parameters</h3><ul><li><strong>id_md</strong>: <em>required (string)</em></li></ul><h3>Headers</h3><ul><li><strong>X-Tenant-Id</strong>: <em>required (string)</em><p>Identifiant unique du tenant.</p><p><strong>Example</strong>:</p><pre>tenantId1</pre></li><li><strong>X-Strategy-Id</strong>: <em>required (string)</em><p>Identifiant de la Stratégie pour Offres de stockage et Copies (conservation)</p></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>genericObject</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "id": "$id_unit$",
+  "name": "abcdef",
+  "creation_date": "2015-07-14T17:07:14Z",
+  "description": "one description of unit",
+  "numerical_information": 55.3
+}</code></pre></div><div class="tab-pane" id="units__id_md__put_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>genericObject</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "id": "$id_unit$",
+  "name": "abcdef",
+  "creation_date": "2015-07-14T17:07:14Z",
+  "description": "one description of unit",
+  "numerical_information": 55.3
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for units"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in units"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in units",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div><div class="tab-pane" id="units__id_md__put_securedby">Secured by x-vitam-platform-key<h3>Headers</h3><ul><li><strong>x-vitam-key</strong>: <em>(string)</em></li></ul></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="units__id_md__delete"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_delete">delete <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent">/units</span>/{id_md}</h4></div><div class="modal-body"><div class="alert alert-info"><p>Permet de détruire un Unit Metadata</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#units__id_md__delete_request" data-toggle="tab">Request</a></li><li><a href="#units__id_md__delete_response" data-toggle="tab">Response</a></li><li><a href="#units__id_md__delete_securedby" data-toggle="tab">Security</a></li></ul><div class="tab-content"><div class="tab-pane active" id="units__id_md__delete_request"><h3>URI Parameters</h3><ul><li><strong>id_md</strong>: <em>required (string)</em></li></ul><h3>Headers</h3><ul><li><strong>X-Tenant-Id</strong>: <em>required (string)</em><p>Identifiant unique du tenant.</p><p><strong>Example</strong>:</p><pre>tenantId1</pre></li><li><strong>X-DigestValue</strong>: <em>required (string)</em><p>Digest of the object to delete</p></li><li><strong>X-DigestAlgo</strong>: <em>required (string)</em><p>Algorithm used by the digest among MD5, SHA-256, SHA-512</p></li><li><strong>X-Strategy-Id</strong>: <em>required (string)</em><p>Identifiant de la Stratégie pour Offres de stockage et Copies (conservation)</p></li></ul></div><div class="tab-pane" id="units__id_md__delete_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Headers</h3><ul><li><strong>X-Strategy-Id</strong>: <em>(string)</em><p>Identifiant de la Stratégie pour Offres de stockage et Copies (conservation)</p></li><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h2>HTTP status code <a href="http://httpstatus.es/204" target="_blank">204</a></h2><p>No Content</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for units"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in units"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in units",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div><div class="tab-pane" id="units__id_md__delete_securedby">Secured by x-vitam-platform-key<h3>Headers</h3><ul><li><strong>x-vitam-key</strong>: <em>(string)</em></li></ul></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="units__id_md__head"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_head">head <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent">/units</span>/{id_md}</h4></div><div class="modal-body"><div class="alert alert-info"><p>Permet d&#39;obtenir des informations sur la métadonnée</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#units__id_md__head_request" data-toggle="tab">Request</a></li><li><a href="#units__id_md__head_response" data-toggle="tab">Response</a></li><li><a href="#units__id_md__head_securedby" data-toggle="tab">Security</a></li></ul><div class="tab-content"><div class="tab-pane active" id="units__id_md__head_request"><h3>URI Parameters</h3><ul><li><strong>id_md</strong>: <em>required (string)</em></li></ul><h3>Headers</h3><ul><li><strong>X-digest-algorithm</strong>: <em>(string)</em><p>Digest Algorithm</p></li><li><strong>X-Tenant-Id</strong>: <em>required (string)</em><p>Identifiant unique du tenant.</p><p><strong>Example</strong>:</p><pre>tenantId1</pre></li><li><strong>X-Strategy-Id</strong>: <em>required (string)</em><p>Identifiant de la Stratégie pour Offres de stockage et Copies (conservation)</p></li></ul></div><div class="tab-pane" id="units__id_md__head_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Headers</h3><ul><li><strong>X-digest</strong>: <em>(string)</em><p>Digests value in order of Strategy, comma separated</p></li><li><strong>X-digest-algorithm</strong>: <em>(string)</em><p>Digest Algorithm</p></li><li><strong>X-Strategy-Id</strong>: <em>(string)</em><p>Identifiant de la Stratégie pour Offres de stockage et Copies (conservation)</p></li><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for units"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in units"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in units",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div><div class="tab-pane" id="units__id_md__head_securedby">Secured by x-vitam-platform-key<h3>Headers</h3><ul><li><strong>x-vitam-key</strong>: <em>(string)</em></li></ul></div></div></div></div></div></div></div></div></div></div><div class="panel panel-default"><div class="panel-heading"><h3 id="objectgroups" class="panel-title">ObjectGroup Metadatas operations</h3></div><div class="panel-body"><div class="top-resource-description"><p>Pour gérer la création de nouveaux ObjectGroup, sur la base d&#39;une stratégie de stockage à appliquer</p></div><div class="panel-group"><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_objectgroups"><span class="parent"></span>/objectgroups</a> <span class="methods"><a href="#objectgroups_get"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a></span></h4></div><div id="panel_objectgroups" class="panel-collapse collapse"><div class="panel-body"><div class="list-group"><div onclick="window.location.href = '#objectgroups_get'" class="list-group-item"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Liste du contenu d&#39;une collection.</p></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="objectgroups_get"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent"></span>/objectgroups</h4></div><div class="modal-body"><div class="alert alert-info"><p>Liste du contenu d&#39;une collection.</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#objectgroups_get_request" data-toggle="tab">Request</a></li><li><a href="#objectgroups_get_response" data-toggle="tab">Response</a></li><li><a href="#objectgroups_get_securedby" data-toggle="tab">Security</a></li></ul><div class="tab-content"><div class="tab-pane active" id="objectgroups_get_request"><h3>Headers</h3><ul><li><strong>X-Tenant-Id</strong>: <em>required (string)</em><p>Identifiant unique du tenant.</p><p><strong>Example</strong>:</p><pre>tenantId1</pre></li><li><strong>X-Strategy-Id</strong>: <em>required (string)</em><p>Identifiant de la Stratégie pour Offres de stockage et Copies (conservation)</p></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>collectionQuery</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "query": "name=&#39;abcdef*&#39;&amp;since&gt;&#39;2015-07-14&#39;"
+}</code></pre></div><div class="tab-pane" id="objectgroups_get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>collectionList</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "hits": {
+    "total": 10,
+    "size": 3,
+    "offset": 0,
+    "limit": 100,
+    "time_out": false,
+    "next": "async_id_next"
+  },
+  "context": {
+    "query": "name=&#39;abcdef*&#39;&amp;since&gt;&#39;2015-07-14&#39;"
+  },
+  "results": [ "id1", "id2", "id3" ]
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for objectgroups"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in objectgroups"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in objectgroups",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div><div class="tab-pane" id="objectgroups_get_securedby">Secured by x-vitam-platform-key<h3>Headers</h3><ul><li><strong>x-vitam-key</strong>: <em>(string)</em></li></ul></div></div></div></div></div></div></div><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_objectgroups__id_md_"><span class="parent">/objectgroups</span>/{id_md}</a> <span class="methods"><a href="#objectgroups__id_md__get"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a> <a href="#objectgroups__id_md__post"><span class="badge badge_post">post <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a> <a href="#objectgroups__id_md__put"><span class="badge badge_put">put <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a> <a href="#objectgroups__id_md__delete"><span class="badge badge_delete">delete <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a> <a href="#objectgroups__id_md__head"><span class="badge badge_head">head <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a></span></h4></div><div id="panel_objectgroups__id_md_" class="panel-collapse collapse"><div class="panel-body"><div class="resource-description"><p>API de Gestion standard d&#39;un item d&#39;une collection de objectgroups autorisant les écritures et/ou les effacements.</p></div><div class="list-group"><div onclick="window.location.href = '#objectgroups__id_md__get'" class="list-group-item"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Permet de lire un ObjectGroup Metadata</p></div><div class="clearfix"></div></div><div onclick="window.location.href = '#objectgroups__id_md__post'" class="list-group-item"><span class="badge badge_post">post <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Permet de créer un nouveau ObjectGroup Metadata</p></div><div class="clearfix"></div></div><div onclick="window.location.href = '#objectgroups__id_md__put'" class="list-group-item"><span class="badge badge_put">put <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Permet de mettre à jour un ObjectGroup Metadata (404 si non pré-existant)</p></div><div class="clearfix"></div></div><div onclick="window.location.href = '#objectgroups__id_md__delete'" class="list-group-item"><span class="badge badge_delete">delete <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Permet de détruire un ObjectGroup Metadata</p></div><div class="clearfix"></div></div><div onclick="window.location.href = '#objectgroups__id_md__head'" class="list-group-item"><span class="badge badge_head">head <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Permet d&#39;obtenir des informations sur la métadonnée</p></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="objectgroups__id_md__get"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent">/objectgroups</span>/{id_md}</h4></div><div class="modal-body"><div class="alert alert-info"><p>Permet de lire un ObjectGroup Metadata</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#objectgroups__id_md__get_request" data-toggle="tab">Request</a></li><li><a href="#objectgroups__id_md__get_response" data-toggle="tab">Response</a></li><li><a href="#objectgroups__id_md__get_securedby" data-toggle="tab">Security</a></li></ul><div class="tab-content"><div class="tab-pane active" id="objectgroups__id_md__get_request"><h3>URI Parameters</h3><ul><li><strong>id_md</strong>: <em>required (string)</em></li></ul><h3>Headers</h3><ul><li><strong>X-Tenant-Id</strong>: <em>required (string)</em><p>Identifiant unique du tenant.</p><p><strong>Example</strong>:</p><pre>tenantId1</pre></li><li><strong>X-Strategy-Id</strong>: <em>required (string)</em><p>Identifiant de la Stratégie pour Offres de stockage et Copies (conservation)</p></li><li><strong>Accept</strong>: <em>(one of application/json, application/zip, application/octet-stream)</em><p>Permet de spécifier si un résultat doit contenir uniquement des métadonnées (&#39;<em>application/json</em>&#39;), un DIP complet (un ZIP contenant les métadonnées et les objets) ou seulement des <em>Objects</em> avec un contenu binaire (&#39;<em>application/octet-stream</em>&#39;).</p></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>projection</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "projection": {
+    "field": { "#all": 1, "#id": 1 }
+  }
+}</code></pre></div><div class="tab-pane" id="objectgroups__id_md__get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>genericObject</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "id": "$id_unit$",
+  "name": "abcdef",
+  "creation_date": "2015-07-14T17:07:14Z",
+  "description": "one description of unit",
+  "numerical_information": 55.3
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for objectgroups"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in objectgroups"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in objectgroups",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div><div class="tab-pane" id="objectgroups__id_md__get_securedby">Secured by x-vitam-platform-key<h3>Headers</h3><ul><li><strong>x-vitam-key</strong>: <em>(string)</em></li></ul></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="objectgroups__id_md__post"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_post">post <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent">/objectgroups</span>/{id_md}</h4></div><div class="modal-body"><div class="alert alert-info"><p>Permet de créer un nouveau ObjectGroup Metadata</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#objectgroups__id_md__post_request" data-toggle="tab">Request</a></li><li><a href="#objectgroups__id_md__post_response" data-toggle="tab">Response</a></li><li><a href="#objectgroups__id_md__post_securedby" data-toggle="tab">Security</a></li></ul><div class="tab-content"><div class="tab-pane active" id="objectgroups__id_md__post_request"><h3>URI Parameters</h3><ul><li><strong>id_md</strong>: <em>required (string)</em></li></ul><h3>Headers</h3><ul><li><strong>X-Tenant-Id</strong>: <em>required (string)</em><p>Identifiant unique du tenant.</p><p><strong>Example</strong>:</p><pre>tenantId1</pre></li><li><strong>X-Strategy-Id</strong>: <em>required (string)</em><p>Identifiant de la Stratégie pour Offres de stockage et Copies (conservation)</p></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>genericObject</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "id": "$id_unit$",
+  "name": "abcdef",
+  "creation_date": "2015-07-14T17:07:14Z",
+  "description": "one description of unit",
+  "numerical_information": 55.3
+}</code></pre></div><div class="tab-pane" id="objectgroups__id_md__post_response"><h2>HTTP status code <a href="http://httpstatus.es/201" target="_blank">201</a></h2><p>Created</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>genericObject</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "id": "$id_unit$",
+  "name": "abcdef",
+  "creation_date": "2015-07-14T17:07:14Z",
+  "description": "one description of unit",
+  "numerical_information": 55.3
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for objectgroups"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in objectgroups"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in objectgroups",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div><div class="tab-pane" id="objectgroups__id_md__post_securedby">Secured by x-vitam-platform-key<h3>Headers</h3><ul><li><strong>x-vitam-key</strong>: <em>(string)</em></li></ul></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="objectgroups__id_md__put"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_put">put <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent">/objectgroups</span>/{id_md}</h4></div><div class="modal-body"><div class="alert alert-info"><p>Permet de mettre à jour un ObjectGroup Metadata (404 si non pré-existant)</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#objectgroups__id_md__put_request" data-toggle="tab">Request</a></li><li><a href="#objectgroups__id_md__put_response" data-toggle="tab">Response</a></li><li><a href="#objectgroups__id_md__put_securedby" data-toggle="tab">Security</a></li></ul><div class="tab-content"><div class="tab-pane active" id="objectgroups__id_md__put_request"><h3>URI Parameters</h3><ul><li><strong>id_md</strong>: <em>required (string)</em></li></ul><h3>Headers</h3><ul><li><strong>X-Tenant-Id</strong>: <em>required (string)</em><p>Identifiant unique du tenant.</p><p><strong>Example</strong>:</p><pre>tenantId1</pre></li><li><strong>X-Strategy-Id</strong>: <em>required (string)</em><p>Identifiant de la Stratégie pour Offres de stockage et Copies (conservation)</p></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>genericObject</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "id": "$id_unit$",
+  "name": "abcdef",
+  "creation_date": "2015-07-14T17:07:14Z",
+  "description": "one description of unit",
+  "numerical_information": 55.3
+}</code></pre></div><div class="tab-pane" id="objectgroups__id_md__put_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>genericObject</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "id": "$id_unit$",
+  "name": "abcdef",
+  "creation_date": "2015-07-14T17:07:14Z",
+  "description": "one description of unit",
+  "numerical_information": 55.3
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for objectgroups"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in objectgroups"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in objectgroups",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div><div class="tab-pane" id="objectgroups__id_md__put_securedby">Secured by x-vitam-platform-key<h3>Headers</h3><ul><li><strong>x-vitam-key</strong>: <em>(string)</em></li></ul></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="objectgroups__id_md__delete"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_delete">delete <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent">/objectgroups</span>/{id_md}</h4></div><div class="modal-body"><div class="alert alert-info"><p>Permet de détruire un ObjectGroup Metadata</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#objectgroups__id_md__delete_request" data-toggle="tab">Request</a></li><li><a href="#objectgroups__id_md__delete_response" data-toggle="tab">Response</a></li><li><a href="#objectgroups__id_md__delete_securedby" data-toggle="tab">Security</a></li></ul><div class="tab-content"><div class="tab-pane active" id="objectgroups__id_md__delete_request"><h3>URI Parameters</h3><ul><li><strong>id_md</strong>: <em>required (string)</em></li></ul><h3>Headers</h3><ul><li><strong>X-Tenant-Id</strong>: <em>required (string)</em><p>Identifiant unique du tenant.</p><p><strong>Example</strong>:</p><pre>tenantId1</pre></li><li><strong>X-DigestValue</strong>: <em>required (string)</em><p>Digest of the object to delete</p></li><li><strong>X-DigestAlgo</strong>: <em>required (string)</em><p>Algorithm used by the digest among MD5, SHA-256, SHA-512</p></li><li><strong>X-Strategy-Id</strong>: <em>required (string)</em><p>Identifiant de la Stratégie pour Offres de stockage et Copies (conservation)</p></li></ul></div><div class="tab-pane" id="objectgroups__id_md__delete_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Headers</h3><ul><li><strong>X-Strategy-Id</strong>: <em>(string)</em><p>Identifiant de la Stratégie pour Offres de stockage et Copies (conservation)</p></li><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h2>HTTP status code <a href="http://httpstatus.es/204" target="_blank">204</a></h2><p>No Content</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for objectgroups"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in objectgroups"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in objectgroups",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div><div class="tab-pane" id="objectgroups__id_md__delete_securedby">Secured by x-vitam-platform-key<h3>Headers</h3><ul><li><strong>x-vitam-key</strong>: <em>(string)</em></li></ul></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="objectgroups__id_md__head"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_head">head <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent">/objectgroups</span>/{id_md}</h4></div><div class="modal-body"><div class="alert alert-info"><p>Permet d&#39;obtenir des informations sur la métadonnée</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#objectgroups__id_md__head_request" data-toggle="tab">Request</a></li><li><a href="#objectgroups__id_md__head_response" data-toggle="tab">Response</a></li><li><a href="#objectgroups__id_md__head_securedby" data-toggle="tab">Security</a></li></ul><div class="tab-content"><div class="tab-pane active" id="objectgroups__id_md__head_request"><h3>URI Parameters</h3><ul><li><strong>id_md</strong>: <em>required (string)</em></li></ul><h3>Headers</h3><ul><li><strong>X-digest-algorithm</strong>: <em>(string)</em><p>Digest Algorithm</p></li><li><strong>X-Tenant-Id</strong>: <em>required (string)</em><p>Identifiant unique du tenant.</p><p><strong>Example</strong>:</p><pre>tenantId1</pre></li><li><strong>X-Strategy-Id</strong>: <em>required (string)</em><p>Identifiant de la Stratégie pour Offres de stockage et Copies (conservation)</p></li></ul></div><div class="tab-pane" id="objectgroups__id_md__head_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Headers</h3><ul><li><strong>X-digest</strong>: <em>(string)</em><p>Digests value in order of Strategy, comma separated</p></li><li><strong>X-digest-algorithm</strong>: <em>(string)</em><p>Digest Algorithm</p></li><li><strong>X-Strategy-Id</strong>: <em>(string)</em><p>Identifiant de la Stratégie pour Offres de stockage et Copies (conservation)</p></li><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for objectgroups"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in objectgroups"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in objectgroups",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div><div class="tab-pane" id="objectgroups__id_md__head_securedby">Secured by x-vitam-platform-key<h3>Headers</h3><ul><li><strong>x-vitam-key</strong>: <em>(string)</em></li></ul></div></div></div></div></div></div></div></div></div></div><div class="panel panel-default"><div class="panel-heading"><h3 id="status" class="panel-title">Storage Engine Status</h3></div><div class="panel-body"><div class="top-resource-description"><p>Statut du moteur de stockage.</p></div><div class="panel-group"><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_status"><span class="parent"></span>/status</a> <span class="methods"><a href="#status_get"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a></span></h4></div><div id="panel_status" class="panel-collapse collapse"><div class="panel-body"><div class="list-group"><div onclick="window.location.href = '#status_get'" class="list-group-item"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Affichage du statut du Module / Moteur</p></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="status_get"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent"></span>/status</h4></div><div class="modal-body"><div class="alert alert-info"><p>Affichage du statut du Module / Moteur</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#status_get_request" data-toggle="tab">Request</a></li><li><a href="#status_get_response" data-toggle="tab">Response</a></li><li><a href="#status_get_securedby" data-toggle="tab">Security</a></li></ul><div class="tab-content"><div class="tab-pane active" id="status_get_request"><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul></div><div class="tab-pane" id="status_get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>status</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "id": "abcdef",
+  "service": "serviceName",
+  "start": "2015-07-14T17:07:14Z",
+  "dependencies": [
+    { 
+      "service": "name"
+    }
+  ],
+  "status": "200"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for status"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in status"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Media Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>error</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in status",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div><div class="tab-pane" id="status_get_securedby">Secured by x-vitam-platform-key<h3>Headers</h3><ul><li><strong>x-vitam-key</strong>: <em>(string)</em></li></ul></div></div></div></div></div></div></div></div></div></div></div><div class="col-md-3"><div id="sidebar" class="hidden-print affix" role="complementary"><ul class="nav nav-pills nav-stacked"><li><a href="#">Containers Administration</a></li><li><a href="#objects">Objects operations</a></li><li><a href="#logbooks">Logbooks operations</a></li><li><a href="#units">Unit Metadatas operations</a></li><li><a href="#objectgroups">ObjectGroup Metadatas operations</a></li><li><a href="#status">Storage Engine Status</a></li></ul></div></div></div></div></body></html>

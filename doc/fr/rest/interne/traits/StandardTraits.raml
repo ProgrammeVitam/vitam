@@ -1,0 +1,266 @@
+#%RAML 1.0 Library
+- StandardHeader:
+    responses:
+      200:
+        headers:
+          X-RequestId:
+            type: string
+            description: Identifiant unique de la requête.
+            example: AbDUh67jj
+          FullApiVersion:
+            type: string
+            description: Version complète de l'API.
+            example: 2.56
+      204:
+        headers:
+          X-RequestId:
+            type: string
+            description: Identifiant unique de la requête.
+            example: AbDUh67jj
+          FullApiVersion:
+            type: string
+            description: Version complète de l'API.
+            example: 2.56
+
+- OverrideGet:
+    headers:
+      X-HTTP-Method-Override?:
+        type: string
+        enum:
+          - GET
+
+- OverridePut:
+    headers:
+      X-HTTP-Method-Override?:
+        type: string
+        enum:
+          - PUT
+
+- OverridePatch:
+    headers:
+      X-HTTP-Method-Override?:
+        type: string
+        enum:
+          - PATCH
+
+- OverrideHead:
+    headers:
+      X-HTTP-Method-Override?:
+        type: string
+        enum:
+          - HEAD
+
+- OverrideOptions:
+    headers:
+      X-HTTP-Method-Override?:
+        type: string
+        enum:
+          - OPTIONS
+
+- OverrideDelete:
+    headers:
+      X-HTTP-Method-Override?:
+        type: string
+        enum:
+          - DELETE
+
+- Listing:
+    queryParameters:
+      _limit?:
+        default: 100
+        type: number
+      _offset?:
+        default: 0
+        type: number
+      _sort?:
+        type: array
+        example: field_name1,field_name2
+      _desc?:
+        type: array
+        example: field_name1,field_name2
+      _filter?:
+        type: string
+        repeat: true
+        examples:
+          - content: workflow eq id
+          - content: start_time ge 1990-12-31T23:59:60Z
+    responses:
+      200:
+        body:
+          application/json:
+            description: Listing answer for <<itemType>>
+            type: object
+            properties:
+              hits:
+                type: object
+                properties:
+                  total: integer
+                  offset: integer
+                  limit: integer
+              filters:
+                type: array
+                items:
+                  type: string
+              results:
+                type: array
+                items:
+                  schema: <<itemType>>
+            example: <<itemExample>>
+
+- CreateItem:
+    description: Create one <<itemType>>
+    queryParameters:
+      workflow:
+        type: string
+        description: Workflow Id
+      priority: integer
+      source:
+        type: string
+        description: Source Container Id in Shared Storage
+      context:
+        type: string
+        description: Context File Id in Shared Storage
+    responses:
+      200:
+        body:
+          application/json:
+            type: <<itemType>>
+            example: <<itemExample>>
+
+- ActionControl:
+    description: Control action
+    queryParameters:
+      _filter?:
+        type: string
+        repeat: true
+        examples:
+          - content: workflow eq id
+          - content: start_time ge 1990-12-31T23:59:60Z
+      _action:
+        type: string
+        enum:
+          - pause
+          - cancel
+          - start
+          - start[0-9]+
+          - priority[0-9]+
+    responses:
+      200:
+        body:
+          application/json:
+            description: Listing answer for <<itemType>>
+            type: object
+            properties:
+              hits:
+                type: object
+                properties:
+                  total: integer
+                  offset: integer
+                  limit: integer
+              filters:
+                type: array
+                items:
+                  type: string
+              results:
+                type: array
+                items:
+                  schema: <<itemType>>
+            example: <<itemExample>>
+
+- ActionControl1:
+    description: Control action
+    queryParameters:
+      _action:
+        type: string
+        enum:
+          - pause
+          - cancel
+          - start
+          - start[0-9]+
+          - priority[0-9]+
+    responses:
+      200:
+        body:
+          application/json:
+            description: Answer for <<itemType>>
+            schema: <<itemType>>
+            example: <<itemExample>>
+
+- UnitPost:
+    description: Create an <<itemType>>
+    queryParameters:
+      schema: <<itemType>>
+    responses:
+      200:
+        body:
+          application/json:
+            description: Answer for <<itemType>>
+            schema: <<itemType>>
+            example: <<itemExample>>
+
+- UnitPatch:
+    description: Update the content of one WorkflowWorker
+    body:
+      application/json:
+        description: Update one <<itemType>>
+        schema: <<itemType>>
+        example: <<itemExample>>
+    responses:
+      200:
+        body:
+          application/json:
+            description: Answer for <<itemType>>
+            schema: <<itemType>>
+            example: <<itemExample>>
+
+- UnitDelete:
+    description: Delete one <<itemType>>
+    responses:
+      204:
+        body:
+          application/json:
+            schema: <<itemType>>
+            example: <<itemExample>>
+
+- UnitHead:
+    description: Get <<itemType>>
+    responses:
+      200:
+        body:
+          application/json:
+            description: Answer content of <<itemType>>
+            schema: <<itemType>>
+            example: <<itemExample>>
+
+- StandardErrors:
+    responses:
+      404:
+        description: Not Found
+        headers:
+          X-RequestId:
+            type: string
+            description: Identifiant unique de la requête.
+            example: AbDUh67jj
+          FullApiVersion:
+            type: string
+            description: Version complète de l'API.
+            example: 2.56
+        body:
+          application/json:
+            type: StandardTypes.ErrorMultiple
+            example: !include ../examples/error-404.sample
+      412:
+        description: Precondition Failed
+        headers:
+          X-RequestId:
+            type: string
+            description: Identifiant unique de la requête.
+            example: AbDUh67jj
+          FullApiVersion:
+            type: string
+            description: Version complète de l'API.
+            example: 2.56
+        body:
+          application/json:
+            type: StandardTypes.ErrorMultiple
+            example: !include ../examples/error-412.sample

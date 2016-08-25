@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "CCFN description",
+  "type": "object",
+  "required": [
+    "id",
+    "audit_frequency",
+    "unitary_audit",
+    "driver",
+    "latency",
+    "bandwidth"
+  ],
+  "properties": {
+    "id": {
+      "description": "CCFN identifer",
+      "type": "string"
+    },
+    "audit_frequency": {
+      "description": "Max frequency allowed in format seconds|hours|days|months|years",
+      "type": "string"
+    },
+    "unitary_audit": {
+      "description": "Allow unitary synchronous audit. If false, only asynchronous audit is allowed",
+      "type": "boolean"
+    },
+    "driver": {
+      "description": "Associated driver to use",
+      "type": "string"
+    },
+    "latency": {
+      "description": "Last or average latency in milliseconds",
+      "type": "number"
+    },
+    "bandwidth": {
+      "description": "Last or average bandwidth in Byte/s",
+      "type": "integer"
+    }
+  }
+}

@@ -1,0 +1,20 @@
+displayName: Racine
+description: Retourne l'information sur les services disponibles selon l'authentification associée.
+type: base
+is: [ standardErrors ]
+get:
+  description: Retourne l'information sur les services disponibles. L'usage de 'OPTIONS' est préférable.
+  responses:
+    200:
+      description: Retourne l'information sur les services disponibles.
+      body:
+        schema: root
+        example: !include ../samples/root.sample
+options:
+  description: Retourne l'information sur les services disponibles.
+  responses:
+    200:
+      description: Retourne l'information sur les services disponibles.
+      body:
+        schema: root
+        example: !include ../samples/root.sample

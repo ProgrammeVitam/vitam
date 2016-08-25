@@ -1,0 +1,62 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Consolidated Storage Offer (CSO) description",
+  "type": "object",
+  "required": [
+    "id",
+    "primary",
+    "primary_duplication",
+    "secondary",
+    "secondary_duplication"
+  ],
+  "properties": {
+    "id": {
+      "description": "CSO Identifier",
+      "type": "string"
+    },
+    "primary": {
+      "description": "CSO Primary CCFN with their identifier and priorities in read and write operations",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "read_priority": {
+            "type": "integer"
+          },
+          "write_priority": {
+            "type": "integer"
+          }
+        }
+      }
+    },
+    "primary_duplication": {
+      "description": "CSO Primary minimal duplication",
+      "type": "integer"
+    },
+    "secondary": {
+      "description": "CSO Secondary CCFN (secured CCFN, lastly deleted) with their identifier and priorities in read and write operations",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "read_priority": {
+            "type": "integer"
+          },
+          "write_priority": {
+            "type": "integer"
+          }
+        }
+      }
+    },
+    "secondary_duplication": {
+      "description": "CSO Secondary minimal duplication",
+      "type": "integer"
+    }
+  }
+}

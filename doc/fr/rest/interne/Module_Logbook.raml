@@ -1,0 +1,168 @@
+#%RAML 0.8
+title: Logbook External Module
+baseUri: http://server/api/logbook/{version}
+version: v0.0.4
+protocols: [ HTTPS ]
+      
+mediaType: application/json
+
+securitySchemes:
+  - basic:
+      type: Basic Authentication
+
+securedBy: [ basic ]
+
+schemas:
+  - error: !include schema/error.json
+  - collectionList: !include schema/collection_list.json
+  - collectionQuery: !include schema/collection_query.json
+  - genericObject: !include schema/generic_object.json
+  - projection: !include schema/projection.json
+  - root: !include schema/root.json
+  - logbook: !include schema/logbook.json
+  - logbooks: !include schema/logbooks.json
+  - status: !include schema/status.json
+
+traits: !include traits/Traits.raml
+
+resourceTypes: !include resourceTypes/ResourceTypes.raml
+
+documentation:
+  - title: Racine
+    content: |
+      Cet URI permettrait à une application cliente de requêter les services disponibles.
+  - title: Opérations
+    content: |
+      Le principe proposé serait le suivant:
+        - Seul l'accès en lecture est possible
+        - L'accès à une opération se fait via: 
+          - GET /operations/id_op qui retourne la liste des événements
+        - La recherche d'opérations se fait via:
+          - GET /operations qui retourne les id des opérations compatibles
+  - title: Cycle de vie
+    content: |
+      Le principe proposé serait le suivant:
+        - Seul l'accès en lecture est possible
+        - L'accès à une Cycle de vie se fait via: 
+          - GET /lifecycles/id_op qui retourne la liste des événements
+        - L'accès via operations filtre le contenu du cycle de vie à l'opération: 
+          - GET /operations/id_op/lifecycles/id_lc
+        - La liste des Cycle de vies (Unit ou ObjectGroup) concernées par une opération:
+          - GET /operations/id_op/lifecycles
+            
+      Questions ou remarques:
+        - Faut il dissocier les Cycles de vie Unit/ObjectGroups ? (si oui => remplacer la collection lifecycles par units et objectgroups)
+  
+# General
+/: !include resourceTypes/External_Roots.raml
+
+/operations:
+  # root endpoint request
+  displayName: LogBooks
+  description: API d'accès aux Journaux.
+  type: base
+  is: [ standardErrors ]
+  get:
+    description: Liste du contenu d'une collection.
+    body:
+      application/json:
+        schema: collectionQuery
+        example: !include samples/query-simple.sample
+    responses:
+      200:
+        body:
+          application/json:
+            schema: collectionList
+            example: !include samples/answearList.sample
+  
+  /{id_op}:
+    displayName: LogBook
+    description: API d'accès du Journal des Opérations
+    type: base
+    is: [ standardErrors ]
+    get:
+      description: Permet d'accéder aux informations d'une entrée du journal des opérations
+      body:
+        application/json:
+          schema: collectionQuery
+          example: !include samples/query-simple.sample
+      responses:
+        200:
+          body:
+            application/json:
+              schema: collectionList
+              example: !include samples/answearList.sample
+
+    /lifecycles:
+      # root endpoint request
+      displayName: Life Cycle Journal
+      description: API d'accès aux Journaux de cycle de vie.
+      type: base
+      is: [ standardErrors ]
+      get:
+        description: Liste du contenu d'une collection.
+        body:
+          application/json:
+            schema: collectionQuery
+            example: !include samples/query-simple.sample
+        responses:
+          200:
+            body:
+              application/json:
+                schema: collectionList
+                example: !include samples/answearList.sample
+      
+      /{id_lc}:
+        displayName: Life Cycle Entry
+        description: API d'accès du Journal de Cycle de vie d'un item
+        type: base
+        is: [ standardErrors ]
+        get:
+          description: Permet d'accéder aux informations d'une entrée du journal des Cycles de vie
+          body:
+            application/json:
+              schema: collectionQuery
+              example: !include samples/query-simple.sample
+          responses:
+            200:
+              body:
+                application/json:
+                  schema: collectionList
+                  example: !include samples/answearList.sample
+
+/lifecycles:
+  # root endpoint request
+  displayName: Life Cycle Journal
+  description: API d'accès aux Journaux de cycle de vie.
+  type: base
+  is: [ standardErrors ]
+  get:
+    description: Liste du contenu d'une collection.
+    body:
+      application/json:
+        schema: collectionQuery
+        example: !include samples/query-simple.sample
+    responses:
+      200:
+        body:
+          application/json:
+            schema: collectionList
+            example: !include samples/answearList.sample
+
+  /{id_lc}:
+    displayName: Life Cycle Entry
+    description: API d'accès du Journal de Cycle de vie d'un item
+    type: base
+    is: [ standardErrors ]
+    get:
+      description: Permet d'accéder aux informations d'une entrée du journal des Cycles de vie
+      body:
+        application/json:
+          schema: collectionQuery
+          example: !include samples/query-simple.sample
+      responses:
+        200:
+          body:
+            application/json:
+              schema: collectionList
+              example: !include samples/answearList.sample

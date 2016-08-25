@@ -1,0 +1,37 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Query",
+    "description": "A collection query in Vitam",
+    "type": "object",
+    "required": [
+        "query"
+    ],
+    "properties": {
+        "$query": {
+            "description": "Contains all queries",
+            "type": "string"
+        },
+        "$filter": {
+            "description": "Contains filter to apply",
+            "type": "object",
+            "properties": {
+                "$limit": {
+                    "type": "integer"
+                },
+                "$offset": {
+                    "type": "integer"
+                },
+                "$orderby": {
+                    "type": "array",
+                    "items": {
+                        "type": "object"
+                    }
+                }
+            }
+        },
+      "$projection": {
+            "description": "Contains projection to apply",
+            "type": "object"        
+      }
+    }
+}

@@ -1,0 +1,67 @@
+#%RAML 0.8
+title: Espace de Travail
+baseUri: http://server/workspace/api/{version}
+version: v0.0.1
+protocols: [ HTTP, HTTPS ]
+
+mediaType: application/json
+
+traits: !include traits/Traits.raml
+
+resourceTypes: !include resourceTypes/ResourceTypes.raml
+
+/containers:
+  # root endpoint request
+  displayName: Containers
+  description: Administration des Containers (Dossiers)
+  type: { collection-write-nopatch: { createModel: genericObject, exampleModel: !include ../samples/genericSample.sample, answearModel: genericObject, exampleAnswearModel: !include ../samples/genericSample.sample } }
+  is: [ standardErrors ]
+  post:
+    description: Permet de créer un Container
+
+  /{id_container}:
+    displayName: Container
+    type: { collection-item-write: { createModel: task_status, exampleModel: !include ../samples/task_status.sample, answearModel: async_status, exampleAnswearModel: !include ../samples/async_status.sample } }
+    is: [ standardErrors ]
+    get:
+      description: Permet d'accéder aux informations du Container
+    delete:
+      description: Permet d'effacer un Container (pour son contenu, éventuellement en récursif)
+
+    /containers: 
+      displayName: Containers under Container
+      description: API de gestion des Containers dans un Container.
+      type: { complexCollection: { queryModel: query, exampleQueryModel: !include ../samples/query.sample, answearModel: answearList, exampleAnswearModel: !include ../samples/answearList.sample, updateModel: update, exampleUpdateModel: !include ../samples/update.sample, createModel: create, exampleCreateModel: !include ../samples/create.sample } }
+      is: [ standardErrors ]
+      get:
+        description: Permet de lister les sous-containers.
+      post:
+        description: Ajoute un sous-container.
+      
+    /objects:
+      displayName: Objects under Container
+      description: API de gestion des Objects dans un Container
+      type: object-group-item
+      is: [ standardErrors ]
+      delete:
+        description: Efface un ensemble d'Objects sous un Container.
+      post:
+        description: Ajoute un Object.
+  
+      /{id_object}:
+        displayName: Object under Container
+        description: API permettant l'accès direct à un Object dans un Container
+        type: { collection-item-write: { createModel: genericObject, exampleModel: !include ../samples/sampleUnit.sample, answearModel: genericObject, exampleAnswearModel: !include ../samples/sampleUnit.sample } }
+        is: [ standardErrors ]
+        get:
+          description: Accès à un Object
+        patch:
+          description: Mise à jour de l'Object
+        delete:
+          description: Permet l'effacement d'un Object
+
+/status:
+  displayName: Work Storage Status
+  description: Statut de l'espace de travail, comme sa charge actuelle.
+  type: { collection }
+  is: [ standardErrors ]

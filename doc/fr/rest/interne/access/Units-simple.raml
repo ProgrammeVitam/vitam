@@ -1,0 +1,18 @@
+# root endpoint request
+displayName: Units
+description: API qui définie les requêtes pour accéder aux Unités. La requête utiliser le langage de requête (DSL) de Vitam en entrée et retourne une liste d'identifiants uniques en cas de succès.
+type: { complexCollection: { queryModel: query, exampleQueryModel: !include ../samples/query.sample, answearModel: answearList, exampleAnswearModel: !include ../samples/answearList.sample, updateModel: update, exampleUpdateModel: !include ../samples/update.sample, createModel: create, exampleCreateModel: !include ../samples/create.sample } }
+is: [ standardErrors ]
+get:
+  description: Requête qui aura pour résultat un ensemble d'identifiants uniques de Units.
+patch:
+  description: Met à jour un ensemble de Units (mise à jour massive). Cette commande peut être utile par exemple pour mettre à jour massivement des métadonnées pour préparer ou changer des règles d'élimination.
+
+/{id_unit}:
+  displayName: Unit
+  description: API qui définie l'accès direct à une Unité.
+  type: { collection-item-write: { createModel: update, exampleModel: !include ../samples/update.sample, answearModel: genericObject, exampleAnswearModel: !include ../samples/sampleUnit.sample } }
+  is: [ standardErrors ]
+  get:
+    description: Par défaut retourne les métadonnées complètes, sinon l'Object ou les deux selon le header 'Accept'. Le 'body' optionnel permet de décider quelle partie des métadonnées sont requises en résultat (projection).
+  patch:

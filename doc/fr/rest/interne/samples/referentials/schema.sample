@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema targetNamespace="org:afnor:medona:1.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns="org:afnor:medona:1.0"
+    xmlns:aes60="urn:ebu:metadata-schema:ebuCore_2010"
+    xmlns:charset="urn:un:unece:uncefact:codelist:standard:IANA:CharacterSetCode:2013-01-08"
+    elementFormDefault="qualified" attributeFormDefault="unqualified" version="1.0">
+
+    <xsd:annotation>
+        <xsd:documentation>Example for Core Technical Description as of January 2015 from VITAM</xsd:documentation>
+        <xsd:documentation>Only Core is proposed as a standard for SEDA 2.0</xsd:documentation>
+    </xsd:annotation>
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" schemaLocation="xml.xsd"/>
+    
+    <!-- Include external schema -->
+    <xsd:import namespace="urn:ebu:metadata-schema:ebuCore_2010"
+        schemaLocation="aes60-2010.xsd"/>
+    <xsd:import
+        schemaLocation="IANA_CharacterSetCode_2013-01-08.xsd"
+        namespace="urn:un:unece:uncefact:codelist:standard:IANA:CharacterSetCode:2013-01-08"/>
+
+    <xsd:include schemaLocation="../seda-2.0-types.xsd"/>
+    <xsd:include schemaLocation="vitam-types.xsd"/>
+    <xsd:include schemaLocation="techdesc/vitam-othertechnical.xsd"/>
+    
+    
+    <xsd:annotation>
+        <xsd:documentation>Useful links:
+            http://www.loc.gov/standards/amdvmd/ (audio et video) 
+            http://www.loc.gov/standards/mix/ (images)
+            http://www.loc.gov/standards/textMD/ (text)
+            http://fclaweb.fcla.edu/content/format-specific-metadata (document)
+            http://projects.iq.harvard.edu/fits/fits-xml</xsd:documentation>
+    </xsd:annotation>
+
+
+    <!-- File status elements (from FITS: useful?) -->
+    <xsd:complexType name="FileStatusType">
+        <xsd:annotation>
+            <xsd:documentation>Status of the file (valid, well formed) and optional associated
+                message</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="WellFormed" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Is this file well formed - mainly for XML, HTML or JSON files -</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Valid" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Is this file valid</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Message" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Associated information with the valid or well formed status</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- Metadata types: shall be a common default for all AES: Vitam proposition for SEDA 2.0 -->
+    <!-- Text elements -->
+    <xsd:group name="CoreTextTechnicalMetadataGroup">
+        <xsd:annotation>
+            <xsd:documentation>See textMD-v3.01a.xsd and FITS</xsd:documentation>
+            <xsd:documentation>Technical Metadata for Text</xsd:documentation>
+            <xsd:documentation>http://www.loc.gov/standards/textMD/</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="Charset" type="charset:CharacterSetCodeContentType"/>
+            <xsd:element name="LineBreak" type="LineBreakType"/>
+            <xsd:element name="ByteOrder">
+                <xsd:annotation>
+                    <xsd:documentation>Byte order, primarily useful for cases where it’s not clear
+                        just by specifying an IANA character set. Uses a fixed list of ‘big,’
+                        ‘little,’ and ‘middle' endian. </xsd:documentation>
+                </xsd:annotation>
+                <xsd:simpleType>
+                    <xsd:restriction base="ByteOrderType"/>
+                </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="MarkupBasis">
+                <xsd:annotation>
+                    <xsd:documentation>The metalanguage used to create the markup language, that is,
+                        SGML, XML, GML (there’s gotta still be some other there), other.
+                    </xsd:documentation>
+                </xsd:annotation>
+                <xsd:complexType>
+                    <xsd:simpleContent>
+                        <xsd:extension base="xsd:string">
+                            <xsd:attribute name="version" type="xsd:string" use="optional"/>
+                        </xsd:extension>
+                    </xsd:simpleContent>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="MarkupLanguage" type="xsd:string">
+            </xsd:element>
+            <xsd:element name="FileStatus" type="FileStatusType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>File status of a Data Object</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:group>
+    <!-- Document elements -->
+    <xsd:group name="CoreDocumentTechnicalMetadataGroup">
+        <xsd:annotation>
+            <xsd:documentation>See docmd.xsd and FITS</xsd:documentation>
+            <xsd:documentation>http://fclaweb.fcla.edu/content/format-specific-metadata</xsd:documentation>
+            <xsd:documentation>Document Metadata: document technical metadata for digital
+                preservation</xsd:documentation>
+            <xsd:documentation>No specification for Spreadsheet? column and line numbers per table?
+                cell number?</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="CharacterCount" minOccurs="1" type="xsd:nonNegativeInteger">
+                <xsd:annotation>
+                    <xsd:documentation>Total number of characters in the document
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="WordCount" minOccurs="1" type="xsd:nonNegativeInteger">
+                <xsd:annotation>
+                    <xsd:documentation>Total number of words in the document
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="ParagraphCount" minOccurs="1" type="xsd:nonNegativeInteger">
+                <xsd:annotation>
+                    <xsd:documentation>Total number of paragraph (sequences of words ending with CR/LF for instance) in the document
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="PageCount" minOccurs="1" type="xsd:nonNegativeInteger">
+                <xsd:annotation>
+                    <xsd:documentation>Total number of page (depends on format) in the document
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Font" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>A list of fonts used in the document
+                    </xsd:documentation>
+                </xsd:annotation>
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="FontName" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:documentation>Name of a font
+                                </xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="IsEmbedded" type="xsd:boolean">
+                            <xsd:annotation>
+                                <xsd:documentation>An indication of whether or not a font is embedded in a document.
+                                </xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="HasOutline" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>behavior, appearance</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="HasLayers" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>appearance</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="HasAttachments" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>structure, behavior</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="UseTransparency" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>appearance</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="HasAudio" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>content</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="HasVideo" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>content</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="HasScripts" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>appearance, behavior</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="IsProtected" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Is this document protected by a password</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="KeyProtection" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>If the document is password protected, the password</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="IsRightsManaged" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Is this document containing some DRM</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:group>
+    <!-- Audio information -->
+    <xsd:group name="CoreAudioTechnicalMetadataGroup">
+        <xsd:annotation>
+            <xsd:documentation>See
+                http://www.loc.gov/standards/amdvmd/audiovideoMDschemas.html</xsd:documentation>
+            <xsd:documentation>Below FITS as of 0.8.1</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="BitDepth" type="xsd:positiveInteger" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>In general: 8, 16 or 24 (precision per sample)</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="SampleRate" type="xsd:double" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Ex: 44100 for 44 khz</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Channels" type="xsd:nonNegativeInteger" minOccurs="1"/>
+            <xsd:element name="Duration" type="aes60:editUnitNumberType" minOccurs="1"/>
+            <xsd:element name="Codec" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="CodecQuality" type="xsd:NMTOKEN" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>lossy lossless</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:group>
+    <!-- Image elements -->
+    <xsd:group name="CoreImageTechnicalMetadataGroup">
+        <xsd:annotation>
+            <xsd:documentation>http://www.loc.gov/standards/mix/</xsd:documentation>
+            <xsd:documentation>Below FITS as of 0.8.1</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="ImageHeight" type="xsd:positiveInteger" minOccurs="1"/>
+            <xsd:element name="ImageWidth" type="xsd:positiveInteger" minOccurs="1"/>
+            <xsd:element name="ColorSpace" type="xsd:string" minOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>RGB CMYK YCbCr ICCBased ...</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="BitsPerSample" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>1 4 8 8,8,8 8,2,2 16,16,16 8,8,8,8</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="SamplesPerPixel" type="xsd:positiveInteger" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>From 1 to 3 in general</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Gps" type="GpsType" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:group>
+    <!-- Video elements -->
+    <xsd:group name="CoreVideoTechnicalMetadataGroup">
+        <xsd:annotation>
+            <xsd:documentation>See
+                http://www.loc.gov/standards/amdvmd/audiovideoMDschemas.html</xsd:documentation>
+            <xsd:documentation>Below FITS as of 0.8.1</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="ImageHeight" type="xsd:positiveInteger" minOccurs="1"/>
+            <xsd:element name="ImageWidth" type="xsd:positiveInteger" minOccurs="1"/>
+            <xsd:element name="ColorSpace" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>RGB CMYK YCbCr ICCBased ...</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="BitsPerSample" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>1 4 8 8,8,8 8,2,2 16,16,16 8,8,8,8</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="SamplesPerPixel" type="xsd:positiveInteger" minOccurs="0"/>
+            <xsd:element name="Gps" type="GpsType" minOccurs="0"/>
+            
+            <xsd:element name="AspectRatio" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>potentially different than Width/Heidth ratio</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="FrameRate" type="xsd:double" minOccurs="1"/>
+            <xsd:element name="Duration" type="aes60:editUnitNumberType" minOccurs="1"/>
+            <xsd:element name="Codec" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="CodecQuality" type="xsd:NMTOKEN" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>lossy lossless</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Audio" minOccurs="0">
+                <xsd:complexType>
+                    <xsd:group ref="CoreAudioTechnicalMetadataGroup"/>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:group>
+    
+    
+    <!-- Simple types -->
+    <xsd:simpleType name="LineBreakType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="CR"/>
+            <xsd:enumeration value="CR/LF"/>
+            <xsd:enumeration value="LF"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="ByteOrderType">
+        <xsd:annotation>
+            <xsd:documentation>To be used everywhere to represent Byte Order</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="LITTLE_ENDIAN"/>
+            <xsd:enumeration value="BIG_ENDIAN"/>
+            <xsd:enumeration value="MIDDLE_ENDIAN"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+</xsd:schema>

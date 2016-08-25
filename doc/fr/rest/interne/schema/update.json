@@ -1,0 +1,39 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Update",
+    "description": "An update in Vitam DSL",
+    "type": "object",
+    "required": [
+        "queries",
+        "action"
+    ],
+    "properties": {
+        "$roots": {
+            "description": "Contains all root ids",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "$queries": {
+            "description": "Contains all queries",
+            "type": "array",
+            "items": {
+                "type": "object"
+            }
+        },
+        "$filter": {
+            "description": "Contains filter to apply",
+            "type": "object",
+            "properties": {
+                "$mult": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "$action": {
+            "description": "Contains actions to apply as update",
+            "type": "object"
+        }
+    }
+}

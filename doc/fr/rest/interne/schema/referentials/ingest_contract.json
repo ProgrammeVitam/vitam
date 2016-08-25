@@ -1,0 +1,218 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Ingest Contract description",
+  "type": "object",
+  "required": [
+    "id",
+    "preservation_ids",
+    "destruction_delay",
+    "destruction_certificate",
+    "actors",
+    "operations",
+    "defaul_operation",
+    "technical_md",
+    "technical_md_post_action_rules",
+    "technical_md_pre_action_rules",
+    "business_md",
+    "business_md_post_action_rules",
+    "business_md_pre_action_rules",
+    "management_md",
+    "management_md_post_action_rules",
+    "management_md_pre_action_rules",
+    "token_needed",
+    "active"
+  ],
+  "properties": {
+    "id": {
+      "description": "Ingest Contract identifier",
+      "type": "string"
+    },
+    "verbose": {
+      "description": "Shall any usage of this contract be logged verbosely, from 0 to 5",
+      "type": "integer"
+    },
+    "preservation_ids": {
+      "description": "Preservation related Contract's Identifiers (usage versions allowed in result)",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "consolidated_transformation_during_ingest_id": {
+      "description": "Default Consolidated Transformation Contract to apply during ingest",
+      "type": "string"
+    },
+    "ingest_accepted_format_ids": {
+      "description": "List of format identifiers accepted during ingest",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "destruction_delay": {
+      "description": "Delay applicable for destruction: in days, 0=auto, x>0=semi-auto, x=-1=manual, x=-2=no",
+      "type": "integer"
+    },
+    "destruction_certificate": {
+      "description": "Destruction certificate batch planification",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "frequency": {
+            "description": "Frequency in format seconds|hours|days|months|years",
+            "type": "string"
+          },
+          "callback": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "actors": {
+      "description": "Actor's Identifiers with their callback, their protocole and if unitary ingest is allowed",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string"
+          },
+          "protocol": {
+            "description": "What kind of format is allowed as mass entry",
+            "type": "string",
+            "enum": [ "zip", "tar" ]
+          },
+          "unitary": {
+            "description": "True if this ingest contract allows to use the unitary REST Ingest interface",
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "operations": {
+      "description": "Each step is a global operations step, anomaly = 0-4 meaning OK, Info, Warning, Error, Fatal minimal level to lock, callback called only when level reached, callee responsible to unlock by continue/replay/reject, default being continue/continue/continue/reject/reject",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "step": {
+            "description": "One step",
+            "type": "string",
+            "enum": [ "authent", "precheck", "transfer", "global_check", "object_check", "unit_check", "finalization", "conservation", "end" ]
+          },
+          "anomaly": {
+            "description": "0-4 meaning OK, Info, Warning, Error, Fatal minimal level to lock",
+            "type": "integer"
+          },
+          "callback": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "defaul_operation": {
+      "description": "Default operation configuration",
+      "type": "object",
+      "properties": {
+        "anomaly": {
+          "description": "0-4 meaning OK, Info, Warning, Error, Fatal minimal level to lock",
+          "type": "integer"
+        },
+        "callback": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "technical_md_id": {
+      "description": "Technical MD schema Id",
+      "type": "string"
+    },
+    "technical_md_post_action_rules": {
+      "description": "List of action identifiers to apply",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "technical_md_pre_action_rules": {
+      "description": "List of action identifiers to apply",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "business_md_id": {
+      "description": "Business/Descriptive MD schema Id",
+      "type": "string"
+    },
+    "business_md_post_action_rules": {
+      "description": "List of action identifiers to apply",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "business_md_pre_action_rules": {
+      "description": "List of action identifiers to apply",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "management_md_id": {
+      "description": "Management MD schema Id",
+      "type": "string"
+    },
+    "management_md_post_action_rules": {
+      "description": "List of action identifiers to apply",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "management_md_pre_action_rules": {
+      "description": "List of action identifiers to apply",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "token_needed": {
+      "description": "If True, a Token is mandatory to accept an ingest",
+      "type": "boolean"
+    },
+    "frequency": {
+      "description": "Frequency in format seconds|hours|days|months|years",
+      "type": "string"
+    },
+    "volume": {
+      "description": "Describe volume limitations",
+      "type": "object",
+      "properties": {
+        "min": {
+          "description": "Minimal size in Bytes",
+          "type": "integer"
+        },
+        "max": {
+          "description": "Maximal size in Bytes",
+          "type": "integer"
+        },
+        "warning_up": {
+          "description": "Limit size in Bytes before a Warn level",
+          "type": "integer"
+        }
+      }
+    },
+    "active": {
+      "description": "This contract activation status",
+      "type": "boolean"
+    }
+  }
+}

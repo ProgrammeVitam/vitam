@@ -1,0 +1,7 @@
+{
+  "id": "$id_unit$",
+  "name": "abcdef",
+  "creation_date": "2015-07-14T17:07:14Z",
+  "description": "one description of unit",
+  "numerical_information": 55.3
+}

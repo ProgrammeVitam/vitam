@@ -1,0 +1,92 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Global Configuration description",
+  "type": "object",
+  "required": [
+    "destruction",
+    "destruction_journalisation",
+    "default_access_contract",
+    "default_ingest_contract",
+    "audit"
+  ],
+  "properties": {
+    "destruction": {
+      "description": "Global destruction batch planification and callback",
+      "type": "object",
+      "properties": {
+        "frequency": {
+          "description": "Frequency in format seconds|hours|days|months|years",
+          "type": "string"
+        },
+        "callback": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "frequency",
+        "callback"
+      ]
+    },
+    "destruction_journalisation": {
+      "description": "Global destruction journalisation batch planification and callback",
+      "type": "object",
+      "properties": {
+        "frequency": {
+          "description": "Frequency in format seconds|hours|days|months|years",
+          "type": "string"
+        },
+        "callback": {
+          "type": "string"
+        }
+      }
+    },
+    "default_access_contract": {
+      "description": "Default Access contract",
+      "type": "string"
+    },
+    "default_ingest_contract": {
+      "description": "Default Ingest contract",
+      "type": "string"
+    },
+    "audit": {
+      "description": "Global audit batch planification and callback",
+      "type": "object",
+      "properties": {
+        "frequency": {
+          "description": "Frequency in format seconds|hours|days|months|years",
+          "type": "string"
+        },
+        "callback": {
+          "type": "string"
+        }
+      }
+    },
+    "specialized": {
+      "description": "Specialized global audit batch planification and callback",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "audit": {
+            "type": "object",
+            "properties": {
+              "access_contract_id": {
+                "type": "string"
+              },
+              "ingest_contract_id": {
+                "type": "string"
+              },
+              "frequency": {
+                "description": "Frequency in format seconds|hours|days|months|years",
+                "type": "string"
+              },
+              "callback": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

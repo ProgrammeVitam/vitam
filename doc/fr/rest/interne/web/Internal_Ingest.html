@@ -1,0 +1,1085 @@
+<!DOCTYPE HTML><html><head><title>Ingest Internal Module API documentation</title><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="generator" content="https://github.com/kevinrenskers/raml2html 2.4.0"><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.1/styles/default.min.css"><script type="text/javascript" src="https://code.jquery.com/jquery-1.11.0.min.js"></script><script type="text/javascript" src="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script><script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.1/highlight.min.js"></script><script type="text/javascript">
+      $(document).ready(function() {
+        $('.page-header pre code, .top-resource-description pre code').each(function(i, block) {
+          hljs.highlightBlock(block);
+        });
+
+        $('[data-toggle]').click(function() {
+          var selector = $(this).data('target') + ' pre code';
+          $(selector).each(function(i, block) {
+            hljs.highlightBlock(block);
+          });
+        });
+
+        // open modal on hashes like #_action_get
+        $(window).bind('hashchange', function(e) {
+          var anchor_id = document.location.hash.substr(1); //strip #
+          var element = $('#' + anchor_id);
+
+          // do we have such element + is it a modal?  --> show it
+          if (element.length && element.hasClass('modal')) {
+            element.modal('show');
+          }
+        });
+
+        // execute hashchange on first page load
+        $(window).trigger('hashchange');
+
+        // remove url fragment on modal hide
+        $('.modal').on('hidden.bs.modal', function() {
+          if(history && history.replaceState) {
+            history.replaceState({}, '', '#');
+          }
+        });
+      });
+    </script><style>
+      .hljs {
+        background: transparent;
+      }
+      .parent {
+        color: #999  !important;
+      }
+      .list-group-item > .badge {
+        float: none;
+        margin-right: 6px;
+      }
+      .panel-title > .methods {
+        float: right;
+      }
+      .badge {
+        border-radius: 0;
+        text-transform: uppercase;
+        width: 70px;
+        font-weight: normal;
+        color: #f3f3f6  !important;
+        line-height: normal;
+      }
+      .badge_get {
+        background-color: #63a8e2  !important;
+      }
+      .badge_post {
+        background-color: #6cbd7d  !important;
+      }
+      .badge_put {
+        background-color: #22bac4  !important;
+      }
+      .badge_delete {
+        background-color: #d26460  !important;
+      }
+      .badge_patch {
+        background-color: #ccc444  !important;
+      }
+      .list-group, .panel-group {
+        margin-bottom: 0;
+      }
+      .panel-group .panel+.panel-white {
+        margin-top: 0;
+      }
+      .panel-group .panel-white {
+        border-bottom: 1px solid #F5F5F5  !important;
+        border-radius: 0;
+      }
+      .panel-white:last-child {
+        border-bottom-color: white;
+        -webkit-box-shadow: none;
+        box-shadow: none;
+      }
+      .panel-white .panel-heading {
+        background: white;
+      }
+      .tab-pane ul {
+        padding-left: 2em;
+      }
+      .tab-pane h2 {
+        font-size: 1.2em;
+        padding-bottom: 4px;
+        border-bottom: 1px solid #ddd  !important;
+      }
+      .tab-pane h3 {
+        font-size: 1.1em;
+      }
+      .tab-content {
+        border-left: 1px solid #ddd;
+        border-right: 1px solid #ddd;
+        border-bottom: 1px solid #ddd;
+        padding: 10px;
+      }
+      #sidebar {
+        margin-top: 30px;
+        padding-right: 5px;
+        overflow: auto;
+        height: 90%;
+      }
+      .top-resource-description {
+        border-bottom: 1px solid #ddd;
+        background: #fcfcfc;
+        padding: 15px 15px 0 15px;
+        margin: -15px -15px 10px -15px;
+      }
+      .resource-description {
+        border-bottom: 1px solid #fcfcfc;
+        background: #fcfcfc;
+        padding: 15px 15px 0 15px;
+        margin: -15px -15px 10px -15px;
+      }
+      .resource-description p:last-child {
+        margin: 0;
+      }
+      .list-group .badge {
+        float: left;
+      }
+      .method_description {
+        margin-left: 85px;
+      }
+      .method_description p:last-child {
+        margin: 0;
+      }
+      .list-group-item {
+        cursor: pointer;
+      }
+      .list-group-item:hover {
+        background-color: #f5f5f5;
+      }
+    </style></head><body data-spy="scroll" data-target="#sidebar"><div class="container"><div class="row"><div class="col-md-9" role="main"><div class="page-header"><h1>Ingest Internal Module API documentation <small>version v0.0.5</small></h1><p>http://server-internal/ingest/v0.0.5</p><h3 id="Ingests"><a href="#Ingests">Ingests</a></h3><p>Le principe proposé serait le suivant:</p><ul><li>Permet de soumettre un SIP:<ul><li>POST /ingests</li></ul></li><li>Permet de suivre son exécution<ul><li>GET /ingests/id_async</li></ul></li><li>Permet de suivre les opérations<ul><li>GET /ingests</li></ul></li></ul><p>Questions ou remarques:</p><ul><li>Plus tard ingests sera étendu aux cas de construction programatique d&#39;un SIP:<ul><li>Plusieurs requêtes commençant par un POST /ingests pour créer un contexte id_async</li><li>Autres requêtes pour ajouter des Units, des ObjectGroups</li><li>Puis enfin une requête pour commiter l&#39;opération (PATCH /ingests/id_async)</li></ul></li><li>Le post doit être pris comme un stream et non matérialisé (matérialisé sur l&#39;espace de travail)</li></ul></div><div class="panel panel-default"><div class="panel-heading"><h3 id="ingests" class="panel-title">Ingests</h3></div><div class="panel-body"><div class="top-resource-description"><p>API de versement (Ingest). Ce point d&#39;entrée permet de chercher ou de créer une transaction de versement. Une transaction de versement est volatile, c&#39;est à dire qu&#39;elle disparaîtra dès qu&#39;elle sera terminée.</p></div><div class="panel-group"><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_ingests"><span class="parent"></span>/ingests</a> <span class="methods"><a href="#ingests_get"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a> <a href="#ingests_post"><span class="badge badge_post">post <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a></span></h4></div><div id="panel_ingests" class="panel-collapse collapse"><div class="panel-body"><div class="list-group"><div onclick="window.location.href = '#ingests_get'" class="list-group-item"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Liste les opérations d&#39;entrées en cours</p></div><div class="clearfix"></div></div><div onclick="window.location.href = '#ingests_post'" class="list-group-item"><span class="badge badge_post">post <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Crée une transaction d&#39;entrée :</p><ul><li>une requête unique, avec un &#39;body&#39; contenant toutes les informations (Métadonnées dans un foirmat SEDA XML ou Json ainsi que tous les binaires) probablement dans un ZIP</li><li>d&#39;autres formes (multi request through JSON) suivront</li></ul></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="ingests_get"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent"></span>/ingests</h4></div><div class="modal-body"><div class="alert alert-info"><p>Liste les opérations d&#39;entrées en cours</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#ingests_get_request" data-toggle="tab">Request</a></li><li><a href="#ingests_get_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="ingests_get_request"><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Query",
+    "description": "A collection query in Vitam",
+    "type": "object",
+    "required": [
+        "query"
+    ],
+    "properties": {
+        "$query": {
+            "description": "Contains all queries",
+            "type": "string"
+        },
+        "$filter": {
+            "description": "Contains filter to apply",
+            "type": "object",
+            "properties": {
+                "$limit": {
+                    "type": "integer"
+                },
+                "$offset": {
+                    "type": "integer"
+                },
+                "$orderby": {
+                    "type": "array",
+                    "items": {
+                        "type": "object"
+                    }
+                }
+            }
+        },
+      "$projection": {
+            "description": "Contains projection to apply",
+            "type": "object"        
+      }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "query": "name=&#39;abcdef*&#39;&amp;since&gt;&#39;2015-07-14&#39;"
+}</code></pre></div><div class="tab-pane" id="ingests_get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "CollectionList",
+    "description": "A list of unique identifier when requesting a standard collection in Vitam DSL",
+    "type": "object",
+    "required": [
+        "hits",
+        "context",
+        "results"
+    ],
+    "properties": {
+        "hits": {
+            "description": "Contains hits related to reply",
+            "type": "object",
+            "properties": {
+                "total": {
+                    "type": "integer"
+                },
+                "size": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "time_out": {
+                    "type": "boolean"
+                },
+                "next": {
+                  "type": "string",
+                  "description": "async id to get next offset if available (size+offset &lt; total, else will return size=0)"
+                }
+            }
+        },
+        "context": {
+            "description": "Contains Query related to this to reply",
+            "type": "object",
+            "properties": {
+                "query": {
+                    "description": "Contains the string query",
+                    "type": "string"
+                },
+                "filter": {
+                    "description": "Contains filter to apply",
+                    "type": "object",
+                    "properties": {
+                        "$limit": {
+                            "type": "integer"
+                        },
+                        "$offset": {
+                            "type": "integer"
+                        },
+                        "$orderby": {
+                            "type": "array",
+                            "items": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "results": {
+            "description": "Contains real list of unique identifiers",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "hits": {
+    "total": 10,
+    "size": 3,
+    "offset": 0,
+    "limit": 100,
+    "time_out": false,
+    "next": "async_id_next"
+  },
+  "context": {
+    "query": "name=&#39;abcdef*&#39;&amp;since&gt;&#39;2015-07-14&#39;"
+  },
+  "results": [ "id1", "id2", "id3" ]
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for ingests"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in ingests"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in ingests",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="ingests_post"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_post">post <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent"></span>/ingests</h4></div><div class="modal-body"><div class="alert alert-info"><p>Crée une transaction d&#39;entrée :</p><ul><li>une requête unique, avec un &#39;body&#39; contenant toutes les informations (Métadonnées dans un foirmat SEDA XML ou Json ainsi que tous les binaires) probablement dans un ZIP</li><li>d&#39;autres formes (multi request through JSON) suivront</li></ul></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#ingests_post_request" data-toggle="tab">Request</a></li><li><a href="#ingests_post_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="ingests_post_request"><h3>Body</h3><p><strong>Type: application/zip</strong></p><p><strong>Type: multipart/form-data</strong></p><strong>Form Parameters</strong><ul><li><strong>file</strong>: <em>required (file)</em><p>The ZIP to be uploaded</p></li><li><strong>operations</strong>: <em>required (string)</em><p>the lokbook operations proxy as json in string</p><p><strong>Example</strong>:</p><pre>[
+ {
+    "eventIdentifier": "entryId",
+    "eventType": "CheckSeda",
+    "eventDateTime": "2015-07-14T17:32:05Z",
+    "eventIdentifierProcess": "workflowId",
+    "eventTypeProcess": "Ingest",
+    "outcome" : "STARTED",
+    "eventOutcomeDetail": "404_123456",
+    "eventOutcomeDetailMessage": "Error message",
+    "agentIdentifier": "server_identifier",
+    "agentIdentifierApplication": "remoteApplicationId",
+    "agentIdentifierApplicationSession": "X-AID",
+    "eventIdentifierRequest": "W-Request-Id",
+    "agentIdentifierSubmission": "Submission_agency_Id",
+    "agentIdentifierOriginating": "Originating_agency_Id",
+    "objectIdentifier": "Object_or_SIP_Id",
+    "objectIdentifierRequest": "Request_selecting_objects",
+    "objectIdentifierIncome": "MessageIdentifier_in_SEDA"
+  }, {
+    "eventIdentifier": "entryId",
+    "eventType": "CheckSeda",
+    "eventDateTime": "2015-07-14T17:32:05Z",
+    "eventIdentifierProcess": "workflowId",
+    "eventTypeProcess": "Ingest",
+    "outcome" : "OK",
+    "eventOutcomeDetail": "404_123456",
+    "eventOutcomeDetailMessage": "Error message",
+    "agentIdentifier": "server_identifier",
+    "agentIdentifierApplication": "remoteApplicationId",
+    "agentIdentifierApplicationSession": "X-AID",
+    "eventIdentifierRequest": "W-Request-Id",
+    "agentIdentifierSubmission": "Submission_agency_Id",
+    "agentIdentifierOriginating": "Originating_agency_Id",
+    "objectIdentifier": "Object_or_SIP_Id",
+    "objectIdentifierRequest": "Request_selecting_objects",
+    "objectIdentifierIncome": "MessageIdentifier_in_SEDA"
+  }
+]</pre></li></ul></div><div class="tab-pane" id="ingests_post_response"><h2>HTTP status code <a href="http://httpstatus.es/202" target="_blank">202</a></h2><p>Accepted</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Generic Object",
+    "description": "A Generic Object",
+    "type": "object"
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "id": "$id_transfer$",
+  "name": "abcdef",
+  "creation_date": "2015-07-14T17:07:14Z",
+  "transfer": "xxx",
+  "numerical_information": 55.3
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for ingests"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in ingests"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in ingests",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div></div></div></div></div></div></div><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_ingests__id_async_"><span class="parent">/ingests</span>/{id_async}</a> <span class="methods"><a href="#ingests__id_async__get"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a></span></h4></div><div id="panel_ingests__id_async_" class="panel-collapse collapse"><div class="panel-body"><div class="resource-description"><p>Accès à une transaction d&#39;entrée.</p></div><div class="list-group"><div onclick="window.location.href = '#ingests__id_async__get'" class="list-group-item"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Retourne le statut courant de cette transaction de versement.</p></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="ingests__id_async__get"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent">/ingests</span>/{id_async}</h4></div><div class="modal-body"><div class="alert alert-info"><p>Retourne le statut courant de cette transaction de versement.</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#ingests__id_async__get_request" data-toggle="tab">Request</a></li><li><a href="#ingests__id_async__get_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="ingests__id_async__get_request"><h3>URI Parameters</h3><ul><li><strong>id_async</strong>: <em>required (string)</em></li></ul><h3>Headers</h3><ul><li><strong>Accept</strong>: <em>(one of application/json, application/zip, application/octet-stream)</em><p>Permet de spécifier si un résultat doit contenir uniquement des métadonnées (&#39;<em>application/json</em>&#39;), un DIP complet (un ZIP contenant les métadonnées et les objets) ou seulement des <em>Objects</em> avec un contenu binaire (&#39;<em>application/octet-stream</em>&#39;).</p></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>query</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "$queries": [
+    { "$path": "aaaaa" }
+  ],
+  "$filter": { },
+  "$projection": {}
+}</code></pre></div><div class="tab-pane" id="ingests__id_async__get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><p>La procédure est terminée et retourne le résultat</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "AsyncStatus",
+    "description": "An Asynchronous task status in Vitam DSL",
+    "type": "object",
+    "required": [
+        "id",
+        "type",
+        "state"
+    ],
+    "properties": {
+        "id": {
+            "description": "Unique identifier of the asynchronous task.",
+            "type": "string"
+        },
+        "type": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "State of the asynchronous task.",
+            "type": "string"
+        },
+        "task_status": {
+          "type": "string",
+          "enum": [
+            "cancel",
+            "commit"
+          ]
+        },
+        "start_date": {
+            "description": "Start date of the asynchronous task.",
+            "type": "date"
+        },
+        "end_date": {
+            "description": "End date of the asynchronous task (may be null).",
+            "type": "date"
+        },
+        "expiration_date": {
+            "description": "Expiration date of the asynchronous task result (may be null).",
+            "type": "date"
+        },
+        "result_link": {
+            "description": "Link to the asynchronous task result (may be null), default being same_uri/result.",
+            "type": "string"
+        },
+        "error": {
+            "description": "Error information of the asynchronous task.",
+            "type": "object",
+            "$ref": "file://./error.json#"
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+    "id": "$id_async$",
+    "type": "ingest",
+    "state": "done",
+    "task_status": "commit",
+    "start_date": "2014-01-10T03:06:17.396Z",
+    "end_date": "2014-01-20T03:06:17.396Z",
+    "expiration_date": "2014-02-20T03:06:17.396Z",
+    "result_link": "https://xxx/v1/ingests/456",
+    "error": {
+      "http_code": 404,
+      "code": "ingest",
+      "state": "File_Not_Found",
+      "message": "File is not found",
+      "description": "Operation on file xxx cannot be done since file is not found",
+      "errors": [
+        { "http_code": 415, "code": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+        { "http_code": 412, "code": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+      ]
+    }
+}</code></pre><p><strong>Type: application/xml</strong></p><h2>HTTP status code <a href="http://httpstatus.es/202" target="_blank">202</a></h2><p>La procédure n&#39;est pas encore terminée</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for ingests"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in ingests"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in ingests",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div></div></div></div></div></div></div></div></div></div><div class="panel panel-default"><div class="panel-heading"><h3 id="status" class="panel-title">Ingest Module Status</h3></div><div class="panel-body"><div class="top-resource-description"><p>Statut du module d&#39;entrée.</p></div><div class="panel-group"><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel_status"><span class="parent"></span>/status</a> <span class="methods"><a href="#status_get"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span></a></span></h4></div><div id="panel_status" class="panel-collapse collapse"><div class="panel-body"><div class="list-group"><div onclick="window.location.href = '#status_get'" class="list-group-item"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span><div class="method_description"><p>Affichage du statut du Module / Moteur</p></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="status_get"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get <span class="glyphicon glyphicon-lock" title="Authentication required"></span></span> <span class="parent"></span>/status</h4></div><div class="modal-body"><div class="alert alert-info"><p>Affichage du statut du Module / Moteur</p></div><div class="alert alert-warning"><span class="glyphicon glyphicon-lock" title="Authentication required"></span> Secured by x-vitam-platform-key<p>Vitam Platform Key</p></div><ul class="nav nav-tabs"><li class="active"><a href="#status_get_request" data-toggle="tab">Request</a></li><li><a href="#status_get_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="status_get_request"><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul></div><div class="tab-pane" id="status_get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>status</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "id": "abcdef",
+  "service": "serviceName",
+  "start": "2015-07-14T17:07:14Z",
+  "dependencies": [
+    { 
+      "service": "name"
+    }
+  ],
+  "status": "200"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/401" target="_blank">401</a></h2><p>Unauthorized</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for status"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/404" target="_blank">404</a></h2><p>Not Found</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in status"
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/412" target="_blank">412</a></h2><p>Precondition Failed</p><h3>Headers</h3><ul><li><strong>X-RequestId</strong>: <em>(string)</em><p>Identifiant unique de la requête.</p><p><strong>Example</strong>:</p><pre>AbDUh67jj</pre></li><li><strong>FullApiVersion</strong>: <em>(string)</em><p>Version complète de l&#39;API.</p><p><strong>Example</strong>:</p><pre>V2.56</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Error",
+    "description": "An error message in Vitam DSL",
+    "type": "object",
+    "required": [
+        "http_code",
+        "code",
+        "state"
+    ],
+    "properties": {
+        "http_code": {
+            "description": "Short code as in RFC 7231 (Http Status Codes).",
+            "type": "integer"
+        },
+        "code": {
+            "description": "Type of the asynchronous task.",
+            "type": "string",
+            "enum": [
+                "ingest",
+                "freeze",
+                "disposal",
+                "platform"
+            ]
+        },
+        "state": {
+            "description": "Vitam specific short code.",
+            "type": "string"
+        },
+        "message": {
+            "description": "Standard short description.",
+            "type": "string"
+        },
+        "description": {
+            "description": "Long description.",
+            "type": "string"
+        },
+        "errors": {
+            "description": "Sub error descriptions.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "$ref": "#/properties"
+                }
+            }
+        }
+    }
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "code": 412,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition Failed",
+  "description": "Operation on item xxx cannot be done since precondition of operation is failed in status",
+  "errors": [
+    { "code": 415, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}</code></pre></div></div></div></div></div></div></div></div></div></div></div><div class="col-md-3"><div id="sidebar" class="hidden-print affix" role="complementary"><ul class="nav nav-pills nav-stacked"><li><a href="#ingests">Ingests</a></li><li><a href="#status">Ingest Module Status</a></li></ul></div></div></div></div></body></html>

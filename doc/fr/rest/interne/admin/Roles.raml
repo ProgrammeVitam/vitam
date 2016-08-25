@@ -1,0 +1,17 @@
+# root endpoint request
+displayName: Roles
+description: Administration des Rôles.
+type: { collection-write: { createModel: genericObject, exampleModel: !include ../samples/sampleRole.sample, answearModel: genericObject, exampleAnswearModel: !include ../samples/sampleRole.sample } }
+is: [ standardErrors ]
+patch:
+
+/{id_role}:
+  displayName: Role
+  type: { collection-item-write: { createModel: genericObject, exampleModel: !include ../samples/sampleRole.sample, answearModel: genericObject, exampleAnswearModel: !include ../samples/sampleRole.sample } }
+  is: [ standardErrors ]
+  patch:
+  delete:
+
+  /stats:
+    displayName: Role Statistic
+    type: { stats: { answearModel: genericObject, exampleAnswearModel: !include ../samples/statistic.sample, name: un Rôle } }

@@ -1,0 +1,105 @@
+#%RAML 0.8
+title: Ingest External Module
+baseUri: http://server/api/ingest/{version}
+version: v0.0.3
+protocols: [ HTTPS ]
+      
+mediaType: application/json
+
+securitySchemes:
+  - basic:
+      type: Basic Authentication
+
+securedBy: [ basic ]
+
+schemas:
+  - error: !include schema/error.json
+  - async_status: !include schema/async_status.json
+  - task_status: !include schema/task_status.json
+  - answear: !include schema/answear.json
+  - answearList: !include schema/answearList.json
+  - collectionList: !include schema/collection_list.json
+  - collectionQuery: !include schema/collection_query.json
+  - genericObject: !include schema/generic_object.json
+  - projection: !include schema/projection.json
+  - root: !include schema/root.json
+
+traits: !include traits/Traits.raml
+
+resourceTypes: !include resourceTypes/ResourceTypes.raml
+
+documentation:
+  - title: Racine
+    content: |
+      Cet URI permettrait à une application cliente de requêter les services disponibles.
+  - title: Ingests
+    content: |
+      Le principe proposé serait le suivant:
+        - Permet de soumettre un SIP:
+          - POST /ingests
+        - Permet de suivre son exécution
+          - GET /ingests/id_async
+        - Permet de suivre les opérations
+          - GET /ingests
+              
+      Questions ou remarques:
+        - Plus tard ingests sera étendu aux cas de construction programatique d'un SIP:
+          - Plusieurs requêtes commençant par un POST /ingests pour créer un contexte id_async
+          - Autres requêtes pour ajouter des Units, des ObjectGroups
+          - Puis enfin une requête pour commiter l'opération (PATCH /ingests/id_async)
+        - Le Post doit être matériélisé (NAS ?) afin de pouvoir faire un premier test d'antivirus avant de passer la main au module interne d'ingest
+          
+# General
+/: !include resourceTypes/External_Roots.raml
+
+# Ingest
+/ingests:
+  # root endpoint request
+  displayName: Ingests
+  description: API de versement (Ingest). Ce point d'entrée permet de chercher ou de créer une transaction de versement. Une transaction de versement est volatile, c'est à dire qu'elle disparaîtra dès qu'elle sera terminée.
+  type: base
+  is: [ standardErrors ]
+  get:
+    description: Liste les opérations d'entrées en cours
+    body:
+      application/json:
+        schema: collectionQuery
+        example: !include samples/collectionQuery.sample
+    responses:
+      200:
+        body:
+          application/json:
+            schema: collectionList
+            example: !include samples/collectionList.sample
+  post:
+    description: |
+      Crée une transaction d'entrée :
+      - une requête unique, avec un 'body' contenant toutes les informations (Métadonnées dans un foirmat SEDA XML ou Json ainsi que tous les binaires) probablement dans un ZIP
+      - d'autres formes (multi request through JSON) suivront
+    body:
+      application/zip:
+      multipart/form-data:
+        formParameters:
+          file:
+            description: The ZIP to be uploaded
+            required: true
+            type: file
+    responses:
+      201:
+        body:
+          application/json:
+            schema: genericObject
+            example: !include samples/sampleTransfer.sample
+      200:
+        body:
+          application/json:
+            schema: async_status
+            example: !include samples/async_status.sample
+  
+  /{id_async}:
+    displayName: Ingest
+    description: Accès à une transaction d'entrée.
+    type: { collection-item-write: { createModel: task_status, exampleModel: !include samples/task_status.sample, answearModel: async_status, exampleAnswearModel: !include samples/async_status.sample } }
+    is: [ standardErrors ]
+    get:
+      description: Comme dans /async_tasks/{id_ingest}, retourne le statut courant de cette transaction de versement.

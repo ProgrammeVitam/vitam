@@ -1,0 +1,24 @@
+{
+  "id": "abcd",
+  "verbose": 0,
+  "destruction_delay": 0,
+  "destruction_certificate": [
+    { "frequency": "0|0|0|1|0", "callback": "callback_uri" },
+    { "frequency": "0|0|0|0|1", "callback": "callback_uri" }
+  ],
+  "object": {
+    "storage_id": "id_consolidated_storage_offer_3",
+    "audit_frequency": "0|0|0|1|0"
+  },
+  "unit": {
+    "storage_id": "id_consolidated_storage_offer_4",
+    "audit_frequency": "0|0|0|1|0"
+  },
+  "preservation": {
+    "transformation_id": "consolidated_transformation_offer_id",
+    "purge_rule": "1-N+1-N", 
+    "activation": true
+  },
+  "active": true
+}
+  

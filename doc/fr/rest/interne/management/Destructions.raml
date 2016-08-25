@@ -1,0 +1,80 @@
+# root endpoint request
+displayName: Destructions
+description: |
+  Opérations de destruction. Aucune création n'est autorisée puisqu'elles le sont via un batch du système. Néanmoins il existe une requête d'administration via '/ingest_contracts/destruction' ou via '/ingest_contracts/{id_contract}/destruction' pour déclencher un tel batch.
+  
+  Une transaction de destruction est volatile, ce qui signifie qu'elle peut disparaître dès qu'elle est terminée. Cependant les Journaux (logbooks) garderont une trace de celle-ci.
+type: collection
+
+/{id_async}:
+  displayName: Destruction
+  description: Accès à une transaction de Destruction.
+  type: { collection-item-write: { createModel: task_status, exampleModel: !include ../samples/task_status.sample, answearModel: async_status, exampleAnswearModel: !include ../samples/async_status.sample } }
+  is: [ standardErrors ]
+  patch:
+  delete:
+
+  /units:
+    displayName: Destruction Units
+    description: API permettant l'accès aux _Units_ d'une transaction de destruction. Aucun ajout n'est autorisé. Seul les mise à jour (PATCH), les retraits (DELETE) et les accès en lecture (GET) sont autorisés.
+    type: { complexCollection: { queryModel: query, exampleQueryModel: !include ../samples/query.sample, answearModel: answearList, exampleAnswearModel: !include ../samples/answearList.sample, updateModel: update, exampleUpdateModel: !include ../samples/update.sample, createModel: create, exampleCreateModel: !include ../samples/create.sample } }
+    is: [ standardErrors ]
+    patch:
+      description: Update a subset of Units.
+    delete:
+      description: Delete a subset of Units.
+    
+    /{id_unit}:
+      displayName: Destruction Unit
+      description: API permettant l'accès direct à une _Unit_ d'une transaction de destruction selon les modes de requêtes, créations, mise à jour ou effacemennt.
+      type: { collection-item-write: { createModel: genericObject, exampleModel: !include ../samples/sampleUnit.sample, answearModel: genericObject, exampleAnswearModel: !include ../samples/sampleUnit.sample } }
+      is: [ standardErrors ]
+      patch:
+      delete:
+    
+      /object_groups:
+        displayName: Destruction Unit Object Groups
+        description: API permettant l'accès à un unique _Groupe_ d'_Objects_ rattaché à la _Unit_ courante.
+        type: object-group-item
+
+        /{id_object_group}:
+          displayName: Ingest Unit Object Group
+          description: API permettant l'accès direct à un _Groupe_ d'_Objects_ selon des modes de requête.
+          type: { collection-item-write: { createModel: genericObject, exampleModel: !include ../samples/sampleUnit.sample, answearModel: genericObject, exampleAnswearModel: !include ../samples/sampleUnit.sample } }
+          is: [ standardErrors ]
+          get:
+            description: Accès à un _Groupe_ d'_Objects_. Le 'body' optionnel permet de décider quelle partie des métadonnées sont requises en résultat (projection).
+        
+          /objects:
+            displayName: Ingest Unit Objects
+            description: API permettant l'accès à un unique d'_Object_ rattaché au _Groupe_ courant.
+            type: object-item
+            is: [ standardErrors ]
+
+            /{id_object}:
+              displayName: Ingest Unit Object
+              description: API permettant l'accès direct à un _Object_ selon des modes de requête.
+              type: { collection-item-write: { createModel: genericObject, exampleModel: !include ../samples/sampleUnit.sample, answearModel: genericObject, exampleAnswearModel: !include ../samples/sampleUnit.sample } }
+              is: [ standardErrors ]
+              get:
+                description: Accès à un _Object_. Le 'body' optionnel permet de décider quelle partie des métadonnées sont requises en résultat (projection).
+
+            /check:
+              displayName: Ingest Unit Object Check
+              description: API permettant de vérifier un _Object_ particulier.
+              type: object-item-check
+
+          /check:
+            displayName: Ingest Unit Objects Check
+            description: API permettant de vérifier un ensemble d'_Objects_ associé à un _Groupe_ (similaire à /object_groups/id\_object\_group/check).
+            type: object-item-check
+
+        /check:
+          displayName: Ingest Unit Object Group Check
+          description: API permettant de vérifier un _Groupe_ d'_Objects_ particulier.
+          type: object-group-item-check
+
+      /check:
+        displayName: Ingest Unit Object Groups Check
+        description: API permettant de vérifier les _Groupes_ d'_Objects_.
+        type: object-group-item-check

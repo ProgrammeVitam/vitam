@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "title": "Freeze transaction schema.",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "original_unit_ids": {
+      "type": "array",
+      "description": "List of original unit unique identifiers.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "authorized_access_contracts": {
+      "type": "array",
+      "description": "List of access contract unique identifiers.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "preservation_contract": {
+      "type": "string",
+      "description": "Unique identifier of the preservation contract to apply to the freeze transaction."
+    },
+    "access_log_enable": {
+      "type": "boolean",
+      "description": "True to log any access to the freeze units or objects."
+    }
+  }
+}
