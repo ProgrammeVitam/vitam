@@ -12,3 +12,6 @@ logstash_log_dir: "/vitam/log/logstash"
 logstash_conf_dir: "/vitam/conf/logstash"
 logstash_confextra_dir: "{{logstash_conf_dir}}/extra"
 logstash_data_dir: "/vitam/data/logstash"
+
+curator_conf_dir: "/vitam/conf/curator"
+curator_log_dir: "/vitam/log/curator"

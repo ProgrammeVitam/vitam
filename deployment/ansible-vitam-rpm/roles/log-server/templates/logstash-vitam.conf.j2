@@ -208,7 +208,7 @@ output {
 
         #index => "logstash-%{type}-%{+YYYY.MM.dd}"
         index => "logstash-vitam-%{+YYYY.MM.dd}"
-        hosts => ["vitam-iaas-log-01.int3:9200"]
+        hosts => ["{{vitam_logserver_host}}:{{elasticsearch_port}}"]
         #template_overwrite => true
         #manage_template => true
         template => "{{logstash_confextra_dir}}/elasticsearch-template.json"
@@ -216,7 +216,7 @@ output {
       } else {
         elasticsearch {
         index => "logstash-%{type}-%{+YYYY.MM.dd}"
-        hosts => ["vitam-iaas-log-01.int3:9200"]
+        hosts => ["{{vitam_logserver_host}}:{{elasticsearch_port}}"]
         }
       }
     }
@@ -224,7 +224,7 @@ output {
     if [type] =~ "logback" or [type] =~ "elastic" or [type] =~ "mongo" or [type] =~ "scripts" {
         elasticsearch {
           index => "logstash-failure-%{+YYYY.MM.dd}"
-          hosts => ["vitam-iaas-log-01.int3:9200"]
+          hosts => ["{{vitam_logserver_host}}:{{elasticsearch_port}}"]
           template => "{{logstash_confextra_dir}}/elasticsearch-template.json"
         }
      }

@@ -405,3 +405,41 @@
 #   notify:
 #     - restart logstash
 
+- name: remove PyYAML.x86_64
+  yum:
+    name: PyYAML.x86_64
+    state: absent
+
+- name: install Curator
+  yum:
+    name: python-elasticsearch-curator
+    state: latest
+
+- name: ensure logstash directories exist
+  file:
+    path: "/vitam/{{item}}/curator"
+    owner: root
+    state: directory
+    mode: 0755
+  with_items:
+    - data
+    - log
+    - conf
+    - lib
+
+- name: apply configuration files for curator
+  template:
+    src: "{{item}}.j2"
+    dest: "{{curator_conf_dir}}/{{item}}"
+    owner: logstash
+  with_items:
+    - "curator.yml"
+    - "delete_index.yml"
+
+- name: create root crontab entry
+  cron:
+    name="curator purge"
+    minute="50"
+    hour="6"
+    user="root"
+    job="/usr/bin/curator --config {{curator_conf_dir}}/curator.yml {{curator_conf_dir}}/delete_index.yml"
