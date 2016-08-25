@@ -83,8 +83,7 @@ public class WebApplicationResource {
     private static final String NEW_FIELD_VALUE_KEY = "newFieldValue";
 
     /**
-     * @param criteria
-     *            criteria search for units
+     * @param criteria criteria search for units
      * @return Reponse
      */
     @POST
@@ -115,8 +114,7 @@ public class WebApplicationResource {
     }
 
     /**
-     * @param unitId
-     *            archive unit id
+     * @param unitId archive unit id
      * @return archive unit details
      */
     @GET
@@ -150,11 +148,9 @@ public class WebApplicationResource {
     }
 
     /**
-     * @param options
-     *          the queries for searching
+     * @param options the queries for searching
      * @return Response
-     * @throws InvalidParseOperationException
-     *              could not be transfered to Json
+     * @throws InvalidParseOperationException could not be transfered to Json
      */
     @POST
     @Path("/logbook/operations")
@@ -184,13 +180,10 @@ public class WebApplicationResource {
     }
 
     /**
-     * @param operationId
-     *            id of operation
-     * @param options
-     *          the queries for searching
+     * @param operationId id of operation
+     * @param options the queries for searching
      * @return Response
-     * @throws InvalidParseOperationException
-     *              could not be transfered to Json
+     * @throws InvalidParseOperationException could not be transfered to Json
      */
     @POST
     @Path("/logbook/operations/{idOperation}")
@@ -229,7 +222,8 @@ public class WebApplicationResource {
     }
 
     /**
-     * upload the file 
+     * upload the file
+     * TODO : add file name
      *
      * @param stream, data input stream
      * @return Response
@@ -238,14 +232,13 @@ public class WebApplicationResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response upload(InputStream stream){
+    public Response upload(InputStream stream) {
         ParametersChecker.checkParameter("SIP is a mandatory parameter", stream);
         try {
             IngestExternalClientFactory.getInstance().getIngestExternalClient().upload(stream);
         } catch (final IngestExternalException e) {
             LOGGER.error("IngestExternalException in Upload sip", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(e.getMessage())
                 .build();
         }
         return Response.status(Status.OK).build();
@@ -257,8 +250,7 @@ public class WebApplicationResource {
      * @param updateSet conains updated field
      * @param unitId archive unit id
      * @return archive unit details
-     * @throws InvalidParseOperationException
-     *              could not be transfered to Json
+     * @throws InvalidParseOperationException could not be transfered to Json
      */
     @PUT
     @Path("/archiveupdate/units/{id}")
@@ -309,11 +301,9 @@ public class WebApplicationResource {
     }
 
     /**
-     * @param options
-     *          the queries for searching
+     * @param options the queries for searching
      * @return Response
-     * @throws InvalidParseOperationException
-     *              could not be transfered to Json
+     * @throws InvalidParseOperationException could not be transfered to Json
      */
     @POST
     @Path("/admin/formats")
@@ -343,13 +333,10 @@ public class WebApplicationResource {
     }
 
     /**
-     * @param formatId
-     *            id of format
-     * @param options
-     *          the queries for searching
+     * @param formatId id of format
+     * @param options the queries for searching
      * @return Response
-     * @throws InvalidParseOperationException
-     *              could not be transfered to Json
+     * @throws InvalidParseOperationException could not be transfered to Json
      */
     @POST
     @Path("/admin/formats/{idFormat}")
@@ -408,7 +395,7 @@ public class WebApplicationResource {
     @Path("/format/upload")
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response uploadRefFormat(InputStream input){
+    public Response uploadRefFormat(InputStream input) {
         AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
         try {
             client.importFormat(input);
@@ -428,7 +415,7 @@ public class WebApplicationResource {
     @Path("/format/delete")
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    public Response deleteFormat(){
+    public Response deleteFormat() {
         AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
         try {
             client.deleteFormat();

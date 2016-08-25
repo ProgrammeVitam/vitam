@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -24,35 +24,38 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.ingest.external.api;
+
+package fr.gouv.vitam.workspace.common;
+
+import static org.junit.Assert.assertEquals;
+
+import org.junit.Test;
 
 /**
- * IngestExternalOutcomeMessage
+ * RequestResponseError Test
  */
-public enum IngestExternalOutcomeMessage {
-    /**
-     * Virus control / OK: No virus
-     */
-    OK_VIRUS("Le SIP ne contient pas de virus"),
-    /**
-     * Virus control / KO: Viral infection
-     */
-    KO_VIRUS("SIP infecté");
+public class RequestResponseErrorTest {
 
-    private String value;
+    private static RequestResponseError requestResponseError = new RequestResponseError();
 
-    private IngestExternalOutcomeMessage(String value) {
-        this.value = value;
+
+
+    @Test
+    public void testGetSetError() throws Exception {
+        VitamError vitamError = new VitamError(1);
+        requestResponseError.setError(vitamError);
+        assertEquals(vitamError, requestResponseError.getError());
+        RequestResponseError responseError = new RequestResponseError();
+        VitamError error = responseError.getError();
+        assertEquals(0, error.getCode());
     }
 
-    /**
-     * value
-     *
-     * @return : value of status code
-     */
-    public String value() {
-        return value;
+    @Test
+    public void testToString() throws Exception {
+        RequestResponseError responseError = new RequestResponseError();
+        assertEquals("", responseError.toString());
+        VitamError error = new VitamError(0);
+        responseError.setError(error);
+        assertEquals(error.toString(), responseError.toString());
     }
-
-
 }

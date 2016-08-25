@@ -62,9 +62,12 @@ import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageZipException;
 import fr.gouv.vitam.workspace.api.model.ContainerInformation;
 import fr.gouv.vitam.workspace.common.Entry;
 import fr.gouv.vitam.workspace.common.ErrorMessage;
+import fr.gouv.vitam.workspace.common.RequestResponseError;
+import fr.gouv.vitam.workspace.common.VitamError;
 import fr.gouv.vitam.workspace.core.ContentAddressableStorageAbstract;
 import fr.gouv.vitam.workspace.core.filesystem.FileSystem;
 
@@ -121,7 +124,8 @@ public class WorkspaceResource {
         // FIXME REVIEW should be changed to POST /containers/{containername}
 
         try {
-            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), container);
+            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+                container);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(container));
 
             workspace.createContainer(container.getName());
@@ -192,7 +196,7 @@ public class WorkspaceResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createFolder(@PathParam("containerName") String containerName, Entry folder) {
-     // FIXME REVIEW should be changed to POST /containers/{containername}/folders/{foldername}
+        // FIXME REVIEW should be changed to POST /containers/{containername}/folders/{foldername}
         try {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(folder));
             workspace.createFolder(containerName, folder.getName());
@@ -339,7 +343,7 @@ public class WorkspaceResource {
         return Response.ok(stream, MediaType.APPLICATION_OCTET_STREAM).header("Content-Length", stream.available())
             .header("Content-Disposition", "attachment; filename=\"" + objectName + "\"").build();
     }
-    
+
     /**
      * gets an objects from a container in the workspace
      *
@@ -356,7 +360,7 @@ public class WorkspaceResource {
         @PathParam("objectName") String objectName) throws IOException {
         JsonNode jsonResultNode;
         try {
-            jsonResultNode = workspace.getObjectInformation(containerName, objectName);            
+            jsonResultNode = workspace.getObjectInformation(containerName, objectName);
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(e.getMessage());
             return Response.status(Status.NOT_FOUND).entity(containerName).build();
@@ -385,7 +389,7 @@ public class WorkspaceResource {
 
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
-                    containerName, objectName);
+                containerName, objectName);
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
@@ -439,7 +443,7 @@ public class WorkspaceResource {
 
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
-                    containerName, folderName);
+                containerName, folderName);
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
@@ -453,6 +457,19 @@ public class WorkspaceResource {
         } catch (final ContentAddressableStorageAlreadyExistException e) {
             LOGGER.error(e.getMessage());
             return Response.status(Status.CONFLICT).entity(containerName).build();
+        } catch (final ContentAddressableStorageZipException e) {
+            LOGGER.error(e.getMessage());
+            Status status = Status.BAD_REQUEST;
+            // TODO : For now it is generic code "0000" since vitam error code have not been defined
+            return Response.status(status)
+                .entity(new RequestResponseError().setError(
+                    new VitamError(status.getStatusCode())
+                        .setContext("WORKSPACE")
+                        .setState("vitam_code")
+                        .setMessage(status.getReasonPhrase())
+                        .setDescription(status.getReasonPhrase())))
+                .build();
+
         } catch (final ContentAddressableStorageException e) {
             LOGGER.error(e.getMessage());
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();

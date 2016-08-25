@@ -145,7 +145,6 @@ public class SedaUtilsTest {
         assertEquals(utils.getUnitIdToGroupId().size(), 1);
     }
 
-    @Ignore
     @Test
     public void givenGuidWhenXmlExistThenReturnTrue() throws Exception {
         when(workspaceClient.getObject(params.getGuuid(), "SIP/manifest.xml")).thenReturn(seda);
