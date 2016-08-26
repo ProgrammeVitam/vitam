@@ -1,7 +1,7 @@
 #%RAML 0.8
 title: Moteur d'Execution
 baseUri: http://server-internal/processing/api/{version}
-version: v0.0.5
+version: v0.0.7
 protocols: [ HTTP ]
 
 mediaType: application/json
@@ -28,17 +28,17 @@ documentation:
         - Permet de soumettre un workflow à l'exécution:
           - POST /operations
         - Permet d'intervenir sur le comportement de l'exécution et de la distribution (pause, cancel, restart, priorité)
-          - PATCH /operations/id_async
-        - Permet à un worker d'informer de la fin d'exécution d'une étape pour un item
-          - PATCH /operations/id_async
+          - PUT /operations/id_async
+        - Permet à un worker d'informer de la fin d'exécution d'une étape
+          - PUT /operations/id_async
 
-  - title: Worker_Classes
+  - title: Worker_family
     content: |
       Le principe proposé serait le suivant:
-        - Permet de définir les Workers dans des classes (Pool = autre nom ?)
-        - Ne permet pas d'interagir directement avec les Workers (il s'agit de la vision Moteur)
-        - Un worker s'enregistre auprès du moteur via:
-          - POST /worker_classes/id_class/workers intégrant le workerId
+        - Permet de définir les Workers dans des familles
+          - POST /worker_family
+        - Permet l'abonnement et la suppression d'un worker
+          - POST /worker_family/id_family/workers
 
       Questions ou remarques:
         - Le /status pourrait être étendu pour remonter un état statistique du moteur
@@ -53,12 +53,12 @@ documentation:
     description: Permet de lister les opérations en cours
     body:
       application/json:
-        example: !include samples/collectionQuery.sample
+      #  example: !include samples/collectionQuery.sample
     responses:
       200:
         body:
           application/json:
-            example: !include samples/collectionList.sample
+            example: !include samples/operationsList.sample
   post:
     description: Permet de soumettre une opération (workflow + contexte + lot)
     body:
@@ -70,7 +70,7 @@ documentation:
           application/json:
             example: !include samples/async_status.sample
   put:
-    description: Permet si nécessaire d'interagir avec une opération (pause, reprise, repriorisation par exemple)
+    description: Permet d'interagir avec la liste des opérations (pause, reprise, repriorisation par exemple)
     body:
       application/json:
         example: !include samples/genericSample.sample
@@ -97,7 +97,7 @@ documentation:
               schema: genericObject
               example: !include samples/workflow.sample
     put:
-      description: Permet si nécessaire d'interagir avec une opération (pause, reprise, repriorisation par exemple, mais permettrait aussi à un Worker d'indiquer la fin d'une étape pour un item)
+      description: Permet d'interagir avec une opération (pause, reprise, repriorisation par exemple)
       body:
         application/json:
           example: !include samples/genericSample.sample
@@ -107,24 +107,24 @@ documentation:
             application/json:
               example: !include samples/async_status.sample
 
-/worker_classes:
+/worker_family:
   # root endpoint request
-  displayName: Worker's Classes
-  description: Administration des Classes de Workers.
+  displayName: Worker's family
+  description: Administration des familles de Workers.
   type: base
   is: [ standardErrors, standardHeaders ]
   get:
-    description: Permet de lister les opérations en cours
+    description: Permet de lister les familles
     body:
       application/json:
-        example: !include samples/collectionQuery.sample
+      #  example: !include samples/collectionQuery.sample
     responses:
       200:
         body:
           application/json:
-            example: !include samples/collectionList.sample
+            example: !include samples/familyList.sample
   put:
-    description: Permet si nécessaire d'interagir avec les workers de la classe
+    description: Permet d'interagir avec les workers de la famille
     body:
       application/json:
         example: !include samples/genericSample.sample
@@ -134,19 +134,19 @@ documentation:
           application/json:
             example: !include samples/async_status.sample
 
-  /{id_class}:
-    displayName: Worker Class
+  /{id_family}:
+    displayName: Worker family
     type: base
     is: [ standardErrors, standardHeaders ]
     get:
-      description: Permet de récupérer le statut de la Classe (point de vue Moteur)
+      description: Permet de récupérer le statut de la famille
       responses:
         200:
           body:
             application/json:
-              example: !include samples/processing.sample
+              example: !include samples/family.sample
     post:
-      description: Permet de créer une classe de Worker (utile ?)
+      description: Permet de créer une famille de Worker
       body:
         application/json:
           example: !include samples/class.sample
@@ -156,7 +156,7 @@ documentation:
             application/json:
               example: !include samples/processing.sample
     put:
-      description: Permet si nécessaire d'interagir avec la classe
+      description: Permet d'interagir avec la famille
       body:
         application/json:
           example: !include samples/genericSample.sample
@@ -166,7 +166,7 @@ documentation:
             application/json:
               example: !include samples/async_status.sample
     delete:
-      description: Efface une Classe si vide
+      description: Efface une famille si vide
       responses:
         200:
           body:
@@ -174,21 +174,21 @@ documentation:
               example: !include samples/async_status.sample
     /workers:
       displayName: Workers
-      description: API de gestion des Workers d'une Classe.
+      description: API de gestion des Workers d'une famille.
       type: base
       is: [ standardErrors, standardHeaders ]
       get:
         description: Permet de sélectionner un sous-ensemble de Workers.
         body:
           application/json:
-            example: !include samples/collectionQuery.sample
+          #  example: !include samples/workersList.sample
         responses:
           200:
             body:
               application/json:
-                example: !include samples/collectionList.sample
+                example: !include samples/workersList.sample
       delete:
-        description: Efface un sous-ensemble de Workers.
+        description: Efface un sous-ensemble de Workers. Le Delete de tout ou partie des workers d'une famille entraîne l'appel à "unregister" depuis le moteur vers le(s) worker(s) concerné(s), comme pour l'appel direct à un Worker
         body:
           application/json:
             example: !include samples/collectionQuery.sample
@@ -196,7 +196,7 @@ documentation:
           200:
             body:
               application/json:
-                example: !include samples/collectionList.sample
+                example: !include samples/workersList.sample
 
       /{id_worker}:
         displayName: Worker
@@ -204,14 +204,14 @@ documentation:
         type: base
         is: [ standardErrors, standardHeaders ]
         get:
-          description: Accès à un statut d'un Worker (vision Moteur).
+          description: Accès à un statut d'un Worker.
           responses:
             200:
               body:
                 application/json:
-                  example: !include samples/processing.sample
+                  example: !include samples/worker.sample
         post:
-          description: Ajoute un nouveau Worker (abonnement) dans une Classe.
+          description: Ajoute un nouveau Worker (abonnement) dans une famille.
           body:
             application/json:
               example: !include samples/worker.sample
@@ -221,17 +221,17 @@ documentation:
                 application/json:
                   example: !include samples/processing.sample
         put:
-          description: Mise à jour d'un paramètre pour ce Worker (vision Moteur)
+          description: Mise à jour d'un paramètre pour ce Worker
           body:
             application/json:
-              example: !include samples/genericSample.sample
+              example: !include samples/worker.sample
           responses:
             200:
               body:
                 application/json:
                   example: !include samples/async_status.sample
         delete:
-          description: Permet le retrait d'un Worker à cete Classe (désabonnement).
+          description: Permet le retrait d'un Worker à cete famille (désabonnement).
           responses:
             200:
               body:

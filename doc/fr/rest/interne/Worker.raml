@@ -1,33 +1,117 @@
 #%RAML 0.8
-title: Worker API
-baseUri: http://server/worker/api/{version}
-version: v0.0.1
-protocols: [ HTTP, HTTPS ]
+title: Workers
+baseUri: http://server-internal/workers/api/{version}
+version: v0.0.7
+protocols: [ HTTP ]
 
 mediaType: application/json
 
+securitySchemes:
+  - x-vitam-platform-key:
+      type: x-hedader-key
+      description: Vitam Platform Key
+      describedBy:
+        headers:
+          x-vitam-key:
+            type: string
+
+securedBy: [ x-vitam-platform-key ]
+
 traits: !include traits/Traits.raml
 
-resourceTypes: !include resourceTypes/ResourceTypes.raml
+resourceTypes: !include resourceTypes/InternalResourceTypes.raml
 
-/tasks:
+documentation:
+  - title: steps
+    content: |
+      Le principe proposé serait le suivant:
+        - Permet de soumettre une étape à l'exécution:
+          - POST
+        - Permet d'intervenir sur l'exécution d'une étape (pause, cancel, restart, priorité)
+          - PUT /id_async
+        - Permet de récupérer le statut d'une étape
+          - GET /id_async
+
+      Questions ou remarques:
+        - Le /status pourrait être étendu pour avoir des informations statistiques sur le Worker.
+
+/steps:
   # root endpoint request
-  displayName: AsyncTasks
-  description: Administration des Tâches Asynchrones.
-  type: { collection-write-nopatch: { createModel: genericObject, exampleModel: !include ../samples/genericSample.sample, answearModel: genericObject, exampleAnswearModel: !include ../samples/genericSample.sample } }
-  is: [ standardErrors ]
+  displayName: steps
+  description: Administration des steps Asynchrones.
+  type: base
+  is: [ standardErrors, standardHeaders ]
+  get:
+    description: Permet de lister les étapes en cours
+    body:
+      application/json:
+        # example: !include samples/collectionQuery.sample
+    responses:
+      200:
+        body:
+          application/json:
+            example: !include samples/stepsList.sample
   post:
-    description: Permet de soumettre une opération (sur un item)
+   description: Permet de soumettre une étape
+   body:
+    application/json:
+      example: !include samples/workflow.sample
+   responses:
+     202:
+       body:
+         application/json:
+           example: !include samples/async_status.sample
 
   /{id_async}:
-    displayName: AsyncTask
-    type: { collection-item-write: { createModel: task_status, exampleModel: !include ../samples/task_status.sample, answearModel: async_status, exampleAnswearModel: !include ../samples/async_status.sample } }
-    is: [ standardErrors ]
+    displayName: Step
+    type: base
+    is: [ standardErrors, standardHeaders ]
     get:
-      description: Permet de récuprérer le statut actuel d'une opération sur un item
+      description: Permet de récupérer le statut de l'étape
+      body:
+        application/json:
+        #  example: !include samples/genericSample.sample
+      responses:
+        200:
+          body:
+            application/json:
+              example: !include samples/async_status.sample
+    put:
+      description: Permet si nécessaire d'interagir avec une étape (pause, reprise, repriorisation par exemple)
+      body:
+        application/json:
+          example: !include samples/genericSample.sample
+      responses:
+        200:
+          body:
+            application/json:
+              example: !include samples/async_status.sample
 
+/admin:
+  displayName: admin
+  description: Administration du worker
+  type: base
+  is: [ standardErrors, standardHeaders ]
+  put:
+    description: Mise à jour d'un paramètre du Worker
+    body:
+      application/json:
+        example: !include samples/worker.sample
+    responses:
+      202:
+        body:
+          application/json:
+            example: !include samples/async_status.sample
+
+  delete:
+    description: Permet le retrait d'un Worker (désabonnement).
+    responses:
+      200:
+        body:
+          application/json:
+            example: !include samples/processing.sample
 /status:
-  displayName: Worker's Status
-  description: Statut du worker, comme sa charge actuelle, sa capacité, son modèle (classe de Worker).
-  type: { collection }
-  is: [ standardErrors ]
+  displayName: Executor worker Status
+  description: Statut du worker, comme sa charge actuelle.
+  type: { statusCollection }
+  is: [ standardErrors, standardHeaders ]
