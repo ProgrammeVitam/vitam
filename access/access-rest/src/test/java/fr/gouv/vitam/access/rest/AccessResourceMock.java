@@ -24,6 +24,9 @@
 package fr.gouv.vitam.access.rest;
 
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import fr.gouv.vitam.access.api.AccessResource;
@@ -89,6 +92,45 @@ public class AccessResourceMock implements AccessResource {
     @Path("/units/{id_unit}")
     public Response updateUnitById(String dslQuery, @PathParam("id_unit") String unit_id) {
         return Response.status(200).entity("{\"unit\" = \"OK_MockUnits\"}").build();
+    }
+
+    @Override
+    @GET
+    @Path("/objects/{id_object_group}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getObjectGroup(@PathParam("id_object_group") String idObjectGroup, String query) {
+        return Response.status(200).entity("{\"objectGroup\":\"OK_MockObjectGroup\"}").build();
+    }
+
+    @Override
+    @POST
+    @Path("/objects/{id_object_group}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getObjectGroup(@HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xHttpOverride,
+        @PathParam("id_object_group") String idObjectGroup, String query) {
+        return Response.status(200).entity("{\"objectGroup\":\"OK_MockObjectGroup\"}").build();
+    }
+
+    @Override
+    @GET
+    @Path("/objects/{id_object_group}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public Response getObjectStream(@Context HttpHeaders headers, @PathParam("id_object_group") String idObjectGroup,
+        String query) {
+        return Response.status(200).entity("{\"objectGroup\":\"OK_MockObjectGroup\"}").build();
+    }
+
+    @Override
+    @POST
+    @Path("/objects/{id_object_group}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public Response getObjectStreamPost(@Context HttpHeaders headers, @PathParam ("id_object_group") String
+        idObjectGroup, String query) {
+        return Response.status(200).entity("{\"objectGroup\":\"OK_MockObjectGroup\"}").build();
     }
 
 }

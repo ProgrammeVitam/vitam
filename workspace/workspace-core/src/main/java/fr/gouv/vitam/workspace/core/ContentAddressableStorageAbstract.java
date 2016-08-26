@@ -278,7 +278,8 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
             final BlobStore blobStore = context.getBlobStore();
 
             if (!isExistingObject(containerName, objectName)) {
-                LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
+                LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName + " in container '" +
+                    containerName + "'");
                 throw new ContentAddressableStorageNotFoundException(
                     ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
             }

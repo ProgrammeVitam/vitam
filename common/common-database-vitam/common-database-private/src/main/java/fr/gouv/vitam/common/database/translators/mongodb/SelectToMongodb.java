@@ -24,10 +24,19 @@
 package fr.gouv.vitam.common.database.translators.mongodb;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.NumericNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import org.bson.conversions.Bson;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -43,6 +52,12 @@ import fr.gouv.vitam.common.database.parser.request.AbstractParser;
  *
  */
 public class SelectToMongodb extends RequestToMongodb {
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SelectToMongodb.class);
+
+    private static final String UNSUPPORTED_PROJECTION = "Unsupported DSL projection node: '%s'";
+    private static final String SLICE_KEYWORD = "$slice";
+    private static final int REQUIRED_SLICE_ARRAY_SIZE = 2;
 
     /**
      * @param selectParser AbstractParser of unknown type
@@ -97,7 +112,7 @@ public class SelectToMongodb extends RequestToMongodb {
      *
      * @return the projection
      */
-    public Bson getFinalProjection() {
+    public Bson getFinalProjection() throws InvalidParseOperationException {
         if (requestParser.getRequest().getAllProjection()) {
             return null;
         }
@@ -105,32 +120,84 @@ public class SelectToMongodb extends RequestToMongodb {
             .get(PROJECTION.FIELDS.exactToken());
         final List<String> incl = new ArrayList<String>();
         final List<String> excl = new ArrayList<String>();
+        final Map<String, ObjectNode> sliceProjections = new HashMap<>();
         final Iterator<Entry<String, JsonNode>> iterator = node.fields();
         while (iterator.hasNext()) {
             final Entry<String, JsonNode> entry = iterator.next();
-            if (entry.getValue().asInt() > 0) {
-                incl.add(entry.getKey());
+            JsonNode value = entry.getValue();
+            if (value instanceof NumericNode) {
+                if (value.asInt() > 0) {
+                    incl.add(entry.getKey());
+                } else {
+                    excl.add(entry.getKey());
+                }
+            } else if (value instanceof ObjectNode && value.has(SLICE_KEYWORD)) {
+                sliceProjections.put(entry.getKey(), (ObjectNode) value);
             } else {
-                excl.add(entry.getKey());
+                throw new InvalidParseOperationException(String.format(UNSUPPORTED_PROJECTION, JsonHandler
+                    .writeAsString(value)));
             }
         }
-        if (incl.isEmpty()) {
-            if (excl.isEmpty()) {
-                return null;
-            }
-            final Bson projection = Projections.exclude(excl);
-            excl.clear();
-            return projection;
-        } else if (excl.isEmpty()) {
-            final Bson projection = Projections.include(incl);
-            incl.clear();
-            return projection;
-        } else {
-            final Bson projection = Projections.fields(Projections.include(incl),
-                Projections.exclude(excl));
-            excl.clear();
-            incl.clear();
-            return projection;
+
+        if (incl.isEmpty() && excl.isEmpty() && sliceProjections.isEmpty()) {
+            return null;
         }
+
+        return computeBsonProjection(incl, excl, sliceProjections);
+    }
+
+    private Bson computeBsonProjection(List<String> incl, List<String> excl, Map<String, ObjectNode> sliceProjections)
+        throws InvalidParseOperationException {
+        List<Bson> projections = new ArrayList<>();
+        if (!incl.isEmpty()) {
+            projections.add(Projections.include(incl));
+            incl.clear();
+        }
+        if (!excl.isEmpty()) {
+            projections.add(Projections.exclude(excl));
+            excl.clear();
+        }
+        if (!sliceProjections.isEmpty()) {
+            for (Entry<String, ObjectNode> sliceEntry : sliceProjections.entrySet()) {
+                String fieldName = sliceEntry.getKey();
+                ObjectNode sliceNode = sliceEntry.getValue();
+                checkSliceValue(sliceNode);
+                JsonNode sliceValueNode = sliceNode.get(SLICE_KEYWORD);
+                if (sliceValueNode instanceof ArrayNode) {
+                    projections.add(Projections.slice(fieldName, sliceValueNode.get(0).asInt(), sliceValueNode.get
+                        (1).asInt()));
+                } else {
+                    projections.add(Projections.slice(fieldName, sliceValueNode.asInt()));
+                }
+            }
+            sliceProjections.clear();
+        }
+        return Projections.fields(projections);
+    }
+
+    private void checkSliceValue(ObjectNode sliceNode) throws InvalidParseOperationException {
+        JsonNode sliceValueNode = sliceNode.get(SLICE_KEYWORD);
+        if (sliceValueNode instanceof ArrayNode) {
+            ArrayNode sliceValueArray = (ArrayNode) sliceValueNode;
+            if (!isLegalSliceArray(sliceValueArray)) {
+                throw new InvalidParseOperationException(String.format(UNSUPPORTED_PROJECTION, JsonHandler
+                    .writeAsString(sliceNode)));
+            }
+        } else if (!(sliceValueNode instanceof NumericNode)) {
+            throw new InvalidParseOperationException(String.format(UNSUPPORTED_PROJECTION, JsonHandler
+                .writeAsString(sliceNode)));
+        }
+    }
+
+    private boolean isLegalSliceArray(ArrayNode sliceValueArray) {
+        if (sliceValueArray == null || sliceValueArray.size() != REQUIRED_SLICE_ARRAY_SIZE) {
+            return false;
+        }
+        for (JsonNode jsonNode : sliceValueArray) {
+            if (!(jsonNode instanceof NumericNode)) {
+                return false;
+            }
+        }
+        return true;
     }
 }

@@ -78,8 +78,12 @@ public final class MetadataJsonResponseUtils {
             ObjectNode contextNode = JsonHandler.createObjectNode();
             jsonListResponse.set("$context", contextNode);
 
+            // TODO : review if statement because if result.getFinal().get("Result") == null and selectRequest
+            // is instanceof SelectParserMultiple, we have an IllegalArgumentException during call to
+            // getMetadataJsonObject(). This should not be the case
             if (result.getNbResult() > 0 && (selectRequest instanceof SelectParserMultiple ||
                 result.getFinal().get("Result") != null)) {
+                LOGGER.debug("Result document: " + result.getFinal().toJson());
                 jsonListResponse.set("$result", getMetadataJsonObject(result.getFinal().get("Result")));
             } else {
                 jsonListResponse.set("$result", JsonHandler.createObjectNode());

@@ -33,7 +33,7 @@
  * knowledge of the CeCILL 2.1 license and that you accept its terms.
  */
 
-package fr.gouv.vitam.storage.engine.common.header;
+package fr.gouv.vitam.common.server.application;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,7 +45,6 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Strings;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;

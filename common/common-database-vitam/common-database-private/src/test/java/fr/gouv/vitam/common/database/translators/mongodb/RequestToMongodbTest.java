@@ -28,9 +28,11 @@ package fr.gouv.vitam.common.database.translators.mongodb;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import org.bson.BsonDocument;
 import org.bson.conversions.Bson;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -297,7 +299,7 @@ public class RequestToMongodbTest {
     }
 
     @Test
-    public void testSelectGetFianlProjection() throws InvalidParseOperationException {
+    public void testSelectGetFinalProjection() throws InvalidParseOperationException {
         final String example1 =
             "{ $roots : [], $query : [], $filter : {}, $projection : {$fields : {#dua : 1, #all : -1}} }";
         final SelectParserMultiple request1 = new SelectParserMultiple();
@@ -316,6 +318,81 @@ public class RequestToMongodbTest {
         request3.parse(JsonHandler.getFromString(example3));
         final SelectToMongodb rtm3 = new SelectToMongodb(request3);
         assertEquals("{ \"#dua\" : 0 }", MongoDbHelper.bsonToString(rtm3.getFinalProjection(), false));
+
+        final String example4 = "{ $roots : [], $query : [], $filter : {}, $projection : {$fields : {#dua : -1, " +
+            "\"test1\" : {\"$slice\" : 1}}} }";
+        final SelectParserMultiple request4 = new SelectParserMultiple();
+        request4.parse(JsonHandler.getFromString(example4));
+        final SelectToMongodb rtm4 = new SelectToMongodb(request4);
+        assertEquals("{ \"#dua\" : 0, \"test1\" : { \"$slice\" : 1 } }", MongoDbHelper.bsonToString(rtm4
+            .getFinalProjection(), false));
+
+
+        final String example5 = "{ $roots : [], $query : [], $filter : {}, $projection : {$fields : {#dua : -1, " +
+            "\"test1\" : {\"$slice\" : [0,1]}}} }";
+        final SelectParserMultiple request5 = new SelectParserMultiple();
+        request5.parse(JsonHandler.getFromString(example5));
+        final SelectToMongodb rtm5 = new SelectToMongodb(request5);
+        assertEquals("{ \"#dua\" : 0, \"test1\" : { \"$slice\" : [0, 1] } }", MongoDbHelper.bsonToString(rtm5
+            .getFinalProjection(), false));
+
+        final String exampleEmptyProjection = "{ $roots : [], $query : [], $filter : {}, $projection : {$fields:{}} }";
+        final SelectParserMultiple requestEmptyProjection = new SelectParserMultiple();
+        requestEmptyProjection.parse(JsonHandler.getFromString(exampleEmptyProjection));
+        final SelectToMongodb rtmEmptyProjection = new SelectToMongodb(requestEmptyProjection);
+        assertNull(rtmEmptyProjection.getFinalProjection());
+
+        try {
+            // Test invalid slice projection
+            final String example6 = "{ $roots : [], $query : [], $filter : {}, $projection : {$fields : {#dua : -1, " +
+                "\"test1\" : {\"$slice\" : [0,0,1]}}} }";
+            final SelectParserMultiple request6 = new SelectParserMultiple();
+            request6.parse(JsonHandler.getFromString(example6));
+            final SelectToMongodb rtm6 = new SelectToMongodb(request6);
+            rtm6.getFinalProjection();
+            fail("Invalid projection should, an exception should have been raised");
+        } catch (InvalidParseOperationException exc) {
+            // DO NOTHING
+        }
+
+        try {
+            // Test invalid slice projection
+            final String example7 = "{ $roots : [], $query : [], $filter : {}, $projection : {$fields : {#dua : -1, " +
+                "\"test1\" : {\"$slice\" : {\"field\":\"value\"}}}} }";
+            final SelectParserMultiple request7 = new SelectParserMultiple();
+            request7.parse(JsonHandler.getFromString(example7));
+            final SelectToMongodb rtm7 = new SelectToMongodb(request7);
+            rtm7.getFinalProjection();
+            fail("Invalid projection should, an exception should have been raised");
+        } catch (InvalidParseOperationException exc) {
+            // DO NOTHING
+        }
+
+        try {
+            // Test invalid slice projection
+            final String example7 = "{ $roots : [], $query : [], $filter : {}, $projection : {$fields : {#dua : -1, " +
+                "\"test1\" : {\"$slice\" : [\"test\", \"s\"]}}} }";
+            final SelectParserMultiple request7 = new SelectParserMultiple();
+            request7.parse(JsonHandler.getFromString(example7));
+            final SelectToMongodb rtm7 = new SelectToMongodb(request7);
+            rtm7.getFinalProjection();
+            fail("Invalid projection should, an exception should have been raised");
+        } catch (InvalidParseOperationException exc) {
+            // DO NOTHING
+        }
+
+        try {
+            // Test unsupported projection
+            final String example8 = "{ $roots : [], $query : [], $filter : {}, $projection : {$fields : {#dua : -1, " +
+                "\"test1\" : {\"field\":\"value\"}}} }";
+            final SelectParserMultiple request8 = new SelectParserMultiple();
+            request8.parse(JsonHandler.getFromString(example8));
+            final SelectToMongodb rtm8 = new SelectToMongodb(request8);
+            rtm8.getFinalProjection();
+            fail("Invalid projection should, an exception should have been raised");
+        } catch (InvalidParseOperationException exc) {
+            // DO NOTHING
+        }
     }
 
     @Test

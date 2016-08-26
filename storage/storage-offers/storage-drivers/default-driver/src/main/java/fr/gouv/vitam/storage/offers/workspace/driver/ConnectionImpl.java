@@ -67,7 +67,7 @@ import fr.gouv.vitam.storage.driver.model.RemoveObjectResult;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityRequest;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
-import fr.gouv.vitam.storage.engine.common.header.VitamHttpHeader;
+import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 
 /**

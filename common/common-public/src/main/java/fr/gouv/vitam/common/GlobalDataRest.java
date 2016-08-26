@@ -53,4 +53,17 @@ public class GlobalDataRest {
 	 * X-Tenant-Id header used on REST request to identify the concerned tenant
 	 */
 	public static final String X_TENANT_ID = "X-Tenant-Id";
+	/**
+     * X-Qualifier header used on REST request to identify the concerned qualifier
+     */
+    public static final String X_QUALIFIER = "X-Qualifier";
+    /**
+     * X-Version header used on REST request to identify the concerned version
+     */
+    public static final String X_VERSION = "X-Version";
+
+	/**
+	 * The X_STRATEGY_ID header, used in requests to use a particular strategy
+	 */
+	public static final String X_STRATEGY_ID = "X-Strategy-Id";
 }
