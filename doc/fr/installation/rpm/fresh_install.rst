@@ -37,6 +37,8 @@ Ensuite, dans la section ``hosts:vars`` (lignes 62 à 71), renseigner les valeur
    "https_reverse_proxy","<nom ou IP>:<port>",""
 	"proxy_host","Hôte proxy",""
 	"proxy_port","Port du proxy",""
+   "rpm_version","Version à installer",""
+   "days_to_delete","Période de grâce des données sous Elastricsearch avant destuction (valeur en jours)",""
 
 
 A titre informatif, le positionnement des variables ainsi que des dérivations des déclarations de variables sont effectuées sous |repertoire_inventory| ``/group_vars/all``, comme suit :
@@ -59,7 +61,5 @@ ansible-playbook |repertoire_playbook ansible| /vitam.yml -i |repertoire_invento
 
 Si la commande de test se termine avec succès, le déploiement est à réaliser avec la commande suivante :
 
-ansible-playbook |repertoire_playbook ansible|/vitam.yml -i |repertoire_inventory|/<ficher d'inventaire> --become
-
-.. note:: le become est un "au cas où".
+ansible-playbook |repertoire_playbook ansible|/vitam.yml -i |repertoire_inventory|/<ficher d'inventaire> 
 
