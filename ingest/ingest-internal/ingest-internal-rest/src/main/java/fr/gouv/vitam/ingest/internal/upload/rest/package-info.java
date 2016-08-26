@@ -21,9 +21,9 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL license and that you
  * accept its terms.
  * <p>
- * Created by bsui on 30/06/16.
+ * 
  */
 /**
- * Created by bsui on 30/06/16.
+ * upload SIP rest services of internal ingest module package
  */
 package fr.gouv.vitam.ingest.internal.upload.rest;

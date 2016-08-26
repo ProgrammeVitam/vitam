@@ -87,14 +87,8 @@ public class DirectedGraph {
      */
 
     public DirectedGraph(JsonNode jsonGraph) {
-        Iterator<Entry<String, JsonNode>> iterator = jsonGraph.fields();
         indexMapping = new DualHashBidiMap<Integer, String>();
-        vertices = 1;
-        // FIXME use jsonGraph.size();
-        while (iterator.hasNext()) {
-            vertices++;
-            iterator.next();
-        }
+        vertices = jsonGraph.size() + 1;
         adj = (NodeIterable<Integer>[]) new NodeIterable[vertices];
 
         for (int v = 0; v < vertices; v++) {
@@ -122,8 +116,8 @@ public class DirectedGraph {
 
                     addEdge(getIndex(idParent.textValue()), getIndex(idChild));
 
-                    LOGGER.info("source:" + idParent);
-                    LOGGER.info("destin:" + idChild);
+                    LOGGER.debug("source:" + idParent);
+                    LOGGER.debug("destin:" + idChild);
 
                 }
 
@@ -155,8 +149,7 @@ public class DirectedGraph {
      * @param w the head vertex
      * @throws IndexOutOfBoundsException unless both 0 <= v < V and 0 <= w < vertices
      */
-    // FIXME private
-    public void addEdge(int v, int w) {
+    private void addEdge(int v, int w) {
         validateVertex(v);
         validateVertex(w);
         adj[v].add(w);
@@ -170,8 +163,7 @@ public class DirectedGraph {
      * @return the vertices adjacent from vertex <tt>vertices</tt> in this DirectedGraph, as an iterable
      * @throws IndexOutOfBoundsException unless 0 <= v < V
      */
-    // FIXME private
-    public Iterable<Integer> adj(int v) {
+    Iterable<Integer> adj(int v) {
         validateVertex(v);
         return adj[v];
     }
@@ -241,9 +233,8 @@ public class DirectedGraph {
 
     private int addMapIdToIndex(String idXml) {
         if (indexMapping != null) {
-            // FIXME better to directly get the private xmlIdToIndex.get(id) and checking if not null
             BidiMap<String, Integer> xmlIdToIndex = indexMapping.inverseBidiMap();
-            if (!xmlIdToIndex.containsKey(idXml)) {
+            if (xmlIdToIndex.get(idXml) == null) {
                 count++;
                 indexMapping.put(count, idXml);
             }
