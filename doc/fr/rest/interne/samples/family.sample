@@ -1,0 +1,10 @@
+{
+  à compléter...!
+  "familly ": "familyId",
+    [
+      {"worker" : "workerId",
+      "capacity" : "capacity"},
+      {"worker" : "workerId",
+      "capacity" : "capacity"}
+    ]
+}

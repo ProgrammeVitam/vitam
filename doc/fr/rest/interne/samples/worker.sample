@@ -1,6 +1,8 @@
 {
+  à compléter...!
   "name" : "workername",
-  "pool" : "poolname",
+  "family" : "familyname",
   "capacity" : 10,
+  "storage" : 100,
   "status" : "Active"
 }
