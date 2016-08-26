@@ -26,6 +26,15 @@
  */
 package fr.gouv.vitam.ingest.external.rest;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.common.server.VitamServerFactory;
+import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -34,14 +43,9 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 
-
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.common.server.VitamServerFactory;
-import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
-import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 /**
  * Ingest External web application
@@ -49,9 +53,12 @@ import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
 public final class IngestExternalApplication extends AbstractVitamApplication<IngestExternalApplication, IngestExternalConfiguration> {
     private static final String INGEST_EXTERNAL_APPLICATION_STARTS_ON_DEFAULT_PORT =
         "IngestExternalApplication Starts on default port";
+    private static final String INGEST_EXTERNAL_APPLICATION_STARTS_ON_JETTY_CONFIG =
+        "IngestExternalApplication Starts with jetty config";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalApplication.class);
     private static final String INGEST_EXTERNAL_CONF_FILE_NAME = "ingest-external.conf";
     private static Server server;
+    private static IngestExternalConfiguration configuration;
 
     /**
      * LogbookApplication constructor
@@ -84,26 +91,53 @@ public final class IngestExternalApplication extends AbstractVitamApplication<In
      * @throws IllegalStateException
      */
     public static VitamServer startApplication(String[] args) {
+
         try {
-            VitamServer vitamServer;
-            if (args != null && args.length >= 2) {
+            VitamServer vitamServer = null;
+
+            if (args!=null && args.length >= 1) {
+
                 try {
-                    final int port = Integer.parseInt(args[1]);
-                    if (port <= 0) {
-                        LOGGER.info(INGEST_EXTERNAL_APPLICATION_STARTS_ON_DEFAULT_PORT);
-                        vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
+                    final File yamlFile = PropertiesUtils.findFile(args[0]);
+                    configuration = PropertiesUtils.readYaml(yamlFile, IngestExternalConfiguration.class);
+                    String jettyConfig = configuration.getJettyConfig();
+
+                    //TODO ne plus gerer le port en 2e parametres.
+                    //TODO Essayer de le setter dans le fichier de conf jetty
+                    if (args.length >= 2) {
+                        try {
+                            final int port = Integer.parseInt(args[1]);
+                            if (port <= 0) {
+                                LOGGER.info(INGEST_EXTERNAL_APPLICATION_STARTS_ON_DEFAULT_PORT);
+                                vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
+                            } else {
+                                LOGGER.info("IngestExternalApplication Starts on port: " + port);
+                                vitamServer = VitamServerFactory.newVitamServer(port);
+                            }
+                        } catch (final NumberFormatException e) {
+                            LOGGER.info(INGEST_EXTERNAL_APPLICATION_STARTS_ON_DEFAULT_PORT);
+                            vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
+                        }
                     } else {
-                        LOGGER.info("IngestExternalApplication Starts on port: " + port);
-                        vitamServer = VitamServerFactory.newVitamServer(port);
+                        LOGGER.info(INGEST_EXTERNAL_APPLICATION_STARTS_ON_JETTY_CONFIG);
+                        vitamServer = VitamServerFactory.newVitamServerByJettyConf(jettyConfig);
                     }
-                } catch (final NumberFormatException e) {
-                    LOGGER.info(INGEST_EXTERNAL_APPLICATION_STARTS_ON_DEFAULT_PORT);
+
+                } catch (FileNotFoundException e) {
+                    LOGGER.info(INGEST_EXTERNAL_APPLICATION_STARTS_ON_DEFAULT_PORT + ", config file not found ", e);
+                    vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
+                } catch (JsonMappingException e) {
+                    LOGGER.info(INGEST_EXTERNAL_APPLICATION_STARTS_ON_DEFAULT_PORT + ", config file parsing error ", e);
+                    vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
+                } catch (IOException e) {
+                    LOGGER.info(INGEST_EXTERNAL_APPLICATION_STARTS_ON_DEFAULT_PORT + ", config file io error ", e);
                     vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
                 }
             } else {
-                LOGGER.info(INGEST_EXTERNAL_APPLICATION_STARTS_ON_DEFAULT_PORT);
+                LOGGER.info(INGEST_EXTERNAL_APPLICATION_STARTS_ON_DEFAULT_PORT+", empty config file");
                 vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
             }
+
             final IngestExternalApplication application = new IngestExternalApplication();
             application.configure(application.computeConfigurationPathFromInputArguments(args));
             vitamServer.configure(application.getApplicationHandler());

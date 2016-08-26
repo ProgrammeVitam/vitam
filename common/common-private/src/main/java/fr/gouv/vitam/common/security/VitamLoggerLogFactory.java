@@ -47,14 +47,19 @@ public class VitamLoggerLogFactory implements LogFactory {
         return LOG_FACTORY;
     }
 
-    @Override
+    /**
+     * getter of the Logger by module name
+     */
     public Logger getLogger(String moduleName) {
         return new VitamLoggerLog(moduleName);
     }
 
-    @Override
+    /**
+     * getter of the Logger by class
+     * @param clazz
+     * @return Logger
+     */
     public Logger getLogger(@SuppressWarnings("rawtypes") Class clazz) {
         return new VitamLoggerLog(clazz.getName());
     }
-
 }

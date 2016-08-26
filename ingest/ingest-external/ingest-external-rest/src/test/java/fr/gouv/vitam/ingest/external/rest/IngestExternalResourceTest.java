@@ -62,7 +62,9 @@ public class IngestExternalResourceTest {
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
         try {
-            ((BasicVitamServer) vitamServer).stop();
+            if(vitamServer!=null) {
+                ((BasicVitamServer) vitamServer).stop();
+            }
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
         }

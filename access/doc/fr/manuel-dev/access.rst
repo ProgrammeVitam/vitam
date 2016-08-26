@@ -63,6 +63,13 @@ Par défaut, le client est en mode Mock. Il est possible de récupérer directem
       // Récupération explicite du client
       AccessClient client = AccessClientFactory.getInstance().getAccessOperationClient();
 
+
+L'application rest
+******************
+La méthode run avec l'argument de port permet aux tests unitaires de démarrer sur un port spécifique.
+Le premier argument contient le nom du fichier de configuration access.conf (il est templatiser avec ansible)
+
+
 Le client
 *********
 

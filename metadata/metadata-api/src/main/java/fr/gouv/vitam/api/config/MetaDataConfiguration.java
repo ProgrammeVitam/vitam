@@ -33,6 +33,7 @@ public final class MetaDataConfiguration {
     private String host;
     private int port;
     private String dbName;
+    private String jettyConfig;
 
     /**
      * MetaDataConfiguration constructor
@@ -101,6 +102,24 @@ public final class MetaDataConfiguration {
      */
     public MetaDataConfiguration setDbName(String dbName) {
         this.dbName = dbName;
+        return this;
+    }
+
+    /**
+     * getter jettyConfig
+     * @return return the jettyConfig
+     */
+    public String getJettyConfig() {
+        return jettyConfig;
+    }
+
+    /**
+     * setter jettyConfig
+     * @param jettyConfig the jetty config
+     * @return return the jettyConfig
+     */
+    public MetaDataConfiguration setJettyConfig(String jettyConfig) {
+        this.jettyConfig = jettyConfig;
         return this;
     }
 }

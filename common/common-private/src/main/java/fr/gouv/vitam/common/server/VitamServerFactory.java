@@ -28,11 +28,18 @@
 package fr.gouv.vitam.common.server;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Vitam Server factory for REST server
  */
 public class VitamServerFactory {
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamServerFactory.class);
+
     private static final int DEFAULT_PORT = 8082;
     /**
      * Default Server REST port
@@ -82,4 +89,22 @@ public class VitamServerFactory {
         return new BasicVitamServer(port);
     }
 
+    /**
+     * Create a Vitam Server by jetty config
+     *
+     * @param jettyConfigFile
+     * @return vitam server
+     * @throws VitamApplicationServerException
+     */
+    public static VitamServer newVitamServerByJettyConf(final String jettyConfigFile)
+        throws VitamApplicationServerException {
+        try {
+            ParametersChecker.checkParameter("jetty config file", jettyConfigFile);
+            return new BasicVitamServer(jettyConfigFile);
+        } catch (IllegalArgumentException e) {
+            LOGGER.error("Jetty server not run with jetty config file, " + jettyConfigFile + "", e);
+            throw new VitamApplicationServerException(
+                "Jetty server not run with jetty config file, " + jettyConfigFile);
+        }
+    }
 }

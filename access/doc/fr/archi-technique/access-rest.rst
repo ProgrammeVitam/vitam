@@ -31,13 +31,18 @@ classe de démarrage du serveur d'application.
     // démarrage
     public static void main(String[] args) {
         try {
-            final VitamServer vitamServer = startApplication(args);
-            vitamServer.run();
-        } catch (final VitamApplicationServerException exc) {
-            LOGGER.error(exc);
-            throw new IllegalStateException("Cannot start the Access Application Server", exc);
+            startApplication(args);
+            server.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
+
+    Dans le startApplication on effectue le start de VitamServer.
+    Le join permet de lancer les tests unitaires et d'arreter le serveur.
+    Dans le fichier de configuration, le paramètre jettyConfig est à
+    paramétrer avec le nom du fichier de configuration de jetty.
+
 
 
 -AccessResourceImpl
@@ -108,3 +113,4 @@ la classe contient actuellement 4 méthodes :
  La méthode HTTP GET n'est pas compatible, on utilisera une méthode HTTP POST dont l'entête contiendra "X-HTTP-Method-GET" 
  
 le controlleur REST appelle une api qui communique avec le moteur de données (accessModule, cf access-module.rst)
+

@@ -23,9 +23,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.rest;
 
-import java.io.File;
-import java.io.FileReader;
-
+import fr.gouv.vitam.access.config.AccessConfiguration;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.common.server.VitamServerFactory;
+import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -34,16 +39,7 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-
-import fr.gouv.vitam.access.config.AccessConfiguration;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.common.server.VitamServerFactory;
-import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import java.io.File;
 
 /**
  * Access web server application
@@ -53,14 +49,15 @@ public class AccessApplication extends AbstractVitamApplication<AccessApplicatio
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessApplication.class);
     private static final String ACCESS_CONF_FILE_NAME = "access.conf";
 
+    private static VitamServer vitamServer;
     private static Server server;
-    private AccessConfiguration configuration;
+    private static AccessConfiguration configuration;
     private static final String CONFIG_FILE_IS_A_MANDATORY_ARGUMENT = "Config file is a mandatory argument";
 
     /**
      * AccessApplication constructor
      */
-    protected AccessApplication() {
+    public AccessApplication() {
         super(AccessApplication.class, AccessConfiguration.class);
     }
 
@@ -71,27 +68,49 @@ public class AccessApplication extends AbstractVitamApplication<AccessApplicatio
      */
     public static void main(String[] args) {
         try {
-            final VitamServer vitamServer = startApplication(args);
-            vitamServer.run();
-        } catch (final VitamApplicationServerException exc) {
-            LOGGER.error(exc);
-            throw new IllegalStateException("Cannot start the Access Application Server", exc);
+            startApplication(args);
+
+            //TODO centraliser ce join dans un abstract parent
+            if (server!=null && server.isStarted()) {
+                server.join();
+            } else if (vitamServer!=null && vitamServer.getServer()!=null &&
+                vitamServer.getServer().isStarted()) {
+
+                vitamServer.getServer().join();
+            }
+
+        } catch (InterruptedException e) {
+            LOGGER.error(e.getMessage(), e);
+            throw new RuntimeException(e.getMessage());
         }
     }
 
 
     private static void run(AccessConfiguration configuration, int serverPort) throws Exception {
+        final ServletContextHandler context = getAccessServletContext(configuration);
+        server = new Server(serverPort);
+        server.setHandler(context);
+        server.start();
+    }
+
+    private static void run(AccessConfiguration configuration) throws Exception {
+        final ServletContextHandler context = getAccessServletContext(configuration);
+        String jettyConfig = configuration.getJettyConfig();
+        vitamServer = VitamServerFactory.newVitamServerByJettyConf(jettyConfig);
+        vitamServer.configure(context);
+        vitamServer.getServer().start();
+    }
+
+    private static ServletContextHandler getAccessServletContext(AccessConfiguration configuration) {
         final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(JacksonFeature.class);
-
+        resourceConfig.register(new AccessResourceImpl(configuration));
         final ServletContainer servletContainer = new ServletContainer(resourceConfig);
         final ServletHolder sh = new ServletHolder(servletContainer);
         final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
         context.addServlet(sh, "/*");
-        server = new Server(serverPort);
-        server.setHandler(context);
-        server.start();
+        return context;
     }
 
     /**
@@ -101,31 +120,37 @@ public class AccessApplication extends AbstractVitamApplication<AccessApplicatio
      * @return the VitamServer
      * @throws IllegalStateException
      */
-    public static VitamServer startApplication(String[] args) {
+    public static void startApplication(String[] args) {
         try {
-            VitamServer vitamServer;
-            if (args != null && args.length >= 2) {
-                try {
-                    final int port = Integer.parseInt(args[1]);
-                    if (port <= 0) {
-                        LOGGER.info("AccessApplication Starts on default port");
-                        vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
-                    } else {
-                        LOGGER.info("AccessApplication Starts on port: " + port);
-                        vitamServer = VitamServerFactory.newVitamServer(port);
-                    }
-                } catch (final NumberFormatException e) {
-                    LOGGER.info("The port " + args + " is not a number. AccessApplication Starts on default port", e);
-                    vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
-                }
-            } else {
-                LOGGER.info("AccessApplication Starts on default port");
-                vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
-            }
             final AccessApplication application = new AccessApplication();
             application.configure(application.computeConfigurationPathFromInputArguments(args));
-            vitamServer.configure(application.getApplicationHandler());
-            return vitamServer;
+
+            if (args!=null && args.length >= 1) {
+                try {
+                    final File yamlFile = PropertiesUtils.findFile(args[0]);
+                    configuration = PropertiesUtils.readYaml(yamlFile, AccessConfiguration.class);
+
+                    //TODO ne plus gerer le port en 2e parametres.
+                    //TODO Essayer de le setter dans le fichier de conf jetty
+                    if (args.length >= 2) {
+                        int serverPort = Integer.parseInt(args[1]);
+                        if (serverPort <= 0) {
+                            serverPort = VitamServerFactory.getDefaultPort();
+                        }
+                        run(configuration, serverPort);
+                    } else {
+                        run(configuration);
+                    }
+                } catch (final Exception e) {
+                    LOGGER.error(e.getMessage(), e);
+                    throw new RuntimeException(e.getMessage());
+                }
+
+            } else {
+                LOGGER.error(CONFIG_FILE_IS_A_MANDATORY_ARGUMENT);
+                throw new IllegalArgumentException(CONFIG_FILE_IS_A_MANDATORY_ARGUMENT);
+            }
+
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e.getMessage(), e);
             throw new IllegalStateException("Cannot start the Access Application Server", e);
@@ -167,32 +192,63 @@ public class AccessApplication extends AbstractVitamApplication<AccessApplicatio
      * @param arguments : name of configured file
      * @throws RuntimeException
      */
-    public void configure(String... arguments) throws Exception {
+    public synchronized void configure(String... arguments) throws Exception {
 
         if (arguments.length >= 1) {
             try {
-                final FileReader yamlFile = new FileReader(new File(arguments[0]));
-                final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-                configuration = mapper.readValue(yamlFile, AccessConfiguration.class);
-                int serverPort = VitamServerFactory.getDefaultPort();
+                final File yamlFile = PropertiesUtils.findFile(arguments[0]);
+                configuration = PropertiesUtils.readYaml(yamlFile, AccessConfiguration.class);
 
+                int serverPort = VitamServerFactory.getDefaultPort();
                 if (arguments.length >= 2) {
                     serverPort = Integer.parseInt(arguments[1]);
                     if (serverPort <= 0) {
                         serverPort = VitamServerFactory.getDefaultPort();
                     }
+                    run(configuration, serverPort);
+                } else {
+                    run(configuration);
                 }
-                run(configuration, serverPort);
 
             } catch (final Exception e) {
                 LOGGER.error(e.getMessage(), e);
                 throw e;
             }
-
         } else {
             LOGGER.error(CONFIG_FILE_IS_A_MANDATORY_ARGUMENT);
             throw new IllegalArgumentException(CONFIG_FILE_IS_A_MANDATORY_ARGUMENT);
         }
 
+    }
+
+    /**
+     * retrive the jetty server
+     * @return jetty server
+     */
+    public static Server getServer() {
+        return server;
+    }
+
+
+    /**
+     * retrieve the vitam server
+     * @return vitam server
+     */
+    public static VitamServer getVitamServer() {
+        return vitamServer;
+    }
+
+    /**
+     * Stops the server
+     * @throws Exception
+     */
+    public static void stop() throws Exception {
+        //TODO centraliser ce stop dans un abstract parent
+        if (server!=null && server.isStarted()) {
+            server.stop();
+        } else if (vitamServer!=null && vitamServer.getServer()!=null &&
+            vitamServer.getServer().isStarted()) {
+            vitamServer.getServer().stop();
+        }
     }
 }

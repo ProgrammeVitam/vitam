@@ -28,7 +28,9 @@ import static org.junit.Assert.assertNotNull;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Map;
 
+import javax.validation.constraints.AssertTrue;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
@@ -37,14 +39,18 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Response;
 
+import org.eclipse.jetty.server.Connector;
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.handler.HandlerCollection;
+import org.eclipse.jetty.xml.XmlConfiguration;
 import org.eclipse.persistence.jaxb.rs.MOXyJsonProvider;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.glassfish.jersey.test.TestProperties;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 
 import fr.gouv.vitam.access.api.AccessResource;
 import fr.gouv.vitam.access.model.UnitRequestDTO;
@@ -52,63 +58,64 @@ import fr.gouv.vitam.access.model.UnitRequestDTO;
 /**
  * AccessApplication Test class
  */
-public class AccessApplicationTest extends JerseyTest {
+public class AccessApplicationTest {
 
     private final AccessApplication application = new AccessApplication();
 
     private Client client;
-    private WebTarget webTarget;
-
-    @Override
-    public Application configure() {
-        enable(TestProperties.LOG_TRAFFIC);
-        enable(TestProperties.DUMP_ENTITY);
-        enable(TestProperties.CONTAINER_FACTORY);
-        enable(TestProperties.CONTAINER_PORT);
-        set(TestProperties.CONTAINER_PORT, "8082");
-        final ResourceConfig resourceConfig = new ResourceConfig();
-        resourceConfig.packages("fr.gouv.vitam.access.rest");
-        resourceConfig.register(JacksonFeature.class);
-        resourceConfig.register(AccessResourceMock.class);
-        resourceConfig.register(AccessResource.class);
-        resourceConfig.register(MOXyJsonProvider.class);
-
-        return resourceConfig;
-    }
-
 
     @Before
     public void setUpBeforeMethod() throws Exception {
         client = ClientBuilder.newClient();
     }
 
+    @After
+    public void tearDown() throws Exception {
+        if(application!=null && application.getServer()!=null) {
+            application.getServer().stop();
+        }
+    }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = Exception.class)
     public void shouldRaiseAnExceptionWhenConfigureApplicationWithEmptyArgs() throws Exception {
-        application.configure(new String[0]);
+        application.startApplication(new String[0]);
     }
 
     @Test(expected = Exception.class)
     public void shouldRaiseAnExceptionWhenConfigureApplicationWithFileNotFound() throws Exception {
-        application.configure("src/test/resources/notFound.conf");
+        application.startApplication(new String[] {"src/test/resources/notFound.conf"});
     }
 
     @Test
     public void shouldRunServerWhenConfigureApplicationWithFileExists() throws Exception {
-        application.configure("src/test/resources/access.conf", "8088");
+        application.startApplication(new String[] {"src/test/resources/access-test.conf"});
     }
 
-    @Ignore
+    @Test
+    public void shouldStopServerWhenStopApplicationWithFileExistsAndRun() throws Exception {
+        application.startApplication(new String[] {"src/test/resources/access-test.conf"});
+        AccessApplication.stop();
+        Assert.assertTrue(AccessApplication.getVitamServer().getServer().isStopped());
+    }
+
     @Test
     public void shouldUseDefaultPortToRunServerWhenConfigureApplicationWithPortNegative() throws Exception {
-        application.configure("src/test/resources/access.conf", "-12");
+        application.configure("src/test/resources/access-test.conf", "-12");
     }
 
-    @Test(expected = Exception.class)
+    @Test
+    public void shouldStopServerWhenStopApplicationWithFileExistAndRunOnDefaultPort() throws Exception {
+        application.configure("src/test/resources/access-test.conf", "-12");
+        AccessApplication.stop();
+        Assert.assertTrue(AccessApplication.getServer().isStopped());
+    }
+
+    @Test(expected=NumberFormatException.class)
     public void shouldRaiseAnExceptionUseDefaultPortToRunServerWhenConfigureApplicationWithNAN() throws Exception {
-        application.configure("src/test/resources/access.conf", "AA");
+        application.configure("src/test/resources/access-test.conf", "AA");
     }
 
+    /*
     @Ignore
     @Test
     public void shouldExecuteStatusServiceRest() throws URISyntaxException {
@@ -119,7 +126,6 @@ public class AccessApplicationTest extends JerseyTest {
         assertNotNull(response);
         assertEquals(200, response.getStatus());
     }
-
 
     @Ignore
     @Test
@@ -149,11 +155,11 @@ public class AccessApplicationTest extends JerseyTest {
         String status = response.readEntity(String.class);
         assertNotNull(response);
         assertEquals(200, response.getStatus());
-    }
+    }*/
 
 
-    @Test(expected = IllegalStateException.class)
-    public void shouldRaiseAnException_WhenExecuteMainWithEmptyArgs() throws Exception {
-        AccessApplication.main(new String[0]);
+    @Test(expected=Exception.class)
+    public void shouldRaiseAnException_WhenExecuteMainWithEmptyArgs() {
+        AccessApplication.startApplication(new String[0]);
     }
 }

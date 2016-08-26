@@ -7,3 +7,5 @@ Architecture Technique
 
    introduction.rst
    GUID.rst
+   jetty.rst
+

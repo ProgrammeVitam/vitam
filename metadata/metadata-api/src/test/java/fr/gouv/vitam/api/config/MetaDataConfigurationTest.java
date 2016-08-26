@@ -6,20 +6,12 @@ import org.junit.Test;
 
 public class MetaDataConfigurationTest {
     
-    private final String hostTest = "host";
-    private final int portTest = 1234;
-    private final String dbNameTest = "dbNameTest";
-
-    private MetaDataConfiguration config ;
     @Test
-    public void testSetterGetter()
-    {
-        config = new MetaDataConfiguration();
-        config.setHost(hostTest);
-        assertEquals(config.getHost(), hostTest);        
-        config.setPort(portTest);
-        assertEquals(config.getPort(), portTest);      
-        config.setDbName(dbNameTest);
-        assertEquals(config.getDbName(), dbNameTest);          
+    public void testSetterGetter() {
+        MetaDataConfiguration config = new MetaDataConfiguration();
+        assertEquals("host", config.setHost("host").getHost());
+        assertEquals(1234, config.setPort(1234).getPort());
+        assertEquals("dbNameTest", config.setDbName("dbNameTest").getDbName());
+        assertEquals("jettyConfig", config.setJettyConfig("jettyConfig").getJettyConfig());
     }
 }

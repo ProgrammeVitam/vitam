@@ -50,9 +50,13 @@ public class AccessConfigurationTest {
     }
 
     @Test
-    public final void givenAccessConfiguration_whenInstanciateAnsSetsAttributes_ThenReturnTrue() {
+    public final void givenAccessConfiguration_whenInstanciateAndSetAttributes_ThenReturnTrue() {
         final AccessConfiguration accessConfiguration = new AccessConfiguration();
+
         accessConfiguration.setUrlMetaData(urlMetaData);
         assertEquals(urlMetaData, accessConfiguration.getUrlMetaData());
+
+        accessConfiguration.setJettyConfig("jettyFakeConfig");
+        assertEquals("jettyFakeConfig", accessConfiguration.getJettyConfig());
     }
 }

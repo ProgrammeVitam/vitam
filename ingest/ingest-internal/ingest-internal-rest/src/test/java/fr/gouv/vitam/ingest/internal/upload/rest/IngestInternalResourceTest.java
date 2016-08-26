@@ -116,7 +116,9 @@ public class IngestInternalResourceTest {
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
         try {
-            ((BasicVitamServer) vitamServer).stop();
+            if(vitamServer!=null) {
+                ((BasicVitamServer) vitamServer).stop();
+            }
             junitHelper.releasePort(port);
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);

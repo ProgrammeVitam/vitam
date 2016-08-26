@@ -40,6 +40,11 @@ public class BasicVitamServerTest {
 
     private static final String SHOULD_RAIZED_AN_EXCEPTION = "Should raized an exception";
     private static final String SHOULD_NOT_RAIZED_AN_EXCEPTION = "Should not raized an exception";
+    private static final String JETTY_CONFIG_FILE = "jetty-test.xml";
+    private static final String JETTY_CONFIG_FILE_KO1 = "jetty-test-ko1.xml";
+    private static final String JETTY_CONFIG_FILE_KO2 = "jetty-test-ko2.xml";
+    private static final String JETTY_CONFIG_FILE_KO_NOTFOUND = "jetty-test-notFound.xml";
+
 
     private static class MyRunner extends Thread {
         BasicVitamServer server;
@@ -96,4 +101,65 @@ public class BasicVitamServerTest {
         junitHelper.releasePort(port);
     }
 
+    @Test
+    public final void testStartingServerWithCorrectConfig() {
+
+        try {
+            final BasicVitamServer server = new BasicVitamServer(JETTY_CONFIG_FILE);
+            assertTrue(server.isConfigured());
+
+            server.start();
+
+            try {
+                server.getServer().stop();
+            } catch (final Exception e) {
+                fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
+            }
+            server.getServer().destroy();
+
+        } catch (VitamApplicationServerException e) {
+            assertTrue(false);
+        }
+    }
+
+    @Test
+    public final void testNotStartServerWithConfigFailed() {
+
+        try {
+            final BasicVitamServer server = new BasicVitamServer(JETTY_CONFIG_FILE_KO1);
+            assertTrue(server.isConfigured());
+
+            server.start();
+
+            try {
+                server.getServer().stop();
+            } catch (final Exception e) {
+                fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
+            }
+            server.getServer().destroy();
+
+        } catch (VitamApplicationServerException e) {
+            assertFalse(false);
+        }
+    }
+
+    @Test
+    public final void testNotStartServerWithConfigNotFound() {
+
+        try {
+            final BasicVitamServer server = new BasicVitamServer(JETTY_CONFIG_FILE_KO_NOTFOUND);
+        } catch (VitamApplicationServerException e) {
+            assertFalse(false);
+        }
+    }
+
+    @Test
+    public final void testNotStartServerWithConfigCantBeParse() {
+
+        try {
+            final BasicVitamServer server = new BasicVitamServer(JETTY_CONFIG_FILE_KO2);
+        } catch (VitamApplicationServerException e) {
+            assertFalse(false);
+        }
+    }
 }
