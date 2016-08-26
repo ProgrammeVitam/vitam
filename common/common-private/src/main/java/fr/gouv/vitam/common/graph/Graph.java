@@ -26,12 +26,15 @@
  */
 package fr.gouv.vitam.common.graph;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.WeakHashMap;
 
 import org.apache.commons.collections4.BidiMap;
 import org.apache.commons.collections4.bidimap.DualHashBidiMap;
@@ -52,16 +55,16 @@ public class Graph {
     private Vertex[] vertices;
     private int size;
     private int maxSize;
-    private StackHelper stack;
-    int count = 0;
+    private Deque<Vertex> stack;
+    private int count = 0;
 
     // map id_xml index
-    BidiMap<Integer, String> indexMapping;
+    private BidiMap<Integer, String> indexMapping;
 
     // set of roots
-    Set<String> roots;
+    private Set<String> roots;
     // longest path
-    Map<Integer, Set<String>> longestsPath;
+    private Map<Integer, Set<String>> longestsPath;
 
     /**
      * Graph constructor
@@ -69,37 +72,24 @@ public class Graph {
      * @param JsonGraph { "ID027" : { }, "ID028" : { "_up" : [ "ID027" ] }, "ID029" : { "_up" : [ "ID028" ] }}
      */
     public Graph(JsonNode jsonGraph) {
-        Iterator<Entry<String, JsonNode>> iterator = jsonGraph.fields();
         roots = new HashSet<>();
         indexMapping = new DualHashBidiMap<Integer, String>();
-        this.maxSize = 0;
+        this.maxSize = jsonGraph.size();
         // number of vertice
-        // FIXME use jsonGraph.size();
-        while (iterator.hasNext()) {
-            maxSize++;
-            iterator.next();
-        }
-        // create vertices
+        LOGGER.debug("maxSize:" + maxSize);
         vertices = new Vertex[maxSize];
-        LOGGER.info("maxSize:" + maxSize);
-        stack = new StackHelper(maxSize);
+        stack = new ArrayDeque<Vertex>(maxSize);
         for (int i = 0; i < maxSize; i++) {
             addVertex(i + 1);
         }
-
         // parse json to create graph
-
         Iterator<Entry<String, JsonNode>> levelIterator = jsonGraph.fields();
         while (levelIterator.hasNext()) {
             Entry<String, JsonNode> cycle = levelIterator.next();
-
             String idChild = cycle.getKey();
             JsonNode up = cycle.getValue();
             // create mappping
-            // TODO create add method (will check if map index to xml id exist)
-
             addMapIdToIndex(idChild);
-            // indexMapping.put(count, idChild);
 
             if (up != null && up.size() > 0) {
                 final JsonNode arrNode = up.get("_up");
@@ -108,8 +98,8 @@ public class Graph {
 
                     addEdge(getIndex(idParent.textValue()), getIndex(idChild));
 
-                    LOGGER.info("source:" + idParent);
-                    LOGGER.info("destin:" + idChild);
+                    LOGGER.debug("source:" + idParent);
+                    LOGGER.debug("destin:" + idChild);
 
                 }
 
@@ -124,7 +114,7 @@ public class Graph {
         if (indexMapping != null) {
             // FIXME since called many times, better to assign one for all this inverseBidiMap to a private variable
             BidiMap<String, Integer> xmlIdToIndex = indexMapping.inverseBidiMap();
-            if (!xmlIdToIndex.containsKey(idXml)) {
+            if (xmlIdToIndex.get(idXml) == null) {
                 count++;
                 indexMapping.put(count, idXml);
             }
@@ -137,8 +127,7 @@ public class Graph {
      * 
      * @param data
      */
-    // FIXME public ?
-    public void addVertex(int data) {
+    private void addVertex(int data) {
         vertices[size++] = new Vertex(data);
     }
 
@@ -148,8 +137,7 @@ public class Graph {
      * @param source
      * @param destination
      */
-    // FIXME public ?
-    public void addEdge(int source, int destination) {
+    private void addEdge(int source, int destination) {
         vertices[source - 1].adj = new Neighbour(destination - 1, vertices[source - 1].adj);
     }
 
@@ -162,55 +150,18 @@ public class Graph {
         int cost = Integer.MIN_VALUE;
         State state = State.NEW;
 
+        /**
+         * Vertex constructor
+         * 
+         * @param data
+         */
         public Vertex(int data) {
             this.data = data;
         }
     }
-    // FIXME use native Stack (ou Deque si des fonctions plus riches sont nécessaires) from Java instead of this, so as to minimize memory usage
+
     /**
-     * Stack class
-     * 
-     */
-    public class StackHelper {
-        Vertex[] stack;
-        int maxSize;
-        int size;
-
-        /**
-         * 
-         * @param maxSize
-         */
-        public StackHelper(int maxSize) {
-            this.maxSize = maxSize;
-            stack = new Vertex[maxSize];
-        }
-
-        /**
-         * 
-         * @param data
-         */
-        public void push(Vertex data) {
-            stack[size++] = data;
-        }
-
-        /**
-         * 
-         * @return vertex
-         */
-        public Vertex pop() {
-            return stack[--size];
-        }
-
-        /**
-         * 
-         * @return
-         */
-        public boolean isEmpty() {
-            return size == 0;
-        }
-    }
-    /**
-     * 
+     * state enum
      */
     public enum State {
         NEW, VISITED
@@ -236,7 +187,7 @@ public class Graph {
      */
     private Map<Integer, Integer> findLongestsPath(int source) {
         applyTopologicalSort();
-        Map<Integer, Integer> longestsPathMap = new HashMap<Integer, Integer>();
+        Map<Integer, Integer> longestsPathMap = new WeakHashMap<Integer, Integer>();
         vertices[source - 1].cost = 0;
         while (!stack.isEmpty()) {
             Vertex u = stack.pop();
@@ -266,7 +217,7 @@ public class Graph {
      * @return Map<Integer, Integer> :longest path for different roots
      */
     private Map<Integer, Integer> findAllLongestsPath(Set<String> roots) {
-        Map<Integer, Integer> allLongestsPath = new HashMap<Integer, Integer>();
+        Map<Integer, Integer> allLongestsPath = new WeakHashMap<Integer, Integer>();
         for (String rootXmlId : roots) {
             // find longest path for different roots
             Map<Integer, Integer> longestsPathMap = findLongestsPath(getIndex(rootXmlId));
@@ -278,7 +229,7 @@ public class Graph {
                 for (Map.Entry<Integer, Integer> e : longestsPathMap.entrySet()) {
                     Integer key = e.getKey();
                     Integer value = e.getValue();
-                    LOGGER.info("key" + key + "------------ value:" + indexMapping.get(key));
+                    LOGGER.debug("key" + key + "------------ value:" + indexMapping.get(key));
                     if (allLongestsPath.containsKey(key) && allLongestsPath.get(key) < value) {
                         // replace old value
                         allLongestsPath.put(key, value);
@@ -314,7 +265,7 @@ public class Graph {
                 }
             }
         }
-        // FIXME free all internal structures (except longestsPath) before ending
+        paths = null;
         return longestsPath;
     }
 
@@ -343,7 +294,7 @@ public class Graph {
     private int getIndex(String id) {
         int key = 0;
         if (indexMapping != null) {
-            // FIXME better to directly get the private xmlIdToIndex.get(id) and checking if not null
+            // check value if exist
             if (indexMapping.containsValue(id)) {
                 BidiMap<String, Integer> xmlIdToIndex = indexMapping.inverseBidiMap();
                 key = xmlIdToIndex.get(id);

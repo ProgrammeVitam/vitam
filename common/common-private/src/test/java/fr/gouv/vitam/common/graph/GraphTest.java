@@ -62,7 +62,6 @@ public class GraphTest {
         JsonNode json = JsonHandler.getFromFile(file);
         Graph g = new Graph(json);
         assertNotNull(g.getGraphWithLongestPaths());
-        System.out.println(g.getGraphWithLongestPaths());
 
     }
 }
