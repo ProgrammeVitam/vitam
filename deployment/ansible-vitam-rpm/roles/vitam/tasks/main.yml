@@ -42,6 +42,7 @@
     - "logback.xml"
     - "setenv.sh"
     - "antisamy-esapi.xml"
+    - "jetty-config.xml"
 
 - name: Deploy wrapper.sh
   template:
@@ -68,8 +69,8 @@
     owner: "{{ vitam_user }}"
     group: "{{ vitam_group }}"
     mode: "0640"
-  notify:
-    - restart consul
+  # notify:
+  #   - restart consul
 
 - name: Deploy specific configuration files (can override the common configuration files)
   template:

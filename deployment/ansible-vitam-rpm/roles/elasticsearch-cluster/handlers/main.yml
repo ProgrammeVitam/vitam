@@ -1,0 +1,6 @@
+---
+# handlers file for elasticsaerch-cluster
+- name: restart elasticsearch
+  service:
+    name=elasticsearch
+    state=restarted

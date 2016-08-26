@@ -1,4 +1,5 @@
 ---
+# TODO : à déplacer hors de ce playbook, avec mongo-express. Ce cas est uniquement nécessaire pour l'intégration VITAM ; pas en production
 # tasks file for storage-offer-default
 - name: Install Apache package for displaying data content
   yum:
