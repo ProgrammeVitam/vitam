@@ -108,7 +108,7 @@ public final class DslQueryHelper {
         }
 
         select.setQuery(query);
-        LOGGER.error(select.getFinalSelect().toString());
+        LOGGER.info(select.getFinalSelect().toString());
         return select.getFinalSelect().toString();
     }
 
