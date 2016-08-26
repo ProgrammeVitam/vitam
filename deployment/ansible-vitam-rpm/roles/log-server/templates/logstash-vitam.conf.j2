@@ -9,7 +9,7 @@
 #
 # -----------------------------------------------------------------------
 
-input { 
+input {
         stdin {
                 type => "stdin"
         }
@@ -18,7 +18,7 @@ input {
                 command => "vmstat -n | tail -1 > /tmp/vmstat.log; printf `hostname `;cat /tmp/vmstat.log"
                 #command => "/home/Tools/logstash/tools/stats_sys.sh"
                 #envoi le nb toute les 60 secondes
-                interval => 900
+                interval => 60
                 #vmstat -n 60 | unbuffer -p awk -v MYHOST=$(hostname) '{print MYHOST ":" $0}' | netcat -u 10.222.13.69 5515
         }
         file {
@@ -35,7 +35,7 @@ input {
         }
         file {
                 type => "import_elastic"
-                path => "{{elasticsearch_log_dir}}/{{cluster_name}}.log"
+                path => ["{{elasticsearch_log_dir}}/{{cluster_name}}.log"]
                 sincedb_path => "/tmp/data"
                 #start_position => beginning
                 codec => multiline {
@@ -44,6 +44,13 @@ input {
                         what => previous
                 }
         }
+        file {
+                type => "import_curator"
+                path => "{{curator_log_dir}}/curator.log"
+                sincedb_path => "/tmp/data"
+                #start_position => beginning
+        }
+
         # --- syslog input etc ...
         syslog {
                 port => 10514
@@ -86,8 +93,16 @@ filter {
     grok {
       break_on_match => false
       keep_empty_captures => true
+      match => [ "path", "(?:%{UNIXPATH:path_file})/(?<cluster_name>[^.]*)"]
+      match => [ "path_file", "(?:%{UNIXPATH:path_log})/(?<program>[^.]*)"]
+    }
+  }
+  if [type] == "import_curator" {
+    mutate { add_field => [ "type_input", "%{type}" ] }
+    grok {
+      break_on_match => false
+      keep_empty_captures => true
       match => [ "path", "(?:%{UNIXPATH:path_file})/(?<program>[^.]*)"]
-      match => [ "program", "(?<type>[^_]*)[_|-](?<module>[^_]*)[_|-](?<environnement>[^_]*)_(?<instance>[^_-]*)(%{GREEDYDATA:todo})" ]
     }
   }
   #---------------------------
@@ -95,6 +110,8 @@ filter {
       mutate { replace => { type => "logback" } }
   } else if [program] =~ "elastic" {
       mutate { replace => { type => "elastic" } }
+  } else if [program] =~ "curator" {
+      mutate { replace => { type => "curator" } }
   } else if [program] =~ "mongo" {
       mutate { replace => { type => "mongo" } }
   } else if [program] =~ "script" {
@@ -137,11 +154,13 @@ filter {
   # --------------------------------------------------
   if [type] =~ "elastic" {
       grok {
-        break_on_match => false
-        keep_empty_captures => true
-
-        match => [ "message", "(?:\[)%{TIMESTAMP_ISO8601:timestamp}(?:\])\[(?<err_level>[^ ]*)(?:%{SPACE:space}?)(?:\])\[(?<module_name>[^ ]*)(?:%{SPACE:space}?)(?:\])(?:%{SPACE:space}?)\[(?<cluster_name>[^\]]*)(?:\])(?:%{SPACE:space}?)(?:%{GREEDYDATA:msg_info})" ]
-
+        match => [ "message", "(?:\[)%{TIMESTAMP_ISO8601:timestamp}(?:\])\[(?<err_level>[^ ]*)(?:%{SPACE:space}?)(?:\])\[(?<module_name>[^ ]*)(?:%{SPACE:space}?)(?:\])(?:%{SPACE:space}?)\[(?<node_name>[^\]]*)(?:\])(?:%{SPACE:space}?)(?:%{GREEDYDATA:msg_info})" ]
+        overwrite => [ "timestamp" ]
+      }
+  }
+  if [type] =~ "curator" {
+      grok {
+        match => [ "message", "%{TIMESTAMP_ISO8601:timestamp}(?:%{SPACE:space}?)(?<err_level>[^ ]*)(?:%{SPACE:space}?)(?<module_name>[^ ]*)(?:%{SPACE:space}?)(?:%{SPACE:space}?)(?:%{GREEDYDATA:msg_info})" ]
         overwrite => [ "timestamp" ]
       }
   }
@@ -159,7 +178,7 @@ filter {
   }
   # --------------------------------------------------
   if "_grokparsefailure" not in [tags] {
-     if [type] =~ "logback" or [type] =~ "elastic" or [type] =~ "scripts" {
+     if [type] =~ "logback" or [type] =~ "elastic" or [type] =~ "curator" or [type] =~ "scripts" {
          date {
            locale => fr
            #timezone => "UTC"
@@ -170,18 +189,17 @@ filter {
      }
      mutate {
         remove_field => [
+                #"syslog_timestamp", "syslog_message",
                 "syslog_program",
-                #"syslog_timestamp", "syslog_program", "syslog_message",
-                #"message", 
-                #"msg_data",
-                "space", "date_msg", "mois", "jour", "hr", "mn", "sec", 
+                "space", "date_msg", "mois", "jour", "hr", "mn", "sec",
                 "severity", "facility", "facility_label", "severity_label", "priority",
-                "taille_bdy", "msg_err",
-                "httpversion",
                 "request",
                 "request_info",
-                "useragent",
                 "path",
+                "path_file",
+                "path_log",
+                "message",
+                "msg_data",
                 #"timestamp",
                 "@version"
                            ]
@@ -198,25 +216,29 @@ filter {
 output {
   if "_grokparsefailure" not in [tags] {
     if "drop" not in [tags] {
-      if [type] =~ "logback" or [type] =~ "elastic" or [type] =~ "mongo" or [type] =~ "scripts" {
+      if [type] =~ "logback" or [type] =~ "mongo" or [type] =~ "scripts" {
         elasticsearch {
 
-        #flush_size => 10000
-        #idle_flush_time => 1
-        #idle_flush_time => 2
-        #workers => 20
+          #flush_size => 10000
+          #idle_flush_time => 1
+          #idle_flush_time => 2
+          #workers => 20
 
-        #index => "logstash-%{type}-%{+YYYY.MM.dd}"
-        index => "logstash-vitam-%{+YYYY.MM.dd}"
-        hosts => ["{{vitam_logserver_host}}:{{elasticsearch_port}}"]
-        #template_overwrite => true
-        #manage_template => true
-        template => "{{logstash_confextra_dir}}/elasticsearch-template.json"
+          template => "{{logstash_confextra_dir}}/elasticsearch-template.json"
+          index => "logstash-vitam-%{+YYYY.MM.dd}"
+          hosts => ["{{vitam_logserver_host}}:{{elasticsearch_port}}"]
         }
       } else {
-        elasticsearch {
-        index => "logstash-%{type}-%{+YYYY.MM.dd}"
-        hosts => ["{{vitam_logserver_host}}:{{elasticsearch_port}}"]
+        if [type_input] == "import_elastic" or [type_input] == "import_curator" {
+          elasticsearch {
+            index => "logstash-logs-%{+YYYY.MM.dd}"
+            hosts => ["{{vitam_logserver_host}}:{{elasticsearch_port}}"]
+          }
+        } else {
+          elasticsearch {
+            index => "logstash-%{type}-%{+YYYY.MM.dd}"
+            hosts => ["{{vitam_logserver_host}}:{{elasticsearch_port}}"]
+          }
         }
       }
     }
@@ -225,7 +247,6 @@ output {
         elasticsearch {
           index => "logstash-failure-%{+YYYY.MM.dd}"
           hosts => ["{{vitam_logserver_host}}:{{elasticsearch_port}}"]
-          template => "{{logstash_confextra_dir}}/elasticsearch-template.json"
         }
      }
   }
@@ -235,5 +256,3 @@ output {
     codec => rubydebug
   }
 }
-
-

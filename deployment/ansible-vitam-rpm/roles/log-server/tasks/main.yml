@@ -246,6 +246,10 @@
     block: |
       index.number_of_replicas: 0
       index.refresh_interval: 10s
+      indices.memory.index_buffer_size: 30%
+      index.translog.flush_threshold_ops: 50000
+      refresh_interval_in_millis: 30000
+      threadpool.search.queue_size: 12000
 
 
 # OMA: prévoir pour Easticsaerch aussi l'arborescence des data, log et work_dir ???
@@ -405,7 +409,7 @@
 #   notify:
 #     - restart logstash
 
-- name: remove PyYAML.x86_64
+- name: remove PyYAML.x86_64 as incompatible with Curator
   yum:
     name: PyYAML.x86_64
     state: absent
