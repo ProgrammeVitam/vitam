@@ -66,10 +66,10 @@ public final class DslQueryHelper {
      * generate the DSL query after receiving the search criteria
      * 
      * 
-     * @param searchCriteriaMap
+     * @param searchCriteriaMap the map containing the criteria
      * @return DSL request
-     * @throws InvalidParseOperationException
-     * @throws InvalidCreateOperationException
+     * @throws InvalidParseOperationException if a parse exception is encountered
+     * @throws InvalidCreateOperationException if an Invalid create operation is encountered
      */
     public static String createSingleQueryDSL(Map<String, String> searchCriteriaMap)
         throws InvalidParseOperationException, InvalidCreateOperationException {
@@ -97,7 +97,7 @@ public final class DslQueryHelper {
                     break;
 
                 case FORMAT:
-                    query.add(exists(PUID));
+                    query.add(exists(PUID));                    
                     break;    
 
                 default:
@@ -150,7 +150,7 @@ public final class DslQueryHelper {
                 select.addRoots(searchValue);
                 continue;
             }
-
+           
             // By default add equals query
             booleanQueries.add(eq(searchKeys, searchValue));
 

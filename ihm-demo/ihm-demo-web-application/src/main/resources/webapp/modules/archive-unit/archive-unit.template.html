@@ -1,51 +1,43 @@
 <header id="mainHeader" class="navbar navbar-default navbar-fixed-top">
-  <md-toolbar class="md-primary">
-    <div layout="row">
-      <md-toolbar-filler layout layout-align="center center">
-        <md-icon md-svg-icon="call:chat"></md-icon>
-      </md-toolbar-filler>
-      <div>
-        <img src="images/150321-LogoVITAMV1-mini.jpg"/>
-      </div>
-      <div class="md-toolbar-tools">
-        <h2 class="md-flex">Formulaire de l'Archive Unit : {{$ctrl.archiveId}} / {{$ctrl.archiveTitle}}</h2>
-      </div>
+	<md-toolbar class="md-primary">
+	<div layout="row">
+		<md-toolbar-filler layout layout-align="center center">
+		<md-icon md-svg-icon="call:chat"></md-icon> </md-toolbar-filler>
+		<div>
+			<img src="images/150321-LogoVITAMV1-mini.jpg" />
+		</div>
+		<div class="md-toolbar-tools">
+			<h2 class="md-flex">Formulaire de l'Archive Unit :
+				{{$ctrl.archiveId}} / {{$ctrl.archiveTitle}}</h2>
+		</div>
 
-      <md-fab-toolbar md-open="false" count="0" md-direction="left">
-        <md-fab-trigger class="align-with-text">
-          <md-button aria-label="menu" class="md-fab" style = "background-color: white">
-            <md-icon md-svg-src="images/ic_menu_black_24px.svg"></md-icon>
-          </md-button>
-        </md-fab-trigger>
-        <md-toolbar>
-          <md-fab-actions class="md-toolbar-tools">
-            <md-button ng-if = "!$ctrl.isEditMode" aria-label="comment" class="md-icon-button" ng-click="$ctrl.switchToEditMode()" tooltip = "Modifier">
-              <md-icon  md-svg-src="images/ic_mode_edit_black_24px.svg"></md-icon>
-            </md-button>
-            <md-button ng-if = "$ctrl.isEditMode" aria-label="photo" class="md-icon-button" ng-click="$ctrl.cancelChanges()" tooltip = "Annuler">
-              <md-icon md-svg-src="images/ic_cancel_black_24px.svg"></md-icon>
-            </md-button>
-
-            <md-button tooltip = "Enregistrer" aria-label="label" class="md-icon-button" ng-click="$ctrl.saveModifications($event)">
-              <md-icon md-svg-src="images/ic_save_black_24px.svg"></md-icon>
-            </md-button>
-          </md-fab-actions>
-        </md-toolbar>
-      </md-fab-toolbar>
-    </div>
-  </md-toolbar>
+		<md-fab-toolbar md-open="false" count="0" md-direction="left">
+		<md-fab-trigger class="align-with-text"> <md-button
+			aria-label="menu" class="md-fab" style="background-color: white">
+		<md-icon md-svg-src="images/ic_menu_black_24px.svg"></md-icon> </md-button> </md-fab-trigger> <md-toolbar>
+		<md-fab-actions class="md-toolbar-tools"> <md-button
+			ng-if="!$ctrl.isEditMode" aria-label="comment" class="md-icon-button"
+			ng-click="$ctrl.switchToEditMode()" tooltip="Modifier"> <md-icon
+			md-svg-src="images/ic_mode_edit_black_24px.svg"></md-icon> </md-button> <md-button
+			ng-if="$ctrl.isEditMode" aria-label="photo" class="md-icon-button"
+			ng-click="$ctrl.cancelChanges()" tooltip="Annuler"> <md-icon
+			md-svg-src="images/ic_cancel_black_24px.svg"></md-icon> </md-button> <md-button
+			tooltip="Enregistrer" aria-label="label" class="md-icon-button"
+			ng-click="$ctrl.saveModifications($event)"> <md-icon
+			md-svg-src="images/ic_save_black_24px.svg"></md-icon> </md-button> </md-fab-actions> </md-toolbar> </md-fab-toolbar>
+	</div>
+	</md-toolbar>
 </header>
 
 <!-- <pre>{{$ctrl.updateQueryFields}}</pre>
 <pre>{{$ctrl.archiveArray}}</pre> -->
 
-
- <!-- <md-content flex layout-padding> -->
-   <md-card class="page">
-   <!-- <div class="container-fluid"> -->
-     <div class="row">
-       <div class="col-xs-12">
-         <script type="text/ng-template" id="fieldTree">
+<div class="panel panel-default col-md-12">
+	<!-- <md-content flex layout-padding> -->
+	<md-card class="page"> <!-- <div class="container-fluid"> -->
+	<div class="row">
+		<div class="col-xs-12">
+			<script type="text/ng-template" id="fieldTree">
 
                <!-- Simple Field -->
                <div class="row simple-field" ng-if="fieldSet.typeF!=='P' && fieldSet.isChild==false">
@@ -96,9 +88,53 @@
                </v-accordion>
 
            </script>
-           <div class="{{fieldSet.typeF !=='P'?'col-xs-12 col-md-4': 'col-xs-12 col-md-12'}}" ng-repeat="fieldSet in $ctrl.archiveArray" ng-include="'fieldTree'"></div>
-         </div>
-       </div>
-   <!-- </div> -->
-   </md-card>
- <!-- </md-content> -->
+			<div
+				class="{{fieldSet.typeF !=='P'?'col-xs-12 col-md-4': 'col-xs-12 col-md-12'}}"
+				ng-repeat="fieldSet in $ctrl.archiveArray" ng-include="'fieldTree'"></div>
+		</div>
+	</div>
+</div>
+<!-- </div> -->
+</md-card>
+<!-- </md-content> -->
+
+<div class="clearfix"></div>
+
+<!--
+*
+*    RESULTATS
+*
+-->
+<div class="panel panel-default col-md-12">
+	<a class="panel-header" data-toggle="collapse" data-target="#boxObjectsResults">
+		<h2>Résultats</h2>
+	</a>
+	<div id="boxObjectsResults" class="panel-body panel-collapse collapse in">
+		<div class="table-responsive ">
+			<table class="table table-hover">
+				<thead>
+					<tr>
+						<th>Usage</th>
+						<th>Taille</th>
+						<th>Format</th>
+						<th>Date</th>
+						<th>Téléchargement</th>
+					</tr>
+				</thead>
+				<tbody>					
+					<tr ng-repeat="version in archiveObjectGroups.versions | orderBy : 'DataObjectVersion'">
+						<td>{{version.DataObjectVersion}}</td>
+						<td>{{version.Size | filterSize}}</td>
+						<td>{{version.FormatLitteral}}</td>						
+						<td>{{version.LastModified  | date:"dd/MM/yyyy"}}</td>
+						<td>
+							<a href="" ng-click="download($event, archiveObjectGroupsOgId , version.DataObjectVersion, version.Rank, version.FileName)" target="_blank">
+								<i class="material-icons">file_download</i>
+							</a>  
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>

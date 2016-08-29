@@ -70,6 +70,10 @@ public class ParserTokens extends BuilderToken {
          */
         ALL("all"),
         /**
+         * Qualifiers field
+         */
+        QUALIFIERS("qualifiers"),
+        /**
          * Object size
          */
         SIZE("size"),
@@ -136,6 +140,7 @@ public class ParserTokens extends BuilderToken {
                         case FORMAT:
                         case ID:
                         case NBUNITS:
+                        case QUALIFIERS:
                         case SIZE:
                             return true;
                         default:

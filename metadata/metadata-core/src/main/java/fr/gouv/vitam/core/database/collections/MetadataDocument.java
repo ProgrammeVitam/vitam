@@ -56,6 +56,11 @@ public abstract class MetadataDocument<E> extends Document {
     /**
      * Object Type (text, audio, video, document, image, ...) Unit Type (facture, paye, ...)
      */
+    public static final String QUALIFIERS = "_qualifiers";
+    
+    /**
+     * Object Type (text, audio, video, document, image, ...) Unit Type (facture, paye, ...)
+     */
     public static final String TYPE = "_type";
     /**
      * DomainId

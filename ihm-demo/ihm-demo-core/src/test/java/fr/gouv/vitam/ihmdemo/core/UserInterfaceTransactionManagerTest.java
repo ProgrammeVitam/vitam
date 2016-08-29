@@ -29,6 +29,10 @@ package fr.gouv.vitam.ihmdemo.core;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
+import java.io.InputStream;
+
+import org.apache.commons.io.IOUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,8 +44,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.access.client.AccessClient;
 import fr.gouv.vitam.access.client.AccessClientFactory;
+import fr.gouv.vitam.access.client.AccessClientMock;
 import fr.gouv.vitam.access.common.exception.AccessClientNotFoundException;
 import fr.gouv.vitam.access.common.exception.AccessClientServerException;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
@@ -51,59 +57,66 @@ import fr.gouv.vitam.common.json.JsonHandler;
  */
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ AccessClientFactory.class })
+@PrepareForTest({AccessClientFactory.class})
 public class UserInterfaceTransactionManagerTest {
-	private static String SELECT_ID_DSL_QUERY = "{ $roots : [ '1' ] }";
-	private static String SEARCH_UNIT_DSL_QUERY = "{ \"$queries\": [$eq : { '#id' : 1 }], \"$filter\": {$orderby : { TransactedDate : 1 } }, "
-			+ "\"$projection\": {$fields : {#id : 1, Title : 1, TransactedDate:1 }}}";
-	private static String ID_UNIT = "1";
-	private static String UNIT_DETAILS = "{_id: '1', Title: 'Archive 1', DescriptionLevel: 'Archive Mock'}";
-	private static String SEARCH_RESULT = "{$hint: {'total':'1'}, $result:[{'_id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}";
+    private static String SELECT_ID_DSL_QUERY = "{ $roots : [ '1' ] }";
+    private static String SEARCH_UNIT_DSL_QUERY =
+        "{ \"$queries\": [$eq : { '#id' : 1 }], \"$filter\": {$orderby : { TransactedDate : 1 } }, " +
+            "\"$projection\": {$fields : {#id : 1, Title : 1, TransactedDate:1 }}}";
+    private static String ID_UNIT = "1";
+    private static String UNIT_DETAILS = "{_id: '1', Title: 'Archive 1', DescriptionLevel: 'Archive Mock'}";
+    private static String SEARCH_RESULT =
+        "{$hint: {'total':'1'}, $result:[{'_id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}";
     private static String UPDATE_FIELD_IMPACTED_RESULT =
         "{$hint: {'total':'1'}, $result:[{'_id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}";
     private static String UPDATE_UNIT_DSL_QUERY =
         "{ \"$queries\": [$eq : { '#id' : 1 }], \"$filter\": {$orderby : { TransactedDate : 1 } }, " +
             "\"$actions\": {#id : 1, Title : 1, TransactedDate:1 }}";
-	private static JsonNode unitDetails;
-	private static JsonNode searchResult;
-	private static JsonNode updateResult;
+    private static String OBJECT_GROUP_QUERY =
+        "{\"$queries\": [{ \"$path\": \"aaaaa\" }],\"$filter\": { },\"$projection\": {}}";
+    private static String ID_OBJECT_GROUP = "idOG1";
+    private static JsonNode unitDetails;
+    private static JsonNode searchResult;
+    private static JsonNode updateResult;
 
-	private static AccessClientFactory accessClientFactory;
-	private static AccessClient accessClient;
+    private static AccessClientFactory accessClientFactory;
+    private static AccessClient accessClient;
+    private static final String SAMPLE_OBJECTGROUP_FILENAME = "sample_objectGroup_document.json";
+    private static JsonNode sampleObjectGroup;
 
-	@BeforeClass
-	public static void setup()
-			throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException {
-		unitDetails = JsonHandler.getFromString(UNIT_DETAILS);
-		searchResult = JsonHandler.getFromString(SEARCH_RESULT);
-	    updateResult = JsonHandler.getFromString(UPDATE_FIELD_IMPACTED_RESULT);
-		PowerMockito.mockStatic(AccessClientFactory.class);
-		accessClientFactory = PowerMockito.mock(AccessClientFactory.class);
-		accessClient = org.mockito.Mockito.mock(AccessClient.class);
-		PowerMockito.when(AccessClientFactory.getInstance()).thenReturn(accessClientFactory);
-		PowerMockito.when(AccessClientFactory.getInstance().getAccessOperationClient()).thenReturn(accessClient);
-	}
+    @BeforeClass
+    public static void setup() throws Exception {
+        unitDetails = JsonHandler.getFromString(UNIT_DETAILS);
+        searchResult = JsonHandler.getFromString(SEARCH_RESULT);
+        updateResult = JsonHandler.getFromString(UPDATE_FIELD_IMPACTED_RESULT);
+        PowerMockito.mockStatic(AccessClientFactory.class);
+        accessClientFactory = PowerMockito.mock(AccessClientFactory.class);
+        accessClient = org.mockito.Mockito.mock(AccessClient.class);
+        PowerMockito.when(AccessClientFactory.getInstance()).thenReturn(accessClientFactory);
+        PowerMockito.when(AccessClientFactory.getInstance().getAccessOperationClient()).thenReturn(accessClient);
+        sampleObjectGroup = JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_OBJECTGROUP_FILENAME));
+    }
 
-	@Test
-	public void testSuccessSearchUnits()
-			throws AccessClientServerException, AccessClientNotFoundException, InvalidParseOperationException {
-		when(accessClient.selectUnits(SEARCH_UNIT_DSL_QUERY)).thenReturn(searchResult);
+    @Test
+    public void testSuccessSearchUnits()
+        throws AccessClientServerException, AccessClientNotFoundException, InvalidParseOperationException {
+        when(accessClient.selectUnits(SEARCH_UNIT_DSL_QUERY)).thenReturn(searchResult);
 
-		// Test method
-		JsonNode searchResult = UserInterfaceTransactionManager.searchUnits(SEARCH_UNIT_DSL_QUERY);
-		assertTrue(searchResult.get("$hint").get("total").textValue().equals("1"));
-	}
+        // Test method
+        JsonNode searchResult = UserInterfaceTransactionManager.searchUnits(SEARCH_UNIT_DSL_QUERY);
+        assertTrue(searchResult.get("$hint").get("total").textValue().equals("1"));
+    }
 
-	@Test
-	public void testSuccessGetArchiveUnitDetails()
-			throws AccessClientServerException, AccessClientNotFoundException, InvalidParseOperationException {
-		when(accessClient.selectUnitbyId(SELECT_ID_DSL_QUERY, ID_UNIT)).thenReturn(unitDetails);
+    @Test
+    public void testSuccessGetArchiveUnitDetails()
+        throws AccessClientServerException, AccessClientNotFoundException, InvalidParseOperationException {
+        when(accessClient.selectUnitbyId(SELECT_ID_DSL_QUERY, ID_UNIT)).thenReturn(unitDetails);
 
-		// Test method
-		JsonNode archiveDetails = UserInterfaceTransactionManager.getArchiveUnitDetails(SELECT_ID_DSL_QUERY, ID_UNIT);
-		assertTrue(archiveDetails.get("Title").textValue().equals("Archive 1"));
-	}
-	
+        // Test method
+        JsonNode archiveDetails = UserInterfaceTransactionManager.getArchiveUnitDetails(SELECT_ID_DSL_QUERY, ID_UNIT);
+        assertTrue(archiveDetails.get("Title").textValue().equals("Archive 1"));
+    }
+
     @Test
     public void testSuccessUpdateUnits()
         throws AccessClientServerException, AccessClientNotFoundException, InvalidParseOperationException {
@@ -113,5 +126,27 @@ public class UserInterfaceTransactionManagerTest {
         JsonNode updateResult = UserInterfaceTransactionManager.updateUnits(UPDATE_UNIT_DSL_QUERY, "1");
         assertTrue(updateResult.get("$hint").get("total").textValue().equals("1"));
     }
+
+    @Test
+    public void testSuccessSelectObjectbyId()
+        throws AccessClientServerException, AccessClientNotFoundException, InvalidParseOperationException {
+        when(accessClient.selectObjectbyId(OBJECT_GROUP_QUERY, ID_OBJECT_GROUP)).thenReturn(sampleObjectGroup);
+
+        // Test method
+        JsonNode objectGroup = UserInterfaceTransactionManager.selectObjectbyId(OBJECT_GROUP_QUERY, ID_OBJECT_GROUP);
+        assertTrue(objectGroup.get("$result").get(0).get("_id").textValue().equals("aeaaaaaaaaaam7mxaaaaoakwy5h6czqaaaaq"));
+    }
+
+    @Test
+    public void testSuccessGetObjectAsInputStream()
+        throws AccessClientServerException, AccessClientNotFoundException, InvalidParseOperationException, IOException {
+        when(accessClient.getObjectAsInputStream(OBJECT_GROUP_QUERY, ID_OBJECT_GROUP, "usage", 1))
+            .thenReturn(IOUtils.toInputStream("Vitam Test"));
+        InputStream streamToTest = IOUtils.toInputStream("Vitam Test");
+        // Test method
+        assertTrue(IOUtils.contentEquals(streamToTest,
+            UserInterfaceTransactionManager.getObjectAsInputStream(OBJECT_GROUP_QUERY, ID_OBJECT_GROUP, "usage", 1)));
+    }
+
 
 }
