@@ -24,12 +24,19 @@
 package fr.gouv.vitam.common.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 import org.junit.Test;
 
 public class VitamErrorTest {
+
+    private static final String ERROR_JSON = "{\"Code\":0,\"Context\":\"context\",\"State\":\"state\"," +
+        "\"Message\":\"message\",\"Description\":\"description\",\"Errors\":[{\"Code\":1,\"Context\":\"\"," +
+        "\"State\":\"\",\"Message\":\"\",\"Description\":\"\"}]}";
 
     private final int code = 0;
     private final String context = "context";
@@ -61,6 +68,19 @@ public class VitamErrorTest {
         assertThat(vitamError.getMessage()).isEqualTo(message);
         assertThat(vitamError.getDescription()).isEqualTo(description);
         assertThat(vitamError.getErrors()).isNullOrEmpty();
+    }
+
+    @Test
+    public void testToString() throws Exception {
+        VitamError error = new VitamError(0);
+        error.setMessage("message");
+        error.setDescription("description");
+        error.setState("state");
+        error.setContext("context");
+        error.addAllErrors(Collections.singletonList(new VitamError(1)));
+        System.out.println(error.toString());
+        System.out.println(ERROR_JSON);
+        assertEquals(ERROR_JSON, error.toString());
     }
 
 }

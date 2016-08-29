@@ -24,8 +24,10 @@
 package fr.gouv.vitam.core;
 
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.ArrayUtils;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 import org.apache.commons.lang.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -51,11 +53,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.core.database.collections.MongoDbVarNameAdapter;
 import fr.gouv.vitam.core.database.collections.Result;
 import fr.gouv.vitam.core.utils.MetadataJsonResponseUtils;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * MetaDataImpl implements a MetaData interface
