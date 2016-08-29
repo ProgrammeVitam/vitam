@@ -42,9 +42,22 @@ angular.module('archive.unit')
     'MGT_WITH_CSHARP_KEY': '#mgt',
   })
   .controller('ArchiveUnitController', function($http, $routeParams, ihmDemoFactory, $window, ARCHIVE_UNIT_MODULE_CONST,
-                archiveDetailsService, $mdToast){
+                archiveDetailsService, $mdToast, $mdDialog){
 
     var self = this;
+
+    //******************************* Alert diplayed ******************************* //
+    self.showAlert = function($event, dialogTitle, message) {
+      $mdDialog.show($mdDialog.alert().parent(angular.element(document.querySelector('#popupContainer')))
+          .clickOutsideToClose(true)
+          .title(dialogTitle)
+          .textContent(message)
+          .ariaLabel('Alert Dialog Demo')
+          .ok('OK')
+          .targetEvent($event)
+      );
+    };
+    // **************************************************************************** //
 
     // *************** Set Edit mode ********************** //
     self.isEditMode = false;
@@ -176,7 +189,7 @@ angular.module('archive.unit')
 
 
     //************* Save modifications *********** //
-    self.saveModifications = function saveModifications() {
+    self.saveModifications = function saveModifications($event) {
       // Prepare modified fields map
       self.modifiedFields = [];
       angular.forEach(self.archiveArray, function(value) {
@@ -193,6 +206,7 @@ angular.module('archive.unit')
             if(data.$result == null || data.$result == undefined ||
               data.$hint == null || data.$hint == undefined) {
                 console.log("errorMsg");
+                self.showAlert($event, "Erreur", "Erreur survenue à la mise à jour de l'archive unit");
             } else {
               // Archive unit found
               self.archiveFields = data.$result[0];
@@ -202,19 +216,24 @@ angular.module('archive.unit')
               // Refresh archive Details
               // Cancel EditMode
               self.isEditMode = false;
-              self.showMessageToast("Mise à jour réussie de l'archive unit");
+              // self.showMessageToast("Mise à jour réussie de l'archive unit");
+
+              self.showAlert($event, "Info", "Mise à jour réussie de l'archive unit");
             }
           };
 
           var failureUpdateDisplayCallback = function(errorMsg){
             // Display error message
             console.log(errorMsg);
+            self.showAlert($event, "Erreur", "Erreur survenue à la mise à jour de l'archive unit");
           }
           archiveDetailsService.findArchiveUnitDetails(self.archiveId, displayUpdatedArchiveCallBack, failureUpdateDisplayCallback);
 
       }, function (error) {
         console.log('Update Archive unit failed : ' + error.message);
-        self.showMessageToast("Erreur survenue à la mise à jour de l'archive unit");
+        // self.showMessageToast("Erreur survenue à la mise à jour de l'archive unit");
+
+        self.showAlert($event, "Erreur", "Erreur survenue à la mise à jour de l'archive unit");
       });
     };
 
