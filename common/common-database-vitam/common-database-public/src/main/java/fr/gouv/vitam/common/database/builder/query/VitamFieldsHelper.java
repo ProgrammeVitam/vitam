@@ -47,7 +47,6 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
  *
  */
 public class VitamFieldsHelper {
-    private static final String INTERN_PREFIX = "#";
     
     private VitamFieldsHelper() {
         // Empty
@@ -57,49 +56,49 @@ public class VitamFieldsHelper {
      * @return #id
      */
     public static final String id() {
-        return INTERN_PREFIX + ID.exactToken();
+        return ID.exactToken();
     }
 
     /**
      * @return #nbunits
      */
     public static final String nbunits() {
-        return INTERN_PREFIX + NBUNITS.exactToken();
+        return NBUNITS.exactToken();
     }
 
     /**
      * @return #all
      */
     public static final String all() {
-        return INTERN_PREFIX + ALL.exactToken();
+        return ALL.exactToken();
     }
 
     /**
      * @return #size
      */
     public static final String size() {
-        return INTERN_PREFIX + SIZE.exactToken();
+        return SIZE.exactToken();
     }
 
     /**
      * @return #format
      */
     public static final String format() {
-        return INTERN_PREFIX + FORMAT.exactToken();
+        return FORMAT.exactToken();
     }
 
     /**
      * @return #type
      */
     public static final String type() {
-        return INTERN_PREFIX + TYPE.exactToken();
+        return TYPE.exactToken();
     }
 
     /**
      * @return #dua
      */
     public static final String dua() {
-        return INTERN_PREFIX + DUA.exactToken();
+        return DUA.exactToken();
     }
 
     /**
