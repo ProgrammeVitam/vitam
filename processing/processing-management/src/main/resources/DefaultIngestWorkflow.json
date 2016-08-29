@@ -6,7 +6,7 @@
     {
     "workerGroupId" :"DefaultWorker",
         "stepName":"Contrôle global entrée (SIP)",
-        "stepType":"NOBLOCK",
+        "stepType":"BLOCK",
         "distribution" : {
         	"kind":"REF",
         	"element" : "SIP/manifest.xml"
