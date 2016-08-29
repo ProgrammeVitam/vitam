@@ -27,6 +27,7 @@
   - "default-offer.conf"
   - "default-storage.conf"
   - "antisamy-esapi.xml"
+  - "jetty-config.xml"
 
 - name: Deploy VITAM docker file
   docker:
