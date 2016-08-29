@@ -23,19 +23,18 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.common.exception;
 
+import fr.gouv.vitam.common.exception.VitamException;
+
 /**
  * Exception is the superclass of all VITAM processing exceptions.
  */
-// FIXME REVIEW use VitamException
-public class ProcessingException extends Exception {
-
-    private static final long serialVersionUID = 3375441536550669880L;
+public class ProcessingException extends VitamException {
 
     /**
      * ProcessingException constructor Construct the processing exception with a message and a throwable exception
      *
-     * @param message
-     * @param cause
+     * @param message associated message
+     * @param cause associated cause
      */
     public ProcessingException(String message, Throwable cause) {
         super(message, cause);
@@ -44,7 +43,7 @@ public class ProcessingException extends Exception {
     /**
      * ProcessingException constructor Construct the processing exception with a throwable exception
      *
-     * @param cause
+     * @param cause associated cause
      */
     public ProcessingException(Throwable cause) {
         super(cause);
@@ -53,9 +52,19 @@ public class ProcessingException extends Exception {
     /**
      * ProcessingException constructor Construct the processing exception with a message
      *
-     * @param message
+     * @param message associated message
      */
     public ProcessingException(String message) {
         super(message);
+    }
+
+    /**
+     * @param message associated message
+     * @param cause associated cause
+     * @param enableSuppression allow suppression or not
+     * @param writableStackTrace allow writable stack trace or not
+     */
+    public ProcessingException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
     }
 }

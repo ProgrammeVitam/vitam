@@ -109,7 +109,8 @@ public class WorkFlow {
     /**
      * setComment, set the comment for workflow
      *
-     * @param comments
+     * @param comments of the workflow
+     * @return the updated Workflow object
      */
     public WorkFlow setComment(String comments) {
         comment = comments;

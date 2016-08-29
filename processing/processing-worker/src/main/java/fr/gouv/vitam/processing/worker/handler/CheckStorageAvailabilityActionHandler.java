@@ -64,7 +64,7 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
     /**
      * Constructor with parameter SedaUtilsFactory
      *
-     * @param factory
+     * @param factory the seda utils factory
      */
     public CheckStorageAvailabilityActionHandler(SedaUtilsFactory factory) {
         sedaUtilsFactory = factory;

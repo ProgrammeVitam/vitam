@@ -28,31 +28,43 @@ package fr.gouv.vitam.processing.engine.core;
 
 import static org.junit.Assert.assertNotNull;
 
+import java.util.Map;
+
 import org.junit.Before;
 import org.junit.Test;
 
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
+import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.WorkParams;
+import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 
 public class ProcessEngineImplTest {
     private ProcessEngineImpl processEngine;
     private WorkParams workParams;
     private EngineResponse response;
-
+    private ProcessMonitoringImpl processMonitoring;
+        
+    
     @Before
     public void init() throws WorkflowNotFoundException {
         workParams =
-            new WorkParams().setGuuid("dldmmdioeooelxmsddsjdkj").setServerConfiguration(new ServerConfiguration());
+            new WorkParams().setGuuid(GUIDFactory.newGUID().getId()).setServerConfiguration(new ServerConfiguration())
+            .setContainerName(GUIDFactory.newGUID().getId());
         processEngine = new ProcessEngineImplFactory().create();
         processEngine.setWorkflow("workflowJSONv1");
+        processMonitoring = ProcessMonitoringImpl.getInstance();
     }
 
     @Test
     public void processEngineTest() throws Exception {
-        response = processEngine.startWorkflow(workParams, "workflowJSONv1");
+        response = processEngine.startWorkflow(workParams, "workflowJSONv1");        
         assertNotNull(response);
+        String processId = (String) workParams.getAdditionalProperties().get(WorkParams.PROCESS_ID);
+        Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(processId);
+        assertNotNull(map);
     }
 
     @Test(expected = WorkflowNotFoundException.class)

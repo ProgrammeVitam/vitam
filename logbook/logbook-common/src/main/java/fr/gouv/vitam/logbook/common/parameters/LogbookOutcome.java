@@ -3,8 +3,8 @@
  *
  * contact.vitam@culture.gouv.fr
  *
- * This software is a computer program whose purpose is to implement a digital refactoring and prepare to move
- * the client factory archiving back-office system managing high volumetry securely and efficiently.
+ * This software is a computer program whose purpose is to implement a digital refactoring and prepare to move the
+ * client factory archiving back-office system managing high volumetry securely and efficiently.
  *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
@@ -44,12 +44,16 @@ public enum LogbookOutcome {
      */
     WARNING,
     /**
-     * To be used for the second call of one operation entry in status Error
+     * To be used for the second call of one operation entry in status Error <br>
      * TODO replace by KO
      */
     ERROR,
     /**
+     * KO blocking error on one operation (to use instead of ERROR)
+     */
+    KO,
+    /**
      * To be used for the second call of one operation entry in status Fatal
      */
-    FATAL
+    FATAL;
 }

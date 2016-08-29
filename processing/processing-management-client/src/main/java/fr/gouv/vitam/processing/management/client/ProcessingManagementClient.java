@@ -41,7 +41,10 @@ import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
+import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.exception.ProcessingInternalServerException;
+import fr.gouv.vitam.processing.common.exception.ProcessingUnauthorizeException;
 import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
 
 /**
@@ -96,9 +99,15 @@ public class ProcessingManagementClient {
         } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
             throw new IllegalArgumentException("Illegal Argument");
         } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-            throw new ProcessingException("Unauthorized Operation");
+            throw new ProcessingUnauthorizeException("Unauthorized Operation");
+        } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
+            throw new ProcessingBadRequestException("Bad Request");
+        } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+            throw new ProcessingInternalServerException("Internal Server Error");
         }
 
+        // XXX: theoretically OK status case
+        // Don't we thrown an exception if it is another status ?
         return response.readEntity(String.class);
     }
 }

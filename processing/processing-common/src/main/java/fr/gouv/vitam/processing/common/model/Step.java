@@ -39,6 +39,7 @@ public class Step {
 
     private String workerGroupId;
     private String stepName;
+    private StepType stepType;
     private Distribution distribution;
     @JsonProperty("actions")
     private List<Action> actions;
@@ -46,7 +47,7 @@ public class Step {
     /**
      * getActions
      * 
-     * @return
+     * @return the list of actions to be executed for the step
      */
     public List<Action> getActions() {
         if (actions == null) {
@@ -57,7 +58,8 @@ public class Step {
 
     /**
      *
-     * @param actions
+     * @param actions the list of actions
+     * @return the updated Step object
      */
     public Step setActions(List<Action> actions) {
         this.actions = actions;
@@ -66,7 +68,7 @@ public class Step {
 
     /**
      *
-     * @return workerGroupId
+     * @return workerGroupId the id of the WorkerGroup for the step
      */
     public String getWorkerGroupId() {
         if (workerGroupId == null) {
@@ -77,7 +79,8 @@ public class Step {
 
     /**
      *
-     * @param workerGroupId
+     * @param workerGroupId the id of the WorkerGroup for the step
+     * @return the updated Step object
      */
     public Step setWorkerGroupId(String workerGroupId) {
         this.workerGroupId = workerGroupId;
@@ -85,7 +88,7 @@ public class Step {
     }
 
     /**
-     * @return the stepName
+     * @return the step Name 
      */
     public String getStepName() {
         if (stepName == null) {
@@ -95,7 +98,8 @@ public class Step {
     }
 
     /**
-     * @param stepName the stepName to set
+     * @param stepName the step Name to set
+     * @return the updated Step object
      */
     public Step setStepName(String stepName) {
         this.stepName = stepName;
@@ -125,4 +129,20 @@ public class Step {
         return this;
     }
 
+    /**
+     * @return the stepType
+     */
+    public StepType getStepType() {
+        return stepType;
+    }
+
+    /**
+     * @param stepType the stepType to set
+     * @return the updated Step 
+     */
+    public Step setStepType(StepType stepType) {
+        this.stepType = stepType;
+        return this;
+    }
+    
 }

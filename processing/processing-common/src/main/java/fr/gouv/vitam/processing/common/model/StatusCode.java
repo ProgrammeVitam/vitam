@@ -30,48 +30,37 @@ package fr.gouv.vitam.processing.common.model;
  *
  */
 public enum StatusCode {
+    
+    /**
+     * STARTED : indicates that the workflow or the action handler or the process has been started
+     */
+    STARTED,
+    
     /**
      * OK : indicates the successful without warning
      */
-    // TODO REVIEW: since enum and String is the same, remove String
-    OK("OK"),
-
-    /**
-     * KO : indicates the failed execution of the action
-     */
-    KO("KO"),
-
-    /**
-     * FATAL : indicates a critical error such as technical Exception ( runtime exception, illegal argument exception,
-     * null pointer exception ...)
-     */
-    FATAL("FATAL"),
-
+    OK,        
+    
     /**
      * WARNING : indicates successful with a general warning. Warning are often useful in preventing future Action
      * problems
      */
-    WARNING("WARNING"),
-
+    WARNING,
+    
     /**
-     * SUBMITTED : indicates that the workflow or the action handler or the process has been submitted
+     * PAUSE : indicates that the workflow or the action handler or the process has been paused
      */
-    SUBMITTED("SUBMITTED");
-    // TODO REVIEW reorder item from OK to FATAL
-
-    private String value;
-
-    private StatusCode(String value) {
-        this.value = value;
-    }
-
+    PAUSED,
+    
     /**
-     * value
-     *
-     * @return : value of status code
+     * KO : indicates the failed execution of the action
      */
-    public String value() {
-        return value;
-    }
+    KO,
+    
+    /**
+     * FATAL : indicates a critical error such as technical Exception ( runtime exception, illegal argument exception,
+     * null pointer exception ...)
+     */
+    FATAL;
 
 }

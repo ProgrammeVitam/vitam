@@ -26,6 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.client;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -49,7 +52,10 @@ import org.junit.Test;
 
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
+import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.exception.ProcessingInternalServerException;
+import fr.gouv.vitam.processing.common.exception.ProcessingUnauthorizeException;
 import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
 
 public class WorkflowProcessingManagementClientTest extends JerseyTest {
@@ -112,9 +118,30 @@ public class WorkflowProcessingManagementClientTest extends JerseyTest {
         client.executeVitamProcess(CONTAINER, WORKFLOWID);
     }
 
-    @Test(expected = ProcessingException.class)
+    @Test(expected = ProcessingUnauthorizeException.class)
     public void givenUnauthorizedOperationWhenProcessingThenReturnUnauthorized() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
         client.executeVitamProcess(CONTAINER, WORKFLOWID);
+    }
+
+    @Test(expected = ProcessingBadRequestException.class)
+    public void givenBadRequestWhenProcessingThenReturnBadRequest() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+        client.executeVitamProcess(CONTAINER, WORKFLOWID);
+    }
+
+    @Test(expected = ProcessingInternalServerException.class)
+    public void givenInternalServerErrorWhenProcessingThenReturnInternalServerError() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        client.executeVitamProcess(CONTAINER, WORKFLOWID);
+    }
+
+    @Test
+    public void executeVitamProcessOk() throws Exception {
+        String desired = "{\"JSON\": \"OK\"}";
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(desired).build());
+        String ret = client.executeVitamProcess(CONTAINER, WORKFLOWID);
+        assertNotNull(ret);
+        assertEquals(desired, ret);
     }
 }

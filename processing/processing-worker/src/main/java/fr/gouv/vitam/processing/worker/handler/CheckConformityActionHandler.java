@@ -11,6 +11,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookClient;
@@ -73,12 +74,14 @@ public class CheckConformityActionHandler extends ActionHandler {
                 for (int i = 1; i < digestMessageInvalidList.size(); i++) {
                     error += ", " + digestMessageInvalidList.get(i);
                 }
+                // TODO : the handler should not call the logbook operation, it should be done in the Engine
+                // This is a bug causing 3 occurences of the step "Contrôle global entrée"
                 parameters.putParameterValue(LogbookParameterName.eventIdentifier, GUIDFactory.newGUID().toString());
                 parameters.putParameterValue(LogbookParameterName.eventIdentifierProcess, params.getContainerName());
                 parameters.putParameterValue(LogbookParameterName.eventIdentifierRequest, params.getCurrentStep());
                 parameters.putParameterValue(LogbookParameterName.eventType, params.getCurrentStep());
-                parameters.putParameterValue(LogbookParameterName.eventTypeProcess, StatusCode.SUBMITTED.value());
-                parameters.putParameterValue(LogbookParameterName.outcome, StatusCode.SUBMITTED.value());
+                parameters.putParameterValue(LogbookParameterName.eventTypeProcess, LogbookOutcome.WARNING.name());
+                parameters.putParameterValue(LogbookParameterName.outcome, LogbookOutcome.WARNING.name());
                 parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, getId() + " Error: " + error);
                 client.update(parameters);
                 response.setStatus(StatusCode.WARNING);
@@ -103,7 +106,7 @@ public class CheckConformityActionHandler extends ActionHandler {
             response.setStatus(StatusCode.FATAL);
         }
 
-        LOGGER.info("CheckConformityActionHandler response: ", response.getStatus().value());
+        LOGGER.info("CheckConformityActionHandler response: ", response.getStatus().name());
         return response;
     }
 

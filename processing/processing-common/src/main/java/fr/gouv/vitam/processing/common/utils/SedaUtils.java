@@ -73,6 +73,7 @@ import de.odysseus.staxon.json.JsonXMLOutputFactory;
 import fr.gouv.vitam.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.api.exception.MetaDataException;
+import fr.gouv.vitam.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.builder.request.construct.Insert;
 import fr.gouv.vitam.client.MetaDataClient;
@@ -103,6 +104,8 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCycleClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.exception.ProcessingInternalServerException;
+import fr.gouv.vitam.processing.common.model.OutcomeMessage;
 import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.model.WorkParams;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -149,9 +152,12 @@ public class SedaUtils {
     private static final String TAG_OG = "_og";
     private static final String TAG_ID = "_id";
     public static final String LIFE_CYCLE_EVENT_TYPE_PROCESS = "INGEST";
-    public static final String UNIT_LIFE_CYCLE_CREATION_EVENT_TYPE = "CREATE_LF_UNIT";
-    private static final String OG_LIFE_CYCLE_CREATION_EVENT_TYPE = "CREATE_LF_OG";
-    private static final String OG_LIFE_CYCLE_CHECK_BDO_EVENT_TYPE = "CHECK_BDO";
+    public static final String UNIT_LIFE_CYCLE_CREATION_EVENT_TYPE =
+        "Check SIP – Units – Lifecycle Logbook Creation – Création du journal du cycle de vie des units";
+    private static final String OG_LIFE_CYCLE_CREATION_EVENT_TYPE =
+        "Check SIP – ObjectGroups – Lifecycle Logbook Creation – Création du journal du cycle de vie des groupes d’objets";
+    private static final String OG_LIFE_CYCLE_CHECK_BDO_EVENT_TYPE =
+        "Check SIP – ObjectGroups – Digest - Vérification de l’empreinte";
     private static final String LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG = "LogbookClient Unsupported request";
     private static final String LOGBOOK_LF_OBJECT_EXISTS_EXCEPTION_MSG = "LifeCycle Object already exists";
     private static final String LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG = "Logbook LifeCycle resource not found";
@@ -160,7 +166,8 @@ public class SedaUtils {
     public static final String OBJECT_GROUP_ID_TO_GUID_MAP_FILE_NAME_PREFIX = "OBJECT_GROUP_ID_TO_GUID_MAP_";
     public static final String BDO_TO_OBJECT_GROUP_ID_MAP_FILE_NAME_PREFIX = "BDO_TO_OBJECT_GROUP_ID_MAP_";
     public static final String ARCHIVE_ID_TO_GUID_MAP_FILE_NAME_PREFIX = "ARCHIVE_ID_TO_GUID_MAP_";
-    public static final String BINARY_DATA_OBJECT_ID_TO_GUID_MAP_FILE_NAME_PREFIX = "BINARY_DATA_OBJECT_ID_TO_GUID_MAP_";
+    public static final String BINARY_DATA_OBJECT_ID_TO_GUID_MAP_FILE_NAME_PREFIX =
+        "BINARY_DATA_OBJECT_ID_TO_GUID_MAP_";
     public static final String TXT_EXTENSION = ".txt";
     private static final String LEVEL = "level_";
     private static final String EXEC = "Exec";
@@ -361,6 +368,11 @@ public class SedaUtils {
                         for (String unitGuid : unitIdToGuid.values()) {
                             if (guidToLifeCycleParameters.get(unitGuid) != null) {
                                 guidToLifeCycleParameters.get(unitGuid).setStatus(LogbookOutcome.OK);
+                                guidToLifeCycleParameters.get(unitGuid)
+                                    .putParameterValue(LogbookParameterName.outcomeDetail, LogbookOutcome.OK.name());
+                                guidToLifeCycleParameters.get(unitGuid).putParameterValue(
+                                    LogbookParameterName.outcomeDetailMessage,
+                                    OutcomeMessage.CREATE_LOGBOOK_LIFECYCLE_OK.value());
                                 LOGBOOK_LIFECYCLE_CLIENT.update(guidToLifeCycleParameters.get(unitGuid));
                             }
                         }
@@ -369,6 +381,11 @@ public class SedaUtils {
 
                         if (guidToLifeCycleParameters.get(objectGroupGuid) != null) {
                             guidToLifeCycleParameters.get(objectGroupGuid).setStatus(LogbookOutcome.OK);
+                            guidToLifeCycleParameters.get(objectGroupGuid)
+                                .putParameterValue(LogbookParameterName.outcomeDetail, LogbookOutcome.OK.name());
+                            guidToLifeCycleParameters.get(objectGroupGuid).putParameterValue(
+                                LogbookParameterName.outcomeDetailMessage,
+                                OutcomeMessage.CREATE_LOGBOOK_LIFECYCLE_OK.value());
                             LOGBOOK_LIFECYCLE_CLIENT.update(guidToLifeCycleParameters.get(objectGroupGuid));
                         }
                     }
@@ -391,17 +408,18 @@ public class SedaUtils {
                 throw new CycleFoundException(GRAPH_CYCLE_MSG);
             }
             // Save unitToGuid Map
-            saveMap(containerId,unitIdToGuid.toString(),ARCHIVE_ID_TO_GUID_MAP_FILE_NAME_PREFIX );
-            
+            saveMap(containerId, unitIdToGuid.toString(), ARCHIVE_ID_TO_GUID_MAP_FILE_NAME_PREFIX);
+
             // 2- create graph and create level
             createIngestLevelStackFile(client, containerId, new Graph(archiveUnitTree).getGraphWithLongestPaths());
 
             checkArchiveUnitIdReference();
             saveObjectGroupsToWorkspace(client, containerId);
-            
+
             // Save binaryDataObjectIdToGuid Map
-            saveMap(containerId, binaryDataObjectIdToGuid.toString(), BINARY_DATA_OBJECT_ID_TO_GUID_MAP_FILE_NAME_PREFIX);
-            
+            saveMap(containerId, binaryDataObjectIdToGuid.toString(),
+                BINARY_DATA_OBJECT_ID_TO_GUID_MAP_FILE_NAME_PREFIX);
+
         } catch (final XMLStreamException e) {
             LOGGER.error(CANNOT_READ_SEDA);
             throw new ProcessingException(e);
@@ -619,7 +637,7 @@ public class SedaUtils {
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
             LogbookOutcome.STARTED.toString());
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-            LogbookOutcome.STARTED.toString());
+            OutcomeMessage.CREATE_LOGBOOK_LIFECYCLE.value());
         LOGBOOK_LIFECYCLE_CLIENT.create(logbookLifecycleObjectGroupParameters);
 
         // Update guidToLifeCycleParameters
@@ -702,6 +720,11 @@ public class SedaUtils {
 
         try {
             logbookLifecycleParameters.putParameterValue(LogbookParameterName.outcome, stepStatus.toString());
+            logbookLifecycleParameters.putParameterValue(LogbookParameterName.outcomeDetail,
+                stepStatus.toString());
+            logbookLifecycleParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                logbookLifecycleParameters.getParameterValue(LogbookParameterName.outcomeDetailMessage));
+
             LOGBOOK_LIFECYCLE_CLIENT.update(logbookLifecycleParameters);
         } catch (LogbookClientBadRequestException e) {
             LOGGER.error(LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG, e);
@@ -906,7 +929,7 @@ public class SedaUtils {
     }
 
     private void saveMap(String containerId, String map, String fileNamePrefix) throws IOException {
-    	
+
         final File firstMapTmpFile = PropertiesUtils
             .fileFromTmpFolder(fileNamePrefix + containerId + TXT_EXTENSION);
         final FileWriter firstMapTmpFileWriter = new FileWriter(firstMapTmpFile);
@@ -921,9 +944,10 @@ public class SedaUtils {
 
         // Save maps
         try {
-         // Save binaryDataObjectIdToObjectGroupId
-            saveMap(containerId, binaryDataObjectIdToObjectGroupId.toString(), BDO_TO_OBJECT_GROUP_ID_MAP_FILE_NAME_PREFIX);
-         //  Save objectGroupIdToGuid
+            // Save binaryDataObjectIdToObjectGroupId
+            saveMap(containerId, binaryDataObjectIdToObjectGroupId.toString(),
+                BDO_TO_OBJECT_GROUP_ID_MAP_FILE_NAME_PREFIX);
+            // Save objectGroupIdToGuid
             saveMap(containerId, objectGroupIdToGuid.toString(), OBJECT_GROUP_ID_TO_GUID_MAP_FILE_NAME_PREFIX);
         } catch (IOException e1) {
             LOGGER.error("Can not write to tmp folder ", e1);
@@ -993,11 +1017,16 @@ public class SedaUtils {
                 // Create unreferenced object group
                 if (guidToLifeCycleParameters.get(objectGroupGuid) == null) {
                     createObjectGroupLifeCycle(objectGroupGuid, containerId);
-                }
 
-                // Update Object Group lifeCycle creation event
-                guidToLifeCycleParameters.get(objectGroupGuid).setStatus(LogbookOutcome.OK);
-                LOGBOOK_LIFECYCLE_CLIENT.update(guidToLifeCycleParameters.get(objectGroupGuid));
+                    // Update Object Group lifeCycle creation event
+                    guidToLifeCycleParameters.get(objectGroupGuid).setStatus(LogbookOutcome.OK);
+                    guidToLifeCycleParameters.get(objectGroupGuid).putParameterValue(LogbookParameterName.outcomeDetail,
+                        LogbookOutcome.OK.name());
+                    guidToLifeCycleParameters.get(objectGroupGuid).putParameterValue(
+                        LogbookParameterName.outcomeDetailMessage,
+                        OutcomeMessage.CREATE_LOGBOOK_LIFECYCLE_OK.value());
+                    LOGBOOK_LIFECYCLE_CLIENT.update(guidToLifeCycleParameters.get(objectGroupGuid));
+                }
 
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error("Can not parse ObjectGroup", e);
@@ -1045,23 +1074,39 @@ public class SedaUtils {
      * The method is used to validate SEDA by XSD
      *
      * @param params worker parameter
-     * @return boolean true/false
+     * @return a status representing the validation of the file
      */
-    public boolean checkSedaValidation(WorkParams params) {
+    public CheckSedaValidationStatus checkSedaValidation(WorkParams params) {
         ParametersChecker.checkParameter(WORKPARAMS_MANDATORY_MSG, params);
         final String containerId = params.getContainerName();
         final WorkspaceClient client = WorkspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
+        final InputStream input;
         try {
-            final InputStream input = checkExistenceManifest(client, containerId);
-            return new ValidationXsdUtils().checkWithXSD(input, SEDA_VALIDATION_FILE);
-
-        } catch (ProcessingException | XMLStreamException | SAXException e) {
-            LOGGER.error("Manifest.xml is not valid ", e);
-            return false;
-        } catch (IOException e) {
-            LOGGER.error("Seda validation file not found", e);
-            return false;
+            input = checkExistenceManifest(client, containerId);
+            new ValidationXsdUtils().checkWithXSD(input, SEDA_VALIDATION_FILE);
+            return CheckSedaValidationStatus.VALID;
+        } catch (ProcessingException | IOException e) {
+            LOGGER.error("Manifest.xml not found", e);
+            return CheckSedaValidationStatus.NO_FILE;
+        } catch (XMLStreamException e) {
+            LOGGER.error("Manifest.xml is not a correct xml file", e);
+            return CheckSedaValidationStatus.NOT_XML_FILE;
+        } catch (SAXException e) {
+            // if the cause is null, that means the file is an xml, but it does not validate the XSD
+            if (e.getCause() == null) {
+                LOGGER.error("Manifest.xml is not valid with the XSD", e);
+                return CheckSedaValidationStatus.NOT_XSD_VALID;
+            }
+            LOGGER.error("Manifest.xml is not a correct xml file", e);
+            return CheckSedaValidationStatus.NOT_XML_FILE;
         }
+    }
+
+    /**
+     * Check Seda Validation status values
+     */
+    public enum CheckSedaValidationStatus {
+        VALID, NOT_XSD_VALID, NOT_XML_FILE, NO_FILE;
     }
 
     private InputStream checkExistenceManifest(WorkspaceClient client, String guid)
@@ -1204,7 +1249,10 @@ public class SedaUtils {
                 throw new ProcessingException("Object group not found");
             }
 
-        } catch (final MetaDataException e) {
+        } catch (MetaDataDocumentSizeException | MetaDataExecutionException exc) {
+            LOGGER.error("Technical error", exc);
+            throw new ProcessingInternalServerException(exc);
+        } catch (MetaDataException e) {
             LOGGER.debug("Metadata Server Error", e);
             throw new ProcessingException(e);
         } catch (InvalidParseOperationException | IOException e) {
@@ -1725,7 +1773,11 @@ public class SedaUtils {
                 // Set KO status
                 if (logbookLifeCycleObjGrpParam != null) {
                     logbookLifeCycleObjGrpParam.putParameterValue(LogbookParameterName.outcome,
-                        StatusCode.KO.toString());
+                        LogbookOutcome.WARNING.name());
+                    logbookLifeCycleObjGrpParam.putParameterValue(LogbookParameterName.outcomeDetail,
+                        LogbookOutcome.WARNING.name());
+                    logbookLifeCycleObjGrpParam.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                        OutcomeMessage.CHECK_BDO_KO.value() + " " + binaryObjectMap.get(mapKey).getId());
                     LOGBOOK_LIFECYCLE_CLIENT.update(logbookLifeCycleObjGrpParam);
                 }
             } else {
@@ -1734,7 +1786,11 @@ public class SedaUtils {
                 // Set OK status
                 if (logbookLifeCycleObjGrpParam != null) {
                     logbookLifeCycleObjGrpParam.putParameterValue(LogbookParameterName.outcome,
-                        StatusCode.OK.toString());
+                        LogbookOutcome.OK.name());
+                    logbookLifeCycleObjGrpParam.putParameterValue(LogbookParameterName.outcomeDetail,
+                        LogbookOutcome.OK.name());
+                    logbookLifeCycleObjGrpParam.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                        OutcomeMessage.CHECK_BDO_OK.value());
                     LOGBOOK_LIFECYCLE_CLIENT.update(logbookLifeCycleObjGrpParam);
                 }
             }
@@ -1777,7 +1833,7 @@ public class SedaUtils {
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
             LogbookOutcome.STARTED.toString());
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-            LogbookOutcome.STARTED.toString());
+            OutcomeMessage.CHECK_BDO.value());
         LOGBOOK_LIFECYCLE_CLIENT.update(logbookLifecycleObjectGroupParameters);
 
         return logbookLifecycleObjectGroupParameters;
@@ -1878,32 +1934,32 @@ public class SedaUtils {
         if (versions == null || versions.isEmpty()) {
             return binaryObjectsToStore;
         }
-        
 
-    	final File objectIdToGuidMapFile = PropertiesUtils
-    			.fileFromTmpFolder(BINARY_DATA_OBJECT_ID_TO_GUID_MAP_FILE_NAME_PREFIX + containerId + TXT_EXTENSION);
 
-    	String objectIdToGuidStoredContent;
-		try {
-			objectIdToGuidStoredContent = FileUtil.readFile(objectIdToGuidMapFile);
-		} catch (IOException e) {
-			LOGGER.error(e);
+        final File objectIdToGuidMapFile = PropertiesUtils
+            .fileFromTmpFolder(BINARY_DATA_OBJECT_ID_TO_GUID_MAP_FILE_NAME_PREFIX + containerId + TXT_EXTENSION);
+
+        String objectIdToGuidStoredContent;
+        try {
+            objectIdToGuidStoredContent = FileUtil.readFile(objectIdToGuidMapFile);
+        } catch (IOException e) {
+            LOGGER.error(e);
             throw new ProcessingException(e);
-		}
-    	Map<String, Object> objectIdToGuidStoredMap = getMapFromString(objectIdToGuidStoredContent);
+        }
+        Map<String, Object> objectIdToGuidStoredMap = getMapFromString(objectIdToGuidStoredContent);
 
-    	Map<Object, String> guidToObjectIdMap =
-    			objectIdToGuidStoredMap.entrySet()
-    			.stream()
-    			.collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
-        
+        Map<Object, String> guidToObjectIdMap =
+            objectIdToGuidStoredMap.entrySet()
+                .stream()
+                .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
+
         for (JsonNode version : versions) {
             for (JsonNode binaryObject : version) {
-                String binaryObjectId=guidToObjectIdMap.get(binaryObject.get("_id").asText());
-            	Optional<Entry<String, BinaryObjectInfo>> objectEntry =
-            			sedaUtilInfo.getBinaryObjectMap().entrySet().stream()
-            			.filter(entry -> entry.getKey().equals(binaryObjectId)).findFirst();
-            	if (objectEntry.isPresent()) {
+                String binaryObjectId = guidToObjectIdMap.get(binaryObject.get("_id").asText());
+                Optional<Entry<String, BinaryObjectInfo>> objectEntry =
+                    sedaUtilInfo.getBinaryObjectMap().entrySet().stream()
+                        .filter(entry -> entry.getKey().equals(binaryObjectId)).findFirst();
+                if (objectEntry.isPresent()) {
                     binaryObjectsToStore.put(binaryObject.get("_id").asText(), objectEntry.get().getValue());
                 }
             }
