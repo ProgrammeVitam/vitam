@@ -29,6 +29,7 @@
   - "logback.xml"
   - "scan-clamav.sh"
   - "antisamy-esapi.xml"
+  - "jetty-config.xml"
 
 - name: Deploy VITAM docker file
   docker:

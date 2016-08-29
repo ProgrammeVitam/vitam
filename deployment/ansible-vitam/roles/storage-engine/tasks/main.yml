@@ -30,6 +30,7 @@
   - "static-strategy.json"
   - "static-offer.json"
   - "antisamy-esapi.xml"
+  - "jetty-config.xml"
 
 - name: copy file for driver in data
   copy:

@@ -26,6 +26,7 @@
   - "logback.xml"
   - "access.conf"
   - "antisamy-esapi.xml"
+  - "jetty-config.xml"
 
 - name: Deploy VITAM docker file
   docker:
