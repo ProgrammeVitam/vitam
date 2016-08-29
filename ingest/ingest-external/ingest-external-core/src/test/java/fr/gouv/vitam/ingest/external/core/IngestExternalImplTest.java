@@ -36,13 +36,18 @@ import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
 
 public class IngestExternalImplTest {
     private static final String PATH = "/tmp";
+    private static final String SCRIPT_SCAN_CLAMAV = "scan-clamav.sh";
     IngestExternalImpl ingestExternalImpl;
     private InputStream stream;
+    
+    private static final long timeoutScanDelay = 60000;
     
     @Before
     public void setUp(){
         IngestExternalConfiguration config = new IngestExternalConfiguration();
         config.setPath(PATH);
+        config.setAntiVirusScriptName(SCRIPT_SCAN_CLAMAV);
+        config.setTimeoutScanDelay(timeoutScanDelay);
         ingestExternalImpl = new IngestExternalImpl(config);
     }
 
