@@ -23,8 +23,15 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.core;
 
+import java.io.InputStream;
+import java.util.List;
+
+import javax.ws.rs.ProcessingException;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import fr.gouv.vitam.access.api.AccessModule;
 import fr.gouv.vitam.access.api.DataCategory;
 import fr.gouv.vitam.access.common.exception.AccessExecutionException;
@@ -41,7 +48,6 @@ import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultipl
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
@@ -62,13 +68,6 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
-import org.apache.commons.lang3.StringUtils;
-
-import javax.ws.rs.ProcessingException;
-import java.io.InputStream;
-import java.util.List;
-import java.util.Optional;
-import java.util.StringJoiner;
 
 /**
  * AccessModuleImpl implements AccessModule
@@ -85,12 +84,10 @@ public class AccessModuleImpl implements AccessModule {
     private MetaDataClientFactory metaDataClientFactory;
 
     private MetaDataClient metaDataClient;
-    private static final String BLANK_REQUEST = "the request is blank";
-    private static final String SANITY_CHECK_FAILED = "Sanity Check Failed ";
     private static final String DEFAULT_STORAGE_STRATEGY = "default";
-    // TODO remove unused
+
     private static final String ID_CHECK_FAILED = "the unit_id should be filled";
-    private String eventType = "Update_archive_unit_unitary";           //Event Type
+    private String eventType = "Update_archive_unit_unitary";
 
     //TODO setting in other place
     private Integer tenantId = 0;
