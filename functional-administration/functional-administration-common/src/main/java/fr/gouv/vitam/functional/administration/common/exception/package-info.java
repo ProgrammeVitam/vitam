@@ -25,7 +25,6 @@
  * accept its terms.
  */
 /**
- * 
+ * Exception package of functional administration common module 
  */
-// FIXME comment
 package fr.gouv.vitam.functional.administration.common.exception;
