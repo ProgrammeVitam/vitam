@@ -61,6 +61,6 @@ vitam_folder_permission=0775
 vitam_conf_permission=0775
 pull_strategy=missing
 local_user=vitam
-vitam_docker_tag=0.7.0-SNAPSHOT
+vitam_docker_tag=0.8.0-SNAPSHOT
 
 local_docker0_ip=172.17.0.1
