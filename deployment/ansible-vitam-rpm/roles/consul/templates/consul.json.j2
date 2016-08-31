@@ -12,10 +12,12 @@
    },
 {% endif %}
 
-    "domain": "vitam",
-    "datacenter": "{{environnement}}-dc1",
-
-    "retry_join": [ "{{ groups['hosts-consul-server']|join('", "') }}" ],
-    "retry_interval": "10s"
-
+  "recursors": [ "{{dns_server}}" ],
+  "domain": "{{consul_domain}}",
+  "datacenter": "{{environnement}}-dc1",
+  "retry_join": [ "{{ groups['hosts-consul-server']|join('", "') }}" ],
+  "retry_interval": "10s",
+  "ports": {
+      "dns" : 53
+  }
 }

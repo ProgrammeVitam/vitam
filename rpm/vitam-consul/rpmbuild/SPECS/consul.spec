@@ -1,6 +1,6 @@
 Name:          vitam-consul
 Version:       0.6.4
-Release:       2%{?dist}
+Release:       3%{?dist}
 Summary:       Consul is a distributed, highly-available, and multi-datacenter aware tool for service discovery, configuration, and orchestration. This package includes vitam-specific folders configuration.
 Group:         System Environment/Daemons
 License:       Cecill v2.1
@@ -12,7 +12,9 @@ Source2:       vitam-consul.service
 
 BuildRequires: systemd-units
 Requires:      systemd
+Requires:      libcap >= 2.22
 Requires:      vitam-user-vitam
+Conflicts:     bind, 
 
 %description
 Consul has multiple components, but as a whole, it is a tool for discovering and configuring services in your infrastructure. It provides several key features:
@@ -40,6 +42,7 @@ cp %{SOURCE2} %{buildroot}/%{_unitdir}/
 
 %post
 %systemd_post %{name}.service
+setcap CAP_NET_BIND_SERVICE=+eip /vitam/bin/%{name}/consul
 
 %preun
 %systemd_preun %{name}.service

@@ -26,4 +26,6 @@ Pour tester le déploiement de VITAM : ``ansible-playbook ansible-vitam-rpm/vita
 
 Pour le déployer : ``ansible-playbook ansible-vitam-rpm/vitam.yml -i environments-rpm/<fichier d'inventaire>``
 
+Pour installer mongo-express : ``ansible-playbook ansible-vitam-rpm/mongo-express.yml -i environments-rpm/<fichier d'inventaire> ``
+
 
