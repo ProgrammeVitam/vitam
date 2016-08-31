@@ -15,11 +15,6 @@
  		</dependency>
     	<dependency>
     		<groupId>fr.gouv.vitam</groupId>
-    		<artifactId>metadata-builder</artifactId>
-	        <version>${project.version}</version>
-    	</dependency>
-    	<dependency>
-    		<groupId>fr.gouv.vitam</groupId>
     		<artifactId>logbook-common</artifactId>
             <version>${project.version}</version>
 		</dependency>
