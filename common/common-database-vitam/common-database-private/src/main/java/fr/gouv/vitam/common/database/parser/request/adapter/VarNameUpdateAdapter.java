@@ -27,7 +27,7 @@ import fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
- * Model for VarNameAdapter
+ * Model for VarNameAdapter for Update
  */
 public class VarNameUpdateAdapter extends VarNameAdapter {
 

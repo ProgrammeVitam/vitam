@@ -30,6 +30,7 @@ package fr.gouv.vitam.access.config;
 public class AccessConfiguration {
 
     private String urlMetaData;
+    private String jettyConfig;
 
 
     /**
@@ -63,8 +64,27 @@ public class AccessConfiguration {
      *
      * @param urlMetaData
      */
+    // TODO @return missing
     public AccessConfiguration setUrlMetaData(String urlMetaData) {
         this.urlMetaData = urlMetaData;
+        return this;
+    }
+
+    /**
+     * getter jettyConfig
+     * @return
+     */
+    public String getJettyConfig() {
+        return jettyConfig;
+    }
+
+    /**
+     * setter jettyConfig
+     * @param jettyConfig the jetty config
+     * @return
+     */
+    public AccessConfiguration setJettyConfig(String jettyConfig) {
+        this.jettyConfig = jettyConfig;
         return this;
     }
 }

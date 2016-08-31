@@ -26,10 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.common.server.database.collections;
 
-import static com.mongodb.client.model.Indexes.hashed;
-
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+
+import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
+
 
 /**
  * All collections
@@ -48,15 +50,11 @@ enum LogbookCollections {
      * LifeCycle object group Collection
      */
     LIFECYCLE_OBJECTGROUP(LogbookLifeCycleObjectGroup.class);
-
-
-    private final Class<?> clasz;
-    private final String name;
-    private MongoCollection<?> collection;
+    
+    private VitamCollection vitamCollection;
 
     private LogbookCollections(final Class<?> clasz) {
-        this.clasz = clasz;
-        name = clasz.getSimpleName();
+        vitamCollection = VitamCollectionHelper.getCollection(clasz);
     }
 
     /**
@@ -66,10 +64,7 @@ enum LogbookCollections {
      * @param recreate
      */
     protected void initialize(final MongoDatabase db, final boolean recreate) {
-        collection = db.getCollection(name, getClasz());
-        if (recreate) {
-            collection.createIndex(hashed(LogbookDocument.ID));
-        }
+        vitamCollection.initialize(db, recreate);
     }
 
     /**
@@ -77,7 +72,7 @@ enum LogbookCollections {
      * @return the name of the collection
      */
     protected String getName() {
-        return name;
+        return vitamCollection.getName();
     }
 
     /**
@@ -86,7 +81,7 @@ enum LogbookCollections {
      */
     @SuppressWarnings("rawtypes")
     protected MongoCollection getCollection() {
-        return collection;
+        return vitamCollection.getCollection();
     }
 
     /**
@@ -95,7 +90,7 @@ enum LogbookCollections {
      */
     @SuppressWarnings("unchecked")
     protected static final MongoCollection<LogbookOperation> getOperationCollection() {
-        return (MongoCollection<LogbookOperation>) OPERATION.collection;
+        return (MongoCollection<LogbookOperation>) OPERATION.vitamCollection;
     }
 
     /**
@@ -104,7 +99,7 @@ enum LogbookCollections {
      */
     @SuppressWarnings("unchecked")
     protected static final MongoCollection<LogbookLifeCycleUnit> getLifeCycleUnitCollection() {
-        return (MongoCollection<LogbookLifeCycleUnit>) LIFECYCLE_UNIT.collection;
+        return (MongoCollection<LogbookLifeCycleUnit>) LIFECYCLE_UNIT.vitamCollection;
     }
 
     /**
@@ -113,7 +108,7 @@ enum LogbookCollections {
      */
     @SuppressWarnings("unchecked")
     protected static final MongoCollection<LogbookLifeCycleObjectGroup> getLifeCycleObjectGroupCollection() {
-        return (MongoCollection<LogbookLifeCycleObjectGroup>) LIFECYCLE_OBJECTGROUP.collection;
+        return (MongoCollection<LogbookLifeCycleObjectGroup>) LIFECYCLE_OBJECTGROUP.vitamCollection;
     }
 
     /**
@@ -121,6 +116,6 @@ enum LogbookCollections {
      * @return the associated class
      */
     protected Class<?> getClasz() {
-        return clasz;
+        return vitamCollection.getClasz();
     }
 }

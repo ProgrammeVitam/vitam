@@ -35,7 +35,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
- * Model for VarNameAdapter
+ * Model for VarNameAdapter for Insert
  */
 public class VarNameInsertAdapter extends VarNameAdapter {
 

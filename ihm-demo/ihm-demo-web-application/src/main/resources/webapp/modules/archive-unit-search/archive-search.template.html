@@ -1,52 +1,72 @@
-<div class="archiveSearchPage">
-  <section layout="column" layout-sm="column" layout-align="center center"  layout-wrap="" >
-    <md-input-container class="md-icon-float md-block">
-      <!-- Use floating label instead of placeholder -->
-      <label>Titre</label>
-      <md-icon md-svg-src="images/ic_search_black_24px.svg" class="titre" ng-click="getSearchResult(titleCriteria)"></md-icon>
-      <input ng-model="titleCriteria" type="text">
-      <md-icon md-svg-src="images/ic_clear_black_24px.svg" class="titre" ng-click="titleCriteria='';showResult=false; error=false;"></md-icon>
-    </md-input-container>
-
-    <button ng-if="showResult" class="btn btn-primary" type="button">
-      <span ng-if = "totalResult > 0">Résultats <span class="badge">{{totalResult}}</span> </span>
-      <span ng-if = "totalResult == 0">Aucun résulat trouvé</span>
-    </button>
-    <button ng-if="error" class="btn btn-danger" type="button">
-      {{errorMessage}}
-    </button>
-  </section>
-
-  <div class="archiveSearchResult">
-    <div class="table-responsive ">
-      <table class="table table-hover">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th><a href="" ng-click="orderByField='id'; reverseSort = !reverseSort">ID</a>
-              <span ng-show="orderByField == 'id' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
-              <span ng-show="orderByField == 'id' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
-            </th>
-            <th>
-              <a href="" ng-click="orderByField='title'; reverseSort = !reverseSort">Titre</a>
-              <span ng-show="orderByField == 'title' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
-              <span ng-show="orderByField == 'title' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
-            </th>
-            <th><a href="" ng-click="orderByField='date'; reverseSort = !reverseSort">Transaction Date</a>
-              <span ng-show="orderByField == 'date' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
-              <span ng-show="orderByField == 'date' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
-            </th>
-          </tr>
-        </thead>
-        <tbody ng-if="showResult && totalResult>0">
-          <tr ng-click="displayArchiveUnitForm(result._id)" ng-repeat="result in archiveUnitsSearchResult | orderBy:orderByField:reverseSort">
-            <th>{{$index + 1}}</th>
-            <td>{{result._id}}</td>
-            <td>{{result.Title}}</td>
-            <td>{{result.TransactedDate}}</td>
-          </tr>
-        </tbody>
-      </table>
+<div class="boxSearchWrapper panel panel-default col-md-12">
+  <a class="panel-header" data-toggle="collapse">
+    <h2>Recherche</h2>
+  </a>
+  <div id="boxSearch" class="panel-body panel-collapse collapse in">
+    <div class="tab-content">
+      <div role="tabpanel" class="tab-pane active" id="simpleSearch">
+        <div class="boxSimpleSearchInput form-group col-md-12 m-t-50 m-b-50">
+          <div class="input-group">
+            <input ng-model="titleCriteria" type="text" class="form-control input-lg" placeholder="Titre" />
+            <div class="input-group-addon"><button class="btn btn-primary center-block" ng-click="getSearchResult($event, titleCriteria)"><i class="material-icons pull-left">search</i></button></div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-4"></div>
+        <div class="col-md-4">
+          <button ng-if="showResult" class="btn btn-primary" type="button">
+            <span ng-if = "totalResult > 0">Résultats <span class="badge">{{totalResult}}</span> </span>
+            <span ng-if = "totalResult == 0">Aucun résulat trouvé</span>
+          </button>
+        </div>
+        <div class="col-md-4"></div>
+      </div>
     </div>
   </div>
+</div>
+
+<div class="clearfix"></div>
+
+<!--
+*
+*    RESULTATS
+*
+-->
+<div class="panel panel-default col-md-12">
+    <a class="panel-header" data-toggle="collapse">
+        <h2>Résultats</h2>
+    </a>
+    <div id="boxSearchResults" class="panel-body panel-collapse collapse in">
+      <div class="table-responsive ">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th><a href="" ng-click="orderByField='id'; reverseSort = !reverseSort">ID</a>
+                <span ng-show="orderByField == 'id' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+                <span ng-show="orderByField == 'id' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
+              </th>
+              <th>
+                <a href="" ng-click="orderByField='title'; reverseSort = !reverseSort">Titre</a>
+                <span ng-show="orderByField == 'title' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+                <span ng-show="orderByField == 'title' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
+              </th>
+              <th><a href="" ng-click="orderByField='date'; reverseSort = !reverseSort">Transaction Date</a>
+                <span ng-show="orderByField == 'date' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+                <span ng-show="orderByField == 'date' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
+              </th>
+            </tr>
+          </thead>
+          <tbody ng-if="showResult && totalResult>0">
+            <tr ng-click="displayArchiveUnitForm($event, result._id)" ng-repeat="result in archiveUnitsSearchResult | orderBy:orderByField:reverseSort">
+              <th>{{$index + 1}}</th>
+              <td>{{result._id}}</td>
+              <td>{{result.Title}}</td>
+              <td>{{result.TransactedDate}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
 </div>

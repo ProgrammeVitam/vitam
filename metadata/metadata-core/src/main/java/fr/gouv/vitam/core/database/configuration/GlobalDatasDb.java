@@ -32,7 +32,7 @@ package fr.gouv.vitam.core.database.configuration;
 import java.util.HashSet;
 import java.util.Set;
 
-import fr.gouv.vitam.parser.request.parser.GlobalDatasParser;
+import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 
 /**
  * Default configuration for DB support

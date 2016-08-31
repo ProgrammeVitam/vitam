@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>workspace</artifactId>
-		<version>0.6.0-SNAPSHOT</version>
+		<version>0.7.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>workspace-rest</artifactId>
 	<name>workspace Rest</name>
@@ -11,6 +11,8 @@
 	<properties>
 		<jetty.version>9.3.8.v20160314</jetty.version>
 		<unix.name>workspace</unix.name>
+		<unix.user>vitam</unix.user>
+		<unix.group>vitam</unix.group>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -174,7 +176,17 @@
 				<artifactId>jetty-maven-plugin</artifactId>
 				<version>${jetty.version}</version>
 			</plugin>
-
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<systemPropertyVariables>
+						<org.owasp.esapi.opsteam>AC001</org.owasp.esapi.opsteam>
+						<org.owasp.esapi.devteam>AC001</org.owasp.esapi.devteam>
+						<org.owasp.esapi.resources>../../common/common-private/src/main/resources/esapi</org.owasp.esapi.resources>
+					</systemPropertyVariables>
+				</configuration>
+			</plugin>
 		</plugins>
 
 	</build>

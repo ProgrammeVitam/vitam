@@ -59,4 +59,12 @@ public class RequestResponseError extends RequestResponse {
         this.error = error;
         return this;
     }
+
+    @Override
+    public String toString() {
+        if (error != null) {
+            return error.toString();
+        }
+        return "";
+    }
 }

@@ -28,6 +28,7 @@
 package fr.gouv.vitam.storage.engine.server.rest;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -47,17 +48,17 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusMessage;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
-import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
-import fr.gouv.vitam.storage.engine.common.header.HttpHeaderHelper;
-import fr.gouv.vitam.storage.engine.common.header.VitamHttpHeader;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
+import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
+import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.RequestResponseError;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
@@ -131,17 +132,33 @@ public class StorageResource {
     }
 
     /**
-     * Get a list of containers
-     * Note : this is NOT to be handled in item #72.
+     * Get storage information for a specific tenant/strategy
+     * For example the usable space
      *
      * @param headers http headers
-     * @return Response containing the storage information as json, or an error (412 or 404)
+     * @return Response containing the storage information as json, or an error (404, 500)
      */
     @GET
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getContainerInformation(@Context HttpHeaders headers) {
-        return Response.status(Status.NOT_IMPLEMENTED).build();
+    public Response getStorageInformation(@Context HttpHeaders headers) {
+        Response response = checkTenantStrategyHeader(headers);
+        if (response == null) {
+            Status status;
+            String tenantId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.TENANT_ID).get(0);
+            String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+            try {
+                JsonNode result = distribution.getContainerInformation(tenantId, strategyId);
+                return Response.status(Status.OK).entity(result).build();
+            } catch (StorageNotFoundException exc) {
+                LOGGER.error(exc);
+                status = Status.NOT_FOUND;
+            } catch (StorageTechnicalException exc) {
+                LOGGER.error(exc);
+                status = Status.INTERNAL_SERVER_ERROR;
+            }
+            return buildErrorResponse(status);
+        }
+        return response;
     }
 
     /**
@@ -179,6 +196,7 @@ public class StorageResource {
     @GET
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_OCTET_STREAM, StorageConstants.APPLICATION_ZIP})
+    // TODO si le résultat est une liste alors getContainers (s ajouté)
     public Response getContainer(@Context HttpHeaders headers) throws IOException {
         return Response.status(Status.NOT_IMPLEMENTED).build();
     }
@@ -273,10 +291,27 @@ public class StorageResource {
     @Path("/objects/{id_object}")
     @GET
     @Produces({MediaType.APPLICATION_OCTET_STREAM, StorageConstants.APPLICATION_ZIP})
-    @Consumes(MediaType.APPLICATION_JSON)
     public Response getObject(@Context HttpHeaders headers, @PathParam("id_object") String objectId)
         throws IOException {
-        return Response.status(Status.NOT_IMPLEMENTED).build();
+        Response response = checkTenantStrategyHeader(headers);
+        if (response == null) {
+            Status status;
+            String tenantId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.TENANT_ID).get(0);
+            String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+            try {
+                InputStream result = distribution.getContainerObject(tenantId, strategyId, objectId);
+                return Response.status(Status.OK).entity(result).build();
+            } catch (StorageNotFoundException exc) {
+                LOGGER.error(exc);
+                status = Status.NOT_FOUND;
+            } catch (StorageTechnicalException exc) {
+                LOGGER.error(exc);
+                status = Status.INTERNAL_SERVER_ERROR;
+            }
+            // If here, an error occurred
+            return buildErrorResponse(status);
+        }
+        return response;
     }
 
 
@@ -457,6 +492,7 @@ public class StorageResource {
      * @param logbookId the id of the logbookId
      * @return Response NOT_IMPLEMENTED
      */
+    // FIXME always sending position from Workspace, not directly data (json)
     @Path("/logbooks/{id_logbook}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
@@ -558,6 +594,7 @@ public class StorageResource {
         return Response.status(Status.NOT_IMPLEMENTED).build();
     }
 
+    // FIXME always sending position from Workspace, not directly data (json)
     /**
      * Post a new unit metadata
      *
@@ -666,6 +703,7 @@ public class StorageResource {
         return Response.status(Status.NOT_IMPLEMENTED).build();
     }
 
+    // FIXME always sending position from Workspace, not directly data (json)
     /**
      * Get a Object Group
      * <p>
@@ -783,12 +821,12 @@ public class StorageResource {
     }
 
     private Response buildErrorResponse(Status status) {
-        return Response.status(status).entity(new RequestResponseError().setError(
+        return Response.status(status).entity((new RequestResponseError().setError(
             new VitamError(status.getStatusCode())
                 .setContext("storage")
                 .setState("code_vitam")
                 .setMessage(status.getReasonPhrase())
-                .setDescription(status.getReasonPhrase())))
+                .setDescription(status.getReasonPhrase()))).toString())
             .build();
     }
 

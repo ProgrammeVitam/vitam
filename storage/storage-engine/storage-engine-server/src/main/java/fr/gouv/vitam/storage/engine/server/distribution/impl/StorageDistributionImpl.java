@@ -43,6 +43,7 @@ import java.util.Properties;
 import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.LocalDateUtil;
@@ -56,8 +57,11 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
+import fr.gouv.vitam.storage.driver.model.GetObjectRequest;
+import fr.gouv.vitam.storage.driver.model.GetObjectResult;
 import fr.gouv.vitam.storage.driver.model.PutObjectRequest;
 import fr.gouv.vitam.storage.driver.model.PutObjectResult;
+import fr.gouv.vitam.storage.driver.model.StorageCapacityRequest;
 import fr.gouv.vitam.storage.engine.common.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
@@ -88,6 +92,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
  * StorageDistribution service Implementation
+ * TODO: see what to do with RuntimeException (catch it and log it to let the process continue if needed)
  */
 public class StorageDistributionImpl implements StorageDistribution {
 
@@ -98,6 +103,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     private static final String NOT_IMPLEMENTED_MSG = "Not yet implemented";
     private static final int NB_RETRY = 3;
     private final WorkspaceClient workspaceClient;
+    // FIXME see API
     // TODO : later, the digest type may be retrieve via REST parameters. Fot the moment (as of US 72 dev) there is no
     // specification about that
     private final DigestType digestType;
@@ -112,6 +118,8 @@ public class StorageDistributionImpl implements StorageDistribution {
         WorkspaceClientFactory factory = new WorkspaceClientFactory();
         workspaceClient = factory.create(configuration.getUrlWorkspace());
         // TODO : a real design discussion is needed : should we force it ? Should we negociate it with the offer ?
+        // FIXME Might be negotiated but limited to available digestType from Vitam (MD5, SHA-1, SHA-256, SHA-512, ...)
+        // Just to note, I prefer SHA-512 (more CPU but more accurate and already the default for Vitam, notably to allow check of duplicated files)
         digestType = DigestType.SHA256;
     }
 
@@ -149,6 +157,8 @@ public class StorageDistributionImpl implements StorageDistribution {
             for (OfferReference offerReference : offerReferences) {
                 // TODO: sequential process for now (we have only 1 offer anyway) but storing object should be
                 // processed in parallel for each driver, in order to not be blocked on 1 driver storage process
+                // TODO special notice: when parallel, try to get only once the inputstream and then multiplexing it to multiple intputstreams as needed
+                // 1 IS => 3 IS (if 3 offers) where this special class handles one IS as input to 3 IS as output
                 boolean success =
                     tryAndRetryStoreObjectInOffer(createObjectDescription, tenantId, objectId, category, jsonData,
                         offerReference);
@@ -217,6 +227,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         PutObjectRequest putObjectRequest = null;
         PutObjectResult putObjectResult;
         boolean objectStored = false;
+        // FIXME use Digest from common
         MessageDigest messageDigest = null;
         int i = 0;
         while (i < NB_RETRY && !objectStored) {
@@ -237,8 +248,8 @@ public class StorageDistributionImpl implements StorageDistribution {
                 if (BaseXx.getBase16(messageDigest.digest()).equals(putObjectResult.getDigestHashBase16())) {
                     objectStored = true;
                 } else {
-                    throw new StorageDriverException(driver.getName(), "Content digest invalid in offer id : '" +
-                        offer.getId() + "' for object " + objectId);
+                    throw new StorageTechnicalException("[Driver:" + driver.getName() + "] Content digest invalid in " +
+                        "offer id : '" + offer.getId() + "' for object " + objectId);
                 }
             } catch (StorageDriverException | StorageNotFoundException | StorageTechnicalException exc) {
                 LOGGER.error(exc);
@@ -331,9 +342,40 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     @Override
-    public JsonNode getStorageInformation(String tenantId, String strategyId) throws StorageNotFoundException {
-        throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
+    public JsonNode getContainerInformation(String tenantId, String strategyId) throws
+        StorageNotFoundException, StorageTechnicalException {
+        ParametersChecker.checkParameter("Tenant id is mandatory", tenantId);
+        ParametersChecker.checkParameter("Strategy id is mandatory", strategyId);
+        // Retrieve strategy data
+        StorageStrategy storageStrategy = STRATEGY_PROVIDER.getStorageStrategy(strategyId);
+        HotStrategy hotStrategy = storageStrategy.getHotStrategy();
+        if (hotStrategy != null) {
+            List<OfferReference> offerReferences = choosePriorityOffers(hotStrategy);
+            if (offerReferences.isEmpty()) {
+                throw new StorageNotFoundException("No suitable offer found to be able to store data");
+            }
+
+            StorageCapacityRequest request = new StorageCapacityRequest();
+            request.setTenantId(tenantId);
+            // HACK: HARDCODE ! actually we only have one offer
+            // TODO: review algo
+            OfferReference offerReference = offerReferences.get(0);
+            Driver driver = retrieveDriverInternal(offerReference.getId());
+            StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
+            Properties parameters = new Properties();
+            parameters.putAll(offer.getParameters());
+            try (Connection connection = driver.connect(offer.getBaseUrl(), parameters)) {
+                ObjectNode ret = JsonHandler.createObjectNode();
+                ret.put("usableSpace", connection.getStorageCapacity(request).getUsableSpace());
+                return ret;
+            } catch (StorageDriverException | RuntimeException exc) {
+                throw new StorageTechnicalException(exc);
+            }
+        }
+        throw new StorageNotFoundException("No suitable strategy found to be able to store data");
     }
+
+
 
     @Override
     public InputStream getStorageContainer(String tenantId, String strategyId)
@@ -355,6 +397,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         String digest, String digestAlgorithm, String size, String agentIdentifiers, String agentIdentifierRequester,
         String outcomeDetailMessage, String objectIdentifierIncome, StorageLogbookOutcome outcome) {
         StorageLogbookParameters parameters = new StorageLogbookParameters();
+        // FIXME oups, date hard coded !
         parameters.putParameterValue(StorageLogbookParameterName.eventDateTime, "2016-07-29T11:56:35.914");
         parameters.putParameterValue(StorageLogbookParameterName.outcome, outcome.name());
         parameters.putParameterValue(StorageLogbookParameterName.objectIdentifier,
@@ -394,8 +437,47 @@ public class StorageDistributionImpl implements StorageDistribution {
 
     @Override
     public InputStream getContainerObject(String tenantId, String strategyId, String objectId)
-        throws StorageNotFoundException {
-        throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
+        throws StorageNotFoundException, StorageTechnicalException {
+        // Check input params
+        ParametersChecker.checkParameter("Tenant id is mandatory", tenantId);
+        ParametersChecker.checkParameter("Strategy id is mandatory", strategyId);
+        ParametersChecker.checkParameter("Object id is mandatory", objectId);
+
+        // Retrieve strategy data
+        StorageStrategy storageStrategy = STRATEGY_PROVIDER.getStorageStrategy(strategyId);
+        HotStrategy hotStrategy = storageStrategy.getHotStrategy();
+        if (hotStrategy != null) {
+            List<OfferReference> offerReferences = choosePriorityOffers(hotStrategy);
+            if (offerReferences.isEmpty()) {
+                throw new StorageTechnicalException("No suitable offer found to be able to store data");
+            }
+            GetObjectResult result = getGetObjectResult(tenantId, objectId, offerReferences);
+            return result.getObject();
+        }
+        throw new StorageTechnicalException("No suitable strategy found to be able to store data");
+    }
+
+    private GetObjectResult getGetObjectResult(String tenantId, String objectId, List<OfferReference> offerReferences)
+        throws StorageTechnicalException, StorageNotFoundException {
+        GetObjectResult result;
+        for (OfferReference offerReference : offerReferences) {
+            Driver driver = retrieveDriverInternal(offerReference.getId());
+            StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
+            Properties parameters = new Properties();
+            parameters.putAll(offer.getParameters());
+            try (Connection connection = driver.connect(offer.getBaseUrl(), parameters)) {
+                GetObjectRequest request = new GetObjectRequest();
+                request.setTenantId(tenantId);
+                request.setGuid(objectId);
+                result = connection.getObject(request);
+                if (result.getObject() != null) {
+                    return result;
+                }
+            } catch (StorageDriverException exc) {
+                LOGGER.warn("Error with the storage, take the next offer in the strategy (by priority)", exc);
+            }
+        }
+        throw new StorageNotFoundException("Object with id " + objectId + " not found in all strategy");
     }
 
     @Override

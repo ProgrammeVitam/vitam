@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Access Group description",
+  "type": "object",
+  "required": [
+    "id",
+    "group"
+  ],
+  "properties": {
+    "id": {
+      "description": "Access Group Identifier",
+      "type": "string"
+    },
+    "group": {
+      "description": "Lits of Ingest contracts and their associated allowed roots if any",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "ingest_id": {
+            "type": "string"
+          },
+          "roots": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

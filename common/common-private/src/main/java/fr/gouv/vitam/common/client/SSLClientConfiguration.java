@@ -36,7 +36,7 @@ public class SSLClientConfiguration extends ClientConfigurationImpl {
     private String serverContextPath;
 
     /**
-     * Empty constructor used by YAMLFactory to instanciate the object
+     * Empty constructor used by YAMLFactory to instantiate the object
      */
     public SSLClientConfiguration() {
         // Emtpy constructor

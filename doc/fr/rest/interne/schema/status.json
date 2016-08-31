@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Status of one Module/Engine",
+  "type": "object",
+  "properties": {
+    "id": {
+      "description": "Id of this instance of the Module/Engine",
+      "type": "string"
+    },
+    "service": {
+      "description": "generic service name for this kind of Module/Engine",
+      "type": "string"
+    },
+    "start": {
+      "description": "start date of this instance",
+      "type": "string"
+    },
+    "dependencies": {
+      "description": "dependencies with other Module/Engine (not the same kind)",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "service": {
+            "description": "generic service name for the Module/Engine on which this instance depends",
+            "type": "string"
+          }
+        }
+      }
+    },
+    "status": {
+      "description": "status of this instance",
+      "type": "string"
+    }
+  }
+}

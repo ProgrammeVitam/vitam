@@ -70,8 +70,8 @@ public interface EngineResponse {
    public int getErrorNumber();
 
    /**
-    * @param messages Detail Messages of response
-     * @return EngineResponse
+    * @param number the number of errors during the workflow
+    * @return EngineResponse
     */
    EngineResponse setErrorNumber(int number);
 

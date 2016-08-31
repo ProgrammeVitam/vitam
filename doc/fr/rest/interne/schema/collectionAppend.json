@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Append result",
+  "type": "object",
+  "properties": {
+    "mainId": {
+      "description": "Id of the main item that is appended",
+      "type": "string"
+    },
+    "results": {
+      "description": "list of sub items including the last one appended",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

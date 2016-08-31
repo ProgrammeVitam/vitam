@@ -1,0 +1,102 @@
+#%RAML 0.8
+title: Worker
+baseUri: http://server-internal/worker/api/{version}
+version: v0.0.5
+protocols: [ HTTP ]
+
+mediaType: application/json
+
+securitySchemes:
+  - x-vitam-platform-key:
+      type: x-hedader-key
+      description: Vitam Platform Key
+      describedBy:
+        headers:
+          x-vitam-key:
+            type: string
+
+securedBy: [ x-vitam-platform-key ]
+
+traits: !include traits/Traits.raml
+
+resourceTypes: !include resourceTypes/InternalResourceTypes.raml
+
+documentation:
+  - title: Tasks
+    content: |
+      Le principe proposé serait le suivant:
+        - Affectation par le Moteur d'exécution (Distribution):
+          - POST /tasks
+        - Suivi pour un worker pour une tâche:
+          - GET / tasks/id_async
+        - Possibilité future d'agir sur une tâche en cours d'exécution (ou plusieurs):
+          - PATCH /tasks
+          - PATCH /tasks/id_async
+
+      Questions ou remarques:
+        - Le /status pourrait être étendu pour avoir des informations statistiques sur le Worker.
+
+/tasks:
+  # root endpoint request
+  displayName: Tasks
+  description: Administration des Tâches Asynchrones (Steps).
+  type: base
+  is: [ standardErrors, standardHeaders ]
+  get:
+    description: Permet de lister les tâches en cours
+    body:
+      application/json:
+        example: !include samples/collectionQuery.sample
+    responses:
+      200:
+        body:
+          application/json:
+            example: !include samples/collectionList.sample
+  post:
+    description: Permet de soumettre une tâche (steps + contexte + item)
+    body:
+      application/json:
+        example: !include samples/workflow-worker.sample
+    responses:
+      201:
+        body:
+          application/json:
+            example: !include samples/async_status.sample
+  put:
+    description: Permet si nécessaire d'interagir avec une tâche (cancel)
+    body:
+      application/json:
+        example: !include samples/genericSample.sample
+    responses:
+      200:
+        body:
+          application/json:
+            example: !include samples/async_status.sample
+
+  /{id_async}:
+    displayName: Task
+    type: base
+    is: [ standardErrors, standardHeaders ]
+    get:
+      description: Permet de récupérer le statut d'une Tâche en cours
+      responses:
+        200:
+          body:
+            application/json:
+              example: !include samples/async_status.sample
+    put:
+      description: Permet si nécessaire d'interagir avec une Tâche (cancel)
+      body:
+        application/json:
+          example: !include samples/genericSample.sample
+      responses:
+        200:
+          body:
+            application/json:
+              example: !include samples/async_status.sample
+
+/status:
+  displayName: Executor Engine Status
+  description: Statut du moteur d'exécution, comme sa charge actuelle.
+  type: { statusCollection }
+  is: [ standardErrors, standardHeaders ]

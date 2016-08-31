@@ -23,38 +23,65 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.rest;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.http.ContentType;
-import fr.gouv.vitam.common.GlobalDataRest;
+import static com.jayway.restassured.RestAssured.*;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
+
+import java.io.ByteArrayInputStream;
+import java.io.FileNotFoundException;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status;
+
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.BasicVitamServer;
-import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.parser.request.parser.GlobalDatasParser;
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.handler.HandlerList;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
+import org.glassfish.jersey.jackson.JacksonFeature;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.servlet.ServletContainer;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import javax.ws.rs.core.Response.Status;
-import java.io.FileNotFoundException;
+import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.http.ContentType;
 
-import static com.jayway.restassured.RestAssured.*;
+import fr.gouv.vitam.access.api.AccessModule;
+import fr.gouv.vitam.access.common.exception.AccessExecutionException;
+import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.BasicVitamServer;
+import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.common.server.VitamServerFactory;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 
-
+// TODO: there is big changes to do in this junit class! Almost all SelectByUnitId tests are wrong (should be a
+// fix me)
 public class AccessResourceImplTest {
 
     // URI
-    private static final String ACCESS_CONF = "access.conf";
+    private static final String ACCESS_CONF = "access-test.conf";
     private static final String ACCESS_RESOURCE_URI = "access/v1";
     private static final String ACCESS_STATUS_URI = "/status";
     private static final String ACCESS_UNITS_URI = "/units";
     private static final String ACCESS_UNITS_ID_URI = "/units/xyz";
     private static final String ACCESS_UPDATE_UNITS_ID_URI = "/units/xyz";
-    // private static final int ASSURD_SERVER_PORT = 8187;
 
     private static VitamServer vitamServer;
 
@@ -83,7 +110,10 @@ public class AccessResourceImplTest {
     private static final String ID_UNIT = "identifier5";
     private static JunitHelper junitHelper;
     private static int port;
-    private static int serverPort;
+    private static final String OBJECT_ID = "objectId";
+    private static final String OBJECTS_URI = "/objects/";
+
+    private static AccessModule mock;
 
 
     @BeforeClass
@@ -91,20 +121,39 @@ public class AccessResourceImplTest {
         junitHelper = new JunitHelper();
         port = junitHelper.findAvailablePort();
         try {
-            vitamServer = AccessApplication.startApplication(new String[] {
-                PropertiesUtils.getResourcesFile(ACCESS_CONF).getAbsolutePath(),
-                Integer.toString(port)});
+            vitamServer = buildTestServer();
             ((BasicVitamServer) vitamServer).start();
 
             RestAssured.port = port;
             RestAssured.basePath = ACCESS_RESOURCE_URI;
 
             LOGGER.debug("Beginning tests");
-        } catch (FileNotFoundException | VitamApplicationServerException e) {
+        } catch (VitamApplicationServerException e) {
             LOGGER.error(e);
             throw new IllegalStateException(
                 "Cannot start the Access Application Server", e);
         }
+    }
+
+    private static VitamServer buildTestServer() throws VitamApplicationServerException {
+        VitamServer vitamServer = VitamServerFactory.newVitamServer(port);
+
+
+        final ResourceConfig resourceConfig = new ResourceConfig();
+        resourceConfig.register(JacksonFeature.class);
+        mock = mock(AccessModule.class);
+        resourceConfig.register(new AccessResourceImpl(mock));
+
+        final ServletContainer servletContainer = new ServletContainer(resourceConfig);
+        final ServletHolder sh = new ServletHolder(servletContainer);
+        final ServletContextHandler contextHandler = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
+        contextHandler.setContextPath("/");
+        contextHandler.addServlet(sh, "/*");
+
+        HandlerList handlers = new HandlerList();
+        handlers.setHandlers(new Handler[] {contextHandler});
+        vitamServer.configure(contextHandler);
+        return vitamServer;
     }
 
     @AfterClass
@@ -112,11 +161,10 @@ public class AccessResourceImplTest {
         LOGGER.debug("Ending tests");
         try {
             ((BasicVitamServer) vitamServer).stop();
-            junitHelper.releasePort(serverPort);
+            junitHelper.releasePort(port);
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
         }
-
     }
 
     // Status
@@ -163,11 +211,12 @@ public class AccessResourceImplTest {
     public void givenStartedServer_WhenBadRequest_ThenReturnError_BadRequest() throws Exception {
         given()
             .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
-            .body(buildDSLWithOptions(QUERY_TEST, DATA2))
-            .when().post(ACCESS_UNITS_URI).then().statusCode(Status.BAD_REQUEST.getStatusCode());
+            .body(buildDSLWithOptions(QUERY_TEST, DATA2)).
+        when()
+            .post(ACCESS_UNITS_URI).
+        then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
-
-
 
     @Test
     public void givenStartedServer_When_Empty_Http_Get_ThenReturnError_METHOD_NOT_ALLOWED() throws Exception {
@@ -307,7 +356,7 @@ public class AccessResourceImplTest {
     }
 
     @Test
-    public void given_queryThatThrowException_when_updateByID_thenThrowAccessException() {
+    public void given_queryThatThrowException_when_updateByID() {
 
         given()
                 .contentType(ContentType.JSON)
@@ -315,7 +364,7 @@ public class AccessResourceImplTest {
                 .when()
                 .put("/units/" + ID)
                 .then()
-                .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+                .statusCode(Status.OK.getStatusCode());
     }
 
     @Test
@@ -332,8 +381,7 @@ public class AccessResourceImplTest {
     }
 
     @Test
-    public void given_pathWithId_when_get_SelectByID_thenReturn_MethodNotAllowed() {
-
+    public void given_pathWithId_when_get_SelectByID() {
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
@@ -341,7 +389,7 @@ public class AccessResourceImplTest {
             .when()
             .post("/units/" + ID_UNIT)
             .then()
-            .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+            .statusCode(Status.OK.getStatusCode());
     }
 
     @Ignore
@@ -379,5 +427,171 @@ public class AccessResourceImplTest {
         obj.append("{ \"a\": ").append(createJsonStringWithDepth(depth - 1)).append("}");
         return obj.toString();
     }
+
+    @Test
+    public void getObjectGroupOk() throws Exception {
+        reset(mock);
+        when(mock.selectObjectGroupById(JsonHandler.getFromString(BODY_TEST), OBJECT_ID)).thenReturn(JsonHandler
+            .getFromString(DATA));
+
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(BODY_TEST).when().get
+            (OBJECTS_URI +
+            OBJECT_ID)
+            .then()
+            .statusCode(Status.OK.getStatusCode()).contentType(MediaType.APPLICATION_JSON);
+    }
+
+    @Test
+    public void getObjectGroupPostOK() throws Exception {
+        reset(mock);
+        when(mock.selectObjectGroupById(anyObject(), anyObject())).thenReturn(JsonHandler
+            .getFromString(DATA));
+
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(BODY_TEST).header
+            (GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
+            "GET").when().post(OBJECTS_URI + OBJECT_ID).then()
+            .statusCode(Status.OK.getStatusCode()).contentType(MediaType.APPLICATION_JSON);
+    }
+
+    @Test
+    public void getObjectGroupPreconditionFailed() {
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).when().get(OBJECTS_URI +
+            OBJECT_ID).then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public void getObjectGroupPostMethodNotAllowed() {
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(buildDSLWithRoots("")
+        ).when().post(OBJECTS_URI + OBJECT_ID)
+            .then().statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+    }
+
+    @Test
+    public void getObjectGroupBadRequest() {
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body("test").when().get
+            (OBJECTS_URI + OBJECT_ID).then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
+    }
+
+    @Test
+    public void getObjectGroupNotFound() throws Exception {
+        reset(mock);
+        when(mock.selectObjectGroupById(JsonHandler.getFromString(BODY_TEST), OBJECT_ID)).thenThrow(new
+            NotFoundException());
+
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(BODY_TEST).when().get
+            (OBJECTS_URI + OBJECT_ID).then()
+            .statusCode(Status.NOT_FOUND.getStatusCode());
+    }
+
+    @Test
+    public void getObjectGroupInternalServerError() throws Exception {
+        reset(mock);
+        when(mock.selectObjectGroupById(JsonHandler.getFromString(BODY_TEST), OBJECT_ID)).thenThrow(new
+            AccessExecutionException("Wanted exception"));
+
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(BODY_TEST).when().get
+            (OBJECTS_URI + OBJECT_ID).then()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    // Stream
+    @Test
+    public void getObjectStreamOk() throws Exception {
+        reset(mock);
+        when(mock.getOneObjectFromObjectGroup(anyString(), anyObject(), anyString(), anyInt(), anyString()))
+            .thenReturn(new ByteArrayInputStream("test".getBytes()));
+
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM).headers
+            (getStreamHeaders()).body(BODY_TEST).when().get(OBJECTS_URI + OBJECT_ID).then()
+            .statusCode(Status.OK.getStatusCode()).contentType(MediaType.APPLICATION_OCTET_STREAM);
+    }
+
+    @Test
+    public void getObjectStreamPostOK() throws Exception {
+        reset(mock);
+        when(mock.getOneObjectFromObjectGroup(anyString(), anyObject(), anyString(), anyInt(), anyString()))
+            .thenReturn(new ByteArrayInputStream("test".getBytes()));
+
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM).body(BODY_TEST)
+            .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
+            "GET").when().post(OBJECTS_URI + OBJECT_ID).then()
+            .statusCode(Status.OK.getStatusCode()).contentType(MediaType.APPLICATION_OCTET_STREAM);
+    }
+
+    @Test
+    public void getObjectStreamPreconditionFailed() {
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM).header
+            (GlobalDataRest.X_QUALIFIER, "qualif").header(GlobalDataRest.X_VERSION, 1).when()
+            .get(OBJECTS_URI + OBJECT_ID).then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM).header
+            (GlobalDataRest.X_QUALIFIER, "qualif").header(GlobalDataRest.X_TENANT_ID, "0").when()
+            .get(OBJECTS_URI + OBJECT_ID).then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM).header
+            (GlobalDataRest.X_TENANT_ID, "0").header(GlobalDataRest.X_VERSION, 1).when()
+            .get(OBJECTS_URI + OBJECT_ID).then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
+            .when().post(OBJECTS_URI + OBJECT_ID).then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM).headers(getStreamHeaders())
+            .when().get(OBJECTS_URI + OBJECT_ID).then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public void getObjectStreamPostMethodNotAllowed() {
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM).header
+            (GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "TEST").body("test").when().post(OBJECTS_URI + OBJECT_ID)
+            .then().statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+    }
+
+    @Test
+    public void getObjectStreamBadRequest() {
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
+            .headers(getStreamHeaders()).body("test").when().get(OBJECTS_URI + OBJECT_ID).then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
+    }
+
+    @Test
+    public void getObjectStreamNotFound() throws Exception {
+        reset(mock);
+        when(mock.getOneObjectFromObjectGroup(anyString(), anyObject(), anyString(), anyInt(), anyString()))
+            .thenThrow(new StorageNotFoundException("test"));
+
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
+            .headers(getStreamHeaders()).body(BODY_TEST).when().get(OBJECTS_URI + OBJECT_ID).then()
+            .statusCode(Status.NOT_FOUND.getStatusCode());
+
+        reset(mock);
+        when(mock.getOneObjectFromObjectGroup(anyString(), anyObject(), anyString(), anyInt(), anyString()))
+            .thenThrow(new MetaDataNotFoundException("test"));
+
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
+            .headers(getStreamHeaders()).body(BODY_TEST).when().get(OBJECTS_URI + OBJECT_ID).then()
+            .statusCode(Status.NOT_FOUND.getStatusCode());
+
+    }
+
+    @Test
+    public void getObjectStreamInternalServerError() throws Exception {
+        reset(mock);
+        when(mock.getOneObjectFromObjectGroup(anyString(), anyObject(), anyString(), anyInt(), anyString())).thenThrow(new
+            AccessExecutionException("Wanted exception"));
+
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM).headers(getStreamHeaders())
+            .body(BODY_TEST).when().get(OBJECTS_URI + OBJECT_ID).then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    private Map<String, Object> getStreamHeaders() {
+        Map<String, Object> headers = new HashMap<>();
+        headers.put(GlobalDataRest.X_TENANT_ID, "0");
+        headers.put(GlobalDataRest.X_QUALIFIER, "qualif");
+        headers.put(GlobalDataRest.X_VERSION, 1);
+        return headers;
+    }
+
 }
 

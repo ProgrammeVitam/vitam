@@ -23,10 +23,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.core.database.collections;
 
-import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens;
-import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.PROJECTIONARGS;
+import fr.gouv.vitam.common.database.parser.query.ParserTokens;
+import fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.parser.request.parser.VarNameAdapter;
+import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 
 /**
  * Model for VarNameAdapter
@@ -53,7 +53,7 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
             return newname;
         }
         if (name.charAt(0) == ParserTokens.DEFAULT_HASH_PREFIX_CHAR) {
-            final PROJECTIONARGS proj = PROJECTIONARGS.parse(name);
+            final PROJECTIONARGS proj = ParserTokens.PROJECTIONARGS.parse(name);
             switch (proj) {
                 case ALL:
                     break;
@@ -63,7 +63,7 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
                     return ObjectGroup.OBJECTFORMAT;
                 case ID:
                     // Valid for OG
-                    return VitamDocument.ID;
+                    return MetadataDocument.ID;
                 case NBUNITS:
                     // Valid for OG
                     return Unit.NBCHILD;
@@ -71,7 +71,7 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
                     return ObjectGroup.OBJECTSIZE;
                 case TYPE:
                     // Valid for OG
-                    return VitamDocument.TYPE;
+                    return MetadataDocument.TYPE;
                 default:
                     break;
             }

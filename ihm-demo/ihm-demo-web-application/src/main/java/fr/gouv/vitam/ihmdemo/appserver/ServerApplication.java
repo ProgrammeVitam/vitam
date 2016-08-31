@@ -26,10 +26,13 @@
  */
 package fr.gouv.vitam.ihmdemo.appserver;
 
-import java.io.FileReader;
-import java.net.URISyntaxException;
-import java.net.URL;
-
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.common.server.VitamServerFactory;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandler;
@@ -41,12 +44,9 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.VitamServerFactory;
+import java.io.File;
+import java.net.URISyntaxException;
+import java.net.URL;
 
 /**
  * Server application for ihm-demo
@@ -58,6 +58,7 @@ public class ServerApplication {
 	private static final String DEFAULT_STATIC_CONTENT = "webapp";
 	private static final String DEFAULT_HOST = "localhost";
 	private static Server server;
+	private static VitamServer vitamServer;
 
 	/**
 	 * Start a service of IHM Web Application with the args as config
@@ -71,7 +72,14 @@ public class ServerApplication {
 		try {
 			final String configFile = args.length >= 1 ? args[0] : null;
 			new ServerApplication().configure(configFile);
-			server.join();
+
+			//TODO centraliser ce join dans un abstract parent
+			if (server!=null && server.isStarted()) {
+				server.join();
+			} else if (vitamServer!=null && vitamServer.getServer()!=null &&
+				vitamServer.getServer().isStarted()) {
+				vitamServer.getServer().join();
+			}
 		} catch (final Exception e) {
 			LOGGER.error("Can not start ihm server ", e);
 			System.exit(1);
@@ -85,9 +93,8 @@ public class ServerApplication {
 
 			if (configFile != null) {
 				// Get configuration parameters from Configuration File
-				final FileReader yamlFile = new FileReader(configFile);
-				final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-				configuration = mapper.readValue(yamlFile, WebApplicationConfig.class);
+				final File yamlFile = PropertiesUtils.findFile(configFile);
+				configuration = PropertiesUtils.readYaml(yamlFile, WebApplicationConfig.class);
 			} else {
 				// Set default parameters
 				configuration.setBaseUrl(DEFAULT_WEB_APP_CONTEXT);
@@ -106,6 +113,7 @@ public class ServerApplication {
 
 	/**
 	 * run a server instance with the configuration
+	 * the configuration is never null at this time. It is already instantiate before.
 	 *
 	 * @param configuration
 	 *            as WebApplicationConfig
@@ -113,7 +121,19 @@ public class ServerApplication {
 	 *     the server could not be started        
 	 */
 	public static void run(WebApplicationConfig configuration) throws Exception {
-		server = new Server(configuration.getPort());
+		if(configuration == null){
+			throw new VitamApplicationServerException("Configuration not found");
+		}
+
+		boolean isServerWithJettyConfig = false;
+		if(configuration.getPort()!=0) {
+			server = new Server(configuration.getPort());
+		} else if(!StringUtils.isBlank(configuration.getJettyConfig())){
+			String jettyConfig = configuration.getJettyConfig();
+			vitamServer = VitamServerFactory.newVitamServerByJettyConf(jettyConfig);
+			isServerWithJettyConfig = true;
+		}
+
 		// Servlet Container (REST resource)
 		final ResourceConfig resourceConfig = new ResourceConfig();
 		resourceConfig.register(new WebApplicationResource());
@@ -141,8 +161,13 @@ public class ServerApplication {
 		final HandlerList handlerList = new HandlerList();
 		handlerList.setHandlers(new Handler[] { staticContext, restResourceContext, new DefaultHandler() });
 
-		server.setHandler(handlerList);
-		server.start();
+		if(!isServerWithJettyConfig) {
+			server.setHandler(handlerList);
+			server.start();
+		} else {
+			vitamServer.getServer().setHandler(handlerList);
+			vitamServer.getServer().start();
+		}
 	}
 
 	/**
@@ -152,7 +177,12 @@ public class ServerApplication {
 	 *     the server could not be stopped
 	 */
 	public static void stop() throws Exception {
-		server.stop();
+		//TODO centraliser ce stop dans un abstract parent
+		if (server!=null && server.isStarted()) {
+			server.stop();
+		} else if (vitamServer!=null && vitamServer.getServer()!=null &&
+			vitamServer.getServer().isStarted()) {
+			vitamServer.getServer().stop();
+		}
 	}
-
 }

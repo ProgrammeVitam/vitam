@@ -27,14 +27,22 @@ package fr.gouv.vitam.common.model;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.StringJoiner;
 
 import org.apache.commons.lang3.StringUtils;
+
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * Access RequestResponseError class
  *
  */
 public final class VitamError {
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamError.class);
 
     private int code;
     private String context;
@@ -119,6 +127,7 @@ public final class VitamError {
      * @param list of errors as List
      * @return the VitamError object with the list of errors is filled
      */
+    // TODO bad comment: parameter name
     public VitamError addAllErrors(List<VitamError> errors) {
         if (this.errors == null || this.errors.isEmpty()) {
             this.errors = new ArrayList<>();
@@ -190,5 +199,10 @@ public final class VitamError {
      */
     public List<VitamError> getErrors() {
         return errors;
+    }
+
+    @Override
+    public String toString() {
+        return JsonHandler.unprettyPrint(this);
     }
 }

@@ -35,8 +35,14 @@ public class ActionTest {
 
     @Test
     public void testConstructor() {
-        assertEquals("", new Action().getActionKey());
-        assertEquals(TEST, new Action().setActionKey(TEST).getActionKey());
+        ActionDefinition actionDefinition = new ActionDefinition();
+        Action action = new Action();        
+        assertEquals("", actionDefinition.getActionKey());
+        actionDefinition.setActionKey(TEST);
+        actionDefinition.setActionType(ActionType.BLOCK);
+        action.setActionDefinition(actionDefinition);
+        assertEquals(TEST, action.getActionDefinition().getActionKey());
+        assertEquals(ActionType.BLOCK, action.getActionDefinition().getActionType());
     }
 
 }

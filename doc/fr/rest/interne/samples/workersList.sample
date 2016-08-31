@@ -1,0 +1,21 @@
+{
+  à compléter...!
+  "hits": {
+    "total": 10,
+    "size": 3,
+    "offset": 0,
+    "limit": 100,
+    "time_out": false,
+    "next": "async_id_next"
+  },
+  "context": {
+    "query": "workers list"
+  },
+  "results": [
+    {"worker" : "workerId",
+    "capacity" : "capacity"},
+    {"worker" : "workerId",
+    "capacity" : "capacity"},
+    ...
+    ]
+}

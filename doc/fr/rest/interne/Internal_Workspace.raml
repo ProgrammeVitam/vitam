@@ -1,0 +1,232 @@
+#%RAML 0.8
+title: Espace de Travail
+baseUri: http://server-internal/workspace/{version}
+version: v0.0.5
+protocols: [ HTTP ]
+
+mediaType: application/json
+
+securitySchemes:
+  - x-vitam-platform-key:
+      type: x-hedader-key
+      description: Vitam Platform Key
+      describedBy:
+        headers:
+          x-vitam-key:
+            type: string
+
+securedBy: [ x-vitam-platform-key ]
+
+schemas:
+  - error: !include schema/error.json
+  - genericObject: !include schema/generic_object.json
+  - containerInfo: !include schema/containerInfo.json
+  - storedInfo: !include schema/storedInfo.json
+  - collectionList: !include schema/collection_list.json
+  - collectionQuery: !include schema/collection_query.json
+  - logbook: !include schema/logbook.json
+  - logbooks: !include schema/logbooks.json
+  - unit: !include schema/generic_object.json
+  - objectgroup: !include schema/generic_object.json
+  - status: !include schema/status.json
+
+traits: !include traits/Traits.raml
+
+resourceTypes: !include resourceTypes/InternalResourceTypes.raml
+
+documentation:
+  - title: Containers
+    content: |
+      Le principe proposé serait le suivant:
+        - Le Container indique une Opération (id de l'opération):
+          - POST /containers
+        - Les clients sont responsables d'assurer la logique des Folders et des Objects c'est à dire l'arborescence
+        - Même si c'est autorisé, il est à réfléchir si la céation d'Objets sous un container est une bonne praitque
+
+      Questions ou remarques:
+        - Le /status pourrait être étendu pour avoir des informations statistiques.
+
+/containers:
+  displayName: Containers
+  description: Administration des Containers (Dossiers de plus haut niveau)
+  type: base
+  is: [ standardErrors, standardHeaders ]
+  get:
+    description: Liste du contenu d'une collection.
+    body:
+      application/json:
+        schema: collectionQuery
+        example: !include samples/collectionQuery.sample
+    responses:
+      200:
+        body:
+          application/json:
+            schema: collectionList
+            example: !include samples/collectionList.sample
+
+  /{cid}:
+    displayName: Single Container API
+    description: API de gestion d'un Container (Dossier).
+    type: { collection-item: { answearModel: containerInfo, exampleAnswearModel: !include samples/containerInfo.sample } }
+    is: [ standardErrors, standardHeaders ]
+    get:
+      description: Permet d'accéder aux informations d'un container
+      headers:
+        Accept:
+          description: Seul application/json est autorisé
+          type: string
+          enum: [ "application/json" ]
+    delete:
+      description: Permet d'effacer un Container (selon l'argument peut être récursif)
+      headers:
+        X-Recursive:
+          description: Si Vrai la destruction est récursive, sinon si non vide retourne une erreur
+          type: boolean
+      responses:
+        204:
+    head:
+      description: Permet de tester l'existence du Container
+      responses:
+        200:
+    post:
+      description: Permet de créer un Container avec le nom indiqué, si celui n'existe pas déjà
+      responses:
+        201:
+          description: Le container est bien créé
+    put:
+      description: Permet d'uploader un ZIP ou TAR avec un unzip/untar automatique à la racine du container, incluant la création de sous-folders
+      body:
+        application/zip:
+        application/x-tar:
+      responses:
+        201:
+          description: L'archive - au sens informatique - est décompressée
+          body:
+            application/json:
+              schema: collectionList
+              example: !include samples/collectionList.sample
+
+    /folders:
+      displayName: Folders operations
+      description: Pour gérer la création de sous-dossiers
+      type: { collection-write-storage: { createModel: genericObject, exampleModel: !include samples/folder.sample, answearModel: genericObject, exampleAnswearModel: !include samples/folder.sample } }
+      is: [ standardErrors ]
+
+      /{idf}:
+        displayName: Folder operations
+        type: { collection-item-storage: { answearModel: genericObject, exampleAnswearModel: !include samples/folder.sample } }
+        is: [ standardErrors, standardWorkspace ]
+        get:
+          description: Permet de lire un Folder
+          headers:
+            Accept:
+              description: Seul application/json est autorisé
+              type: string
+              enum: [ "application/json" ]
+        delete:
+          description: Permet de détruire un Folder
+          headers:
+            X-Recursive:
+              description: Si Vrai la destruction est récursive, sinon si non vide retourne une erreur
+              type: boolean
+        head:
+          description: Permet de tester l'existence du Folder
+          responses:
+            200:
+        post:
+          description: Permet de créer un Folder avec le nom indiqué, si celui n'existe pas déjà
+          responses:
+            201:
+              description: Le Folder est bien créé
+        put:
+          description: Permet d'uploader un ZIP ou TAR avec un unzip/untar automatique sous ce folder, incluant la création de sous-folders
+          body:
+            application/zip:
+            application/x-tar:
+          responses:
+            201:
+              description: L'archive - au sens informatique - est décompressée
+              body:
+                application/json:
+                  schema: collectionList
+                  example: !include samples/collectionList.sample
+
+    /objects:
+      # root endpoint request
+      displayName: Objects operations
+      description: Pour gérer la création de nouveaux Objects
+      type: base
+      is: [ standardErrors ]
+      get:
+        description: Liste du contenu d'une collection.
+        body:
+          application/json:
+            schema: collectionQuery
+            example: !include samples/collectionQuery.sample
+        responses:
+          200:
+            body:
+              application/json:
+                schema: collectionList
+                example: !include samples/collectionList.sample
+
+      /{id_object}:
+        displayName: Object operations
+        type: base
+        is: [ standardErrors, standardWorkspace ]
+        get:
+          description: Permet de lire un Object
+          is: [ allows ]
+          responses:
+            200:
+              body:
+                binary/octet-stream:
+                  example: !include samples/binaryObject.sample
+                application/json:
+                  schema: storedInfo
+                  example: !include samples/storedInfo.sample
+        post:
+          description: Permet de créer une nouveau Object.
+          body:
+            binary/octet-stream:
+            multipart/form-data:
+              formParameters:
+                file:
+                  description: The file to be uploaded
+                  required: true
+                  type: file
+          responses:
+            201:
+              body:
+                application/json:
+                  schema: storedInfo
+                  example: !include samples/storedInfo.sample
+        delete:
+          description: Permet de détruire un Object
+          responses:
+            204:
+        head:
+          description: Permet d'obtenir des informations sur l'objet
+          headers:
+            X-digest-algorithm:
+              description: Digest Algorithm
+              type: string
+          responses:
+            200:
+              headers:
+                X-digest:
+                  description: Digest value
+                  type: string
+                X-digest-algorithm:
+                  description: Digest Algorithm
+                  type: string
+
+/status:
+  displayName: Storage Engine Status
+  description: Statut du moteur de stockage.
+  type: { statusCollection }
+  is: [ standardErrors, standardHeaders ]
+
+
+# Common
+/async_list: !include common/Async_Result_Next.raml

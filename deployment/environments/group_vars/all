@@ -51,3 +51,5 @@ vitam_storageofferdefault_baseurl: "http://{{vitam_storageofferdefault_host}}:{{
 
 vitam_mongodb_host: "{{ groups['hosts-mongodb'][0] }}"
 vitam_mongodb_port: 27017
+
+vitam_jetty_config: "jetty-config.xml"

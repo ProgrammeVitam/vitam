@@ -1,8 +1,8 @@
 Workflow
-############
+########
 
 DefaultIngestWorkflow
-**************************
+*********************
 
 | {
 |    "id": "DefaultIngestWorkflow",
@@ -82,13 +82,17 @@ DefaultIngestWorkflow
 
   - CheckObjectsCompliance: Contrôle de l'objet binaire correspondant du BDO taille et empreinte via Workspace
 
-- **Step 3** : Index Units / distribution sur LIST GUID/Units
+- **Step 3** : Check Storage Availability / distribution REF GUID/SIP/manifest.xml
+
+  - CheckStorageAvailability: Contrôle de la taille totale à stocker par rapport à la capacité des offres de stockage pour une stratégie et un tenant donnés
+  
+- **Step 4** : Index Units / distribution sur LIST GUID/Units
 
   - IndexUnit : Transformation Json Unit et intégration GUID Unit + GUID GO
 
   - IndexUnit : Enregistrement en base U
 
-- **Step 4** : Rangement des objets
+- **Step 5** : Rangement des objets
 
   - StoreObjectGroup : Écriture des objets sur l’offre de stockage des BDO des GO
 

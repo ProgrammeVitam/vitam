@@ -1,81 +1,52 @@
 {
     "id": "DefaultIngestWorkflow",
-    "comment":"Default Ingest Workflow V3",
+    "comment":"Default Ingest Workflow V4",
     "steps":
     [
     {
     "workerGroupId" :"DefaultWorker",
-        "stepName":"Check manifest existence",
+        "stepName":"Contrôle global entrée (SIP)",
+        "stepType":"BLOCK",
         "distribution" : {
         	"kind":"REF",
         	"element" : "SIP/manifest.xml"
         	},
-        "actions":[{"action":"checkSeda"}]
-    },
+        "actions":[{"action":{"actionKey": "checkSeda", "actionType": "BLOCK"}},
+        		{"action":{"actionKey": "CheckVersion", "actionType": "BLOCK"}},
+        		{"action":{"actionKey": "CheckObjectsNumber", "actionType": "NOBLOCK"}},
+        		{"action":{"actionKey": "CheckConformity", "actionType": "BLOCK"}},
+        		{"action":{"actionKey": "ExtractSeda", "actionType": "BLOCK"}}]
+    },    
     {
     "workerGroupId" :"DefaultWorker",
-        "stepName":"Check Version",
+        "stepName":"Vérification de la disponibilite de l'offre de stockage",
+        "stepType":"BLOCK",
         "distribution" : {
         	"kind":"REF",
         	"element" : "SIP/manifest.xml"
         	},
-        "actions":[{"action":"CheckVersion"}]
+        "actions":[{"action":{"actionKey": "CheckStorageAvailability", "actionType": "BLOCK"} }]
     },
     {
     "workerGroupId" :"DefaultWorker",
-        "stepName":"Check Objects Number",
-        "distribution" : {
-        	"kind":"REF",
-        	"element" : "SIP/manifest.xml"
-        	},
-        "actions":[{"action":"CheckObjectsNumber"}]
-    },
-    {
-    "workerGroupId" :"DefaultWorker",
-        "stepName":"Extract Unit and ObjectGroup",
-        "distribution" : {
-        	"kind":"REF",
-        	"element" : "SIP/manifest.xml"
-        	},
-        "actions":[{"action":"ExtractSeda"}]
-    },
-    {
-    "workerGroupId" :"DefaultWorker",
-        "stepName":"Index Unit",
+        "stepName":"Rangement des units",
+        "stepType":"BLOCK",
           "distribution" : {
         	"kind":"LIST",
         	"element" : "Units"
         	},
-        "actions":[{"action":"IndexUnit"}]
+        "actions":[{"action":{"actionKey": "IndexUnit", "actionType": "BLOCK"} }]
        
     },
     {
     "workerGroupId" :"DefaultWorker",
-        "stepName":"Store ObjectGroup",
+        "stepName":"Rangement des objets",
+        "stepType":"BLOCK",
         "distribution" : {
         	"kind":"LIST",
         	"element" : "ObjectGroup"
         	},
-        "actions":[{"action":"StoreObjectGroup"}]
-    },
-    {
-    "workerGroupId" :"DefaultWorker",
-        "stepName":"Index ObjectGroup",
-          "distribution" : {
-        	"kind":"LIST",
-        	"element" : "ObjectGroup"
-        	},
-        "actions":[{"action":"IndexObjectGroup"}]
-       
-    },
-    {
-    "workerGroupId" :"DefaultWorker",
-        "stepName":"Check Digest Message",
-        "distribution" : {
-        	"kind":"REF",
-        	"element" : "SIP/manifest.xml"
-        	},
-        "actions":[{"action":"CheckConformity"}]
-    }
-    ]
+        "actions":[{"action":{"actionKey": "StoreObjectGroup", "actionType": "BLOCK"}}, 
+        		{"action":{"actionKey": "IndexObjectGroup", "actionType": "BLOCK"} }]
+    }]
 }

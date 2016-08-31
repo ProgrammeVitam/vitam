@@ -1,0 +1,13 @@
+# root endpoint request
+displayName: Generic Collection
+description: Administration d'une Collection Générique.
+type: { collection-write: { createModel: genericObject, exampleModel: !include ../samples/genericSample.sample, answearModel: genericObject, exampleAnswearModel: !include ../samples/genericSample.sample } }
+is: [ standardErrors ]
+patch:
+
+/{id}:
+  displayName: Generic Collection Item
+  type: { collection-item-write: { createModel: genericObject, exampleModel: !include ../samples/genericSample.sample, answearModel: genericObject, exampleAnswearModel: !include ../samples/genericSample.sample } }
+  is: [ standardErrors ]
+  patch:
+  delete:

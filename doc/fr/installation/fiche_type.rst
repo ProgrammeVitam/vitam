@@ -1,7 +1,10 @@
-Fiche-type VITAM
-^^^^^^^^^^^^^^^^
+Fiche type de déploiement VITAM
+###############################
 
-.. TODO:: cette liste a pour but d'évoluer et s'étoffer au fur et à mesure des mises à jour des composants et du contenu des fichiers de déploiement de VITAM.
+Fiche-type VITAM
+================
+
+.. caution:: cette liste a pour but d'évoluer et s'étoffer au fur et à mesure des mises à jour des composants et du contenu des fichiers de déploiement de VITAM.
 
 .. csv-table:: Tableau récapitulatif des informations à renseigner pour VITAM
    :header: "Nom du omposant", "Descriptif", "Valeur d'exemple","Valeur choisie","Si HA ?"

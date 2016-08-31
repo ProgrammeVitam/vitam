@@ -24,6 +24,7 @@
 package fr.gouv.vitam.access.api;
 
 
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 
 /**
@@ -38,6 +39,7 @@ public interface AccessResource {
      * @param headerParam X-Http-Method-Override header
      * @return a archive unit result list
      */
+    // TODO fixer les commentaires: pas de ','
     public Response getUnits(String dslQuery, String headerParam);
 
     /**
@@ -48,6 +50,8 @@ public interface AccessResource {
      * @param unit_id units identifier
      * @return a archive unit result list
      */
+    // TODO fixer les commentaires (DSK ?)
+    // TODO respecter la casse Java lowerCamelCase (pas de '_')
     public Response getUnitById(String dslQuery, String headerParam, String unit_id);
 
     /**
@@ -67,4 +71,40 @@ public interface AccessResource {
      */
     public Response getStatus();
 
+    /**
+     * Retrieve an ObjectGroup by its id
+     * @param idObjectGroup the ObjectGroup id
+     * @param query the json query
+     * @return an http response containing the objectGroup as json or a json serialized error
+     */
+    Response getObjectGroup(String idObjectGroup, String query);
+
+    /**
+     * POST version of getObjectGroup. Implicitly call getObjectGroup(String idObject, String query) if the "GET"
+     * value is found in method override http header. Return an error otherwise.
+     * @param xHttpOverride value of the associated header
+     * @param idObjectGroup the ObjectGroup id
+     * @param query the json query
+     * @return an http response containing the objectGroup as json or a json serialized error
+     */
+    Response getObjectGroup(String xHttpOverride, String idObjectGroup, String query);
+
+    /**
+     * Retrieve an Object associated to the given ObjectGroup id based on given (via headers) Qualifier and Version
+     * @param headers http request headers
+     * @param idObjectGroup the ObjectGroup id
+     * @param query the DSL query as json
+     * @return an http response containing an InputStream of the Object if it is found or a json serialized error
+     */
+    Response getObjectStream(HttpHeaders headers, String idObjectGroup, String query);
+
+    /**
+     * POST version of getObjectStream. Implicitly call getObjectStream(HttpHeaders headers, String idObjectGroup,
+     * String query) if the "GET" value is found in method override http header. Return an error otherwise.
+     * @param headers http request headers
+     * @param idObjectGroup the ObjectGroup id
+     * @param query the DSL query as json
+     * @return an http response containing an InputStream of the Object if it is found or a json serialized error
+     */
+    Response getObjectStreamPost(HttpHeaders headers, String idObjectGroup, String query);
 }

@@ -26,12 +26,15 @@
  */
 package fr.gouv.vitam.storage.engine.client;
 
+import java.io.InputStream;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.client.BasicClient;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 
@@ -43,15 +46,15 @@ public interface StorageClient extends BasicClient {
     String RESOURCE_PATH = "/storage/v1";
 
     /**
-     * Retrieve the server informations : capacity and availability
+     * Check if the storage of objects could be done, knowing a required size
      * 
      * @param tenantId the tenant id
      * @param strategyId the storage strategy id
-     * @return the capacity and availability of storage
+     * @return the capacity of the storage
      * @throws StorageNotFoundClientException if the Server got a NotFound result
      * @throws StorageServerClientException if the Server got an internal error
      */
-    JsonNode getStorageInfos(String tenantId, String strategyId)
+    JsonNode getStorageInformation(String tenantId, String strategyId)
         throws StorageNotFoundClientException, StorageServerClientException;
 
     /**
@@ -67,9 +70,10 @@ public interface StorageClient extends BasicClient {
      * @throws StorageNotFoundClientException if the Server got a NotFound result
      * @throws StorageServerClientException if the Server got an internal error
      */
+    // FIXME pourquoi un JsonNode alors que c'est un fichier dans Workspace donc un InputStream via un chemin d'accès ? Ici cela suppose que le flux est passé pare le client !
     StoredInfoResult storeJson(String tenantId, String strategyId, StorageCollectionType type, String guid,
         JsonNode data)
-            throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException;
+        throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException;
 
     /**
      * Store an object available in workspace by its vitam guid
@@ -86,7 +90,7 @@ public interface StorageClient extends BasicClient {
      */
     StoredInfoResult storeFileFromWorkspace(String tenantId, String strategyId, StorageCollectionType type, String guid,
         CreateObjectDescription description)
-            throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException;
+        throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException;
 
     /**
      * Check the existance of a tenant container in storage by its id
@@ -133,5 +137,21 @@ public interface StorageClient extends BasicClient {
      */
     boolean delete(String tenantId, String strategyId, StorageCollectionType type, String guid)
         throws StorageServerClientException;
+
+
+    /**
+     * Retrieves an object knowing its guid as an inputStream for a specific tenant/strategy
+     *
+     * @param tenantId the tenant id
+     * @param strategyId the storage strategy id
+     * @param guid vitam guid of the object to be returned
+     * @return the object requested
+     * @throws StorageServerClientException if the Server got an internal error
+     * @throws StorageNotFoundException if the Server got a NotFound result, if the container or the object does not
+     *         exist
+     */
+    public InputStream getContainerObject(String tenantId, String strategyId, String guid)
+        throws StorageServerClientException, StorageNotFoundException;
+
 
 }

@@ -1,0 +1,17 @@
+# root endpoint request
+displayName: Profiles
+description: Administration des Profils.
+type: { collection-write: { createModel: genericObject, exampleModel: !include ../samples/sampleProfile.sample, answearModel: genericObject, exampleAnswearModel: !include ../samples/sampleProfile.sample } }
+is: [ standardErrors ]
+patch:
+
+/{id_profile}:
+  displayName: Profile
+  type: { collection-item-write: { createModel: genericObject, exampleModel: !include ../samples/sampleProfile.sample, answearModel: genericObject, exampleAnswearModel: !include ../samples/sampleProfile.sample } }
+  is: [ standardErrors ]
+  patch:
+  delete:
+
+  /stats:
+    displayName: Profile Statistic
+    type: { stats: { answearModel: genericObject, exampleAnswearModel: !include ../samples/statistic.sample, name: un Profil } }

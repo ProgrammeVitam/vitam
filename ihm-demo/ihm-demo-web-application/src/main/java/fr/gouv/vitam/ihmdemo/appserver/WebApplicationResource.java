@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.ihmdemo.appserver;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
@@ -47,12 +46,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.access.common.exception.AccessClientNotFoundException;
 import fr.gouv.vitam.access.common.exception.AccessClientServerException;
-import fr.gouv.vitam.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
@@ -83,8 +83,7 @@ public class WebApplicationResource {
     private static final String NEW_FIELD_VALUE_KEY = "newFieldValue";
 
     /**
-     * @param criteria
-     *            criteria search for units
+     * @param criteria criteria search for units
      * @return Reponse
      */
     @POST
@@ -93,30 +92,29 @@ public class WebApplicationResource {
     public Response getArchiveSearchResult(String criteria) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, criteria);
         try {
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(criteria));
             Map<String, String> criteriaMap = JsonHandler.getMapStringFromString(criteria);
-
             String preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(criteriaMap);
             JsonNode searchResult = UserInterfaceTransactionManager.searchUnits(preparedQueryDsl);
             return Response.status(Status.OK).entity(searchResult).build();
 
-        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
+        } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
             return Response.status(Status.BAD_REQUEST).build();
-        } catch (AccessClientServerException e) {
+        } catch (final AccessClientServerException e) {
             LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        } catch (AccessClientNotFoundException e) {
+        } catch (final AccessClientNotFoundException e) {
             LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
             return Response.status(Status.NOT_FOUND).build();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
 
     /**
-     * @param unitId
-     *            archive unit id
+     * @param unitId archive unit id
      * @return archive unit details
      */
     @GET
@@ -125,56 +123,56 @@ public class WebApplicationResource {
     public Response getArchiveUnitDetails(@PathParam("id") String unitId) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitId);
 
-        // Prepare required map
-        Map<String, String> selectUnitIdMap = new HashMap<String, String>();
-        selectUnitIdMap.put(UiConstants.SELECT_BY_ID.toString(), unitId);
-
         try {
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(unitId));
+            // Prepare required map
+            Map<String, String> selectUnitIdMap = new HashMap<String, String>();
+            selectUnitIdMap.put(UiConstants.SELECT_BY_ID.toString(), unitId);
             String preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(selectUnitIdMap);
             JsonNode archiveDetails = UserInterfaceTransactionManager.getArchiveUnitDetails(preparedQueryDsl, unitId);
 
             return Response.status(Status.OK).entity(archiveDetails).build();
-        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
+        } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
             return Response.status(Status.BAD_REQUEST).build();
-        } catch (AccessClientServerException e) {
+        } catch (final AccessClientServerException e) {
             LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        } catch (AccessClientNotFoundException e) {
+        } catch (final AccessClientNotFoundException e) {
             LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
             return Response.status(Status.NOT_FOUND).build();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
 
     /**
-     * @param options
-     *          the queries for searching
+     * @param options the queries for searching
      * @return Response
-     * @throws InvalidParseOperationException
-     *              could not be transfered to Json
+     * @throws InvalidParseOperationException could not be transfered to Json
      */
     @POST
     @Path("/logbook/operations")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getLogbookResult(String options) throws InvalidParseOperationException {
-        ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
-        JsonNode result = JsonHandler.getFromString("{}");
-        String query = "";
+    public Response getLogbookResult(String options) {
+        JsonNode result = null;
         try {
+            ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
+            result = JsonHandler.getFromString("{}");
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
+            String query = "";
             Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
             query = DslQueryHelper.createSingleQueryDSL(optionsMap);
             LogbookClient logbookClient = LogbookClientFactory.getInstance().getLogbookOperationClient();
             result = logbookClient.selectOperation(query);
-        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
+        } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error("Bad request Exception ", e);
             return Response.status(Status.BAD_REQUEST).build();
-        } catch (LogbookClientException e) {
+        } catch (final LogbookClientException e) {
             LOGGER.error("Logbook Client NOT FOUND Exception ", e);
             return Response.status(Status.NOT_FOUND).build();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
@@ -182,28 +180,29 @@ public class WebApplicationResource {
     }
 
     /**
-     * @param operationId
-     *            id of operation
-     * @param options
-     *          the queries for searching
+     * @param operationId id of operation
+     * @param options the queries for searching
      * @return Response
-     * @throws InvalidParseOperationException
-     *              could not be transfered to Json
+     * @throws InvalidParseOperationException could not be transfered to Json
      */
     @POST
     @Path("/logbook/operations/{idOperation}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getLogbookResultById(@PathParam("idOperation") String operationId, String options)
-        throws InvalidParseOperationException {
-        ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
-        JsonNode result = JsonHandler.getFromString("{}");
+    public Response getLogbookResultById(@PathParam("idOperation") String operationId, String options) {
+        JsonNode result = null;
         try {
+            ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
+            result = JsonHandler.getFromString("{}");
             LogbookClient logbookClient = LogbookClientFactory.getInstance().getLogbookOperationClient();
             result = logbookClient.selectOperationbyId(operationId);
-        } catch (LogbookClientException e) {
+        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        } catch (final LogbookClientException e) {
             LOGGER.error("Logbook Client NOT FOUND Exception ", e);
             return Response.status(Status.NOT_FOUND).build();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error("INTERNAL SERVER ERROR", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
@@ -223,8 +222,9 @@ public class WebApplicationResource {
     }
 
     /**
-     * upload the file 
-     * 
+     * upload the file
+     * TODO : add file name
+     *
      * @param stream, data input stream
      * @return Response
      */
@@ -232,154 +232,162 @@ public class WebApplicationResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response upload(InputStream stream){
+    public Response upload(InputStream stream) {
         ParametersChecker.checkParameter("SIP is a mandatory parameter", stream);
         try {
             IngestExternalClientFactory.getInstance().getIngestExternalClient().upload(stream);
-        } catch (IngestExternalException e) {
+        } catch (final IngestExternalException e) {
             LOGGER.error("IngestExternalException in Upload sip", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(e.getMessage())
                 .build();
         }
         return Response.status(Status.OK).build();
-    }  
+    }
 
     /**
      * Update Archive Units
-     * 
+     *
      * @param updateSet conains updated field
      * @param unitId archive unit id
      * @return archive unit details
-     * @throws InvalidParseOperationException
-     *              could not be transfered to Json
+     * @throws InvalidParseOperationException could not be transfered to Json
      */
     @PUT
     @Path("/archiveupdate/units/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response updateArchiveUnitDetails(@PathParam("id") String unitId, String updateSet)
-        throws InvalidParseOperationException {
-        ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitId);
-        ParametersChecker.checkParameter(UPDATE_CRITERIA_MANDATORY_MSG, updateSet);
-        
-        // Parse updateSet
-        Map<String, String> updateUnitIdMap = new HashMap<String, String>();
-        JsonNode modifiedFields = JsonHandler.getFromString(updateSet);
-        if (modifiedFields != null && modifiedFields.isArray()) {
-            for (final JsonNode modifiedField : modifiedFields) {
-                updateUnitIdMap.put(modifiedField.get(FIELD_ID_KEY).textValue(),
-                    modifiedField.get(NEW_FIELD_VALUE_KEY).textValue());
-            }
-        }
-
-        // Add ID to set root part
-        updateUnitIdMap.put(UiConstants.SELECT_BY_ID.toString(), unitId);
+    public Response updateArchiveUnitDetails(@PathParam("id") String unitId, String updateSet) {
 
         try {
+            ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitId);
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(unitId));
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(updateSet));
+
+        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        }
+
+        try {
+            // Parse updateSet
+            Map<String, String> updateUnitIdMap = new HashMap<String, String>();
+            JsonNode modifiedFields = JsonHandler.getFromString(updateSet);
+            if (modifiedFields != null && modifiedFields.isArray()) {
+                for (final JsonNode modifiedField : modifiedFields) {
+                    updateUnitIdMap.put(modifiedField.get(FIELD_ID_KEY).textValue(),
+                        modifiedField.get(NEW_FIELD_VALUE_KEY).textValue());
+                }
+            }
+
+            // Add ID to set root part
+            updateUnitIdMap.put(UiConstants.SELECT_BY_ID.toString(), unitId);
+
             String preparedQueryDsl = DslQueryHelper.createUpdateDSLQuery(updateUnitIdMap);
             JsonNode archiveDetails = UserInterfaceTransactionManager.updateUnits(preparedQueryDsl, unitId);
             return Response.status(Status.OK).entity(archiveDetails).build();
-        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
+        } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
             return Response.status(Status.BAD_REQUEST).build();
-        } catch (AccessClientServerException e) {
+        } catch (final AccessClientServerException e) {
             LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        } catch (AccessClientNotFoundException e) {
+        } catch (final AccessClientNotFoundException e) {
             LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
             return Response.status(Status.NOT_FOUND).build();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
-    
+
     /**
-     * @param options
-     *          the queries for searching
+     * @param options the queries for searching
      * @return Response
-     * @throws InvalidParseOperationException
-     *              could not be transfered to Json
+     * @throws InvalidParseOperationException could not be transfered to Json
      */
     @POST
     @Path("/admin/formats")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getFileFormats(String options) throws InvalidParseOperationException {
+    public Response getFileFormats(String options) {
         ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
-        JsonNode result = JsonHandler.getFromString("{}");
         String query = "";
+        JsonNode result = null;
         try {
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
+            result = JsonHandler.getFromString("{}");
             Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
             query = DslQueryHelper.createSingleQueryDSL(optionsMap);
             AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getAdminManagementClient();
             result = adminClient.getFormats(JsonHandler.getFromString(query));
-        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
+        } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error("Bad request Exception ", e);
             return Response.status(Status.BAD_REQUEST).build();
-        } catch (ReferentialException e) {
+        } catch (final ReferentialException e) {
             LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
             return Response.status(Status.NOT_FOUND).build();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
         return Response.status(Status.OK).entity(result).build();
     }
-    
+
     /**
-     * @param formatId
-     *            id of format
-     * @param options
-     *          the queries for searching
+     * @param formatId id of format
+     * @param options the queries for searching
      * @return Response
-     * @throws InvalidParseOperationException
-     *              could not be transfered to Json
+     * @throws InvalidParseOperationException could not be transfered to Json
      */
     @POST
     @Path("/admin/formats/{idFormat}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getFormatById(@PathParam("idFormat") String formatId, String options) throws InvalidParseOperationException {
-        ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
-        ParametersChecker.checkParameter("Format Id is mandatory", formatId);
-        JsonNode result = JsonHandler.getFromString("{}");
+    public Response getFormatById(@PathParam("idFormat") String formatId, String options) {
+        JsonNode result = null;
         try {
+            ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
+            ParametersChecker.checkParameter("Format Id is mandatory", formatId);
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(formatId));
+            result = JsonHandler.getFromString("{}");
             AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getAdminManagementClient();
             result = adminClient.getFormatByID(formatId);
-        } catch (ReferentialException e) {
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
+            return Response.status(Status.BAD_REQUEST).build();
+        } catch (final ReferentialException e) {
             LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
             return Response.status(Status.NOT_FOUND).build();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error("INTERNAL SERVER ERROR", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
         return Response.status(Status.OK).entity(result).build();
     }
 
-	
-	/***
-	 * check the referential format
-	 * 
-	 * @param input the format file xml
-	 * @return If the formet is valid, return ok. If not, return the list of errors 
-	 */
-	@POST
-	@Path("/format/check")
+
+    /***
+     * check the referential format
+     *
+     * @param input the format file xml
+     * @return If the formet is valid, return ok. If not, return the list of errors
+     */
+    @POST
+    @Path("/format/check")
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-	@Produces(MediaType.APPLICATION_JSON)
-	public Response checkRefFormat(InputStream input) {
-	    AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
-	    try {
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response checkRefFormat(InputStream input) {
+        AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
+        try {
             client.checkFormat(input);
-        } catch (ReferentialException e) {
+        } catch (final ReferentialException e) {
             return Response.status(Status.FORBIDDEN).build();
         }
-	    return Response.status(Status.OK).build();    
-	}
-	
+        return Response.status(Status.OK).build();
+    }
+
     /**
      * Upload the referential format in the base
-     * 
+     *
      * @param input the format file xml
      * @return Response
      */
@@ -387,33 +395,33 @@ public class WebApplicationResource {
     @Path("/format/upload")
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response uploadRefFormat(InputStream input){
+    public Response uploadRefFormat(InputStream input) {
         AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
         try {
             client.importFormat(input);
-        } catch (ReferentialException e) {
+        } catch (final ReferentialException e) {
             return Response.status(Status.FORBIDDEN).build();
-        } catch (DatabaseConflictException e) {
+        } catch (final DatabaseConflictException e) {
             return Response.status(Status.FORBIDDEN).build();
         }
-        return Response.status(Status.OK).build(); 
+        return Response.status(Status.OK).build();
     }
-    
+
     /**
      * Delete the referential format in the base
-     * 
+     *
      * @return Response
      */
     @Path("/format/delete")
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    public Response deleteFormat(){
+    public Response deleteFormat() {
         AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
         try {
             client.deleteFormat();
-        } catch (ReferentialException e) {
+        } catch (final ReferentialException e) {
             return Response.status(Status.FORBIDDEN).build();
-        }         
+        }
         return Response.status(Status.OK).build();
     }
 }

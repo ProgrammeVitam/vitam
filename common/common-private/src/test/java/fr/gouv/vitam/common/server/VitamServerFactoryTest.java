@@ -31,12 +31,19 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import org.eclipse.jetty.server.Server;
+import org.junit.Assert;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 
 public class VitamServerFactoryTest {
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamServerFactory.class);
+    private final String JETTY_CONFIG_TEST = "jetty-test.xml";
 
     @Test
     public final void testNewVitamServerOnDefaultPort() {
@@ -87,6 +94,39 @@ public class VitamServerFactoryTest {
         }
         junitHelper.releasePort(port);
     }
+
+
+    @Test
+    public final void testNewVitamServerFromJettyConfig() {
+        try {
+            final VitamServer server = VitamServerFactory.newVitamServerByJettyConf(JETTY_CONFIG_TEST);
+            Server jettyServer = server.getServer();
+
+            jettyServer.start();
+            Assert.assertTrue(jettyServer.isStarted());
+
+            if(jettyServer!=null && jettyServer.isStarted()) {
+                jettyServer.stop();
+            }
+            Assert.assertTrue(jettyServer.isStopped());
+
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+        }
+    }
+
+    @Test
+    public final void testNewVitamServerFromNotJettyConfig() {
+        VitamServer server = null;
+        try {
+            server = VitamServerFactory.newVitamServerByJettyConf(null);
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+            Assert.assertTrue(server==null);
+
+        }
+    }
+
 
     @Test
     public final void testSetterGetter() {

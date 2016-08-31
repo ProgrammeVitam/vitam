@@ -39,10 +39,10 @@ public class MongoDbVarNameAdapterTest {
     @Test
     public void givenMongoDbVarNameAdapterWhengetVariableNameThenReturnCorrect() throws InvalidParseOperationException {
         assertEquals(null, mongoVarNameAdapter.getVariableName("notValid"));
-        assertEquals(VitamDocument.ID, mongoVarNameAdapter.getVariableName("#id"));
+        assertEquals(MetadataDocument.ID, mongoVarNameAdapter.getVariableName("#id"));
         assertEquals(Unit.APPRAISALRULES, mongoVarNameAdapter.getVariableName("#dua"));
         assertEquals(Unit.NBCHILD, mongoVarNameAdapter.getVariableName("#nbunits"));
-        assertEquals(VitamDocument.TYPE, mongoVarNameAdapter.getVariableName("#type"));
+        assertEquals(MetadataDocument.TYPE, mongoVarNameAdapter.getVariableName("#type"));
         assertEquals(ObjectGroup.OBJECTSIZE, mongoVarNameAdapter.getVariableName("#size"));
         assertEquals(ObjectGroup.OBJECTFORMAT, mongoVarNameAdapter.getVariableName("#format"));
     }

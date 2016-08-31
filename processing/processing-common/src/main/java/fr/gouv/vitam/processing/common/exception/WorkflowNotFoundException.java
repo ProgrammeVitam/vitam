@@ -31,8 +31,6 @@ import javax.ws.rs.ProcessingException;
  */
 public class WorkflowNotFoundException extends ProcessingException {
 
-    private static final long serialVersionUID = 2008622374138271571L;
-
     /**
      *
      * @param message

@@ -34,8 +34,7 @@ import org.bson.conversions.Bson;
 
 import com.mongodb.BasicDBList;
 
-import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.FILTERARGS;
-import fr.gouv.vitam.core.database.collections.MongoDbAccess.VitamCollections;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
 
 /**
  * Abstract class for Result
@@ -181,7 +180,7 @@ public abstract class Result {
      *
      * @param document
      */
-    public void addFinal(VitamDocument<?> document) {
+    public void addFinal(MetadataDocument<?> document) {
         if (finalResult == null) {
             finalResult = new Document();
         }
@@ -203,15 +202,15 @@ public abstract class Result {
         if (type == FILTERARGS.UNITS) {
             for (final String id : currentIds) {
                 final Unit unit =
-                    (Unit) VitamCollections.C_UNIT.getCollection().find(new Document(VitamDocument.ID, id))
+                    (Unit) MetadataCollections.C_UNIT.getCollection().find(new Document(MetadataDocument.ID, id))
                         .projection(projection).first();
                 list.add(unit);
             }
         } else if (type == FILTERARGS.OBJECTGROUPS) {
             for (final String id : currentIds) {
                 final ObjectGroup og =
-                    (ObjectGroup) VitamCollections.C_OBJECTGROUP.getCollection()
-                        .find(new Document(VitamDocument.ID, id))
+                    (ObjectGroup) MetadataCollections.C_OBJECTGROUP.getCollection()
+                        .find(new Document(MetadataDocument.ID, id))
                         .projection(projection).first();
                 list.add(og);
             }

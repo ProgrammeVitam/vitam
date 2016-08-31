@@ -1,0 +1,17 @@
+{
+  "id": "id",
+  "verbose": false,
+  "preservation_ids": [ "preservation_id_1", "preservation_id_2" ],
+  "default_preservation_id": "preservation_id_1",
+  "access_group_id": "access_group_id",
+  "actors": [
+    { "user_id": "id_user_1", "callback": "callback_uri", "roles": [ "role_id1", "role_id2" ], "output": "json" },
+    { "user_id": "id_user_2", "callback": "callback_uri", "roles": [ "role_id3", "role_id2" ], "output": "xml" }
+  ],
+  "criteria_rules": [ "add restriction in request criteria" ],
+  "response_rules": [ "add restriction in request response" ],
+  "frequency": "0|0|0|0|1",
+  "max_responses": 1000,
+  "access_trace": true,
+  "active": true
+}

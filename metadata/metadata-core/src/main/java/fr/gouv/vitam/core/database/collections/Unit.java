@@ -49,16 +49,15 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.UpdateOptions;
 
 import fr.gouv.vitam.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.UPDATEACTION;
-import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.UPDATEACTIONARGS;
 import fr.gouv.vitam.common.SingletonUtils;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTIONARGS;
+import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
+import fr.gouv.vitam.common.database.translators.mongodb.MongoDbHelper;
 import fr.gouv.vitam.common.guid.GUIDObjectType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.core.database.collections.MongoDbAccess.VitamCollections;
-import fr.gouv.vitam.core.database.collections.translator.mongodb.MongoDbHelper;
 import fr.gouv.vitam.core.database.configuration.GlobalDatasDb;
-import fr.gouv.vitam.parser.request.parser.GlobalDatasParser;
 
 /**
  * Unit class:<br>
@@ -69,7 +68,7 @@ import fr.gouv.vitam.parser.request.parser.GlobalDatasParser;
  *                UUID2, ... ], // limited to immediate parent _og: UUID, _nb : immediateChildNb }
  * @formatter:on
  */
-public class Unit extends VitamDocument<Unit> {
+public class Unit extends MetadataDocument<Unit> {
     private static final String EXCEPTION_FOR = "Exception for ";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(Unit.class);
@@ -105,14 +104,14 @@ public class Unit extends VitamDocument<Unit> {
      * Quick projection for ID and ObjectGroup Only
      */
     public static final BasicDBObject UNIT_OBJECTGROUP_PROJECTION =
-        new BasicDBObject(VitamDocument.ID, 1).append(VitamDocument.OG, 1).append(DOMID, 1);
+        new BasicDBObject(MetadataDocument.ID, 1).append(MetadataDocument.OG, 1).append(DOMID, 1);
     /**
      * Unit Id, Vitam fields Only projection (no content nor management)
      */
     public static final BasicDBObject UNIT_VITAM_PROJECTION =
         new BasicDBObject(NBCHILD, 1).append(TYPE, 1).append(UNITUPS, 1).append(UNITDEPTHS, 1)
             .append(MINDEPTH, 1).append(MAXDEPTH, 1)
-            .append(DOMID, 1).append(VitamDocument.UP, 1).append(VitamDocument.ID, 1);
+            .append(DOMID, 1).append(MetadataDocument.UP, 1).append(MetadataDocument.ID, 1);
     /**
      * Unit Id, Vitam and Management fields Only projection (no content)
      */
@@ -249,12 +248,12 @@ public class Unit extends VitamDocument<Unit> {
     @SuppressWarnings("unchecked")
     @Override
     protected MongoCollection<Unit> getCollection() {
-        return (MongoCollection<Unit>) MongoDbAccess.VitamCollections.C_UNIT.getCollection();
+        return (MongoCollection<Unit>) MetadataCollections.C_UNIT.getCollection();
     }
 
     @Override
-    protected VitamCollections getVitamCollections() {
-        return MongoDbAccess.VitamCollections.C_UNIT;
+    protected MetadataCollections getMetadataCollections() {
+        return MetadataCollections.C_UNIT;
     }
 
     /**
@@ -275,14 +274,14 @@ public class Unit extends VitamDocument<Unit> {
         }
         LOGGER.debug("Save: {}", this);
         insert();
-        MongoDbAccess.LRU.put(getId(), this);
+        MongoDbMetadataHelper.LRU.put(getId(), this);
         return this;
     }
 
     @Override
     protected boolean updated() throws MetaDataExecutionException {
         // XXX TODO only addition is taken into consideration there: removal shall be done elsewhere
-        final Unit vt = (Unit) MongoDbMetadataHelper.findOneNoAfterLoad(getVitamCollections(), getId());
+        final Unit vt = (Unit) MongoDbMetadataHelper.findOneNoAfterLoad(getMetadataCollections(), getId());
         BasicDBObject update = null;
         if (vt != null) {
             LOGGER.debug("UpdateLinks: {}\n\t{}", this, vt);
@@ -389,7 +388,7 @@ public class Unit extends VitamDocument<Unit> {
                     new BasicDBObject(NBCHILD, nb));
                 nb = 0;
                 update(update);
-                MongoDbAccess.LRU.put(getId(), this);
+                MongoDbMetadataHelper.LRU.put(getId(), this);
             } catch (final MongoException e) {
                 LOGGER.error(EXCEPTION_FOR + update, e);
                 throw e;
@@ -407,7 +406,7 @@ public class Unit extends VitamDocument<Unit> {
 
     @Override
     public boolean load() {
-        final Unit vt = (Unit) MongoDbMetadataHelper.findOneNoAfterLoad(getVitamCollections(), getId());
+        final Unit vt = (Unit) MongoDbMetadataHelper.findOneNoAfterLoad(getMetadataCollections(), getId());
         if (vt == null) {
             return false;
         }
@@ -512,7 +511,7 @@ public class Unit extends VitamDocument<Unit> {
         if (map != null) {
             for (final java.util.Map.Entry<String, Integer> entry : map.entrySet()) {
                 if (entry.getValue() == 1) {
-                    final Unit parent = MongoDbAccess.LRU.get(entry.getKey());
+                    final Unit parent = MongoDbMetadataHelper.LRU.get(entry.getKey());
                     final int parentDepth = parent.getInteger(MINDEPTH) + 1;
                     if (depth > parentDepth) {
                         depth = parentDepth;
@@ -652,7 +651,7 @@ public class Unit extends VitamDocument<Unit> {
             VitamLinks.UNIT_TO_UNIT.field2to1, getId());
         @SuppressWarnings("unchecked")
         final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper
-            .select(getVitamCollections(), condition, MongoDbMetadataHelper.ID_PROJECTION);
+            .select(getMetadataCollections(), condition, MongoDbMetadataHelper.ID_PROJECTION);
         final List<String> ids = new ArrayList<>();
         final MongoCursor<Unit> iterator = iterable.iterator();
         try {
@@ -757,13 +756,14 @@ public class Unit extends VitamDocument<Unit> {
     protected static void addIndexes() {
         // if not set, Unit and Tree are worst
         for (final BasicDBObject index : indexes) {
-            MongoDbAccess.VitamCollections.C_UNIT.getCollection().createIndex(index);
+            MetadataCollections.C_UNIT.getCollection().createIndex(index);
         }
     }
 
     protected static void dropIndexes() {
         for (final BasicDBObject index : indexes) {
-            MongoDbAccess.VitamCollections.C_UNIT.getCollection().dropIndex(index);
+            MetadataCollections.C_UNIT.getCollection().dropIndex(index);
         }
     }
+
 }

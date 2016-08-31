@@ -1,2 +1,11 @@
 ---
 # handlers file for common
+- name: restart rsyslog
+  service:
+    name: rsyslog
+    state: restarted
+
+- name: restart consul
+  service:
+    name: vitam-consul
+    state: restarted

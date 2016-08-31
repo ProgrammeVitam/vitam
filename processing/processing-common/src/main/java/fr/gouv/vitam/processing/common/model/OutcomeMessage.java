@@ -69,7 +69,22 @@ public enum OutcomeMessage {
      * KO : fail message
      */
     CHECK_MANIFEST_KO("Erreur de contrôle du bordereau"),
-
+    
+    /**
+     * KO : fail message no manifest file in the SIP
+     */
+    CHECK_MANIFEST_NO_FILE("Absence du bordereau"),
+    
+    /**
+     * KO : fail message, manifest is not an XML file
+     */
+    CHECK_MANIFEST_NOT_XML_FILE("Bordereau au mauvais format"),
+    
+    /**
+     * KO : fail message, manifest is not a valid SEDA file
+     */
+    CHECK_MANIFEST_NOT_XSD_VALID("Bordereau non conforme au schéma SEDA 2.0"),
+    
     /**
      * OK : success message
      */
@@ -98,8 +113,58 @@ public enum OutcomeMessage {
     /**
      * KO : fail message
      */
-    INDEX_OBJECT_GROUP_KO("Erreur de l'index objectgroup");
+    INDEX_OBJECT_GROUP_KO("Erreur de l'index objectgroup"),   
+    
+    /**
+     * KO : fail message
+     */
+    STORAGE_OFFER_KO_UNAVAILABLE("Offre de stockage non disponible"),
+    
+    /**
+     * KO : fail message
+     */
+    STORAGE_OFFER_SPACE_KO("Disponibilité de l'offre de stockage insuffisante"),
 
+    /**
+     * KO logbook lifecycle
+     */
+    LOGBOOK_COMMIT_KO("Erreur lors de l'enregistrement du journal du cycle de vie"),
+
+    /**
+     * Create logbook lifecycle
+     */
+    CREATE_LOGBOOK_LIFECYCLE("Création du journal du cycle de vie"),
+
+    /**
+     * Create logbookLifecycle ok
+     */
+    CREATE_LOGBOOK_LIFECYCLE_OK("Journal du cycle de vie créé avec succès"),
+
+    /**
+     * Check BDO
+     */
+    CHECK_BDO("Vérification de l'emprunte de l'objet"),
+
+    /**
+     * Check BDO
+     */
+    CHECK_BDO_OK("Emprunte de l'objet vérifié avec succès"),
+
+    /**
+     * Check BDO
+     */
+    CHECK_BDO_KO("Echec de la vérification de l'emprunte de l'objet"),
+
+    /**
+     * Workflow ingest OK : success message
+     */
+    WORKFLOW_INGEST_OK("Entrée effectuée avec succès"),
+    
+    /**
+     * Workflow ingest KO/FATAL : fail message
+     */
+    WORKFLOW_INGEST_KO("Entrée en échec");
+    
     private String value;
 
     private OutcomeMessage(String value) {

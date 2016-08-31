@@ -1,0 +1,13 @@
+# root endpoint request
+displayName: Access Groups
+description: Administration des Groupes d'Accès.
+type: { collection-write: { createModel: access_group, exampleModel: !include ../samples/referentials/access_group.sample, answearModel: access_group, exampleAnswearModel: !include ../samples/referentials/access_group.sample } }
+is: [ standardErrors ]
+patch:
+
+/{id}:
+  displayName: Access Group Item
+  type: { collection-item-write: { createModel: access_group, exampleModel: !include ../samples/referentials/access_group.sample, answearModel: access_group, exampleAnswearModel: !include ../samples/referentials/access_group.sample } }
+  is: [ standardErrors ]
+  patch:
+  delete:

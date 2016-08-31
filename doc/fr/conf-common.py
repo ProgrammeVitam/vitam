@@ -1,5 +1,21 @@
+import datetime
+
+copyright = u'%s, VITAM' % datetime.datetime.now().year
+author = u'VITAM'
+
+# The version info for the project you're documenting, acts as replacement for
+# |version| and |release|, also used in various other places throughout the
+# built documents.
+#
+# Get version from main pom.xml
+import xml.etree.ElementTree as ET
+version = ET.parse("../../../pom.xml").getroot().find("{http://maven.apache.org/POM/4.0.0}version").text
+
+# The full version, including alpha/beta/rc tags.
+release = version
+
 # Configure epilog to allow the inclusion of configuration variables into the sphinx document
-rst_epilog = '.. |doc_title| replace:: %s' % project
+rst_epilog = '\n.. |doc_title| replace:: %s' % project
 
 
 # If extensions (or modules to document with autodoc) are in another directory,

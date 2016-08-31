@@ -1,10 +1,11 @@
 workspace
 
-le workspace est un module qui consiste à stocker le sip dans un container lors de traitement.
+le workspace est un module qui consiste à stocker le sip dans un container lors de traitement. Il y a un controle des
+paramètres (SanityChecker.checkJsonAll) transmis avec ESAPI.
 
 1- Consommer les services exposés par le module:
 	1.1 - Introduction
-	on peut consommer les services via le sous module workspaceClient notament via la class WorkspaceClient: 
+	on peut consommer les services via le sous module workspaceClient notament via la classe WorkspaceClient: 
 		Cette classe contient la liste des methodes suivantes :
 
 			- CreateContainer :
@@ -30,6 +31,15 @@ le workspace est un module qui consiste à stocker le sip dans un container lors
 
 			Dans le cas echéant (unzip KO) la methode génère une exception avec un message internal server.
 
+         - getObjectInformation :
+            -Paramètres :
+               -containerName::String
+               -objectName::String
+            -Retourner :
+               -JsonNode
+               
+            La méthode retourne un Json contenant des informations sur un objet présent sur le workspace (et des exceptions en cas d'erreur : objet non existant, erreur server).
+
 	2.2 - Exemple d'utilisation
 
 	D'abord il faut ajouter la dependence sur la pom.xml du projet.
@@ -53,6 +63,8 @@ le workspace est un module qui consiste à stocker le sip dans un container lors
       workspaceClient.createContainer(containerName);
       workspaceClient.unzipObject(containerName,"SIP", inputStream);
 
+2- Configuration du pom
+Configuration du pom avec maven-surefire-plugin permet le build sous jenkins. Il permet de configurer le chemin des resources de esapi dans le common private.
 
 
 

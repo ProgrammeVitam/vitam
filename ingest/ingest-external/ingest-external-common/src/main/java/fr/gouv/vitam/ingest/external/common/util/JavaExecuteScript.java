@@ -46,12 +46,14 @@ public class JavaExecuteScript {
     }
 
     private static void chmodScript(String filePath) throws IOException, InterruptedException {
+        // FIXME : faille de sécurité maximale que de rendre exécutable qqc qui ne l'était peut être pas
         File file = PropertiesUtils.findFile(filePath);
         file.setExecutable(true, true);
     }
 
     private static Process executeScript(String scriptPath, String arg) throws IOException {
         String[] cmd = {scriptPath, arg};
+        // FIXME très mauvaise pratique car les InputStream et OuputStream ne sont pas gérés ni un timeout
         return Runtime.getRuntime().exec(cmd);
     }
 }

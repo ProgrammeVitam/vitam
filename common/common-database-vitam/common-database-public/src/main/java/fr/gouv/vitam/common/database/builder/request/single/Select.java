@@ -48,8 +48,9 @@ import fr.gouv.vitam.common.json.JsonHandler;
 /**
  * 
  */
+// FIXME comment
 public class Select extends RequestSingle {
-
+// FIXME réfléchir à une mutualisation plus importante du code entre SELECT multiple et single (90% commun)
     protected ObjectNode projection;
 
     /**

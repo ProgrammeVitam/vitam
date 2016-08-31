@@ -11,7 +11,7 @@ Paramètres
 Le client
 *********
 
-Le client propose actuellement deux méthode : insert et la selection des units.
+Le client propose actuellement différentes méthodes : insert et selection des units, select des objectGroups.
 
 Il faut ajouter la dependance au niveau de pom.xml
 
@@ -125,6 +125,36 @@ Il faut ajouter la dependance au niveau de pom.xml
             LOG.error("exeption thrown", e);
             throw e;
         }
-   
+
+   2.4 Sélection d'un ObjectGroup 
+
+        try { 
+            String selectQuery;
+            String objectGroupId;
+        // return JsonNode
+            jsonNode = metaDataClient.selectObjectGrouptbyId(selectQuery, objectGroupId);
+
+        } catch (InvalidParseOperationException e) {
+            LOG.error("parsing error", e);
+            throw e;
+        } catch (MetadataInvalidSelectException e) {
+            LOG.error("invalid select", e);
+            throw e;
+        } catch (MetaDataDocumentSizeException e) {
+            LOG.error("document size problem", e);
+            throw e;
+        } catch (MetaDataExecutionException e) {
+            LOG.error("metadata execution problem", e);
+            throw e;
+        } catch (IllegalArgumentException e) {
+            LOG.error("illegal argument", e);
+            throw new AccessExecutionException();
+        } catch (MetadataInvalidSelectException e) {
+            LOG.error("invalid selection", e);
+            throw new AccessExecutionException();
+        } catch (Exception e) {
+            LOG.error("exeption thrown", e);
+            throw e;
+        }   
 
 

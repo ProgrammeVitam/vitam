@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Storage Submission Information Package description",
+  "type": "object",
+  "required": [
+    "id",
+    "technical_metadata"
+  ],
+  "properties": {
+    "id": {
+      "description": "Storage Submission Information Package's Identifier",
+      "type": "string"
+    },
+    "technical_metadata": {
+      "description": "Submitted technical metadata",
+      "type": "object"
+    }
+}

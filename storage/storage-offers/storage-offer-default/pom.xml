@@ -4,10 +4,15 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>storage-offers</artifactId>
-		<version>0.6.0-SNAPSHOT</version>
+		<version>0.7.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>storage-offer-default</artifactId>
 	<name>Storage Offer Default (workspace based)</name>
+	<properties>
+		<unix.name>storage-offer-default</unix.name>
+		<unix.user>vitam</unix.user>
+		<unix.group>vitam</unix.group>
+	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
@@ -28,19 +33,16 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>${junit.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.jhades</groupId>
 			<artifactId>jhades</artifactId>
-			<version>${jhades.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.jayway.restassured</groupId>
 			<artifactId>rest-assured</artifactId>
-			<version>${rest-assured.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -141,7 +143,7 @@
 					<!-- Images specification -->
 					<baseImage>${vitam.docker.registry.pull}/${vitam.docker.baseimage}</baseImage>
 					<imageName>${vitam.docker.registry.push}/vitam/storage-offer-default</imageName>
-					<!-- copy the service's jar file from target into the root directory
+					<!-- copy the service's jar file from target into the root directory 
 						of the image -->
 					<resources>
 						<resource>

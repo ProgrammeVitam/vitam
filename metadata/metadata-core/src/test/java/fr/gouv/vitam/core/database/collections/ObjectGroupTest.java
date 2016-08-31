@@ -37,4 +37,35 @@ public class ObjectGroupTest {
         assertNotNull(group);        
     }
 
+    @Test
+    public void givenObjectGroupWhenGetGuid(){
+        final ObjectGroup group = new ObjectGroup(go);
+        assertNotNull(group.newObjectGuid());
+        assertEquals(2 ,ObjectGroup.getGUIDObjectTypeId());
+    }
+    
+    @Test
+    public void givenObjectGroupWhenGetFathersUnitIdThenReturnAList(){
+        final ObjectGroup group = new ObjectGroup();
+        assertNotNull(group.getFathersUnitIds(true));
+        assertNotNull(group.getFathersUnitIds(false));
+    }
+    
+    @Test
+    public void givenObjectGroupWhenCleanStructureThenItemCleaned(){
+        final ObjectGroup group = new ObjectGroup();
+        group.cleanStructure(true);
+    }
+    
+    @Test
+    public void givenObjectGroupWhenGetCollection(){
+        final ObjectGroup group = new ObjectGroup();
+        group.getMetadataCollections();
+    }
+    
+    @Test
+    public void givenObjectGroupWhenIsNotImmediateParentThenReturnFalse(){
+        final ObjectGroup group = new ObjectGroup(go);
+        assertFalse(group.isImmediateParent(groupGUID));
+    }        
 }

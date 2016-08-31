@@ -29,23 +29,31 @@ package fr.gouv.vitam.workspace.rest;
 import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.with;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
+import org.apache.commons.io.IOUtils;
+import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.config.EncoderConfig;
 import com.jayway.restassured.http.ContentType;
 
 import fr.gouv.vitam.common.digest.Digest;
@@ -53,6 +61,8 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
 import fr.gouv.vitam.workspace.common.Entry;
+import fr.gouv.vitam.workspace.common.RequestResponseError;
+import fr.gouv.vitam.workspace.common.VitamError;
 
 
 public class WorkspaceResourceTest {
@@ -68,13 +78,21 @@ public class WorkspaceResourceTest {
     private static final String FOLDER_SIP = "SIP";
     private static final String OBJECT_NAME = "myObject";
     private static final String FAKE_FOLDER_NAME = "fakeFolderName";
-    public static final String X_DIGEST_ALGORITHM  = "X-digest-algorithm";
-    public static final String ALGO="MD5";
-    public static final String X_DIGEST="X-digest";
+    public static final String X_DIGEST_ALGORITHM = "X-digest-algorithm";
+    public static final String ALGO = "MD5";
+    public static final String X_DIGEST = "X-digest";
     private static JunitHelper junitHelper;
     private static int port;
 
-    private InputStream stream = null;
+    private static final String SHOULD_NOT_RAIZED_AN_EXCEPTION = "Should not raized an exception";
+    private static final ObjectMapper OBJECT_MAPPER;
+
+    static {
+
+        OBJECT_MAPPER = new ObjectMapper(new JsonFactory());
+        OBJECT_MAPPER.disable(SerializationFeature.INDENT_OUTPUT);
+    }
+
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -231,41 +249,40 @@ public class WorkspaceResourceTest {
 
     // Object
     @Test
-    public void givenContainerNotFoundWhenPutObjectThenReturnNotFound() {
-
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("file1.pdf");
-
-        given().multiPart("objectName", OBJECT_NAME).multiPart("object", OBJECT_NAME, stream).then()
-            .statusCode(Status.NOT_FOUND.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/objects");
-
-    }
-
-    @Test
-    public void givenContainerAlreadyExistsWhenPutObjectThenReturnCreated() {
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("file1.pdf");
-
-        with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
-
-        given().multiPart("objectName", OBJECT_NAME).multiPart("object", OBJECT_NAME, stream).then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/objects");
+    public void givenContainerNotFoundWhenPutObjectThenReturnNotFound() throws IOException {
+        try (InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("file1.pdf")) {
+            given().multiPart("objectName", OBJECT_NAME).multiPart("object", OBJECT_NAME, stream).then()
+                .statusCode(Status.NOT_FOUND.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/objects");
+        }
 
     }
 
     @Test
-    public void givenObjectAlreadyExistsWhenDeleteObjectThenReturnNotContent() {
+    public void givenContainerAlreadyExistsWhenPutObjectThenReturnCreated() throws IOException {
+        try (InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("file1.pdf")) {
 
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("file1.pdf");
+            with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
+                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
 
-        with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
+            given().multiPart("objectName", OBJECT_NAME).multiPart("object", OBJECT_NAME, stream).then()
+                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/objects");
+        }
 
-        with().multiPart("objectName", OBJECT_NAME).multiPart("object", OBJECT_NAME, stream).then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/objects");
+    }
 
-        given().then().statusCode(Status.NO_CONTENT.getStatusCode()).when()
-            .delete("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME);
+    @Test
+    public void givenObjectAlreadyExistsWhenDeleteObjectThenReturnNotContent() throws IOException {
+        try (InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("file1.pdf")) {
 
+            with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
+                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
+
+            with().multiPart("objectName", OBJECT_NAME).multiPart("object", OBJECT_NAME, stream).then()
+                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/objects");
+
+            given().then().statusCode(Status.NO_CONTENT.getStatusCode()).when()
+                .delete("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME);
+        }
     }
 
     @Test
@@ -273,11 +290,11 @@ public class WorkspaceResourceTest {
         given().then().statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .head("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME);
     }
-    
+
     @Test
     public void givenObjectNotFoundWhenComputeDigestThenReturnNotFound() {
         given().header(X_DIGEST_ALGORITHM, ALGO)
-        .when()
+            .when()
             .head("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
             .then().statusCode(Status.NOT_FOUND.getStatusCode());
     }
@@ -289,138 +306,196 @@ public class WorkspaceResourceTest {
     }
 
     @Test
-    public void givenObjectAlreadyExistsWhenCheckObjectThenReturnOk() {
+    public void givenObjectAlreadyExistsWhenCheckObjectThenReturnOk() throws IOException {
+        try (InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("file1.pdf")) {
 
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("file1.pdf");
+            with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
+                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
 
-        with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
+            with().multiPart("objectName", OBJECT_NAME).multiPart("object", OBJECT_NAME, stream).then()
+                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/objects");
 
-        with().multiPart("objectName", OBJECT_NAME).multiPart("object", OBJECT_NAME, stream).then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/objects");
-
-        given().then().statusCode(Status.OK.getStatusCode()).when()
-            .head("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME);
-
+            given().then().statusCode(Status.OK.getStatusCode()).when()
+                .head("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME);
+        }
     }
-    
+
     @Test
     public void givenObjectAlreadyExistsWhenComputeDigestThenReturnOk() throws IOException {
+        try (InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("file1.pdf")) {
 
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("file1.pdf");
+            with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
+                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
 
-        with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
+            with().multiPart("objectName", OBJECT_NAME).multiPart("object", OBJECT_NAME, stream).then()
+                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/objects");
+        }
+        try (InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("file1.pdf")) {
+            Digest digest = new Digest(DigestType.fromValue(ALGO));
+            digest.update(stream);
 
-        with().multiPart("objectName", OBJECT_NAME).multiPart("object", OBJECT_NAME, stream).then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/objects");
-
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("file1.pdf");
-        Digest digest = new Digest(DigestType.fromValue(ALGO));
-        digest.update(stream);
-        
-        given().header(X_DIGEST_ALGORITHM, ALGO)
-            .when()
-            .head("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
-            .then().statusCode(Status.OK.getStatusCode()).header(X_DIGEST, digest.toString());
-
+            given().header(X_DIGEST_ALGORITHM, ALGO)
+                .when()
+                .head("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
+                .then().statusCode(Status.OK.getStatusCode()).header(X_DIGEST, digest.toString());
+        }
     }
 
+
+    // get object
     @Test
     public void givenObjectNotFoundWhenGetObjectThenReturnNotFound() {
-        given().then().statusCode(Status.NOT_FOUND.getStatusCode()).when()
+        given().contentType(MediaType.MULTIPART_FORM_DATA).accept(MediaType.APPLICATION_OCTET_STREAM).then()
+            .statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .get("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME);
     }
 
     @Test
-    public void givenObjectAlreadyExistsWhenGetObjectThenReturnOk() {
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("file1.pdf");
+    public void givenObjectAlreadyExistsWhenGetObjectThenReturnOk() throws IOException {
+        try (InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("file1.pdf")) {
 
-        with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
+            with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
+                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
 
-        with().multiPart("objectName", OBJECT_NAME).multiPart("object", OBJECT_NAME, stream).then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/objects");
+            with().multiPart("objectName", OBJECT_NAME).multiPart("object", OBJECT_NAME, stream).then()
+                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/objects");
 
-        given().then().statusCode(Status.OK.getStatusCode()).when()
+            given().contentType(MediaType.MULTIPART_FORM_DATA).accept(MediaType.APPLICATION_OCTET_STREAM).then()
+                .statusCode(Status.OK.getStatusCode()).when()
+                .get("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME);
+        }
+
+    }
+
+    // get object information
+    @Test
+    public void givenObjectNotFoundWhenGetObjectInformationThenReturnNotFound() {
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).then()
+            .statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .get("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME);
+    }
 
+
+    @Test
+    public void givenObjectAlreadyExistsWhenGetObjectInformationThenReturnOk() throws IOException {
+        try (InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("file1.pdf")) {
+            with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
+                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
+
+            with().multiPart("objectName", OBJECT_NAME).multiPart("object", OBJECT_NAME, stream).then()
+                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/objects");
+
+            given().then().statusCode(Status.OK.getStatusCode()).when()
+                .get("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME);
+        }
     }
 
     // unzip
     @Test
-    public void givenZipImputWhenUnzipThenReturnOK() {
-
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("sip.zip");
-        
-        with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
-        .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
-        
-        given().contentType(ContentType.BINARY).body(stream)
-        .then().statusCode(Status.CREATED.getStatusCode()).when().put("/containers/" + CONTAINER_NAME + "/folders/"+FOLDER_SIP);
-
+    public void givenZipImputWhenUnzipThenReturnOK() throws IOException {
+        try (InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("sip.zip")) {
+            with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
+                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
+            given().contentType(ContentType.BINARY).body(stream)
+                .then().statusCode(Status.CREATED.getStatusCode()).when()
+                .put("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_SIP);
+        }
     }
 
-    @Test()
-    public void givenContainerNotFoundWhenUnzippingObjectThenReturnNotFound() {
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("sip.zip");
-        
-        given().contentType(ContentType.BINARY).body(stream)
-        .then().statusCode(Status.NOT_FOUND.getStatusCode()).when().put("/containers/" + CONTAINER_NAME + "/folders/"+FOLDER_SIP);
+    @Test
+    public void givenContainerNotFoundWhenUnzippingObjectThenReturnNotFound() throws IOException {
+        try (InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("sip.zip")) {
 
+            byte[] bytes = IOUtils.toByteArray(stream); // need for the test !
+            given()
+                .contentType(ContentType.BINARY)
+                .config(RestAssured.config().encoderConfig(
+                    EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
+                .content(stream).when()
+                .put("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_SIP).then()
+                .statusCode(Status.NOT_FOUND.getStatusCode());
+        }
     }
-    
-    @Test()
-    public void givenFolderAlreadyExistsWhenUnzippingObjectThenReturnConflict() {
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("sip.zip");
-        
-        with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
-        .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
-        
-        with().contentType(ContentType.JSON).body(new Entry(FOLDER_SIP)).then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/folders");
 
-        given().contentType(ContentType.BINARY).body(stream)
-        .then().statusCode(Status.CONFLICT.getStatusCode()).when().put("/containers/" + CONTAINER_NAME + "/folders/"+FOLDER_SIP);
+    @Test
+    public void givenFolderAlreadyExistsWhenUnzippingObjectThenReturnConflict() throws IOException {
+        try (InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("sip.zip")) {
+            with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
+                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
 
+            with().contentType(ContentType.JSON).body(new Entry(FOLDER_SIP)).then()
+                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/folders");
+
+            byte[] bytes = IOUtils.toByteArray(stream); // need for the test !
+            given()
+                .contentType(ContentType.BINARY)
+                .config(RestAssured.config().encoderConfig(
+                    EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
+                .content(stream).when()
+                .put("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_SIP).then()
+                .statusCode(Status.CONFLICT.getStatusCode());
+        }
     }
-    
+
+    @Test
+    public void givenNonZipWhenUnzipThenReturnKO() throws IOException {
+        try (InputStream stream =
+            Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_mauvais_format.pdf")) {
+
+            with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
+                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
+            try {
+                RequestResponseError response = new RequestResponseError().setError(
+                    new VitamError(Status.BAD_REQUEST.getStatusCode())
+                        .setContext("WORKSPACE")
+                        .setState("vitam_code")
+                        .setMessage(Status.BAD_REQUEST.getReasonPhrase())
+                        .setDescription(Status.BAD_REQUEST.getReasonPhrase()));
+
+                given().contentType(ContentType.BINARY).body(stream)
+                    .then().contentType(ContentType.JSON).statusCode(Status.BAD_REQUEST.getStatusCode())
+                    .body(Matchers.equalTo(OBJECT_MAPPER.writeValueAsString(response))).when()
+                    .put("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_SIP);
+            } catch (JsonProcessingException exc) {
+                fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
+            }
+        }
+    }
+
     // uriList
     @Test
-    public void givenEmptyFolderWhenfindingThenReturnNoContent() {
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("file1.pdf");
-
+    public void givenEmptyFolderWhenfindingThenReturnNoContent() throws IOException {
         with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
             .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
 
         given().contentType(ContentType.JSON).body(new Entry(FOLDER_NAME)).then()
             .statusCode(Status.NO_CONTENT.getStatusCode()).when()
             .get("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_NAME);
-
     }
 
     @Test
-    public void givenNotEmptyFolderWhenfindingThenReturnOk() {
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("file1.pdf");
+    public void givenNotEmptyFolderWhenfindingThenReturnOk() throws IOException {
+        try (InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("file1.pdf")) {
 
-        with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
-        
-      
-        with().multiPart("objectName", FOLDER_NAME + "/"+OBJECT_NAME).multiPart("object", FOLDER_NAME + "/"+OBJECT_NAME, stream).then()
-        .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/objects");
+            with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
+                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
 
-        
-        given().contentType(ContentType.JSON).body(new Entry(FOLDER_NAME)).then()
-            .statusCode(Status.OK.getStatusCode()).when()
-            .get("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_NAME);
 
+            with().multiPart("objectName", FOLDER_NAME + "/" + OBJECT_NAME)
+                .multiPart("object", FOLDER_NAME + "/" + OBJECT_NAME, stream).then()
+                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/objects");
+
+
+            given().contentType(ContentType.JSON).body(new Entry(FOLDER_NAME)).then()
+                .statusCode(Status.OK.getStatusCode()).when()
+                .get("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_NAME);
+        }
     }
 
-    
+
     @Test
     public void givenContainerNameFolderNameNotExistWhenfindingThenReturn_NoContent() {
-       
+
         with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
             .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
 

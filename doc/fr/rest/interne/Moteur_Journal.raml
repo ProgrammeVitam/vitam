@@ -1,0 +1,52 @@
+#%RAML 0.8
+title: Moteur de Journalisation
+baseUri: http://server/logbook/api/{version}
+version: v0.0.1
+protocols: [ HTTP, HTTPS ]
+
+mediaType: application/json
+
+traits: !include traits/Traits.raml
+
+resourceTypes: !include resourceTypes/ResourceTypes.raml
+
+/operations:
+  # root endpoint request
+  displayName: Operations Journal
+  description: Administration du Journal des Opérations. Induit aussi le Journal du SAE.
+  type: { collection-write-nopatch: { createModel: genericObject, exampleModel: !include ../samples/genericSample.sample, answearModel: genericObject, exampleAnswearModel: !include ../samples/genericSample.sample } }
+  is: [ standardErrors ]
+  post:
+    description: Permet de créer une nouvelle entrée (nouvelle opération)
+
+  /{id_op}:
+    displayName: Operation Entry
+    type: { collection-item-write: { createModel: task_status, exampleModel: !include ../samples/task_status.sample, answearModel: async_status, exampleAnswearModel: !include ../samples/async_status.sample } }
+    is: [ standardErrors ]
+    get:
+      description: Permet d'accéder aux informations d'une entrée du journal des opérations
+
+/lifecycle:
+  # root endpoint request
+  displayName: Life Cycle Journal
+  description: Administration du Journal du Cycle de Vie des archives (Unit ou ObjectGroup). Induit aussi le Journal du SAE.
+  type: { collection-write-nopatch: { createModel: genericObject, exampleModel: !include ../samples/genericSample.sample, answearModel: genericObject, exampleAnswearModel: !include ../samples/genericSample.sample } }
+  is: [ standardErrors ]
+  post:
+    description: Permet de créer une nouvelle entrée (création du journal de cycle de vie d'une archive)
+
+  /{id_lc}:
+    displayName: Life Cycle Entry
+    description: Administration du Journal du Cycle de Vie d'une archive (Unit ou ObjectGroup)
+    type: { collection-item-write: { createModel: task_status, exampleModel: !include ../samples/task_status.sample, answearModel: async_status, exampleAnswearModel: !include ../samples/async_status.sample } }
+    is: [ standardErrors ]
+    get:
+      description: Permet d'accéder aux informations d'un journal du cycle de vie pour une archive
+    put:
+      description: Permet d'ajouter un événement au cycle de vie d'une archive
+
+/status:
+  displayName: Logbook Engine Status
+  description: Statut du moteur de journalisation.
+  type: { collection }
+  is: [ standardErrors ]

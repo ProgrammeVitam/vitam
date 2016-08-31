@@ -1,12 +1,10 @@
 Architecture interne
 ####################
 
-Cette section décrit l'architecture interne de la solution VITAM.
+Cette section décrit l'architecture applicative interne de la solution VITAM.
 
 .. toctree::
    :maxdepth: 2
+   :glob:
 
-   principles-architecture-applicative
-   services.rst
-   data.rst
-   dependencies.rst
+   *

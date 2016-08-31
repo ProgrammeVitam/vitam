@@ -26,15 +26,15 @@
  */
 package fr.gouv.vitam.storage.engine.server.distribution;
 
+import java.io.InputStream;
+
 import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
+
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
-
-import java.io.InputStream;
 
 /**
  * Interface Storage Distribution for Storage Operations
@@ -52,6 +52,7 @@ public interface StorageDistribution {
      * @param objectId        the workspace URI of the data to be retrieve (and stored in offer)
      * @param createObjectDescription object additional informations
      * @param category                the category of the data to store (unit, object...)
+     * FIXME should never be json
      * @param jsonData                the data to store. <em>MUST</em> be null for data of category Object since the binary content is
      *                                retrieved on workspace based on the objectId parameter.
      * @return a StoredInfoResult containing informations about the created Data
@@ -69,9 +70,12 @@ public interface StorageDistribution {
      * @param strategyId id of the strategy
      * @return a JsonNode containing informations about the storage
      * @throws StorageNotFoundException Thrown if the Container does not exist
+     * @throws StorageTechnicalException Thrown in case of any technical problem
      */
-    JsonNode getStorageInformation(String tenantId, String strategyId) throws StorageNotFoundException;
+    JsonNode getContainerInformation(String tenantId, String strategyId) throws StorageNotFoundException,
+        StorageTechnicalException;
 
+    // FIXME: what is the inputStream for a Container ?
     /**
      * Get Storage Container full content as an InputStream
      * <p>
@@ -112,6 +116,7 @@ public interface StorageDistribution {
     void deleteContainer(String tenantId, String strategyId) throws StorageTechnicalException, StorageNotFoundException;
 
 
+    // FIXME see list/count/size API
     /**
      * Get Container Objects Information
      * <p>
@@ -135,8 +140,10 @@ public interface StorageDistribution {
      * @param objectId   id of the object
      * @return an object as an InputStream
      * @throws StorageNotFoundException Thrown if the Container or the object does not exist
+     * @throws StorageTechnicalException thrown if a technical error happened
      */
-    InputStream getContainerObject(String tenantId, String strategyId, String objectId) throws StorageNotFoundException;
+    InputStream getContainerObject(String tenantId, String strategyId, String objectId) throws
+        StorageNotFoundException, StorageTechnicalException;
 
     /**
      * Get a specific Object informations
@@ -150,6 +157,7 @@ public interface StorageDistribution {
     JsonNode getContainerObjectInformations(String tenantId, String strategyId, String objectId)
         throws StorageNotFoundException;
 
+    // FIXME missing digest which is mandatory for a delete
     /**
      * Delete an object
      *
@@ -160,6 +168,7 @@ public interface StorageDistribution {
      */
     void deleteObject(String tenantId, String strategyId, String objectId) throws StorageNotFoundException;
 
+    // FIXME see list/count/size API
     /**
      * Retrieve a list of logbook ids associated to a given tenant
      * <p>
@@ -187,7 +196,7 @@ public interface StorageDistribution {
     JsonNode getContainerLogbook(String tenantId, String strategyId, String logbookId)
         throws StorageNotFoundException;
 
-
+    // FIXME missing digest which is mandatory for a delete
     /**
      * Delete a logbook
      *
@@ -199,6 +208,7 @@ public interface StorageDistribution {
     void deleteLogbook(String tenantId, String strategyId, String logbookId) throws StorageNotFoundException;
 
 
+    // FIXME see list/count/size API
     /**
      * Get Container Units Information
      * <p>
@@ -225,6 +235,7 @@ public interface StorageDistribution {
      */
     JsonNode getContainerUnit(String tenantId, String strategyId, String unitId) throws StorageNotFoundException;
 
+    // FIXME missing digest which is mandatory for a delete
     /**
      * Delete an unit
      *
@@ -237,6 +248,7 @@ public interface StorageDistribution {
         throws StorageNotFoundException;
 
 
+    // FIXME see list/count/size API
     /**
      * Get Container ObjectGroups Information
      * <p>

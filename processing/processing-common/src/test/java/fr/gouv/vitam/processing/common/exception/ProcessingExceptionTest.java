@@ -27,6 +27,7 @@
 package fr.gouv.vitam.processing.common.exception;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 
@@ -42,5 +43,6 @@ public class ProcessingExceptionTest {
             new ProcessingException(ERROR, new Exception()).toString());
         assertEquals(ERROR, new ProcessingException(ERROR).getMessage());
         assertEquals(JAVA_ERROR, new ProcessingException(new Exception()).getMessage());
+        assertNotNull(new ProcessingUnauthorizeException(ERROR, new Exception(), true, true).getCause());
     }
 }

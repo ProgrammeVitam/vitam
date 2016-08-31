@@ -73,6 +73,7 @@ import de.odysseus.staxon.json.JsonXMLOutputFactory;
 import fr.gouv.vitam.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.api.exception.MetaDataException;
+import fr.gouv.vitam.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.builder.request.construct.Insert;
 import fr.gouv.vitam.client.MetaDataClient;
@@ -103,6 +104,8 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCycleClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.exception.ProcessingInternalServerException;
+import fr.gouv.vitam.processing.common.model.OutcomeMessage;
 import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.model.WorkParams;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -147,10 +150,14 @@ public class SedaUtils {
     private static final String TAG_CONTENT = "Content";
     private static final String TAG_MANAGEMENT = "Management";
     private static final String TAG_OG = "_og";
+    private static final String TAG_ID = "_id";
     public static final String LIFE_CYCLE_EVENT_TYPE_PROCESS = "INGEST";
-    public static final String UNIT_LIFE_CYCLE_CREATION_EVENT_TYPE = "CREATE_LF_UNIT";
-    private static final String OG_LIFE_CYCLE_CREATION_EVENT_TYPE = "CREATE_LF_OG";
-    private static final String OG_LIFE_CYCLE_CHECK_BDO_EVENT_TYPE = "CHECK_BDO";
+    public static final String UNIT_LIFE_CYCLE_CREATION_EVENT_TYPE =
+        "Check SIP – Units – Lifecycle Logbook Creation – Création du journal du cycle de vie des units";
+    private static final String OG_LIFE_CYCLE_CREATION_EVENT_TYPE =
+        "Check SIP – ObjectGroups – Lifecycle Logbook Creation – Création du journal du cycle de vie des groupes d’objets";
+    private static final String OG_LIFE_CYCLE_CHECK_BDO_EVENT_TYPE =
+        "Check SIP – ObjectGroups – Digest - Vérification de l’empreinte";
     private static final String LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG = "LogbookClient Unsupported request";
     private static final String LOGBOOK_LF_OBJECT_EXISTS_EXCEPTION_MSG = "LifeCycle Object already exists";
     private static final String LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG = "Logbook LifeCycle resource not found";
@@ -159,6 +166,8 @@ public class SedaUtils {
     public static final String OBJECT_GROUP_ID_TO_GUID_MAP_FILE_NAME_PREFIX = "OBJECT_GROUP_ID_TO_GUID_MAP_";
     public static final String BDO_TO_OBJECT_GROUP_ID_MAP_FILE_NAME_PREFIX = "BDO_TO_OBJECT_GROUP_ID_MAP_";
     public static final String ARCHIVE_ID_TO_GUID_MAP_FILE_NAME_PREFIX = "ARCHIVE_ID_TO_GUID_MAP_";
+    public static final String BINARY_DATA_OBJECT_ID_TO_GUID_MAP_FILE_NAME_PREFIX =
+        "BINARY_DATA_OBJECT_ID_TO_GUID_MAP_";
     public static final String TXT_EXTENSION = ".txt";
     private static final String LEVEL = "level_";
     private static final String EXEC = "Exec";
@@ -169,11 +178,18 @@ public class SedaUtils {
     public static final String ARCHIVE_TREE_TMP_FILE_NAME_PREFIX = "INGEST_TREE_";
     private static final String INVALID_INGEST_TREE_EXCEPTION_MSG =
         "INGEST_TREE invalid, can not save to temporary file";
+    private static final String GRAPH_CYCLE_MSG =
+        "The Archive Unit graph in the SEDA file has a cycle";
     private static final String TMP_FOLDER = "vitam" + File.separator + "temp";
     private static final String INGEST_LEVEL_STACK = "ingestLevelStack.json";
     private static final String CYCLE_FOUND_EXCEPTION = "Seda has an archive unit cycle ";
     private static final String SAVE_ARCHIVE_ID_TO_GUID_IOEXCEPTION_MSG =
         "Can not save unitToGuidMap to temporary file";
+    private static final String WORKPARAMS_MANDATORY_MSG = "WorkParams is a mandatory parameter";
+    private static final String WORKSPACE_MANDATORY_MSG = "WorkspaceClient is a mandatory parameter";
+    private static final String FILE_COULD_NOT_BE_DELETED_MSG = "File could not be deleted";
+    private static final String CANNOT_READ_SEDA = "Can not read SEDA";
+    private static final String MANIFEST_NOT_FOUND = "Manifest.xml Not Found";
 
     private final Map<String, String> binaryDataObjectIdToGuid;
     private final Map<String, String> objectGroupIdToGuid;
@@ -262,7 +278,7 @@ public class SedaUtils {
      * @throws ProcessingException throw when can't read or extract element from SEDA
      */
     public void extractSEDA(WorkParams params) throws ProcessingException {
-        ParametersChecker.checkParameter("WorkParams is a mandatory parameter", params);
+        ParametersChecker.checkParameter(WORKPARAMS_MANDATORY_MSG, params);
         final String containerId = params.getContainerName();
         final WorkspaceClient client = WorkspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
         extractSEDAWithWorkspaceClient(client, containerId);
@@ -276,7 +292,7 @@ public class SedaUtils {
      * @throws ProcessingException throw when can't read or extract message id from SEDA
      */
     public String getMessageIdentifier(WorkParams params) throws ProcessingException {
-        ParametersChecker.checkParameter("WorkParams is a mandatory parameter", params);
+        ParametersChecker.checkParameter(WORKPARAMS_MANDATORY_MSG, params);
         final String containerId = params.getContainerName();
         String messageId = "";
         final WorkspaceClient client = WorkspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
@@ -284,7 +300,7 @@ public class SedaUtils {
         try {
             xmlFile = client.getObject(containerId, SEDA_FOLDER + "/" + SEDA_FILE);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
-            LOGGER.error("Manifest.xml Not Found");
+            LOGGER.error(MANIFEST_NOT_FOUND);
             throw new ProcessingException(e);
         }
 
@@ -309,7 +325,7 @@ public class SedaUtils {
             }
             reader.close();
         } catch (final XMLStreamException e) {
-            LOGGER.error("Can not read SEDA", e);
+            LOGGER.error(CANNOT_READ_SEDA, e);
             throw new ProcessingException(e);
         }
 
@@ -317,7 +333,7 @@ public class SedaUtils {
     }
 
     private void extractSEDAWithWorkspaceClient(WorkspaceClient client, String containerId) throws ProcessingException {
-        ParametersChecker.checkParameter("WorkspaceClient is a mandatory parameter", client);
+        ParametersChecker.checkParameter(WORKSPACE_MANDATORY_MSG, client);
         ParametersChecker.checkParameter("ContainerId is a mandatory parameter", containerId);
 
         /**
@@ -327,7 +343,7 @@ public class SedaUtils {
         try {
             xmlFile = client.getObject(containerId, SEDA_FOLDER + "/" + SEDA_FILE);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
-            LOGGER.error("Manifest.xml Not Found");
+            LOGGER.error(MANIFEST_NOT_FOUND);
             throw new ProcessingException(e);
         }
 
@@ -352,6 +368,11 @@ public class SedaUtils {
                         for (String unitGuid : unitIdToGuid.values()) {
                             if (guidToLifeCycleParameters.get(unitGuid) != null) {
                                 guidToLifeCycleParameters.get(unitGuid).setStatus(LogbookOutcome.OK);
+                                guidToLifeCycleParameters.get(unitGuid)
+                                    .putParameterValue(LogbookParameterName.outcomeDetail, LogbookOutcome.OK.name());
+                                guidToLifeCycleParameters.get(unitGuid).putParameterValue(
+                                    LogbookParameterName.outcomeDetailMessage,
+                                    OutcomeMessage.CREATE_LOGBOOK_LIFECYCLE_OK.value());
                                 LOGBOOK_LIFECYCLE_CLIENT.update(guidToLifeCycleParameters.get(unitGuid));
                             }
                         }
@@ -360,6 +381,11 @@ public class SedaUtils {
 
                         if (guidToLifeCycleParameters.get(objectGroupGuid) != null) {
                             guidToLifeCycleParameters.get(objectGroupGuid).setStatus(LogbookOutcome.OK);
+                            guidToLifeCycleParameters.get(objectGroupGuid)
+                                .putParameterValue(LogbookParameterName.outcomeDetail, LogbookOutcome.OK.name());
+                            guidToLifeCycleParameters.get(objectGroupGuid).putParameterValue(
+                                LogbookParameterName.outcomeDetailMessage,
+                                OutcomeMessage.CREATE_LOGBOOK_LIFECYCLE_OK.value());
                             LOGBOOK_LIFECYCLE_CLIENT.update(guidToLifeCycleParameters.get(objectGroupGuid));
                         }
                     }
@@ -377,19 +403,25 @@ public class SedaUtils {
             JsonHandler.writeAsFile(archiveUnitTree, archiveTreeTmpFile);
             // check cycle and create level stack; will be used when indexing unit
             // 1-detect cycle : if graph has a cycle throw CycleFoundException
-            new DirectedCycle(new DirectedGraph(archiveUnitTree));
-
-            // Save unitToGuidMap
-            saveArchiveUnitIdToGuidMap(containerId);
-
+            DirectedCycle directedCycle = new DirectedCycle(new DirectedGraph(archiveUnitTree));
+            if (directedCycle.isCyclic()) {
+                throw new CycleFoundException(GRAPH_CYCLE_MSG);
+            }
+            // Save unitToGuid Map
+            saveMap(containerId, unitIdToGuid.toString(), ARCHIVE_ID_TO_GUID_MAP_FILE_NAME_PREFIX);
 
             // 2- create graph and create level
             createIngestLevelStackFile(client, containerId, new Graph(archiveUnitTree).getGraphWithLongestPaths());
 
             checkArchiveUnitIdReference();
             saveObjectGroupsToWorkspace(client, containerId);
+
+            // Save binaryDataObjectIdToGuid Map
+            saveMap(containerId, binaryDataObjectIdToGuid.toString(),
+                BINARY_DATA_OBJECT_ID_TO_GUID_MAP_FILE_NAME_PREFIX);
+
         } catch (final XMLStreamException e) {
-            LOGGER.error("Can not read SEDA");
+            LOGGER.error(CANNOT_READ_SEDA);
             throw new ProcessingException(e);
         } catch (LogbookClientBadRequestException e) {
             LOGGER.error(LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG, e);
@@ -466,6 +498,7 @@ public class SedaUtils {
                         stack--;
                         if (stack == 0) {
                             // Create objectgroup reference id
+                            groupGuid = objectGroupIdToGuid.get(unitIdToGroupId.get(elementID));
                             writer.add(eventFactory.createStartElement("", "", TAG_OG));
                             writer.add(eventFactory.createCharacters(groupGuid));
                             writer.add(eventFactory.createEndElement("", "", TAG_OG));
@@ -477,7 +510,6 @@ public class SedaUtils {
                 }
                 if (event.isStartElement() &&
                     event.asStartElement().getName().getLocalPart() == DATA_OBJECT_GROUP_REFERENCEID) {
-                    groupGuid = GUIDFactory.newGUID().toString();
                     final String groupId = reader.getElementText();
                     unitIdToGroupId.put(elementID, groupId);
                     if (objectGroupIdToUnitId.get(groupId) == null) {
@@ -490,6 +522,7 @@ public class SedaUtils {
                         objectGroupIdToUnitId.put(groupId, archiveUnitList);
                     }
                     // Create new startElement for group with new guid
+                    groupGuid = objectGroupIdToGuid.get(unitIdToGroupId.get(elementID));
                     writer.add(eventFactory.createStartElement("", NAMESPACE_URI, DATA_OBJECT_GROUP_REFERENCEID));
                     writer.add(eventFactory.createCharacters(groupGuid));
                     writer.add(eventFactory.createEndElement("", NAMESPACE_URI, DATA_OBJECT_GROUP_REFERENCEID));
@@ -526,9 +559,19 @@ public class SedaUtils {
                         childArchiveUnitNode = JsonHandler.createObjectNode();
                     }
 
+                    // Check if a Cycle already exist during Parsing
+                    ObjectNode archiveUnitTreeCheck = archiveUnitTree.deepCopy();
+                    String archiveUnitCheckId = archiveUnitId;
+                    String childArchiveUnitRefCheck = childArchiveUnitRef;
+                    ObjectNode childArchiveUnitNodeCheck = childArchiveUnitNode.deepCopy();
+
+                    checkifCycleInParsing(archiveUnitTreeCheck, archiveUnitCheckId, childArchiveUnitRefCheck,
+                        childArchiveUnitNodeCheck);
+
+                    // Reference Management during tree creation
                     ArrayNode parentsField = childArchiveUnitNode.withArray(UP_FIELD);
-                    parentsField.add(archiveUnitId);
-                    archiveUnitTree.set(childArchiveUnitRef, childArchiveUnitNode);
+                    parentsField.addAll((ArrayNode) archiveUnitTree.get(archiveUnitId).get("_up"));
+                    archiveUnitTree.without(archiveUnitId);
                 } else {
                     writer.add(event);
                 }
@@ -549,6 +592,18 @@ public class SedaUtils {
 
         archiveUnitToTmpFileMap.put(elementGuid, tmpFile);
         return archiveUnitToTmpFileMap;
+    }
+
+    private void checkifCycleInParsing(ObjectNode archiveUnitTreeCheck, String archiveUnitCheckId,
+        String childArchiveUnitRefCheck, ObjectNode childArchiveUnitNodeCheck)
+        throws CycleFoundException {
+        ArrayNode parentsFieldCheck = childArchiveUnitNodeCheck.withArray(UP_FIELD);
+        parentsFieldCheck.add(archiveUnitCheckId);
+        archiveUnitTreeCheck.set(childArchiveUnitRefCheck, childArchiveUnitNodeCheck);
+        DirectedCycle cycleCheck = new DirectedCycle(new DirectedGraph(archiveUnitTreeCheck));
+        if (cycleCheck.isCyclic()) {
+            throw new CycleFoundException(GRAPH_CYCLE_MSG);
+        }
     }
 
     private LogbookParameters initLogbookLifeCycleParameters(String guid, boolean isArchive, boolean isObjectGroup) {
@@ -582,7 +637,7 @@ public class SedaUtils {
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
             LogbookOutcome.STARTED.toString());
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-            LogbookOutcome.STARTED.toString());
+            OutcomeMessage.CREATE_LOGBOOK_LIFECYCLE.value());
         LOGBOOK_LIFECYCLE_CLIENT.create(logbookLifecycleObjectGroupParameters);
 
         // Update guidToLifeCycleParameters
@@ -665,6 +720,11 @@ public class SedaUtils {
 
         try {
             logbookLifecycleParameters.putParameterValue(LogbookParameterName.outcome, stepStatus.toString());
+            logbookLifecycleParameters.putParameterValue(LogbookParameterName.outcomeDetail,
+                stepStatus.toString());
+            logbookLifecycleParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                logbookLifecycleParameters.getParameterValue(LogbookParameterName.outcomeDetailMessage));
+
             LOGBOOK_LIFECYCLE_CLIENT.update(logbookLifecycleParameters);
         } catch (LogbookClientBadRequestException e) {
             LOGGER.error(LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG, e);
@@ -698,7 +758,7 @@ public class SedaUtils {
                     createUnitLifeCycle(unitEntry.getKey(), containerId);
 
                     if (!tmpFile.delete()) {
-                        LOGGER.warn("File could not be deleted");
+                        LOGGER.warn(FILE_COULD_NOT_BE_DELETED_MSG);
                     }
                 }
             }
@@ -868,29 +928,12 @@ public class SedaUtils {
         }
     }
 
-    private void saveObjectGroupBdoMaps(String containerId) throws IOException {
-        // Save binaryDataObjectIdToObjectGroupId and objectGroupIdToGuid
-        final File firstMapTmpFile = PropertiesUtils
-            .fileFromTmpFolder(BDO_TO_OBJECT_GROUP_ID_MAP_FILE_NAME_PREFIX + containerId + TXT_EXTENSION);
-        final FileWriter firstMapTmpFileWriter = new FileWriter(firstMapTmpFile);
-        firstMapTmpFileWriter.write(binaryDataObjectIdToObjectGroupId.toString());
-        firstMapTmpFileWriter.flush();
-        firstMapTmpFileWriter.close();
+    private void saveMap(String containerId, String map, String fileNamePrefix) throws IOException {
 
-        final File secondMapTmpFile = PropertiesUtils
-            .fileFromTmpFolder(OBJECT_GROUP_ID_TO_GUID_MAP_FILE_NAME_PREFIX + containerId + TXT_EXTENSION);
-        final FileWriter secondMapTmpFileWriter = new FileWriter(secondMapTmpFile);
-        secondMapTmpFileWriter.write(objectGroupIdToGuid.toString());
-        secondMapTmpFileWriter.flush();
-        secondMapTmpFileWriter.close();
-    }
-
-    private void saveArchiveUnitIdToGuidMap(String containerId) throws IOException {
-        // Save unitIdToGuid
         final File firstMapTmpFile = PropertiesUtils
-            .fileFromTmpFolder(ARCHIVE_ID_TO_GUID_MAP_FILE_NAME_PREFIX + containerId + TXT_EXTENSION);
+            .fileFromTmpFolder(fileNamePrefix + containerId + TXT_EXTENSION);
         final FileWriter firstMapTmpFileWriter = new FileWriter(firstMapTmpFile);
-        firstMapTmpFileWriter.write(unitIdToGuid.toString());
+        firstMapTmpFileWriter.write(map);
         firstMapTmpFileWriter.flush();
         firstMapTmpFileWriter.close();
     }
@@ -901,7 +944,11 @@ public class SedaUtils {
 
         // Save maps
         try {
-            saveObjectGroupBdoMaps(containerId);
+            // Save binaryDataObjectIdToObjectGroupId
+            saveMap(containerId, binaryDataObjectIdToObjectGroupId.toString(),
+                BDO_TO_OBJECT_GROUP_ID_MAP_FILE_NAME_PREFIX);
+            // Save objectGroupIdToGuid
+            saveMap(containerId, objectGroupIdToGuid.toString(), OBJECT_GROUP_ID_TO_GUID_MAP_FILE_NAME_PREFIX);
         } catch (IOException e1) {
             LOGGER.error("Can not write to tmp folder ", e1);
             throw new ProcessingException(e1);
@@ -944,7 +991,7 @@ public class SedaUtils {
                         }
                     }
                     if (!binaryObjectFile.delete()) {
-                        LOGGER.warn("File could not be deleted");
+                        LOGGER.warn(FILE_COULD_NOT_BE_DELETED_MSG);
                     }
                 }
 
@@ -964,17 +1011,22 @@ public class SedaUtils {
                 client.putObject(containerId, OBJECT_GROUP + "/" + objectGroupGuid + JSON_EXTENSION,
                     new FileInputStream(tmpFile));
                 if (!tmpFile.delete()) {
-                    LOGGER.warn("File could not be deleted");
+                    LOGGER.warn(FILE_COULD_NOT_BE_DELETED_MSG);
                 }
 
                 // Create unreferenced object group
                 if (guidToLifeCycleParameters.get(objectGroupGuid) == null) {
                     createObjectGroupLifeCycle(objectGroupGuid, containerId);
-                }
 
-                // Update Object Group lifeCycle creation event
-                guidToLifeCycleParameters.get(objectGroupGuid).setStatus(LogbookOutcome.OK);
-                LOGBOOK_LIFECYCLE_CLIENT.update(guidToLifeCycleParameters.get(objectGroupGuid));
+                    // Update Object Group lifeCycle creation event
+                    guidToLifeCycleParameters.get(objectGroupGuid).setStatus(LogbookOutcome.OK);
+                    guidToLifeCycleParameters.get(objectGroupGuid).putParameterValue(LogbookParameterName.outcomeDetail,
+                        LogbookOutcome.OK.name());
+                    guidToLifeCycleParameters.get(objectGroupGuid).putParameterValue(
+                        LogbookParameterName.outcomeDetailMessage,
+                        OutcomeMessage.CREATE_LOGBOOK_LIFECYCLE_OK.value());
+                    LOGBOOK_LIFECYCLE_CLIENT.update(guidToLifeCycleParameters.get(objectGroupGuid));
+                }
 
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error("Can not parse ObjectGroup", e);
@@ -1008,6 +1060,8 @@ public class SedaUtils {
             binaryNode.put("nb", entry.getValue().size());
             final ArrayNode arrayNode = JsonHandler.createArrayNode();
             for (final JsonNode node : entry.getValue()) {
+                String id = node.findValue(TAG_ID).textValue();
+                ((ObjectNode) node).put(TAG_ID, binaryDataObjectIdToGuid.get(id));
                 arrayNode.add(node);
             }
             binaryNode.set("versions", arrayNode);
@@ -1020,28 +1074,44 @@ public class SedaUtils {
      * The method is used to validate SEDA by XSD
      *
      * @param params worker parameter
-     * @return boolean true/false
+     * @return a status representing the validation of the file
      */
-    public boolean checkSedaValidation(WorkParams params) {
-        ParametersChecker.checkParameter("WorkParams is a mandatory parameter", params);
+    public CheckSedaValidationStatus checkSedaValidation(WorkParams params) {
+        ParametersChecker.checkParameter(WORKPARAMS_MANDATORY_MSG, params);
         final String containerId = params.getContainerName();
         final WorkspaceClient client = WorkspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
+        final InputStream input;
         try {
-            final InputStream input = checkExistenceManifest(client, containerId);
-            return new ValidationXsdUtils().checkWithXSD(input, SEDA_VALIDATION_FILE);
-
-        } catch (ProcessingException | XMLStreamException | SAXException e) {
-            LOGGER.error("Manifest.xml is not valid ", e);
-            return false;
-        } catch (IOException e) {
-            LOGGER.error("Seda validation file not found", e);
-            return false;
+            input = checkExistenceManifest(client, containerId);
+            new ValidationXsdUtils().checkWithXSD(input, SEDA_VALIDATION_FILE);
+            return CheckSedaValidationStatus.VALID;
+        } catch (ProcessingException | IOException e) {
+            LOGGER.error("Manifest.xml not found", e);
+            return CheckSedaValidationStatus.NO_FILE;
+        } catch (XMLStreamException e) {
+            LOGGER.error("Manifest.xml is not a correct xml file", e);
+            return CheckSedaValidationStatus.NOT_XML_FILE;
+        } catch (SAXException e) {
+            // if the cause is null, that means the file is an xml, but it does not validate the XSD
+            if (e.getCause() == null) {
+                LOGGER.error("Manifest.xml is not valid with the XSD", e);
+                return CheckSedaValidationStatus.NOT_XSD_VALID;
+            }
+            LOGGER.error("Manifest.xml is not a correct xml file", e);
+            return CheckSedaValidationStatus.NOT_XML_FILE;
         }
+    }
+
+    /**
+     * Check Seda Validation status values
+     */
+    public enum CheckSedaValidationStatus {
+        VALID, NOT_XSD_VALID, NOT_XML_FILE, NO_FILE;
     }
 
     private InputStream checkExistenceManifest(WorkspaceClient client, String guid)
         throws IOException, ProcessingException {
-        ParametersChecker.checkParameter("WorkspaceClient is a mandatory parameter", client);
+        ParametersChecker.checkParameter(WORKSPACE_MANDATORY_MSG, client);
         ParametersChecker.checkParameter("guid is a mandatory parameter", guid);
         InputStream manifest = null;
         try {
@@ -1179,7 +1249,10 @@ public class SedaUtils {
                 throw new ProcessingException("Object group not found");
             }
 
-        } catch (final MetaDataException e) {
+        } catch (MetaDataDocumentSizeException | MetaDataExecutionException exc) {
+            LOGGER.error("Technical error", exc);
+            throw new ProcessingInternalServerException(exc);
+        } catch (MetaDataException e) {
             LOGGER.debug("Metadata Server Error", e);
             throw new ProcessingException(e);
         } catch (InvalidParseOperationException | IOException e) {
@@ -1271,7 +1344,7 @@ public class SedaUtils {
             tmpFileWriter.close();
             data = JsonHandler.getFromFile(tmpFile);
             if (!tmpFile.delete()) {
-                LOGGER.warn("File could not be deleted");
+                LOGGER.warn(FILE_COULD_NOT_BE_DELETED_MSG);
             }
         } catch (final XMLStreamException e) {
             LOGGER.debug("Can not read input stream");
@@ -1410,7 +1483,7 @@ public class SedaUtils {
      */
     public List<String> checkSupportedBinaryObjectVersion(WorkParams params)
         throws ProcessingException {
-        ParametersChecker.checkParameter("WorkParams is a mandatory parameter", params);
+        ParametersChecker.checkParameter(WORKPARAMS_MANDATORY_MSG, params);
         final String containerId = params.getContainerName();
         final WorkspaceClient client = WorkspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
         return isSedaVersionValid(client, containerId);
@@ -1418,7 +1491,7 @@ public class SedaUtils {
 
     private List<String> isSedaVersionValid(WorkspaceClient client,
         String containerId) throws ProcessingException {
-        ParametersChecker.checkParameter("WorkspaceClient is a mandatory parameter", client);
+        ParametersChecker.checkParameter(WORKSPACE_MANDATORY_MSG, client);
         ParametersChecker.checkParameter("ContainerId is a mandatory parameter", containerId);
 
         InputStream xmlFile = null;
@@ -1426,7 +1499,7 @@ public class SedaUtils {
         try {
             xmlFile = client.getObject(containerId, SEDA_FOLDER + "/" + SEDA_FILE);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
-            LOGGER.error("Manifest.xml Not Found");
+            LOGGER.error(MANIFEST_NOT_FOUND);
             throw new ProcessingException(e);
         }
 
@@ -1438,7 +1511,7 @@ public class SedaUtils {
             invalidVersionList = compareVersionList(reader, File_CONF);
             reader.close();
         } catch (final XMLStreamException e) {
-            LOGGER.error("Can not read SEDA");
+            LOGGER.error(CANNOT_READ_SEDA);
             throw new ProcessingException(e);
         }
 
@@ -1488,7 +1561,7 @@ public class SedaUtils {
                                 }
 
                                 if (tag == TAG_SIZE) {
-                                    final int size = Integer.parseInt(evenReader.getElementText());
+                                    final long size = Long.parseLong(evenReader.getElementText());
                                     binaryObjectInfo.setSize(size);
                                 }
                             }
@@ -1591,7 +1664,7 @@ public class SedaUtils {
     public List<String> checkConformityBinaryObject(WorkParams params)
         throws ProcessingException, ContentAddressableStorageNotFoundException,
         ContentAddressableStorageServerException, URISyntaxException, ContentAddressableStorageException {
-        ParametersChecker.checkParameter("WorkParams is a mandatory parameter", params);
+        ParametersChecker.checkParameter(WORKPARAMS_MANDATORY_MSG, params);
         final String containerId = params.getContainerName();
         final WorkspaceClient client = WorkspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
 
@@ -1600,7 +1673,7 @@ public class SedaUtils {
         try {
             xmlFile = client.getObject(containerId, SEDA_FOLDER + "/" + SEDA_FILE);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
-            LOGGER.error("Manifest.xml Not Found");
+            LOGGER.error(MANIFEST_NOT_FOUND);
             throw new ProcessingException(e);
         }
 
@@ -1612,7 +1685,7 @@ public class SedaUtils {
             digestMessageInvalidList = compareDigestMessage(reader, client, containerId);
             reader.close();
         } catch (final XMLStreamException e) {
-            LOGGER.error("Can not read SEDA");
+            LOGGER.error(CANNOT_READ_SEDA);
             throw new ProcessingException(e);
         } catch (LogbookClientBadRequestException e) {
             LOGGER.error(LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG);
@@ -1700,7 +1773,11 @@ public class SedaUtils {
                 // Set KO status
                 if (logbookLifeCycleObjGrpParam != null) {
                     logbookLifeCycleObjGrpParam.putParameterValue(LogbookParameterName.outcome,
-                        StatusCode.KO.toString());
+                        LogbookOutcome.WARNING.name());
+                    logbookLifeCycleObjGrpParam.putParameterValue(LogbookParameterName.outcomeDetail,
+                        LogbookOutcome.WARNING.name());
+                    logbookLifeCycleObjGrpParam.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                        OutcomeMessage.CHECK_BDO_KO.value() + " " + binaryObjectMap.get(mapKey).getId());
                     LOGBOOK_LIFECYCLE_CLIENT.update(logbookLifeCycleObjGrpParam);
                 }
             } else {
@@ -1709,7 +1786,11 @@ public class SedaUtils {
                 // Set OK status
                 if (logbookLifeCycleObjGrpParam != null) {
                     logbookLifeCycleObjGrpParam.putParameterValue(LogbookParameterName.outcome,
-                        StatusCode.OK.toString());
+                        LogbookOutcome.OK.name());
+                    logbookLifeCycleObjGrpParam.putParameterValue(LogbookParameterName.outcomeDetail,
+                        LogbookOutcome.OK.name());
+                    logbookLifeCycleObjGrpParam.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                        OutcomeMessage.CHECK_BDO_OK.value());
                     LOGBOOK_LIFECYCLE_CLIENT.update(logbookLifeCycleObjGrpParam);
                 }
             }
@@ -1752,7 +1833,7 @@ public class SedaUtils {
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
             LogbookOutcome.STARTED.toString());
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-            LogbookOutcome.STARTED.toString());
+            OutcomeMessage.CHECK_BDO.value());
         LOGBOOK_LIFECYCLE_CLIENT.update(logbookLifecycleObjectGroupParameters);
 
         return logbookLifecycleObjectGroupParameters;
@@ -1771,7 +1852,7 @@ public class SedaUtils {
         LOGGER.info("Begin createIngestLevelStackFile/containerId:" + containerId);
         ParametersChecker.checkParameter("levelStackMap is a mandatory parameter", levelStackMap);
         ParametersChecker.checkParameter("unitIdToGuid is a mandatory parameter", unitIdToGuid);
-        ParametersChecker.checkParameter("WorkspaceClient is a mandatory parameter", client);
+        ParametersChecker.checkParameter(WORKSPACE_MANDATORY_MSG, client);
 
         File tempFile = null;
         try {
@@ -1823,10 +1904,10 @@ public class SedaUtils {
      * of Sedautils, it has to be refactored to StoreObjectGroupActionHandler
      * 
      * @param params worker parameters
-     * @return list binary data object informations
+     * @return tha map of binary data object information with their object GUID as key
      * @throws ProcessingException throws when error occurs
      */
-    public List<BinaryObjectInfo> retrieveStorageInformationForObjectGroup(WorkParams params)
+    public Map<String, BinaryObjectInfo> retrieveStorageInformationForObjectGroup(WorkParams params)
         throws ProcessingException {
         ParametersChecker.checkParameter("Work parameters is a mandatory parameter", params);
         final String containerId = params.getContainerName();
@@ -1837,7 +1918,7 @@ public class SedaUtils {
         final WorkspaceClient workspaceClient =
             WorkspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
         // retrieve SEDA FILE and get the list of objectsDatas
-        List<BinaryObjectInfo> binaryObjectsToStore = new ArrayList<>();
+        Map<String, BinaryObjectInfo> binaryObjectsToStore = new HashMap<>();
         // Get binary objects informations of the SIP
         SedaUtilInfo sedaUtilInfo = getSedaUtilInfo(workspaceClient, containerId);
         // Get objectGroup objects ids
@@ -1853,13 +1934,33 @@ public class SedaUtils {
         if (versions == null || versions.isEmpty()) {
             return binaryObjectsToStore;
         }
+
+
+        final File objectIdToGuidMapFile = PropertiesUtils
+            .fileFromTmpFolder(BINARY_DATA_OBJECT_ID_TO_GUID_MAP_FILE_NAME_PREFIX + containerId + TXT_EXTENSION);
+
+        String objectIdToGuidStoredContent;
+        try {
+            objectIdToGuidStoredContent = FileUtil.readFile(objectIdToGuidMapFile);
+        } catch (IOException e) {
+            LOGGER.error(e);
+            throw new ProcessingException(e);
+        }
+        Map<String, Object> objectIdToGuidStoredMap = getMapFromString(objectIdToGuidStoredContent);
+
+        Map<Object, String> guidToObjectIdMap =
+            objectIdToGuidStoredMap.entrySet()
+                .stream()
+                .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
+
         for (JsonNode version : versions) {
             for (JsonNode binaryObject : version) {
+                String binaryObjectId = guidToObjectIdMap.get(binaryObject.get("_id").asText());
                 Optional<Entry<String, BinaryObjectInfo>> objectEntry =
                     sedaUtilInfo.getBinaryObjectMap().entrySet().stream()
-                        .filter(entry -> entry.getKey().equals(binaryObject.get("_id").asText())).findFirst();
+                        .filter(entry -> entry.getKey().equals(binaryObjectId)).findFirst();
                 if (objectEntry.isPresent()) {
-                    binaryObjectsToStore.add(objectEntry.get().getValue());
+                    binaryObjectsToStore.put(binaryObject.get("_id").asText(), objectEntry.get().getValue());
                 }
             }
         }
@@ -1881,7 +1982,7 @@ public class SedaUtils {
         try {
             xmlFile = workspaceClient.getObject(containerId, SEDA_FOLDER + "/" + SEDA_FILE);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
-            LOGGER.error("Manifest.xml Not Found");
+            LOGGER.error(MANIFEST_NOT_FOUND);
             IOUtils.closeQuietly(xmlFile);
             throw new ProcessingException(e);
         }
@@ -1895,7 +1996,7 @@ public class SedaUtils {
             sedaUtilInfo = getBinaryObjectInfo(reader);
             return sedaUtilInfo;
         } catch (final XMLStreamException e) {
-            LOGGER.error("Can not read SEDA");
+            LOGGER.error(CANNOT_READ_SEDA);
             throw new ProcessingException(e);
         } finally {
             IOUtils.closeQuietly(xmlFile);
@@ -1939,4 +2040,84 @@ public class SedaUtils {
             throw new ProcessingException(e);
         }
     }
+
+    /**
+     * Compute the total size of objects listed in the manifest.xml file
+     * 
+     * @param params worker parameters
+     * @return the computed size of all BinaryObjects
+     * @throws ProcessingException when error in getting binary object info
+     */
+    public long computeTotalSizeOfObjectsInManifest(WorkParams params)
+        throws ProcessingException {
+        ParametersChecker.checkParameter("WorkParams is a mandatory parameter", params);
+        final String containerId = params.getContainerName();
+        ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
+        final WorkspaceClient client = WorkspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
+        return computeBinaryObjectsSizeFromManifest(client, containerId);
+    }
+
+    /**
+     * Compute the total size of objects listed in the manifest.xml file
+     * 
+     * @param workspaceClient workspace client to be used.
+     * @param containerId the container guid
+     * @return the computed size of all BinaryObjects
+     * @throws ProcessingException when error in getting binary object info
+     */
+
+    private long computeBinaryObjectsSizeFromManifest(WorkspaceClient workspaceClient, String containerId)
+        throws ProcessingException {
+        long size = 0;
+        final SedaUtilInfo sedaUtilInfo = getSedaUtilInfo(workspaceClient, containerId);
+        final Map<String, BinaryObjectInfo> binaryObjectMap = sedaUtilInfo.getBinaryObjectMap();
+        for (final String mapKey : binaryObjectMap.keySet()) {
+            long binaryObjectSize = binaryObjectMap.get(mapKey).getSize();
+            if (binaryObjectSize > 0) {
+                size += binaryObjectSize;
+            }
+        }
+        return size;
+    }
+
+    /**
+     * Get the size of the manifest file
+     * 
+     * @param params worker parameters
+     * @return the size of the manifest
+     */
+    public long getManifestSize(WorkParams params)
+        throws ProcessingException {
+        ParametersChecker.checkParameter("WorkParams is a mandatory parameter", params);
+        final String containerId = params.getContainerName();
+        ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
+        final WorkspaceClient client = WorkspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
+        JsonNode jsonSeda = getObjectInformation(client, containerId, SEDA_FOLDER + "/" + SEDA_FILE);
+        if (jsonSeda == null || jsonSeda.get("size") == null) {
+            LOGGER.error("Error while getting object size : " + SEDA_FILE);
+            throw new ProcessingException("Json response cannot be null and must contains a 'size' attribute");
+        }
+        return jsonSeda.get("size").asLong();
+    }
+
+
+    /**
+     * Retrieve information about an object.
+     * 
+     * @param workspaceClient workspace connector
+     * @param containerId container id
+     * @param pathToObject path to the object
+     * @return JsonNode containing information about the object
+     * @throws ProcessingException throws when error occurs
+     */
+    private JsonNode getObjectInformation(WorkspaceClient workspaceClient, String containerId, String pathToObject)
+        throws ProcessingException {
+        try {
+            return workspaceClient.getObjectInformation(containerId, pathToObject);
+        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
+            LOGGER.error(SEDA_FILE + " Not Found");
+            throw new ProcessingException(e);
+        }
+    }
+
 }

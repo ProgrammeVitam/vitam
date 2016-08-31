@@ -23,6 +23,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.common.model;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 
 /**
@@ -33,6 +36,9 @@ import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 
 public class WorkParams {
 
+    public static final String PROCESS_ID = "processId";
+    public static final String STEP_ID = "stepUniqueId";
+    
     private String containerName;
     private String objectName;
     private ServerConfiguration serverConfiguration;
@@ -40,6 +46,8 @@ public class WorkParams {
     private String workerGUID;
     private String metaDataRequest;
     private String currentStep;
+    
+    private Map<String, Object> additionalProperties = new HashMap<>();
 
     /**
      * @return currentStep
@@ -49,7 +57,7 @@ public class WorkParams {
     }
 
     /**
-     * @param currentStep
+     * @param currentStep the current step name to be executed
      * @return WorkParams
      */
     public WorkParams setCurrentStep(String currentStep) {
@@ -150,7 +158,8 @@ public class WorkParams {
     }
 
     /**
-     * @param serverConfiguration the serverConfiguration to set TODO REVIEW missing returns
+     * @param serverConfiguration the serverConfiguration to set
+     * @return the updated WorkParams object
      */
     public WorkParams setServerConfiguration(ServerConfiguration serverConfiguration) {
         this.serverConfiguration = serverConfiguration;
@@ -168,11 +177,33 @@ public class WorkParams {
     }
 
     /**
-     * @param guuid the guuid to set TODO REVIEW missing returns
+     * @param guuid the guuid to set
+     * @return the updated WorkParams object
      */
     public WorkParams setGuuid(String guuid) {
         workerGUID = guuid;
         return this;
     }
 
+    /**
+     * Get the additional prorperties
+     * 
+     * @return map of additional prorperties
+     */
+    public Map<String, Object> getAdditionalProperties() {
+        return this.additionalProperties;
+    }
+    
+    /**
+     * Add a property to the additional properties
+     * 
+     * @param name the property name
+     * @param value the property value
+     * @return the updated WorkParams object
+     */
+    public WorkParams setAdditionalProperty(String name, Object value) {
+        this.additionalProperties.put(name, value);
+        return this;
+    }
+    
 }

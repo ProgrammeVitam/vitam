@@ -1,0 +1,4 @@
+{
+  "id": "id",
+  "transformation_rule_ids": [ "transformation_rule_id_1", "transformation_rule_id_2", "transformation_rule_id_3" ]
+}

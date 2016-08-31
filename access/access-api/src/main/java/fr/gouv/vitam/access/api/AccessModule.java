@@ -26,8 +26,11 @@ package fr.gouv.vitam.access.api;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.access.common.exception.AccessExecutionException;
-import fr.gouv.vitam.api.exception.MetadataInvalidUpdateException;
+import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+
+import java.io.InputStream;
 
 /**
  * AccessModule interface for database operations in select
@@ -39,38 +42,69 @@ public interface AccessModule {
      *
      * @param queryJson as String { $query : query}
      * @return the result of the select on Unit
-     * @throws IllegalArgumentException
+     * @throws IllegalArgumentException if json query is null
      * @throws InvalidParseOperationException Throw if json format is not correct
      * @throws AccessExecutionException Throw if error occurs when send Unit to database
      */
     public JsonNode selectUnit(JsonNode queryJson)
-        throws IllegalArgumentException, InvalidParseOperationException, AccessExecutionException;
+        throws InvalidParseOperationException, AccessExecutionException;
 
     /**
      * select Unit by id
      *
-     * @param selectRequest as String { $query : query}
-     * @param id_unit as String
+     * @param queryJson as String { $query : query}
+     * @param idUnit as String
      *
      * @throws InvalidParseOperationException Throw if json format is not correct
      * @throws AccessExecutionException Throw if error occurs when send Unit to database
      * @throws IllegalArgumentException Throw if error occurs when checking argument
      */
-    public JsonNode selectUnitbyId(JsonNode queryJson, String id_unit)
-        throws IllegalArgumentException, InvalidParseOperationException, AccessExecutionException;
+    public JsonNode selectUnitbyId(JsonNode queryJson, String idUnit)
+        throws InvalidParseOperationException, AccessExecutionException;
 
     /**
      * update Unit by id
      *
      * @param queryJson json update query
-     * @param id_unit as String
+     * @param idUnit as String
      * @return the result of the update on Unit
      *
      * @throws InvalidParseOperationException Throw if json format is not correct
      * @throws AccessExecutionException Throw if error occurs when send Unit to database
      * @throws IllegalArgumentException Throw if error occurs when checking argument
      */
-    public JsonNode updateUnitbyId(JsonNode queryJson, String id_unit)
-            throws IllegalArgumentException, InvalidParseOperationException, AccessExecutionException;
+    public JsonNode updateUnitbyId(JsonNode queryJson, String idUnit)
+            throws InvalidParseOperationException, AccessExecutionException;
 
+    /**
+     * Retrieve an ObjectGroup by its id with results fields filtered based on given query
+     *
+     * @param queryJson the query DSL as a Json node
+     * @param idObjectGroup the id of the ObjectGroup as
+     * @return the ObjectGroup metadata as a JsonNode
+     * @throws IllegalArgumentException in case of null/incorrect parameters
+     * @throws InvalidParseOperationException thrown if json query is not syntactically correct
+     * @throws AccessExecutionException in case of access failure
+     */
+    JsonNode selectObjectGroupById(JsonNode queryJson, String idObjectGroup)
+        throws InvalidParseOperationException, AccessExecutionException;
+
+    /**
+     * Retrieve an object as InputStream based on the associated ObjectGroupId and qualifier + version requested
+     *
+     * @param idObjectGroup The Object Group Id
+     * @param queryJson the DSL query
+     * @param qualifier the qualifier to be retrieve (ie: Dissemination etc.)
+     * @param version the version number to get
+     * @param tenantId the tenant id
+     * @return The object requested as an InputStream
+     *
+     * @throws MetaDataNotFoundException If the ObjectGroup could not be find
+     * @throws StorageNotFoundException If the object is not found in storage
+     * @throws InvalidParseOperationException when a query is badly structured
+     * @throws AccessExecutionException For other technical errors
+     */
+    InputStream getOneObjectFromObjectGroup(String idObjectGroup, JsonNode queryJson, String qualifier, int version,
+        String tenantId) throws MetaDataNotFoundException, StorageNotFoundException, InvalidParseOperationException,
+        AccessExecutionException;
 }

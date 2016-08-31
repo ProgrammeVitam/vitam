@@ -34,7 +34,9 @@
  */
 package fr.gouv.vitam.storage.engine.common.exception;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 
@@ -86,5 +88,25 @@ public class StorageExceptionTest {
         assertNotNull(new StorageDriverNotFoundException(exception));
         assertNotNull(new StorageDriverNotFoundException(MESSAGE, exception));
         assertNotNull(new StorageDriverNotFoundException(MESSAGE, exception, true, true));
+    }
+
+    @Test
+    public final void testStorageTechnicalExceptionThrowable() {
+        StorageTechnicalException storageTechnicalException = new StorageTechnicalException((String) null);
+        assertNull(storageTechnicalException.getMessage());
+
+        storageTechnicalException = new StorageTechnicalException(MESSAGE);
+        assertEquals(MESSAGE, storageTechnicalException.getMessage());
+
+        storageTechnicalException = new StorageTechnicalException(exception);
+        assertEquals(exception, storageTechnicalException.getCause());
+
+        storageTechnicalException = new StorageTechnicalException(MESSAGE, exception);
+        assertEquals(MESSAGE, storageTechnicalException.getMessage());
+        assertEquals(exception, storageTechnicalException.getCause());
+
+        storageTechnicalException = new StorageTechnicalException(MESSAGE, exception, true, true);
+        assertEquals(MESSAGE, storageTechnicalException.getMessage());
+        assertEquals(exception, storageTechnicalException.getCause());
     }
 }

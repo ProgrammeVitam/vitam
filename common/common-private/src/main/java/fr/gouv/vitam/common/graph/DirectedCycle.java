@@ -43,6 +43,9 @@ public class DirectedCycle {
     // directed cycle (or null if no such cycle)
     private Stack<Integer> cycle;
 
+    private boolean isCyclic;
+
+
 
     /**
      * DirectedCycle a constructor :fired when a cycle is found.
@@ -50,10 +53,12 @@ public class DirectedCycle {
      * @param graph the DirectedCycle
      * @throws CycleFoundException
      */
-    public DirectedCycle(DirectedGraph graph) throws CycleFoundException {
+    public DirectedCycle(DirectedGraph graph) {
         marked = new boolean[graph.getVertices()];
         onStack = new boolean[graph.getVertices()];
         edgeTo = new int[graph.getVertices()];
+        // FIXME n² or even worth => while merging Graph and DIrectedGraph, you can have the "real" roots (from Graph)
+        // so using it
         for (int v = 0; v < graph.getVertices(); v++) {
             if (!marked[v] && cycle == null) {
                 depthFirstSearch(graph, v);
@@ -71,7 +76,7 @@ public class DirectedCycle {
      * @param root
      * @throws CycleFoundException
      */
-    private void depthFirstSearch(DirectedGraph graph, int root) throws CycleFoundException {
+    private void depthFirstSearch(DirectedGraph graph, int root) {
         // TODO : the case of graphs which are not strongly connected must be managed
         onStack[root] = true;
         marked[root] = true;
@@ -85,6 +90,9 @@ public class DirectedCycle {
                 depthFirstSearch(graph, w);
             } else if (onStack[w]) {
                 // trace back directed cycle
+                // FIXME you reallocate memory (stack) how many times ??? Clean such as GC is not under pressure
+                // FIXME If I understand correctly, once here, we have a cycle (cycle != null), so why doing the next
+                // computation ?
                 cycle = new Stack<Integer>();
                 for (int x = root; x != w; x = edgeTo[x]) {
                     cycle.push(x);
@@ -92,7 +100,8 @@ public class DirectedCycle {
                 cycle.push(w);
                 cycle.push(root);
                 if (check()) {
-                    throw new CycleFoundException("Graph has a cycle");
+                    isCyclic = true;
+                    return;
                 }
             }
         }
@@ -126,7 +135,8 @@ public class DirectedCycle {
 
         if (hasCycle()) {
             // verify cycle
-            int first = -1, last = -1;
+            int first = -1;
+            int last = -1;
             for (int v : cycle()) {
                 if (first == -1) {
                     first = v;
@@ -140,6 +150,15 @@ public class DirectedCycle {
             return true;
         }
         return false;
+    }
+
+    /**
+     * isCyclic know of a graph is cyclic or not
+     * 
+     * @return boolean
+     */
+    public boolean isCyclic() {
+        return isCyclic;
     }
 
 }

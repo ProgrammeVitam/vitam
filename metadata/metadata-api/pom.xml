@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>metadata</artifactId>
-		<version>0.6.0-SNAPSHOT</version>
+		<version>0.7.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>metadata-api</artifactId>
 	<name>metadata Api</name>
@@ -12,10 +12,9 @@
 	<dependencies>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>metadata-parser</artifactId>
+			<artifactId>common-database-private</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>common-public</artifactId>

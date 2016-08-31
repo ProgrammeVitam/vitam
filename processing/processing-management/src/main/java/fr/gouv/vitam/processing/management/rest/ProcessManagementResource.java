@@ -45,7 +45,9 @@ import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
+import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.model.WorkParams;
+import fr.gouv.vitam.processing.management.api.ProcessManagement;
 import fr.gouv.vitam.processing.management.core.ProcessManagementImpl;
 
 /**
@@ -55,7 +57,7 @@ import fr.gouv.vitam.processing.management.core.ProcessManagementImpl;
 public class ProcessManagementResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessManagementResource.class);
-    private final ProcessManagementImpl processManagement;
+    private final ProcessManagement processManagement;
     private final ServerConfiguration config;
 
     /**
@@ -67,6 +69,17 @@ public class ProcessManagementResource {
         processManagement = new ProcessManagementImpl(configuration);
         config = configuration;
         LOGGER.info("init Process Management Resource server");
+    }
+
+    /**
+     * For test purpose
+     *
+     * @param pManagement the processManagement to mock
+     * @param configuration the configuration
+     */
+    ProcessManagementResource(ProcessManagement pManagement, ServerConfiguration configuration) {
+        this.processManagement = pManagement;
+        this.config = configuration;
     }
 
     /**
@@ -98,48 +111,54 @@ public class ProcessManagementResource {
 
         workParam.setContainerName(process.getContainer());
         workParam.setServerConfiguration(config);
-        ProcessResponse resp = new ProcessResponse();
+        ProcessResponse resp;
 
         try {
             resp = (ProcessResponse) processManagement.submitWorkflow(workParam, process.getWorkflow());
         } catch (WorkflowNotFoundException | HandlerNotFoundException e) {
             // if workflow or handler not found
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             status = Status.NOT_FOUND;
             return Response.status(status)
-                .entity(new RequestResponseError().setError(
-                    new VitamError(status.getStatusCode())
-                        .setContext("ingest")
-                        .setState("code_vitam")
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase())))
+                .entity(getErrorEntity(status))
                 .build();
         } catch (final IllegalArgumentException e) {
             // if the entry argument if illegal
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
-                .entity(new RequestResponseError().setError(
-                    new VitamError(status.getStatusCode())
-                        .setContext("ingest")
-                        .setState("code_vitam")
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase())))
+                .entity(getErrorEntity(status))
                 .build();
         } catch (final ProcessingException e) {
             // if there is an unauthorized action
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             status = Status.UNAUTHORIZED;
             return Response.status(status)
-                .entity(new RequestResponseError().setError(
-                    new VitamError(status.getStatusCode())
-                        .setContext("ingest")
-                        .setState("code_vitam")
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(status.getReasonPhrase())))
+                .entity(getErrorEntity(status))
                 .build();
         }
 
-        return Response.status(Status.CREATED).entity(resp).build();
+        status = getStatusFrom(resp);
+        return Response.status(status).entity(resp).build();
+    }
+
+    private Status getStatusFrom(ProcessResponse response) {
+        switch (response.getStatus()) {
+            case KO:
+                return Status.BAD_REQUEST;
+            case FATAL:
+                return Status.INTERNAL_SERVER_ERROR;
+            default:
+                return Status.OK;
+        }
+    }
+
+    private RequestResponseError getErrorEntity(Status status) {
+        return new RequestResponseError().setError(
+            new VitamError(status.getStatusCode())
+                .setContext("ingest")
+                .setState("code_vitam")
+                .setMessage(status.getReasonPhrase())
+                .setDescription(status.getReasonPhrase()));
     }
 }

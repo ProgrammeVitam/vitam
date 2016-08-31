@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -42,14 +43,16 @@ import fr.gouv.vitam.logbook.operations.client.LogbookClientFactory;
 import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
+import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.model.Step;
+import fr.gouv.vitam.processing.common.model.StepType;
 import fr.gouv.vitam.processing.common.model.WorkFlow;
 import fr.gouv.vitam.processing.common.model.WorkParams;
 import fr.gouv.vitam.processing.common.utils.ProcessPopulator;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImplFactory;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
+import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 
 /**
  * ProcessEngineImpl class manages the context and call a process distributor
@@ -120,11 +123,23 @@ public class ProcessEngineImpl implements ProcessEngine {
             final WorkFlow workFlow = poolWorkflows.get(workflowId);
 
             if (workFlow != null && workFlow.getSteps() != null && !workFlow.getSteps().isEmpty()) {
+                final GUID processId = GUIDFactory.newGUID();
+                processResponse.setProcessId(processId.getId());
+                workParams.setAdditionalProperty(WorkParams.PROCESS_ID, processId.getId());
+                
+                Map<String, ProcessStep> processSteps = ProcessMonitoringImpl.getInstance().initOrderedWorkflow(
+                    (String) workParams.getAdditionalProperties().get(WorkParams.PROCESS_ID), workFlow,
+                    workParams.getContainerName());
 
                 /**
                  * call process distribute to manage steps
                  */
-                for (final Step step : workFlow.getSteps()) {
+                String messageIdentifier = null;
+                for (Map.Entry<String, ProcessStep> entry : processSteps.entrySet()) {
+                    ProcessStep step = entry.getValue();
+                    String uniqueId = entry.getKey();
+                    workParams.setAdditionalProperty(WorkParams.STEP_ID, uniqueId);
+
                     LogbookParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
                         GUIDFactory.newGUID(),
                         step.getStepName(),
@@ -136,26 +151,49 @@ public class ProcessEngineImpl implements ProcessEngine {
 
                     client.update(parameters);
 
+                    // update the process monitoring for this step
+                    ProcessMonitoringImpl.getInstance().updateStepStatus(
+                        (String) workParams.getAdditionalProperties().get(WorkParams.PROCESS_ID), uniqueId,
+                        StatusCode.STARTED);
+
                     workParams.setCurrentStep(step.getStepName());
+
                     final List<EngineResponse> stepResponse =
                         processDistributor.distribute(workParams, step, workflowId);
+
+
                     final StatusCode stepStatus = processResponse.getGlobalProcessStatusCode(stepResponse);
-                    final String messageIdentifier = ProcessResponse.getMessageIdentifierFromResponse(stepResponse);
+                    if (messageIdentifier == null) {
+                        messageIdentifier = ProcessResponse.getMessageIdentifierFromResponse(stepResponse);
+                    }
                     stepsResponses.put(step.getStepName(), stepResponse);
 
                     if (!messageIdentifier.isEmpty()) {
                         parameters.putParameterValue(LogbookParameterName.objectIdentifierIncome, messageIdentifier);
                     }
 
-                    parameters.putParameterValue(LogbookParameterName.eventTypeProcess, stepStatus.value());
-                    parameters.putParameterValue(LogbookParameterName.outcome, stepStatus.value());
+                    parameters.putParameterValue(LogbookParameterName.eventTypeProcess, stepStatus.name());
+                    parameters.putParameterValue(LogbookParameterName.outcome, stepStatus.name());
                     parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                         ProcessResponse.getGlobalProcessOutcomeMessage(stepResponse));
 
                     client.update(parameters);
-                    if (stepStatus.equals(StatusCode.KO) || stepStatus.equals(StatusCode.FATAL)) {
+
+                    // update the process monitoring with the final status
+                    ProcessMonitoringImpl.getInstance().updateStepStatus(
+                        (String) workParams.getAdditionalProperties().get(WorkParams.PROCESS_ID), uniqueId,
+                        stepStatus);
+
+                    // if the step has been defined as Blocking, then, we check the stepStatus then break the process if
+                    // the the status is KO or FATAL
+                    if ((step.getStepType().equals(StepType.BLOCK)) &&
+                        (stepStatus.equals(StatusCode.KO) || stepStatus.equals(StatusCode.FATAL))) {
                         break;
                     }
+                    // TODO : deal with the pause
+                    // else if (step.getStepType().equals(StepType.PAUSE)) {
+                    // THEN PAUSE
+                    // }
                 }
 
                 /**
@@ -167,7 +205,6 @@ public class ProcessEngineImpl implements ProcessEngine {
             processResponse.setStatus(StatusCode.FATAL);
             LOGGER.error(RUNTIME_EXCEPTION_MESSAGE, e);
         } finally {
-
             LOGGER.info(ELAPSED_TIME_MESSAGE + (System.currentTimeMillis() - time) / 1000 + "s, Status: " +
                 processResponse.getStatus());
         }

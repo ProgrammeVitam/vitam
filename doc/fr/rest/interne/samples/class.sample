@@ -1,0 +1,6 @@
+{
+  "pool" : "poolname",
+  "description" : "description of pool",
+  "actions" : ["digest", "transform", "formatid"],
+  "status" : "Active"
+}

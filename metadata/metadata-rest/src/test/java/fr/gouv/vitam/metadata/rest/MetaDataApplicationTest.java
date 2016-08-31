@@ -92,6 +92,19 @@ public class MetaDataApplicationTest {
         application.configure(newConf.getAbsolutePath(), Integer.toString(serverPort));
         newConf.delete();
         junitHelper.releasePort(serverPort);
+        application.stop();
+    }
+
+    @Test
+    public void givenConfigFileWhenConfigureApplicationThenRunServer() throws Exception {
+        File conf = PropertiesUtils.findFile(METADATA_CONF);
+        MetaDataConfiguration config = PropertiesUtils.readYaml(conf, MetaDataConfiguration.class);
+        config.setPort(port);
+        File newConf = File.createTempFile("test", METADATA_CONF, conf.getParentFile());
+        PropertiesUtils.writeYaml(newConf, config);
+        application.configure(newConf.getAbsolutePath());
+        newConf.delete();
+        application.stop();
     }
 
     @Test
@@ -103,5 +116,6 @@ public class MetaDataApplicationTest {
         PropertiesUtils.writeYaml(newConf, config);
         application.configure(newConf.getAbsolutePath(), "-12");
         newConf.delete();
+        application.stop();
     }
 }

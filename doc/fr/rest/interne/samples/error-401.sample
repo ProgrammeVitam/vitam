@@ -1,0 +1,8 @@
+{
+  "code": 401,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Unauthorized",
+  "message": "User does not have enough authorization",
+  "description": "Operation is not allowed for <<resourcePathName>>"
+}

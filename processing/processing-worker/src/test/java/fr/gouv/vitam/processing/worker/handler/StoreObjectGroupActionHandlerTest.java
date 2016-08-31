@@ -9,7 +9,9 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.stream.XMLStreamException;
 
@@ -69,12 +71,12 @@ public class StoreObjectGroupActionHandlerTest {
         assertEquals(response.getStatus(), StatusCode.OK);
     }
 
-    public List<BinaryObjectInfo> retrieveListOfInfo() throws URISyntaxException {
-        List<BinaryObjectInfo> infos = new ArrayList<>();
+    public Map<String,BinaryObjectInfo> retrieveListOfInfo() throws URISyntaxException {
+        Map<String, BinaryObjectInfo> infos = new HashMap<>();
         BinaryObjectInfo info = new BinaryObjectInfo();
         info.setId("bdoId");
         info.setUri(new URI("content/totototototototo"));
-        infos.add(info);
+        infos.put("guid1",info);
         return infos;
     }
 

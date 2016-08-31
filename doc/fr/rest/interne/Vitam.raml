@@ -1,0 +1,101 @@
+#%RAML 0.8
+title: Vitam API
+baseUri: http://server/api/{version}
+version: v0.0.1
+protocols: [ HTTP, HTTPS ]
+
+documentation: !include docs-fr/doc.raml
+      
+mediaType: application/json
+
+schemas:
+  - error: !include schema/error.json
+  - async_status: !include schema/async_status.json
+  - task_status: !include schema/task_status.json
+  - answear: !include schema/answear.json
+  - answearList: !include schema/answearList.json
+  - create: !include schema/create.json
+  - update: !include schema/update.json
+  - delete: !include schema/delete.json
+  - query: !include schema/query.json
+  - profile: !include schema/profile.json
+  - collectionList: !include schema/collection_list.json
+  - collectionQuery: !include schema/collection_query.json
+  - genericObject: !include schema/generic_object.json
+  - freeze: !include schema/freeze.json
+  - projection: !include schema/projection.json
+  - root: !include schema/root.json
+  - access_contract: !include schema/referentials/access_contract.json
+  - access_group: !include schema/referentials/access_group.json
+  - ccfn: !include schema/referentials/ccfn.json
+  - consolidated_storage: !include schema/referentials/consolidated_storage.json
+  - consolidated_transformation: !include schema/referentials/consolidated_transformation.json
+  - freeze_access_contract: !include schema/referentials/freeze_access_contract.json
+  - freeze_preservation_contract: !include schema/referentials/freeze_preservation_contract.json
+  - global_configuration: !include schema/referentials/global_configuration.json
+  - ingest_contract: !include schema/referentials/ingest_contract.json
+  - preservation_contract: !include schema/referentials/preservation_contract.json
+  - saip: !include schema/referentials/saip.json
+  - schema_model: !include schema/referentials/schema_model.json
+  - ingest_operations: !include schema/referentials/ingest_operations.json
+
+traits: !include traits/Traits.raml
+
+resourceTypes: !include resourceTypes/ResourceTypes.raml
+
+# General
+/:
+  displayName: Racine
+  description: Retourne l'information sur les services disponibles selon l'authentification associée.
+  type: base
+  is: [ standardErrors ]
+  get:
+    description: Retourne l'information sur les services disponibles. L'usage de 'OPTIONS' est préférable.
+    responses:
+      200:
+        description: Retourne l'information sur les services disponibles.
+        body:
+          schema: root
+          example: !include samples/root.sample
+  options:
+    description: Retourne l'information sur les services disponibles.
+    responses:
+      200:
+        description: Retourne l'information sur les services disponibles.
+        body:
+          schema: root
+          example: !include samples/root.sample
+
+# Access
+/units: !include access/Units.raml
+/object_groups: !include access/ObjectGroups.raml
+# Ingest
+/ingests: !include ingest/Ingests.raml
+# Management
+/freezes: !include management/Freezes.raml
+/destructions: !include management/Destructions.raml
+/transformations: !include management/Transformations.raml
+/logbooks: !include management/Logbooks.raml
+# Administration
+/configuration: !include admin/Configuration.raml
+/ingest_contracts: !include admin/Ingest_Contracts.raml
+/ingest_operations: !include admin/Ingest_Operations.raml
+/access_contracts: !include admin/Access_Contracts.raml
+/preservation_contracts: !include admin/Preservation_Contracts.raml
+/freeze_access_contracts: !include admin/Freeze_Access_Contracts.raml
+/freeze_preservation_contracts: !include admin/Freeze_Preservation_Contracts.raml
+/schemas: !include admin/Schemas.raml
+/access_groups: !include admin/Access_Groups.raml
+/applications: !include admin/Applications.raml
+/profiles: !include admin/Profiles.raml
+/roles: !include admin/Roles.raml
+/formats: !include admin/Formats-write.raml
+/consolidated_transformations: !include admin/Consolidated_Transformations.raml
+/transfers: !include admin/Transfers.raml
+/consolidated_storages: !include admin/Consolidated_Storages.raml
+# IaaS/PaaS
+/servers: !include paas/Servers.raml
+/storages: !include paas/Storages.raml
+# Common
+/async_tasks: !include common/Async_Tasks.raml
+/me: !include common/Me.raml

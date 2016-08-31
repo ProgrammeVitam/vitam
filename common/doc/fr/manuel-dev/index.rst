@@ -25,6 +25,7 @@ Sommaire
    Logger.rst
    JunitHelper.rst
    client.rst
+   graph.rst
 
 
 ##############

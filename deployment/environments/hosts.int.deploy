@@ -2,11 +2,12 @@
 
 [hosts:children]
 hosts-ihm-demo
+hosts-ingest
+hosts-access
 hosts-mongodb
 hosts-logbook
 hosts-metadata
 hosts-workspace
-hosts-ingest
 hosts-storageengine
 hosts-storageofferdefault
 hosts-ingest-external
@@ -61,5 +62,5 @@ vitam_folder_permission=0755
 vitam_conf_permission=0500
 pull_strategy=always
 local_user=vitam
-vitam_docker_tag=0.6.0-SNAPSHOT
+vitam_docker_tag=0.7.0-SNAPSHOT
 

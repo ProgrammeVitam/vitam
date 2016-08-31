@@ -33,12 +33,9 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
-import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
-import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
-import fr.gouv.vitam.storage.engine.server.distribution.DataCategory;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -62,10 +59,14 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.BasicVitamServer;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.VitamServerFactory;
-import fr.gouv.vitam.storage.engine.common.header.VitamHttpHeader;
 import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
+import fr.gouv.vitam.common.server.application.VitamHttpHeader;
+import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
+import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
+import fr.gouv.vitam.storage.engine.server.distribution.DataCategory;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 
 /**
@@ -215,10 +216,9 @@ public class StorageResourceTest {
             .get(OBJECTS_URI + OBJECT_ID_URI, "idO1").then()
             .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
 //            .statusCode(Status.OK.getStatusCode());
-        given().contentType(ContentType.JSON).body("").when()
+        given().contentType(ContentType.JSON).body("").accept(MediaType.APPLICATION_OCTET_STREAM).when()
             .get(OBJECTS_URI + OBJECT_ID_URI, "idO1").then()
-            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
-//            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
         given().contentType(ContentType.JSON)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
                 TENANT_ID_E)
@@ -440,7 +440,37 @@ public class StorageResourceTest {
             .head(LOGBOOKS_URI + LOGBOOK_ID_URI, "idl1").then()
             .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
 //        .statusCode(Status.NOT_FOUND.getStatusCode());
+    }
 
+    @Test
+    public void getObjectIllegalArgumentException() throws Exception {
+        given().accept(MediaType.APPLICATION_OCTET_STREAM).when().get(OBJECTS_URI + OBJECT_ID_URI, "id0").then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+        given().accept(MediaType.APPLICATION_OCTET_STREAM).header(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .when().get(OBJECTS_URI + OBJECT_ID_URI, "id0").then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+        given().accept(MediaType.APPLICATION_OCTET_STREAM).header(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID)
+            .when().get(OBJECTS_URI + OBJECT_ID_URI, "id0").then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public void getObjectNotFoundException() throws Exception {
+        given().accept(MediaType.APPLICATION_OCTET_STREAM).headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_E,
+            VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID)
+            .when().get(OBJECTS_URI + OBJECT_ID_URI, "id0").then().statusCode(Status.NOT_FOUND.getStatusCode());
+    }
+
+    @Test
+    public void getObjectTechnicalException() throws Exception {
+        given().accept(MediaType.APPLICATION_OCTET_STREAM).headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_A_E,
+            VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID)
+            .when().get(OBJECTS_URI + OBJECT_ID_URI, "id0").then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    public void getObjectOk() throws Exception {
+        given().accept(MediaType.APPLICATION_OCTET_STREAM).headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID,
+            VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID)
+            .when().get(OBJECTS_URI + OBJECT_ID_URI, "id0").then().statusCode(Status.OK.getStatusCode());
     }
 
     @Test
@@ -704,6 +734,31 @@ public class StorageResourceTest {
         //.statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
+    @Test
+    public void getContainerInformationOk() {
+        given().accept(MediaType.APPLICATION_JSON).headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID,
+            VitamHttpHeader.TENANT_ID.getName(), TENANT_ID).when().get().then().statusCode(Status.OK.getStatusCode());
+    }
+
+     @Test
+     public void getContainerInformationWrongHeaders() {
+         given().accept(MediaType.APPLICATION_JSON).headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID).when
+             ().get().then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+     }
+
+    @Test
+    public void getContainerInformationStorageNotFoundException() {
+        given().accept(MediaType.APPLICATION_JSON).headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID,
+            VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_E).when().get().then().statusCode(Status.NOT_FOUND.getStatusCode());
+    }
+
+    @Test
+    public void getContainerInformationStorageTechnicalException() {
+        given().accept(MediaType.APPLICATION_JSON).headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID,
+            VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_A_E).when().get().then().statusCode(Status.INTERNAL_SERVER_ERROR
+            .getStatusCode());
+    }
+
     private static VitamServer buildTestServer() throws VitamApplicationServerException {
         VitamServer vitamServer = VitamServerFactory.newVitamServer(serverPort);
 
@@ -743,10 +798,12 @@ public class StorageResourceTest {
             return null;
         }
 
-        @Override
-        public JsonNode getStorageInformation(String tenantId, String strategyId) throws StorageNotFoundException {
+        @Override public JsonNode getContainerInformation(String tenantId, String strategyId)
+            throws StorageNotFoundException, StorageTechnicalException {
             if (TENANT_ID_E.equals(tenantId)) {
                 throw new StorageNotFoundException("Not Found");
+            } else if (TENANT_ID_A_E.equals(tenantId)) {
+                throw new StorageTechnicalException("Technical error");
             }
             return null;
         }
@@ -780,8 +837,14 @@ public class StorageResourceTest {
 
         @Override
         public InputStream getContainerObject(String tenantId, String strategyId, String objectId)
-            throws StorageNotFoundException {
-            // TODO Auto-generated method stub
+            throws StorageNotFoundException, StorageTechnicalException {
+            if (TENANT_ID_E.equals(tenantId)) {
+                throw  new StorageNotFoundException("Object not found");
+            }
+            if (TENANT_ID_A_E.equals(tenantId)) {
+                throw new StorageTechnicalException("Technical exception");
+            }
+
             return null;
         }
 

@@ -38,7 +38,6 @@ import org.apache.commons.lang.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import fr.gouv.vitam.builder.request.construct.Select;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -54,10 +53,15 @@ public class MetaDataClient {
     private static final String RESOURCE_PATH = "/metadata/v1";
 
     private static final String SELECT_UNITS_QUERY_NULL = "Select units query is null";
+    private static final String SELECT_OBJECT_GROUP_QUERY_NULL = "Select object group query is null";
     private static final String UPDATE_UNITS_QUERY_NULL = "Update units query is null";
     private static final String INSERT_UNITS_QUERY_NULL = "Insert units query is null";
     private static final String BLANK_PARAM = "Unit id parameter is blank";
     private static final String X_HTTP_METHOD = "X-Http-Method-Override";
+    private static final String INTERNAL_SERVER_ERROR = "Internal Server Error";
+    private static final String SIZE_TOO_LARGE = "Document Size is Too Large";
+    private static final String INVALID_PARSE_OPERATION = "Invalid Parse Operation";
+    private static final String MISSING_SELECT_QUERY = "Missing Select Query";
 
     private static final String ELAPSED_TIME_MESSAGE =
         "MetaDataClient / Total elapsed time in execution of method";
@@ -193,6 +197,47 @@ public class MetaDataClient {
         }
 
         LOGGER.info(ELAPSED_TIME_MESSAGE + "selectUnits :" + ((System.currentTimeMillis() - time) / 1000) + "s");
+        return response.readEntity(JsonNode.class);
+    }
+
+    /**
+     * Search Object Group by query (DSL) and path objectGroup id
+     * 
+     * @param selectQuery : select query {@link Select} as String <br>
+     *        Null is not allowed
+     * @param objectGroupId : objectGroup id <br>
+     *        null and blank is not allowed
+     * @return Json object {$hint:{},$result:[{},{}]}
+     * @throws MetaDataExecutionException thrown when internal Server Error (fatal technical exception thrown)
+     * @throws InvalidParseOperationException thrown when the Query is badly formatted
+     * @throws MetaDataDocumentSizeException thrown when Query document Size is Too Large
+     * @throws IllegalArgumentException thrown when objectGroupId or selectQuery id is null or blank
+     * @throws MetadataInvalidSelectException thrown when objectGroupId or selectQuery id is null or blank
+     */
+    public JsonNode selectObjectGrouptbyId(String selectQuery, String objectGroupId)
+        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
+        IllegalArgumentException, MetadataInvalidSelectException {
+        long time = System.currentTimeMillis();
+        ParametersChecker.checkParameter(SELECT_OBJECT_GROUP_QUERY_NULL, selectQuery);
+        ParametersChecker.checkParameter(BLANK_PARAM, objectGroupId);
+
+        final Response response =
+            client.target(url).path("objectgroups/" + objectGroupId).request(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON).header(X_HTTP_METHOD, "GET")
+                .post(Entity.entity(selectQuery, MediaType.APPLICATION_JSON), Response.class);
+
+        if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+            throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
+        } else if (response.getStatus() == Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode()) {
+            throw new MetaDataDocumentSizeException(SIZE_TOO_LARGE);
+        } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
+            throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
+        } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
+            throw new MetadataInvalidSelectException(MISSING_SELECT_QUERY);
+        }
+
+        LOGGER.info(
+            ELAPSED_TIME_MESSAGE + "selectObjectGrouptbyId :" + ((System.currentTimeMillis() - time) / 1000) + "s");
         return response.readEntity(JsonNode.class);
     }
 

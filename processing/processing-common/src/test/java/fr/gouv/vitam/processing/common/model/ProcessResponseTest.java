@@ -48,7 +48,7 @@ public class ProcessResponseTest {
         assertTrue(processResponse.getOutcomeMessages().isEmpty());
         assertTrue(processResponse.getStepResponses().isEmpty());
 
-        assertEquals(StatusCode.OK.value(), processResponse.setStatus(StatusCode.OK).getStatus().value());
+        assertEquals(StatusCode.OK.name(), processResponse.setStatus(StatusCode.OK).getStatus().name());
         final ArrayList<EngineResponse> list = new ArrayList<EngineResponse>();
         list.add(processResponse.setStatus(StatusCode.WARNING));
         assertEquals(StatusCode.WARNING, processResponse.getGlobalProcessStatusCode(list));
@@ -67,13 +67,16 @@ public class ProcessResponseTest {
         stepResponses.put("id", processResponses);
         assertFalse(processResponse.setStepResponses(stepResponses).getStepResponses().isEmpty());
         
-        assertEquals(StatusCode.KO.value(), processResponse.getValue());
-        assertEquals(StatusCode.FATAL.value(), new ProcessResponse().getValue());
+        assertEquals(StatusCode.KO.name(), processResponse.getValue());
+        assertEquals(StatusCode.FATAL.name(), new ProcessResponse().getValue());
         
-        processResponse.setMessageIdentifier(TEST);        
+        processResponse.setMessageIdentifier(TEST);
         assertEquals(TEST, processResponse.getMessageIdentifier());
         assertEquals("", new ProcessResponse().getMessageIdentifier());
         assertEquals(OutcomeMessage.CHECK_CONFORMITY_KO.value() + ". Errors: 1", ProcessResponse.getGlobalProcessOutcomeMessage(processResponses));
         assertEquals(TEST, ProcessResponse.getMessageIdentifierFromResponse(processResponses));
+        
+        processResponse.setProcessId(TEST);
+        assertEquals(TEST, processResponse.getProcessId());
     }
 }

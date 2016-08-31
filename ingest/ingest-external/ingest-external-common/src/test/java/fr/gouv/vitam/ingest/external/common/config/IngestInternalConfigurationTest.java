@@ -11,6 +11,7 @@ public class IngestInternalConfigurationTest {
         IngestInternalConfiguration config = new IngestInternalConfiguration();
         assertEquals("host_test", config.setHost("host_test").getHost());
         assertEquals(8082, config.setPort(8082).getPort());
+
     }
 
 }

@@ -24,6 +24,10 @@
 package fr.gouv.vitam.core;
 
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 import org.apache.commons.lang.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -35,19 +39,20 @@ import fr.gouv.vitam.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.builder.request.construct.Request;
-import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
+import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
+import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
+import fr.gouv.vitam.common.database.parser.request.multiple.InsertParserMultiple;
+import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
+import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
+import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.core.database.collections.MongoDbVarNameAdapter;
 import fr.gouv.vitam.core.database.collections.Result;
-import fr.gouv.vitam.core.utils.UnitsJsonUtils;
-import fr.gouv.vitam.parser.request.parser.GlobalDatasParser;
-import fr.gouv.vitam.parser.request.parser.InsertParser;
-import fr.gouv.vitam.parser.request.parser.RequestParser;
-import fr.gouv.vitam.parser.request.parser.SelectParser;
-import fr.gouv.vitam.parser.request.parser.UpdateParser;
+import fr.gouv.vitam.core.utils.MetadataJsonResponseUtils;
 
 /**
  * MetaDataImpl implements a MetaData interface
@@ -70,7 +75,7 @@ public final class MetaDataImpl implements MetaData {
      */
     // FIXME REVIEW should be private and adding public static final Metadata newMetadata(...) calling this private
     // constructor
-    public MetaDataImpl(MetaDataConfiguration configuration, MongoDbAccessFactory mongoDbAccessFactory,
+    public MetaDataImpl(MetaDataConfiguration configuration, MongoDbAccessMetadataFactory mongoDbAccessFactory,
         DbRequestFactory dbRequestFactory) {
         mongoDbAccessFactory.create(configuration);
         // FIXME REVIEW should check null
@@ -89,7 +94,7 @@ public final class MetaDataImpl implements MetaData {
         }
 
         try {
-            final InsertParser insertParser = new InsertParser(new MongoDbVarNameAdapter());
+            final InsertParserMultiple insertParser = new InsertParserMultiple(new MongoDbVarNameAdapter());
             insertParser.parse(insertRequest);
             result = dbRequestFactory.create().execRequest(insertParser, result);
         } catch (final InvalidParseOperationException e) {
@@ -118,9 +123,9 @@ public final class MetaDataImpl implements MetaData {
         }
 
         try {
-            InsertParser insertParser = new InsertParser(new MongoDbVarNameAdapter());
+            InsertParserMultiple insertParser = new InsertParserMultiple(new MongoDbVarNameAdapter());
             insertParser.parse(objectGroupRequest);
-            insertParser.getRequest().addHintFilter(ParserTokens.FILTERARGS.OBJECTGROUPS.exactToken());
+            insertParser.getRequest().addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
             result = dbRequestFactory.create().execRequest(insertParser, result);
         } catch (final InvalidParseOperationException e) {
             throw e;
@@ -141,7 +146,7 @@ public final class MetaDataImpl implements MetaData {
         MetaDataDocumentSizeException {
         LOGGER.info("Begin selectUnitsByQuery ...");
         LOGGER.debug("SelectUnitsByQuery/ selectQuery: " + selectQuery);
-        return selectUnit(selectQuery, null);
+        return selectMetadataObject(selectQuery, null, null);
 
     }
 
@@ -151,12 +156,22 @@ public final class MetaDataImpl implements MetaData {
         MetaDataDocumentSizeException {
         LOGGER.info("Begin selectUnitsById .../id:" + unitId);
         LOGGER.debug("SelectUnitsById/ selectQuery: " + selectQuery);
-        return selectUnit(selectQuery, unitId);
+        return selectMetadataObject(selectQuery, unitId, null);
     }
 
+    @Override
+    public JsonNode selectObjectGroupById(String selectQuery, String objectGroupId)
+        throws InvalidParseOperationException, MetaDataDocumentSizeException, MetaDataExecutionException {
+        LOGGER.debug("SelectObjectGroupById - objectGroupId : " + objectGroupId);
+        LOGGER.debug("SelectObjectGroupById - selectQuery : " + selectQuery);
+        return selectMetadataObject(selectQuery, objectGroupId, Collections.singletonList(BuilderToken.FILTERARGS
+            .OBJECTGROUPS));
+    }
 
-
-    private JsonNode selectUnit(String selectQuery, String unitId)
+    // TODO : maybe do not encapsulate all exception in a MetaDataExecutionException. We may need to know if it is
+    // NOT_FOUND for example
+    private JsonNode selectMetadataObject(String selectQuery, String unitOrObjectGroupId, List<BuilderToken
+            .FILTERARGS> filters)
         throws MetaDataExecutionException, InvalidParseOperationException,
         MetaDataDocumentSizeException {
         Result result = null;
@@ -172,40 +187,38 @@ public final class MetaDataImpl implements MetaData {
         }
         try {
             // parse Select request
-            RequestParser selectRequest = new SelectParser();
-            selectRequest.parse(selectQuery);
-            // Reset $roots (add or override unit_id on roots)
-            if (unitId != null && !unitId.isEmpty()) {
-                Request request = selectRequest.getRequest();
+            RequestParserMultiple selectRequest = new SelectParserMultiple();
+            selectRequest.parse(JsonHandler.getFromString(selectQuery));
+            // Reset $roots (add or override id on roots)
+            if (unitOrObjectGroupId != null && !unitOrObjectGroupId.isEmpty()) {
+                RequestMultiple request = selectRequest.getRequest();
                 if (request != null) {
-                    LOGGER.debug("Reset $roots unit_id by :" + unitId);
-                    request.resetRoots().addRoots(unitId);
+                    LOGGER.debug("Reset $roots id with :" + unitOrObjectGroupId);
+                    request.resetRoots().addRoots(unitOrObjectGroupId);
+                }
+            }
+            if (filters != null && !filters.isEmpty()) {
+                RequestMultiple request = selectRequest.getRequest();
+                if (request != null) {
+                    String[] hints = filters.stream()
+                        .map(BuilderToken.FILTERARGS::exactToken)
+                        .toArray(String[]::new);
+                    LOGGER.debug("Adding given $hint filters: " + Arrays.toString(hints));
+                    request.addHintFilter(hints);
                 }
             }
             // Execute DSL request
             result = dbRequestFactory.create().execRequest(selectRequest, result);
-            jsonNodeResponse = UnitsJsonUtils.populateJSONObjectResponse(result, selectRequest);
+            jsonNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, selectRequest);
 
-        } catch (final MetaDataExecutionException e) {
-            LOGGER.error(e);
-            throw e;
-        } catch (final InvalidParseOperationException e) {
-            LOGGER.error(e);
-            throw e;
-        } catch (final InstantiationException e) {
-            LOGGER.error(e);
-            throw new MetaDataExecutionException(e);
-        } catch (final IllegalAccessException e) {
-            LOGGER.error(e);
-            throw new MetaDataExecutionException(e);
-        } catch (MetaDataAlreadyExistException | MetaDataNotFoundException e) {
-            // Should not happen there
+        } catch (final InstantiationException | IllegalAccessException | MetaDataAlreadyExistException | MetaDataNotFoundException e) {
             LOGGER.error(e);
             throw new MetaDataExecutionException(e);
         }
         return jsonNodeResponse;
     }
 
+    // FIXME ne jamais supprimer une deprecation warning !
     @SuppressWarnings("deprecation")
     @Override
     public JsonNode updateUnitbyId(String updateQuery, String unitId)
@@ -223,11 +236,11 @@ public final class MetaDataImpl implements MetaData {
         }
         try {
             // parse Update request
-            RequestParser updateRequest = new UpdateParser();
-            updateRequest.parse(updateQuery);
+            RequestParserMultiple updateRequest = new UpdateParserMultiple();
+            updateRequest.parse(JsonHandler.getFromString(updateQuery));
             // Reset $roots (add or override unit_id on roots)
             if (unitId != null && !unitId.isEmpty()) {
-                Request request = updateRequest.getRequest();
+                RequestMultiple request = updateRequest.getRequest();
                 if (request != null) {
                     LOGGER.debug("Reset $roots unit_id by :" + unitId);
                     request.resetRoots().addRoots(unitId);
@@ -235,7 +248,7 @@ public final class MetaDataImpl implements MetaData {
             }
             // Execute DSL request
             result = dbRequestFactory.create().execRequest(updateRequest, result);
-            jsonNodeResponse = UnitsJsonUtils.populateJSONObjectResponse(result, updateRequest);
+            jsonNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, updateRequest);
         } catch (final MetaDataExecutionException e) {
             LOGGER.error(e);
             throw e;

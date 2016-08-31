@@ -5,26 +5,20 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>ihm-demo</artifactId>
-		<version>0.6.0-SNAPSHOT</version>
+		<version>0.7.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>ihm-core</artifactId>
 	<name>ihm-core</name>
 
 	<dependencies>
-
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>metadata-builder</artifactId>
+			<artifactId>common-database-private</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>logbook-common-client</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>metadata-builder</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>

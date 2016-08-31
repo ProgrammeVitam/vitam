@@ -1,36 +1,33 @@
-DIN
+###########
+|doc_title|
 ###########
 
 .. caution::
 
    Cette documentation est un travail en cours ; elle est susceptible de changer de manière conséquente.
-   
-   Règles à respecter :
-
-      * noms de fichiers / dossiers : tout en minuscule
-      * les tables des matières dans un fichier _toc.rst à la racine du dossier correspondant
- 
-
-########
-Sommaire
-########
 
 .. toctree::
    :maxdepth: 2
+   :numbered:
 
-   plan.rst
+   introduction
+   architecture
+   prerequis
+   fiche_type
+   get_version
+   docker/_toc
+   rpm/_toc
+   validation_deploiement
+   contacts
 
-#######
-Annexes
-#######
+.. only:: latex
 
-.. toctree::
-	:maxdepth: 1
+  Annexes
+  #######
 
+   .. Following is to add the figure and tables list at the end of the latex document
+   .. raw:: latex
 
-##############
-Index & Tables
-##############
+      \listoffigures
+      \listoftables
 
-* :ref:`genindex`
-* :ref:`search`

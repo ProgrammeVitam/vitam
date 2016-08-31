@@ -26,11 +26,14 @@
  */
 package fr.gouv.vitam.workspace.client;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -40,6 +43,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
@@ -47,6 +51,7 @@ import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 
 import fr.gouv.vitam.common.ParametersChecker;
@@ -58,6 +63,8 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExi
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageZipException;
+import fr.gouv.vitam.workspace.api.model.ContainerInformation;
 import fr.gouv.vitam.workspace.common.Entry;
 import fr.gouv.vitam.workspace.common.ErrorMessage;
 
@@ -70,9 +77,9 @@ public class WorkspaceClient implements ContentAddressableStorage {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkspaceClient.class);
     private static final String RESOURCE_PATH = "/workspace/v1";
-    
-    public static final String X_DIGEST_ALGORITHM  = "X-digest-algorithm";
-    public static final String X_DIGEST="X-digest";
+
+    public static final String X_DIGEST_ALGORITHM = "X-digest-algorithm";
+    public static final String X_DIGEST = "X-digest";
 
     private final String serviceUrl;
     private final Client client;
@@ -100,16 +107,22 @@ public class WorkspaceClient implements ContentAddressableStorage {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
             containerName);
 
-        final Response response = client.target(serviceUrl).path("/containers").request()
-            .post(Entity.json(new Entry(containerName)));
-        if (Status.CREATED.getStatusCode() == response.getStatus()) {
-            LOGGER.info(containerName + ": " + Response.Status.CREATED.getReasonPhrase());
-        } else if (Status.CONFLICT.getStatusCode() == response.getStatus()) {
-            LOGGER.error(ErrorMessage.CONTAINER_ALREADY_EXIST.getMessage());
-            throw new ContentAddressableStorageAlreadyExistException(ErrorMessage.CONTAINER_ALREADY_EXIST.getMessage());
-        } else {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
-            throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+        Response response = null;
+        try {
+            response = client.target(serviceUrl).path("/containers").request()
+                .post(Entity.json(new Entry(containerName)));
+            if (Status.CREATED.getStatusCode() == response.getStatus()) {
+                LOGGER.info(containerName + ": " + Response.Status.CREATED.getReasonPhrase());
+            } else if (Status.CONFLICT.getStatusCode() == response.getStatus()) {
+                LOGGER.error(ErrorMessage.CONTAINER_ALREADY_EXIST.getMessage());
+                throw new ContentAddressableStorageAlreadyExistException(
+                    ErrorMessage.CONTAINER_ALREADY_EXIST.getMessage());
+            } else {
+                LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+                throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            }
+        } finally {
+            Optional.ofNullable(response).ifPresent(Response::close);
         }
 
     }
@@ -126,16 +139,21 @@ public class WorkspaceClient implements ContentAddressableStorage {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
             containerName);
 
-        final Response response = client.target(serviceUrl).path("/containers/" + containerName).request().delete();
+        Response response = null;
+        try {
+            response = client.target(serviceUrl).path("/containers/" + containerName).request().delete();
 
-        if (Response.Status.NO_CONTENT.getStatusCode() == response.getStatus()) {
-            LOGGER.info(containerName + ": " + Response.Status.NO_CONTENT.getReasonPhrase());
-        } else if (Response.Status.NOT_FOUND.getStatusCode() == response.getStatus()) {
-            LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage());
-            throw new ContentAddressableStorageNotFoundException(ErrorMessage.CONTAINER_NOT_FOUND.getMessage());
-        } else {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
-            throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            if (Response.Status.NO_CONTENT.getStatusCode() == response.getStatus()) {
+                LOGGER.info(containerName + ": " + Response.Status.NO_CONTENT.getReasonPhrase());
+            } else if (Response.Status.NOT_FOUND.getStatusCode() == response.getStatus()) {
+                LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage());
+                throw new ContentAddressableStorageNotFoundException(ErrorMessage.CONTAINER_NOT_FOUND.getMessage());
+            } else {
+                LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+                throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            }
+        } finally {
+            Optional.ofNullable(response).ifPresent(Response::close);
         }
     }
 
@@ -175,18 +193,23 @@ public class WorkspaceClient implements ContentAddressableStorage {
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, folderName);
-        final Response response =
-            client.target(serviceUrl).path("/containers/" + containerName + "/folders/" + folderName)
-                .request().delete();
+        Response response = null;
+        try {
+            response =
+                client.target(serviceUrl).path("/containers/" + containerName + "/folders/" + folderName)
+                    .request().delete();
 
-        if (Response.Status.NO_CONTENT.getStatusCode() == response.getStatus()) {
-            LOGGER.info(containerName + "/" + folderName + ": " + Response.Status.NO_CONTENT.getReasonPhrase());
-        } else if (Response.Status.NOT_FOUND.getStatusCode() == response.getStatus()) {
-            LOGGER.error(ErrorMessage.FOLDER_NOT_FOUND.getMessage());
-            throw new ContentAddressableStorageNotFoundException(ErrorMessage.FOLDER_NOT_FOUND.getMessage());
-        } else {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
-            throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            if (Response.Status.NO_CONTENT.getStatusCode() == response.getStatus()) {
+                LOGGER.info(containerName + "/" + folderName + ": " + Response.Status.NO_CONTENT.getReasonPhrase());
+            } else if (Response.Status.NOT_FOUND.getStatusCode() == response.getStatus()) {
+                LOGGER.error(ErrorMessage.FOLDER_NOT_FOUND.getMessage());
+                throw new ContentAddressableStorageNotFoundException(ErrorMessage.FOLDER_NOT_FOUND.getMessage());
+            } else {
+                LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+                throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            }
+        } finally {
+            Optional.ofNullable(response).ifPresent(Response::close);
         }
     }
 
@@ -208,20 +231,26 @@ public class WorkspaceClient implements ContentAddressableStorage {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName);
 
-        final FormDataMultiPart multiPart = new FormDataMultiPart();
 
-        multiPart.bodyPart(new FormDataBodyPart("objectName", objectName, MediaType.TEXT_PLAIN_TYPE));
-        multiPart.bodyPart(
-            new StreamDataBodyPart("object", stream, objectName, MediaType.APPLICATION_OCTET_STREAM_TYPE));
+        Response response = null;
+        try (final FormDataMultiPart multiPart = new FormDataMultiPart()) {
 
-        final Response response = client.target(serviceUrl).path("/containers/" + containerName + "/objects").request()
-            .post(Entity.entity(multiPart, MediaType.MULTIPART_FORM_DATA_TYPE));
+            multiPart.bodyPart(new FormDataBodyPart("objectName", objectName, MediaType.TEXT_PLAIN_TYPE));
+            multiPart.bodyPart(
+                new StreamDataBodyPart("object", stream, objectName, MediaType.APPLICATION_OCTET_STREAM_TYPE));
+            response = client.target(serviceUrl).path("/containers/" + containerName + "/objects").request()
+                .post(Entity.entity(multiPart, MediaType.MULTIPART_FORM_DATA_TYPE));
 
-        if (Status.CREATED.getStatusCode() == response.getStatus()) {
-            LOGGER.info(containerName + "/" + objectName + ": " + Response.Status.CREATED.getReasonPhrase());
-        } else {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
-            throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            if (Status.CREATED.getStatusCode() == response.getStatus()) {
+                LOGGER.info(containerName + "/" + objectName + ": " + Response.Status.CREATED.getReasonPhrase());
+            } else {
+                LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+                throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            }
+        } catch (IOException exc) { // NOSONAR no log to do
+            // Do nothing since FormDataMultiPart#close() cannot throw IOException based on its implementation
+        } finally {
+            Optional.ofNullable(response).ifPresent(Response::close);
         }
 
     }
@@ -231,18 +260,33 @@ public class WorkspaceClient implements ContentAddressableStorage {
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName);
-        final Response response =
-            client.target(serviceUrl).path("/containers/" + containerName + "/objects/" + objectName)
-                .request().get();
+        Response response = null;
+        InputStream stream = null;
+        try {
+            response =
+                client.target(serviceUrl).path("/containers/" + containerName + "/objects/" + objectName)
+                    .request(MediaType.MULTIPART_FORM_DATA).accept(MediaType.APPLICATION_OCTET_STREAM).get();
 
-        if (Response.Status.OK.getStatusCode() == response.getStatus()) {
-            return response.readEntity(InputStream.class);
-        } else if (Response.Status.NOT_FOUND.getStatusCode() == response.getStatus()) {
-            LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
-            throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
-        } else {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
-            throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            if (Response.Status.OK.getStatusCode() == response.getStatus()) {
+                // TODO : this is ugly but necessarily in order to close the response and avoid concurrent issues
+                // to be improved
+                InputStream streamClosedAutomatically = response.readEntity(InputStream.class);
+                try {
+                    stream = new ByteArrayInputStream(IOUtils.toByteArray(streamClosedAutomatically));
+                } catch (IOException e) {
+                    LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+                    throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+                }
+                return stream;
+            } else if (Response.Status.NOT_FOUND.getStatusCode() == response.getStatus()) {
+                LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
+                throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
+            } else {
+                LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+                throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            }
+        } finally {
+            Optional.ofNullable(response).ifPresent(Response::close);
         }
 
     }
@@ -253,18 +297,23 @@ public class WorkspaceClient implements ContentAddressableStorage {
 
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName);
-        final Response response =
-            client.target(serviceUrl).path("/containers/" + containerName + "/objects/" + objectName)
-                .request().delete();
+        Response response = null;
+        try {
+            response =
+                client.target(serviceUrl).path("/containers/" + containerName + "/objects/" + objectName)
+                    .request().delete();
 
-        if (Response.Status.NO_CONTENT.getStatusCode() == response.getStatus()) {
-            LOGGER.info(containerName + "/" + objectName + ": " + Response.Status.NO_CONTENT.getReasonPhrase());
-        } else if (Response.Status.NOT_FOUND.getStatusCode() == response.getStatus()) {
-            LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
-            throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
-        } else {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
-            throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            if (Response.Status.NO_CONTENT.getStatusCode() == response.getStatus()) {
+                LOGGER.info(containerName + "/" + objectName + ": " + Response.Status.NO_CONTENT.getReasonPhrase());
+            } else if (Response.Status.NOT_FOUND.getStatusCode() == response.getStatus()) {
+                LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
+                throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
+            } else {
+                LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+                throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            }
+        } finally {
+            Optional.ofNullable(response).ifPresent(Response::close);
         }
 
     }
@@ -296,54 +345,63 @@ public class WorkspaceClient implements ContentAddressableStorage {
 
     @Override
     public void unzipObject(String containerName, String folderName, InputStream inputStreamObject)
-        throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException, ContentAddressableStorageAlreadyExistException {
+        throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException,
+        ContentAddressableStorageAlreadyExistException, ContentAddressableStorageZipException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, folderName);
 
         if (isExistingContainer(containerName)) {
             if (!isExistingFolder(containerName, folderName)) {
 
-                final Response response = client.target(serviceUrl).path("/containers/" + containerName + "/folders/"+folderName).request()
-                    .put(Entity.entity(inputStreamObject, MediaType.APPLICATION_OCTET_STREAM));
+                final Response response =
+                    client.target(serviceUrl).path("/containers/" + containerName + "/folders/" + folderName).request()
+                        .put(Entity.entity(inputStreamObject, MediaType.APPLICATION_OCTET_STREAM));
 
                 if (Response.Status.CREATED.getStatusCode() == response.getStatus()) {
-                    LOGGER.info(containerName + File.separator +folderName +  " : " + Response.Status.CREATED.getReasonPhrase());
+                    LOGGER.info(containerName + File.separator + folderName + " : " +
+                        Response.Status.CREATED.getReasonPhrase());
                 } else if (Response.Status.NOT_FOUND.getStatusCode() == response.getStatus()) {
                     LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage());
                     throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
                 } else if (Status.CONFLICT.getStatusCode() == response.getStatus()) {
                     LOGGER.error(ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
-                    throw new ContentAddressableStorageAlreadyExistException(ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
+                    throw new ContentAddressableStorageAlreadyExistException(
+                        ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
+                } else if (Status.BAD_REQUEST.getStatusCode() == response.getStatus() &&
+                    "application/json".equals(response.getHeaderString("Content-Type"))) {
+                    LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+                    throw new ContentAddressableStorageZipException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
                 } else {
                     LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
                     throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
                 }
 
-            }else {
+            } else {
                 LOGGER.error(ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
-                throw new ContentAddressableStorageAlreadyExistException(ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
+                throw new ContentAddressableStorageAlreadyExistException(
+                    ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
             }
 
-        } else{
+        } else {
             LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage());
             throw new ContentAddressableStorageNotFoundException(ErrorMessage.CONTAINER_NOT_FOUND.getMessage());
         }
-       
+
     }
 
     @Override
     public String computeObjectDigest(String containerName, String objectName, DigestType algo)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
-       
+
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName, algo);
-        
+
         final Response response =
             client.target(serviceUrl).path("/containers/" + containerName + "/objects/" + objectName)
                 .request()
                 .header(X_DIGEST_ALGORITHM, algo.getName())
                 .head();
-        
+
         if (Response.Status.OK.getStatusCode() == response.getStatus()) {
             return response.getHeaderString(X_DIGEST);
         } else if (Response.Status.NOT_FOUND.getStatusCode() == response.getStatus()) {
@@ -352,6 +410,50 @@ public class WorkspaceClient implements ContentAddressableStorage {
         } else {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
             throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+        }
+    }
+
+    @Override
+    public ContainerInformation getContainerInformation(String containerName)
+        throws ContentAddressableStorageNotFoundException {
+        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+            containerName);
+        Response response = null;
+        try {
+            response =
+                client.target(serviceUrl).path("/containers/" + containerName).request().get();
+            if (Response.Status.OK.getStatusCode() == response.getStatus()) {
+                return response.readEntity(ContainerInformation.class);
+            } else {
+                throw new ContentAddressableStorageNotFoundException(response.getStatusInfo().getReasonPhrase());
+            }
+        } finally {
+            Optional.ofNullable(response).ifPresent(Response::close);
+        }
+    }
+
+    @Override
+    public JsonNode getObjectInformation(String containerName, String objectName)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            containerName, objectName);
+        Response response = null;
+        try {
+            response =
+                client.target(serviceUrl).path("/containers/" + containerName + "/objects/" + objectName)
+                    .request(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).get();
+
+            if (Response.Status.OK.getStatusCode() == response.getStatus()) {
+                return response.readEntity(JsonNode.class);
+            } else if (Response.Status.NOT_FOUND.getStatusCode() == response.getStatus()) {
+                LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
+                throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
+            } else {
+                LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+                throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            }
+        } finally {
+            Optional.ofNullable(response).ifPresent(Response::close);
         }
     }
 }

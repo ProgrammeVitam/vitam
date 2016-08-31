@@ -45,14 +45,16 @@ public class DriverImpl implements Driver {
         try {
             ParametersChecker.checkParameter(URL_IS_A_MANDATORY_PARAMETER, url);
         } catch (IllegalArgumentException exc) {
-            throw new StorageDriverException(DRIVER_NAME, URL_IS_A_MANDATORY_PARAMETER);
+            throw new StorageDriverException(DRIVER_NAME, StorageDriverException.ErrorCode.PRECONDITION_FAILED,
+                URL_IS_A_MANDATORY_PARAMETER);
         }
         try {
             ConnectionImpl connection = new ConnectionImpl(url, DRIVER_NAME);
             connection.getStatus();
             return connection;
         } catch (StorageDriverException exception) {
-            throw new StorageDriverException(DRIVER_NAME, exception.getMessage());
+            throw new StorageDriverException(DRIVER_NAME, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
+                exception.getMessage());
         }
 
     }

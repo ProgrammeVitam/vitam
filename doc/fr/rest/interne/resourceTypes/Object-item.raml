@@ -1,0 +1,68 @@
+    description: API permettant l'accès à un unique _Object_.
+    type: base
+    is: [ standardErrors ]
+    get:
+      is: [ allows ]
+      description: Accès à un _Object_. Le 'body' optionnel permet de décider quelle partie des métadonnées sont requises en résultat (projection).
+      body:
+        application/json:
+          schema: projection
+          example: !include ../samples/projection.sample
+      responses:
+        200:
+          body:
+            application/json:
+              schema: saip
+              example: !include ../samples/referentials/saip.sample
+            binary/octet-stream:
+              example: !include ../samples/binaryObject.sample
+    post?:
+      description: Ajout d'un _Object_. Le mode 'multipart/form-data' est utilisé quand sont ajoutés simultanément les métadonnées et un objet (ou des sous-objets) à l'objet courant (une nouvelle version d'un même objet intellectuel).
+      body:
+        multipart/form-data:
+          formParameters:
+            file:
+              description: L'objet à verser
+              required: true
+              type: file
+              example: !include ../samples/binaryObject.sample
+            metadata:
+              description: Les métadonnées au format JSON associées avec l'objet versé. Voir la définition des métadonnées techniques.
+              required: true
+              type: string
+              example: !include ../samples/referentials/submit_saip.sample
+      responses:
+        201:
+          body:
+            application/json:
+              schema: saip
+              example: !include ../samples/referentials/saip.sample
+    put?:
+      description: Mise à jour d'un _Object_. Le mode 'multipart/form-data' est utilisé quand sont mis à jour simultanément les métadonnées et un objet (ou des sous-objets) à l'objet courant (une nouvelle version d'un même objet intellectuel).
+      body:
+        multipart/form-data:
+          formParameters:
+            file:
+              description: L'objet à verser
+              required: true
+              type: file
+              example: !include ../samples/binaryObject.sample
+            metadata:
+              description: Les métadonnées au format JSON associées avec l'objet versé. Voir la définition des métadonnées techniques.
+              required: true
+              type: string
+              example: !include ../samples/referentials/submit_saip.sample
+      responses:
+        201:
+          body:
+            application/json:
+              schema: saip
+              example: !include ../samples/referentials/saip.sample
+    delete?:
+      description: Efface un _Object_. Le 'body' optionnel permet de décider quelle partie de l'objet sera effacée (quelle version).
+      body:
+        application/json:
+          schema: query
+          example: !include ../samples/query.sample
+      responses:
+        204:

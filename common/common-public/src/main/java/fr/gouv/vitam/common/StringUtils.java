@@ -50,7 +50,9 @@ public final class StringUtils {
             return SingletonUtils.getSingletonByteArray();
         }
         final byte[] result = new byte[length];
-        RANDOM.nextBytes(result);
+        for (int i = 0; i < result.length; i++) {
+            result[i] = (byte) (RANDOM.nextInt(95) + 32);
+        }
         return result;
     }
 

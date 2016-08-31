@@ -1,5 +1,101 @@
 ---
 # tasks file for mongo-express
+# Docker role tasks
+- name: installer le package docker
+  yum: 
+    name: "{{item}}"
+    state: latest
+  with_items:
+  - docker
+  - docker-python
+
+# OMA : add for unity
+- name: create docker group
+  group:
+    name: docker
+    gid: 1005
+    state: present
+
+- name: Ensure docker daemon autostart && docker is started
+  service: 
+    name: docker
+    enabled: yes
+    state: started
+
+- name: Ensure .docker directory exists
+  file: 
+    name: "/root/.docker" 
+    state: directory
+    mode: "u=rw,g=r,o=r"
+
+- name: Ensure HTTP connection to docker registry
+  lineinfile:
+    dest: "/etc/sysconfig/docker"
+    state: present
+    backrefs: yes
+    regexp: "^(.*)INSECURE_REGISTRY=(.*)$"
+    line: "INSECURE_REGISTRY='--insecure-registry {{docker_registry_private}} --insecure-registry {{docker_registry_proxy}} --insecure-registry {{docker_registry_group}} --insecure-registry {{docker_registry_private_long}} --insecure-registry {{docker_registry_proxy_long}} --insecure-registry {{docker_registry_group_long}}'"
+
+- name: Ensure Login priviledges to docker registry
+  template: 
+    src: "config.json.j2"
+    dest: "/root/.docker/config.json" 
+    owner: "{{local_username}}"
+    group: "{{local_username}}" 
+    mode: "u=rw,g=r,o=r"
+  notify:
+    - restart docker
+
+# Cf. https://docs.docker.com/engine/admin/systemd/
+- name: Ensure systemd docker service drop-in folder is there
+  file: name="/etc/systemd/system/docker.service.d" state=directory
+
+#- name: configure docker http proxy
+#  template: src=http_proxy.conf.j2 dest=/etc/systemd/system/docker.service.d/http_proxy.conf mode=0400
+#  notify:
+#  - reload systemd
+#  - restart docker
+
+# KWA : add root folders for data / conf / ... directories here ?
+# KWA : configure docker login for repo docker.programmevitam.fr ?
+
+
+# added because uneless now
+- name: remove http proxy conf for docker
+  file:
+    name: /etc/systemd/system/docker.service.d/http_proxy.conf
+    state: absent
+  notify:
+   - reload systemd
+   - restart docker
+
+#- name: create credentials for pulling
+#  docker_login:
+#    registry: "{{docker_registry_hostname}}"
+#    username: "{{app_jenkins_remote_username}}"
+#    email: "{{app_jenkins_remote_email}}"
+#    password: "{{app_jenkins_remote_password}}"
+# - name: verify root script directory exists
+#   file:
+#     path=/opt/vitam/script
+#     state=directory
+#     mode=0755
+
+# - name: copy file for cron
+#   copy:
+#     src=purge_docker.sh
+#     dest=/opt/vitam/script/purge_docker.sh
+#     mode=0500
+
+# - name: add root cron entry for daily <none> docker images removal
+#   cron:
+#     name="docker purge"
+#     minute="50"
+#     hour="6"
+#     user="root"
+#     job="/opt/vitam/script/purge_docker.sh"
+#   tags: docker
+
 
 - name: deploy docker container
   docker:

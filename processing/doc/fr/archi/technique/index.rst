@@ -7,3 +7,4 @@ Architecture Technique
 
    introduction.rst
    storage.rst
+   check-availability.rst

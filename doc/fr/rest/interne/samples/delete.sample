@@ -1,0 +1,6 @@
+{
+  "queries": [
+    { "$path": "aaaaa" }
+  ],
+  "filter": { }
+}

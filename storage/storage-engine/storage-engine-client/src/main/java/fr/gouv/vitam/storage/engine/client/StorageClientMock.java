@@ -26,7 +26,10 @@
  */
 package fr.gouv.vitam.storage.engine.client;
 
+import java.io.InputStream;
 import java.time.LocalDateTime;
+
+import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,7 +37,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.client.SSLClientConfiguration;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.StatusMessage;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
@@ -50,10 +55,8 @@ class StorageClientMock extends StorageClientRest implements StorageClient {
     private static final ServerIdentity SERVER_IDENTITY = ServerIdentity.getInstance();
 
     static final String MOCK_POST_RESULT = "{\"_id\": \"{id}\",\"status\": \"OK\"}";
-    /** TODO : update in item 546 */
-    static final String MOCK_INFOS_RESULT = "{\"id\": \"{id}\"," + "\"info\": \"container description - optional\"," +
-        "\"creation_time\": \"1990-12-31T23:59:60Z\"," + "\"last_access_time\": \"1990-12-31T23:59:60Z\"," +
-        "\"last_modified_time\": \"1990-12-31T23:59:60Z\"" + "}";
+    static final String MOCK_INFOS_RESULT = "{\"usableSpace\": 838860800" + "}";
+    static final String MOCK_GET_FILE_CONTENT = "Vitam test";
 
     /**
      * Constructor
@@ -68,15 +71,19 @@ class StorageClientMock extends StorageClientRest implements StorageClient {
     }
 
     @Override
-    public JsonNode getStorageInfos(String tenantId, String strategyId)
+    public JsonNode getStorageInformation(String tenantId, String strategyId)
         throws StorageNotFoundClientException, StorageServerClientException {
-        return new ObjectMapper().convertValue(MOCK_INFOS_RESULT.replace("{id}", tenantId), JsonNode.class);
+        try {
+            return JsonHandler.getFromString(MOCK_INFOS_RESULT);
+        } catch (InvalidParseOperationException e) {
+            throw new StorageServerClientException(e);
+        }
     }
 
     @Override
     public StoredInfoResult storeJson(String tenantId, String strategyId, StorageCollectionType type, String guid,
         JsonNode data)
-            throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException {
+        throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException {
         return generateStoredInfoResult(guid);
     }
 
@@ -84,7 +91,7 @@ class StorageClientMock extends StorageClientRest implements StorageClient {
     public StoredInfoResult storeFileFromWorkspace(String tenantId, String strategyId, StorageCollectionType type,
         String guid,
         CreateObjectDescription description)
-            throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException {
+        throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException {
         return generateStoredInfoResult(guid);
     }
 
@@ -108,6 +115,11 @@ class StorageClientMock extends StorageClientRest implements StorageClient {
     public boolean exists(String tenantId, String strategyId, StorageCollectionType type, String guid)
         throws StorageServerClientException {
         return true;
+    }
+
+    @Override
+    public InputStream getContainerObject(String tenantId, String strategyId, String guid) {
+        return IOUtils.toInputStream(MOCK_GET_FILE_CONTENT);
     }
 
     private StoredInfoResult generateStoredInfoResult(String guid) {

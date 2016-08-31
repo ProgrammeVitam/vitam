@@ -38,6 +38,10 @@ public abstract class BuilderToken {
      * Default prefix for command
      */
     public static final char DEFAULT_PREFIX_CHAR = '$';
+    /**
+     * Default hash prefix for command
+     */
+    private static final String DEFAULT_HASH_PREFIX = "#";
 
     public BuilderToken() {
         // Empty constructor
@@ -525,7 +529,7 @@ public abstract class BuilderToken {
          * Constructor Add DEFAULT_HASH_PREFIX before the exactToken (#+exactToken)
          */
         private PROJECTIONARGS(String realName) {
-            exactToken = realName;
+            exactToken = DEFAULT_HASH_PREFIX + realName;
         }
 
         /**

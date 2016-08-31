@@ -48,8 +48,23 @@ public class RequestResponseError extends RequestResponse {
      *
      * @param error the error message of type VitamError which will be setted for RequestResponseError
      */
+    // TODO @return missing
     public RequestResponseError setError(VitamError error) {
         this.error = error;
         return this;
     }
+
+    /**
+     * Override toString method for rest's resources which return an application/octet_stream
+     *
+     * @return a json of errors (error.toString()) list
+     */
+    @Override
+    public String toString() {
+        if (error != null) {
+            return error.toString();
+        }
+        return "";
+    }
+
 }

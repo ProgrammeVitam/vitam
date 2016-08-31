@@ -27,18 +27,31 @@
 package fr.gouv.vitam.access.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.InputStream;
+
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.access.api.AccessResource;
+import fr.gouv.vitam.common.GlobalDataRest;
+import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
@@ -61,11 +74,17 @@ public class AccessClientRestTest extends JerseyTest {
             " $projection : {$fields : {#id : 1, title:2, transacdate:1}}" +
             " }";
     final String ID = "identfier1";
+    final String USAGE = "BinaryMaster";
+    final int VERSION = 1;
 
     protected ExpectedResults mock;
 
     interface ExpectedResults {
         Response post();
+
+        Response get();
+
+        Response put();
     }
 
     public AccessClientRestTest() {
@@ -84,20 +103,88 @@ public class AccessClientRestTest extends JerseyTest {
     }
 
     @Path("/access/v1")
-    public static class MockResource {
+    public static class MockResource implements AccessResource {
         private final ExpectedResults expectedResponse;
 
         public MockResource(ExpectedResults expectedResponse) {
             this.expectedResponse = expectedResponse;
         }
 
+        @Override
         @POST
-        @Path("units")
+        @Path("/units")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response selectQueryAccess(String selectQuery) {
+        public Response getUnits(String queryDsl,
+            @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
             return expectedResponse.post();
         }
+
+        @Override
+        @POST
+        @Path("/units/{id_unit}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getUnitById(String queryDsl,
+            @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride,
+            @PathParam("id_unit") String id_unit) {
+            return expectedResponse.post();
+        }
+
+        @Override
+        @PUT
+        @Path("/units/{id_unit}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response updateUnitById(String queryDsl, @PathParam("id_unit") String id_unit) {
+            return expectedResponse.put();
+        }
+
+        @GET
+        @Path("/status")
+        public Response getStatus() {
+            return expectedResponse.get();
+        }
+
+        @Override
+        @GET
+        @Path("/objects/{id_object_group}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getObjectGroup(@PathParam("id_object_group") String idObjectGroup, String query) {
+            return expectedResponse.get();
+        }
+
+        @Override
+        @POST
+        @Path("/objects/{id_object_group}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getObjectGroup(@HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xHttpOverride,
+            @PathParam("id_object_group") String idObjectGroup, String query) {
+            return expectedResponse.post();
+        }
+
+        @Override
+        @GET
+        @Path("/objects/{id_object_group}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_OCTET_STREAM)
+        public Response getObjectStream(@Context HttpHeaders headers, @PathParam("id_object_group") String
+            idObjectGroup, String query) {
+            return expectedResponse.get();
+        }
+
+        @Override
+        @POST
+        @Path("/objects/{id_object_group}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_OCTET_STREAM)
+        public Response getObjectStreamPost(@Context HttpHeaders headers, @PathParam ("id_object_group") String
+            idObjectGroup, String query) {
+            return expectedResponse.post();
+        }
+
     }
 
     @Test(expected = AccessClientServerException.class)
@@ -142,7 +229,7 @@ public class AccessClientRestTest extends JerseyTest {
     // Select Unit By Id
 
 
-    @Test(expected = AccessClientNotFoundException.class)
+    @Test(expected = AccessClientServerException.class)
     public void givenInternalServerError_whenSelectById_ThenRaiseAnExeption() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         final String queryDsql =
@@ -167,11 +254,11 @@ public class AccessClientRestTest extends JerseyTest {
         assertThat(client.selectUnitbyId(queryDsql, ID)).isNotNull();
     }
 
-    @Test(expected = AccessClientNotFoundException.class)
+    @Test(expected = InvalidParseOperationException.class)
     public void givenBadRequest_whenSelectUnitById_ThenRaiseAnException()
         throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException {
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        assertThat(client.selectUnitbyId(queryDsql, ID)).isNotNull();
+        client.selectUnitbyId(queryDsql, ID);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -195,41 +282,128 @@ public class AccessClientRestTest extends JerseyTest {
         assertThat(client.selectUnitbyId("", ID)).isNotNull();
     }
 
-    @Test(expected = AccessClientNotFoundException.class)
+    @Test(expected = InvalidParseOperationException.class)
     public void givenBadRequest_whenUpdateUnitById_ThenRaiseAnException()
-            throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException {
-        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+        throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException {
+        when(mock.put()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         assertThat(client.updateUnitbyId(queryDsql, ID)).isNotNull();
     }
 
 
     @Test(expected = IllegalArgumentException.class)
     public void givenRequestBlank_whenUpdateUnitById_ThenRaiseAnException()
-            throws IllegalArgumentException, AccessClientServerException, AccessClientNotFoundException,
-            InvalidParseOperationException {
+        throws IllegalArgumentException, AccessClientServerException, AccessClientNotFoundException,
+        InvalidParseOperationException {
         assertThat(client.updateUnitbyId("", "")).isNotNull();
     }
 
 
     @Test(expected = IllegalArgumentException.class)
     public void givenIdBlank_whenUpdateUnitById_ThenRaiseAnException()
-            throws IllegalArgumentException, AccessClientServerException, AccessClientNotFoundException,
-            InvalidParseOperationException {
+        throws IllegalArgumentException, AccessClientServerException, AccessClientNotFoundException,
+        InvalidParseOperationException {
         assertThat(client.updateUnitbyId(queryDsql, "")).isNotNull();
     }
 
 
     @Test(expected = IllegalArgumentException.class)
     public void givenrEquestBlank_IDFilledwhenUpdateUnitById_ThenRaiseAnException()
-            throws IllegalArgumentException, AccessClientServerException, AccessClientNotFoundException,
-            InvalidParseOperationException {
+        throws IllegalArgumentException, AccessClientServerException, AccessClientNotFoundException,
+        InvalidParseOperationException {
         assertThat(client.updateUnitbyId("", ID)).isNotNull();
     }
 
-    @Test(expected = AccessClientNotFoundException.class)
+    @Test(expected = InvalidParseOperationException.class)
     public void givenBadRequest_whenUpdateUnit_ThenRaiseAnException()
-            throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException {
-        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+        throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException {
+        when(mock.put()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         assertThat(client.updateUnitbyId(queryDsql, ID)).isNotNull();
     }
+
+    @Test(expected = AccessClientServerException.class)
+    public void given500_whenUpdateUnit_ThenRaiseAnException()
+        throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException {
+        when(mock.put()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        assertThat(client.updateUnitbyId(queryDsql, ID)).isNotNull();
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void givenQueryNullWhenSelectObjectByIdThenRaiseAnIllegalArgumentException() throws Exception {
+        client.selectObjectbyId(null, ID);
+    }
+
+    @Test(expected = AccessClientServerException.class)
+    public void givenQueryCorrectWhenSelectObjectByIdThenRaiseInternalServerError() throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        client.selectObjectbyId(queryDsql, ID);
+    }
+
+    @Test(expected = InvalidParseOperationException.class)
+    public void givenQueryCorrectWhenSelectObjectByIdThenRaiseBadRequest() throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+        client.selectObjectbyId(queryDsql, ID);
+    }
+
+    @Test(expected = AccessClientServerException.class)
+    public void givenQueryCorrectWhenSelectObjectByIdThenRaisePreconditionFailed() throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        client.selectObjectbyId(queryDsql, ID);
+    }
+
+    @Test(expected = AccessClientNotFoundException.class)
+    public void givenQueryCorrectWhenSelectObjectByIdThenNotFound() throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        client.selectObjectbyId(queryDsql, ID);
+    }
+
+    @Test
+    public void givenQueryCorrectWhenSelectObjectByIdThenOK() throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.OK).entity("{ \"hint\": {\"total\":\"1\"} }").build());
+        assertThat(client.selectObjectbyId(queryDsql, ID)).isNotNull();
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void givenQueryNullWhenGetObjectAsInputStreamThenRaiseAnIllegalArgumentException() throws Exception {
+        client.getObjectAsInputStream(null, ID, USAGE, VERSION);
+    }
+
+    @Test(expected = AccessClientServerException.class)
+    public void givenQueryCorrectWhenGetObjectAsInputStreamThenRaiseInternalServerError() throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        client.getObjectAsInputStream(queryDsql, ID, USAGE, VERSION);
+    }
+
+    @Test(expected = InvalidParseOperationException.class)
+    public void givenQueryCorrectWhenGetObjectAsInputStreamThenRaiseBadRequest() throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+        client.getObjectAsInputStream(queryDsql, ID, USAGE, VERSION);
+    }
+
+    @Test(expected = AccessClientServerException.class)
+    public void givenQueryCorrectWhenGetObjectAsInputStreamThenRaisePreconditionFailed() throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        client.getObjectAsInputStream(queryDsql, ID, USAGE, VERSION);
+    }
+
+    @Test(expected = AccessClientNotFoundException.class)
+    public void givenQueryCorrectWhenGetObjectAsInputStreamThenNotFound() throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        client.getObjectAsInputStream(queryDsql, ID, USAGE, VERSION);
+    }
+
+    @Test
+    public void givenQueryCorrectWhenGetObjectAsInputStreamThenOK() throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("Vitam test")).build());
+        InputStream stream = client.getObjectAsInputStream(queryDsql, ID, USAGE, VERSION);
+        InputStream stream2 = IOUtils.toInputStream("Vitam test");
+        assertNotNull(stream);
+        assertTrue(IOUtils.contentEquals(stream, stream2));        
+    }
+
+    @Test
+    public void statusExecutionWithouthBody() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Response.Status.OK).build());
+        client.status();
+    }
+
 }

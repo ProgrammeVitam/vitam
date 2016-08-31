@@ -2,9 +2,11 @@ package fr.gouv.vitam.storage.offers.workspace.driver;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,8 +39,12 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
+import fr.gouv.vitam.storage.driver.model.GetObjectRequest;
+import fr.gouv.vitam.storage.driver.model.GetObjectResult;
 import fr.gouv.vitam.storage.driver.model.PutObjectRequest;
 import fr.gouv.vitam.storage.driver.model.PutObjectResult;
+import fr.gouv.vitam.storage.driver.model.StorageCapacityRequest;
+import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 
 public class ConnectionImplTest extends JerseyTest {
@@ -80,6 +86,13 @@ public class ConnectionImplTest extends JerseyTest {
             return expectedResponse.get();
         }
 
+        @GET
+        @Path("/objects")
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getContainerInformation() {
+            return expectedResponse.get();
+        }
+
         @POST
         @Path("/objects/{guid}")
         @Consumes(MediaType.APPLICATION_JSON)
@@ -96,6 +109,13 @@ public class ConnectionImplTest extends JerseyTest {
             return expectedResponse.put();
         }
 
+        @GET
+        @Path("/objects/{id}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(value = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_OCTET_STREAM})
+        public Response getObject(@PathParam("id") String objectId) {
+            return expectedResponse.get();
+        }
     }
 
     @AfterClass
@@ -228,12 +248,6 @@ public class ConnectionImplTest extends JerseyTest {
         connection.putObject(request);
     }
 
-
-    @Test(expected = UnsupportedOperationException.class)
-    public void getStorageRemainingCapacityNotImplemented() throws Exception {
-        connection.getStorageRemainingCapacity();
-    }
-
     @Test(expected = UnsupportedOperationException.class)
     public void putObjectNotImplemented() throws Exception {
         connection.putObject(null, null);
@@ -244,11 +258,97 @@ public class ConnectionImplTest extends JerseyTest {
         connection.removeObject(null);
     }
 
-    @Test(expected = UnsupportedOperationException.class)
-    public void getGetObjectNotImplemented() throws Exception {
+    @Test(expected = IllegalArgumentException.class)
+    public void getGetObjectRequestIllegalArgumentException() throws Exception {
         connection.getObject(null);
     }
 
+
+    @Test
+    public void getStorageCapacityOK() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(getStorageCapacityResult()).build());
+        StorageCapacityRequest request = new StorageCapacityRequest();
+        request.setTenantId("0");
+        StorageCapacityResult result = connection.getStorageCapacity(request);
+        assertNotNull(result);
+        assertNotNull(result.getUsableSpace());
+        assertNotNull(result.getUsedSpace());
+    }
+
+    @Test(expected = StorageDriverException.class)
+    public void getStorageCapacityException() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        StorageCapacityRequest request = new StorageCapacityRequest();
+        request.setTenantId("0");
+        connection.getStorageCapacity(request);
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void getGetObjectGUIDIllegalArgumentException() throws Exception {
+        GetObjectRequest request = new GetObjectRequest();
+        request.setTenantId("0");
+        connection.getObject(request);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void getGetObjectTenantIdIllegalArgumentException() throws Exception {
+        GetObjectRequest request = new GetObjectRequest();
+        request.setGuid("guid");
+        connection.getObject(request);
+    }
+
+    @Test
+    public void getObjectNotFound() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        GetObjectRequest request = new GetObjectRequest();
+        request.setTenantId("0");
+        request.setGuid("guid");
+        try {
+            connection.getObject(request);
+            fail("Expected exception");
+        } catch (StorageDriverException exc) {
+            assertEquals(exc.getErrorCode(), StorageDriverException.ErrorCode.NOT_FOUND);
+        }
+    }
+
+    @Test
+    public void getObjectInternalError() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        GetObjectRequest request = new GetObjectRequest();
+        request.setTenantId("0");
+        request.setGuid("guid");
+        try {
+            connection.getObject(request);
+            fail("Expected exception");
+        } catch (StorageDriverException exc) {
+            assertEquals(exc.getErrorCode(), StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Test
+    public void getObjectPreconditionFailed() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        GetObjectRequest request = new GetObjectRequest();
+        request.setTenantId("0");
+        request.setGuid("guid");
+        try {
+            connection.getObject(request);
+            fail("Expected exception");
+        } catch (StorageDriverException exc) {
+            assertEquals(exc.getErrorCode(), StorageDriverException.ErrorCode.PRECONDITION_FAILED);
+        }
+    }
+
+    @Test
+    public void getObjectOK() throws Exception {
+        InputStream stream = new ByteArrayInputStream("Test".getBytes());
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(stream).build());
+        GetObjectRequest request = new GetObjectRequest();
+        request.setTenantId("0");
+        request.setGuid("guid");
+        GetObjectResult result = connection.getObject(request);
+        assertNotNull(result);
+    }
 
     private PutObjectRequest getPutObjectRequest(boolean dataS, boolean digestA, boolean guid, boolean tenantId)
         throws Exception {
@@ -283,6 +383,13 @@ public class ConnectionImplTest extends JerseyTest {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode actualObj = mapper.readTree("{\"digest\":\"aaakkkk" + uniqueId + "\"}");
         return actualObj;
+    }
+
+    private JsonNode getStorageCapacityResult() throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode result = mapper.readTree("{\"usableSpace\":\"100000\"," +
+            "\"usedSpace\":\"100000\"}");
+        return result;
     }
 
 }

@@ -91,7 +91,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
             params.getServerConfiguration());
         LOGGER.info("CheckObjectsNumberActionHandler running ...");
 
-        final EngineResponse response = new ProcessResponse();
+        EngineResponse response = new ProcessResponse();
         response.setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_OK);
 
         try {

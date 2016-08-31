@@ -70,4 +70,5 @@ public class StorageClientExceptionTest {
         assertNotNull(new StorageNotFoundClientException(MESSAGE, exception));
         assertNotNull(new StorageNotFoundClientException(MESSAGE, exception, true, true));
     }
+
 }

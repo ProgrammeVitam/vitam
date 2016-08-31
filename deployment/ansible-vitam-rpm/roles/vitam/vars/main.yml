@@ -1,6 +1,9 @@
 ---
 # vars file for common
-vitam_folder_conf: "{{vitam_folder_root}}/{{vitam_component}}/conf"
-vitam_folder_log: "{{vitam_folder_root}}/{{vitam_component}}/log"
-vitam_folder_data: "{{vitam_folder_root}}/{{vitam_component}}/data"
+vitam_folder_bin: "{{vitam_folder_root}}/bin/{{vitam_component}}"
+vitam_folder_conf: "{{vitam_folder_root}}/conf/{{vitam_component}}"
+vitam_folder_data: "{{vitam_folder_root}}/data/{{vitam_component}}"
+vitam_folder_lib: "{{vitam_folder_root}}/lib/{{vitam_component}}"
+vitam_folder_log: "{{vitam_folder_root}}/log/{{vitam_component}}"
+vitam_folder_tmp: "{{vitam_folder_root}}/tmp/{{vitam_component}}"
 

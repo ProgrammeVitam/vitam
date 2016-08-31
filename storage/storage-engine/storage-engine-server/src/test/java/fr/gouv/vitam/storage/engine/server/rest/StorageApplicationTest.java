@@ -64,7 +64,7 @@ public class StorageApplicationTest {
 
     private static int serverPort;
     private static int oldPort;
-    private static JunitHelper junitHelper;
+    private static JunitHelper junitHelper = new JunitHelper();
     private static File storage;
 
     @BeforeClass
@@ -72,7 +72,6 @@ public class StorageApplicationTest {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
 
-        junitHelper = new JunitHelper();
         storage = PropertiesUtils.findFile(STORAGE_CONF);
         final StorageConfiguration realStorage = PropertiesUtils.readYaml(storage, StorageConfiguration.class);
         

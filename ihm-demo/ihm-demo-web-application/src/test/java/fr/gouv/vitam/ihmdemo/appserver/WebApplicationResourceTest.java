@@ -26,35 +26,13 @@
  */
 package fr.gouv.vitam.ihmdemo.appserver;
 
-import static com.jayway.restassured.RestAssured.given;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.ws.rs.core.Response.Status;
-
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.config.EncoderConfig;
 import com.jayway.restassured.http.ContentType;
-
 import fr.gouv.vitam.access.common.exception.AccessClientNotFoundException;
 import fr.gouv.vitam.access.common.exception.AccessClientServerException;
-import fr.gouv.vitam.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
@@ -70,6 +48,25 @@ import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.operations.client.LogbookClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookClientFactory;
+import org.apache.commons.io.IOUtils;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
+import javax.ws.rs.core.Response.Status;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.jayway.restassured.RestAssured.given;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Mockito.*;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
@@ -230,6 +227,19 @@ public class WebApplicationResourceTest {
         .post("/logbook/operations/1");
     }
 
+    @Test
+    public void testGetLogbookResultByIdLogbookRemainingIllrgalArgumentException()
+        throws InvalidParseOperationException, LogbookClientException, InvalidCreateOperationException {
+        PowerMockito.mockStatic(LogbookClientFactory.class);
+        LogbookClient logbookClient = PowerMockito.mock(LogbookClient.class);
+        LogbookClientFactory logbookFactory = PowerMockito.mock(LogbookClientFactory.class);
+        PowerMockito.when(LogbookClientFactory.getInstance()).thenReturn(logbookFactory);
+        PowerMockito.when(LogbookClientFactory.getInstance().getLogbookOperationClient()).thenReturn(logbookClient);
+
+        given().contentType(ContentType.JSON).expect().statusCode(Status.BAD_REQUEST.getStatusCode()).when()
+            .post("/logbook/operations/1");
+    }
+
     @SuppressWarnings({ "unchecked" })
     @Test
     public void testArchiveSearchResultDslQueryHelperExceptions()
@@ -386,7 +396,12 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testUpdateArchiveUnitWithoutBody() {
-        given().expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when().put("/archiveupdate/units/1");
+        given().
+            contentType(ContentType.JSON).
+        expect().
+            statusCode(Status.BAD_REQUEST.getStatusCode()).
+        when().
+            put("/archiveupdate/units/1");
     }
 
     @SuppressWarnings({"unchecked"})
@@ -417,10 +432,63 @@ public class WebApplicationResourceTest {
         doNothing().when(ingestClient).upload(anyObject());
         PowerMockito.when(ingestFactory.getIngestExternalClient()).thenReturn(ingestClient);
         PowerMockito.when(IngestExternalClientFactory.getInstance()).thenReturn(ingestFactory);
-        
-        given().contentType(ContentType.BINARY).body(PropertiesUtils.findFile("SIP.zip")).expect()
-        .statusCode(Status.OK.getStatusCode()).when()
-        .post("/ingest/upload");
+
+        InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP.zip");
+        byte[] bytes = IOUtils.toByteArray(stream); //need for the test !
+
+        given()
+            .contentType(ContentType.BINARY)
+            .config(RestAssured.config().encoderConfig(EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
+            .content(stream).
+        expect()
+            .statusCode(Status.OK.getStatusCode()).
+        when()
+            .post("/ingest/upload");
+    }
+
+    @Test
+    public void givenReferentialWrongFormatWhenUploadThenThrowReferentialException() throws Exception {
+
+        AdminManagementClient adminManagementClient = PowerMockito.mock(AdminManagementClient.class);
+        AdminManagementClientFactory adminManagementClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        doThrow(ReferentialException.class).when(adminManagementClient).importFormat(anyObject());
+        //doNothing().when(adminManagementClient).importFormat(anyObject());
+        PowerMockito.when(adminManagementClientFactory.getAdminManagementClient()).thenReturn(adminManagementClient);
+        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
+
+        InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam-ko.fake");
+        byte[] bytes = IOUtils.toByteArray(stream); //need for the test !
+
+        given()
+            .contentType(ContentType.BINARY)
+            .config(RestAssured.config().encoderConfig(EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
+            .content(stream).
+        expect()
+            .statusCode(Status.FORBIDDEN.getStatusCode()).
+        when()
+            .post("/format/upload");
+    }
+
+    @Test
+    public void testFormatUploadOK() throws Exception {
+
+        AdminManagementClient adminManagementClient = PowerMockito.mock(AdminManagementClient.class);
+        AdminManagementClientFactory adminManagementClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        doNothing().when(adminManagementClient).importFormat(anyObject());
+        PowerMockito.when(adminManagementClientFactory.getAdminManagementClient()).thenReturn(adminManagementClient);
+        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
+
+        InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
+        byte[] bytes = IOUtils.toByteArray(stream); //need for the test !
+
+        given()
+            .contentType(ContentType.BINARY)
+            .config(RestAssured.config().encoderConfig(EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
+            .content(stream).
+        expect()
+            .statusCode(Status.OK.getStatusCode()).
+        when()
+            .post("/format/upload");
     }
 
     @Test
@@ -432,9 +500,17 @@ public class WebApplicationResourceTest {
         PowerMockito.when(ingestFactory.getIngestExternalClient()).thenReturn(ingestClient);
         PowerMockito.when(IngestExternalClientFactory.getInstance()).thenReturn(ingestFactory);
 
-        given().contentType(ContentType.BINARY).body(PropertiesUtils.findFile("SIP.zip")).expect()
-        .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
-        .post("/ingest/upload");
+        InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP.zip");
+        byte[] bytes = IOUtils.toByteArray(stream); //need for the test !
+
+        given()
+            .contentType(ContentType.BINARY)
+            .config(RestAssured.config().encoderConfig(EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
+            .content(stream).
+        expect()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).
+        when()
+            .post("/ingest/upload");
     }
     
     @Test
@@ -510,5 +586,46 @@ public class WebApplicationResourceTest {
         .post("/admin/formats/1");
     }
 
+    @Test
+    public void testDeleteFormatOK() throws Exception {
+        AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
+        AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        doNothing().when(adminClient).deleteFormat();
+        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject())).thenReturn(OPTIONS);
+
+        PowerMockito.when(adminFactory.getAdminManagementClient()).thenReturn(adminClient);
+        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
+
+        given().
+            config(RestAssured.config().encoderConfig(EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false))).
+        expect()
+            .statusCode(Status.OK.getStatusCode()).
+        when()
+            .delete("/format/delete");
+    }
+
+
+    @Test
+    public void testCheckFormatOK() throws Exception {
+        AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
+        AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        doNothing().when(adminClient).checkFormat(anyObject());
+        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject())).thenReturn(OPTIONS);
+
+        PowerMockito.when(adminFactory.getAdminManagementClient()).thenReturn(adminClient);
+        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
+
+        InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
+        byte[] bytes = IOUtils.toByteArray(stream); //need for the test !
+
+        given()
+            .contentType(ContentType.BINARY)
+            .config(RestAssured.config().encoderConfig(EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
+            .content(stream).
+        expect()
+            .statusCode(Status.OK.getStatusCode()).
+        when()
+            .post("/format/check");
+    }
 
 }

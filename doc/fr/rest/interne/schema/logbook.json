@@ -1,0 +1,69 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "descrption": "One logbook item",
+  "type": "object",
+  "properties": {
+      "eventIdentifier": {
+        "description": "Example: CheckSeda step/action Id",
+        "type": "string"
+      },
+      "eventType": "CheckSeda",
+      "eventDateTime": {
+        "description": "Date time of the operation from the caller point of view",
+        "type": "string"
+      },
+      "eventIdentifierProcess": {
+        "description": "Example: Entry GUID, Destruction operation Id",
+        "type": "string"
+      },
+      "eventTypeProcess": {
+        "description": "entry, access, query, freeze, destruction, audit, preservation, platform, internal",
+        "type": "string"
+      },
+      "outcome" : "STARTED",
+      "eventOutcomeDetail": {
+        "description": "Vitam Code using HTTPSTATUS_VITAMCODE",
+        "type": "string"
+      },
+      "eventOutcomeDetailMessage": {
+        "description": "Command related to this log entry",
+        "type": "string"
+      },
+      "agentIdentifier": {
+        "description": "Agent from which this entry is set",
+        "type": "string"
+      },
+      "agentIdentifierApplication": {
+        "description": "Application from which this eventProces is requested",
+        "type": "string"
+      },
+      "agentIdentifierApplicationSession": {
+        "description": "Application Session ID from which this eventProces is requested",
+        "type": "string"
+      },
+      "eventIdentifierRequest": {
+        "description": "Internal Vitam Session ID from which this eventProces is requested",
+        "type": "string"
+      },
+      "agentIdentifierSubmission": {
+        "description": "Submission Agency from which this eventProces is requested",
+        "type": "string"
+      },
+      "agentIdentifierOriginating": {
+        "description": "Originating Agency from which this eventProces is requested",
+        "type": "string"
+      },
+      "objectIdentifier": {
+        "description": "Id of the item on which the operation is (For Entry: objectIdentifier = GUID of SIP)",
+        "type": "string"
+      },
+      "objectIdentifierRequest": {
+        "description": "Request that select the various items on which the operation is (for operations occuring on a select query)",
+        "type": "string"
+      },
+      "objectIdentifierIncome": {
+        "description": "Id from SEDA as MessageIdentifier",
+        "type": "string"
+      }
+  }
+}

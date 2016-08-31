@@ -83,7 +83,7 @@ public class CheckVersionActionHandler extends ActionHandler {
             response.setStatus(StatusCode.FATAL).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_VERSION_KO);
         }
 
-        LOGGER.info("CheckVersionActionHandler response: " + response.getStatus().value());
+        LOGGER.info("CheckVersionActionHandler response: " + response.getStatus().name());
         return response;
     }
 

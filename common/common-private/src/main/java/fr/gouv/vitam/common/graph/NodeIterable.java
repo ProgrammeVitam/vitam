@@ -36,10 +36,13 @@ import java.util.NoSuchElementException;
  * 
  * @param <Item>
  */
+// FIXME use standard class from Java (25 years of experience)
 public class NodeIterable<Item> implements Iterable<Item> {
     private Node<Item> first;
     // number of elements
     private int n;
+    
+    // FIXME missing a "clear" (memory pressure) or a default clear while getting next (help the GC)
 
     // helper linked list class
     private static class Node<Item> {

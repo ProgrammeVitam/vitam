@@ -36,6 +36,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
 import java.util.zip.ZipInputStream;
 
 import org.apache.commons.io.FilenameUtils;
@@ -49,11 +50,14 @@ import org.jclouds.blobstore.domain.StorageMetadata;
 import org.jclouds.blobstore.domain.StorageType;
 import org.jclouds.blobstore.options.ListContainerOptions;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.workspace.api.ContentAddressableStorage;
@@ -61,6 +65,8 @@ import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageZipException;
+import fr.gouv.vitam.workspace.api.model.ContainerInformation;
 import fr.gouv.vitam.workspace.common.ErrorMessage;
 import fr.gouv.vitam.workspace.common.UriUtils;
 import fr.gouv.vitam.workspace.common.WorkspaceMessage;
@@ -74,8 +80,8 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(ContentAddressableStorageAbstract.class);
 
-    private final BlobStoreContext context;
-
+    // TODO: passed to protected but is it desired ? Better with getter ?
+    protected final BlobStoreContext context;
 
     private static final String TMP_FOLDER = "/tmp/";
     private static final String EMPTY_STRING = "";
@@ -111,11 +117,6 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
                 throw new ContentAddressableStorageAlreadyExistException(
                     ErrorMessage.CONTAINER_ALREADY_EXIST.getMessage() + containerName);
             }
-
-        } catch (final ContentAddressableStorageAlreadyExistException e) {
-            // FIXME REVIEW You already log the same message before throwing the exception
-            LOGGER.error(e.getMessage());
-            throw e;
         } finally {
             context.close();
         }
@@ -136,10 +137,6 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
                 blobStore.clearContainer(containerName);
             }
 
-        } catch (final ContentAddressableStorageNotFoundException e) {
-            // FIXME REVIEW You already log the same message before throwing the exception
-            LOGGER.error(e.getMessage());
-            throw e;
         } finally {
             context.close();
         }
@@ -173,10 +170,6 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
                 blobStore.deleteContainerIfEmpty(containerName);
             }
 
-        } catch (final ContentAddressableStorageNotFoundException e) {
-            // FIXME REVIEW You already log the same message before throwing the exception
-            LOGGER.error(e.getMessage());
-            throw e;
         } finally {
             context.close();
         }
@@ -285,7 +278,8 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
             final BlobStore blobStore = context.getBlobStore();
 
             if (!isExistingObject(containerName, objectName)) {
-                LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
+                LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName + " in container '" +
+                    containerName + "'");
                 throw new ContentAddressableStorageNotFoundException(
                     ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
             }
@@ -327,25 +321,21 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
             }
 
             blobStore.removeBlob(containerName, objectName);
-        } catch (final ContentAddressableStorageNotFoundException e) {
-            // FIXME REVIEW You already log the same message before throwing the exception
-            LOGGER.error(e.getMessage());
-            throw e;
         } finally {
             context.close();
         }
 
     }
-    
+
     @Override
     public String computeObjectDigest(String containerName, String objectName, DigestType algo)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
-        
+
         ParametersChecker.checkParameter(ErrorMessage.ALGO_IS_A_MANDATORY_PARAMETER.getMessage(),
             algo);
-        try{
-            InputStream stream = getObject(containerName,objectName);
-            Digest digest= new Digest(algo);
+        try {
+            InputStream stream = getObject(containerName, objectName);
+            Digest digest = new Digest(algo);
             digest.update(stream);
             return digest.toString();
         } catch (final IOException e) {
@@ -430,7 +420,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
         if (!isExistingContainer(containerName)) {
             throw new ContentAddressableStorageNotFoundException(ErrorMessage.CONTAINER_NOT_FOUND.getMessage());
         }
-        
+
         if (inputStreamObject == null) {
             throw new ContentAddressableStorageException(ErrorMessage.STREAM_IS_NULL.getMessage());
         }
@@ -440,10 +430,14 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
             throw new ContentAddressableStorageAlreadyExistException(ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
         }
         LOGGER.info("create folder name " + folderName);
-        
-       createFolder(containerName, folderName);
-       extractZippedInputStreamOnContainer(containerName, folderName, inputStreamObject);
+
+        createFolder(containerName, folderName);
+        extractZippedInputStreamOnContainer(containerName, folderName, inputStreamObject);
     }
+
+    @Override
+    public abstract ContainerInformation getContainerInformation(String containerName)
+        throws ContentAddressableStorageNotFoundException;
 
     /**
      * extract compressed SIP and push the objects on the SIP folder
@@ -451,41 +445,56 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
      * @param containerName: GUID
      * @param folderName: folder Name
      * @param inputStreamObject :compressed SIP stream
-     * @throws ContentAddressableStorageException
+     * @throws ContentAddressableStorageZipException if the file is not a zip or an empty zip
+     * @throws ContentAddressableStorageException if an IOException occure when unzipping the file
      */
-    private void extractZippedInputStreamOnContainer(String containerName, String folderName, InputStream inputStreamObject)
-        throws ContentAddressableStorageException {
+    private void extractZippedInputStreamOnContainer(String containerName, String folderName,
+        InputStream inputStreamObject)
+            throws ContentAddressableStorageException {
 
         try {
             ZipEntry zipEntry;
             final ZipInputStream zInputStream =
                 new ZipInputStream(inputStreamObject);
-            
+
+            boolean isEmpty = true;
             while ((zipEntry = zInputStream.getNextEntry()) != null) {
 
                 LOGGER.info("containerName : " + containerName + "    / ZipEntryName : " + zipEntry.getName());
-
+                isEmpty = false;
                 if (zipEntry.isDirectory()) {
                     continue;
                 }
 
                 final File tempFile = File.createTempFile(TMP_FOLDER, DOT + getExtensionFile(zipEntry.getName()));
                 // tempFile will be deleted on exit
+                // FIXME Si le temp file est absolument nécessaire, alors ne pas utiliser deleteOnExit mais un delete
+                // explicite (car sinon on remplit le filesystem jusqu'à la fin de la VM, hors plantage brutal)
                 tempFile.deleteOnExit();
                 final FileOutputStream fileOutputStream = new FileOutputStream(tempFile);
-
+                // FIXME should use zInputStream.closeEntry()
+                // FIXME Why use a copy of the stream ?
                 IOUtils.copy(zInputStream, fileOutputStream);
                 // put object on container Guid
-                
-                putObject(containerName, folderName + File.separator + zipEntry.getName(), new FileInputStream(tempFile));
-                
+
+                putObject(containerName, folderName + File.separator + zipEntry.getName(),
+                    new FileInputStream(tempFile));
+
                 // close outpuStram
                 fileOutputStream.close();
                 // exit && delete tempFile
+                // FIXME Si le temp file est absolument nécessaire, alors ne pas utiliser deleteOnExit mais un delete
+                // explicite (car sinon on remplit le filesystem jusqu'à la fin de la VM, hors plantage brutal)
                 tempFile.exists();
             }
             zInputStream.close();
 
+            if (isEmpty) {
+                throw new ContentAddressableStorageZipException("File is empty or not a zip file");
+            }
+        } catch (final ZipException e) {
+            LOGGER.error(e.getMessage());
+            throw new ContentAddressableStorageZipException(e);
         } catch (final IOException e) {
             LOGGER.error(e.getMessage());
             throw new ContentAddressableStorageException(e);
@@ -493,6 +502,43 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
 
     }
 
+
+    @Override
+    public JsonNode getObjectInformation(String containerName, String objectName)
+        throws ContentAddressableStorageException {
+        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            containerName, objectName);
+        ObjectNode jsonNodeObjectInformation = null;
+        try {
+            final BlobStore blobStore = context.getBlobStore();
+
+            if (!isExistingObject(containerName, objectName)) {
+                LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
+                throw new ContentAddressableStorageNotFoundException(
+                    ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
+            }
+            final Blob blob = blobStore.getBlob(containerName, objectName);
+            if (null != blob && null != blob.getMetadata()) {
+                Long size = blob.getMetadata().getSize();
+                jsonNodeObjectInformation = JsonHandler.createObjectNode();
+                jsonNodeObjectInformation.put("size", size);
+                jsonNodeObjectInformation.put("object_name", objectName);
+                jsonNodeObjectInformation.put("container_name", containerName);
+            }
+        } catch (final ContainerNotFoundException e) {
+            LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
+            throw new ContentAddressableStorageNotFoundException(e);
+        } catch (final ContentAddressableStorageNotFoundException e) {
+            LOGGER.error(e.getMessage());
+            throw e;
+        } catch (final Exception e) {
+            LOGGER.error(e.getMessage());
+            throw new ContentAddressableStorageException(e);
+        } finally {
+            context.close();
+        }
+        return jsonNodeObjectInformation;
+    }
 
     private String getExtensionFile(String name) {
 

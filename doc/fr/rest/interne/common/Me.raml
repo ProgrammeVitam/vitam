@@ -1,0 +1,14 @@
+# root endpoint request
+displayName: Me
+description: Donne des informations sur l'authentification et les autorisations courantes.
+type: base
+is: [ standardErrors ]
+get:
+  description: Donne des informations sur l'authentification et les autorisations courantes.
+  responses:
+    200:
+      description: Information du Profile de l'application front-office
+      body:
+        schema: profile
+        example: !include ../samples/me.sample
+    401:

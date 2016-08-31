@@ -27,17 +27,18 @@
 
 package fr.gouv.vitam.ihmdemo.core;
 
-import static fr.gouv.vitam.builder.request.construct.QueryHelper.and;
-import static fr.gouv.vitam.builder.request.construct.QueryHelper.*;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
 
 import java.util.Map;
 import java.util.Map.Entry;
 
-import fr.gouv.vitam.builder.request.construct.Select;
-import fr.gouv.vitam.builder.request.construct.Update;
-import fr.gouv.vitam.builder.request.construct.action.SetAction;
-import fr.gouv.vitam.builder.request.construct.query.BooleanQuery;
-import fr.gouv.vitam.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
+import fr.gouv.vitam.common.database.builder.query.action.SetAction;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.multiple.Select;
+import fr.gouv.vitam.common.database.builder.request.multiple.Update;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -72,7 +73,7 @@ public final class DslQueryHelper {
      */
     public static String createSingleQueryDSL(Map<String, String> searchCriteriaMap)
         throws InvalidParseOperationException, InvalidCreateOperationException {
-        final fr.gouv.vitam.builder.singlerequest.Select select = new fr.gouv.vitam.builder.singlerequest.Select();
+        final fr.gouv.vitam.common.database.builder.request.single.Select select = new fr.gouv.vitam.common.database.builder.request.single.Select();
         BooleanQuery query = and();
         for (Entry<String, String> entry : searchCriteriaMap.entrySet()) {
             String searchKeys = entry.getKey();
@@ -107,7 +108,7 @@ public final class DslQueryHelper {
         }
 
         select.setQuery(query);
-        LOGGER.error(select.getFinalSelect().toString());
+        LOGGER.info(select.getFinalSelect().toString());
         return select.getFinalSelect().toString();
     }
 

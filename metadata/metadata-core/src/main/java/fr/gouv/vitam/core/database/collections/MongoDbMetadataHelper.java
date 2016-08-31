@@ -46,9 +46,9 @@ import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 
 import fr.gouv.vitam.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.UPDATEACTION;
-import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.UPDATEACTIONARGS;
-import fr.gouv.vitam.core.database.collections.MongoDbAccess.VitamCollections;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTIONARGS;
 
 /**
  * MongoDb Helper for Metadata
@@ -57,9 +57,15 @@ public class MongoDbMetadataHelper {
     /**
      * Quick projection for ID Only
      */
-    public static final BasicDBObject ID_PROJECTION = new BasicDBObject(VitamDocument.ID, 1);
+    public static final BasicDBObject ID_PROJECTION = new BasicDBObject(MetadataDocument.ID, 1);
 
     protected static final String ADD_TO_SET = "$addToSet";
+
+    /**
+     * LRU Unit cache (limited to VITAM PROJECTION)
+     */
+    public static final UnitLRU LRU = new UnitLRU();
+    
 
     private MongoDbMetadataHelper() {
         // Empty constructor
@@ -68,28 +74,28 @@ public class MongoDbMetadataHelper {
     /**
      * Does not call getAfterLoad
      *
-     * @param collection (not results except if already hashed)
+     * @param metadataCollections (not results except if already hashed)
      * @param ref
-     * @return a VitamDocument generic object from ID = ref value
+     * @return a MetadataDocument generic object from ID = ref value
      */
     @SuppressWarnings("rawtypes")
-    public static final VitamDocument findOneNoAfterLoad(final VitamCollections collection, final String ref) {
-        return (VitamDocument<?>) collection.getCollection().find(eq(VitamDocument.ID, ref)).first();
+    public static final MetadataDocument findOneNoAfterLoad(final MetadataCollections metadataCollections, final String ref) {
+        return (MetadataDocument<?>) metadataCollections.getCollection().find(eq(MetadataDocument.ID, ref)).first();
     }
 
     /**
-     * Load a Document into VitamDocument<?>. Calls getAfterLoad
+     * Load a Document into MetadataDocument<?>. Calls getAfterLoad
      *
      * @param coll
      * @param obj
-     * @return the VitamDocument<?> casted object
+     * @return the MetadataDocument<?> casted object
      * @throws InstantiationException
      * @throws IllegalAccessException
      */
     @SuppressWarnings("rawtypes")
-    public static final VitamDocument loadFromDocument(final VitamCollections coll, final Document obj)
+    public static final MetadataDocument loadFromDocument(final MetadataCollections coll, final Document obj)
         throws InstantiationException, IllegalAccessException {
-        final VitamDocument<?> vt = (VitamDocument<?>) coll.getClasz().newInstance();
+        final MetadataDocument<?> vt = (MetadataDocument<?>) coll.getClasz().newInstance();
         vt.putAll(obj);
         vt.getAfterLoad();
         return vt;
@@ -101,12 +107,12 @@ public class MongoDbMetadataHelper {
      * @param col (not Results except if already hashed)
      * @param field
      * @param ref
-     * @return the VitamDocument casted object using field = ref
+     * @return the MetadataDocument casted object using field = ref
      */
     @SuppressWarnings("rawtypes")
-    public static final VitamDocument findOne(final VitamCollections col, final String field, final String ref) {
-        final VitamDocument<?> vitobj =
-            (VitamDocument<?>) col.getCollection().find(eq(field, ref)).first();
+    public static final MetadataDocument findOne(final MetadataCollections col, final String field, final String ref) {
+        final MetadataDocument<?> vitobj =
+            (MetadataDocument<?>) col.getCollection().find(eq(field, ref)).first();
         if (vitobj == null) {
             return null;
         } else {
@@ -120,14 +126,14 @@ public class MongoDbMetadataHelper {
      *
      * @param col (not results except if already hashed)
      * @param id
-     * @return the VitamDocument casted object using ID = id
+     * @return the MetadataDocument casted object using ID = id
      */
     @SuppressWarnings("rawtypes")
-    public static final VitamDocument findOne(final VitamCollections col, final String id) {
+    public static final MetadataDocument findOne(final MetadataCollections col, final String id) {
         if (id == null || id.length() == 0) {
             return null;
         }
-        return findOne(col, VitamDocument.ID, id);
+        return findOne(col, MetadataDocument.ID, id);
     }
 
     /**
@@ -135,13 +141,13 @@ public class MongoDbMetadataHelper {
      *
      * @param col
      * @param id
-     * @return True if one VitamDocument object exists with this id
+     * @return True if one MetadataDocument object exists with this id
      */
-    public static final boolean exists(final VitamCollections col, final String id) {
+    public static final boolean exists(final MetadataCollections col, final String id) {
         if (id == null || id.length() == 0) {
             return false;
         }
-        return col.getCollection().find(eq(VitamDocument.ID, id)).projection(MongoDbMetadataHelper.ID_PROJECTION)
+        return col.getCollection().find(eq(MetadataDocument.ID, id)).projection(MongoDbMetadataHelper.ID_PROJECTION)
             .first() != null;
     }
 
@@ -153,7 +159,7 @@ public class MongoDbMetadataHelper {
      * @param projection select condition
      * @return the FindIterable on the find request based on the given collection
      */
-    public static final FindIterable<?> select(final VitamCollections collection,
+    public static final FindIterable<?> select(final MetadataCollections collection,
         final Bson condition,
         final Bson projection) {
         if (projection != null) {
@@ -174,7 +180,7 @@ public class MongoDbMetadataHelper {
      * @param limit limit (0 for no limit)
      * @return the FindIterable on the find request based on the given collection
      */
-    public static final FindIterable<?> select(final VitamCollections collection,
+    public static final FindIterable<?> select(final MetadataCollections collection,
         final Bson condition, final Bson projection, final Bson orderBy,
         final int offset, final int limit) {
         FindIterable<?> find = collection.getCollection().find(condition).skip(offset);
@@ -198,7 +204,7 @@ public class MongoDbMetadataHelper {
      * @return the UpdateResult on the update request based on the given collection
      * @throws MetaDataExecutionException 
      */
-    public static final UpdateResult update(final VitamCollections collection,
+    public static final UpdateResult update(final MetadataCollections collection,
         final Bson condition, final Bson data, int nb) 
             throws MetaDataExecutionException {
         try {
@@ -219,7 +225,7 @@ public class MongoDbMetadataHelper {
      * @return the DeleteResult on the update request based on the given collection
      * @throws MetaDataExecutionException 
      */
-    public static final DeleteResult delete(final VitamCollections collection,
+    public static final DeleteResult delete(final MetadataCollections collection,
         final Bson condition, int nb) 
             throws MetaDataExecutionException {
         try {
@@ -239,8 +245,8 @@ public class MongoDbMetadataHelper {
      * @return the Filter condition to find if ancestorIds are ancestors of ObjectGroup targetIds
      */
     public static final Bson queryObjectGroupForAncestors(Set<String> targetIds, Set<String> ancestorIds) {
-        return Filters.and(Filters.in(VitamDocument.OG, targetIds),
-            Filters.or(Filters.in(VitamDocument.UP, ancestorIds), Filters.in(VitamDocument.ID, ancestorIds)));
+        return Filters.and(Filters.in(MetadataDocument.OG, targetIds),
+            Filters.or(Filters.in(MetadataDocument.UP, ancestorIds), Filters.in(MetadataDocument.ID, ancestorIds)));
     }
 
     /**
@@ -249,7 +255,7 @@ public class MongoDbMetadataHelper {
      * @return the Filter condition to find if ancestorIds are ancestors of targetIds
      */
     public static final Bson queryForAncestors(Set<String> targetIds, Set<String> ancestorIds) {
-        return Filters.and(Filters.in(VitamDocument.ID, targetIds), Filters.in(VitamDocument.UP, ancestorIds));
+        return Filters.and(Filters.in(MetadataDocument.ID, targetIds), Filters.in(MetadataDocument.UP, ancestorIds));
     }
 
     /**
@@ -263,8 +269,8 @@ public class MongoDbMetadataHelper {
         ancestorIds.remove("");
         final int size = ancestorIds.size();
         if (size > 0) {
-            return Filters.or(Filters.and(Filters.in(VitamDocument.ID, targetIds), Filters.in(VitamDocument.ID, ancestorIds)),
-                Filters.and(Filters.in(VitamDocument.ID, targetIds), Filters.in(VitamDocument.UP, ancestorIds)));
+            return Filters.or(Filters.and(Filters.in(MetadataDocument.ID, targetIds), Filters.in(MetadataDocument.ID, ancestorIds)),
+                Filters.and(Filters.in(MetadataDocument.ID, targetIds), Filters.in(MetadataDocument.UP, ancestorIds)));
         }
         return new BasicDBObject();
     }
@@ -280,9 +286,9 @@ public class MongoDbMetadataHelper {
      *         } or { field : value }
      */
     @SuppressWarnings("rawtypes")
-    protected static final BasicDBObject addLink(final VitamDocument obj1,
+    protected static final BasicDBObject addLink(final MetadataDocument obj1,
         final VitamLinks relation,
-        final VitamDocument obj2) {
+        final MetadataDocument obj2) {
         switch (relation.type) {
             case SYM_LINK_N1:
                 setAsymmetricLink(obj1, relation.field1to2, obj2);
@@ -305,8 +311,8 @@ public class MongoDbMetadataHelper {
      * @return the update part as { field : value }
      */
     @SuppressWarnings("rawtypes")
-    protected static final BasicDBObject updateLink(final VitamDocument obj1,
-        final VitamDocument vtReloaded,
+    protected static final BasicDBObject updateLink(final MetadataDocument obj1,
+        final MetadataDocument vtReloaded,
         final VitamLinks relation, final boolean src) {
         final String fieldname = src ? relation.field1to2 : relation.field2to1;
         if (vtReloaded != null) {
@@ -344,8 +350,8 @@ public class MongoDbMetadataHelper {
      * @return the update part as { field : {$each : [value] } }
      */
     @SuppressWarnings("rawtypes")
-    protected static final BasicDBObject updateLinkset(final VitamDocument obj1,
-        final VitamDocument vtReloaded,
+    protected static final BasicDBObject updateLinkset(final MetadataDocument obj1,
+        final MetadataDocument vtReloaded,
         final VitamLinks relation, final boolean src) {
         final String fieldname = src ? relation.field1to2 : relation.field2to1;
         if (vtReloaded != null) {
@@ -386,8 +392,8 @@ public class MongoDbMetadataHelper {
      */
     @SuppressWarnings("rawtypes")
     private static final BasicDBObject setAsymmetricLink( 
-        final VitamDocument obj1, final String obj1ToObj2,
-        final VitamDocument obj2) {
+        final MetadataDocument obj1, final String obj1ToObj2,
+        final MetadataDocument obj2) {
         final String refChild = obj2.getId();
         if (obj1.containsKey(obj1ToObj2) && obj1.get(obj1ToObj2).equals(refChild)) {
             return null;
@@ -406,9 +412,9 @@ public class MongoDbMetadataHelper {
      * @return a {@link BasicDBObject} for update as { $addToSet : { field : value } }
      */
     @SuppressWarnings("rawtypes")
-    private static final BasicDBObject addAsymmetricLinkset(final VitamDocument obj1,
+    private static final BasicDBObject addAsymmetricLinkset(final MetadataDocument obj1,
         final String obj1ToObj2,
-        final VitamDocument obj2, final boolean toUpdate) {
+        final MetadataDocument obj2, final boolean toUpdate) {
         @SuppressWarnings("unchecked")
         ArrayList<String> relation12 = (ArrayList<String>) obj1.get(obj1ToObj2);
         final String oid2 = obj2.getId();
@@ -430,4 +436,22 @@ public class MongoDbMetadataHelper {
             return null;
         }
     }
+    
+    /**
+     * @param type to use
+     * @return a new Result
+     */
+    public static Result createOneResult(FILTERARGS type) {
+        return new ResultDefault(type);
+    }
+
+    /**
+     * @param type
+     * @param set
+     * @return a new Result
+     */
+    public static Result createOneResult(FILTERARGS type, Set<String> set) {
+        return new ResultDefault(type, set);
+    }
+    
 }

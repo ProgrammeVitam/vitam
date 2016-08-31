@@ -27,7 +27,6 @@
 package fr.gouv.vitam.processing.common.utils;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
@@ -60,6 +59,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.client.MetaDataClient;
@@ -74,7 +74,9 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.WorkParams;
+import fr.gouv.vitam.processing.common.utils.SedaUtils.CheckSedaValidationStatus;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -143,25 +145,53 @@ public class SedaUtilsTest {
         assertEquals(utils.getUnitIdToGroupId().size(), 1);
     }
 
+    // TODO : Fix it bug on jenkins
     @Ignore
     @Test
-    public void givenGuidWhenXmlExistThenReturnTrue() throws Exception {
-        when(workspaceClient.getObject(params.getGuuid(), "SIP/manifest.xml")).thenReturn(seda);
+    public void givenGuidWhenXmlExistThenReturnValid() throws Exception {
+        when(workspaceClient.getObject(Mockito.anyObject(), Mockito.anyObject())).thenReturn(seda);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        utils = new SedaUtilsFactory().create(metadataFactory);
+        assertTrue(CheckSedaValidationStatus.VALID.equals(utils.checkSedaValidation(params)));
+    }
+
+    // TODO : Fix it bug on jenkins
+    @Ignore
+    @Test
+    public void givenGuidWhenXmlNotXMLThenReturnNotXmlFile() throws Exception {
+        final String str = "This is not an xml file";
+        final InputStream is = new ByteArrayInputStream(str.getBytes());
+        when(workspaceClient.getObject(Mockito.anyObject(), Mockito.anyObject())).thenReturn(is);
         PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
 
         utils = new SedaUtilsFactory().create(metadataFactory);
-        assertTrue(utils.checkSedaValidation(params));
+        CheckSedaValidationStatus status = utils.checkSedaValidation(params);
+        assertTrue(CheckSedaValidationStatus.NOT_XML_FILE.equals(status));
+    }
+
+    // TODO : Fix it bug on jenkins
+    @Ignore
+    @Test
+    public void givenGuidWhenXmlNotXMLThenReturnNotXsdValid() throws Exception {
+        final String str = "<invalidTag>This is an invalid Tag</invalidTag>";
+        final InputStream is = new ByteArrayInputStream(str.getBytes());
+        when(workspaceClient.getObject(Mockito.anyObject(), Mockito.anyObject())).thenReturn(is);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+
+        utils = new SedaUtilsFactory().create(metadataFactory);
+        CheckSedaValidationStatus status = utils.checkSedaValidation(params);
+        assertTrue(CheckSedaValidationStatus.NOT_XSD_VALID.equals(status));
     }
 
     @Test
-    public void givenGuidWhenXmlNotExistThenReturnFalse() throws Exception {
-        final String str = "";
-        final InputStream is = new ByteArrayInputStream(str.getBytes());
-        when(workspaceClient.getObject("XXX", "SIP/manifest.xml")).thenReturn(is);
+    public void givenGuidWhenXmlNotExistThenReturnNoFile() throws Exception {
+        when(workspaceClient.getObject(Mockito.anyObject(), Mockito.anyObject()))
+            .thenThrow(new ContentAddressableStorageNotFoundException(""));
         PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
 
         utils = new SedaUtilsFactory().create(metadataFactory);
-        assertFalse(utils.checkSedaValidation(params));
+        CheckSedaValidationStatus status = utils.checkSedaValidation(params);
+        assertTrue(CheckSedaValidationStatus.NO_FILE.equals(status));
     }
 
     @Test
@@ -361,7 +391,7 @@ public class SedaUtilsTest {
         assertTrue(archiveTree.get("ID029").has(SedaUtils.UP_FIELD));
         assertTrue(archiveTree.get("ID029").get(SedaUtils.UP_FIELD).isArray());
         assertTrue(archiveTree.get("ID029").get(SedaUtils.UP_FIELD).toString().contains("ID028"));
-        assertTrue(archiveTree.get("ID029").get(SedaUtils.UP_FIELD).toString().contains("ID032"));
+        assertTrue(archiveTree.get("ID029").get(SedaUtils.UP_FIELD).toString().contains("ID030"));
     }
 
     @Test
@@ -397,6 +427,65 @@ public class SedaUtilsTest {
 
         utils.retrieveStorageInformationForObjectGroup(paramsObjectGroups);
     }
+
+    @Test
+    public void givenCorrectObjectGroupWhenCheckStorageAvailabilityThenOK() throws Exception {
+        when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(seda);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        utils = new SedaUtilsFactory().create(metadataFactory);
+        long totalSize = utils.computeTotalSizeOfObjectsInManifest(params);
+        assertTrue(totalSize > 0);
+    }
+
+    @Test(expected = ProcessingException.class)
+    public void givenCorrectObjectGroupWhenCheckStorageAvailabilityThenKO() throws Exception {
+        when(workspaceClient.getObject(anyObject(), anyObject()))
+            .thenThrow(new ContentAddressableStorageNotFoundException(""));
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        utils = new SedaUtilsFactory().create(metadataFactory);
+        utils.computeTotalSizeOfObjectsInManifest(params);
+    }
+
+    @Test
+    public void givenCorrectSedaFileWhenCheckStorageAvailabilityThenOK() throws Exception {
+        when(workspaceClient.getObjectInformation(anyObject(), anyObject()))
+            .thenReturn(getSedaTest());
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        utils = new SedaUtilsFactory().create(metadataFactory);
+        long manifestSize = utils.getManifestSize(params);
+        assertTrue(manifestSize > 0);
+    }
+
+    @Test(expected = ProcessingException.class)
+    public void givenProblemWithSedaFileWhenCheckStorageAvailabilityThenKO() throws Exception {
+        when(workspaceClient.getObjectInformation(anyObject(), anyObject()))
+            .thenReturn(getSedaTestError());
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        utils = new SedaUtilsFactory().create(metadataFactory);
+        utils.getManifestSize(params);
+    }
+
+    private JsonNode getSedaTest() {
+        ObjectNode jsonNodeObjectInformation = JsonHandler.createObjectNode();
+        jsonNodeObjectInformation.put("size", new Long(1024));
+        jsonNodeObjectInformation.put("object_name", "objectName");
+        jsonNodeObjectInformation.put("container_name", "containerName");
+        return jsonNodeObjectInformation;
+    }
+
+    private JsonNode getSedaTestError() {
+        ObjectNode jsonNodeObjectInformation = JsonHandler.createObjectNode();
+        return jsonNodeObjectInformation;
+    }
+
+    /*
+     * @Test(expected = ProcessingException.class) public void
+     * givenCorrectObjectGroupWhenCheckStorageAvailabilityThenKO() throws Exception {
+     * when(workspaceClient.getObject(anyObject(), anyObject())) .thenThrow(new
+     * ContentAddressableStorageNotFoundException(""));
+     * PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient); utils = new
+     * SedaUtilsFactory().create(metadataFactory); utils.computeTotalSizeOfObjectsAndManifest(params); }
+     */
 
 
     // @Test

@@ -42,42 +42,81 @@ package fr.gouv.vitam.storage.driver.exception;
  */
 public class StorageDriverException extends Exception {
     private final String driverInfo;
+    private final ErrorCode errorCode;
 
     /**
      * Constructor with a message and additional info about the driver
      *
      * @param driverInfos information about the driver (id, name, version...)
+     * @param errorCode code representing the error
      * @param message a message to add
      */
-    public StorageDriverException(String driverInfos, String message) {
+    public StorageDriverException(String driverInfos, ErrorCode errorCode, String message) {
         super("An error occured for driver '" + driverInfos + "' with message :" + message);
         driverInfo = driverInfos;
+        this.errorCode = errorCode;
     }
 
     /**
      * Constructor with a message and an original exception and additional info about the driver
      *
      * @param driverInfos information about the driver (id, name, version...)
+     * @param errorCode code representing the error
      * @param message the exception message
      * @param cause the original exception
      */
-    public StorageDriverException(String driverInfos, String message, Throwable cause) {
+    public StorageDriverException(String driverInfos, ErrorCode errorCode, String message, Throwable cause) {
         super("An error occured for driver '" + driverInfos + "' with message :" + message, cause);
         driverInfo = driverInfos;
+        this.errorCode = errorCode;
     }
 
     /**
      * Constructor with an original exception and additional info about the driver
      *
      * @param driverInfos information about the driver (id, name, version...)
+     * @param errorCode code representing the error
      * @param cause the original exception
      */
-    public StorageDriverException(String driverInfos, Throwable cause) {
+    public StorageDriverException(String driverInfos, ErrorCode errorCode, Throwable cause) {
         super("An error occured for driver '" + driverInfos, cause);
         driverInfo = driverInfos;
+        this.errorCode = errorCode;
     }
 
+    /**
+     * Get the driverInfo
+     *
+     * @return driverInfo
+     */
     public String getDriverInfo() {
         return driverInfo;
+    }
+
+    /**
+     * Get error code
+     *
+     * @return the error code
+     */
+    public ErrorCode getErrorCode() {
+        return this.errorCode;
+    }
+
+    /**
+     * Enum representing exception error
+     */
+    public enum ErrorCode {
+        /**
+         * Not found code
+         */
+        NOT_FOUND,
+        /**
+         * Precondition failed code
+         */
+        PRECONDITION_FAILED,
+        /**
+         * Internal server error code
+         */
+        INTERNAL_SERVER_ERROR
     }
 }

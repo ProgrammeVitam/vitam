@@ -1,0 +1,40 @@
+{
+  "id": "id",
+  "verbose": false,
+  "preservation_ids": [ "preservation_id_1", "preservation_id_2" ],
+  "consolidated_transformation_during_ingest_id": "consolidated_transformation_id",
+  "ingest_accepted_format_ids": [ "format_id1", "format_id2" ],
+  "destruction_delay": 30,
+  "destruction_certificate": [
+    { "frequency": "0|0|0|0|1", "callback": "callback_uri" }
+  ],
+  "actors": [
+    { "user_id": "id_user_1", "protocol": "protocol_id_1", "set": [ "zip", "tar" ], "unitary": true },
+    { "user_id": "id_user_2", "protocol": "protocol_id_2", "unitary": true }
+  ],
+  "operations": [
+    { "step": "authent", "anomaly": 4, "callback": [ "callback_uri" ] },
+    { "step": "precheck", "anomaly": 4, "callback": [ "callback_uri" ] },
+    { "step": "transfer", "anomaly": 4, "callback": [ "callback_uri" ] },
+    { "step": "global_check", "anomaly": 4, "callback": [ "callback_uri" ] },
+    { "step": "object_check", "anomaly": 4, "callback": [ "callback_uri" ] },
+    { "step": "unit_check", "anomaly": 4, "callback": [ "callback_uri" ] },
+    { "step": "finalization", "anomaly": 4, "callback": [ "callback_uri", "callback_uri" ] },
+    { "step": "conservation", "anomaly": 4, "callback": [ "callback_uri" ] },
+    { "step": "end", "callback": [ "callback_uri", "callback_uri" ] }
+  ],
+  "defaul_operation": { "anomaly": 4, "callback": [ "callback_uri" ] },
+  "technical_md_id": "schema_id",
+  "technical_md_post_action_rules": [ "operations to do on technical metadata as adding info..." ],
+  "technical_md_pre_action_rules": [ "operations to do on technical metadata as adding info..." ],
+  "business_md_id": "schema_id",
+  "business_md_post_action_rules": [ "operations to do on business metadata as adding info..." ],
+  "business_md_pre_action_rules": [ "operations to do on business metadata as adding info..." ],
+  "management_md_id": "schema_id",
+  "management_md_post_action_rules": [ "operations to do on management metadata as adding info..." ],
+  "management_md_pre_action_rules": [ "operations to do on management metadata as adding info..." ],
+  "token_needed": false,
+  "frequency": "0|0|0|0|1",
+  "volume": { "min": 0, "max": 1234, "warning_up": 1000 },
+  "active": true
+}

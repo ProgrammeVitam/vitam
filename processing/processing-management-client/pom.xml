@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>processing</artifactId>
-		<version>0.6.0-SNAPSHOT</version>
+		<version>0.7.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>processing-management-client</artifactId>
 	<name>Processing Management Client</name>
@@ -15,18 +15,20 @@
 				<plugin>
 					<!-- Run the Junit unit tests in an isolated classloader and not Parallel. -->
 					<artifactId>maven-surefire-plugin</artifactId>
-					<version>2.19.1</version>
 					<configuration>
-						<argLine>-Xmx2048m -Dvitam.tmp.folder=/tmp ${coverageAgent}</argLine>
 						<parallel>classes</parallel>
 						<threadCount>1</threadCount>
 						<perCoreThreadCount>false</perCoreThreadCount>
 						<forkCount>1</forkCount>
-						<reuseForks>false</reuseForks>
+						<reuseForks>true</reuseForks>
+						<systemPropertyVariables>
+							<org.owasp.esapi.opsteam>AC001</org.owasp.esapi.opsteam>
+							<org.owasp.esapi.devteam>AC001</org.owasp.esapi.devteam>
+							<org.owasp.esapi.resources>../../common/common-private/src/main/resources/esapi</org.owasp.esapi.resources>
+						</systemPropertyVariables>
 					</configuration>
 				</plugin>
-			
-			</plugins>		
+			</plugins>
 		</pluginManagement>
 	</build>
 	<dependencies>
@@ -67,12 +69,9 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-all</artifactId>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.glassfish.jersey.test-framework.providers</groupId>

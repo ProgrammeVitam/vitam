@@ -26,7 +26,9 @@
  */
 package fr.gouv.vitam.workspace.client;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -55,6 +57,8 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.TestProperties;
 import org.junit.Test;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
@@ -127,6 +131,15 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
         @Consumes(MediaType.MULTIPART_FORM_DATA)
         @Produces(MediaType.APPLICATION_OCTET_STREAM)
         public Response get(@PathParam("containerName") String containerName,
+            @PathParam("objectName") String objectName) {
+            return expectedResponse.get();
+        }
+        
+        @Path("{containerName}/objects/{objectName}")
+        @GET
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getObjectInformation(@PathParam("containerName") String containerName,
             @PathParam("objectName") String objectName) {
             return expectedResponse.get();
         }
@@ -335,6 +348,40 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
         assertTrue(true);
     }
 
+    
+    // get information
+    @Test(expected = IllegalArgumentException.class)
+    public void givenNullParamWhenGetObjetctInformationThenRaiseAnException() throws Exception {
+        client.getObjectInformation(CONTAINER_NAME, null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void givenEmptyParamWhenGetObjectInformationThenRaiseAnException() throws Exception {
+        client.getObjectInformation(CONTAINER_NAME, "");
+    }
+
+    @Test(expected = ContentAddressableStorageServerException.class)
+    public void givenServerErrorWhenGetObjectInformationThenRaiseAnException() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        client.getObjectInformation(CONTAINER_NAME, OBJECT_NAME);
+    }
+
+    @Test(expected = ContentAddressableStorageNotFoundException.class)
+    public void givenObjectNotFoundWhenGetObjectInformationThenRaiseAnException() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        client.getObjectInformation(CONTAINER_NAME, OBJECT_NAME);
+    }
+
+    @Test
+    public void givenObjectAlreadyExistsWhenGetObjectInformationThenReturnInformation() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity("{\"size\" : \"1024\"}").build());
+        JsonNode jsonInfo = client.getObjectInformation(CONTAINER_NAME, OBJECT_NAME);
+        assertNotNull(jsonInfo);
+        assertNotNull(jsonInfo.get("size"));
+        assertEquals(1024, jsonInfo.get("size").asInt());
+    }
+    
+    
     private InputStream getInputStream(String file) {
         return Thread.currentThread().getContextClassLoader().getResourceAsStream("file1.pdf");
     }

@@ -2,11 +2,17 @@
 <html lang="en" ng-app="ihm.demo">
 <head>
   <meta charset="utf-8">
-  <title>Vitam Project</title>
+  <meta name=viewport content="width=device-width, initial-scale = 1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="format-detection" content="telephone=no">
+
+  <title>PROGRAMME VITAM</title>
+  <link rel="icon" type="image/png" href="favicon.png" />
   <link rel="stylesheet" href="css/app.css" />
-  <link rel="stylesheet" href="css/app.animations.css" />
-  <link rel="stylesheet" href="css/styles.css" />
+  <!-- <link rel="stylesheet" href="css/app.animations.css" /> -->
+
   <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="bower_components/bootstrap-material-design-icons/css/material-icons.css">
+  <link rel="stylesheet" href="css/styles.css" />
   <link rel="stylesheet" href="bower_components/angular-material/angular-material.min.css">
   <link rel="stylesheet" href="bower_components/v-accordion/dist/v-accordion.css" />
 
@@ -52,8 +58,109 @@
 
 </head>
 
-<body ng-controller='mainViewController'>
-  <!-- Menu -->
+<body  ng-controller='mainViewController'>
+
+    <!--
+    *
+    *    #GLOBAL
+    *
+    *    @desc: Main container
+    *
+    -->
+    <div id="global" class="container-fluid">
+
+        <!-- MAIN HEADER -->
+        <header id="mainHeader" class="navbar navbar-default navbar-fixed-top" ng-if="showMenuBar">
+
+            <div class="container-fluid">
+
+                <div class="navbar-header">
+                    <button class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a href="index.html" class="navbar-brand"><img class="logo img-responsive pull-left" src="images/logo.png" alt="Vitam" title="Vitam" />vitam</a>
+                </div>
+
+                <div id="navbar" class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav">
+                        <li class="@@mainMenu1 dropdown">
+                            <button class="block dropdown-toggle" data-toggle="dropdown">
+                                <i class="material-icons pull-left">cloud_queue</i>
+                                <span class="pull-left m-l-10">Entrée</span>
+                            </button>
+                            <ul class="dropdown-menu" role="menu" aria-labelledby="Entree">
+                                <li><a tabindex="-1" href="#!/uploadSIP">Transfert</a></li>
+                            </ul>
+                        </li>
+                        <li class="@@mainMenu2">
+                            <a href="#!/archiveSearch">
+                                <i class="material-icons pull-left">search</i>
+                                <span class="pull-left m-l-10">Recherche d'archives</span>
+                            </a>
+                        </li>
+                        <li class="@@mainMenu3 dropdown">
+                            <button class="block dropdown-toggle" data-toggle="dropdown">
+                                <i class="material-icons pull-left">access_time</i>
+                                <span class="pull-left m-l-10">Administration</span>
+                            </button>
+                            <ul class="dropdown-menu" role="menu" aria-labelledby="AdminFonctionnelle">
+                                <li><a href="#!/admin/logbookOperations">Journal des Opérations</a></li>
+                                <li><a href="#!/admin/logbookLifecycle">Journal de Cycles de vie</a></li>
+                                <li class="divider"></li>
+                                <li><a href="#!/admin/formats">Formats</a></li>
+                                <li><a href="#!/admin/managementrules">Règles de gestion</a></li>
+
+                            </ul>
+                        </li>
+                        <li class="@@mainMenu2">
+                            <a href="#!/importPronoun">
+                                <i class="material-icons pull-left">data_usage</i>
+                                <span class="pull-left m-l-10">Import du référentiel PRONOM</span>
+                            </a>
+                        </li>
+                    </ul>
+                    <!-- <ul class="nav navbar-nav navbar-right">
+                        <li><a href="#"><i class="material-icons">settings</i></a></li>
+                    </ul> -->
+                </div>
+
+            </div>
+
+        </header>
+        <!-- end MAIN HEADER -->
+
+        <!-- ////////////////////////////////////////////////////////////////////////////// -->
+
+        <!-- <ol class="breadcrumb">
+            <li><a href="#">Home</a></li>
+        </ol> -->
+
+        <div class="page-container" ng-if="showMenuBar">
+          <div ng-view class="page"></div>
+        </div>
+        <div class="view-container" ng-if="!showMenuBar">
+          <div ng-view class="view-frame"></div>
+        </div>
+
+        <!-- ////////////////////////////////////////////////////////////////////////////// -->
+
+        <!-- MAIN FOOTER -->
+        <footer class="mainFooter"></footer>
+        <!-- end MAIN FOOTER -->
+
+    </div>
+</body>
+
+
+
+
+
+
+<!-- <body ng-controller='mainViewController'>
+  Menu
   <md-toolbar class="md-menu-toolbar" ng-if="showMenuBar">
     <div layout="row">
       <md-toolbar-filler layout layout-align="center center">
@@ -71,13 +178,13 @@
     </div>
   </md-toolbar>
 
-  <!-- View -->
+  View
   <div class="page-container" ng-if="showMenuBar">
     <div ng-view class="page"></div>
   </div>
   <div class="view-container" ng-if="!showMenuBar">
     <div ng-view class="view-frame"></div>
   </div>
+</body> -->
 
-</body>
 </html>

@@ -1,0 +1,13 @@
+[Unit]
+Description=Storage Offer Default
+After=network.target
+After=syslog.target
+
+[Service]
+Type=simple
+ExecStart=/vitam/bin/${unix.name}/wrapper.sh
+User=${unix.user}
+Group=${unix.group}
+
+[Install]
+WantedBy=multi-user.target

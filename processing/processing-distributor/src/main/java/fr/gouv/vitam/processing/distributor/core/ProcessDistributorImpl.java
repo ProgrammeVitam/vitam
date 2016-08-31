@@ -46,6 +46,7 @@ import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.model.WorkParams;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
+import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.worker.api.Worker;
 import fr.gouv.vitam.processing.worker.core.WorkerImpl;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -59,7 +60,6 @@ public class ProcessDistributorImpl implements ProcessDistributor {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessDistributorImpl.class);
     private static final String ELAPSED_TIME_MESSAGE = "Total elapsed time in execution of method distribute is :";
     private static final String EXEC = "Exec";
-    private static final String ARCHIVE_UNIT_FOLDER = "Units";
     private static final String XML_EXTENSION = ".xml";
     private static final String EXCEPTION_MESSAGE =
         "runtime exceptions thrown by the Process distributor during runnig...";
@@ -98,9 +98,11 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         final long time = System.currentTimeMillis();
         final EngineResponse errorResponse = new ProcessResponse();
         errorResponse.setStatus(StatusCode.FATAL);
-        final List<EngineResponse> responses = new ArrayList<>();
+        final List<EngineResponse> responses = new ArrayList<>(); 
+        String processId = (String) workParams.getAdditionalProperties().get(WorkParams.PROCESS_ID);
+        String uniqueStepId = (String) workParams.getAdditionalProperties().get(WorkParams.STEP_ID);
         try {
-
+            
             if (step.getDistribution().getKind().equals(DistributionKind.LIST)) {
                 final WorkspaceClient workspaceClient =
                     WorkspaceClientFactory.create(workParams.getServerConfiguration().getUrlWorkspace());
@@ -137,48 +139,55 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 if (objectsList == null || objectsList.isEmpty()) {
                     responses.add(errorResponse);
                 } else {
+                    //update the number of element to process                    
+                    ProcessMonitoringImpl.getInstance().updateStep(processId, uniqueStepId, objectsList.size(), false);
                     for (final URI objectUri : objectsList) {
                         if (availableWorkers.isEmpty()) {
                             LOGGER.info(errorResponse.getStatus().toString());
                             responses.add(errorResponse);
                             break;
-                        } else {
+                        } else {                            
                             // TODO distribution Management
                             responses.addAll(workers.get(0).run(workParams.setObjectName(objectUri.getPath()), step));
+                            //update the number of processed element
+                            ProcessMonitoringImpl.getInstance().updateStep(processId, uniqueStepId, 0, true);                            
                         }
                     }
                 }
             } else {
+                //update the number of element to process
+                ProcessMonitoringImpl.getInstance().updateStep(processId, uniqueStepId, 1, false);
                 if (availableWorkers.isEmpty()) {
                     LOGGER.info(errorResponse.getStatus().toString());
                     responses.add(errorResponse);
-                } else {
+                } else {                    
                     responses.addAll(
                         workers.get(0).run(workParams.setObjectName(step.getDistribution().getElement()), step));
+                    //update the number of processed element
+                    ProcessMonitoringImpl.getInstance().updateStep(processId, uniqueStepId, 0, true);
                 }
             }
 
-
         } catch (final IllegalArgumentException e) {
             responses.add(errorResponse);
-            LOGGER.error(e.getMessage());
+            LOGGER.error("Illegal Argument Exception", e);
         } catch (final HandlerNotFoundException e) {
             responses.add(errorResponse);
-            LOGGER.error(e.getMessage());
+            LOGGER.error("Handler Not Found Exception", e);
 
         } catch (final Exception e) {
             responses.add(errorResponse);
             LOGGER.error(EXCEPTION_MESSAGE, e);
         } finally {
             LOGGER.info(ELAPSED_TIME_MESSAGE + (System.currentTimeMillis() - time) / 1000 + "s /stepName :" +
-                getSaftyStepName(step) + "Status: " + responses.toString() + "/workflowId :" + workflowId);
+                getSafetyStepName(step) + "Status: " + responses.toString() + "/workflowId :" + workflowId);
         }
 
         return responses;
     }
 
 
-    private String getSaftyStepName(Step step) {
+    private String getSafetyStepName(Step step) {
 
         if (step == null || step.getStepName() == null) {
             return "";

@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
- 
+
 'use strict';
 
 angular.
@@ -50,6 +50,18 @@ angular.
 	      when('/archiveunit/:archiveId', {
 	    	  template: '<archive-unit></archive-unit>'
 	      }).
+	      when('/admin/logbookOperations', {
+	          template: '<logbook-operations></logbook-operations>'
+	      }).
+        when('/admin/formats', {
+            template: '<file-format></file-format>'
+        }).
+        when('/admin/logbookLifecycle', {
+            templateUrl:  "views/in-progress.html"
+        }).
+        when('/admin/managementrules', {
+              templateUrl:  "views/in-progress.html"
+        }).
 	      otherwise('/uploadSIP');
     }
   ]);

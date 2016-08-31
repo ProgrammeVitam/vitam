@@ -63,13 +63,13 @@ public class ValidationXsdUtils {
     private Schema schema;
 
     /**
-     * @param xmlFile
-     * @param xsdFile
-     * @return true(if XSD validate the file XML), false(if not)
-     * @throws FileNotFoundException
-     * @throws XMLStreamException
-     * @throws SAXException
-     * @throws IOException
+     * @param xmlFile the file to validate
+     * @param xsdFile the xsd schema to validate with the file
+     * @return true(if XSD validate the file XML)
+     * @throws FileNotFoundException if the file is not found
+     * @throws XMLStreamException if it couldnt create an xml stream reader
+     * @throws SAXException if the file is not valid with the XSD, or the file is not an xml file
+     * @throws IOException if the schema file could not be found
      */
     public boolean checkWithXSD(InputStream xmlFile, String xsdFile)
         throws SAXException, IOException, XMLStreamException {

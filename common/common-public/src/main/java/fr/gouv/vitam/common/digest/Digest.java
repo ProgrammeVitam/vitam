@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -331,6 +332,15 @@ public class Digest {
         }
     }
 
+    /**
+     * Will update the Digest while the returned InputStream will be read
+     * @param inputStream from which the data to digest will be done
+     * @return the new InputStream to use instead of the given one as parameter
+     */
+    public InputStream getDigestInputStream(InputStream inputStream) {
+        return new DigestInputStream(inputStream, messageDigest);
+    }
+    
     /**
      * Reset the DigestLight
      *

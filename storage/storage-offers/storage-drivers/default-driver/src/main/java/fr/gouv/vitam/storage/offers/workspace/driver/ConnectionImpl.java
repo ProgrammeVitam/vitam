@@ -43,6 +43,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 
+import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
@@ -63,12 +64,16 @@ import fr.gouv.vitam.storage.driver.model.PutObjectRequest;
 import fr.gouv.vitam.storage.driver.model.PutObjectResult;
 import fr.gouv.vitam.storage.driver.model.RemoveObjectRequest;
 import fr.gouv.vitam.storage.driver.model.RemoveObjectResult;
+import fr.gouv.vitam.storage.driver.model.StorageCapacityRequest;
+import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
+import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 
 /**
  * Workspace Connection Implementation
  */
+// TODO: always close javax.ws.rs.core.Response (because can make problems)
 public class ConnectionImpl implements Connection {
 
 
@@ -78,7 +83,7 @@ public class ConnectionImpl implements Connection {
     private static final String RESOURCE_PATH = "/offer/v1";
     private static final String STATUS_PATH = "/status";
     private static final String OBJECTS_PATH = "/objects";
-    private static final int CHUNK_SIZE = 1024;
+    private static final int CHUNK_SIZE = 1024 * 1024;
 
     private static final String INTERNAL_SERVER_ERROR =
         "Internal Server Error, could not connect to the distant offer service.";
@@ -106,22 +111,80 @@ public class ConnectionImpl implements Connection {
         final ClientConfig config = new ClientConfig();
         config.register(JacksonJsonProvider.class);
         config.register(JacksonFeature.class);
+        // TODO: multipart ?
         config.register(MultiPartFeature.class);
         client = ClientBuilder.newClient(config);
     }
 
     @Override
-    public long getStorageRemainingCapacity() throws StorageDriverException {
-        throw new UnsupportedOperationException(NOT_YET_IMPLEMENTED);
+    public StorageCapacityResult getStorageCapacity(StorageCapacityRequest request) throws StorageDriverException {
+        ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
+        ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
+        Response response = null;
+        try {
+            response = getClient().target(getServiceUrl()).path(OBJECTS_PATH).request(MediaType.APPLICATION_JSON)
+                .header(GlobalDataRest.X_TENANT_ID, request.getTenantId()).method(HttpMethod.GET);
+            if (Response.Status.OK.getStatusCode() == response.getStatus()) {
+                StorageCapacityResult storageCapacityResult =
+                    handleResponseStatus(response, StorageCapacityResult.class);
+                return storageCapacityResult;
+            }
+            throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
+                response.getStatusInfo().getReasonPhrase());
+        } finally {
+            Optional.ofNullable(response).ifPresent(Response::close);
+        }
     }
 
     @Override
     public GetObjectResult getObject(GetObjectRequest request) throws StorageDriverException {
-        throw new UnsupportedOperationException(NOT_YET_IMPLEMENTED);
+        ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
+        ParametersChecker.checkParameter(GUID_IS_A_MANDATORY_PARAMETER, request.getGuid());
+        ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
+        Response response = null;
+        InputStream stream;
+        try {
+            response =
+                getClient().target(getServiceUrl()).path(OBJECTS_PATH + "/" + request.getGuid()).request()
+                    .header(VitamHttpHeader.TENANT_ID.getName(), request.getTenantId())
+                    .accept(MediaType.APPLICATION_OCTET_STREAM).method(HttpMethod.GET);
+
+            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case OK:
+                    // TODO : this is ugly but necessarily in order to close the response and avoid concurrent issues
+                    // to be improved (https://jersey.java.net/documentation/latest/client.html#d0e5170) and
+                    // remove the IOUtils.toByteArray after correction of concurrent problem
+                    InputStream streamClosedAutomatically = response.readEntity(InputStream.class);
+                    try {
+                        stream = new ByteArrayInputStream(IOUtils.toByteArray(streamClosedAutomatically));
+                    } catch (IOException e) {
+                        LOGGER.error(e);
+                        throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.NOT_FOUND,
+                            e.getMessage());
+                    }
+                    GetObjectResult result = new GetObjectResult();
+                    result.setObject(stream);
+                    return result;
+                case NOT_FOUND:
+                    throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.NOT_FOUND, "Object " +
+                        "not found");
+                case PRECONDITION_FAILED:
+                    throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.PRECONDITION_FAILED,
+                        "Precondition failed");
+                default:
+                    LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
+                    throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
+                        INTERNAL_SERVER_ERROR);
+            }
+        } finally {
+            Optional.ofNullable(response).ifPresent(Response::close);
+        }
     }
 
     @Override
     public PutObjectResult putObject(PutObjectRequest request) throws StorageDriverException {
+        Response response = null;
         try {
             ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
             ParametersChecker.checkParameter(GUID_IS_A_MANDATORY_PARAMETER, request.getGuid());
@@ -134,7 +197,7 @@ public class ConnectionImpl implements Connection {
             ObjectInit objectInit = new ObjectInit();
             objectInit.setDigestAlgorithm(DigestType.fromValue(request.getDigestAlgorithm()));
 
-            Response response =
+            response =
                 getClient().target(getServiceUrl()).path(OBJECTS_PATH + "/" + request.getGuid())
                     .request(MediaType.APPLICATION_JSON)
                     .headers(getDefaultHeaders(request.getTenantId(), StorageConstants.COMMAND_INIT))
@@ -144,7 +207,10 @@ public class ConnectionImpl implements Connection {
                 performPutRequests(request.getTenantId(), stream, handleResponseStatus(response, ObjectInit.class));
             return finalResult;
         } catch (IllegalArgumentException exc) {
-            throw new StorageDriverException(driverName, exc.getMessage());
+            throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.PRECONDITION_FAILED, exc
+                .getMessage());
+        } finally {
+            Optional.ofNullable(response).ifPresent(Response::close);
         }
     }
 
@@ -167,11 +233,12 @@ public class ConnectionImpl implements Connection {
     public Response getStatus() throws StorageDriverException {
         Response response = null;
         try {
-            response = client.target(serviceUrl).path(STATUS_PATH).request().get();
+            response = getClient().target(serviceUrl).path(STATUS_PATH).request().get();
             if (Response.Status.OK.getStatusCode() == response.getStatus()) {
                 return response;
             } else {
-                throw new StorageDriverException(driverName, INTERNAL_SERVER_ERROR);
+                throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
+                    INTERNAL_SERVER_ERROR);
             }
         } finally {
             Optional.ofNullable(response).ifPresent(Response::close);
@@ -204,7 +271,6 @@ public class ConnectionImpl implements Connection {
         return client;
     }
 
-
     /**
      * Common method to handle response status
      * 
@@ -219,14 +285,22 @@ public class ConnectionImpl implements Connection {
         final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
         switch (status) {
             case CREATED:
+            case OK:
                 return response.readEntity(responseType);
             case INTERNAL_SERVER_ERROR:
-                throw new StorageDriverException(driverName, status.getReasonPhrase());
+                throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
+                    status.getReasonPhrase());
             case NOT_FOUND:
-                throw new StorageDriverException(driverName, status.getReasonPhrase());
+                // TODO: make a *NotFoundException for this case
+                throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.NOT_FOUND, status
+                    .getReasonPhrase());
+            case SERVICE_UNAVAILABLE:
+                throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.NOT_FOUND, status
+                    .getReasonPhrase());
             default:
                 LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
-                throw new StorageDriverException(driverName, INTERNAL_SERVER_ERROR);
+                throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
+                    INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -274,16 +348,21 @@ public class ConnectionImpl implements Connection {
                     bb.get(bytes, 0, read);
                     Entity<InputStream> entity =
                         Entity.entity(new ByteArrayInputStream(bytes), MediaType.APPLICATION_OCTET_STREAM);
-                    // As it's the end of the file, END command is sent
-                    Response response =
-                        getClient().target(getServiceUrl()).path(OBJECTS_PATH + "/" + result.getId())
-                            .request(MediaType.APPLICATION_OCTET_STREAM)
-                            .headers(getDefaultHeaders(tenantId, StorageConstants.COMMAND_END))
-                            .accept(MediaType.APPLICATION_JSON).method(HttpMethod.PUT, entity);
-                    JsonNode json = handleResponseStatus(response, JsonNode.class);
-                    finalResult = new PutObjectResult();
-                    finalResult.setDigestHashBase16(json.get("digest").textValue());
-                    finalResult.setDistantObjectId(result.getId());
+                    Response response = null;
+                    try {
+                        // As it's the end of the file, END command is sent
+                        response =
+                            getClient().target(getServiceUrl()).path(OBJECTS_PATH + "/" + result.getId())
+                                .request(MediaType.APPLICATION_OCTET_STREAM)
+                                .headers(getDefaultHeaders(tenantId, StorageConstants.COMMAND_END))
+                                .accept(MediaType.APPLICATION_JSON).method(HttpMethod.PUT, entity);
+                        JsonNode json = handleResponseStatus(response, JsonNode.class);
+                        finalResult = new PutObjectResult();
+                        finalResult.setDigestHashBase16(json.get("digest").textValue());
+                        finalResult.setDistantObjectId(result.getId());
+                    } finally {
+                        Optional.ofNullable(response).ifPresent(Response::close);
+                    }
                 } else {
                     bytes = bb.array();
                     Entity<InputStream> entity =

@@ -30,9 +30,11 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
+import fr.gouv.vitam.processing.common.model.OutcomeMessage;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.model.WorkParams;
@@ -82,10 +84,17 @@ public class IndexUnitActionHandler extends ActionHandler {
             response.setStatus(StatusCode.FATAL);
         }
 
-        LOGGER.info("IndexUnitActionHandler response: " + response.getStatus().value());
+        LOGGER.info("IndexUnitActionHandler response: " + response.getStatus().name());
 
         // Update lifeCycle
         try {
+            if (response.getStatus().equals(StatusCode.FATAL)) {
+                logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                    OutcomeMessage.INDEX_UNIT_KO.value());
+            } else {
+                logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                    OutcomeMessage.INDEX_UNIT_OK.value());
+            }
             sedaUtils.setLifeCycleFinalEventStatusByStep(logbookLifecycleUnitParameters, response.getStatus());
         } catch (ProcessingException e) {
             response.setStatus(StatusCode.WARNING);

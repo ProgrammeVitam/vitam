@@ -27,6 +27,7 @@
 package fr.gouv.vitam.processing.worker.handler;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.io.FilenameUtils;
 
@@ -38,7 +39,6 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
@@ -66,7 +66,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IndexObjectGroupActionHandler.class);
 
     private static final String HANDLER_ID = "StoreObjectGroup";
-    private static final String OG_LIFE_CYCLE_STORE_BDO_EVENT_TYPE = "STORE_BDO";
+    private static final String OG_LIFE_CYCLE_STORE_BDO_EVENT_TYPE = "Stockage des groupes d'objets - Stockage d'objet";
     private static final String SIP = "SIP/";
 
     private final SedaUtilsFactory sedaUtilsFactory;
@@ -76,7 +76,6 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
     private static final StorageClient STORAGE_CLIENT = StorageClientFactory.getInstance().getStorageClient();
     private static final LogbookLifeCycleClient LOGBOOK_LIFECYCLE_CLIENT = LogbookLifeCyclesClientFactory.getInstance()
         .getLogbookLifeCyclesClient();
-    LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters();
 
     private static final String DEFAULT_TENANT = "0";
     private static final String DEFAULT_STRATEGY = "default";
@@ -84,8 +83,10 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
     private static final String LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG = "LogbookClient Unsupported request";
     private static final String LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG = "Logbook LifeCycle resource not found";
     private static final String LOGBOOK_SERVER_INTERNAL_EXCEPTION_MSG = "Logbook Server internal error";
+    private static final String LOGBOOK_LF_STORAGE_MSG = "Stockage des objets";
     private static final String LOGBOOK_LF_STORAGE_OK_MSG = "Stockage des objets réalisé avec succès";
     private static final String LOGBOOK_LF_STORAGE_KO_MSG = "Stockage des objets en erreur";
+    private static final String LOGBOOK_LF_STORAGE_BDO_MSG = "Stockage de l'objet";
     private static final String LOGBOOK_LF_STORAGE_BDO_KO_MSG = "Stockage de l'objet en erreur";
 
     /**
@@ -121,9 +122,10 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
             updateLifeCycleParametersLogbookByStep(params, SedaUtils.LIFE_CYCLE_EVENT_TYPE_PROCESS);
             updateLifeCycle();
 
-            List<BinaryObjectInfo> storageObjectInfos = sedaUtils.retrieveStorageInformationForObjectGroup(params);
-            for (BinaryObjectInfo storageObjectInfo : storageObjectInfos) {
-                storeObject(params, storageObjectInfo);
+            Map<String, BinaryObjectInfo> storageObjectInfos = sedaUtils.retrieveStorageInformationForObjectGroup
+                (params);
+            for (Map.Entry<String, BinaryObjectInfo> storageObjectInfo : storageObjectInfos.entrySet()) {
+                storeObject(params, storageObjectInfo.getKey(), storageObjectInfo.getValue());
             }
         } catch (final ProcessingException e) {
             LOGGER.error(e);
@@ -136,9 +138,13 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcome,
                 response.getStatus().toString());
             if (StatusCode.OK.equals(response.getStatus())) {
+                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
+                    LogbookOutcome.OK.name());
                 logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                     LOGBOOK_LF_STORAGE_OK_MSG);
             } else {
+                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
+                    LogbookOutcome.KO.name());
                 logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                     LOGBOOK_LF_STORAGE_KO_MSG);
             }
@@ -150,7 +156,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
             }
         }
 
-        LOGGER.info("StoreObjectGroupActionHandler response: " + response.getStatus().value());
+        LOGGER.info("StoreObjectGroupActionHandler response: " + response.getStatus().name());
         return response;
     }
 
@@ -158,11 +164,13 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
      * Store a binary data object with the storage engine.
      * 
      * @param params worker parameters
+     * @param objectGUID the object guid
      * @param storageObjectInfo informations on the binary data object needed by the storage engine
      * @throws ProcessingException throws when error occurs
      */
-    private void storeObject(WorkParams params, BinaryObjectInfo storageObjectInfo)
+    private void storeObject(WorkParams params, String objectGUID, BinaryObjectInfo storageObjectInfo)
         throws ProcessingException {
+        LOGGER.debug("Storing object with guid: " + objectGUID);
         try {
             // update lifecycle of objectGroup with detail of object : STARTED
             updateLifeCycleParametersLogbookForBdo(params, storageObjectInfo.getId());
@@ -174,10 +182,12 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
             description.setWorkspaceObjectURI(SIP + storageObjectInfo.getUri().toString());
             StoredInfoResult result =
                 STORAGE_CLIENT.storeFileFromWorkspace(DEFAULT_TENANT, DEFAULT_STRATEGY, StorageCollectionType.OBJECTS,
-                    storageObjectInfo.getMessageDigest(), description);
+                    objectGUID, description);
 
             // update lifecycle of objectGroup with detail of object : OK
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcome,
+                StatusCode.OK.toString());
+            logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
                 StatusCode.OK.toString());
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 result.getInfo());
@@ -186,6 +196,8 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
             LOGGER.error(e);
             // update lifecycle of objectGroup with detail of object : KO
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcome,
+                StatusCode.KO.toString());
+            logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
                 StatusCode.KO.toString());
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 LOGBOOK_LF_STORAGE_BDO_KO_MSG);
@@ -239,7 +251,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
             LogbookOutcome.STARTED.toString());
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-            LogbookOutcome.STARTED.toString());
+            LOGBOOK_LF_STORAGE_MSG);
     }
 
     /**
@@ -261,7 +273,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
             LogbookOutcome.STARTED.toString());
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-            LogbookOutcome.STARTED.toString());
+            LOGBOOK_LF_STORAGE_BDO_MSG);
     }
 
 }

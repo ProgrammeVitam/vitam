@@ -1,0 +1,7 @@
+{
+    "task_status": "commit",
+    "callback": {
+        "uri":  "https://client_domain/callback?id={id}&status={status}",
+        "method": "GET"
+    }
+}

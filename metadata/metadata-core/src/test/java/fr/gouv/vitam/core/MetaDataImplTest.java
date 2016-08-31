@@ -23,12 +23,20 @@
  *******************************************************************************/
 package fr.gouv.vitam.core;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.core.database.collections.ObjectGroup;
+import fr.gouv.vitam.core.database.collections.Result;
+import fr.gouv.vitam.core.database.collections.ResultDefault;
 import org.bson.BsonDocument;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -40,22 +48,25 @@ import fr.gouv.vitam.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.builder.request.construct.configuration.ParserTokens.FILTERARGS;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
+import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.core.database.collections.DbRequest;
 import fr.gouv.vitam.core.database.collections.ResultError;
-import fr.gouv.vitam.parser.request.parser.GlobalDatasParser;
 
 public class MetaDataImplTest {
 
     private MetaDataImpl metaDataImpl;
     private DbRequest request;
     private DbRequestFactory dbRequestFactory;
-    private MongoDbAccessFactory mongoDbAccessFactory;
+    private MongoDbAccessMetadataFactory mongoDbAccessFactory;
 
     // TODO REVIEW UPPERCASE
     private static final String dataInsert = "{ \"data\": \"test\" }";
+
+    private static final String SAMPLE_OBJECTGROUP_FILENAME = "sample_objectGroup_document.json";
+    private static JsonNode sampleObjectGroup;
 
     private static final String QUERY =
         "{ \"$queries\": [{ \"$path\": \"aaaaa\" }],\"$filter\": { },\"$projection\": {}}";
@@ -94,10 +105,15 @@ public class MetaDataImplTest {
         return sb.toString();
     }
 
+    @BeforeClass
+    public static void loadStaticResources() throws Exception {
+        sampleObjectGroup = JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_OBJECTGROUP_FILENAME));
+    }
+
     @Before
     public void setUp() throws Exception {
         request = mock(DbRequest.class);
-        mongoDbAccessFactory = mock(MongoDbAccessFactory.class);
+        mongoDbAccessFactory = mock(MongoDbAccessMetadataFactory.class);
         dbRequestFactory = mock(DbRequestFactory.class);
         when(dbRequestFactory.create()).thenReturn(request);
         when(mongoDbAccessFactory.create(null)).thenReturn(null);
@@ -342,4 +358,20 @@ public class MetaDataImplTest {
         metaDataImpl.updateUnitbyId(QUERY, "unitId");
     }
 
+    @Test
+    public void testSelectObjectGroupById() throws Exception {
+        Result result = new ResultDefault(FILTERARGS.OBJECTGROUPS);
+        result.addId("ogId");
+        result.setNbResult(1);
+        result.addFinal(new ObjectGroup(sampleObjectGroup));
+        when(request.execRequest(anyObject(), anyObject())).thenReturn(result);
+        metaDataImpl = new MetaDataImpl(null, mongoDbAccessFactory, dbRequestFactory);
+        JsonNode jsonNode = metaDataImpl.selectObjectGroupById(QUERY, "ogId");
+        ArrayNode resultArray = (ArrayNode) jsonNode.get("$result");
+        assertEquals(1,resultArray.size());
+        ObjectNode objectGroupDocument = (ObjectNode) resultArray.get(0);
+        String resultedObjectGroup = JsonHandler.unprettyPrint(objectGroupDocument);
+        String expectedObjectGroup = JsonHandler.unprettyPrint(sampleObjectGroup);
+        assertEquals(expectedObjectGroup, resultedObjectGroup);
+    }
 }

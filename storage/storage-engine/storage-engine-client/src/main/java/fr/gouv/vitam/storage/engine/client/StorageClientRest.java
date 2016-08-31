@@ -27,6 +27,9 @@
 
 package fr.gouv.vitam.storage.engine.client;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Optional;
 
 import javax.ws.rs.HttpMethod;
@@ -35,6 +38,8 @@ import javax.ws.rs.client.Invocation;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
+
+import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -46,6 +51,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 
@@ -77,7 +83,7 @@ class StorageClientRest extends AbstractClient implements StorageClient {
     }
 
     @Override
-    public JsonNode getStorageInfos(String tenantId, String strategyId)
+    public JsonNode getStorageInformation(String tenantId, String strategyId)
         throws StorageNotFoundClientException, StorageServerClientException {
         ParametersChecker.checkParameter(TENANT_ID_MUST_HAVE_A_VALID_VALUE, tenantId);
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
@@ -133,6 +139,7 @@ class StorageClientRest extends AbstractClient implements StorageClient {
             ParametersChecker.checkParameter(OBJECT_DESCRIPTION_URI_MUST_HAVE_A_VALID_VALUE,
                 description.getWorkspaceObjectURI());
         }
+        // FIXME tout enregistrement est un flux donc test à supprimer
         if (!StorageCollectionType.OBJECTS.equals(type)) {
             throw new IllegalArgumentException("Type of storage object cannot be " + type.getCollectionName());
         }
@@ -152,8 +159,13 @@ class StorageClientRest extends AbstractClient implements StorageClient {
     public boolean existsContainer(String tenantId, String strategyId) throws StorageServerClientException {
         ParametersChecker.checkParameter(TENANT_ID_MUST_HAVE_A_VALID_VALUE, tenantId);
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
-        return notContentResponseToBoolean(
-            handleNoContentResponseStatus(performHeadRequest("/", getDefaultHeaders(tenantId, strategyId))));
+        Response response = null;
+        try {
+            response = performHeadRequest("/", getDefaultHeaders(tenantId, strategyId));
+            return notContentResponseToBoolean(handleNoContentResponseStatus(response));
+        } finally {
+            Optional.ofNullable(response).ifPresent(Response::close);
+        }
     }
 
     @Override
@@ -166,8 +178,14 @@ class StorageClientRest extends AbstractClient implements StorageClient {
         if (StorageCollectionType.CONTAINERS.equals(type)) {
             throw new IllegalArgumentException("Type of storage object cannot be " + type.getCollectionName());
         }
-        return notContentResponseToBoolean(handleNoContentResponseStatus(
-            performHeadRequest("/" + type.getCollectionName() + "/" + guid, getDefaultHeaders(tenantId, strategyId))));
+        Response response = null;
+        try {
+            response = performHeadRequest("/" + type.getCollectionName() + "/" + guid,
+                getDefaultHeaders(tenantId, strategyId));
+            return notContentResponseToBoolean(handleNoContentResponseStatus(response));
+        } finally {
+            Optional.ofNullable(response).ifPresent(Response::close);
+        }
     }
 
 
@@ -175,8 +193,13 @@ class StorageClientRest extends AbstractClient implements StorageClient {
     public boolean deleteContainer(String tenantId, String strategyId) throws StorageServerClientException {
         ParametersChecker.checkParameter(TENANT_ID_MUST_HAVE_A_VALID_VALUE, tenantId);
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
-        return notContentResponseToBoolean(
-            handleNoContentResponseStatus(performDeleteRequest("/", getDefaultHeaders(tenantId, strategyId))));
+        Response response = null;
+        try {
+            response = performDeleteRequest("/", getDefaultHeaders(tenantId, strategyId));
+            return notContentResponseToBoolean(handleNoContentResponseStatus(response));
+        } finally {
+            Optional.ofNullable(response).ifPresent(Response::close);
+        }
     }
 
     @Override
@@ -189,9 +212,14 @@ class StorageClientRest extends AbstractClient implements StorageClient {
         if (StorageCollectionType.CONTAINERS.equals(type)) {
             throw new IllegalArgumentException("Type of storage object cannot be " + type.getCollectionName());
         }
-        return notContentResponseToBoolean(handleNoContentResponseStatus(
-            performDeleteRequest("/" + type.getCollectionName() + "/" + guid,
-                getDefaultHeaders(tenantId, strategyId))));
+        Response response = null;
+        try {
+            response = performDeleteRequest("/" + type.getCollectionName() + "/" + guid,
+                getDefaultHeaders(tenantId, strategyId));
+            return notContentResponseToBoolean(handleNoContentResponseStatus(response));
+        } finally {
+            Optional.ofNullable(response).ifPresent(Response::close);
+        }
     }
 
     /**
@@ -277,6 +305,7 @@ class StorageClientRest extends AbstractClient implements StorageClient {
                 LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
                 throw new StorageServerClientException(INTERNAL_SERVER_ERROR);
         }
+
     }
 
 
@@ -306,10 +335,51 @@ class StorageClientRest extends AbstractClient implements StorageClient {
             case OK:
                 return response.readEntity(responseType);
             case NOT_FOUND:
+                // No space left on storage offer(s)
                 throw new StorageNotFoundClientException(status.getReasonPhrase());
             default:
                 LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
                 throw new StorageServerClientException(INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    public InputStream getContainerObject(String tenantId, String strategyId, String guid)
+        throws StorageServerClientException, StorageNotFoundException {
+        ParametersChecker.checkParameter(TENANT_ID_MUST_HAVE_A_VALID_VALUE, tenantId);
+        ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
+        ParametersChecker.checkParameter(GUID_MUST_HAVE_A_VALID_VALUE, guid);
+        Response response = null;
+        InputStream stream = null;
+        try {
+            response =
+                performGenericRequest("/" + StorageCollectionType.OBJECTS.getCollectionName() + "/" + guid, null,
+                    MediaType.APPLICATION_OCTET_STREAM, getDefaultHeaders(tenantId, strategyId), HttpMethod.GET,
+                    MediaType.APPLICATION_JSON);
+            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case OK:
+                    // TODO : this is ugly but necessarily in order to close the response and avoid concurrent issues
+                    // to be improved (https://jersey.java.net/documentation/latest/client.html#d0e5170) and
+                    // remove the IOUtils.toByteArray after correction of concurrent problem
+                    InputStream streamClosedAutomatically = response.readEntity(InputStream.class);
+                    try {
+                        stream = new ByteArrayInputStream(IOUtils.toByteArray(streamClosedAutomatically));
+                    } catch (IOException e) {
+                        LOGGER.error(e);
+                        throw new StorageServerClientException(INTERNAL_SERVER_ERROR);
+                    }
+                    return stream;
+                case NOT_FOUND:
+                    throw new StorageNotFoundException(status.getReasonPhrase());
+                case PRECONDITION_FAILED:
+                    throw new StorageServerClientException(status.getReasonPhrase());
+                default:
+                    LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
+                    throw new StorageServerClientException(INTERNAL_SERVER_ERROR);
+            }
+        } finally {
+            Optional.ofNullable(response).ifPresent(Response::close);
         }
     }
 

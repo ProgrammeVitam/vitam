@@ -1,0 +1,75 @@
+#%RAML 0.8
+title: Moteur de Stockage
+baseUri: http://server/storage/api/{version}
+version: v0.0.1
+protocols: [ HTTP, HTTPS ]
+
+mediaType: application/json
+
+traits: !include traits/Traits.raml
+
+resourceTypes: !include resourceTypes/ResourceTypes.raml
+
+/units:
+  # root endpoint request
+  displayName: Units operations
+  description: Pour gérer la création de nouvelles Units, sur la base d'une stratégie de stockage à appliquer
+  type: { collection-write-nopatch: { createModel: genericObject, exampleModel: !include ../samples/genericSample.sample, answearModel: genericObject, exampleAnswearModel: !include ../samples/genericSample.sample } }
+  is: [ standardErrors ]
+  post:
+    description: Permet de créer une nouvelle Unit
+
+  /{id_unit}:
+    displayName: Unit operations
+    type: { collection-item-write: { createModel: task_status, exampleModel: !include ../samples/task_status.sample, answearModel: async_status, exampleAnswearModel: !include ../samples/async_status.sample } }
+    is: [ standardErrors ]
+    get:
+      description: Permet de lire un Unit
+    put:
+      description: Permet de mettre à jour un Unit
+    delete:
+      description: Permet de détruire un Unit
+
+/objects:
+  # root endpoint request
+  displayName: Objects operations
+  description: Pour gérer la création de nouveaux Objects, sur la base d'une stratégie de stockage à appliquer
+  type: { collection-write-nopatch: { createModel: genericObject, exampleModel: !include ../samples/genericSample.sample, answearModel: genericObject, exampleAnswearModel: !include ../samples/genericSample.sample } }
+  is: [ standardErrors ]
+  post:
+    description: Permet de créer une nouveau Object
+
+  /{id_object}:
+    displayName: Object operations
+    type: { collection-item-write: { createModel: task_status, exampleModel: !include ../samples/task_status.sample, answearModel: async_status, exampleAnswearModel: !include ../samples/async_status.sample } }
+    is: [ standardErrors ]
+    get:
+      description: Permet de lire un Object
+    delete:
+      description: Permet de détruire un Object
+
+/logbooks:
+  # root endpoint request
+  displayName: Logbooks operations
+  description: Pour gérer la création de nouveaux Journaux, sur la base d'une stratégie de stockage à appliquer
+  type: { collection-write-nopatch: { createModel: genericObject, exampleModel: !include ../samples/genericSample.sample, answearModel: genericObject, exampleAnswearModel: !include ../samples/genericSample.sample } }
+  is: [ standardErrors ]
+  post:
+    description: Permet de créer un nouveau Journal
+
+  /{id_logbook}:
+    displayName: Logbook operations
+    type: { collection-item-write: { createModel: task_status, exampleModel: !include ../samples/task_status.sample, answearModel: async_status, exampleAnswearModel: !include ../samples/async_status.sample } }
+    is: [ standardErrors ]
+    get:
+      description: Permet de lire un Journal
+    put:
+      description: Permet de mettre à jour un Journal
+    delete:
+      description: Permet de détruire un Journal
+
+/status:
+  displayName: Storage Engine Status
+  description: Statut du moteur de Stockage
+  type: { collection }
+  is: [ standardErrors ]

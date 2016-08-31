@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>fr.gouv.vitam</groupId>
 	<artifactId>parent</artifactId>
-	<version>0.6.0-SNAPSHOT</version>
+	<version>0.7.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>vitam-parent</name>
 	<description>${project.artifactId}</description>
@@ -157,6 +157,9 @@
 		<commons-collections4.version>4.0</commons-collections4.version>
 		<unix.user>vitam</unix.user>
 		<unix.group>vitam</unix.group>
+		<esapi.version>2.1.0.1</esapi.version>
+		<xerces.version>2.11.0</xerces.version>
+		<cglib.version>2.2.2</cglib.version>
 	</properties>
 
 	<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
@@ -446,12 +449,12 @@
 						<defaultGroupname>${unix.group}</defaultGroupname>
 						<mappings>
 							<mapping>
-								<directory>/vitam/${unix.name}/lib</directory>
+								<directory>/vitam/lib/${unix.name}</directory>
 								<artifact />
 								<dependency />
 							</mapping>
 							<mapping>
-								<directory>/vitam/${unix.name}/conf</directory>
+								<directory>/vitam/conf/${unix.name}</directory>
 								<sources>
 									<source>
 										<location>${basedir}/src/main/config</location>
@@ -460,7 +463,7 @@
 							</mapping>
 
 							<mapping>
-								<directory>/vitam/${unix.name}/bin</directory>
+								<directory>/vitam/bin/${unix.name}</directory>
 								<sources>
 									<source>
 										<location>${project.build.directory}/bin</location>
@@ -634,7 +637,11 @@
 				<artifactId>jetty-webapp</artifactId>
 				<version>${jetty.version}</version>
 			</dependency>
-
+			<dependency>
+				<groupId>org.eclipse.jetty</groupId>
+				<artifactId>jetty-xml</artifactId>
+				<version>${jetty.version}</version>
+			</dependency>
 			<dependency>
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-io</artifactId>
@@ -644,6 +651,34 @@
 				<groupId>javax.servlet</groupId>
 				<artifactId>javax.servlet-api</artifactId>
 				<version>${javax.servlet.version}</version>
+			</dependency>
+
+			<!-- ########################## Security ########################## -->
+
+			<dependency>
+				<groupId>com.mikesamuel</groupId>
+				<artifactId>json-sanitizer</artifactId>
+				<version>${json-sanitize.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.owasp.esapi</groupId>
+				<artifactId>esapi</artifactId>
+				<version>${esapi.version}</version>
+				<exclusions>
+					<exclusion>
+						<artifactId>log4j</artifactId>
+						<groupId>log4j</groupId>
+					</exclusion>
+					<exclusion>
+						<artifactId>commons-fileupload</artifactId>
+						<groupId>commons-fileupload</groupId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			<dependency>
+				<groupId>xerces</groupId>
+				<artifactId>xercesImpl</artifactId>
+				<version>${xerces.version}</version>
 			</dependency>
 
 			<!-- ########################## Logger ########################## -->
@@ -784,7 +819,12 @@
 				<version>${powermock.version}</version>
 				<scope>test</scope>
 			</dependency>
-
+			<dependency>
+				<groupId>org.powermock</groupId>
+				<artifactId>powermock-api-mockito-common</artifactId>
+				<version>${powermock.version}</version>
+				<scope>test</scope>
+			</dependency>
 			<dependency>
 				<groupId>de.flapdoodle.embed</groupId>
 				<artifactId>de.flapdoodle.embed.mongo</artifactId>
@@ -798,14 +838,15 @@
 				<scope>test</scope>
 			</dependency>
 			<dependency>
-				<groupId>com.mikesamuel</groupId>
-				<artifactId>json-sanitizer</artifactId>
-				<version>${json-sanitize.version}</version>
-			</dependency>
-			<dependency>
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-collections4</artifactId>
 				<version>${commons-collections4.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>cglib</groupId>
+				<artifactId>cglib</artifactId>
+				<version>${cglib.version}</version>
+				<scope>test</scope>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

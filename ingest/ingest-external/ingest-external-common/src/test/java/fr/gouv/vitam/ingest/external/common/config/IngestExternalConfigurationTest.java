@@ -12,6 +12,7 @@ public class IngestExternalConfigurationTest {
         assertEquals("path_test", config.setPath("path_test").getPath());
         assertEquals("host_test", config.setHost("host_test").getHost());
         assertEquals(8082, config.setPort(8082).getPort());
+        assertEquals("jettyConfig", config.setJettyConfig("jettyConfig").getJettyConfig());
     }
 
 }

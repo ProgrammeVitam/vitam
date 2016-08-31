@@ -1,0 +1,22 @@
+# root endpoint request
+displayName: AsyncResultNext
+description: Permet de récupérer la liste des résultats de liste disponibles
+type: collection
+
+/{id_async}:
+  displayName: AsyncTask
+  description: Permet de récupérer la suite de la liste de résultats d'une liste
+  type: base
+  is: [ standardErrors ]
+  get:
+    description: Permet de récupérer la suite de la liste de résultats d'une liste (pas de retour arrière possible)
+    responses:
+      200:
+        body:
+          application/json:
+            schema: collectionList
+            example: !include ../samples/collectionListNext.sample
+  delete:
+    description: Permet de clôturer avant la fin une liste (un timeout la fermera quoiquil arrive)
+    responses:
+      204:

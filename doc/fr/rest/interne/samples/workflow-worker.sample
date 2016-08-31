@@ -1,0 +1,18 @@
+[{
+		"action": "id_action",
+		"arguments": {
+			"nom_champ_1": "jxpath1",
+			"nom_champ_2": "jxpath2"
+		},
+		"results": {
+			"nom_champ_3": null,
+			"nom_champ_4": null
+		},
+		"status" : "Running",
+		"post_assign": [{
+			"target": "jxpath3",
+			"result": "construction1"
+		}],
+		"start_time" : "1990-12-31T23:59:60Z",
+		"end_time" : "1990-12-31T23:59:60Z"
+	}]

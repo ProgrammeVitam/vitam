@@ -6,15 +6,17 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>functional-administration</artifactId>
-		<version>0.6.0-SNAPSHOT</version>
+		<version>0.7.0-SNAPSHOT</version>
 	</parent>
 	<groupId>fr.gouv.vitam</groupId>
 	<artifactId>functional-administration-rest</artifactId>
-	<version>0.6.0-SNAPSHOT</version>
+	<version>0.7.0-SNAPSHOT</version>
 	<name>functional-administration-rest</name>
-	<url>http://maven.apache.org</url>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<unix.name>functional-administration</unix.name>
+		<unix.user>vitam</unix.user>
+		<unix.group>vitam</unix.group>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -47,6 +49,11 @@
 		<dependency>
 			<groupId>com.jayway.restassured</groupId>
 			<artifactId>rest-assured</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -169,20 +176,29 @@
 					</resources>
 				</configuration>
 			</plugin>
-                       <plugin>
-                                <groupId>org.codehaus.mojo</groupId>
-                                <artifactId>rpm-maven-plugin</artifactId>
-                                <configuration>
-                                        <disabled>false</disabled>
-                                </configuration>
-                        </plugin>
-
+		   <plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>rpm-maven-plugin</artifactId>
+					<configuration>
+							<disabled>false</disabled>
+					</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.eclipse.jetty</groupId>
 				<artifactId>jetty-maven-plugin</artifactId>
 				<version>${jetty.version}</version>
 			</plugin>
-
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<systemPropertyVariables>
+						<org.owasp.esapi.opsteam>AC001</org.owasp.esapi.opsteam>
+						<org.owasp.esapi.devteam>AC001</org.owasp.esapi.devteam>
+						<org.owasp.esapi.resources>../../common/common-private/src/main/resources/esapi</org.owasp.esapi.resources>
+					</systemPropertyVariables>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 	

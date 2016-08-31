@@ -27,23 +27,37 @@
 
 package fr.gouv.vitam.common.server;
 
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import org.eclipse.jetty.xml.XmlConfiguration;
+import org.xml.sax.SAXException;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Map;
 
 /**
  * Basic implementation of a vitam server using embedded jetty as underlying app server
  *
  */
 public class BasicVitamServer implements VitamServer {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BasicVitamServer.class);
     private static final String A_PROBLEM_OCCURRED_WHILE_ATTEMPTING_TO_START_THE_SERVER =
         "A problem occurred while attempting to start the server";
-    private final int port;
+    private int port;
     private Handler handler;
-    private final Server server;
+    private Server server;
+    private XmlConfiguration serverConfiguration;
     private boolean configured = false;
+    public static final String VITAM_JETTY_DEFAULT_CONFIG_FILE = "jetty-vitam.xml";
 
     /**
      * A Vitam server can only be instantiated with a given port to listen to
@@ -55,6 +69,50 @@ public class BasicVitamServer implements VitamServer {
         ParametersChecker.checkValue("You must provide a valid port number", port, 1);
         this.port = port;
         server = new Server(port);
+    }
+
+
+    /**
+     * A Vitam server can be instantiated with a jetty xml configuration file. This configuration file can be in :
+     *  - /vitam/conf,
+     *  - resource folder
+     *  - resource in classpath
+     *
+     * @param jettyConfigPath configuration file of jetty server
+     * @throws VitamApplicationServerException if configuration not found, can't be parsed, can't be read or server can't started
+     */
+    protected BasicVitamServer(final String jettyConfigPath) throws VitamApplicationServerException {
+
+        File jcFile = null;
+        try {
+            LOGGER.info("Starting server with configuration file : "+jettyConfigPath);
+
+            jcFile = PropertiesUtils.findFile(jettyConfigPath);
+            FileInputStream fis = new FileInputStream(jcFile);
+            serverConfiguration = new XmlConfiguration(fis);
+            this.server = new Server();
+            server = (Server) serverConfiguration.configure(server);
+            this.configured = true;
+
+            LOGGER.info("Server started.");
+
+        } catch (FileNotFoundException e) {
+            setConfigured(false);
+            LOGGER.error("Server configuration file not found.", e);
+            throw new VitamApplicationServerException(e.getMessage(), e);
+        } catch (SAXException e) {
+            setConfigured(false);
+            LOGGER.error("Server configuration file can't be parsed.", e);
+            throw new VitamApplicationServerException(e.getMessage(), e);
+        } catch (IOException e) {
+            setConfigured(false);
+            LOGGER.error("Server configuration file can't be read.", e);
+            throw new VitamApplicationServerException(e.getMessage(), e);
+        } catch (Exception e) {
+            setConfigured(false);
+            LOGGER.error("Server can't be started.", e);
+            throw new VitamApplicationServerException(e.getMessage(), e);
+        }
     }
 
     @Override
@@ -114,8 +172,14 @@ public class BasicVitamServer implements VitamServer {
      *
      * @return the underlying jetty server
      */
-    protected Server getServer() {
-        return server;
+    public Server getServer() { return server; }
+
+    /**
+     * Retrieving the server jetty configuration
+     * @return XmlConfiguration
+     */
+    public XmlConfiguration getServerConfiguration() {
+        return serverConfiguration;
     }
 
     @Override

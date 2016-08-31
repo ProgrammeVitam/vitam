@@ -7,7 +7,7 @@
     <parent>
         <groupId>fr.gouv.vitam</groupId>
         <artifactId>access</artifactId>
-        <version>0.6.0-SNAPSHOT</version>
+        <version>0.7.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>access-api</artifactId>
@@ -16,6 +16,11 @@
         <dependency>
             <groupId>fr.gouv.vitam</groupId>
             <artifactId>access-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>fr.gouv.vitam</groupId>
+            <artifactId>storage-engine-common</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

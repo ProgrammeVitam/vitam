@@ -79,6 +79,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 /**
  * 
  */
+// FIXME comment
 public abstract class AbstractParser<E extends AbstractRequest> {
 
     protected VarNameAdapter adapter;
