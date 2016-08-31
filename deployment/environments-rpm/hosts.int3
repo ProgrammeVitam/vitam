@@ -76,5 +76,5 @@ vitam_ihm_demo_external_dns=int3.env.programmevitam.fr
 https_reverse_proxy=10.220.23.1:3128
 proxy_host=10.220.23.1
 proxy_port=3128
-rpm_version=0.7.0-SNAPSHOT*
+rpm_version=0.8.0-SNAPSHOT*
 days_to_delete=30
