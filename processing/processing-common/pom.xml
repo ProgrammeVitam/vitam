@@ -40,7 +40,7 @@
 		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>metadata-builder</artifactId>
+			<artifactId>common-database-public</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
