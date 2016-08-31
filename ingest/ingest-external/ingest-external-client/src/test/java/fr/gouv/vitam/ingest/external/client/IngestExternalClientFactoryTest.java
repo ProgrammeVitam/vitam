@@ -11,7 +11,7 @@ public class IngestExternalClientFactoryTest {
 
     @Before
     public void initFileConfiguration() {
-        IngestExternalClientFactory.getInstance().changeConfigurationFile("ingest-external-client-test.conf");;
+        IngestExternalClientFactory.getInstance().changeConfigurationFile("ingest-external-client.conf");;
     }
     
     @Test

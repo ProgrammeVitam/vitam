@@ -44,7 +44,7 @@ public class IngestExternalClientFactory {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalClientFactory.class);
     private static IngestExternalClientType defaultClientType;
     private static final IngestExternalClientFactory INGEST_EXTERNAL_CLIENT_FACTORY = new IngestExternalClientFactory();
-    private static final String CONFIGURATION_FILENAME = "ingest-external-client-test.conf";
+    private static final String CONFIGURATION_FILENAME = "ingest-external-client.conf";
     
     private String server = "localhost";
     private int port = VitamServerFactory.getDefaultPort();
