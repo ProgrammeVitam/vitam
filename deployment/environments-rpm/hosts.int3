@@ -25,6 +25,7 @@ vitam-iaas-mongoexpress-01.int3
 
 [hosts-logbook]
 vitam-iaas-logbook-01.int3
+vitam-iaas-logbook-02.int3
 
 [hosts-metadata]
 vitam-iaas-metadata-01.int3
@@ -75,6 +76,8 @@ environnement=int3
 vitam_ihm_demo_external_dns=int3.env.programmevitam.fr
 https_reverse_proxy=10.220.23.1:3128
 proxy_host=10.220.23.1
+dns_server=172.16.1.21
 proxy_port=3128
 rpm_version=0.8.0-SNAPSHOT*
 days_to_delete=30
+consul_domain=consul
