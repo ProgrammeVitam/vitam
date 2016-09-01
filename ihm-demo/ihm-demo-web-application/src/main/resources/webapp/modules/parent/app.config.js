@@ -40,8 +40,8 @@ angular.
 	      when('/admin', {
 	          templateUrl: "views/admin.html"
 	      }).
-	      when('/importPronoun', {
-		      templateUrl: "views/import-Pronoun.html",
+	      when('/archiveGestion', {
+		      templateUrl: "views/in-progress.html",
 	  	  }).
 	      when('/uploadSIP', {
 	          templateUrl: "views/upload-sip.html",
@@ -62,6 +62,9 @@ angular.
         when('/admin/managementrules', {
               templateUrl:  "views/in-progress.html"
         }).
+        when('/admin/importPronoun', {
+		      templateUrl: "views/import-Pronoun.html",
+	  	}).
 	      otherwise('/uploadSIP');
     }
   ]);
