@@ -26,7 +26,7 @@ package fr.gouv.vitam.processing.worker.api;
 
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
-import fr.gouv.vitam.processing.common.model.WorkParams;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 
 /**
  *
@@ -40,9 +40,9 @@ public interface Action {
 
     /**
      *
-     * @param params {@link WorkParams}
+     * @param params {@link WorkerParameters}
      * @return Response:response contains a list of functional message and status code
      */
-    EngineResponse execute(WorkParams params) throws ProcessingException;
+    EngineResponse execute(WorkerParameters params) throws ProcessingException;
 
 }

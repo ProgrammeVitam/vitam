@@ -38,7 +38,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.logbook.common.parameters.helper.LogbookParametersHelper;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 
 /**
  * Abstract class for all Parameters in Logbook
@@ -126,7 +126,7 @@ abstract class AbstractParameters implements LogbookParameters {
     @Override
     @JsonIgnore
     public LogbookParameters putParameterValue(LogbookParameterName parameterName, String parameterValue) {
-        LogbookParametersHelper.checkNullOrEmptyParameter(parameterName, parameterValue, getMandatoriesParameters());
+        ParameterHelper.checkNullOrEmptyParameter(parameterName, parameterValue, getMandatoriesParameters());
         mapParameters.put(parameterName, parameterValue);
         return this;
     }

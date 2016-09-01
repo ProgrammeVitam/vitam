@@ -13,7 +13,8 @@ Sommaire :
    :maxdepth: 2
    
    intro.rst  
-   worker/_toc.rst 
+   worker/_toc.rst
+   parametres/parametres.rst
 
 
 Indices and tables

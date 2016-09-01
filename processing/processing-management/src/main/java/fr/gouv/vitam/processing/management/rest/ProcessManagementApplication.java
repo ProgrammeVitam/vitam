@@ -26,13 +26,8 @@
  */
 package fr.gouv.vitam.processing.management.rest;
 
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.common.server.VitamServerFactory;
-import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
-import fr.gouv.vitam.processing.common.config.ServerConfiguration;
+import static java.lang.String.format;
+
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -41,7 +36,13 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 
-import static java.lang.String.format;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.common.server.VitamServerFactory;
+import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 
 
 
@@ -112,7 +113,7 @@ public class ProcessManagementApplication
      * @throws Exception Thrown if something goes wrong
      */
     public static void run(ServerConfiguration configuration) throws VitamApplicationServerException {
-
+        APPLICATION.setConfiguration(configuration);
         final ServletContextHandler context = (ServletContextHandler) APPLICATION.buildApplicationHandler();
         vitamServer = VitamServerFactory.newVitamServerByJettyConf(configuration.getJettyConfig());
         vitamServer.configure(context);
@@ -143,7 +144,8 @@ public class ProcessManagementApplication
      *
      * @return the generated Handler
      */
-    @Override protected Handler buildApplicationHandler() {
+    @Override 
+    protected Handler buildApplicationHandler() {
         final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(JacksonFeature.class);
         resourceConfig.register(MultiPartFeature.class);

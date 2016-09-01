@@ -37,7 +37,7 @@ import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.OutcomeMessage;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.model.WorkParams;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.utils.ContainerExtractionUtils;
 import fr.gouv.vitam.processing.common.utils.ContainerExtractionUtilsFactory;
 import fr.gouv.vitam.processing.common.utils.ExtractUriResponse;
@@ -85,10 +85,8 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
     }
 
     @Override
-    public EngineResponse execute(WorkParams params) {
-        ParametersChecker.checkParameter("params is a mandatory parameter", params);
-        ParametersChecker.checkParameter("ServerConfiguration is a mandatory parameter",
-            params.getServerConfiguration());
+    public EngineResponse execute(WorkerParameters params) {
+        checkMandatoryParameters(params);
         LOGGER.info("CheckObjectsNumberActionHandler running ...");
 
         EngineResponse response = new ProcessResponse();
@@ -126,7 +124,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
      * @return ExtractUriResponse
      * @throws ProcessingException throws when error in execution
      */
-    private ExtractUriResponse getUriListFromManifest(WorkParams params)
+    private ExtractUriResponse getUriListFromManifest(WorkerParameters params)
         throws ProcessingException {
         // get uri list from manifest
         final SedaUtils sedaUtils = sedaUtilsFactory.create();
@@ -141,7 +139,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
      * @return List of uri
      * @throws ProcessingException throws when error in execution
      */
-    private List<URI> getUriListFromWorkspace(WorkParams params) throws ProcessingException {
+    private List<URI> getUriListFromWorkspace(WorkerParameters params) throws ProcessingException {
         final ContainerExtractionUtils containerExtractionUtils = containerExtractionUtilsFactory.create();
         return containerExtractionUtils.getDigitalObjectUriListFromWorkspace(params);
     }

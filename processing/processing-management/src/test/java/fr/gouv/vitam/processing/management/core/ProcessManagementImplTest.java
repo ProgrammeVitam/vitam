@@ -31,7 +31,7 @@ import org.junit.Test;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
-import fr.gouv.vitam.processing.common.model.WorkParams;
+import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 
 public class ProcessManagementImplTest {
     private ProcessManagementImpl processManagementImpl;
@@ -40,18 +40,20 @@ public class ProcessManagementImplTest {
     public void givenProcessingManagementWhenWorkflowIsNullThenThrowIllegalArgumentException()
         throws ProcessingException {
         processManagementImpl = new ProcessManagementImpl(new ServerConfiguration());
-        processManagementImpl.submitWorkflow(new WorkParams(), null);
+        processManagementImpl.submitWorkflow(WorkerParametersFactory.newWorkerParameters(), null);
     }
 
     @Test(expected = WorkflowNotFoundException.class)
     public void test2() throws ProcessingException {
-        processManagementImpl = new ProcessManagementImpl(new ServerConfiguration());
-        processManagementImpl.submitWorkflow(new WorkParams(), "XXX");
+        processManagementImpl = new ProcessManagementImpl(new ServerConfiguration().setUrlMetada("fakeUrl")
+            .setUrlWorkspace("fakeUrl"));
+        processManagementImpl.submitWorkflow(WorkerParametersFactory.newWorkerParameters(), "XXX");
     }
 
     @Test
     public void givenProcessingManagementWhenExcuteThenReturnReponse() throws ProcessingException {
-        processManagementImpl = new ProcessManagementImpl(new ServerConfiguration());
-        processManagementImpl.submitWorkflow(new WorkParams(), "DefaultIngestWorkflow");
+        processManagementImpl = new ProcessManagementImpl(new ServerConfiguration().setUrlMetada("fakeUrl")
+            .setUrlWorkspace("fakeUrl"));
+        processManagementImpl.submitWorkflow(WorkerParametersFactory.newWorkerParameters(), "DefaultIngestWorkflow");
     }
 }

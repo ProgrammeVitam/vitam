@@ -37,11 +37,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import fr.gouv.vitam.processing.common.config.ServerConfiguration;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.model.WorkParams;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.common.utils.SedaUtils;
 import fr.gouv.vitam.processing.common.utils.SedaUtilsFactory;
 
@@ -50,10 +51,13 @@ public class CheckVersionActionHandlerTest {
     private static final String HANDLER_ID = "CheckVersion";
     private SedaUtilsFactory factory;
     private SedaUtils sedaUtils;
-    private static final WorkParams params =
+    /*private static final WorkParams params =
         new WorkParams()
         .setServerConfiguration(new ServerConfiguration().setUrlWorkspace(""))
-        .setGuuid("");
+        .setGuuid("");*/
+    private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
+        ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
+        ("containerName");
 
     @Before
     public void setUp() {

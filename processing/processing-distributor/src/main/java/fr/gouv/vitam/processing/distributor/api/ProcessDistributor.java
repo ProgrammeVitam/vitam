@@ -27,7 +27,7 @@ import java.util.List;
 
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.Step;
-import fr.gouv.vitam.processing.common.model.WorkParams;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 
 /**
  * interface ProcessDistributor
@@ -42,11 +42,11 @@ public interface ProcessDistributor {
     /**
      * Distribute different steps (execute a workflow actions step by step)
      *
-     * @param workParams {@link WorkParams} null not allowed
+     * @param workParams {@link fr.gouv.vitam.processing.common.parameter.WorkerParameters} null not allowed
      * @param step {@link Step} null not allowed
      * @param workflowId workflow Id
      *
      * @return List EngineResponse {@link EngineResponse} : list of action response
      */
-    List<EngineResponse> distribute(WorkParams workParams, Step step, String workflowId);
+    List<EngineResponse> distribute(WorkerParameters workParams, Step step, String workflowId);
 }

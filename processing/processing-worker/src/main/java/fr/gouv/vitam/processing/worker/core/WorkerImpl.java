@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.Action;
@@ -39,7 +40,7 @@ import fr.gouv.vitam.processing.common.model.ActionType;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.model.Step;
-import fr.gouv.vitam.processing.common.model.WorkParams;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.utils.ContainerExtractionUtilsFactory;
 import fr.gouv.vitam.processing.common.utils.SedaUtilsFactory;
 import fr.gouv.vitam.processing.worker.api.Worker;
@@ -67,7 +68,6 @@ public class WorkerImpl implements Worker {
 
     private static final String EMPTY_LIST = "null or Empty Action list";
     private static final String STEP_NULL = "step paramaters is null";
-    private static final String WORK_PARAM_NULL = "workparams is null";
     private static final String HANDLER_NOT_FOUND = ": handler not found exception";
     private static final String ELAPSED_TIME_MESSAGE = "Total elapsed time in execution of WorkerImpl method run is :";
 
@@ -118,15 +118,14 @@ public class WorkerImpl implements Worker {
     }
 
     @Override
-    public List<EngineResponse> run(WorkParams workParams, Step step)
+    public List<EngineResponse> run(WorkerParameters workParams, Step step)
         throws IllegalArgumentException, ProcessingException {
 
 
         final long time = System.currentTimeMillis();
 
-        if (workParams == null) {
-            throw new IllegalArgumentException(WORK_PARAM_NULL);
-        }
+        // mandatory check
+        ParameterHelper.checkNullOrEmptyParameters(workParams);
 
         if (step == null) {
             throw new IllegalArgumentException(STEP_NULL);
@@ -145,14 +144,6 @@ public class WorkerImpl implements Worker {
                 throw new HandlerNotFoundException(action.getActionDefinition().getActionKey() + HANDLER_NOT_FOUND);
             }
             EngineResponse actionResponse = actionHandler.execute(workParams);
-            // if the action has been defined as Non Blocking, then if a KO or a FATAL has been received, we change it
-            // to WARNING
-            if (ActionType.NOBLOCK.equals(action.getActionDefinition().getActionType()) &&
-                (StatusCode.KO.equals(actionResponse.getStatus()) ||
-                    StatusCode.FATAL.equals(actionResponse.getStatus()))) {                
-                actionResponse.setStatus(StatusCode.WARNING);
-
-            }
             responses.add(actionResponse);
             // if the action has been defined as Blocking, then, we check the action Status then break the process
             // (actions) if

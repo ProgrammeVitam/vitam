@@ -23,8 +23,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.common.exception;
 
-import javax.ws.rs.ProcessingException;
-
 /**
  * Workflow not found exception throws by engine
  *

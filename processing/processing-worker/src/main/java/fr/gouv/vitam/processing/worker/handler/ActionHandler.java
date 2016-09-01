@@ -23,6 +23,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.worker.handler;
 
+import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.worker.api.Action;
 
 
@@ -30,5 +32,15 @@ import fr.gouv.vitam.processing.worker.api.Action;
  * ActionHandler abstract class of interface Action
  */
 public abstract class ActionHandler implements Action {
+
+    /**
+     * Check mandatory parameters
+     *
+     * @param parameters parameter to check
+     * @throws IllegalArgumentException thrown when a mandatory parameter is null or empty
+     */
+    public void checkMandatoryParameters(WorkerParameters parameters) {
+        ParameterHelper.checkNullOrEmptyParameters(parameters);
+    }
 
 }

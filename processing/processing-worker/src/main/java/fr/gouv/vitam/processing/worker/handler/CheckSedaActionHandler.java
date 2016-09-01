@@ -34,7 +34,7 @@ import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.OutcomeMessage;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.model.WorkParams;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.utils.SedaUtils;
 import fr.gouv.vitam.processing.common.utils.SedaUtils.CheckSedaValidationStatus;
 import fr.gouv.vitam.processing.common.utils.SedaUtilsFactory;
@@ -65,10 +65,8 @@ public class CheckSedaActionHandler extends ActionHandler {
     }
 
     @Override
-    public EngineResponse execute(WorkParams params) {
-        ParametersChecker.checkParameter("params is a mandatory parameter", params);
-        ParametersChecker.checkParameter("ServerConfiguration is a mandatory parameter",
-            params.getServerConfiguration());
+    public EngineResponse execute(WorkerParameters params) {
+        checkMandatoryParameters(params);
 
         LOGGER.info("checkSedaActionHandler running ...");
         final EngineResponse response = new ProcessResponse();
@@ -78,14 +76,16 @@ public class CheckSedaActionHandler extends ActionHandler {
         String messageId = "";
         try {
             status = sedaUtils.checkSedaValidation(params);
-            messageId = sedaUtils.getMessageIdentifier(params);
+            if (CheckSedaValidationStatus.VALID.equals(status)) {
+                messageId = sedaUtils.getMessageIdentifier(params);
+            }
         } catch (ProcessingException e) {
             LOGGER.error("getMessageIdentifier ProcessingException", e);
             response.setStatus(StatusCode.FATAL).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_MANIFEST_KO);
             return response;
         }
 
-        switch (status){
+        switch (status) {
             case VALID:
                 response.setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_MANIFEST_OK);
                 LOGGER.info("checkSedaActionHandler response: " + response.getStatus().name());
@@ -96,11 +96,13 @@ public class CheckSedaActionHandler extends ActionHandler {
                 LOGGER.info("checkSedaActionHandler response: " + response.getStatus().name());
                 return response;
             case NOT_XML_FILE:
-                response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_MANIFEST_NOT_XML_FILE);
+                response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID,
+                    OutcomeMessage.CHECK_MANIFEST_NOT_XML_FILE);
                 LOGGER.info("checkSedaActionHandler response: " + response.getStatus().name());
                 return response;
             case NOT_XSD_VALID:
-                response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_MANIFEST_NOT_XSD_VALID);
+                response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID,
+                    OutcomeMessage.CHECK_MANIFEST_NOT_XSD_VALID);
                 LOGGER.info("checkSedaActionHandler response: " + response.getStatus().name());
                 return response;
             default:
@@ -108,7 +110,7 @@ public class CheckSedaActionHandler extends ActionHandler {
                 LOGGER.info("checkSedaActionHandler response: " + response.getStatus().name());
                 return response;
         }
-        
+
     }
 
 }

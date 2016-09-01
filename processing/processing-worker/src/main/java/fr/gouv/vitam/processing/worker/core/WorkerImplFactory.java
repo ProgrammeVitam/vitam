@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.worker.core;
 
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.processing.worker.handler.ActionHandler;
 
 /**
@@ -40,13 +41,14 @@ public class WorkerImplFactory {
         return new WorkerImpl();
     }
 
-    // FIXME REVIEW check null
     /**
      * @param actionName
      * @param actionHandler
      * @return WorkerImpl
      */
     public WorkerImpl create(String actionName, ActionHandler actionHandler) {
+        ParametersChecker.checkParameter("actionName is a mandatory parameter", actionName);
+        ParametersChecker.checkParameter("actionHandler is a mandatory parameter", actionHandler);
         return create().addActionHandler(actionName, actionHandler);
     }
 

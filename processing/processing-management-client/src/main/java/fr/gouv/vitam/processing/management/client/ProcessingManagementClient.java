@@ -39,7 +39,8 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -51,6 +52,7 @@ import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
  *
  */
 public class ProcessingManagementClient {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessingManagementClient.class);
 
     private final Client client;
     private final String url;
@@ -80,34 +82,47 @@ public class ProcessingManagementClient {
     /**
      * executeVitamProcess : processing operation of a workflow
      *
-     * @param container : name of container
-     * @param workflow : id of workflow
-     * @return : Engine response containe message and status
-     * @throws ProcessingException
+     * @param container : name of the container
+     * @param workflow : id of the workflow
+     * @return Engine response containing message and status
+     * @throws IllegalArgumentException thrown in case of illegal argument in request server error
+     * @throws WorkflowNotFoundException thrown if the defined workfow is not found by server
+     * @throws ProcessingUnauthorizeException thrown in case of unauthorized request server error
+     * @throws ProcessingBadRequestException thrown in case of bad request server error
+     * @throws ProcessingInternalServerException thrown in case of internal server error or technical error between
+     *         client and server
      */
     public String executeVitamProcess(String container, String workflow)
-        throws ProcessingException, InvalidParseOperationException {
+        throws ProcessingUnauthorizeException, ProcessingBadRequestException, WorkflowNotFoundException,
+        ProcessingException {
         ParametersChecker.checkParameter("container is a mandatory parameter", container);
         ParametersChecker.checkParameter("workflow is a mandatory parameter", workflow);
 
-        final Response response = client.target(url).path("operations").request(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON)
-            .post(Entity.entity(new ProcessingEntry(container, workflow), MediaType.APPLICATION_JSON), Response.class);
+        try {
 
-        if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-            throw new WorkflowNotFoundException("Workflow Not Found");
-        } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-            throw new IllegalArgumentException("Illegal Argument");
-        } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-            throw new ProcessingUnauthorizeException("Unauthorized Operation");
-        } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
-            throw new ProcessingBadRequestException("Bad Request");
-        } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-            throw new ProcessingInternalServerException("Internal Server Error");
+            final Response response = client.target(url).path("operations").request(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .post(Entity.entity(new ProcessingEntry(container, workflow), MediaType.APPLICATION_JSON),
+                    Response.class);
+
+            if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                throw new WorkflowNotFoundException("Workflow Not Found");
+            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
+                throw new IllegalArgumentException("Illegal Argument");
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                throw new ProcessingUnauthorizeException("Unauthorized Operation");
+            } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
+                throw new ProcessingBadRequestException("Bad Request");
+            } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+                throw new ProcessingInternalServerException("Internal Server Error");
+            }
+
+            // XXX: theoretically OK status case
+            // Don't we thrown an exception if it is another status ?
+            return response.readEntity(String.class);
+        } catch (javax.ws.rs.ProcessingException e) {
+            LOGGER.error(e);
+            throw new ProcessingInternalServerException("Internal Server Error", e);
         }
-
-        // XXX: theoretically OK status case
-        // Don't we thrown an exception if it is another status ?
-        return response.readEntity(String.class);
     }
 }

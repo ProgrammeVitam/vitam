@@ -29,9 +29,8 @@ package fr.gouv.vitam.processing.common.utils;
 import java.net.URI;
 import java.util.List;
 
-import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.model.WorkParams;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
@@ -63,10 +62,10 @@ public class ContainerExtractionUtils {
      * @throws ProcessingException - throw when workspace is unavailable.
      *
      */
-    public List<URI> getDigitalObjectUriListFromWorkspace(WorkParams workParams)
+    public List<URI> getDigitalObjectUriListFromWorkspace(WorkerParameters workParams)
         throws ProcessingException {
         final WorkspaceClient workspaceClient =
-            WorkspaceClientFactory.create(workParams.getServerConfiguration().getUrlWorkspace());
+            WorkspaceClientFactory.create(workParams.getUrlWorkspace());
         final String guidContainer = workParams.getContainerName();
         return getDigitalObjectUriListFromWorkspace(workspaceClient, guidContainer);
     }

@@ -59,8 +59,10 @@ import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.metadata.rest.MetaDataApplication;
-import fr.gouv.vitam.processing.common.exception.ProcessingInternalServerException;
+import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementApplication;
@@ -72,7 +74,6 @@ import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
  *
  */
 public class ProcessingIntegrationTest {
-
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
     private static File elasticsearchHome;
@@ -81,7 +82,7 @@ public class ProcessingIntegrationTest {
     private static int TCP_PORT = 54321;
     private static int HTTP_PORT = 54320;
     private static Node node;
-
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessingIntegrationTest.class);
     private static final int DATABASE_PORT = 12346;
     private static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
@@ -153,9 +154,11 @@ public class ProcessingIntegrationTest {
         // launch metadata
         junitHelper = new JunitHelper();
         medtadataApplication = new MetaDataApplication();
+
         SystemPropertyUtil
             .set(MetaDataApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_METADATA));
         medtadataApplication.configure("metadata.conf");
+
 
         // launch processing
         PORT_SERVICE_PROCESSING = junitHelper.findAvailablePort();
@@ -187,8 +190,7 @@ public class ProcessingIntegrationTest {
             junitHelper.releasePort(PORT_SERVICE_METADATA);
 
         } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            LOGGER.error(e);
         }
     }
 
@@ -261,7 +263,7 @@ public class ProcessingIntegrationTest {
         assertEquals("OK", node.get("status").asText());
     }
 
-    @Test(expected = ProcessingInternalServerException.class)
+    @Test(expected = ProcessingBadRequestException.class)
     public void testWorkflowWithSipNoManifest() throws Exception {
         String containerName = GUIDFactory.newManifestGUID(0).getId();
 
@@ -282,8 +284,8 @@ public class ProcessingIntegrationTest {
         processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
     }
 
-    @Test
-    public void testWorkflowWithManifestIncorrectObjectNumber() throws Exception {
+    @Test(expected = ProcessingBadRequestException.class)
+    public void testWorkflowWithManifestIncorrectObject() throws Exception {
         String containerName = GUIDFactory.newManifestGUID(0).getId();
 
         // workspace client dezip SIP in workspace
@@ -300,10 +302,7 @@ public class ProcessingIntegrationTest {
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
         processingClient = new ProcessingManagementClient(PROCESSING_URL);
-        String ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
-        assertNotNull(ret);
-        JsonNode node = JsonHandler.getFromString(ret);
-        assertNotNull(node);
-        assertEquals("WARNING", node.get("status").asText());
+        // An action returns KO => the step is in KO => the workflow is OK
+        processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
     }
 }

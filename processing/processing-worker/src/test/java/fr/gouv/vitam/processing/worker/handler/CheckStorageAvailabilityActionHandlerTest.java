@@ -10,12 +10,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import fr.gouv.vitam.processing.common.config.ServerConfiguration;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.OutcomeMessage;
 import fr.gouv.vitam.processing.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.model.WorkParams;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.common.utils.SedaUtils;
 import fr.gouv.vitam.processing.common.utils.SedaUtilsFactory;
 
@@ -39,10 +40,9 @@ public class CheckStorageAvailabilityActionHandlerTest {
         when(factory.create()).thenReturn(sedaUtils);
         handler = new CheckStorageAvailabilityActionHandler(factory);
         assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
-        final WorkParams params =
-            new WorkParams().setServerConfiguration(new ServerConfiguration().setUrlWorkspace(""))
-                .setGuuid("objectGroupId")
-                .setObjectName("objectGroupId.json").setContainerName("containerName").setCurrentStep("INGEST");
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
+            ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
+            ("containerName");
         final EngineResponse response = handler.execute(params);
         assertEquals(StatusCode.KO, response.getStatus());
         assertTrue(response.getOutcomeMessages().values().contains(OutcomeMessage.STORAGE_OFFER_KO_UNAVAILABLE));
@@ -57,10 +57,9 @@ public class CheckStorageAvailabilityActionHandlerTest {
         when(factory.create()).thenReturn(sedaUtils);
         handler = new CheckStorageAvailabilityActionHandler(factory);
         assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
-        final WorkParams params =
-            new WorkParams().setServerConfiguration(new ServerConfiguration().setUrlWorkspace(""))
-                .setGuuid("objectGroupId")
-                .setObjectName("objectGroupId.json").setContainerName("containerName").setCurrentStep("INGEST");
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
+            ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
+            ("containerName");
         final EngineResponse response = handler.execute(params);
         assertEquals(StatusCode.KO, response.getStatus());
         assertTrue(response.getOutcomeMessages().values().contains(OutcomeMessage.STORAGE_OFFER_SPACE_KO));
@@ -76,10 +75,9 @@ public class CheckStorageAvailabilityActionHandlerTest {
         when(factory.create()).thenReturn(sedaUtils);
         handler = new CheckStorageAvailabilityActionHandler(factory);
         assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
-        final WorkParams params =
-            new WorkParams().setServerConfiguration(new ServerConfiguration().setUrlWorkspace(""))
-                .setGuuid("objectGroupId")
-                .setObjectName("objectGroupId.json").setContainerName("containerName").setCurrentStep("INGEST");
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
+            ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
+            ("containerName");
         final EngineResponse response = handler.execute(params);
         assertEquals(StatusCode.OK, response.getStatus());
     }

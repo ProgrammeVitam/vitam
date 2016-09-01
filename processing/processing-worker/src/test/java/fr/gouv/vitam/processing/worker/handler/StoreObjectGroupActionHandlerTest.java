@@ -8,9 +8,7 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.xml.stream.XMLStreamException;
@@ -19,11 +17,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import fr.gouv.vitam.processing.common.config.ServerConfiguration;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.model.WorkParams;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.common.utils.BinaryObjectInfo;
 import fr.gouv.vitam.processing.common.utils.SedaUtils;
 import fr.gouv.vitam.processing.common.utils.SedaUtilsFactory;
@@ -49,10 +48,9 @@ public class StoreObjectGroupActionHandlerTest {
         when(factory.create()).thenReturn(sedaUtils);
         handler = new StoreObjectGroupActionHandler(factory);
         assertEquals(StoreObjectGroupActionHandler.getId(), HANDLER_ID);
-        final WorkParams params =
-            new WorkParams().setServerConfiguration(new ServerConfiguration().setUrlWorkspace(""))
-                .setGuuid("objectGroupId")
-                .setObjectName("objectGroupId.json").setContainerName("containerName").setCurrentStep("INGEST");
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
+            ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
+            ("containerName");
         final EngineResponse response = handler.execute(params);
         assertEquals(response.getStatus(), StatusCode.KO);
     }
@@ -63,10 +61,9 @@ public class StoreObjectGroupActionHandlerTest {
         Mockito.doReturn(retrieveListOfInfo()).when(sedaUtils).retrieveStorageInformationForObjectGroup(anyObject());
         when(factory.create()).thenReturn(sedaUtils);
         handler = new StoreObjectGroupActionHandler(factory);
-        final WorkParams params =
-            new WorkParams().setServerConfiguration(new ServerConfiguration().setUrlWorkspace(""))
-                .setGuuid("objectGroupId").setObjectName("objectGroupId.json").setContainerName("containerName")
-                .setCurrentStep("INGEST");
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
+            ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
+            ("containerName");
         final EngineResponse response = handler.execute(params);
         assertEquals(response.getStatus(), StatusCode.OK);
     }

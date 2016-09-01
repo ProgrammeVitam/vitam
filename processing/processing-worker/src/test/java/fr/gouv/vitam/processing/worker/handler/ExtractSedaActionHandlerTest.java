@@ -39,11 +39,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import fr.gouv.vitam.processing.common.config.ServerConfiguration;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.model.WorkParams;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.common.utils.SedaUtils;
 import fr.gouv.vitam.processing.common.utils.SedaUtilsFactory;
 
@@ -66,8 +67,9 @@ public class ExtractSedaActionHandlerTest {
         when(factory.create()).thenReturn(sedaUtils);
         handler = new ExtractSedaActionHandler(factory);
         assertEquals(ExtractSedaActionHandler.getId(), HANDLER_ID);
-        final WorkParams params =
-            new WorkParams().setServerConfiguration(new ServerConfiguration().setUrlWorkspace("")).setGuuid("");
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
+            ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
+            ("containerName");
         final EngineResponse response = handler.execute(params);
         assertEquals(response.getStatus(), StatusCode.KO);
     }
@@ -79,8 +81,9 @@ public class ExtractSedaActionHandlerTest {
         when(factory.create()).thenReturn(sedaUtils);
         handler = new ExtractSedaActionHandler(factory);
         assertEquals(ExtractSedaActionHandler.getId(), HANDLER_ID);
-        final WorkParams params =
-            new WorkParams().setServerConfiguration(new ServerConfiguration().setUrlWorkspace("")).setGuuid("");
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
+            ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
+            ("containerName");
         final EngineResponse response = handler.execute(params);
         assertEquals(response.getStatus(), StatusCode.OK);
     }

@@ -37,7 +37,7 @@ import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.OutcomeMessage;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.model.WorkParams;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.utils.SedaUtils;
 import fr.gouv.vitam.processing.common.utils.SedaUtilsFactory;
 
@@ -69,10 +69,8 @@ public class IndexUnitActionHandler extends ActionHandler {
     }
 
     @Override
-    public EngineResponse execute(WorkParams params) {
-        ParametersChecker.checkParameter("params is a mandatory parameter", params);
-        ParametersChecker.checkParameter("ServerConfiguration is a mandatory parameter",
-            params.getServerConfiguration());
+    public EngineResponse execute(WorkerParameters params) {
+        checkMandatoryParameters(params);
         LOGGER.info("IndexUnitActionHandler running ...");
         final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK);
         final SedaUtils sedaUtils = sedaUtilsFactory.create();

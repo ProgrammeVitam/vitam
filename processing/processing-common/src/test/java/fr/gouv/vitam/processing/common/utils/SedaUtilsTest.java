@@ -29,6 +29,7 @@ package fr.gouv.vitam.processing.common.utils;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -66,14 +67,15 @@ import fr.gouv.vitam.client.MetaDataClient;
 import fr.gouv.vitam.client.MetaDataClientFactory;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.model.WorkParams;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.common.utils.SedaUtils.CheckSedaValidationStatus;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -109,9 +111,9 @@ public class SedaUtilsTest {
         .getResourceAsStream(OBJECT_GROUP);
     private final InputStream errorExample = new ByteArrayInputStream("test".getBytes());
     private SedaUtils utils;
-    private final WorkParams params = new WorkParams().setGuuid(OBJ).setContainerName(OBJ)
-        .setServerConfiguration(new ServerConfiguration().setUrlWorkspace(OBJ).setUrlMetada(OBJ))
-        .setObjectName(OBJ);
+    private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
+        .newGUID()).setContainerName(OBJ).setUrlWorkspace(OBJ).setUrlMetadata(OBJ).setObjectName(OBJ).setCurrentStep
+        ("TEST");
 
     @Before
     public void setUp() {
@@ -196,7 +198,7 @@ public class SedaUtilsTest {
 
     @Test
     public void givenSedaHasMessageIdWhengetMessageIdThenReturnCorrect() throws Exception {
-        when(workspaceClient.getObject(params.getGuuid(), "SIP/manifest.xml")).thenReturn(seda);
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(seda);
         PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
         utils = new SedaUtilsFactory().create(metadataFactory);
         assertEquals("Entrée_avec_groupe_d_objet", utils.getMessageIdentifier(params));
@@ -397,10 +399,9 @@ public class SedaUtilsTest {
     @Test
     public void givenCorrectObjectGroupWhenStoreObjectGroupThenOK() throws Exception {
         String containerName = "aeaaaaaaaaaaaaabaa4quakwgip7nuaaaaaq";
-        WorkParams paramsObjectGroups =
-            new WorkParams().setGuuid(OBJ).setContainerName(containerName)
-                .setServerConfiguration(new ServerConfiguration().setUrlWorkspace(OBJ).setUrlMetada(OBJ))
-                .setObjectName("aeaaaaaaaaaaaaabaa4quakwgip76jaaaaaq.json").setCurrentStep("Store ObjectGroup");
+        WorkerParameters paramsObjectGroups = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
+            .newGUID()).setContainerName(containerName).setUrlMetadata(OBJ).setUrlWorkspace(OBJ)
+            .setObjectName("aeaaaaaaaaaaaaabaa4quakwgip76jaaaaaq.json").setCurrentStep("Store ObjectGroup");
         when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
         when(workspaceClient.getObject(containerName, "SIP/manifest.xml")).thenReturn(seda);
         when(workspaceClient.getObject(containerName, "ObjectGroup/aeaaaaaaaaaaaaabaa4quakwgip76jaaaaaq.json"))
@@ -414,10 +415,9 @@ public class SedaUtilsTest {
     @Test(expected = ProcessingException.class)
     public void givenCorrectObjectGroupWhenStoreObjectGroupThenJsonKO() throws Exception {
         String containerName = "aeaaaaaaaaaaaaabaa4quakwgip7nuaaaaaq";
-        WorkParams paramsObjectGroups =
-            new WorkParams().setGuuid(OBJ).setContainerName(containerName)
-                .setServerConfiguration(new ServerConfiguration().setUrlWorkspace(OBJ).setUrlMetada(OBJ))
-                .setObjectName("aeaaaaaaaaaaaaabaa4quakwgip76jaaaaaq.json").setCurrentStep("Store ObjectGroup");
+        WorkerParameters paramsObjectGroups = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
+            .newGUID()).setContainerName(containerName).setUrlMetadata(OBJ).setUrlWorkspace(OBJ)
+            .setObjectName("aeaaaaaaaaaaaaabaa4quakwgip76jaaaaaq.json").setCurrentStep("Store ObjectGroup");
         when(metadataFactory.create(anyObject())).thenReturn(metadataClient);
         when(workspaceClient.getObject(containerName, "SIP/manifest.xml")).thenReturn(seda);
         when(workspaceClient.getObject(containerName, "aeaaaaaaaaaaaaabaa4quakwgip76jaaaaaq.json"))

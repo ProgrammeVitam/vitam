@@ -37,6 +37,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
@@ -102,15 +103,24 @@ public class IngestInternalResource implements UploadService {
 
     /**
      * IngestInternalResource constructor
+     * 
+     * @param configuration ingest configuration
      *
      */
-    // TODO commentaire incomplet
     public IngestInternalResource(IngestInternalConfiguration configuration) {
         this.configuration = configuration;
         this.workspaceClient = WorkspaceClientFactory.create(configuration.getWorkspaceUrl());
         this.processingClient = ProcessingManagementClientFactory.create(configuration.getProcessingUrl());
     }
 
+    /**
+     * IngestInternalResource constructor for tests
+     * 
+     * @param configuration ingest configuration, internal values are not used.
+     * @param workspaceClient workspace client instance
+     * @param processingClient processing client instance
+     *
+     */
     IngestInternalResource(IngestInternalConfiguration configuration, WorkspaceClient workspaceClient,
         ProcessingManagementClient processingClient) {
         this.configuration = configuration;
@@ -147,7 +157,9 @@ public class IngestInternalResource implements UploadService {
     @Produces(MediaType.APPLICATION_JSON)
     public Response uploadSipAsStream(@FormDataParam("part") List<FormDataBodyPart> partList) {
 
-        Response response = null;
+        Response response;
+        String fileName = StringUtils.EMPTY;
+
         try {
             final UploadResponseDTO uploadResponseDTO;
             ParametersChecker.checkParameter("partList is a Mandatory parameter", partList);
@@ -175,6 +187,9 @@ public class IngestInternalResource implements UploadService {
             }
 
             parameters.putParameterValue(LogbookParameterName.eventType, INGEST_WORKFLOW);
+            if (parameters.getParameterValue(LogbookParameterName.objectIdentifierIncome) != null) {
+                fileName = parameters.getParameterValue(LogbookParameterName.objectIdentifierIncome);
+            }
 
             InputStream uploadedInputStream;
 
@@ -192,8 +207,7 @@ public class IngestInternalResource implements UploadService {
                     "Début de l'action " + INGEST_INT_UPLOAD);
                 pushSipStreamToWorkspace(configuration.getWorkspaceUrl(), containerGUID.getId(), uploadedInputStream,
                     parameters);
-                String uploadSIPMsg = " Succes de la récupération du SIP : fichier " +
-                    parameters.getParameterValue(LogbookParameterName.objectIdentifierIncome) +
+                String uploadSIPMsg = " Succes de la récupération du SIP : fichier " + fileName +
                     " au format conforme";
 
                 callLogbookUpdate(logbookClient, parameters, LogbookOutcome.OK, uploadSIPMsg);
@@ -223,8 +237,7 @@ public class IngestInternalResource implements UploadService {
 
             if (parameters != null) {
                 try {
-                    String errorMsg = "Échec de la récupération du SIP : fichier " +
-                        parameters.getParameterValue(LogbookParameterName.objectIdentifierIncome) +
+                    String errorMsg = " Échec de la récupération du SIP : fichier " + fileName +
                         " au format non conforme";
                     callLogbookUpdate(logbookClient, parameters, LogbookOutcome.KO, errorMsg);
                     parameters.putParameterValue(LogbookParameterName.eventType, INGEST_WORKFLOW);

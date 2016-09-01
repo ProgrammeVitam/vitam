@@ -39,7 +39,7 @@ import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 
-import fr.gouv.vitam.processing.common.config.ServerConfiguration;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.Action;
 import fr.gouv.vitam.processing.common.model.ActionDefinition;
@@ -53,30 +53,36 @@ import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.model.StepType;
 import fr.gouv.vitam.processing.common.model.WorkFlow;
-import fr.gouv.vitam.processing.common.model.WorkParams;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
+import fr.gouv.vitam.processing.worker.api.Worker;
 import fr.gouv.vitam.processing.worker.core.WorkerImpl;
 import fr.gouv.vitam.processing.worker.handler.ExtractSedaActionHandler;
 
 public class ProcessDistributorImplTest {
     private ProcessDistributorImpl processDistributorImpl;
-    private WorkParams params;
+    private WorkerParameters params;
     private static final String WORKFLOW_ID = "workflowJSONv1";
     private ProcessMonitoringImpl processMonitoring;
     private WorkFlow worfklow;
 
     @Before
     public void setUp() throws Exception {
-        params = new WorkParams().setServerConfiguration(new ServerConfiguration()).setGuuid("aa125487");
+        params = WorkerParametersFactory.newWorkerParameters();
+        params.setWorkerGUID(GUIDFactory.newGUID());
+        //TODO: ??? mandatory
+        params.setUrlMetadata("fakeUrlMetadata");
+        params.setUrlWorkspace("fakeUrlWorkspace");
         processMonitoring = ProcessMonitoringImpl.getInstance();
         final List<Step> steps = new ArrayList<>();
-        steps.add(new Step().setStepName("TEST"));
+        steps.add(new Step().setStepName("TEST").setDistribution(new Distribution().setElement("fakeElement.json")));
         worfklow = new WorkFlow().setSteps(steps).setId(WORKFLOW_ID);
-        //set process_id and step_id (set in the engine)
-        params.setAdditionalProperty(WorkParams.PROCESS_ID, WorkParams.PROCESS_ID);        
-        Map<String, ProcessStep> processSteps = processMonitoring.initOrderedWorkflow(WorkParams.PROCESS_ID, worfklow, "containerName");
+        params.setProcessId("processId");
+        Map<String, ProcessStep> processSteps = processMonitoring.initOrderedWorkflow("processId", worfklow,
+            "containerName");
         for (Map.Entry<String, ProcessStep> entry : processSteps.entrySet()) {
-            params.setAdditionalProperty(WorkParams.STEP_ID, entry.getKey());
+            params.setStepUniqId(entry.getKey());
         }
     }
 
@@ -145,7 +151,7 @@ public class ProcessDistributorImplTest {
 
     @Test
     public void test() throws IllegalArgumentException, ProcessingException {
-        final WorkerImpl worker = mock(WorkerImpl.class);
+        final Worker worker = mock(WorkerImpl.class);
         final List<EngineResponse> response = new ArrayList<EngineResponse>();
         response.add(new ProcessResponse().setStatus(StatusCode.OK));
         when(worker.run(anyObject(), anyObject())).thenReturn(response);
@@ -154,7 +160,8 @@ public class ProcessDistributorImplTest {
         processDistributorImpl.distribute(params, worfklow.getSteps().get(0), WORKFLOW_ID);
         
         // checkMonitoring
-        String processId = (String) params.getAdditionalProperties().get(WorkParams.PROCESS_ID);
+        //String processId = (String) params.getAdditionalProperties().get(WorkParams.PROCESS_ID);
+        String processId = params.getProcessId();
         Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(processId);
         assertNotNull(map);
         // At least one element has been processed

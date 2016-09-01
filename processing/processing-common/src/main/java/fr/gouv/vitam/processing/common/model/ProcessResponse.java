@@ -46,7 +46,7 @@ public class ProcessResponse implements EngineResponse {
      * Process Id
      */
     private String processId;
-    
+
     /**
      * Enum status code
      */
@@ -205,6 +205,7 @@ public class ProcessResponse implements EngineResponse {
     }
 
 
+
     /**
      * getMessageFromResponse return message id from list of response
      * 
@@ -282,7 +283,7 @@ public class ProcessResponse implements EngineResponse {
         this.processId = processId;
         return this;
     }
-    
-    
-    
+
+
+
 }

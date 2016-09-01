@@ -27,7 +27,8 @@
 package fr.gouv.vitam.processing.management.core;
 
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
-import fr.gouv.vitam.processing.common.model.WorkParams;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.management.api.ProcessManagement;
 
 /**
@@ -40,8 +41,8 @@ public class DemoStory70 {
                 .setUrlWorkspace("http://localhost:8084")
                 .setUrlMetada("http://localhost:8086"));
 
-            final WorkParams params = new WorkParams()
-                .setContainerName("aeaaaaaaabdtuu5tableiakvbrgnxoiaaaaq");
+            final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setContainerName
+                ("aeaaaaaaabdtuu5tableiakvbrgnxoiaaaaq");
             processManagement.submitWorkflow(params, "DefaultIngestWorkflow");
         } catch (final Exception e) {
             e.printStackTrace();
