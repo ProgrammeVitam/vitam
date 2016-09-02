@@ -36,9 +36,8 @@ body {
 h2 {
   font-size: 16px;
 }
-
 #global {
-  padding-top: 100px;
+  padding-top: 50px;
 }
 
 .buttondemoBasicUsage section {
@@ -92,6 +91,19 @@ md-dialog {
     font-family: Roboto;
     src: url(fonts/Roboto-Regular.ttf);
   }
+.btn-primary,
+.btn-primary:hover,
+.btn-primary:active,
+.btn-primary:visited,
+.btn-primary:focus {
+    background-color: #8A6EFF;
+    border-color: #8A6EFF;
+}
+
+.progress-bar {
+  color: #8A6EFF;
+  background-color: #8A6EFF;
+}
 
   /**
   *
