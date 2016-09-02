@@ -155,6 +155,7 @@ public class QueryToElasticsearch {
             case GEOINTERSECTS:
             case GEOWITHIN:
             case PATH:
+            case NOP:
             default:
         }
         throw new InvalidParseOperationException("Invalid command: " + req.exactToken());

@@ -25,6 +25,7 @@ package fr.gouv.vitam.common.database.parser.query;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.database.builder.query.NopQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -326,5 +327,14 @@ public class QueryParserHelper extends QueryHelper {
     public static final RangeQuery range(final JsonNode command, final VarNameAdapter adapter)
         throws InvalidParseOperationException {
         return new RangeQuery(QUERY.RANGE, command, adapter);
+    }
+
+    /**
+     * Constructs a null operation (nop) query, meaning there is no 'where' demand.
+     * @return a NopQuery
+     * @throws InvalidCreateOperationException using NOP operator
+     */
+    public static final NopQuery nop() throws InvalidCreateOperationException  {
+        return new NopQuery();
     }
 }

@@ -187,6 +187,15 @@ public class QueryTest {
     }
 
     @Test
+    public void testNoneQuery() throws Exception {
+        NopQuery query = new NopQuery();
+        assertTrue(query.isReady());
+        assertFalse(query.isFullText());
+        assertEquals(QUERY.NOP, query.getQUERY());
+        assertEquals(1, query.getCurrentQuery().size());        
+    }
+
+    @Test
     public void testRequestCompareLong() {
         CompareQuery request = null;
         try {

@@ -73,7 +73,8 @@ public class ProcessResponseTest {
         processResponse.setMessageIdentifier(TEST);
         assertEquals(TEST, processResponse.getMessageIdentifier());
         assertEquals("", new ProcessResponse().getMessageIdentifier());
-        assertEquals(OutcomeMessage.CHECK_CONFORMITY_KO.value() + ". Errors: 1", ProcessResponse.getGlobalProcessOutcomeMessage(processResponses));
+        assertEquals(OutcomeMessage.CHECK_CONFORMITY_KO.value() + ". Nombre total d'erreurs : 1", ProcessResponse
+            .getGlobalProcessOutcomeMessage(processResponses));
         assertEquals(TEST, ProcessResponse.getMessageIdentifierFromResponse(processResponses));
         
         processResponse.setProcessId(TEST);

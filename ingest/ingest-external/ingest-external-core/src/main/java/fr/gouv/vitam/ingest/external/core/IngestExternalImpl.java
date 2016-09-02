@@ -59,7 +59,7 @@ import fr.gouv.vitam.workspace.core.filesystem.FileSystem;
  */
 public class IngestExternalImpl implements IngestExternal {
 
-    private static final String INGEST_EXT = "Sanity Check SIP";
+    private static final String INGEST_EXT = "Ckeck Sanitaire SIP";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalImpl.class);
     // FIXME non paramétré et qui plus est, devrait être plutôt "scan.sh" (ou mieux faire l'objet d'une classe standard
     // remplaçable qui pourrait être
@@ -146,6 +146,7 @@ public class IngestExternalImpl implements IngestExternal {
         InputStream inputStream = null;
         boolean isFileInfected = false;
 
+        // TODO: add fileName to KO_VIRUS string. Cf. todo in IngestExternalResource
         switch (antiVirusResult) {
             case 0:
                 LOGGER.info(IngestExternalOutcomeMessage.OK_VIRUS.toString());
