@@ -1,10 +1,7 @@
 package fr.gouv.vitam.functional.administration.format.core;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -32,7 +29,6 @@ import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
-import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
 public class ReferentialFormatFileImplTest {
@@ -88,10 +84,11 @@ public class ReferentialFormatFileImplTest {
         MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
         assertEquals(1328, collection.count());
         Select select = new Select();
-        select.setQuery(eq("PUID", "x-fmt/2"));
+        select.setQuery(eq("PUID", "fmt/164"));
         List<FileFormat> fileList = formatFile.findDocuments(select.getFinalSelect());
         String id = fileList.get(0).getString("_id");
         FileFormat file = formatFile.findDocumentById(id);
+        assertEquals("[wps]", file.get("Extension").toString());
         assertEquals(file, fileList.get(0));
         formatFile.deleteCollection();
         assertEquals(0, collection.count());

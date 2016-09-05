@@ -38,6 +38,7 @@ public interface AdminManagementClient {
      */
     // FIXME delete the collection without any check on legal to do so (does any object using this referential ?) ?
     // Il me semble que cette fonction devrait être interne et appelée par la méthode importFormat en interne de Vitam et surtout pas en externe !!!
+    // Fonctionnalité demandé par les POs pour la démo
     void deleteFormat() throws  ReferentialException;
     
     /**

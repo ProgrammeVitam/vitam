@@ -27,6 +27,7 @@
 
 package fr.gouv.vitam.functional.administration.common;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.bson.Document;
@@ -41,7 +42,6 @@ import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 public class FileFormat extends VitamDocument<FileFormat> {
 
     public static final String PUID = "PUID";
-    
     private static final String VERSION_PRONOM = "VersionPronom";
     private static final String VERSION = "Version";
     private static final String CREATED_DATE = "CreatedDate";
@@ -50,13 +50,13 @@ public class FileFormat extends VitamDocument<FileFormat> {
     private static final String NAME = "Name";
     private static final String EXTENSION = "Extension";
     private static final long serialVersionUID = 7794456688851515535L;
-    
+
 
     /**
      * empty constructor
      */
     public FileFormat() {}
-    
+
     /**
      * constructor with Mongo Document
      * @param document as Document of bson
@@ -79,7 +79,11 @@ public class FileFormat extends VitamDocument<FileFormat> {
      * @return FileFormat with extension setted
      */
     public FileFormat setExtension(List<String> extension) {
-        this.append(EXTENSION, extension);
+        if (!extension.isEmpty()) {
+            List<String> ext = new ArrayList<>();
+            ext.addAll(extension);
+            this.append(EXTENSION, ext);
+        }
         return this;
     }
 
@@ -115,7 +119,11 @@ public class FileFormat extends VitamDocument<FileFormat> {
      * @return FileFormat 
      */
     public FileFormat setPriorityOverIdList(List<String> priorityOverIdList) {
-        this.append(HAS_PRIORITY_OVER_FILE_FORMAT_ID, priorityOverIdList);
+        if (!priorityOverIdList.isEmpty()) {
+            List<String> priorityList = new ArrayList<>();
+            priorityList.addAll(priorityOverIdList);
+            this.append(HAS_PRIORITY_OVER_FILE_FORMAT_ID, priorityList);
+        }
         return this;
     }
 
@@ -136,4 +144,5 @@ public class FileFormat extends VitamDocument<FileFormat> {
         this.append(VERSION_PRONOM, pronomVersion);
         return this;
     }
+
 }
