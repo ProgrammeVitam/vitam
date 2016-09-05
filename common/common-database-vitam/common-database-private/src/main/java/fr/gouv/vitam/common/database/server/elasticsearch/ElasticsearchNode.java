@@ -31,9 +31,16 @@ package fr.gouv.vitam.common.database.server.elasticsearch;
  */
 public class ElasticsearchNode {
 
-    protected final String hostName;
-    protected final int tcpPort;
+    private String hostName;
+    private int tcpPort;
 
+    
+    /**
+     * ElasticsearchNode empty constructor for YAMLFactory
+     */
+    public ElasticsearchNode() {
+    }
+    
     /**
      * @param hostName
      * @param tcpPort
@@ -43,7 +50,7 @@ public class ElasticsearchNode {
         this.hostName = hostName;
         this.tcpPort = tcpPort;
     }
-
+    
     /**
      * @return the hostName
      */
@@ -58,5 +65,26 @@ public class ElasticsearchNode {
         return tcpPort;
     }
 
+    /**
+     * @param hostName the hostName to set
+     *
+     * @return this
+     */
+    public ElasticsearchNode setHostName(String hostName) {
+        this.hostName = hostName;
+        return this;
+    }
+
+    /**
+     * @param tcpPort the tcpPort to set
+     *
+     * @return this
+     */
+    public ElasticsearchNode setTcpPort(int tcpPort) {
+        this.tcpPort = tcpPort;
+        return this;
+    }
+
+    
 
 }

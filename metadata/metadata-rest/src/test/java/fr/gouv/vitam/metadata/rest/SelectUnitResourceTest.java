@@ -28,14 +28,23 @@ package fr.gouv.vitam.metadata.rest;
 
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.with;
+import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.node.Node;
 import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
@@ -53,6 +62,7 @@ import fr.gouv.vitam.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 
 /**
  * 
@@ -71,7 +81,16 @@ public class SelectUnitResourceTest {
     private static final String DATABASE_NAME = "vitam-test";
     private static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
+    
+    @ClassRule
+    public static TemporaryFolder tempFolder = new TemporaryFolder();
+    private static File elasticsearchHome;
 
+    private final static String CLUSTER_NAME = "vitam-cluster";
+    private final static String HOST_NAME = "127.0.0.1";
+    private static int TCP_PORT = 9300;
+    private static int HTTP_PORT = 9200;
+    private static Node node;
     private static final String BAD_QUERY_TEST =
         "{ $or : " + "[ " + "   {$exists : '_id'}, " + "   {$missing : 'mavar2'}, " + "   {$badRquest : 'mavar3'}, " +
             "   { $or : [ " + "          {$in : { 'mavar4' : [1, 2, 'maval1'] }}, " + "]}";
@@ -105,6 +124,31 @@ public class SelectUnitResourceTest {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
         junitHelper = new JunitHelper();
+        
+        //ES
+        TCP_PORT = junitHelper.findAvailablePort();
+        HTTP_PORT = junitHelper.findAvailablePort();
+
+        elasticsearchHome = tempFolder.newFolder();
+        Settings settings = Settings.settingsBuilder()
+            .put("http.enabled", true)
+            .put("discovery.zen.ping.multicast.enabled", false)
+            .put("transport.tcp.port", TCP_PORT)
+            .put("http.port", HTTP_PORT)
+            .put("path.home", elasticsearchHome.getCanonicalPath())
+            .build();
+
+        node = nodeBuilder()
+            .settings(settings)
+            .client(false)
+            .clusterName(CLUSTER_NAME)
+            .node();
+
+       node.start();
+        
+        List<ElasticsearchNode> nodes = new ArrayList<ElasticsearchNode>();
+        nodes.add(new ElasticsearchNode(HOST_NAME, TCP_PORT));
+        
         dataBasePort = junitHelper.findAvailablePort();
 
         final MongodStarter starter = MongodStarter.getDefaultInstance();
@@ -115,7 +159,7 @@ public class SelectUnitResourceTest {
         mongod = mongodExecutable.start();
 
         final MetaDataConfiguration configuration =
-            new MetaDataConfiguration(SERVER_HOST, dataBasePort, DATABASE_NAME);
+            new MetaDataConfiguration(SERVER_HOST, dataBasePort, DATABASE_NAME,CLUSTER_NAME,nodes);
         serverPort = junitHelper.findAvailablePort();
         MetaDataApplication.run(configuration, serverPort);
         RestAssured.port = serverPort;
@@ -129,6 +173,13 @@ public class SelectUnitResourceTest {
         mongodExecutable.stop();
         junitHelper.releasePort(dataBasePort);
         junitHelper.releasePort(serverPort);
+        
+        if (node != null) {
+            node.close();
+        }
+
+        junitHelper.releasePort(TCP_PORT);
+        junitHelper.releasePort(HTTP_PORT);
     }
 
     @After

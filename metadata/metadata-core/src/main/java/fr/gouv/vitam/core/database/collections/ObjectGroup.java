@@ -141,7 +141,24 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
      * Total number of copies
      */
     private int nbCopy;
-
+    
+    
+    /**
+     * ES Mapping
+     */
+    public static final String TYPEUNIQUE = "typeunique";
+    
+    // TODO add Nested objects or Parent/child relationships
+    public static final String MAPPING = "{" + TYPEUNIQUE +
+        // Will keep NBCHILD as value to get (_id is implicit)
+        " : { " + "_source : { includes : [\"" + ObjectGroup.NB_COPY + "\"] }," +
+        // NBCHILD as the number of immediate child
+        ObjectGroup.NB_COPY + " : { type : \"long\" }," +
+        // Immediate parents will be included but not tokenized [ UUID1, UUID2 ]
+        VitamLinks.UNIT_TO_OBJECTGROUP.field2to1 + " : { type : \"string\", index : \"not_analyzed\" } " +
+        " } } }";
+    
+   
     /**
      * Empty constructor
      */

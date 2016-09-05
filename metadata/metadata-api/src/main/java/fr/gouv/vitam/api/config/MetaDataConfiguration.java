@@ -23,7 +23,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.api.config;
 
+import java.util.List;
+
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 
 /**
  * MetaDataConfiguration contains database access informations
@@ -34,6 +37,8 @@ public final class MetaDataConfiguration {
     private int port;
     private String dbName;
     private String jettyConfig;
+    private String clusterName;
+    private List<ElasticsearchNode> elasticsearchNodes;
 
     /**
      * MetaDataConfiguration constructor
@@ -41,15 +46,20 @@ public final class MetaDataConfiguration {
      * @param host database server IP address
      * @param port database server port
      * @param dbName database name
+     * @param elasticsearchNodes elasticsearch nodes
      * @param collectionName database collection name
      */
-    public MetaDataConfiguration(String host, int port, String dbName) {
+    public MetaDataConfiguration(String host, int port, String dbName, String clusterName, List<ElasticsearchNode> elasticsearchNodes) {
         ParametersChecker.checkParameter("Database address is a mandatory parameter", host);
         ParametersChecker.checkParameter("Database address port is a mandatory parameter", port);
         ParametersChecker.checkParameter("Database name is a mandatory parameter", dbName);
+        ParametersChecker.checkParameter("elasticsearch cluster name is a mandatory parameter", clusterName);
+        ParametersChecker.checkParameter("elasticsearch nodes are a mandatory parameter", elasticsearchNodes);
         this.host = host;
         this.port = port;
         this.dbName = dbName;
+        this.clusterName=clusterName;
+        this.elasticsearchNodes=elasticsearchNodes;
     }
 
     /**
@@ -122,4 +132,41 @@ public final class MetaDataConfiguration {
         this.jettyConfig = jettyConfig;
         return this;
     }
+
+    
+    /**
+     * @return the clusterName
+     */
+    public String getClusterName() {
+        return clusterName;
+    }
+
+    /**
+     * @param clusterName the clusterName to set
+     * @return this
+     */
+    public MetaDataConfiguration setClusterName(String clusterName) {
+        this.clusterName = clusterName;
+        return this;
+    }
+
+    /**
+     * 
+     * @return the elasticsearchNodes
+     */
+    public List<ElasticsearchNode> getElasticsearchNodes() {
+        return elasticsearchNodes;
+    }
+
+    /**
+     * 
+     * @param elasticsearchNodes the elasticsearchNodes to set
+     * @return MetaDataConfiguration
+     */
+    public MetaDataConfiguration setElasticsearchNodes(List<ElasticsearchNode> elasticsearchNodes) {
+        this.elasticsearchNodes = elasticsearchNodes;
+        return this;
+    }
+    
+    
 }
