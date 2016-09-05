@@ -27,10 +27,10 @@
 
 'use strict';
 
-// Register `archive.unit` component, along with its associated controller and template
+// Register `logbookOperations` component, along with its associated controller and template
 angular.
   module('ihm.demo').
   component('logbookOperations', {
-    templateUrl: 'views/logbook-operations.html',
+    templateUrl: 'modules/logbook/logbook-operations.html',
     controller: 'logbookController as logctrl'
   });

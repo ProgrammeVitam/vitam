@@ -60,6 +60,7 @@ function($scope, ihmDemoFactory, $window, $mdToast, $mdDialog,  ARCHIVE_SEARCH_M
       criteriaSearch.projection_transactdate = "TransactedDate";
       criteriaSearch.projection_id = "#id";
       criteriaSearch.projection_title = "Title";
+      criteriaSearch.projection_object = "#object";
       criteriaSearch.orderby = "TransactedDate";
 
       ihmDemoFactory.searchArchiveUnits(criteriaSearch)
@@ -77,6 +78,10 @@ function($scope, ihmDemoFactory, $window, $mdToast, $mdDialog,  ARCHIVE_SEARCH_M
 
             // Set Total result
             $scope.totalResult = response.data.$hint.total;
+
+            // ************************************Pagination **************************** //
+            $scope.totalItems = $scope.archiveUnitsSearchResult.length;
+            // **************************************************************************** //
           }
 
         }, function (error) {
@@ -168,13 +173,45 @@ function($scope, ihmDemoFactory, $window, $mdToast, $mdDialog,  ARCHIVE_SEARCH_M
         archiveDetailsService.findArchiveUnitDetails(archiveId, displayFormCallBack, failureCallback);
       }
 
+      $scope.isObjectExist = function isObjectExist(object){
+        if(object !== null && object !== undefined && !angular.equals(object, "")){
+          return true;
+        }else{
+          return false;
+        }
+      };
+
+      // ************************************Pagination **************************** //
+      $scope.viewby = 10;
+      $scope.currentPage = 1;
+      $scope.itemsPerPage = $scope.viewby;
+      $scope.maxSize = 5;
+
+      $scope.setPage = function (pageNo) {
+        $scope.currentPage = pageNo;
+      };
+
+      $scope.pageChanged = function() {
+        console.log('Page changed to: ' + $scope.currentPage);
+      };
+
+      $scope.setItemsPerPage = function(num) {
+        $scope.itemsPerPage = num;
+        $scope.currentPage = 1; //reset to first paghe
+      }
+      // **************************************************************************** //
+
       // Mock search result
       // ******************* Mock response *************** //
       // $scope.showResult=true;
-      // $scope.totalResult = 10;
-      // $scope.archiveUnitsSearchResult =  [ {"_id":"1", "Title":"Archive1", "Date":"2016-01-01"},
-      // {"_id":"1", "Title":"Archive2", "Date":"2016-01-01"},
-      // {"_id":"2", "Title":"Archive3", "Date":"2016-01-01"}];
+      // $scope.totalResult = 6;
+      // $scope.archiveUnitsSearchResult =  [
+      // {"_id":"1", "Title":"Archive1", "TransactedDate":"2016-01-01", "_og": "XXXXXXXXXX"},
+      // {"_id":"1", "Title":"Archive2", "TransactedDate":"2016-01-01", "_og": ''},
+      // {"_id":"2", "Title":"Archive3", "TransactedDate":"2016-01-01", "_og": "YYYYYYYYYY"},
+      // {"_id":"2", "Title":"Archive3", "TransactedDate":"2016-01-01", "_og": "YYYYYYYYYY"},
+      // {"_id":"2", "Title":"Archive3", "TransactedDate":"2016-01-01", "_og": "YYYYYYYYYY"},
+      // {"_id":"2", "Title":"Archive3", "TransactedDate":"2016-01-01", "_og": "YYYYYYYYYY"}];
       // ************************************************ //
 
     }]);
