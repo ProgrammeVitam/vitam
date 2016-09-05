@@ -360,3 +360,130 @@ md-dialog {
   .panel-footer {
     background-color: white;
   }
+
+
+/* STORY 87 */
+  .panel .panel {
+    background-color: #EEE;
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+    border-bottom-left-radius: 6px;
+    border-top-left-radius: 6px;
+    box-shadow: none;
+    -webkit-box-shadow: none;
+  }
+
+  .panel .panel .panel-header:not(.no-toggle)::after {
+  background-color: #EEE;
+}
+
+  .panel .panel .panel-header i {
+  position: absolute;
+  display: block;
+  margin-top: 18px;
+  padding-right: 10px;
+  color: #555555;
+  background-color: #EEE;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.input-group-addon,
+.input-group-btn {
+  width: 1%;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.input-group-addon {
+  padding: 6px 12px;
+  font-size: 14px;
+  font-weight: normal;
+  line-height: 1;
+  color: #555555;
+  text-align: center;
+  background-color: #eeeeee;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.input-group-addon {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.table {
+  width: 100%;
+  max-width: 100%;
+  margin-bottom: 20px;
+}
+
+table {
+  background-color: transparent;
+}
+
+.table > tbody > tr > th {
+  font-style: italic;
+  font-size: 12px;
+  font-weight: normal;
+  color: #777777;
+  border: none;
+}
+.table > tbody > tr > td {
+  padding: 8px 8px 0 8px;
+  line-height: 25px;
+  border: none;
+  border-bottom: 5px solid white;
+  background-color: #eeeeee;
+}
+.table > tbody > tr:hover > td {
+  background-color: #AD9FFF;
+  color: white;
+  cursor: pointer;
+}
+
+.ui-datepicker {
+  display: none;
+  z-index: 1051 !important;
+  padding: 10px;
+  width: 200px;
+  background-color: white;
+  -webkit-box-shadow: 0 2px 5px 2px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 2px 5px 2px rgba(0, 0, 0, 0.25);
+}
+.ui-datepicker a {
+  cursor: pointer;
+}
+.ui-datepicker-prev,
+.ui-datepicker-next {
+  font-weight: bold;
+}
+.ui-datepicker-next {
+  float: right;
+}
+.ui-datepicker-title {
+  margin-top: -20px;
+  text-align: center;
+  text-transform: uppercase;
+}
+.ui-datepicker-calendar {
+  margin-top: 5px;
+  width: 100%;
+}
+.ui-datepicker-calendar th,
+.ui-datepicker-calendar td {
+  text-align: center;
+}
+.ui-datepicker-today {
+  font-weight: bold;
+}
+.ui-datepicker-current-day {
+  background-color: #8A6EFF;
+}
+.ui-datepicker-current-day a {
+  color: white;
+}
+
+/* STORY 87 */

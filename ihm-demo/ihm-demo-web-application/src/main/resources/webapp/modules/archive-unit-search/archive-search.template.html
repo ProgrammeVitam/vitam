@@ -1,30 +1,84 @@
-<div class="boxSearchWrapper panel panel-default col-md-12">
-  <a class="panel-header" data-toggle="collapse">
-    <h2>Recherche</h2>
-  </a>
-  <div id="boxSearch" class="panel-body panel-collapse collapse in">
-    <div class="tab-content">
+<div id="global" class="container-fluid" >
+  <ol class="breadcrumb">
+    <li><a href="#">Page d'accueil</a></li>
+    <li><a href="#!/archiveSearch">Recherche d'archives</a></li>
+  </ol>
+
+  <div class="boxSearchWrapper panel panel-default col-md-12">
+    <a class="panel-header"  data-target="#boxSearch" data-toggle="collapse">
+      <h2>Recherche</h2>
+    </a>
+
+    <div id="boxSearch" class="panel-body panel-collapse collapse in">
+      <!-- <div class="tab-content"> -->
       <div role="tabpanel" class="tab-pane active" id="simpleSearch">
         <div class="boxSimpleSearchInput form-group col-md-12 m-t-50 m-b-50">
           <div class="input-group">
-            <input ng-model="titleCriteria" type="text" class="form-control input-lg" placeholder="Titre" />
+            <input ng-model="titleCriteria" type="text" class="form-control input-lg" placeholder="Rechercher" />
             <div class="input-group-addon"><button class="btn btn-primary center-block" ng-click="getSearchResult($event, titleCriteria)"><i class="material-icons pull-left">search</i></button></div>
           </div>
         </div>
       </div>
-      <div class="row">
-        <div class="col-md-4"></div>
-        <div class="col-md-4">
-          <button ng-if="showResult" class="btn btn-primary" type="button">
-            <span ng-if = "totalResult > 0">Résultats <span class="badge">{{totalResult}}</span> </span>
-            <span ng-if = "totalResult == 0">Aucun résulat trouvé</span>
-          </button>
+
+      <!--
+      *
+      *    RECHERCHE SIMPLE
+      *
+    -->
+
+    <div role="tabpanel" class="tab-pane active" id="simpleSearch">
+      <div class="clearfix"></div>
+      <div class="container col-md-12">
+        <div class="panel panel-default col-md-12 ">
+          <a class="panel-header" data-target="#boxAdvanced" data-toggle="collapse" >
+            <i>Avancé</i>
+          </a>
+          <div id="boxAdvanced" class="panel-body panel-collapse collapse in">
+            <div class="form-group col-md-4">
+              <label>Titre</label>
+              <input type="text" class="form-control input-sm" />
+            </div>
+            <div class="form-group col-md-6">
+              <label>Description</label>
+              <input type="text" class="form-control input-sm" />
+            </div>
+            <div class="form-group col-md-2">
+              <label>ID</label>
+              <input type="text" class="form-control input-sm" />
+            </div>
+            <div class="form-group col-md-2">
+              <label>Dates Extrêmes</label>
+              <div class="input-group">
+                <input  id="startDate" type="text" class="form-control input-sm" />
+                <div class="input-group-addon"><i class="material-icons">date_range</i></div>
+              </div>
+            </div>
+            <div class="form-group col-md-2">
+              <label>&nbsp;</label>
+              <div class="input-group">
+                <input  id="endDate" type="text" class="form-control input-sm" />
+                <div class="input-group-addon"><i class="material-icons">date_range</i></div>
+              </div>
+            </div>
+            <div class="clearfix"></div>
+            <button class="btn btn-primary center-block"><i class="material-icons pull-left">search</i><span>Rechercher</span></button>
+          </div>
         </div>
-        <div class="col-md-4"></div>
       </div>
+    </div>
+
+    <!--  Nbre d'archives trouvées -->
+    <div class="col-md-12 center-block" style="padding-bottom: 20px">
+      <!-- <button ng-if="showResult" class="btn btn-primary center-block" type="button"> -->
+        <span  class="center-block" ng-if = "totalResult > 0">Nombre de résultats : <span class="badge">{{totalResult}}</span> </span>
+        <span class="center-block" ng-if = "totalResult == 0">Aucun résulat trouvé</span>
+      <!-- </button> -->
     </div>
   </div>
 </div>
+
+<!--  Horizontal separator -->
+<hr />
 
 <div class="clearfix"></div>
 
@@ -33,40 +87,108 @@
 *    RESULTATS
 *
 -->
+
 <div class="panel panel-default col-md-12">
-    <a class="panel-header" data-toggle="collapse">
-        <h2>Résultats</h2>
-    </a>
-    <div id="boxSearchResults" class="panel-body panel-collapse collapse in">
-      <div class="table-responsive ">
-        <table class="table table-hover">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th><a href="" ng-click="orderByField='id'; reverseSort = !reverseSort">ID</a>
-                <span ng-show="orderByField == 'id' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
-                <span ng-show="orderByField == 'id' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
-              </th>
-              <th>
-                <a href="" ng-click="orderByField='title'; reverseSort = !reverseSort">Titre</a>
-                <span ng-show="orderByField == 'title' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
-                <span ng-show="orderByField == 'title' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
-              </th>
-              <th><a href="" ng-click="orderByField='date'; reverseSort = !reverseSort">Transaction Date</a>
-                <span ng-show="orderByField == 'date' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
-                <span ng-show="orderByField == 'date' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
-              </th>
-            </tr>
-          </thead>
-          <tbody ng-if="showResult && totalResult>0">
-            <tr ng-click="displayArchiveUnitForm($event, result._id)" ng-repeat="result in archiveUnitsSearchResult | orderBy:orderByField:reverseSort">
-              <th>{{$index + 1}}</th>
-              <td>{{result._id}}</td>
-              <td>{{result.Title}}</td>
-              <td>{{result.TransactedDate}}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+  <a class="panel-header"  data-target="#boxSearchResults" data-toggle="collapse">
+    <h2>Résultats</h2>
+  </a>
+  <div id="boxSearchResults" class="panel-body panel-collapse collapse in">
+    <nav class="text-center">
+      <pagination total-items="totalItems" ng-model="currentPage" ng-change="pageChanged()"
+        class="pagination-sm"
+        items-per-page="itemsPerPage"
+        max-size="maxSize"
+        boundary-links="true"
+        previous-text="&lsaquo;"
+        next-text="&rsaquo;"
+        first-text="&laquo;"
+        last-text="&raquo;">
+      </pagination>
+    </nav>
+
+    <div class="table-responsive ">
+      <table class="table">
+        <tr>
+          <th><a href="" ng-click="orderByField='id'; reverseSort = !reverseSort">ID</a>
+            <span ng-show="orderByField == 'id' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+            <span ng-show="orderByField == 'id' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
+          </th>
+          <th>
+            <a href="" ng-click="orderByField='title'; reverseSort = !reverseSort">Titre</a>
+            <span ng-show="orderByField == 'title' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+            <span ng-show="orderByField == 'title' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
+          </th>
+          <th><a href="" ng-click="orderByField='date'; reverseSort = !reverseSort">Date</a>
+            <span ng-show="orderByField == 'date' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+            <span ng-show="orderByField == 'date' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
+          </th>
+
+          <th><a href="" ng-click="orderByField='og'; reverseSort = !reverseSort">Objet(s) disponible(s)</a>
+            <span ng-show="orderByField == 'og' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+            <span ng-show="orderByField == 'og' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
+          </th>
+
+        </tr>
+        <tbody ng-if="showResult && totalResult>0">
+          <tr data-toggle="popover" data-trigger="focus" data-placement="top" ng-click="displayArchiveUnitForm($event, result._id)" ng-repeat="result in archiveUnitsSearchResult.slice(((currentPage-1)*itemsPerPage), ((currentPage)*itemsPerPage)) | orderBy:orderByField:reverseSort">
+            <td>{{result._id}}</td>
+            <td>{{result.Title}}</td>
+            <td>{{result.TransactedDate}}</td>
+            <td>
+              <i ng-if = "!isObjectExist(result._og)" class="material-icons" style="color:#ccc">close</i>
+              <i ng-if = "isObjectExist(result._og)" class="material-icons">check</i>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
+  </div>
 </div>
+</div>
+
+<script>
+/* French initialisation for the jQuery UI date picker plugin. */
+/* Written by Keith Wood (kbwood{at}iinet.com.au),
+Stéphane Nahmani (sholby@sholby.net),
+Stéphane Raimbault <stephane.raimbault@gmail.com> */
+(function( factory ) {
+  if ( typeof define === "function" && define.amd ) {
+
+    // AMD. Register as an anonymous module.
+    define([ "../jquery.ui.datepicker" ], factory );
+  } else {
+
+    // Browser globals
+    factory( jQuery.datepicker );
+  }
+}(function( datepicker ) {
+  datepicker.regional['fr'] = {
+    closeText: 'Fermer',
+    prevText: '<',
+    nextText: '>',
+    currentText: 'Aujourd\'hui',
+    monthNames: ['janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+    'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'],
+    monthNamesShort: ['janv.', 'févr.', 'mars', 'avril', 'mai', 'juin',
+    'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'],
+    dayNames: ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'],
+    dayNamesShort: ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'],
+    dayNamesMin: ['D','L','M','M','J','V','S'],
+    weekHeader: 'Sem.',
+    dateFormat: 'dd/mm/yy',
+    firstDay: 1,
+    isRTL: false,
+    showMonthAfterYear: false,
+    yearSuffix: ''};
+    datepicker.setDefaults(datepicker.regional['fr']);
+
+    return datepicker.regional['fr'];
+
+  }));
+
+  $(function(){
+    $("#startDate").datepicker($.datepicker.regional['fr']);
+    $("#endDate").datepicker($.datepicker.regional['fr']);
+    $(".datepicker").datepicker();
+  });
+  </script>

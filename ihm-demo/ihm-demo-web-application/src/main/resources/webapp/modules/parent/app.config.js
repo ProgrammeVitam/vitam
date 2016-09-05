@@ -65,6 +65,9 @@ angular.
         when('/admin/importPronoun', {
 		      templateUrl: "views/import-Pronoun.html",
 	  	}).
+	  	when('/admin/journalOperations', {
+              templateUrl:  "views/in-progress.html"
+        }).
 	      otherwise('/uploadSIP');
     }
   ]);

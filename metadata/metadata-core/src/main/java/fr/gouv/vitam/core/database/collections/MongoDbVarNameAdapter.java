@@ -25,8 +25,8 @@ package fr.gouv.vitam.core.database.collections;
 
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
  * Model for VarNameAdapter
@@ -74,6 +74,9 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
                 case TYPE:
                     // Valid for OG
                     return MetadataDocument.TYPE;
+                case OBJECT:
+                    // Valid for Unit
+                    return Unit.OG;
                 default:
                     break;
             }

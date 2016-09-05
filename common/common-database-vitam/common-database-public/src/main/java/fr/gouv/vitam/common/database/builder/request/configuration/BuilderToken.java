@@ -522,7 +522,11 @@ public abstract class BuilderToken {
         /**
          * Unit/ObjectGroup type
          */
-        TYPE("type");
+        TYPE("type"),
+        /**
+         * Unit's ObjectGroup
+         */
+        OBJECT("og");
 
         private final String exactToken;
 
