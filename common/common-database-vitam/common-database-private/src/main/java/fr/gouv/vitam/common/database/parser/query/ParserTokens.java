@@ -84,7 +84,11 @@ public class ParserTokens extends BuilderToken {
         /**
          * Unit/ObjectGroup type
          */
-        TYPE("type");
+        TYPE("type"),
+        /**
+         * Unit's ObjectGroup
+         */
+        OBJECT("og");
 
         private static final String NOT_FOUND = "Not found";
         private final String exactToken;
@@ -142,6 +146,7 @@ public class ParserTokens extends BuilderToken {
                         case NBUNITS:
                         case QUALIFIERS:
                         case SIZE:
+                        case OBJECT:
                             return true;
                         default:
                     }
