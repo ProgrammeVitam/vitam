@@ -25,4 +25,10 @@
  * accept its terms.
  */
  
-angular.module('core', ['restangular']);
+angular.module('core', ['restangular'])
+  .config(function(RestangularProvider) {
+    RestangularProvider.setDefaultHttpFields({
+      withCredentials: true
+    });
+
+  });

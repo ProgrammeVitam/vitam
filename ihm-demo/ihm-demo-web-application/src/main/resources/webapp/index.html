@@ -18,6 +18,7 @@
 
   <script src="bower_components/jquery/dist/jquery.js"></script>
   <script src="bower_components/angular/angular.js"></script>
+  <script src="bower_components/angular-cookies/angular-cookies.min.js"></script>
   <script src="bower_components/angular-aria/angular-aria.min.js"></script>
   <script src="bower_components/angular-material/angular-material.min.js"></script>
   <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
@@ -86,7 +87,7 @@
                     <a href="#" class="navbar-brand"><img class="logo img-responsive pull-left" src="images/logo.png" alt="Vitam" title="Vitam" />vitam</a>
                 </div>
 
-                <div id="navbar" class="navbar-collapse collapse">
+                <div id="navbar" class="navbar-collapse collapse" ng-if="session.status=='logged'">
                     <ul class="nav navbar-nav">
                         <li class="@@mainMenu1 dropdown">
                             <button class="block dropdown-toggle" data-toggle="dropdown">
@@ -116,7 +117,6 @@
                                 <li class="divider"></li>
                                 <li><a href="#!/admin/importPronoun">Import du Référentiel des formats</a></li>
                                 <li><a href="#!/admin/managementrules">Règles de gestion</a></li>
-
                             </ul>
                         </li>
                         <li class="@@mainMenu2">
@@ -126,9 +126,16 @@
                             </a>
                         </li>
                     </ul>
-                    <!-- <ul class="nav navbar-nav navbar-right">
-                        <li><a href="#"><i class="material-icons">settings</i></a></li>
-                    </ul> -->
+                    <ul class="nav navbar-nav navbar-right">
+                        <li class="dropdown">
+                            <button class="block dropdown-toggle" data-toggle="dropdown">
+                                <i class="material-icons">settings</i>
+                            </button>
+                            <ul class="dropdown-menu" role="menu">
+                                <li><a href="" ng-click="logoutUser()">Log out</a></li>
+                            </ul>
+                        </li>
+                    </ul>
                 </div>
 
             </div>

@@ -25,7 +25,61 @@
  * accept its terms.
  */
 
-angular.module('core').controller('mainViewController', ['$scope', '$location', 'IHM_URLS', function($scope, $location, IHM_URLS){
-  $scope.showMenuBar = !$location.url().toString().startsWith(IHM_URLS.ARCHIVE_DETAILS_PATH);
-}
-]);
+angular.module('core')
+  .controller('mainViewController', function($rootScope, $scope, $location, IHM_URLS, authVitamService, $window, Restangular) {
+    $scope.showMenuBar = !$location.url().toString().startsWith(IHM_URLS.ARCHIVE_DETAILS_PATH);
+
+    $scope.session = {};
+
+    $rootScope.$on('$routeChangeSuccess', function(event, next, current) {
+      $scope.session.status = authVitamService.isConnect('userCredentials');
+      if ($scope.session.status != 'logged') {
+        $location.path('/login');
+      } else if ($location.path() == '/login') {
+        $location.path(IHM_URLS.IHM_DEFAULT_URL);
+      }
+    });
+
+    $rootScope.$on('$routeChangeStart', function(event, next, current) {
+      if ($location.path() != '/login') {
+        authVitamService.url = $location.path();
+      }
+    });
+
+    $scope.connectUser = function(login, password) {
+      Restangular.setDefaultHeaders({ Authorization: "Basic " + btoa(login+':'+password) });
+      authVitamService.login(login, password).then(
+        function(res) {
+          authVitamService.createCookie('role', res.role);
+          authVitamService.createCookie('userCredentials', btoa(login+':'+password));
+          $scope.session.status = 'logged';
+          $scope.logginError = false;
+          if (authVitamService.url && authVitamService.url != '') {
+            $location.path(authVitamService.url);
+            delete authVitamService.url;
+          } else {
+            $location.path(IHM_URLS.IHM_DEFAULT_URL);
+          }
+        },
+        function(err) {
+          $scope.logginError = true;
+          $scope.sessionExpire(err);
+        });
+    };
+
+    $scope.logoutUser = function() {
+      $scope.session.status = 'notlogged';
+      delete authVitamService.url;
+      authVitamService.logout().then(function(res) {
+        $location.path('/login');
+      });
+    };
+
+    $scope.sessionExpire = function(err){
+      if(err.status === 410){
+        $scope.session.status = 'notlogged';
+        $scope.statusLogin = 'Session Expire';
+        authVitamService.logout();
+      }
+    };
+  });

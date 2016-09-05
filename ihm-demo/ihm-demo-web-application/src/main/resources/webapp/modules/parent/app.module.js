@@ -37,5 +37,6 @@ angular.module('ihm.demo', [
   'angularFileUpload',
   'ngMaterial',
   'archive.unit',
-  'vAccordion'
+  'vAccordion',
+  'ngCookies'
 ]);

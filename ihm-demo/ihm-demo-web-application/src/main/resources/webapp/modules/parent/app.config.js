@@ -34,30 +34,33 @@ angular.
       $locationProvider.hashPrefix('!');
 
       $routeProvider.
-	      when('/archiveSearch', {
-	    	  template: '<archive-search></archive-search>'
-	      }).
-	      when('/admin', {
-	          templateUrl: "views/admin.html"
-	      }).
-	      when('/archiveGestion', {
-		      templateUrl: "views/in-progress.html",
-	  	  }).
-	      when('/uploadSIP', {
-	          templateUrl: "views/upload-sip.html",
-	          controller: "uploadController"
-	      }).
-	      when('/archiveunit/:archiveId', {
-	    	  template: '<archive-unit></archive-unit>'
-	      }).
-	      when('/admin/logbookOperations', {
-	          template: '<logbook-operations></logbook-operations>'
-	      }).
+        when('/login', {
+          templateUrl: 'views/login.html'
+        }).
+        when('/archiveSearch', {
+          template: '<archive-search></archive-search>'
+        }).
+        when('/admin', {
+          templateUrl: "views/admin.html"
+        }).
+        when('/archiveGestion', {
+          templateUrl: "views/in-progress.html"
+        }).
+        when('/uploadSIP', {
+          templateUrl: "views/upload-sip.html",
+          controller: "uploadController"
+        }).
+        when('/archiveunit/:archiveId', {
+          template: '<archive-unit></archive-unit>'
+        }).
+        when('/admin/logbookOperations', {
+          template: '<logbook-operations></logbook-operations>'
+        }).
         when('/admin/formats', {
-            template: '<file-format></file-format>'
+          template: '<file-format></file-format>'
         }).
         when('/admin/logbookLifecycle', {
-            templateUrl:  "views/in-progress.html"
+          templateUrl:  "views/in-progress.html"
         }).
         when('/admin/managementrules', {
               templateUrl:  "views/in-progress.html"
