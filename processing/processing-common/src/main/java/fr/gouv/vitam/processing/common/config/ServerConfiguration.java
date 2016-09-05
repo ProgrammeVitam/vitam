@@ -45,6 +45,7 @@ public class ServerConfiguration {
 
     /**
      * @param urlMetada the urlMetada to set
+     * @return the update ServerConfiguration object
      */
     public ServerConfiguration setUrlMetada(String urlMetada) {
         // FIXME REVIEW null check
@@ -64,6 +65,7 @@ public class ServerConfiguration {
 
     /**
      * @param urlWorkspace the urlWorkspace to set
+     * @return the update ServerConfiguration object
      */
     public ServerConfiguration setUrlWorkspace(String urlWorkspace) {
         // FIXME REVIEW null check

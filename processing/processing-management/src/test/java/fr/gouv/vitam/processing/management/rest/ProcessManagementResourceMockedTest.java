@@ -76,7 +76,7 @@ import fr.gouv.vitam.processing.management.api.ProcessManagement;
 
 public class ProcessManagementResourceMockedTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessManagementResourceMockedTest.class);
-    private static final String PORCESSING_URI = "/processing/api/v0.0.3";
+    private static final String PORCESSING_URI = "/processing/v1";
     private static VitamServer vitamServer;
     private static JunitHelper junitHelper;
     private static int port;

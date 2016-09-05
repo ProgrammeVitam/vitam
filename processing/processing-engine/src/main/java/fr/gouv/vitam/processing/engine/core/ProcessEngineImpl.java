@@ -90,7 +90,7 @@ public class ProcessEngineImpl implements ProcessEngine {
      * ProcessEngineImpl constructor populate also the workflow to the pool of workflow
      */
     protected ProcessEngineImpl() {
-        processDistributor = new ProcessDistributorImplFactory().create();
+        processDistributor = ProcessDistributorImplFactory.getDefaultDistributor();
         poolWorkflows = new HashMap<>();
         try {
             setWorkflow("DefaultIngestWorkflow");
@@ -124,6 +124,7 @@ public class ProcessEngineImpl implements ProcessEngine {
                 final GUID processId = GUIDFactory.newGUID();
                 processResponse.setProcessId(processId.getId());
                 workParams.setProcessId(processId.getId());
+
 
                 Map<String, ProcessStep> processSteps = ProcessMonitoringImpl.getInstance().initOrderedWorkflow(
                     workParams.getProcessId(), workFlow,

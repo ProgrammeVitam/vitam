@@ -151,7 +151,7 @@ public class WorkspaceApplication extends AbstractVitamApplication<WorkspaceAppl
      *
      * @throws Exception in case of error
      */
-    public void stop() throws Exception {
+    public static void stop() throws Exception {
         vitamServer.stop();
     }
 

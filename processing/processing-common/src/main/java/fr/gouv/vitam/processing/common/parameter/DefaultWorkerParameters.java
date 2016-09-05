@@ -38,9 +38,14 @@ package fr.gouv.vitam.processing.common.parameter;
 import java.util.Map;
 import java.util.Set;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
 /**
  * Default parameters for worker
  */
+@JsonSerialize(using = WorkerParametersSerializer.class)
+@JsonDeserialize(using = WorkerParametersDeserializer.class)
 public class DefaultWorkerParameters extends AbstractWorkerParameters {
 
     /**

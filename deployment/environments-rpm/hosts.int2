@@ -14,6 +14,7 @@ hosts-storage-engine
 hosts-storage-offer-default
 hosts-ingest-external
 hosts-functional-administration
+hosts-worker
 hosts-log-server
 
 [hosts-mongodb]
@@ -54,6 +55,9 @@ vitam-iaas-storage-01.int2
 
 [hosts-storage-offer-default]
 vitam-iaas-defoffer-01.int2
+
+[hosts-worker]
+vitam-iaas-processing-01.int2
 
 [hosts-log-server]
 vitam-iaas-log-01.int2

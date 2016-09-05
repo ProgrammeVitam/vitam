@@ -25,6 +25,10 @@ package fr.gouv.vitam.processing.distributor.api;
 
 import java.util.List;
 
+import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
+import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
+import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
+import fr.gouv.vitam.processing.common.exception.WorkerNotFoundException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -49,4 +53,26 @@ public interface ProcessDistributor {
      * @return List EngineResponse {@link EngineResponse} : list of action response
      */
     List<EngineResponse> distribute(WorkerParameters workParams, Step step, String workflowId);
+
+    /**
+     * Register a new worker knowing its family
+     * 
+     * @param familyId the id of the family
+     * @param workerId the id of the worker
+     * @param workerInformation information of the worker to be registered
+     * @throws WorkerAlreadyExistsException if the worker already exists
+     * @throws ProcessingBadRequestException if the worker description is not correct
+     */
+    void registerWorker(String familyId, String workerId, String workerInformation)
+        throws WorkerAlreadyExistsException, ProcessingBadRequestException;
+
+    /**
+     * Delete a worker knowing its id
+     * 
+     * @param familyId the id of the family
+     * @param workerId the id of the worker
+     * @throws WorkerFamilyNotFoundException if the family does not exist
+     * @throws WorkerNotFoundException if the worker does not exist
+     */
+    void unregisterWorker(String familyId, String workerId) throws WorkerFamilyNotFoundException, WorkerNotFoundException;
 }

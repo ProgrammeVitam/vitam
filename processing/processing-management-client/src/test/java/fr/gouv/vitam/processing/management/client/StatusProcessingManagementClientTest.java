@@ -77,7 +77,7 @@ public class StatusProcessingManagementClientTest extends JerseyTest {
         return new ResourceConfig().registerInstances(new ProcessingResource(mock));
     }
 
-    @Path("/processing/api/v0.0.3")
+    @Path("/processing/v1")
     public static class ProcessingResource {
         private final Supplier<Response> expectedResponse;
 

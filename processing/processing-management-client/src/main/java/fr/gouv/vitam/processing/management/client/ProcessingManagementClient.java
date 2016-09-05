@@ -46,7 +46,9 @@ import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingInternalServerException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnauthorizeException;
+import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
+import fr.gouv.vitam.processing.common.model.WorkerBean;
 
 /**
  *
@@ -56,7 +58,7 @@ public class ProcessingManagementClient {
 
     private final Client client;
     private final String url;
-    private static final String RESOURCE_PATH = "/processing/api/v0.0.3";
+    private static final String RESOURCE_PATH = "/processing/v1";
 
     // FIXME REVIEW user should not specified the url, the factory should handle this directly (see Logbook client)
     /**
@@ -123,6 +125,53 @@ public class ProcessingManagementClient {
         } catch (javax.ws.rs.ProcessingException e) {
             LOGGER.error(e);
             throw new ProcessingInternalServerException("Internal Server Error", e);
+        }
+    }
+
+    /**
+     * Register a new worker knowing its family and with a WorkerBean. If a problem is encountered, an exception is
+     * thrown.
+     * 
+     * @param familyId the id of the family to which the worker has to be registered
+     * @param workerId the id of the worker to be registered
+     * @param workerDescription the description of the worker as a workerBean
+     * @throws ProcessingBadRequestException if a bad request has been sent
+     * @throws WorkerAlreadyExistsException if the worker family does not exist
+     */
+    public void registerWorker(String familyId, String workerId, WorkerBean workerDescription)
+        throws ProcessingBadRequestException, WorkerAlreadyExistsException {
+        ParametersChecker.checkParameter("familyId is a mandatory parameter", familyId);
+        ParametersChecker.checkParameter("workerId is a mandatory parameter", workerId);
+        ParametersChecker.checkParameter("workerDescription is a mandatory parameter", workerDescription);
+        final Response response = client.target(url).path("worker_family/" + familyId + "/" + "workers" +
+            "/" + workerId).request(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .post(Entity.entity(workerDescription, MediaType.APPLICATION_JSON), Response.class);
+
+        if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
+            throw new ProcessingBadRequestException("Bad Request");
+        } else if (response.getStatus() == Status.CONFLICT.getStatusCode()) {
+            throw new WorkerAlreadyExistsException("Worker already exist");
+        }
+    }
+
+    /**
+     * Unregister a worker knowing its family and its workerId. If the familyId or the workerId is unknown, an exception
+     * is thrown.
+     * 
+     * @param familyId the id of the family to which the worker has to be registered
+     * @param workerId the id of the worker to be registered
+     * @throws ProcessingBadRequestException if the worker or the family does not exist
+     */
+    public void unregisterWorker(String familyId, String workerId)
+        throws ProcessingBadRequestException {
+        ParametersChecker.checkParameter("familyId is a mandatory parameter", familyId);
+        ParametersChecker.checkParameter("workerId is a mandatory parameter", workerId);
+        final Response response = client.target(url).path("worker_family/" + familyId + "/" + "workers" +
+            "/" + workerId).request(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .delete();
+
+        if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+            throw new ProcessingBadRequestException("Worker Family, or worker does not exist");
         }
     }
 }

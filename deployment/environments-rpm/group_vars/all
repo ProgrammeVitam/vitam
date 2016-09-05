@@ -42,6 +42,10 @@ vitam_processing_host: "{{ groups['hosts-processing'][0] }}"
 vitam_processing_port: 8082
 vitam_processing_baseurl: "http://{{vitam_processing_host}}:{{vitam_processing_port}}"
 
+vitam_worker_host: "{{ groups['hosts-worker'][0] }}"
+vitam_worker_port: 8082
+vitam_worker_baseurl: "http://{{vitam_worker_host}}:{{vitam_worker_port}}"
+
 vitam_storageengine_host: "{{ groups['hosts-storage-engine'][0] }}"
 vitam_storageengine_port: 8082
 vitam_storageengine_baseurl: "http://{{vitam_storageengine_host}}:{{vitam_storageengine_port}}"

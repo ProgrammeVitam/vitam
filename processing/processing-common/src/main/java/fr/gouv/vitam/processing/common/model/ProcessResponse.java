@@ -37,7 +37,8 @@ import fr.gouv.vitam.common.SingletonUtils;
  *
  * Process Response class
  *
- * contains global process status, messages and list of action results
+ * contains global process status, messages and list of action results <br>
+ * TODO : should become a real POJO, extract all methods that should not be in a POJO (getGlobalProcessStatusCode, etc)
  */
 
 public class ProcessResponse implements EngineResponse {
@@ -68,8 +69,8 @@ public class ProcessResponse implements EngineResponse {
     private String messageId;
 
     /**
-     * List of steps 's responses
-     *
+     * List of steps 's responses <br>
+     * TODO : remove interface to use a real POJO
      *
      * key is stepName
      *

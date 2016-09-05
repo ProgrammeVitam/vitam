@@ -61,7 +61,6 @@ public class ProcessManagementImpl implements ProcessManagement {
         processEngine = new ProcessEngineImplFactory().create();
     }
 
-
     /**
      * set the server configuration
      *

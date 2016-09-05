@@ -27,33 +27,46 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.NavigableMap;
+import java.util.TreeMap;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.io.CharStreams;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
+import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
+import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
+import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
+import fr.gouv.vitam.processing.common.exception.WorkerNotFoundException;
 import fr.gouv.vitam.processing.common.model.DistributionKind;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.model.Step;
+import fr.gouv.vitam.processing.common.model.WorkerBean;
+import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
-import fr.gouv.vitam.processing.worker.api.Worker;
-import fr.gouv.vitam.processing.worker.core.WorkerImpl;
+import fr.gouv.vitam.worker.client.WorkerClientConfiguration;
+import fr.gouv.vitam.worker.client.WorkerClientFactory;
+import fr.gouv.vitam.worker.client.WorkerClientFactory.WorkerClientType;
+import fr.gouv.vitam.worker.common.DescriptionStep;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
- * The Process Distributor call the workers {@link Worker}and intercept the response for manage a post actions step
+ * The Process Distributor call the workers and intercept the response for manage a post actions step
  *
  * <pre>
  * TODO : 
@@ -86,30 +99,39 @@ public class ProcessDistributorImpl implements ProcessDistributor {
     private static final String ELEMENT_UNITS = "Units";
     private static final String INGEST_LEVEL_STACK = "ingestLevelStack.json";
 
-    private final List<Worker> workers = new ArrayList<Worker>();
-    private final List<String> availableWorkers = new ArrayList<String>();
+    private static final Map<String, NavigableMap<String, WorkerBean>> WORKERS_LIST = new HashMap<>();
+    private final List<String> availableWorkers = new ArrayList<>();
 
     /**
      * Constructor with parameter worker
      *
-     * @param worker {@link Worker} worker implementation
+     * @param worker worker implementation
      */
-    protected ProcessDistributorImpl(Worker worker) {
-        ParametersChecker.checkParameter("workerImpl is a mandatory parameter", worker);
-        final Worker worker1 = worker;
-        workers.add(worker1);
-        availableWorkers.add(worker1.getWorkerId());
+    ProcessDistributorImpl(WorkerBean workerBean, String workerId, String familyId) {
+        ParametersChecker.checkParameter("workerBean is a mandatory parameter", workerBean);
+        ParametersChecker.checkParameter("workerId is a mandatory parameter", workerId);
+        ParametersChecker.checkParameter("familyId is a mandatory parameter", familyId);
+        workerBean.setWorkerId(workerId);
+        NavigableMap<String, WorkerBean> workers = new TreeMap<>();
+        workers.put(workerId, workerBean);
+        WORKERS_LIST.put(familyId, workers);
+        availableWorkers.add(workerId);
+    }
+
+    /**
+     * Method used for test purpose
+     * 
+     */
+    Map<String, NavigableMap<String, WorkerBean>> getWorkersList() {
+        return WORKERS_LIST;
     }
 
     /**
      * Empty constructor
      */
-    protected ProcessDistributorImpl() {
-        final Worker worker1 = new WorkerImpl();
-        workers.add(worker1);
-        availableWorkers.add(worker1.getWorkerId());
-    }
+    public ProcessDistributorImpl() {}
 
+    // FIXME : make this method (distribute()) more generic
     @Override
     public List<EngineResponse> distribute(WorkerParameters workParams, Step step, String workflowId) {
         ParametersChecker.checkParameter("WorkParams is a mandatory parameter", workParams);
@@ -167,8 +189,14 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                             responses.add(errorResponse);
                             break;
                         } else {
-                            // TODO distribution Management
-                            responses.addAll(workers.get(0).run(workParams.setObjectName(objectUri.getPath()), step));
+                            // Load configuration
+                            // TODO : management of parallel distribution and availability
+                            loadWorkerClient(WORKERS_LIST.get("defaultFamily").firstEntry().getValue());
+                            // run step
+                            workParams.setObjectName(objectUri.getPath());
+                            responses.addAll(
+                                WorkerClientFactory.getInstance().getWorkerClient().submitStep("requestId",
+                                    new DescriptionStep(step, (DefaultWorkerParameters) workParams)));
                             // update the number of processed element
                             ProcessMonitoringImpl.getInstance().updateStep(processId, uniqueStepId, 0, true);
                         }
@@ -177,12 +205,16 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             } else {
                 // update the number of element to process
                 ProcessMonitoringImpl.getInstance().updateStep(processId, uniqueStepId, 1, false);
-                if (availableWorkers.isEmpty()) {
+                if (availableWorkers.isEmpty()) {                    
                     LOGGER.info(errorResponse.getStatus().toString());
                     responses.add(errorResponse);
                 } else {
+                    // TODO : management of parallel distribution and availability
+                    loadWorkerClient(WORKERS_LIST.get("defaultFamily").firstEntry().getValue());
+                    workParams.setObjectName(step.getDistribution().getElement());
                     responses.addAll(
-                        workers.get(0).run(workParams.setObjectName(step.getDistribution().getElement()), step));
+                        WorkerClientFactory.getInstance().getWorkerClient().submitStep("requestId",
+                            new DescriptionStep(step, (DefaultWorkerParameters) workParams)));
                     // update the number of processed element
                     ProcessMonitoringImpl.getInstance().updateStep(processId, uniqueStepId, 0, true);
                 }
@@ -206,13 +238,72 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         return responses;
     }
 
+    private void loadWorkerClient(WorkerBean workerBean) {
+        WorkerClientConfiguration workerClientConfiguration =
+            new WorkerClientConfiguration(workerBean.getConfiguration().getServerHost(),
+                workerBean.getConfiguration().getServerPort(),
+                workerBean.getConfiguration().getUseSSL(),
+                workerBean.getConfiguration().getServerContextPath());
+        WorkerClientFactory.setConfiguration(WorkerClientType.WORKER, workerClientConfiguration);
+    }
+
 
     private String getSafetyStepName(Step step) {
 
         if (step == null || step.getStepName() == null) {
             return "";
         }
-
         return step.getStepName();
+    }
+
+    @Override
+    public void registerWorker(String familyId, String workerId, String workerInformation)
+        throws WorkerAlreadyExistsException, ProcessingBadRequestException {
+        LOGGER.debug("Worker Information " + familyId + " " + workerId + " " + workerInformation);
+        WorkerBean worker = null;
+        try {
+            worker = JsonHandler.getFromString(workerInformation, WorkerBean.class);
+            worker.setWorkerId(workerId);
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error("Worker Information incorrect", e);
+            throw new ProcessingBadRequestException("Worker description is incorrect");
+        }
+        if (WORKERS_LIST.get(familyId) != null) {
+            LOGGER.debug("Family known");
+            NavigableMap<String, WorkerBean> familyWorkers = WORKERS_LIST.get(familyId);
+            if (familyWorkers.get(workerId) != null) {
+                LOGGER.error("Worker already registered");
+                throw new WorkerAlreadyExistsException("Worker already registered");
+            } else {
+                familyWorkers.put(workerId, worker);
+                WORKERS_LIST.put(familyId, familyWorkers);
+                availableWorkers.add(workerId);
+            }
+        } else {
+            LOGGER.debug("Family unknown");
+            NavigableMap<String, WorkerBean> familyWorkers = new TreeMap<String, WorkerBean>();
+
+            familyWorkers.put(workerId, worker);
+            WORKERS_LIST.put(familyId, familyWorkers);
+            availableWorkers.add(workerId);
+        }
+    }
+
+    @Override
+    public void unregisterWorker(String familyId, String workerId)
+        throws WorkerNotFoundException, WorkerFamilyNotFoundException {
+        NavigableMap<String, WorkerBean> familyWorkers = WORKERS_LIST.get(familyId);
+        if (familyWorkers != null) {
+            if (familyWorkers.get(workerId) != null) {
+                familyWorkers.remove(workerId);
+                WORKERS_LIST.put(familyId, familyWorkers);
+            } else {
+                LOGGER.error("Worker does not exist in this family");
+                throw new WorkerNotFoundException("Worker does not exist in this family");
+            }
+        } else {
+            LOGGER.error("Worker Family does not exist");
+            throw new WorkerFamilyNotFoundException("Worker Family does not exist");
+        }
     }
 }

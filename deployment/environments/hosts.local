@@ -12,6 +12,7 @@ hosts-storageengine
 hosts-storageofferdefault
 hosts-ingest-external
 hosts-functional-administration
+hosts-worker
 
 [hosts-ihm-demo]
 {{local_docker0_ip}}
@@ -50,6 +51,9 @@ hosts-functional-administration
 {{local_docker0_ip}}
 
 [hosts-storageofferdefault]
+{{local_docker0_ip}}
+
+[hosts-worker]
 {{local_docker0_ip}}
 
 [hosts:vars]

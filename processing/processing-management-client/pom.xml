@@ -42,7 +42,7 @@
 			<artifactId>processing-management</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		 		<dependency>
+		 <dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>workspace-rest</artifactId>
 			<version>${project.version}</version>
