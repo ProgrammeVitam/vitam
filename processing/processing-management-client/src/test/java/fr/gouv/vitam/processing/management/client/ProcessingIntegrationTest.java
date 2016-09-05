@@ -27,16 +27,21 @@
 package fr.gouv.vitam.processing.management.client;
 
 import static com.jayway.restassured.RestAssured.get;
+import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.io.File;
 import java.io.InputStream;
-import java.util.List;
 import java.util.Map;
 
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.node.Node;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
@@ -53,7 +58,6 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.metadata.rest.MetaDataApplication;
 import fr.gouv.vitam.processing.common.exception.ProcessingInternalServerException;
-import fr.gouv.vitam.processing.common.model.Action;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementApplication;
@@ -65,6 +69,16 @@ import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
  * 
  */
 public class ProcessingIntegrationTest {
+    
+    @ClassRule
+    public static TemporaryFolder tempFolder = new TemporaryFolder();
+    private static File elasticsearchHome;
+
+    private final static String CLUSTER_NAME = "vitam-cluster";
+    private static int TCP_PORT = 54321;
+    private static int HTTP_PORT = 54320;
+    private static Node node;
+    
     private static final int DATABASE_PORT = 12346;
     private static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
@@ -106,6 +120,24 @@ public class ProcessingIntegrationTest {
         CONFIG_PROCESSING_PATH = PropertiesUtils.getResourcesPath("processing.conf").toString();
         CONFIG_WORKSPACE_PATH = PropertiesUtils.getResourcesPath("workspace.conf").toString();
 
+        elasticsearchHome = tempFolder.newFolder();
+        Settings settings = Settings.settingsBuilder()
+            .put("http.enabled", true)
+            .put("discovery.zen.ping.multicast.enabled", false)
+            .put("transport.tcp.port", TCP_PORT)
+            .put("http.port", HTTP_PORT)
+            .put("path.home", elasticsearchHome.getCanonicalPath())
+            .build();
+
+        node = nodeBuilder()
+            .settings(settings)
+            .client(false)
+            .clusterName(CLUSTER_NAME)
+            .node();
+
+        node.start();
+
+       
         final MongodStarter starter = MongodStarter.getDefaultInstance();
 
         mongodExecutable = starter.prepare(new MongodConfigBuilder()

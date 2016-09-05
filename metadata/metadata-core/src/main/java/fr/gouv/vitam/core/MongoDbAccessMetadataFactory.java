@@ -33,9 +33,10 @@ import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
 
 import fr.gouv.vitam.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.api.exception.MetaDataException;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
-import fr.gouv.vitam.common.server.application.configuration.DbConfiguration;
+import fr.gouv.vitam.core.database.collections.ElasticsearchAccessMetadata;
 import fr.gouv.vitam.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.core.database.collections.MongoDbAccessMetadataImpl;
 /**
@@ -52,6 +53,15 @@ public class MongoDbAccessMetadataFactory {
      */
     public MongoDbAccessMetadataImpl create(MetaDataConfiguration configuration) {
         ParametersChecker.checkParameter("configuration is a mandatory parameter", configuration);
+        
+        ElasticsearchAccessMetadata esClient=null;
+        try {
+            esClient = new ElasticsearchAccessMetadataFactory().create(configuration);
+           
+        } catch (MetaDataException e1) {
+            // TODO 
+        }
+        
         List<Class<?>> classList = new ArrayList<>();
         for (MetadataCollections e : MetadataCollections.class.getEnumConstants()) {
             classList.add(e.getClasz());
@@ -62,6 +72,6 @@ public class MongoDbAccessMetadataFactory {
                 configuration.getHost(),
                 configuration.getPort()),
                 VitamCollection.getMongoClientOptions(classList)),
-            configuration.getDbName(), true);
+            configuration.getDbName(), true, esClient);
     }
 }

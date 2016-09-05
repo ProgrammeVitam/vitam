@@ -63,12 +63,12 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess{
 
     /**
      *
-     * @param mongoClient MongoCliet
+     * @param mongoClient MongoClient
      * @param dbname MongoDB database name
      * @param recreate True to recreate the index
      */
     
-    public MongoDbAccessMetadataImpl(MongoClient mongoClient, String dbname, boolean recreate) {
+    public MongoDbAccessMetadataImpl(MongoClient mongoClient, String dbname, boolean recreate, ElasticsearchAccessMetadata esClient) {
         super(mongoClient, dbname, recreate);    
         
         MetadataCollections.C_UNIT.initialize(this.getMongoDatabase(), recreate);
@@ -83,6 +83,10 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess{
                 t.setRoot();
             }
         });
+        
+        // init Unit Mapping for ES
+        MetadataCollections.C_UNIT.initialize(esClient);
+        MetadataCollections.C_UNIT.getEsClient().addIndex(MetadataCollections.C_UNIT);
     }
 
     /**

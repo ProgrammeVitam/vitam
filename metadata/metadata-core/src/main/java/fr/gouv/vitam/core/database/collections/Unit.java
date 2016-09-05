@@ -100,11 +100,41 @@ public class Unit extends MetadataDocument<Unit> {
      */
     public static final String MANAGEMENT = "_mgt";
 
+    
+    /**
+     * ES Mapping
+     */
+    public static final String TYPEUNIQUE = "typeunique";
+    
+    // TODO add Nested objects or Parent/child relationships
+    public static final String MAPPING = "{" + TYPEUNIQUE + ": {"+
+        "properties : { " + Unit.UNITDEPTHS + " : { type : \"object\", enabled : false }, " +
+        Unit.UNITUPS + " : { type : \"string\", index : \"not_analyzed\" }, " +
+        Unit.NBCHILD + " : { type : \"long\" }," +
+        VitamLinks.UNIT_TO_UNIT.field2to1 + " : { type : \"string\", index : \"not_analyzed\" }, " +
+        VitamLinks.UNIT_TO_UNIT.field1to2 + " : { type : \"object\", enabled : false }, " +
+        VitamLinks.UNIT_TO_OBJECTGROUP.field1to2 + " : { type : \"string\", index : \"not_analyzed\" }, " +
+        
+        "Title : { type : \"string\", index : \"analyzed\" }, " +
+        "Description : { type : \"string\", index : \"analyzed\" }, " +
+        "DescriptionLevel : { type : \"string\", index : \"not_analyzed\" }, " +
+        "TransactedDate : { type : \"date\", index : \"analyzed\" } " +
+         
+        " } } }";
+    
+    
     /**
      * Quick projection for ID and ObjectGroup Only
      */
     public static final BasicDBObject UNIT_OBJECTGROUP_PROJECTION =
         new BasicDBObject(MetadataDocument.ID, 1).append(MetadataDocument.OG, 1).append(DOMID, 1);
+    
+    /**
+     * Es projection (no UPS)
+     */
+    public static final BasicDBObject UNIT_ES_PROJECTION =
+        new BasicDBObject(UNITDEPTHS, 0);
+    
     /**
      * Unit Id, Vitam fields Only projection (no content nor management)
      */

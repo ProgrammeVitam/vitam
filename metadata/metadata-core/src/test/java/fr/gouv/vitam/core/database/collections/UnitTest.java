@@ -35,7 +35,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -47,12 +46,9 @@ import fr.gouv.vitam.common.json.JsonHandler;
 public class UnitTest {
     private static final String s1 = "{\"_id\":\"id1\", \"title\":\"title1\"}";
     private static final String s2 = "{\"_id\":\"id2\", \"title\":\"title2\", \"_up\":\"id1\"}";
-    private static final String s3 = "{\"_id\":\"id3\", \"title\":\"title3\", \"_up\":\"id1\"}";
     private static final String sub1 = "{\"_id\":\"id2\",\"description\":\"description1\"}";
     private static final String sub2 = "{\"_id\":\"id3\",\"champ\":\"champ1\"}";
-
-    private static final String s = "{\"_id\":\"id4\", \"title\":\"title1\", \"_up\":\"id2\", \"_uds\":\"id1\"}";
-
+    
     @Test
     public void testUnitInitialization() throws InvalidParseOperationException {
         final JsonNode json = JsonHandler.getFromString(s1);

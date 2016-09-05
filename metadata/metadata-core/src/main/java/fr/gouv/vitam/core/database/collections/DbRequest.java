@@ -106,7 +106,7 @@ public class DbRequest {
     private static final String NO_RESULT_AT_RANK = "No result at rank: ";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DbRequest.class);
-
+    
     boolean debug = true;
 
     /**
@@ -207,6 +207,27 @@ public class DbRequest {
             final Result newResult = lastInsertFilterProjection((InsertToMongodb) requestToMongodb, result);
             if (newResult != null) {
                 result = newResult;
+                // index Metadata
+                Set<String> ids = result.getCurrentIds();
+
+                final FILTERARGS model = requestToMongodb.model();
+                // index Unit
+                if (model == FILTERARGS.UNITS) {
+                    final Bson finalQuery = in(Unit.ID, ids);
+                    final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper
+                        .select(MetadataCollections.C_UNIT, finalQuery, Unit.UNIT_ES_PROJECTION);
+                    final MongoCursor<Unit> cursor = iterable.iterator();
+                    try {
+                        while (cursor.hasNext()) {
+                            final Unit unit = cursor.next();
+                            // TODO use Bulk
+                            MetadataCollections.C_UNIT.getEsClient().addEntryIndex(unit);
+                            }
+                        } finally {
+                            cursor.close();
+                        }
+                }
+               // TODO index ObjectGroup
             }
             if (GlobalDatasDb.PRINT_REQUEST) {
                 LOGGER.warn("Results: " + result);

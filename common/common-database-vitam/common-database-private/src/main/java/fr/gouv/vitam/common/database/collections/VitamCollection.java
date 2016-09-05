@@ -41,12 +41,14 @@ import java.util.List;
 
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
+import org.elasticsearch.client.transport.TransportClient;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.database.translators.mongodb.VitamDocumentCodec;
 
@@ -57,6 +59,7 @@ public class VitamCollection {
     private final Class<?> clasz;
     private final String name;
     private MongoCollection<?> collection;
+    private ElasticsearchAccess esClient;
 
     protected VitamCollection(final Class<?> clasz) {
         this.clasz = clasz;
@@ -73,6 +76,16 @@ public class VitamCollection {
         if (recreate) {
             collection.createIndex(hashed(VitamDocument.ID));
         }
+    }
+    
+    
+    /**
+     * Initialize the ES Client
+     *
+     * @param ElasticsearchAccess ES Client
+     */
+    public void initialize(final ElasticsearchAccess esClient) {
+       this.esClient=esClient;
     }
 
     /**
@@ -100,6 +113,13 @@ public class VitamCollection {
     }
 
     /**
+     * @return the esClient
+     */
+    public ElasticsearchAccess getEsClient() {
+        return esClient;
+    }
+
+    /**
      * @param claszList Vitam document extended class list
      * @return MongoClientOptions for mongoClient
      */
@@ -115,4 +135,6 @@ public class VitamCollection {
 
         return MongoClientOptions.builder().codecRegistry(codecRegistry).build();
     }
+    
+    
 }

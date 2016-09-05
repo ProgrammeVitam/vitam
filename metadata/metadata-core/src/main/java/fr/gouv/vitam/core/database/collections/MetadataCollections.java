@@ -1,6 +1,5 @@
 package fr.gouv.vitam.core.database.collections;
 
-import static com.mongodb.client.model.Indexes.hashed;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
@@ -36,6 +35,17 @@ public enum MetadataCollections {
     protected void initialize(final MongoDatabase db, final boolean recreate) {
         vitamCollection.initialize(db, recreate);
     }
+    
+    
+    /**
+     * Initialize the collection
+     *
+     * @param ElasticsearchAccessMetadata ElasticsearchAccess
+     */
+    
+    protected void initialize(final ElasticsearchAccessMetadata esClient) {
+        vitamCollection.initialize(esClient);
+    }
 
     /**
      *
@@ -60,6 +70,14 @@ public enum MetadataCollections {
      */
     public Class<?> getClasz() {
         return vitamCollection.getClasz();
-    }         
+    }   
+    
+    /**
+    *
+    * @return the associated ES Client
+    */    
+   public ElasticsearchAccessMetadata getEsClient() {
+       return (ElasticsearchAccessMetadata) vitamCollection.getEsClient();
+   }
 }
 
