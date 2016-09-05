@@ -64,6 +64,8 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
                 case ID:
                     // Valid for OG
                     return MetadataDocument.ID;
+                case QUALIFIERS:
+                    return MetadataDocument.QUALIFIERS;
                 case NBUNITS:
                     // Valid for OG
                     return Unit.NBCHILD;

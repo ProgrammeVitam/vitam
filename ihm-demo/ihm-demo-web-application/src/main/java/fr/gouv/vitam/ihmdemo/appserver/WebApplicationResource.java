@@ -58,6 +58,7 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClientFacto
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
+import fr.gouv.vitam.ihmdemo.core.JsonTransformer;
 import fr.gouv.vitam.ihmdemo.core.UiConstants;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
 import fr.gouv.vitam.ingest.external.api.IngestExternalException;
@@ -150,7 +151,6 @@ public class WebApplicationResource {
     /**
      * @param options the queries for searching
      * @return Response
-     * @throws InvalidParseOperationException could not be transfered to Json
      */
     @POST
     @Path("/logbook/operations")
@@ -183,7 +183,6 @@ public class WebApplicationResource {
      * @param operationId id of operation
      * @param options the queries for searching
      * @return Response
-     * @throws InvalidParseOperationException could not be transfered to Json
      */
     @POST
     @Path("/logbook/operations/{idOperation}")
@@ -222,8 +221,7 @@ public class WebApplicationResource {
     }
 
     /**
-     * upload the file
-     * TODO : add file name
+     * upload the file TODO : add file name
      *
      * @param stream, data input stream
      * @return Response
@@ -250,7 +248,6 @@ public class WebApplicationResource {
      * @param updateSet conains updated field
      * @param unitId archive unit id
      * @return archive unit details
-     * @throws InvalidParseOperationException could not be transfered to Json
      */
     @PUT
     @Path("/archiveupdate/units/{id}")
@@ -303,7 +300,6 @@ public class WebApplicationResource {
     /**
      * @param options the queries for searching
      * @return Response
-     * @throws InvalidParseOperationException could not be transfered to Json
      */
     @POST
     @Path("/admin/formats")
@@ -336,7 +332,6 @@ public class WebApplicationResource {
      * @param formatId id of format
      * @param options the queries for searching
      * @return Response
-     * @throws InvalidParseOperationException could not be transfered to Json
      */
     @POST
     @Path("/admin/formats/{idFormat}")
@@ -424,4 +419,85 @@ public class WebApplicationResource {
         }
         return Response.status(Status.OK).build();
     }
+
+
+    /**
+     * Retrieve an ObjectGroup as Json data based on the provided ObjectGroup id
+     * 
+     * @param objectGroupId the object group Id
+     * @return a response containing a json with informations about usages and versions for an object group
+     */
+    @GET
+    @Path("/archiveunit/objects/{idOG}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getArchiveObjectGroup(@PathParam("idOG") String objectGroupId) {
+        ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, objectGroupId);
+        try {
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(objectGroupId));
+
+            HashMap<String, String> qualifierProjection = new HashMap<>();
+            qualifierProjection.put("projection_qualifiers", "#qualifiers");
+            String preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(qualifierProjection);
+            JsonNode searchResult = UserInterfaceTransactionManager.selectObjectbyId(preparedQueryDsl, objectGroupId);
+
+            return Response.status(Status.OK).entity(JsonTransformer.transformResultObjects(searchResult)).build();
+
+        } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
+            return Response.status(Status.BAD_REQUEST).build();
+        } catch (final AccessClientServerException e) {
+            LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final AccessClientNotFoundException e) {
+            LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
+            return Response.status(Status.NOT_FOUND).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Retrieve an Object data as an input stream
+     * 
+     * @param objectGroupId the object group Id
+     * @param options additional parameters like usage and version
+     * @return a response containing the input stream
+     */
+    @POST
+    @Path("/archiveunit/objects/download/{idOG}")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public Response getObjectAsInputStream(@PathParam("idOG") String objectGroupId, String options) {
+        ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, objectGroupId);
+        try {
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(objectGroupId));
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
+            Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
+            String usage = optionsMap.get("usage");
+            String version = optionsMap.get("version");
+            ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, usage);
+            ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, version);
+            HashMap<String, String> emptyMap = new HashMap<>();
+            String preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(emptyMap);
+            InputStream stream =
+                UserInterfaceTransactionManager.getObjectAsInputStream(preparedQueryDsl, objectGroupId, usage,
+                    Integer.parseInt(version));
+            return Response.status(Status.OK).entity(stream).build();
+
+        } catch (final InvalidCreateOperationException | InvalidParseOperationException | NumberFormatException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
+            return Response.status(Status.BAD_REQUEST).build();
+        } catch (final AccessClientServerException e) {
+            LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final AccessClientNotFoundException e) {
+            LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
+            return Response.status(Status.NOT_FOUND).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+
 }

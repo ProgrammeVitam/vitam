@@ -26,6 +26,8 @@
  */
 package fr.gouv.vitam.ihmdemo.core;
 
+import java.io.InputStream;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.access.client.AccessClient;
@@ -35,60 +37,48 @@ import fr.gouv.vitam.access.common.exception.AccessClientServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
- * Manage all the transactions received form the User Interface : a gateway to
- * VITAM intern
+ * Manage all the transactions received form the User Interface : a gateway to VITAM intern
  *
  */
 public class UserInterfaceTransactionManager {
 
-	private static final AccessClient ACCESS_CLIENT = AccessClientFactory.getInstance().getAccessOperationClient();
+    private static final AccessClient ACCESS_CLIENT = AccessClientFactory.getInstance().getAccessOperationClient();
 
-	/**
-	 * Gets search units result
-	 * 
-	 * @param parameters
-	 *            search criteria as DSL query
-	 * @return
-	 * @throws AccessClientServerException
-	 *             thrown when an errors occurs during the connection with the
-	 *             server
-	 * @throws AccessClientNotFoundException
-	 *             thrown when access client is not found
-	 * @throws InvalidParseOperationException
-	 *             thrown when the Json node format is not correct
-	 */
-	public static JsonNode searchUnits(String parameters)
-			throws AccessClientServerException, AccessClientNotFoundException, InvalidParseOperationException {
-		return ACCESS_CLIENT.selectUnits(parameters);
-	}
+    /**
+     * Gets search units result
+     * 
+     * @param parameters search criteria as DSL query
+     * @return
+     * @throws AccessClientServerException thrown when an errors occurs during the connection with the server
+     * @throws AccessClientNotFoundException thrown when access client is not found
+     * @throws InvalidParseOperationException thrown when the Json node format is not correct
+     */
+    public static JsonNode searchUnits(String parameters)
+        throws AccessClientServerException, AccessClientNotFoundException, InvalidParseOperationException {
+        return ACCESS_CLIENT.selectUnits(parameters);
+    }
 
-	/**
-	 * 
-	 * Gets archive unit details
-	 * 
-	 * @param preparedDslQuery
-	 *            search criteria as DSL query
-	 * @param unitId
-	 *            archive unit id to find
-	 * @return
-	 * @throws AccessClientServerException
-	 *             thrown when an errors occurs during the connection with the
-	 *             server
-	 * @throws AccessClientNotFoundException
-	 *             thrown when access client is not found
-	 * @throws InvalidParseOperationException
-	 *             thrown when the Json node format is not correct
-	 */
-	public static JsonNode getArchiveUnitDetails(String preparedDslQuery, String unitId)
-			throws AccessClientServerException, AccessClientNotFoundException, InvalidParseOperationException {
-		return ACCESS_CLIENT.selectUnitbyId(preparedDslQuery, unitId);
-	}
-	
+    /**
+     * 
+     * Gets archive unit details
+     * 
+     * @param preparedDslQuery search criteria as DSL query
+     * @param unitId archive unit id to find
+     * @return
+     * @throws AccessClientServerException thrown when an errors occurs during the connection with the server
+     * @throws AccessClientNotFoundException thrown when access client is not found
+     * @throws InvalidParseOperationException thrown when the Json node format is not correct
+     */
+    public static JsonNode getArchiveUnitDetails(String preparedDslQuery, String unitId)
+        throws AccessClientServerException, AccessClientNotFoundException, InvalidParseOperationException {
+        return ACCESS_CLIENT.selectUnitbyId(preparedDslQuery, unitId);
+    }
+
     /**
      * Update units result
      * 
      * @param parameters search criteria as DSL query
-     * @param unitId unitIdentifier 
+     * @param unitId unitIdentifier
      * @return
      * @throws AccessClientServerException thrown when an errors occurs during the connection with the server
      * @throws AccessClientNotFoundException thrown when access client is not found
@@ -98,4 +88,37 @@ public class UserInterfaceTransactionManager {
         throws AccessClientServerException, AccessClientNotFoundException, InvalidParseOperationException {
         return ACCESS_CLIENT.updateUnitbyId(parameters, unitId);
     }
+
+    /**
+     * Retrieve an ObjectGroup as Json data based on the provided ObjectGroup id
+     * 
+     * @param preparedDslQuery the query to be executed
+     * @param objectId the Id of the ObjectGroup
+     * @return JsonNode object including DSL queries, context and results
+     * @throws InvalidParseOperationException if the query is not well formatted
+     * @throws AccessClientServerException if the server encountered an exception
+     * @throws AccessClientNotFoundException if the requested object does not exist
+     */
+    public static JsonNode selectObjectbyId(String preparedDslQuery, String objectId)
+        throws AccessClientServerException, AccessClientNotFoundException, InvalidParseOperationException {
+        return ACCESS_CLIENT.selectObjectbyId(preparedDslQuery, objectId);        
+    }
+    
+    /**
+     * Retrieve an Object data as an input stream
+     * 
+     * @param selectObjectQuery the query to be executed
+     * @param objectGroupId the Id of the ObjectGroup
+     * @param usage the requested usage
+     * @param version the requested version of the usage
+     * @return InputStream the object data
+     * @throws InvalidParseOperationException if the query is not well formatted
+     * @throws AccessClientServerException if the server encountered an exception
+     * @throws AccessClientNotFoundException if the requested object does not exist
+     */
+    public static InputStream getObjectAsInputStream(String selectObjectQuery, String objectGroupId, String usage, int version)
+        throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException{
+        return ACCESS_CLIENT.getObjectAsInputStream(selectObjectQuery, objectGroupId, usage, version);
+    }
+    
 }

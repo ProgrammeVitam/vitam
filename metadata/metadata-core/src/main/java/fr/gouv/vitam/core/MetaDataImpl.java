@@ -187,7 +187,7 @@ public final class MetaDataImpl implements MetaData {
         }
         try {
             // parse Select request
-            RequestParserMultiple selectRequest = new SelectParserMultiple();
+            RequestParserMultiple selectRequest = new SelectParserMultiple(new MongoDbVarNameAdapter());
             selectRequest.parse(JsonHandler.getFromString(selectQuery));
             // Reset $roots (add or override id on roots)
             if (unitOrObjectGroupId != null && !unitOrObjectGroupId.isEmpty()) {

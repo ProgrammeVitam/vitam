@@ -40,8 +40,16 @@ angular.module('archive.unit')
     'MGT_LABEL': 'Management',
     'LIST_ITEM_LABEL': 'Valeur ',
     'MGT_WITH_CSHARP_KEY': '#mgt',
+  }).filter('filterSize', function() {
+  	return function(bytes, precision) {
+		if (isNaN(parseFloat(bytes)) || !isFinite(bytes)) return '-';
+		if (typeof precision === 'undefined') precision = 1;
+		var units = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'],
+			number = Math.floor(Math.log(bytes) / Math.log(1024));
+		return (bytes / Math.pow(1024, Math.floor(number))).toFixed(precision) +  ' ' + units[number];
+	}
   })
-  .controller('ArchiveUnitController', function($http, $routeParams, ihmDemoFactory, $window, ARCHIVE_UNIT_MODULE_CONST,
+  .controller('ArchiveUnitController', function($scope, $http, $routeParams, ihmDemoFactory, $window, ARCHIVE_UNIT_MODULE_CONST,
                 archiveDetailsService, $mdToast, $mdDialog){
 
     var self = this;
@@ -210,6 +218,21 @@ angular.module('archive.unit')
             } else {
               // Archive unit found
               self.archiveFields = data.$result[0];
+              //get archive object groups informations to be displayed in the table
+              ihmDemoFactory.getArchiveObjectGroup(self.archiveFields._og)
+    	      .then(function (response) {
+    	    	  var dataOG = response.data;	    	  ;
+    	    	  if (dataOG.nbObjects == null || dataOG.nbObjects == undefined ||
+    	    			  dataOG.versions == null || dataOG.versions == undefined){
+    	    		  // ObjectGroups Not Found
+    	    		  console.log("errorMsg");
+    	    	  } else {
+    	    		  $scope.archiveObjectGroups = dataOG;
+    	    		  $scope.archiveObjectGroupsOgId = self.archiveFields._og;
+    	    	  }
+    	      },function (error) {
+    	    	  console.log("errorMsg");
+    	      });              
               self.archiveArray=[];
               self.displayArchiveDetails();
 
@@ -246,6 +269,21 @@ angular.module('archive.unit')
         } else {
           // Archive unit found
           self.archiveFields = data.$result[0];
+          //get archive object groups informations to be displayed in the table
+          ihmDemoFactory.getArchiveObjectGroup(self.archiveFields._og)
+	      .then(function (response) {
+	    	  var dataOG = response.data;	    	  ;
+	    	  if (dataOG.nbObjects == null || dataOG.nbObjects == undefined ||
+	    			  dataOG.versions == null || dataOG.versions == undefined){
+	    		  // ObjectGroups Not Found
+	    		  console.log("errorMsg");
+	    	  } else {
+	    		  $scope.archiveObjectGroups = dataOG;
+	    		  $scope.archiveObjectGroupsOgId = self.archiveFields._og;
+	    	  }
+	      },function (error) {
+	    	  console.log("errorMsg");
+	      });
           self.archiveArray=[];
           self.isEditMode = false;
           self.displayArchiveDetails();
@@ -277,7 +315,21 @@ angular.module('archive.unit')
             fieldSet.isModificationAllowed = false;
             self.archiveArray.push(fieldSet);
         }
-
+        //get archive object groups informations to be displayed in the table
+        ihmDemoFactory.getArchiveObjectGroup(self.archiveFields._og)
+	      .then(function (response) {
+	    	  var dataOG = response.data;	    	  ;
+	    	  if (dataOG.nbObjects == null || dataOG.nbObjects == undefined ||
+	    			  dataOG.versions == null || dataOG.versions == undefined){
+	    		  // ObjectGroups Not Found
+	    		  console.log("errorMsg");
+	    	  } else {
+	    		  $scope.archiveObjectGroups = dataOG;
+	    		  $scope.archiveObjectGroupsOgId = self.archiveFields._og;
+	    	  }
+	      },function (error) {
+	    	  console.log("errorMsg");
+	      });
         // Other fields
         angular.forEach(self.archiveFields, function(value, key) {
             if(key !== ARCHIVE_UNIT_MODULE_CONST.MGT_KEY && key !== ARCHIVE_UNIT_MODULE_CONST.ID_KEY &&
@@ -356,6 +408,25 @@ angular.module('archive.unit')
           .hideDelay(3000)
       );
     };
-    // **************************************************************************** //
-
+    
+    $scope.download = function($event, objGId, usage, version, fileName) {
+        var options = {};
+        options.usage = usage;
+        options.version = version;
+        ihmDemoFactory.getObjectAsInputStream(objGId, options)
+	      .then(function (response) {
+	    	  var a = document.createElement("a");
+	    	  document.body.appendChild(a);
+	    	  var url = URL.createObjectURL(new Blob([response.data], { type: 'application/octet-stream' }));
+	    	  a.href = url;
+	          a.download = fileName;
+	          a.click();
+	          window.URL.revokeObjectURL(url);
+	      },function (error) {
+	    	  console.log('ERROR : '+error);
+	      });
+      }
+    
+    // **************************************************************************** //    
+    
   });

@@ -27,11 +27,16 @@
 package fr.gouv.vitam.ihmdemo.appserver;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.config.EncoderConfig;
 import com.jayway.restassured.http.ContentType;
+import com.mongodb.util.JSON;
+
 import fr.gouv.vitam.access.common.exception.AccessClientNotFoundException;
 import fr.gouv.vitam.access.common.exception.AccessClientServerException;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -59,23 +64,28 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.jayway.restassured.RestAssured.given;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.*;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({ UserInterfaceTransactionManager.class, DslQueryHelper.class, LogbookClientFactory.class, IngestExternalClientFactory.class, AdminManagementClientFactory.class })
+@PrepareForTest({UserInterfaceTransactionManager.class, DslQueryHelper.class, LogbookClientFactory.class,
+    IngestExternalClientFactory.class, AdminManagementClientFactory.class})
 public class WebApplicationResourceTest {
 
     private static final String DEFAULT_WEB_APP_CONTEXT = "/ihm-demo";
     private static final String DEFAULT_STATIC_CONTENT = "webapp";
     private static final String OPTIONS = "{name: \"myName\"}";
+    private static final String OPTIONS_DOWNLOAD = "{usage: \"Dissemination\", version: 1}";
     private static final String UPDATE = "{title: \"myarchive\"}";
     private static final String DEFAULT_HOST = "localhost";
     private static JunitHelper junitHelper;
@@ -108,13 +118,13 @@ public class WebApplicationResourceTest {
     @Test
     public void givenEmptyPayloadWhenSearchOperationsThenReturnBadRequest() {
         given().contentType(ContentType.JSON).body("{}").expect().statusCode(Status.BAD_REQUEST.getStatusCode()).when()
-        .post("/logbook/operations");
+            .post("/logbook/operations");
     }
 
     @Test
     public void givenNoArchiveUnitWhenSearchOperationsThenReturnOK() {
         given().contentType(ContentType.JSON).body(OPTIONS).expect().statusCode(Status.OK.getStatusCode()).when()
-        .post("/archivesearch/units");
+            .post("/archivesearch/units");
     }
 
     @Test
@@ -139,7 +149,7 @@ public class WebApplicationResourceTest {
 
         PowerMockito.when(logbookClient.selectOperation(preparedDslQuery)).thenThrow(LogbookClientException.class);
         given().contentType(ContentType.JSON).body(OPTIONS).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
-        .post("/logbook/operations");
+            .post("/logbook/operations");
     }
 
     @SuppressWarnings("unchecked")
@@ -159,7 +169,7 @@ public class WebApplicationResourceTest {
 
         PowerMockito.when(logbookClient.selectOperation(preparedDslQuery)).thenThrow(Exception.class);
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
-        .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when().post("/logbook/operations");
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when().post("/logbook/operations");
     }
 
     @Test
@@ -174,7 +184,7 @@ public class WebApplicationResourceTest {
 
         PowerMockito.when(logbookClient.selectOperationbyId("1")).thenReturn(result);
         given().param("idOperation", "1").expect().statusCode(Status.OK.getStatusCode()).when()
-        .post("/logbook/operations/1");
+            .post("/logbook/operations/1");
     }
 
     @Test
@@ -194,7 +204,7 @@ public class WebApplicationResourceTest {
         JsonNode result = JsonHandler.getFromString("{}");
         PowerMockito.when(logbookClient.selectOperation(preparedDslQuery)).thenReturn(result);
         given().contentType(ContentType.JSON).body(OPTIONS).expect().statusCode(Status.OK.getStatusCode()).when()
-        .post("/logbook/operations");
+            .post("/logbook/operations");
     }
 
     @SuppressWarnings("unchecked")
@@ -209,7 +219,7 @@ public class WebApplicationResourceTest {
         PowerMockito.when(logbookClient.selectOperationbyId("1")).thenThrow(LogbookClientException.class);
 
         given().param("idOperation", "1").expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
-        .post("/logbook/operations/1");
+            .post("/logbook/operations/1");
     }
 
     @SuppressWarnings("unchecked")
@@ -224,7 +234,7 @@ public class WebApplicationResourceTest {
         PowerMockito.when(logbookClient.selectOperationbyId("1")).thenThrow(Exception.class);
 
         given().param("idOperation", "1").expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
-        .post("/logbook/operations/1");
+            .post("/logbook/operations/1");
     }
 
     @Test
@@ -240,7 +250,7 @@ public class WebApplicationResourceTest {
             .post("/logbook/operations/1");
     }
 
-    @SuppressWarnings({ "unchecked" })
+    @SuppressWarnings({"unchecked"})
     @Test
     public void testArchiveSearchResultDslQueryHelperExceptions()
         throws InvalidParseOperationException, InvalidCreateOperationException {
@@ -250,16 +260,16 @@ public class WebApplicationResourceTest {
         // DslqQueryHelper Exceptions : InvalidParseOperationException,
         // InvalidCreateOperationException
         PowerMockito.when(DslQueryHelper.createSelectDSLQuery(searchCriteriaMap))
-        .thenThrow(InvalidParseOperationException.class, InvalidCreateOperationException.class);
+            .thenThrow(InvalidParseOperationException.class, InvalidCreateOperationException.class);
 
         given().contentType(ContentType.JSON).body(OPTIONS).expect().statusCode(Status.BAD_REQUEST.getStatusCode())
-        .when().post("/archivesearch/units");
+            .when().post("/archivesearch/units");
     }
 
     @SuppressWarnings("unchecked")
     @Test
     public void testArchiveSearchResultAccessClientServerException() throws AccessClientServerException,
-    AccessClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
+        AccessClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
         Map<String, String> searchCriteriaMap = JsonHandler.getMapStringFromString(OPTIONS);
         String preparedDslQuery = "";
 
@@ -268,16 +278,16 @@ public class WebApplicationResourceTest {
         // UserInterfaceTransactionManager Exception 1 :
         // AccessClientServerException
         PowerMockito.when(UserInterfaceTransactionManager.searchUnits(preparedDslQuery))
-        .thenThrow(AccessClientServerException.class);
+            .thenThrow(AccessClientServerException.class);
 
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
-        .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when().post("/archivesearch/units");
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when().post("/archivesearch/units");
     }
 
     @SuppressWarnings("unchecked")
     @Test
     public void testArchiveSearchResultAccessClientNotFoundException() throws AccessClientServerException,
-    AccessClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
+        AccessClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
         Map<String, String> searchCriteriaMap = JsonHandler.getMapStringFromString(OPTIONS);
         String preparedDslQuery = "";
 
@@ -286,16 +296,16 @@ public class WebApplicationResourceTest {
         // UserInterfaceTransactionManager Exception 1 :
         // AccessClientServerException
         PowerMockito.when(UserInterfaceTransactionManager.searchUnits(preparedDslQuery))
-        .thenThrow(AccessClientNotFoundException.class);
+            .thenThrow(AccessClientNotFoundException.class);
 
         given().contentType(ContentType.JSON).body(OPTIONS).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
-        .post("/archivesearch/units");
+            .post("/archivesearch/units");
     }
 
     @SuppressWarnings("unchecked")
     @Test
     public void testArchiveSearchResultRemainingExceptions() throws AccessClientServerException,
-    AccessClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
+        AccessClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
         Map<String, String> searchCriteriaMap = JsonHandler.getMapStringFromString(OPTIONS);
         String preparedDslQuery = "";
 
@@ -306,7 +316,7 @@ public class WebApplicationResourceTest {
         PowerMockito.when(UserInterfaceTransactionManager.searchUnits(preparedDslQuery)).thenThrow(Exception.class);
 
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
-        .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when().post("/archivesearch/units");
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when().post("/archivesearch/units");
     }
 
     @Test
@@ -314,7 +324,7 @@ public class WebApplicationResourceTest {
         given().param("id", "1").expect().statusCode(Status.OK.getStatusCode()).when().get("/archivesearch/unit/1");
     }
 
-    @SuppressWarnings({ "unchecked" })
+    @SuppressWarnings({"unchecked"})
     @Test
     public void testArchiveUnitDetailsDslQueryHelperExceptions()
         throws InvalidParseOperationException, InvalidCreateOperationException {
@@ -325,16 +335,16 @@ public class WebApplicationResourceTest {
         // DslqQueryHelper Exceptions : InvalidParseOperationException,
         // InvalidCreateOperationException
         PowerMockito.when(DslQueryHelper.createSelectDSLQuery(searchCriteriaMap))
-        .thenThrow(InvalidParseOperationException.class, InvalidCreateOperationException.class);
+            .thenThrow(InvalidParseOperationException.class, InvalidCreateOperationException.class);
 
         given().param("id", "1").expect().statusCode(Status.BAD_REQUEST.getStatusCode()).when()
-        .get("/archivesearch/unit/1");
+            .get("/archivesearch/unit/1");
     }
 
     @SuppressWarnings("unchecked")
     @Test
     public void testArchiveUnitDetailsAccessClientServerException() throws AccessClientServerException,
-    AccessClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
+        AccessClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
         Map<String, String> searchCriteriaMap = new HashMap<String, String>();
         searchCriteriaMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
 
@@ -345,16 +355,16 @@ public class WebApplicationResourceTest {
         // UserInterfaceTransactionManager Exception 1 :
         // AccessClientServerException
         PowerMockito.when(UserInterfaceTransactionManager.getArchiveUnitDetails(preparedDslQuery, "1"))
-        .thenThrow(AccessClientServerException.class);
+            .thenThrow(AccessClientServerException.class);
 
         given().param("id", "1").expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
-        .get("/archivesearch/unit/1");
+            .get("/archivesearch/unit/1");
     }
 
     @SuppressWarnings("unchecked")
     @Test
     public void testArchiveUnitDetailsAccessClientNotFoundException() throws AccessClientServerException,
-    AccessClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
+        AccessClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
         Map<String, String> searchCriteriaMap = new HashMap<String, String>();
         searchCriteriaMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
 
@@ -365,16 +375,16 @@ public class WebApplicationResourceTest {
         // UserInterfaceTransactionManager Exception 2 :
         // AccessClientNotFoundException
         PowerMockito.when(UserInterfaceTransactionManager.getArchiveUnitDetails(preparedDslQuery, "1"))
-        .thenThrow(AccessClientNotFoundException.class);
+            .thenThrow(AccessClientNotFoundException.class);
 
         given().param("id", "1").expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
-        .get("/archivesearch/unit/1");
+            .get("/archivesearch/unit/1");
     }
 
     @SuppressWarnings("unchecked")
     @Test
     public void testArchiveUnitDetailsRemainingExceptions() throws AccessClientServerException,
-    AccessClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
+        AccessClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
         Map<String, String> searchCriteriaMap = new HashMap<String, String>();
         searchCriteriaMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
 
@@ -384,10 +394,10 @@ public class WebApplicationResourceTest {
 
         // All exceptions
         PowerMockito.when(UserInterfaceTransactionManager.getArchiveUnitDetails(preparedDslQuery, "1"))
-        .thenThrow(Exception.class);
+            .thenThrow(Exception.class);
 
         given().param("id", "1").expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
-        .get("/archivesearch/unit/1");
+            .get("/archivesearch/unit/1");
     }
 
     /**
@@ -396,12 +406,8 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testUpdateArchiveUnitWithoutBody() {
-        given().
-            contentType(ContentType.JSON).
-        expect().
-            statusCode(Status.BAD_REQUEST.getStatusCode()).
-        when().
-            put("/archiveupdate/units/1");
+        given().contentType(ContentType.JSON).expect().statusCode(Status.BAD_REQUEST.getStatusCode()).when()
+            .put("/archiveupdate/units/1");
     }
 
     @SuppressWarnings({"unchecked"})
@@ -417,11 +423,11 @@ public class WebApplicationResourceTest {
         // DslqQueryHelper Exceptions : InvalidParseOperationException,
         // InvalidCreateOperationException
         PowerMockito.when(DslQueryHelper.createUpdateDSLQuery(updateCriteriaMap))
-        .thenThrow(InvalidParseOperationException.class, InvalidCreateOperationException.class);
+            .thenThrow(InvalidParseOperationException.class, InvalidCreateOperationException.class);
 
         given().contentType(ContentType.JSON).body(UPDATE).expect()
-        .statusCode(Status.OK.getStatusCode()).when()
-        .put("/archiveupdate/units/1");
+            .statusCode(Status.OK.getStatusCode()).when()
+            .put("/archiveupdate/units/1");
     }
 
     @Test
@@ -434,15 +440,14 @@ public class WebApplicationResourceTest {
         PowerMockito.when(IngestExternalClientFactory.getInstance()).thenReturn(ingestFactory);
 
         InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP.zip");
-        byte[] bytes = IOUtils.toByteArray(stream); //need for the test !
+        byte[] bytes = IOUtils.toByteArray(stream); // need for the test !
 
         given()
             .contentType(ContentType.BINARY)
-            .config(RestAssured.config().encoderConfig(EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
-            .content(stream).
-        expect()
-            .statusCode(Status.OK.getStatusCode()).
-        when()
+            .config(RestAssured.config().encoderConfig(
+                EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
+            .content(stream).expect()
+            .statusCode(Status.OK.getStatusCode()).when()
             .post("/ingest/upload");
     }
 
@@ -450,22 +455,22 @@ public class WebApplicationResourceTest {
     public void givenReferentialWrongFormatWhenUploadThenThrowReferentialException() throws Exception {
 
         AdminManagementClient adminManagementClient = PowerMockito.mock(AdminManagementClient.class);
-        AdminManagementClientFactory adminManagementClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        AdminManagementClientFactory adminManagementClientFactory =
+            PowerMockito.mock(AdminManagementClientFactory.class);
         doThrow(ReferentialException.class).when(adminManagementClient).importFormat(anyObject());
-        //doNothing().when(adminManagementClient).importFormat(anyObject());
+        // doNothing().when(adminManagementClient).importFormat(anyObject());
         PowerMockito.when(adminManagementClientFactory.getAdminManagementClient()).thenReturn(adminManagementClient);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
 
         InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam-ko.fake");
-        byte[] bytes = IOUtils.toByteArray(stream); //need for the test !
+        byte[] bytes = IOUtils.toByteArray(stream); // need for the test !
 
         given()
             .contentType(ContentType.BINARY)
-            .config(RestAssured.config().encoderConfig(EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
-            .content(stream).
-        expect()
-            .statusCode(Status.FORBIDDEN.getStatusCode()).
-        when()
+            .config(RestAssured.config().encoderConfig(
+                EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
+            .content(stream).expect()
+            .statusCode(Status.FORBIDDEN.getStatusCode()).when()
             .post("/format/upload");
     }
 
@@ -473,21 +478,21 @@ public class WebApplicationResourceTest {
     public void testFormatUploadOK() throws Exception {
 
         AdminManagementClient adminManagementClient = PowerMockito.mock(AdminManagementClient.class);
-        AdminManagementClientFactory adminManagementClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        AdminManagementClientFactory adminManagementClientFactory =
+            PowerMockito.mock(AdminManagementClientFactory.class);
         doNothing().when(adminManagementClient).importFormat(anyObject());
         PowerMockito.when(adminManagementClientFactory.getAdminManagementClient()).thenReturn(adminManagementClient);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
 
         InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
-        byte[] bytes = IOUtils.toByteArray(stream); //need for the test !
+        byte[] bytes = IOUtils.toByteArray(stream); // need for the test !
 
         given()
             .contentType(ContentType.BINARY)
-            .config(RestAssured.config().encoderConfig(EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
-            .content(stream).
-        expect()
-            .statusCode(Status.OK.getStatusCode()).
-        when()
+            .config(RestAssured.config().encoderConfig(
+                EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
+            .content(stream).expect()
+            .statusCode(Status.OK.getStatusCode()).when()
             .post("/format/upload");
     }
 
@@ -501,18 +506,17 @@ public class WebApplicationResourceTest {
         PowerMockito.when(IngestExternalClientFactory.getInstance()).thenReturn(ingestFactory);
 
         InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP.zip");
-        byte[] bytes = IOUtils.toByteArray(stream); //need for the test !
+        byte[] bytes = IOUtils.toByteArray(stream); // need for the test !
 
         given()
             .contentType(ContentType.BINARY)
-            .config(RestAssured.config().encoderConfig(EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
-            .content(stream).
-        expect()
-            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).
-        when()
+            .config(RestAssured.config().encoderConfig(
+                EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
+            .content(stream).expect()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
             .post("/ingest/upload");
     }
-    
+
     @Test
     public void testSearchFormatOK() throws Exception {
         AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
@@ -522,27 +526,28 @@ public class WebApplicationResourceTest {
 
         PowerMockito.when(adminFactory.getAdminManagementClient()).thenReturn(adminClient);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
-        
+
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
-        .statusCode(Status.OK.getStatusCode()).when()
-        .post("/admin/formats");
+            .statusCode(Status.OK.getStatusCode()).when()
+            .post("/admin/formats");
     }
-    
+
     @Test
     public void testSearchFormatBadRequest() throws Exception {
         AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
         AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         doReturn(JsonHandler.getFromString(OPTIONS)).when(adminClient).getFormats(anyObject());
-        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject())).thenThrow(new InvalidParseOperationException(""));
+        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject()))
+            .thenThrow(new InvalidParseOperationException(""));
 
         PowerMockito.when(adminFactory.getAdminManagementClient()).thenReturn(adminClient);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
-        
+
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
-        .statusCode(Status.BAD_REQUEST.getStatusCode()).when()
-        .post("/admin/formats");
+            .statusCode(Status.BAD_REQUEST.getStatusCode()).when()
+            .post("/admin/formats");
     }
-    
+
     @Test
     public void testSearchFormatNotFound() throws Exception {
         AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
@@ -552,12 +557,12 @@ public class WebApplicationResourceTest {
 
         PowerMockito.when(adminFactory.getAdminManagementClient()).thenReturn(adminClient);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
-        
+
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
-        .statusCode(Status.NOT_FOUND.getStatusCode()).when()
-        .post("/admin/formats");
+            .statusCode(Status.NOT_FOUND.getStatusCode()).when()
+            .post("/admin/formats");
     }
-    
+
     @Test
     public void testSearchFormatByIdOK() throws Exception {
         AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
@@ -566,12 +571,12 @@ public class WebApplicationResourceTest {
 
         PowerMockito.when(adminFactory.getAdminManagementClient()).thenReturn(adminClient);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
-        
+
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
-        .statusCode(Status.OK.getStatusCode()).when()
-        .post("/admin/formats/1");
+            .statusCode(Status.OK.getStatusCode()).when()
+            .post("/admin/formats/1");
     }
-    
+
     @Test
     public void testSearchFormatByIdNotFound() throws Exception {
         AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
@@ -580,10 +585,10 @@ public class WebApplicationResourceTest {
 
         PowerMockito.when(adminFactory.getAdminManagementClient()).thenReturn(adminClient);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
-        
+
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
-        .statusCode(Status.NOT_FOUND.getStatusCode()).when()
-        .post("/admin/formats/1");
+            .statusCode(Status.NOT_FOUND.getStatusCode()).when()
+            .post("/admin/formats/1");
     }
 
     @Test
@@ -596,11 +601,10 @@ public class WebApplicationResourceTest {
         PowerMockito.when(adminFactory.getAdminManagementClient()).thenReturn(adminClient);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
 
-        given().
-            config(RestAssured.config().encoderConfig(EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false))).
-        expect()
-            .statusCode(Status.OK.getStatusCode()).
-        when()
+        given().config(RestAssured.config()
+            .encoderConfig(EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
+            .expect()
+            .statusCode(Status.OK.getStatusCode()).when()
             .delete("/format/delete");
     }
 
@@ -616,16 +620,123 @@ public class WebApplicationResourceTest {
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
 
         InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
-        byte[] bytes = IOUtils.toByteArray(stream); //need for the test !
+        byte[] bytes = IOUtils.toByteArray(stream); // need for the test !
 
         given()
             .contentType(ContentType.BINARY)
-            .config(RestAssured.config().encoderConfig(EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
-            .content(stream).
-        expect()
-            .statusCode(Status.OK.getStatusCode()).
-        when()
+            .config(RestAssured.config().encoderConfig(
+                EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
+            .content(stream).expect()
+            .statusCode(Status.OK.getStatusCode()).when()
             .post("/format/check");
     }
 
+    @Test
+    public void testNotFoundGetArchiveObjectGroup() throws AccessClientServerException,
+        AccessClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
+
+        PowerMockito.when(UserInterfaceTransactionManager.selectObjectbyId(anyObject(), anyObject()))
+            .thenThrow(new AccessClientNotFoundException(""));
+
+        given().accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)
+            .expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
+            .get("/archiveunit/objects/idOG");
+    }
+
+    @Test
+    public void testOKGetArchiveObjectGroup() throws Exception {
+        JsonNode sampleObjectGroup =
+            JsonHandler.getFromFile(PropertiesUtils.findFile("sample_objectGroup_document.json"));
+        PowerMockito.when(UserInterfaceTransactionManager.selectObjectbyId(anyObject(), anyObject()))
+            .thenReturn(sampleObjectGroup);
+        given().accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)
+            .expect().statusCode(Status.OK.getStatusCode()).when()
+            .get("/archiveunit/objects/idOG");
+    }
+
+    @Test
+    public void testBadRequestGetArchiveObjectGroup() throws Exception {
+        PowerMockito.when(DslQueryHelper.createSelectDSLQuery(anyObject()))
+            .thenThrow(new InvalidParseOperationException(""));
+        given().accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)
+            .expect().statusCode(Status.BAD_REQUEST.getStatusCode()).when()
+            .get("/archiveunit/objects/idOG");
+    }
+    
+    @Test
+    public void testInternalServerErrorGetArchiveObjectGroup() throws Exception {
+        PowerMockito.when(UserInterfaceTransactionManager.selectObjectbyId(anyObject(), anyObject()))
+            .thenThrow(new AccessClientServerException(""));
+        given().accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)
+            .expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
+            .get("/archiveunit/objects/idOG");
+    }
+    
+    @Test
+    public void testUnknownErrorGetArchiveObjectGroup() throws Exception {
+        PowerMockito.when(UserInterfaceTransactionManager.selectObjectbyId(anyObject(), anyObject()))
+            .thenThrow(new NullPointerException(""));
+        given().accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)
+            .expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
+            .get("/archiveunit/objects/idOG");
+    }
+    
+    @Test
+    public void testNotFoundGetObjectAsInputStream() throws Exception {
+
+        PowerMockito.when(
+            UserInterfaceTransactionManager.getObjectAsInputStream(anyString(), anyString(), anyString(), anyInt()))
+            .thenThrow(new AccessClientNotFoundException(""));
+
+        given().accept(MediaType.APPLICATION_OCTET_STREAM)
+            .body(OPTIONS_DOWNLOAD).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
+            .post("/archiveunit/objects/download/idOG");
+    }
+
+    @Test
+    public void testOKGetObjectAsInputStream() throws Exception {
+
+        PowerMockito.when(
+            UserInterfaceTransactionManager.getObjectAsInputStream(anyString(), anyString(), anyString(), anyInt()))
+            .thenReturn(IOUtils.toInputStream("Vitam Test"));
+
+        given().accept(MediaType.APPLICATION_OCTET_STREAM)
+            .body(OPTIONS_DOWNLOAD).expect().statusCode(Status.OK.getStatusCode()).when()
+            .post("/archiveunit/objects/download/idOG");
+    }
+
+    @Test
+    public void testBadRequestGetObjectAsInputStream() throws Exception {
+        PowerMockito.when(
+            UserInterfaceTransactionManager.getObjectAsInputStream(anyString(), anyString(), anyString(), anyInt()))
+            .thenReturn(IOUtils.toInputStream("Vitam Test"));
+        given().accept(MediaType.APPLICATION_OCTET_STREAM)
+            .body("{usage: \"Dissemination\", version: \"KO\"}").expect().statusCode(Status.BAD_REQUEST.getStatusCode())
+            .when()
+            .post("/archiveunit/objects/download/idOG");
+    }
+
+    @Test
+    public void testAccessServerExceptionGetObjectAsInputStream() throws Exception {
+        PowerMockito.when(
+            UserInterfaceTransactionManager.getObjectAsInputStream(anyString(), anyString(), anyString(), anyInt()))
+            .thenThrow(new AccessClientServerException(""));
+        given().accept(MediaType.APPLICATION_OCTET_STREAM)
+            .body(OPTIONS_DOWNLOAD).expect()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
+            .post("/archiveunit/objects/download/idOG");
+    }
+
+    @Test
+    public void testAccessUnknownExceptionGetObjectAsInputStream() throws Exception {
+        PowerMockito.when(
+            UserInterfaceTransactionManager.getObjectAsInputStream(anyString(), anyString(), anyString(), anyInt()))
+            .thenThrow(new NullPointerException());
+        given().accept(MediaType.APPLICATION_OCTET_STREAM)
+            .body(OPTIONS_DOWNLOAD).expect()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
+            .post("/archiveunit/objects/download/idOG");
+    }    
+    
+    
 }

@@ -125,7 +125,7 @@ public class DslQueryHelperTest {
         assertTrue(((Select) selectParser.getRequest()).getFilter().get("$orderby") != null);
         assertTrue(((Select) selectParser.getRequest()).getProjection().size() == 1);
     }
-
+    
     /**
      * Tests CreateSelectDSLQuery with empty queries part
      * 
@@ -135,7 +135,8 @@ public class DslQueryHelperTest {
     @Test
     public void testEmptyQueries() throws InvalidParseOperationException, InvalidCreateOperationException {
         Map<String, String> queryMap = new HashMap<String, String>();
-        queryMap.put("projection_", "#id");
+        queryMap.put("projection_id", "#id");
+        queryMap.put("projection_qualifiers", "#qualifiers");
 
         String selectRequest = DslQueryHelper.createSelectDSLQuery(queryMap);
         assertNotNull(selectRequest);

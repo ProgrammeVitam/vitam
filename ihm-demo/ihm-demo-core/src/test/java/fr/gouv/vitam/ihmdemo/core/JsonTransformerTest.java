@@ -1,4 +1,4 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,29 +23,33 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-package fr.gouv.vitam.core.database.collections;
+ */
+package fr.gouv.vitam.ihmdemo.core;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import com.fasterxml.jackson.databind.JsonNode;
 
-public class MongoDbVarNameAdapterTest {
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.json.JsonHandler;
 
-    private static MongoDbVarNameAdapter mongoVarNameAdapter = new MongoDbVarNameAdapter();
+/**
+ * JsonTransformerTest junit test
+ *
+ */
+public class JsonTransformerTest {
 
     @Test
-    public void givenMongoDbVarNameAdapterWhengetVariableNameThenReturnCorrect() throws InvalidParseOperationException {
-        assertEquals(null, mongoVarNameAdapter.getVariableName("notValid"));
-        assertEquals(MetadataDocument.ID, mongoVarNameAdapter.getVariableName("#id"));
-        assertEquals(Unit.APPRAISALRULES, mongoVarNameAdapter.getVariableName("#dua"));
-        assertEquals(Unit.NBCHILD, mongoVarNameAdapter.getVariableName("#nbunits"));
-        assertEquals(MetadataDocument.TYPE, mongoVarNameAdapter.getVariableName("#type"));
-        assertEquals(ObjectGroup.OBJECTSIZE, mongoVarNameAdapter.getVariableName("#size"));
-        assertEquals(ObjectGroup.OBJECTFORMAT, mongoVarNameAdapter.getVariableName("#format"));
-        assertEquals(MetadataDocument.QUALIFIERS, mongoVarNameAdapter.getVariableName("#qualifiers"));
+    public void testTransformerSuccess() throws Exception {
+        JsonNode sampleObjectGroup =
+            JsonHandler.getFromFile(PropertiesUtils.findFile("sample_objectGroup_document.json"));
+        assertNotNull(JsonTransformer.transformResultObjects(sampleObjectGroup));
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void testTransformerNullThrowsException() throws Exception {
+        JsonTransformer.transformResultObjects(null);
+    }
 }
