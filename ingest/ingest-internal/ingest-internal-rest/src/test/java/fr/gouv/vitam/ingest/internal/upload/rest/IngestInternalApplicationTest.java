@@ -1,20 +1,17 @@
 package fr.gouv.vitam.ingest.internal.upload.rest;
 
-import static org.junit.Assert.fail;
-
-import java.io.FileNotFoundException;
-
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server.BasicVitamServer;
 import fr.gouv.vitam.common.server.VitamServerFactory;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import java.io.FileNotFoundException;
+
+import static org.junit.Assert.fail;
 
 public class IngestInternalApplicationTest {
 
@@ -93,21 +90,21 @@ public class IngestInternalApplicationTest {
 	public final void givenInCorrrectConfigFileWhenStartApplicationThenStartOnDefaultPort() {
 		try {
 			((BasicVitamServer) IngestInternalApplication.startApplication(new String[] {
-				"src/test/resources/ingest-internal-err1.conf"})).stop();
+				"ingest-internal-err1.conf"})).stop();
 		} catch (VitamApplicationServerException e) {
 			fail("Exception");
 		}
 	}
 
-	/*@Test(expected = IllegalStateException.class)
+	@Test(expected = IllegalStateException.class)
 	public final void givenNotConfigFileWhenStartApplicationThenStartOnDefaultPort() {
 		try {
 			((BasicVitamServer) IngestInternalApplication.startApplication(new String[] {
-				"src/test/resources/ingest-internal-err2.conf"})).stop();
+				"ingest-internal-err2.conf"})).stop();
 		} catch (VitamApplicationServerException e) {
 			fail("Exception");
 		}
-	}*/
+	}
 
 
 	@Test
@@ -123,15 +120,8 @@ public class IngestInternalApplicationTest {
 		}
 	}
 
-	@Test
-	public final void givenNullParamWhenStartApplicationThenNotRaiseException()throws FileNotFoundException {
-		try {
-			((BasicVitamServer) IngestInternalApplication.startApplication(new String[0])).stop();
-		} catch (final IllegalStateException e) {
-			fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-		} catch (final VitamApplicationServerException e) {
-			fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-		}
-
+	@Test(expected = IllegalArgumentException.class)
+	public final void givenNullParamWhenStartApplicationThenRaiseException() throws VitamApplicationServerException {
+		((BasicVitamServer) IngestInternalApplication.startApplication(new String[0])).stop();
 	}
 }

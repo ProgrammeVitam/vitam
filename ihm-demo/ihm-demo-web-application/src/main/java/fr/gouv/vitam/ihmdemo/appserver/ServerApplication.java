@@ -1,38 +1,39 @@
 /**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- *
+ * <p>
  * contact.vitam@culture.gouv.fr
- *
+ * <p>
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
- *
+ * <p>
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
  * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- *
+ * <p>
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
- *
+ * <p>
  * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- *
+ * <p>
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
 package fr.gouv.vitam.ihmdemo.appserver;
 
-import java.io.File;
-import java.net.URISyntaxException;
-import java.net.URL;
-
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.common.server.VitamServerFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
@@ -42,12 +43,11 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.common.server.VitamServerFactory;
+import java.io.File;
+import java.net.URISyntaxException;
+import java.net.URL;
+
+import static java.lang.String.format;
 
 /**
  * Server application for ihm-demo
@@ -55,32 +55,31 @@ import fr.gouv.vitam.common.server.VitamServerFactory;
 public class ServerApplication {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ServerApplication.class);
-    private static final String DEFAULT_WEB_APP_CONTEXT = "/ihm-demo";
-    private static final String DEFAULT_STATIC_CONTENT = "webapp";
-    private static final String DEFAULT_HOST = "localhost";
-    private static Server server;
     private static VitamServer vitamServer;
+    private static final String CONF_FILE_NAME = "ihm-demo.conf";
+    private static final String MODULE_NAME = "ihm-demo";
+
 
     /**
      * Start a service of IHM Web Application with the args as config
-     * 
+     *
      * @param args as String
      * @throws URISyntaxException the string could not be passed as a URI reference
      */
     public static void main(String[] args) throws URISyntaxException {
         try {
-            final String configFile = args.length >= 1 ? args[0] : null;
-            new ServerApplication().configure(configFile);
+            if (args == null || args.length == 0) {
+                LOGGER.error(format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME));
+                throw new IllegalArgumentException(
+                    format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME));
+            }
+            new ServerApplication().configure(args[0]);
 
-            // TODO centraliser ce join dans un abstract parent
-            if (server != null && server.isStarted()) {
-                server.join();
-            } else if (vitamServer != null && vitamServer.getServer() != null &&
-                vitamServer.getServer().isStarted()) {
+            if (vitamServer != null && vitamServer.isStarted()) {
                 vitamServer.getServer().join();
             }
         } catch (final Exception e) {
-            LOGGER.error("Can not start ihm server ", e);
+            LOGGER.error(format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
             System.exit(1);
         }
     }
@@ -95,25 +94,24 @@ public class ServerApplication {
                 final File yamlFile = PropertiesUtils.findFile(configFile);
                 configuration = PropertiesUtils.readYaml(yamlFile, WebApplicationConfig.class);
             } else {
-                // Set default parameters
-                configuration.setBaseUrl(DEFAULT_WEB_APP_CONTEXT);
-                configuration.setPort(VitamServerFactory.getDefaultPort());
-                configuration.setServerHost(DEFAULT_HOST);
-                configuration.setStaticContent(DEFAULT_STATIC_CONTENT);
+                LOGGER.error(format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME));
+                throw new IllegalArgumentException(
+                    format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME));
             }
 
             run(configuration);
 
         } catch (final Exception e) {
-            LOGGER.error("Can not config ihm server ", e);
+            LOGGER.error(format(VitamServer.CAN_CONFIGURE_SERVER, MODULE_NAME) + e.getMessage(), e);
             throw e;
         }
     }
 
     /**
-     * run a server instance with the configuration the configuration is never null at this time. It is already
-     * instantiate before.
+     * run a server instance with the configuration
+     * the configuration is never null at this time. It is already instantiate before.
      *
+     * @param configuration as WebApplicationConfig
      * @param configuration as WebApplicationConfig
      * @throws Exception the server could not be started
      */
@@ -122,13 +120,11 @@ public class ServerApplication {
             throw new VitamApplicationServerException("Configuration not found");
         }
 
-        boolean isServerWithJettyConfig = false;
-        if (configuration.getPort() != 0) {
-            server = new Server(configuration.getPort());
-        } else if (!StringUtils.isBlank(configuration.getJettyConfig())) {
+        if (!StringUtils.isBlank(configuration.getJettyConfig())) {
             String jettyConfig = configuration.getJettyConfig();
             vitamServer = VitamServerFactory.newVitamServerByJettyConf(jettyConfig);
-            isServerWithJettyConfig = true;
+        } else {
+            throw new VitamApplicationServerException("jetty config is mandatory");
         }
 
         // Servlet Container (REST resource)
@@ -150,7 +146,7 @@ public class ServerApplication {
             .getResource(configuration.getStaticContent());
         staticContentHandler.setResourceBase(webAppDir.toURI().toString());
 
-        // wrap to context handler
+        //wrap to context handler
         ContextHandler staticContext = new ContextHandler("/ihm-demo"); /* the server uri path */
         staticContext.setHandler(staticContentHandler);
 
@@ -158,13 +154,8 @@ public class ServerApplication {
         final HandlerList handlerList = new HandlerList();
         handlerList.setHandlers(new Handler[] {staticContext, restResourceContext, new DefaultHandler()});
 
-        if (!isServerWithJettyConfig) {
-            server.setHandler(handlerList);
-            server.start();
-        } else {
-            vitamServer.getServer().setHandler(handlerList);
-            vitamServer.getServer().start();
-        }
+        vitamServer.getServer().setHandler(handlerList);
+        vitamServer.start();
     }
 
     /**
@@ -172,13 +163,10 @@ public class ServerApplication {
      *
      * @throws Exception the server could not be stopped
      */
+
     public static void stop() throws Exception {
-        // TODO centraliser ce stop dans un abstract parent
-        if (server != null && server.isStarted()) {
-            server.stop();
-        } else if (vitamServer != null && vitamServer.getServer() != null &&
-            vitamServer.getServer().isStarted()) {
-            vitamServer.getServer().stop();
+        if (vitamServer != null && vitamServer.isStarted()) {
+            vitamServer.stop();
         }
     }
 }

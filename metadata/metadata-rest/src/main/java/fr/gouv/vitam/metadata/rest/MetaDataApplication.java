@@ -27,31 +27,39 @@
 package fr.gouv.vitam.metadata.rest;
 
 import fr.gouv.vitam.api.config.MetaDataConfiguration;
-import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.VitamServerFactory;
-import org.eclipse.jetty.server.Server;
+import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 
-import java.io.File;
+import static java.lang.String.format;
 
 /**
  * MetaData web server application
  */
-public class MetaDataApplication {
+public class MetaDataApplication extends AbstractVitamApplication<MetaDataApplication, MetaDataConfiguration> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetaDataApplication.class);
 
-    private static Server server;
     private static VitamServer vitamServer;
     private MetaDataConfiguration configuration;
+    private static final String CONF_FILE_NAME = "metadata.conf";
+    private static final String MODULE_NAME = "MataData";
 
-    private static final String CONFIG_FILE_IS_A_MANDATORY_ARGUMENT = "Config file is a mandatory argument";
+    /**
+     * Metadata applicaiotn constructor
+     */
+    public MetaDataApplication() {
+        super(MetaDataApplication.class, MetaDataConfiguration.class);
+    }
 
     /**
      * Start a service of MetaData with the args as config
@@ -61,18 +69,19 @@ public class MetaDataApplication {
 
     public static void main(String[] args) {
         try {
-            new MetaDataApplication().configure(args);
+            if (args == null || args.length == 0) {
+                LOGGER.error(format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME));
+                throw new IllegalArgumentException(format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
+                    CONF_FILE_NAME));
+            }
 
-            //TODO centraliser ce join dans un abstract parent
-            if (server!=null && server.isStarted()) {
-                server.join();
-            } else if (vitamServer!=null && vitamServer.getServer()!=null &&
-                vitamServer.getServer().isStarted()) {
+            new MetaDataApplication().configure(args[0]);
 
-                vitamServer.getServer().join();
+            if (vitamServer != null && vitamServer.isStarted()) {
+                vitamServer.join();
             }
         } catch (final Exception e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
             System.exit(1);
         }
     }
@@ -81,38 +90,19 @@ public class MetaDataApplication {
     /**
      * read the configured parameters of lauched server from the file
      *
-     * @param arguments : name of configured file
+     * @param configFile : name of configured file
      * @throws Exception
      */
-    public void configure(String... arguments) throws Exception {
-        // FIXME REVIEW define a real vitam config (see Logbook)
-
-        if (arguments.length >= 1) {
-            try {
-                final File yamlFile = PropertiesUtils.findFile(arguments[0]);
-                configuration = PropertiesUtils.readYaml(yamlFile, MetaDataConfiguration.class);
-
-                //TODO ne plus gerer le port en 2e parametres.
-                //TODO Essayer de le setter dans le fichier de conf jetty
-                if (arguments.length >= 2) {
-                    int serverPort = Integer.parseInt(arguments[1]);
-                    if (serverPort <= 0) {
-                        serverPort = VitamServerFactory.getDefaultPort();
-                    }
-                    run(configuration, serverPort);
-                } else {
-                    run(configuration);
-                }
-            } catch (final Exception e) {
-                LOGGER.error(e.getMessage());
-                throw new RuntimeException(e.getMessage());
-            }
-
-        } else {
-            LOGGER.error(CONFIG_FILE_IS_A_MANDATORY_ARGUMENT);
-            throw new IllegalArgumentException(CONFIG_FILE_IS_A_MANDATORY_ARGUMENT);
+    public void configure(String configFile) throws VitamException {
+        try {
+            MetaDataApplication application = new MetaDataApplication();
+            application.configure(application.computeConfigurationPathFromInputArguments(configFile));
+            run(application.getConfiguration());
+        } catch (VitamApplicationServerException e) {
+            LOGGER.error(format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
+            throw new VitamApplicationServerException(
+                format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
         }
-
     }
 
     /**
@@ -122,7 +112,7 @@ public class MetaDataApplication {
      * @throws Exception
      */
 
-    public static void run(MetaDataConfiguration configuration) throws Exception {
+    public static void run(MetaDataConfiguration configuration) throws VitamApplicationServerException {
         final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(JacksonFeature.class);
         resourceConfig.register(new MetaDataResource(configuration));
@@ -135,45 +125,52 @@ public class MetaDataApplication {
         String jettyConfig = configuration.getJettyConfig();
         vitamServer = VitamServerFactory.newVitamServerByJettyConf(jettyConfig);
         vitamServer.getServer().setHandler(context);
-        vitamServer.getServer().start();
-    }
 
-    /**
-     * run a server instance with the configuration and port
-     *
-     * @param configuration as MetaDataConfiguration
-     * @param serverPort port number of launched server
-     * @throws Exception
-     */
-    public static void run(MetaDataConfiguration configuration, int serverPort) throws Exception {
-        final ResourceConfig resourceConfig = new ResourceConfig();
-        resourceConfig.register(JacksonFeature.class);
-        resourceConfig.register(new MetaDataResource(configuration));
-
-        final ServletContainer servletContainer = new ServletContainer(resourceConfig);
-        final ServletHolder sh = new ServletHolder(servletContainer);
-        final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
-        context.setContextPath("/");
-        context.addServlet(sh, "/*");
-        server = new Server(serverPort);
-        server.setHandler(context);
-        server.start();
+        try {
+            vitamServer.getServer().start();
+        } catch (Exception e) {
+            LOGGER.error(format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
+            throw new VitamApplicationServerException(
+                format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
+        }
     }
 
     /**
      * Stops the server
+     *
      * @throws Exception
      */
     public static void stop() throws Exception {
 
-        //TODO centraliser ce stop dans un abstract parent
-        if (server!=null && server.isStarted()) {
-            server.stop();
-        } else if (vitamServer!=null && vitamServer.getServer()!=null &&
-            vitamServer.getServer().isStarted()) {
-
-            vitamServer.getServer().stop();
+        if (vitamServer != null && vitamServer.isStarted()) {
+            vitamServer.stop();
         }
     }
 
+    /**
+     * Implement this method to construct your application specific handler
+     *
+     * @return the generated Handler
+     */
+    @Override protected Handler buildApplicationHandler() {
+        final ResourceConfig resourceConfig = new ResourceConfig();
+        resourceConfig.register(JacksonFeature.class);
+        resourceConfig.register(new MetaDataResource(getConfiguration()));
+
+        final ServletContainer servletContainer = new ServletContainer(resourceConfig);
+        final ServletHolder sh = new ServletHolder(servletContainer);
+        final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
+        context.setContextPath("/");
+        context.addServlet(sh, "/*");
+        return context;
+    }
+
+    /**
+     * Must return the name as a string of your configuration file. metadata.conf
+     *
+     * @return the name of the application configuration file
+     */
+    @Override protected String getConfigFilename() {
+        return CONF_FILE_NAME;
+    }
 }

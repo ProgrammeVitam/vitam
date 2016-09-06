@@ -1,27 +1,25 @@
 package fr.gouv.vitam.ingest.external.rest;
 
-import static com.jayway.restassured.RestAssured.get;
-import static com.jayway.restassured.RestAssured.given;
-
-import java.io.File;
-import java.io.InputStream;
-
-import javax.ws.rs.core.Response.Status;
-
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
-
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.BasicVitamServer;
 import fr.gouv.vitam.common.server.VitamServer;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.InputStream;
+
+import static com.jayway.restassured.RestAssured.get;
+import static com.jayway.restassured.RestAssured.given;
 
 public class IngestExternalResourceTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalResourceTest.class);
@@ -29,7 +27,7 @@ public class IngestExternalResourceTest {
     private static final String RESOURCE_URI = "/ingest-ext/v1";
     private static final String STATUS_URI = "/status";
     private static final String UPLOAD_URI = "/upload";
-    private static final String INGEST_EXTERNAL_CONF = "ingest-external.conf";
+    private static final String INGEST_EXTERNAL_CONF = "ingest-external-test.conf";
     
     private static VitamServer vitamServer;
     private InputStream stream;
@@ -41,15 +39,15 @@ public class IngestExternalResourceTest {
     public static void setUpBeforeClass() throws Exception {
         junitHelper = new JunitHelper();
         serverPort = junitHelper.findAvailablePort();
+        //TODO verifier la compatibilité avec les test parallèle sur jenkins
+        SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
         final File conf = PropertiesUtils.findFile(INGEST_EXTERNAL_CONF);
 
         RestAssured.port = serverPort;
         RestAssured.basePath = RESOURCE_URI;
 
         try {
-            vitamServer = IngestExternalApplication.startApplication(new String[] {
-                conf.getAbsolutePath(),
-                Integer.toString(serverPort)});
+            vitamServer = IngestExternalApplication.startApplication(conf.getAbsolutePath());
             ((BasicVitamServer) vitamServer).start();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
@@ -62,7 +60,7 @@ public class IngestExternalResourceTest {
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
         try {
-            if(vitamServer!=null) {
+            if(vitamServer != null) {
                 ((BasicVitamServer) vitamServer).stop();
             }
         } catch (final VitamApplicationServerException e) {

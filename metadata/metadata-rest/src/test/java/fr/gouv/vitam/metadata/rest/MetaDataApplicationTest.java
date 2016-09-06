@@ -26,18 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.rest;
 
-import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
-
-import java.io.File;
-
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.node.Node;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -47,7 +35,19 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.node.Node;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import java.io.File;
+
+import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
 
 public class MetaDataApplicationTest {
     private static final String METADATA_CONF = "metadata.conf";
@@ -115,9 +115,9 @@ public class MetaDataApplicationTest {
         junitHelper.releasePort(HTTP_PORT);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = VitamApplicationServerException.class)
     public void givenEmptyArgsWhenConfigureApplicationThenRaiseAnException() throws Exception {
-        application.configure(new String[0]);
+        application.configure("");
     }
 
     @Test(expected = Exception.class)
@@ -134,7 +134,7 @@ public class MetaDataApplicationTest {
         File newConf = File.createTempFile("test", METADATA_CONF, conf.getParentFile());
         PropertiesUtils.writeYaml(newConf, config);
         int serverPort = junitHelper.findAvailablePort();
-        application.configure(newConf.getAbsolutePath(), Integer.toString(serverPort));
+        application.configure(newConf.getAbsolutePath());
         newConf.delete();
         junitHelper.releasePort(serverPort);
         application.stop();
@@ -161,7 +161,7 @@ public class MetaDataApplicationTest {
         config.getElasticsearchNodes().get(0).setTcpPort(TCP_PORT);
         File newConf = File.createTempFile("test", METADATA_CONF, conf.getParentFile());
         PropertiesUtils.writeYaml(newConf, config);
-        application.configure(newConf.getAbsolutePath(), "-12");
+        application.configure(newConf.getAbsolutePath());
         newConf.delete();
         application.stop();
     }

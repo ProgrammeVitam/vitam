@@ -80,6 +80,7 @@
                     </Array>
                 </Arg>
                 <Set name="port">8082</Set>
+                <Set name="idleTimeout"><Property name="http.timeout" default="99999999"/></Set><!-- 27.7 h -->
             </New>
         </Arg>
     </Call>
