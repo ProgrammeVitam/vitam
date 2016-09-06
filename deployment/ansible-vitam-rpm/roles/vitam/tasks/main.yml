@@ -68,7 +68,12 @@
     dest: "{{vitam_folder_root}}/conf/vitam-consul/service-{{ vitam_component }}.json"
     owner: "{{ vitam_user }}"
     group: "{{ vitam_group }}"
-    mode: "0640"
+    mode: "0755"
+
+- name: reload consul agent configuration
+  service:
+    name: vitam-consul
+    state: reloaded
   # notify:
   #   - restart consul
 

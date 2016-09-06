@@ -1,0 +1,61 @@
+---
+# tasks file for topbeat
+- name: install topbeat rpm
+  yum:
+    name: topbeat
+    state: latest
+
+# - name: adapt elasticsearch connection
+#   replace: 
+#     dest: /etc/topbeat/topbeat.yml 
+#     regexp: '^    hosts:.*$' 
+#     replace: '    hosts: ["{{vitam_log_host}}:{{elasticsearch_port}}"]'
+#   notify:
+#     - restart topbeat
+
+# - name: adapt proc 
+#   replace: 
+#     dest: /etc/topbeat/topbeat.yml 
+#     regexp: '^  procs:.*$' 
+#     replace: '  procs: ["java|node"]'
+#   notify:
+#     - restart topbeat
+
+# - name: activate topbeat index
+#   command: curl -XDELETE 'http://{{vitam_log_host}}:{{elasticsearch_port}}/topbeat-*';curl -XPUT 'http://{{vitam_log_host}}:{{elasticsearch_port}}/_template/topbeat' -d@/etc/topbeat/topbeat.template.json
+#   notify:
+#     - restart kibana
+#   delegate_to: "{{vitam_log_host}}"
+#   run_once: true
+
+- name: apply Topbeat configuration
+  template:
+    src: topbeat.yml.j2
+    dest: /etc/topbeat/topbeat.yml
+    owner: root
+    mode: 0644
+
+- name: restart topbeat
+  service:
+    name: topbeat
+    state: restarted
+
+- name: apply configuration files for curator
+  template:
+    src: "{{item}}.j2"
+    dest: "{{curator_conf_dir}}/{{item}}"
+    owner: logstash
+  with_items:
+    - "delete_index_topbeat.yml"
+  delegate_to: "{{groups['hosts-log-server'][0]}}"
+  run_once: true
+
+- name: create root crontab entry
+  run_once: true
+  delegate_to : "{{groups['hosts-log-server'][0]}}"
+  cron:
+    name="curator purge on topbeat"
+    minute="55"
+    hour="6"
+    user="root"
+    job="/usr/bin/curator --config {{curator_conf_dir}}/curator.yml {{curator_conf_dir}}/delete_index_topbeat.yml"

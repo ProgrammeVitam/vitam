@@ -1,38 +1,17 @@
+
 # ----------------------------------------------------------------------
 # fichier de config et de parsing logstash des logs VITAM
 # Version logstash : logstash-2.3.4
 #
 # --------------------------------------
 # date creation : Aug/08/2016
-# date modif    : Aug/22/2016
+# date modif    : Sep/01/2016
 # Auteur        : stephane.saadi@thalesgroup.com
 #
 # -----------------------------------------------------------------------
 
 input {
-        stdin {
-                type => "stdin"
-        }
-        exec {
-                type => "stats_sys"
-                command => "vmstat -n | tail -1 > /tmp/vmstat.log; printf `hostname `;cat /tmp/vmstat.log"
-                #command => "/home/Tools/logstash/tools/stats_sys.sh"
-                #envoi le nb toute les 60 secondes
-                interval => 60
-                #vmstat -n 60 | unbuffer -p awk -v MYHOST=$(hostname) '{print MYHOST ":" $0}' | netcat -u 10.222.13.69 5515
-        }
-        file {
-                type => "import_vitam"
-                path => "{{logstash_log_dir}}/vitam-logback.log"
-                #exclude => "*.gz"
-                sincedb_path => "/tmp/data"
-                #start_position => beginning
-                codec => multiline {
-                        pattern => "^%{TIMESTAMP_ISO8601:timestamp}"
-                        negate => true
-                        what => previous
-                }
-        }
+         # KWA TODO : A supprimer quand ES enverra ses logs en syslog
         file {
                 type => "import_elastic"
                 path => ["{{elasticsearch_log_dir}}/{{cluster_name}}.log"]
@@ -44,6 +23,7 @@ input {
                         what => previous
                 }
         }
+        # KWA TODO : A étudier lorsqu'on changera la localisation ES
         file {
                 type => "import_curator"
                 path => "{{curator_log_dir}}/curator.log"
@@ -53,8 +33,8 @@ input {
 
         # --- syslog input etc ...
         syslog {
-                port => 10514
                 type => syslog_input
+                port => 10514
         }
 }
 # -----------------------------------------------------
@@ -70,21 +50,11 @@ filter {
     grok {
       break_on_match => false
       keep_empty_captures => true
+      # Keep only programs whose name starts with 'vitam-'
       match => [ "program", "(?:(vitam[-._])?)(?<prog_name>[^.]*)" ]
     }
     mutate {
       add_field => [ "type_input", "syslog" ]
-    }
-  }
-  #---------------------------
-  if [type] == "import_vitam" {
-    mutate { add_field => [ "type_input", "%{type}" ] }
-    grok {
-      break_on_match => false
-      keep_empty_captures => true
-      match => [ "path", "(?:%{UNIXPATH:path_file})/(?<program>[^.]*)"]
-      match => [ "program", "(?<type>[^_]*)[_|-](?<module>[^_]*)[_|-](?<environnement>[^_]*)_(?<instance>[^_-]*)(%{GREEDYDATA:todo})" ]
-      overwrite => [ "type" ]
     }
   }
   #---------------------------
@@ -142,9 +112,11 @@ filter {
         # "timestamp" => "Aug 19 20:09:00",
         match => [ "timestamp", "(%{MONTH:mois} %{MONTHDAY:jour} %{HOUR:hr}:%{MINUTE:mn}:%{SECOND:sec})" ]
       }
+      # Here, we apparently need to do that in 2 steps, instead the correct date is not set in the timestamp variable.
       mutate { add_field => [ "date_msg", "%{+YYYY}-%{+MM}-%{jour} %{hr}:%{mn}:%{sec}" ] }
       mutate { replace => { timestamp => "%{date_msg}" } }
       date {
+        # KWA : do we need to change this if the servers are configured with another locale ? Apparently, it changes very little things (only the month/week parsing (Cf. https://www.elastic.co/guide/en/logstash/current/plugins-filters-date.html)) ; from my understanding, it should only be useful for parsing syslog RFC3164 logs.
         locale => fr
         #timezone => "UTC"
         match => [ "timestamp" , "yyyy-MM-dd HH:mm:ss" ]
@@ -165,18 +137,6 @@ filter {
       }
   }
   # --------------------------------------------------
-  if [type] =~ "stats_sys" {
-     grok {
-       # format vmstat.log:
-       # procs -----------memory---------- ---swap-- -----io---- -system-- -----cpu------
-       # r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st
-       # "10.222.4.146:  0  0  76324 1985848      0 2157164    0    0     4    16    5    1  0  0 99  0  0\n"
-       match => [ "message",
-                  "(?:%{IPORHOST:hostname})(?:%{SPACE:space})%{NUMBER:r:int}%{SPACE:space}%{NUMBER:b:int}%{SPACE:space}%{NUMBER:swapd:int}%{SPACE:space}%{NUMBER:free:int}%{SPACE:space}%{NUMBER:buff:int}%{SPACE:space}%{NUMBER:cache:int}%{SPACE:space}%{NUMBER:si:int}%{SPACE:space}%{NUMBER:so:int}%{SPACE:space}%{NUMBER:bi:int}%{SPACE:space}%{NUMBER:bo:int}%{SPACE:space}%{NUMBER:in:int}%{SPACE:space}%{NUMBER:cs:int}%{SPACE:space}%{NUMBER:us:int}%{SPACE:space}%{NUMBER:sy:int}%{SPACE:space}%{NUMBER:id:int}%{SPACE:space}%{NUMBER:wa:int}%{SPACE:space}%{NUMBER:st:int}"
-                ]
-     }
-  }
-  # --------------------------------------------------
   if "_grokparsefailure" not in [tags] {
      if [type] =~ "logback" or [type] =~ "elastic" or [type] =~ "curator" or [type] =~ "scripts" {
          date {
@@ -184,6 +144,7 @@ filter {
            #timezone => "UTC"
            #format date fichier log vitam 2016-08-05 23:35:16,573
            match => [ "timestamp" , "yyyy-MM-dd HH:mm:ss,SSS" ]
+           # KWA Note : Why @timestamp and not directly timestamp ? Is it a system field (notably for Kibana, apparently) ?
            target => [ "@timestamp" ]
          }
      }
@@ -205,12 +166,6 @@ filter {
                            ]
      }
   }
-  # --------------------------------------------------
-  if [type] =~ "stdin" {
-      mutate {
-        add_tag => [ "drop" ]
-      }
-  }
 }
 # -----------------------------------------------------
 output {
@@ -219,6 +174,7 @@ output {
       if [type] =~ "logback" or [type] =~ "mongo" or [type] =~ "scripts" {
         elasticsearch {
 
+          # KWA TODO: Prévoir un peu de tuning de perf ici
           #flush_size => 10000
           #idle_flush_time => 1
           #idle_flush_time => 2
@@ -226,17 +182,22 @@ output {
 
           template => "{{logstash_confextra_dir}}/elasticsearch-template.json"
           index => "logstash-vitam-%{+YYYY.MM.dd}"
+          # KWA TODO : use a join on the ansible group of elastisearch nodes (Cf. consul role)
           hosts => ["{{vitam_logserver_host}}:{{elasticsearch_port}}"]
         }
       } else {
         if [type_input] == "import_elastic" or [type_input] == "import_curator" {
           elasticsearch {
+            template => "{{logstash_confextra_dir}}/elasticsearch-template.json"
             index => "logstash-logs-%{+YYYY.MM.dd}"
+            # KWA TODO : use a join on the ansible group of elastisearch nodes (Cf. consul role)
             hosts => ["{{vitam_logserver_host}}:{{elasticsearch_port}}"]
           }
         } else {
           elasticsearch {
+            template => "{{logstash_confextra_dir}}/elasticsearch-template.json"
             index => "logstash-%{type}-%{+YYYY.MM.dd}"
+            # KWA TODO : use a join on the ansible group of elastisearch nodes (Cf. consul role)
             hosts => ["{{vitam_logserver_host}}:{{elasticsearch_port}}"]
           }
         }
@@ -251,8 +212,9 @@ output {
      }
   }
   # -----------------------------------------------------
-  stdout {
-    #debug => debug_format => "json"
-    codec => rubydebug
-  }
+  # Following is for debug purpose only
+  #stdout {
+  #  #debug => debug_format => "json"
+  #  codec => rubydebug
+  #}
 }

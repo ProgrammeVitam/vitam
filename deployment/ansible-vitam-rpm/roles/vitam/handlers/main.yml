@@ -9,3 +9,8 @@
   service:
     name: vitam-consul
     state: restarted
+
+- name: reload consul configuration
+  service:
+    name: vitam-consul
+    state: reloaded

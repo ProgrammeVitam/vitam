@@ -1,6 +1,0 @@
----
-
-# Vitam solution deployment
-- hosts: hosts-mongo-express
-  roles:
-    - mongo-express
