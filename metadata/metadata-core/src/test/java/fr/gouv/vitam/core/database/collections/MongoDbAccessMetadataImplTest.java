@@ -1,25 +1,8 @@
 package fr.gouv.vitam.core.database.collections;
 
-import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
-import static org.junit.Assert.assertEquals;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.node.Node;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.ServerAddress;
-
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -31,9 +14,20 @@ import fr.gouv.vitam.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.core.MongoDbAccessMetadataFactory;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.node.Node;
+import org.junit.*;
+import org.junit.rules.TemporaryFolder;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
+import static org.junit.Assert.assertEquals;
 
 public class MongoDbAccessMetadataImplTest {
-   
+
     private static final String DEFAULT_MONGO =
         "ObjectGroup\n" + "Unit\n" + "Unit Document{{v=1, key=Document{{_id=1}}, name=_id_, ns=vitam-test.Unit}}\n" +
             "Unit Document{{v=1, key=Document{{_id=hashed}}, name=_id_hashed, ns=vitam-test.Unit}}\n" +
@@ -42,7 +36,7 @@ public class MongoDbAccessMetadataImplTest {
 
     private static final String s1 = "{\"_id\":\"id1\", \"title\":\"title1\", \"_max\": \"5\", \"_min\": \"2\"}";
     private static final String s2 = "{\"_id\":\"id2\", \"title\":\"title2\", \"_up\":\"id1\"}";
-    
+
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
     private static File elasticsearchHome;
@@ -52,15 +46,16 @@ public class MongoDbAccessMetadataImplTest {
     private static int TCP_PORT = 9300;
     private static int HTTP_PORT = 9200;
     private static Node node;
-    
+
     private static ElasticsearchAccessMetadata esClient;
-    
+
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
     static MongoClient mongoClient;
     static JunitHelper junitHelper;
     static final String DATABASE_HOST = "localhost";
     static final String DATABASE_NAME = "vitam-test";
+    static final String JETTY_CONFIG = "jetty-config-test.xml";
     static int port;
     static MongoDbAccessMetadataImpl mongoDbAccess;
     static MongoDbAccessMetadataFactory mongoDbAccessFactory;
@@ -68,7 +63,7 @@ public class MongoDbAccessMetadataImplTest {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         junitHelper = new JunitHelper();
-      //ES
+        //ES
         TCP_PORT = junitHelper.findAvailablePort();
         HTTP_PORT = junitHelper.findAvailablePort();
 
@@ -87,13 +82,13 @@ public class MongoDbAccessMetadataImplTest {
             .clusterName(CLUSTER_NAME)
             .node();
 
-       node.start();
-        
+        node.start();
+
         List<ElasticsearchNode> nodes = new ArrayList<ElasticsearchNode>();
         nodes.add(new ElasticsearchNode(HOST_NAME, TCP_PORT));
-       
+
         esClient = new ElasticsearchAccessMetadata(CLUSTER_NAME, nodes);
-        
+
         //MongoDB
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         port = junitHelper.findAvailablePort();
@@ -103,7 +98,8 @@ public class MongoDbAccessMetadataImplTest {
             .build());
         mongod = mongodExecutable.start();
         mongoDbAccessFactory = new MongoDbAccessMetadataFactory();
-        mongoDbAccess = mongoDbAccessFactory.create(new MetaDataConfiguration(DATABASE_HOST, port, DATABASE_NAME, CLUSTER_NAME, nodes));
+        mongoDbAccess = mongoDbAccessFactory
+            .create(new MetaDataConfiguration(DATABASE_HOST, port, DATABASE_NAME, CLUSTER_NAME, nodes, JETTY_CONFIG));
 
         final MongoClientOptions options = MongoDbAccessMetadataImpl.getMongoClientOptions();
         mongoClient = new MongoClient(new ServerAddress(DATABASE_HOST, port), options);
@@ -116,7 +112,7 @@ public class MongoDbAccessMetadataImplTest {
         mongod.stop();
         mongodExecutable.stop();
         junitHelper.releasePort(port);
-        
+
         if (node != null) {
             node.close();
         }
@@ -164,10 +160,10 @@ public class MongoDbAccessMetadataImplTest {
         MongoDbAccessMetadataImpl.removeIndexBeforeImport();
     }
 
-  @Test
-  public void givenUnitWhenGetChildrenUnitIdsFromParent(){
-      final Unit unit1 = new Unit(s1);
-      final Unit unit2 = new Unit(s2);
-      unit1.getChildrenUnitIdsFromParent();
-  }    
+    @Test
+    public void givenUnitWhenGetChildrenUnitIdsFromParent() {
+        final Unit unit1 = new Unit(s1);
+        final Unit unit2 = new Unit(s2);
+        unit1.getChildrenUnitIdsFromParent();
+    }
 }

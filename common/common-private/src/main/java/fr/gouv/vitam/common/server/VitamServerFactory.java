@@ -102,9 +102,9 @@ public class VitamServerFactory {
             ParametersChecker.checkParameter("jetty config file", jettyConfigFile);
             return new BasicVitamServer(jettyConfigFile);
         } catch (IllegalArgumentException e) {
-            LOGGER.error("Jetty server not run with jetty config file, " + jettyConfigFile + "", e);
+            LOGGER.error("Jetty server can not run with this jetty config file : " + jettyConfigFile + e.getMessage(), e);
             throw new VitamApplicationServerException(
-                "Jetty server not run with jetty config file, " + jettyConfigFile);
+                "Jetty server can not run with this jetty config file : " + jettyConfigFile);
         }
     }
 }

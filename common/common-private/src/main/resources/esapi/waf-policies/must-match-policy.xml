@@ -1,19 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-	<!--
-	This test file exemplifies a must-match rule.
-
-	Protection #1:
-	Protection applies to: /admin/.*
-	Header name needed to access: x-roles
-	Header value needs to *contain* the string: admin
-
-	Protection #2:
-	Protection applies to: /superadmin/.*
-	Header name needed to access: x-roles
-	Header value needs to *equal* the string: superadmin
-
-	-->
+<!-- This test file exemplifies a must-match rule. Protection #1: Protection 
+	applies to: /admin/.* Header name needed to access: x-roles Header value 
+	needs to *contain* the string: admin Protection #2: Protection applies to: 
+	/superadmin/.* Header name needed to access: x-roles Header value needs to 
+	*equal* the string: superadmin -->
 
 <policy>
 

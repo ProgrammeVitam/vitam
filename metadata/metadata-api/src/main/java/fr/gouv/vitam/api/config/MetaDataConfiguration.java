@@ -23,10 +23,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.api.config;
 
-import java.util.List;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+
+import java.util.List;
 
 /**
  * MetaDataConfiguration contains database access informations
@@ -43,29 +43,33 @@ public final class MetaDataConfiguration {
     /**
      * MetaDataConfiguration constructor
      *
-     * @param host database server IP address
-     * @param port database server port
-     * @param dbName database name
+     * @param host               database server IP address
+     * @param port               database server port
+     * @param dbName             database name
      * @param elasticsearchNodes elasticsearch nodes
-     * @param collectionName database collection name
+     * @param jettyConfig        jetty config fiel name
      */
-    public MetaDataConfiguration(String host, int port, String dbName, String clusterName, List<ElasticsearchNode> elasticsearchNodes) {
+    public MetaDataConfiguration(String host, int port, String dbName, String clusterName,
+        List<ElasticsearchNode> elasticsearchNodes, String jettyConfig) {
         ParametersChecker.checkParameter("Database address is a mandatory parameter", host);
         ParametersChecker.checkParameter("Database address port is a mandatory parameter", port);
         ParametersChecker.checkParameter("Database name is a mandatory parameter", dbName);
         ParametersChecker.checkParameter("elasticsearch cluster name is a mandatory parameter", clusterName);
         ParametersChecker.checkParameter("elasticsearch nodes are a mandatory parameter", elasticsearchNodes);
+        ParametersChecker.checkParameter("JettyConfig name is a mandatory parameter", jettyConfig);
         this.host = host;
         this.port = port;
         this.dbName = dbName;
-        this.clusterName=clusterName;
-        this.elasticsearchNodes=elasticsearchNodes;
+        this.clusterName = clusterName;
+        this.elasticsearchNodes = elasticsearchNodes;
+        this.jettyConfig = jettyConfig;
     }
 
     /**
      * MetaDataConfiguration empty constructor for YAMLFactory
      */
-    public MetaDataConfiguration() {}
+    public MetaDataConfiguration() {
+    }
 
     /**
      * @return the database address as String
@@ -76,7 +80,7 @@ public final class MetaDataConfiguration {
 
     /**
      * @param host the address of database server as String the MetaDataConfiguration with database server address is
-     *        setted
+     *             setted
      */
     public MetaDataConfiguration setHost(String host) {
         this.host = host;
@@ -117,6 +121,7 @@ public final class MetaDataConfiguration {
 
     /**
      * getter jettyConfig
+     *
      * @return return the jettyConfig
      */
     public String getJettyConfig() {
@@ -125,6 +130,7 @@ public final class MetaDataConfiguration {
 
     /**
      * setter jettyConfig
+     *
      * @param jettyConfig the jetty config
      * @return return the jettyConfig
      */
@@ -133,7 +139,7 @@ public final class MetaDataConfiguration {
         return this;
     }
 
-    
+
     /**
      * @return the clusterName
      */
@@ -151,7 +157,6 @@ public final class MetaDataConfiguration {
     }
 
     /**
-     * 
      * @return the elasticsearchNodes
      */
     public List<ElasticsearchNode> getElasticsearchNodes() {
@@ -159,7 +164,6 @@ public final class MetaDataConfiguration {
     }
 
     /**
-     * 
      * @param elasticsearchNodes the elasticsearchNodes to set
      * @return MetaDataConfiguration
      */
@@ -167,6 +171,6 @@ public final class MetaDataConfiguration {
         this.elasticsearchNodes = elasticsearchNodes;
         return this;
     }
-    
-    
+
+
 }

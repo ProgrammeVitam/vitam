@@ -26,22 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.core;
 
-import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.node.Node;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -53,6 +37,21 @@ import fr.gouv.vitam.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.core.database.collections.MongoDbAccessMetadataImpl;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.node.Node;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 
 public class MongoDbAccessFactoryTest {
@@ -70,6 +69,7 @@ public class MongoDbAccessFactoryTest {
     private static List<ElasticsearchNode> nodes;
 
     private static final String DATABASE_HOST = "localhost";
+    private static final String JETTY_CONFIG = "jetty-config-test.xml";
     static MongoDbAccessMetadataImpl mongoDbAccess;
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
@@ -122,8 +122,8 @@ public class MongoDbAccessFactoryTest {
         mongod.stop();
         mongodExecutable.stop();
         junitHelper.releasePort(port);
-        
-        
+
+
         if (node != null) {
             node.close();
         }
@@ -135,7 +135,7 @@ public class MongoDbAccessFactoryTest {
     @Test
     public void testCreateFn() {
         mongoDbAccess = new MongoDbAccessMetadataFactory()
-            .create(new MetaDataConfiguration(DATABASE_HOST, port, "vitam-test", CLUSTER_NAME, nodes));
+            .create(new MetaDataConfiguration(DATABASE_HOST, port, "vitam-test", CLUSTER_NAME, nodes, JETTY_CONFIG));
         assertNotNull(mongoDbAccess);
         assertEquals("vitam-test", mongoDbAccess.getMongoDatabase().getName());
         mongoDbAccess.close();

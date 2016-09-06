@@ -1,15 +1,16 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>fr.gouv.vitam</groupId>
-    <artifactId>common</artifactId>
-    <version>0.8.0-SNAPSHOT</version>
-  </parent>
-  <artifactId>common-junit</artifactId>
-  <name>Common for Junit</name>
-  <description>Common for Junit</description>
-  
-  	<dependencies>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>fr.gouv.vitam</groupId>
+		<artifactId>common</artifactId>
+		<version>0.8.0-SNAPSHOT</version>
+	</parent>
+	<artifactId>common-junit</artifactId>
+	<name>Common for Junit</name>
+	<description>Common for Junit</description>
+
+	<dependencies>
 		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
@@ -33,6 +34,6 @@
 			<artifactId>common-public</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-  	</dependencies>
-  
+	</dependencies>
+
 </project>

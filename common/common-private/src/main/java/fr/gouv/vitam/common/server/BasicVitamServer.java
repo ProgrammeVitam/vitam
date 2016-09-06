@@ -28,6 +28,7 @@
 package fr.gouv.vitam.common.server;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import org.eclipse.jetty.server.Handler;
@@ -129,7 +130,7 @@ public class BasicVitamServer implements VitamServer {
     public void run() throws VitamApplicationServerException {
         start();
         try {
-            getServer().join();
+            server.join();
         } catch (final Exception exc) {
             throw new VitamApplicationServerException(A_PROBLEM_OCCURRED_WHILE_ATTEMPTING_TO_START_THE_SERVER, exc);
         }
@@ -145,7 +146,7 @@ public class BasicVitamServer implements VitamServer {
             throw new VitamApplicationServerException("You must configure the server before running");
         }
         try {
-            getServer().start();
+            server.start();
         } catch (final Exception exc) {
             throw new VitamApplicationServerException(A_PROBLEM_OCCURRED_WHILE_ATTEMPTING_TO_START_THE_SERVER, exc);
         }
@@ -161,11 +162,13 @@ public class BasicVitamServer implements VitamServer {
             throw new VitamApplicationServerException("You must configure the server before running");
         }
         try {
-            getServer().stop();
+            server.stop();
         } catch (final Exception exc) {
             throw new VitamApplicationServerException(A_PROBLEM_OCCURRED_WHILE_ATTEMPTING_TO_START_THE_SERVER, exc);
         }
     }
+
+
 
     /**
      * Retrieving the underlying jetty server is restricted to sub-implementations only
@@ -182,26 +185,91 @@ public class BasicVitamServer implements VitamServer {
         return serverConfiguration;
     }
 
+    /**
+     * check if vitam server is started
+     *
+     * @return true if jetty server is started
+     */
+    @Override public boolean isStarted() {
+        if(server!=null) {
+            return server.isStarted();
+        } else {
+            LOGGER.error("Jetty Server is null");
+            return false;
+        }
+    }
+
+    /**
+     * check if vitam server is stopped
+     *
+     * @return true if jetty server is stopped
+     */
+    @Override public boolean isStopped() {
+        if(server!=null) {
+            return server.isStopped();
+        } else {
+            LOGGER.error("Jetty Server is null");
+            return false;
+        }
+    }
+
+    /**
+     * blocking until server is ready
+     *
+     * @throws VitamException
+     */
+    @Override
+    public void join() throws VitamException {
+        if(server!=null && server.isStarted()) {
+            try {
+                server.join();
+            } catch (InterruptedException e) {
+                throw new VitamException(e.getMessage(), e);
+            }
+        }
+    }
+
+    /**
+     * Retrieving the vitam server port
+     * @return the vitam server port
+     */
     @Override
     public int getPort() {
         return port;
     }
 
+    /**
+     * check if is configured
+     * @return true if it is configured
+     */
     @Override
     public boolean isConfigured() {
         return configured;
     }
 
+    /**
+     * setter configured status
+     * @param configured configured status
+     */
     protected void setConfigured(boolean configured) {
         this.configured = configured;
     }
 
+    /**
+     * retrieving the handler
+     * @return the handler
+     */
     @Override
     public Handler getHandler() {
         return handler;
     }
 
-    protected void setHandler(Handler handler) {
+
+    /**
+     * setter of the handler
+     * @param handler the handler to set
+     */
+    public void setHandler(Handler handler) {
         ParametersChecker.checkParameter("Handler must not be nul", handler);
         this.handler = handler;
     }

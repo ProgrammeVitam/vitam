@@ -1,51 +1,33 @@
 /**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- *
+ * <p>
  * contact.vitam@culture.gouv.fr
- * 
+ * <p>
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
- *
+ * <p>
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
  * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- *
+ * <p>
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
- *
+ * <p>
  * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- *
+ * <p>
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
 package fr.gouv.vitam.processing.management.client;
 
-import static com.jayway.restassured.RestAssured.get;
-import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.io.File;
-import java.io.InputStream;
-import java.util.Map;
-
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.node.Node;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
-
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -54,8 +36,11 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.metadata.rest.MetaDataApplication;
 import fr.gouv.vitam.processing.common.exception.ProcessingInternalServerException;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
@@ -64,12 +49,28 @@ import fr.gouv.vitam.processing.management.rest.ProcessManagementApplication;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.node.Node;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import java.io.File;
+import java.io.InputStream;
+import java.util.Map;
+
+import static com.jayway.restassured.RestAssured.get;
+import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
- * 
+ *
  */
 public class ProcessingIntegrationTest {
-    
+
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
     private static File elasticsearchHome;
@@ -78,14 +79,14 @@ public class ProcessingIntegrationTest {
     private static int TCP_PORT = 54321;
     private static int HTTP_PORT = 54320;
     private static Node node;
-    
+
     private static final int DATABASE_PORT = 12346;
     private static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
 
     private static final int PORT_SERVICE_PROCESSING = 8098;
     private static final int PORT_SERVICE_WORKSPACE = 8094;
-    private static final int PORT_SERVICE_METADATA = 8096;
+    private static int PORT_SERVICE_METADATA; // = 8096;
 
     private static final String SIP_FOLDER = "SIP";
     private static final String METADATA_PATH = "/metadata/v1";
@@ -96,9 +97,12 @@ public class ProcessingIntegrationTest {
     private static String CONFIG_WORKSPACE_PATH = "";
     private static String CONFIG_METADATA_PATH = "";
 
+    private static JunitHelper junitHelper;
+
     private static ProcessManagementApplication processApplication;
     private static WorkspaceApplication workspaceApplication;
     private static MetaDataApplication medtadataApplication;
+    //private static int PORT_SERVICE_METADATA;
 
     private WorkspaceClient workspaceClient;
     private ProcessingManagementClient processingClient;
@@ -112,7 +116,7 @@ public class ProcessingIntegrationTest {
     private static String SIP_FILE_OK_NAME = "SIP.zip";
     private static String SIP_ARBO_COMPLEXE_FILE_OK = "SIP_arbor_OK.zip";
     private static String SIP_WITHOUT_MANIFEST = "SIP_no_manifest.zip";
-    private static String SIP_NB_OBJ_INCORRECT_IN_MANIFEST = "SIP_Conformity_KO.zip";    
+    private static String SIP_NB_OBJ_INCORRECT_IN_MANIFEST = "SIP_Conformity_KO.zip";
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -137,7 +141,7 @@ public class ProcessingIntegrationTest {
 
         node.start();
 
-       
+
         final MongodStarter starter = MongodStarter.getDefaultInstance();
 
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
@@ -147,8 +151,11 @@ public class ProcessingIntegrationTest {
         mongod = mongodExecutable.start();
 
         // launch metadata
+        junitHelper = new JunitHelper();
         medtadataApplication = new MetaDataApplication();
-        medtadataApplication.configure(CONFIG_METADATA_PATH, Integer.toString(PORT_SERVICE_METADATA));
+        PORT_SERVICE_METADATA = junitHelper.findAvailablePort();
+        SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_METADATA));
+        medtadataApplication.configure(CONFIG_METADATA_PATH);
 
         // launch processing
         processApplication = new ProcessManagementApplication();
@@ -170,6 +177,8 @@ public class ProcessingIntegrationTest {
             workspaceApplication.stop();
             processApplication.stop();
             medtadataApplication.stop();
+            junitHelper.releasePort(PORT_SERVICE_METADATA);
+
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -244,7 +253,7 @@ public class ProcessingIntegrationTest {
 
         assertEquals("OK", node.get("status").asText());
     }
-    
+
     @Test(expected = ProcessingInternalServerException.class)
     public void testWorkflowWithSipNoManifest() throws Exception {
         String containerName = GUIDFactory.newManifestGUID(0).getId();
@@ -263,7 +272,7 @@ public class ProcessingIntegrationTest {
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
         processingClient = new ProcessingManagementClient(PROCESSING_URL);
-        processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);        
+        processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
     }
 
     @Test

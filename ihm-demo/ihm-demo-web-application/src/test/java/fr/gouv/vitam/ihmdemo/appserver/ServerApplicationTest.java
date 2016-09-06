@@ -1,12 +1,14 @@
 package fr.gouv.vitam.ihmdemo.appserver;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.server.VitamServer;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.junit.JunitHelper;
+import java.io.File;
+import java.io.FileNotFoundException;
 
 public class ServerApplicationTest {
 
@@ -42,6 +44,7 @@ public class ServerApplicationTest {
 	public void givenFileWhenConfigureApplicationThenRunServer() throws Exception {
 		final JunitHelper junitHelper = new JunitHelper();
 		final int port = junitHelper.findAvailablePort();
+		SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(port));
 		final File conf = PropertiesUtils.findFile(IHM_DEMO_CONF);
 		final WebApplicationConfig config = PropertiesUtils.readYaml(conf, WebApplicationConfig.class);
 		config.setPort(port);
@@ -64,18 +67,23 @@ public class ServerApplicationTest {
 		newConf.delete();
 	}
 
-
-
-
-	@Test
+	@Test(expected = IllegalArgumentException.class)
 	public void givenNullArgumentWhenConfigureApplicationOThenRunServerWithDefaultParms() throws Exception {
 		application.configure(null);
 	}
 
 	@Test
 	public void givenConfigFileFailedWhenConfigureApplicationThenRaiseAnException() throws Exception {
-		application.configure("src/test/resources/ihm-demo-test-noPort.conf");
+		application.configure("ihm-demo-test-noPort.conf");
 	}
 
+	@Test(expected = VitamApplicationServerException.class)
+	public void givenConfigFileWithoutJettyConfigThenRaiseAnException() throws Exception {
+		application.run(new WebApplicationConfig());
+	}
 
+	@Test(expected = VitamApplicationServerException.class)
+	public void givenConfigFileWithoutConfigThenRaiseAnException() throws Exception {
+		application.run(null);
+	}
 }

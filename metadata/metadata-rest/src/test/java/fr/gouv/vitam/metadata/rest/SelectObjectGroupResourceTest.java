@@ -1,23 +1,23 @@
 /**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- *
+ * <p>
  * contact.vitam@culture.gouv.fr
- *
+ * <p>
  * This software is a computer program whose purpose is to implement a digital
  * archiving back-office system managing high volumetry securely and efficiently.
- *
+ * <p>
  * This software is governed by the CeCILL 2.1 license under French law and
  * abiding by the rules of distribution of free software.  You can  use,
  * modify and/ or redistribute the software under the terms of the CeCILL 2.1
  * license as circulated by CEA, CNRS and INRIA at the following URL
  * "http://www.cecill.info".
- *
+ * <p>
  * As a counterpart to the access to the source code and  rights to copy,
  * modify and redistribute granted by the license, users are provided only
  * with a limited warranty  and the software's author,  the holder of the
  * economic rights,  and the successive licensors  have only  limited
  * liability.
- *
+ * <p>
  * In this respect, the user's attention is drawn to the risks associated
  * with loading,  using,  modifying and/or developing or reproducing the
  * software by the user in light of its specific status of free software,
@@ -28,36 +28,14 @@
  * requirements in conditions enabling the security of their systems and/or
  * data to be ensured and,  more generally, to use and operate it in the
  * same conditions as regards security.
- *
+ * <p>
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL 2.1 license and that you accept its terms.
  */
 package fr.gouv.vitam.metadata.rest;
 
-import static com.jayway.restassured.RestAssured.given;
-import static com.jayway.restassured.RestAssured.with;
-import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.Response.Status;
-
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.node.Node;
-import org.jhades.JHades;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
-
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -67,13 +45,30 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.core.database.collections.MetadataCollections;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.node.Node;
+import org.jhades.JHades;
+import org.junit.*;
+import org.junit.rules.TemporaryFolder;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.jayway.restassured.RestAssured.given;
+import static com.jayway.restassured.RestAssured.with;
+import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
 
 /**
- * 
+ *
  */
 public class SelectObjectGroupResourceTest {
 
@@ -89,9 +84,10 @@ public class SelectObjectGroupResourceTest {
     private static final String DATA_URI = "/metadata/v1";
     private static final String OBJECT_GROUPS_URI = "/objectgroups";
     private static final String DATABASE_NAME = "vitam-test";
+    private static final String JETTY_CONFIG = "jetty-config-test.xml";
     private static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
-    
+
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
     private static File elasticsearchHome;
@@ -132,8 +128,8 @@ public class SelectObjectGroupResourceTest {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
         junitHelper = new JunitHelper();
-        
-      //ES
+
+        //ES
         TCP_PORT = junitHelper.findAvailablePort();
         HTTP_PORT = junitHelper.findAvailablePort();
 
@@ -152,11 +148,11 @@ public class SelectObjectGroupResourceTest {
             .clusterName(CLUSTER_NAME)
             .node();
 
-       node.start();
-        
+        node.start();
+
         List<ElasticsearchNode> nodes = new ArrayList<ElasticsearchNode>();
         nodes.add(new ElasticsearchNode(HOST_NAME, TCP_PORT));
-        
+
         dataBasePort = junitHelper.findAvailablePort();
 
         final MongodStarter starter = MongodStarter.getDefaultInstance();
@@ -167,9 +163,10 @@ public class SelectObjectGroupResourceTest {
         mongod = mongodExecutable.start();
 
         final MetaDataConfiguration configuration =
-            new MetaDataConfiguration(SERVER_HOST, dataBasePort, DATABASE_NAME,CLUSTER_NAME, nodes);
+            new MetaDataConfiguration(SERVER_HOST, dataBasePort, DATABASE_NAME, CLUSTER_NAME, nodes, JETTY_CONFIG);
         serverPort = junitHelper.findAvailablePort();
-        MetaDataApplication.run(configuration, serverPort);
+        SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
+        MetaDataApplication.run(configuration);
         RestAssured.port = serverPort;
         RestAssured.basePath = DATA_URI;
     }
@@ -181,7 +178,7 @@ public class SelectObjectGroupResourceTest {
         mongodExecutable.stop();
         junitHelper.releasePort(dataBasePort);
         junitHelper.releasePort(serverPort);
-        
+
         if (node != null) {
             node.close();
         }
@@ -274,7 +271,7 @@ public class SelectObjectGroupResourceTest {
             .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET)
             .body("")
             .when()
-            .post(OBJECT_GROUPS_URI + "/"  + OBJECT_GROUP_ID)
+            .post(OBJECT_GROUPS_URI + "/" + OBJECT_GROUP_ID)
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
@@ -285,7 +282,7 @@ public class SelectObjectGroupResourceTest {
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET)
             .body(buildDSLWithOptions("", "lkvhvgvuyqvkvj")).when()
-            .post(OBJECT_GROUPS_URI + "/"  + OBJECT_GROUP_ID).then()
+            .post(OBJECT_GROUPS_URI + "/" + OBJECT_GROUP_ID).then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 

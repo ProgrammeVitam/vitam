@@ -25,6 +25,31 @@
 <!-- =============================================================== -->
 <Configure id="Server" class="org.eclipse.jetty.server.Server">
 
+    <!-- =========================================================== -->
+    <!-- Configure the Server Thread Pool.                           -->
+    <!-- The server holds a common thread pool which is used by      -->
+    <!-- default as the executor used by all connectors and servlet  -->
+    <!-- dispatches.                                                 -->
+    <!--                                                             -->
+    <!-- Configuring a fixed thread pool is vital to controlling the -->
+    <!-- maximal memory footprint of the server and is a key tuning  -->
+    <!-- parameter for tuning.  In an application that rarely blocks -->
+    <!-- then maximal threads may be close to the number of 5*CPUs.  -->
+    <!-- In an application that frequently blocks, then maximal      -->
+    <!-- threads should be set as high as possible given the memory  -->
+    <!-- available.                                                  -->
+    <!--                                                             -->
+    <!-- Consult the javadoc of o.e.j.util.thread.QueuedThreadPool   -->
+    <!-- for all configuration that may be set here.                 -->
+    <!-- =========================================================== -->
+    <Arg name="threadpool">
+        <New id="threadpool" class="org.eclipse.jetty.util.thread.QueuedThreadPool">
+            <Arg name="minThreads" type="int">10</Arg>
+            <Arg name="maxThreads" type="int">200</Arg>
+            <Arg name="idleTimeout" type="int">60000</Arg>
+            <Set name="detailedDump">false</Set>
+        </New>
+    </Arg>
 
     <!-- =========================================================== -->
     <!-- Add shared Scheduler instance                               -->
@@ -69,17 +94,26 @@
     <Call name="addConnector">
         <Arg>
             <New class="org.eclipse.jetty.server.ServerConnector">
-                <Arg name="server"><Ref refid="Server" /></Arg>
+                <Arg name="server">
+                    <Ref refid="Server"/>
+                </Arg>
                 <Arg name="factories">
                     <Array type="org.eclipse.jetty.server.ConnectionFactory">
                         <Item>
                             <New class="org.eclipse.jetty.server.HttpConnectionFactory">
-                                <Arg name="config"><Ref refid="httpConfig" /></Arg>
+                                <Arg name="config">
+                                    <Ref refid="httpConfig"/>
+                                </Arg>
                             </New>
                         </Item>
                     </Array>
                 </Arg>
-                <Set name="port">8082</Set>
+                <Set name="port">
+                    <SystemProperty name="jetty.port" default="8082"/>
+                </Set>
+                <Set name="idleTimeout">
+                    <Property name="http.timeout" default="99999999"/>
+                </Set><!-- 27.7 h -->
             </New>
         </Arg>
     </Call>

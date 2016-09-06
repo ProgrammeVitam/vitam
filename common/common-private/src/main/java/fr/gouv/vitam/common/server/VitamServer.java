@@ -27,6 +27,7 @@
 
 package fr.gouv.vitam.common.server;
 
+import fr.gouv.vitam.common.exception.VitamException;
 import org.eclipse.jetty.server.Handler;
 
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -37,6 +38,13 @@ import org.eclipse.jetty.xml.XmlConfiguration;
  * Interface for every Vitam REST Server
  */
 public interface VitamServer {
+
+    public static final String PARAMETER_JETTY_SERVER_PORT = "jetty.port";
+    public static final String SERVER_CAN_NOT_START = "%s application server can not start. ";
+    public static final String CONFIG_FILE_IS_A_MANDATORY_ARGUMENT = "Config file %s is a mandatory argument. ";
+    public static final String CAN_CONFIGURE_SERVER = "Can not config %s server. ";
+    public static final String SERVER_START_WITH_JETTY_CONFIG = "%s application server start with jetty config. ";
+
     /**
      * Configure the server with one handler
      *
@@ -79,4 +87,43 @@ public interface VitamServer {
      * @return the config
      */
     public XmlConfiguration getServerConfiguration();
+
+    /**
+     * check if vitam server is started
+     * @return true if jetty server is started
+     */
+    public boolean isStarted();
+
+
+    /**
+     * check if vitam server is stopped
+     * @return true if jetty server is stopped
+     */
+    public boolean isStopped();
+
+    /**
+     * blocking until server is ready
+     * @throws VitamException
+     */
+    public void join() throws VitamException;
+
+    /**
+     * stop the jetty server
+     * @throws VitamApplicationServerException
+     */
+    public void stop() throws VitamApplicationServerException;
+
+
+
+    /**
+     * start the jetty server
+     * @throws VitamApplicationServerException
+     */
+    public void start() throws VitamApplicationServerException;
+
+    /**
+     * set jetty handler
+     * @param handler the handler to set
+     */
+    public void setHandler(Handler handler);
 }

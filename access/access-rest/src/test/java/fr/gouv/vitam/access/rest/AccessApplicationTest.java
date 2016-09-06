@@ -23,37 +23,17 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.rest;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.server.VitamServer;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Map;
-
-import javax.validation.constraints.AssertTrue;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Response;
-
-import org.eclipse.jetty.server.Connector;
-import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.server.handler.HandlerCollection;
-import org.eclipse.jetty.xml.XmlConfiguration;
-import org.eclipse.persistence.jaxb.rs.MOXyJsonProvider;
-import org.glassfish.jersey.jackson.JacksonFeature;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.JerseyTest;
-import org.glassfish.jersey.test.TestProperties;
-import org.junit.*;
-
-import fr.gouv.vitam.access.api.AccessResource;
-import fr.gouv.vitam.access.model.UnitRequestDTO;
 
 /**
  * AccessApplication Test class
@@ -61,58 +41,58 @@ import fr.gouv.vitam.access.model.UnitRequestDTO;
 public class AccessApplicationTest {
 
     private final AccessApplication application = new AccessApplication();
-
+    private final JunitHelper junitHelper = new JunitHelper();
+    private int portAvailable;
     private Client client;
 
     @Before
     public void setUpBeforeMethod() throws Exception {
         client = ClientBuilder.newClient();
+
+        portAvailable = junitHelper.findAvailablePort();
+        //TODO verifier la compatibilité avec les tests parallèles sur jenkins
+        SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(portAvailable));
     }
 
     @After
     public void tearDown() throws Exception {
-        if(application!=null && application.getServer()!=null) {
-            application.getServer().stop();
+        if (application != null && AccessApplication.getVitamServer() != null
+            && AccessApplication.getVitamServer().getServer() != null) {
+
+            AccessApplication.getVitamServer().getServer().stop();
         }
+        junitHelper.releasePort(portAvailable);
     }
 
     @Test(expected = Exception.class)
     public void shouldRaiseAnExceptionWhenConfigureApplicationWithEmptyArgs() throws Exception {
-        application.startApplication(new String[0]);
+        application.startApplication("");
     }
 
-    @Test(expected = Exception.class)
+    @Test
     public void shouldRaiseAnExceptionWhenConfigureApplicationWithFileNotFound() throws Exception {
-        application.startApplication(new String[] {"src/test/resources/notFound.conf"});
+        application.startApplication("notFound.conf");
     }
 
     @Test
     public void shouldRunServerWhenConfigureApplicationWithFileExists() throws Exception {
-        application.startApplication(new String[] {"src/test/resources/access-test.conf"});
+        application.startApplication("access-test.conf");
+        Assert.assertTrue(AccessApplication.getVitamServer().getServer().isStarted());
+    }
+
+    @Test(expected = VitamException.class)
+    public void shouldThrowExceptionWhenConfigureApplicationWithFileErr1() throws Exception {
+        application.startApplication("access-test-err1.conf");
+        Assert.assertFalse(AccessApplication.getVitamServer().getServer().isStarted());
     }
 
     @Test
     public void shouldStopServerWhenStopApplicationWithFileExistsAndRun() throws Exception {
-        application.startApplication(new String[] {"src/test/resources/access-test.conf"});
+        application.startApplication("access-test.conf");
+        Assert.assertTrue(AccessApplication.getVitamServer().getServer().isStarted());
+
         AccessApplication.stop();
         Assert.assertTrue(AccessApplication.getVitamServer().getServer().isStopped());
-    }
-
-    @Test
-    public void shouldUseDefaultPortToRunServerWhenConfigureApplicationWithPortNegative() throws Exception {
-        application.configure("src/test/resources/access-test.conf", "-12");
-    }
-
-    @Test
-    public void shouldStopServerWhenStopApplicationWithFileExistAndRunOnDefaultPort() throws Exception {
-        application.configure("src/test/resources/access-test.conf", "-12");
-        AccessApplication.stop();
-        Assert.assertTrue(AccessApplication.getServer().isStopped());
-    }
-
-    @Test(expected=NumberFormatException.class)
-    public void shouldRaiseAnExceptionUseDefaultPortToRunServerWhenConfigureApplicationWithNAN() throws Exception {
-        application.configure("src/test/resources/access-test.conf", "AA");
     }
 
     /*
@@ -158,8 +138,8 @@ public class AccessApplicationTest {
     }*/
 
 
-    @Test(expected=Exception.class)
-    public void shouldRaiseAnException_WhenExecuteMainWithEmptyArgs() {
-        AccessApplication.startApplication(new String[0]);
+    @Test(expected = Exception.class)
+    public void shouldRaiseAnException_WhenExecuteMainWithEmptyArgs() throws VitamException {
+        AccessApplication.startApplication(null);
     }
 }
