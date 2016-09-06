@@ -73,3 +73,4 @@ dns_server=172.16.1.21
 proxy_port=3128
 rpm_version=0.8.0-SNAPSHOT*
 days_to_delete=30
+dns_server=172.16.1.21

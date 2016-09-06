@@ -22,10 +22,11 @@ Pour tester en local, ne pas oublier qu'il y a un mappage utilisateur de l'hôte
 Déploiement rpm
 ----------------
 
-Pour tester le déploiement de VITAM : ``ansible-playbook ansible-vitam-rpm/vitam.yml -i environments-rpm/<fichier d'inventaire> --check``
+Pour tester le déploiement de VITAM : 
+``ansible-playbook ansible-vitam-rpm/vitam.yml -i environments-rpm/<fichier d'inventaire> --check``
 
-Pour le déployer : ``ansible-playbook ansible-vitam-rpm/vitam.yml -i environments-rpm/<fichier d'inventaire>``
+Pour le déployer : 
+``ansible-playbook ansible-vitam-rpm/vitam.yml -i environments-rpm/<fichier d'inventaire>``
 
-Pour installer mongo-express : ``ansible-playbook ansible-vitam-rpm/mongo-express.yml -i environments-rpm/<fichier d'inventaire> ``
-
-
+Pour déployer les extra seulement nécessaire pour le projet :
+``ansible-playbook ansible-vitam-rpm-extra/extra.yml -i environments-rpm/<fichier d'inventaire>``

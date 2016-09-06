@@ -1,0 +1,34 @@
+# --------------------------------------------
+#
+# Fichier des actions curator, version 4.0.6
+# Delete les anciens indexs "logstash-" (value) vieux de +30 (unit_count)
+#
+# Mettre "disable_action: " à "False" si action à realiser sinon mettre "True"
+#
+# lancement via la commande: /usr/bin/curator --config /vitam/curator/curator.yml delete_index.yml
+#
+actions:
+# --------------------------------------------
+  2:
+    action: delete_indices
+    description: "Delete selected indices"
+    options:
+      ignore_empty_list: True
+      timeout_override:
+      continue_if_exception: False
+#
+      disable_action: False
+#
+    filters:
+    - filtertype: pattern
+      kind: prefix
+      value: topbeat-
+      exclude:
+    - filtertype: age
+      source: name
+      direction: older
+      timestring: '%Y.%m.%d'
+      unit: days
+      unit_count: {{days_to_delete}}
+      exclude:
+# --------------------------------------------

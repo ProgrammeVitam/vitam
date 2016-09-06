@@ -1,0 +1,18 @@
+---
+
+# Vitam solution deployment
+- hosts: vitam
+  roles:
+    - topbeat
+
+- hosts: hosts-storage-offer-default
+  roles:
+    - storage-offer-default
+
+- hosts: hosts-mongo-express
+  roles:
+    - mongo-express
+
+- hosts: reverse
+  roles:
+    - reverse

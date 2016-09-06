@@ -12,53 +12,55 @@
 
 - hosts: hosts-logbook
   roles:
-    - {role: vitam, vitam_component: logbook, java_args: /vitam/conf/logbook/logbook.conf } 
+    - {role: vitam, vitam_component: logbook, java_args: /vitam/conf/logbook/logbook.conf, port_http: "{{vitam_logbook_port}}" } 
 
 - hosts: hosts-metadata
   roles:
-    - {role: vitam, vitam_component: metadata, java_args: /vitam/conf/metadata/metadata.conf} 
+    - {role: vitam, vitam_component: metadata, java_args: /vitam/conf/metadata/metadata.conf, port_http: "{{vitam_metadata_port}}", cluster_name: elasticsearch-data } 
 
 - hosts: hosts-workspace
   roles:
-    - {role: vitam, vitam_component: workspace ,java_args: /vitam/conf/workspace/workspace.conf }
+    - {role: vitam, vitam_component: workspace ,java_args: /vitam/conf/workspace/workspace.conf, port_http: "{{vitam_workspace_port}}" }
 
 
 - hosts: hosts-ingest
   roles:
-    - {role: vitam, vitam_component: ingest-internal, java_args: /vitam/conf/ingest/ingest-internal.conf } 
+    - {role: vitam, vitam_component: ingest-internal, java_args: /vitam/conf/ingest-internal/ingest-internal.conf, port_http: "{{vitam_ingest_port}}" } 
 
 - hosts: hosts-ingest-external
   roles:
-    - {role: vitam, vitam_component: ingest-external, java_args: /vitam/conf/ingest/ingest-external.conf}
+    - {role: vitam, vitam_component: ingest-external, java_args: /vitam/conf/ingest-external/ingest-external.conf, port_http: "{{vitam_ingestexternal_port}}" }
     - ingest-external
 
 - hosts: hosts-processing
   roles:
-    - {role: vitam, vitam_component: processing,java_args: /vitam/conf/processing/processing.conf } 
+    - {role: vitam, vitam_component: processing,java_args: /vitam/conf/processing/processing.conf, port_http: "{{vitam_processing_port}}" } 
 
 - hosts: hosts-access
   roles:
-    - {role: vitam, vitam_component: access, java_args: /vitam/conf/access/access.conf } 
+    - {role: vitam, vitam_component: access, java_args: /vitam/conf/access/access.conf, port_http: "{{vitam_access_port}}" } 
 
 - hosts: hosts-ihm-demo
   roles:
-    - {role: vitam, vitam_component: ihm-demo, java_args: /vitam/conf/ihm-demo/ihm-demo.conf } 
+    - {role: vitam, vitam_component: ihm-demo, java_args: /vitam/conf/ihm-demo/ihm-demo.conf, port_http: "{{vitam_ihm_demo_port}}" } 
 
 - hosts: hosts-storage-engine
   roles:
-    - {role: vitam, vitam_component: storage-engine, java_args: '/vitam/conf/storage-engine/storage-engine.conf' }
-    - storage-engine
+    - {role: vitam, vitam_component: storage, java_args: /vitam/conf/storage/storage-engine.conf, port_http: "{{vitam_storageengine_port}}" }
+    - storage
 
 - hosts: hosts-storage-offer-default
   roles:
-    - {role: vitam, vitam_component: storage-offer-default, java_args: /vitam/conf/storage-offer-default/default-offer.conf }
-    - storage-offer-default
-
+    - {role: vitam, vitam_component: storage-offer-default, java_args: /vitam/conf/storage-offer-default/default-offer.conf, port_http: "{{vitam_storageofferdefault_port}}" }
 
 - hosts: hosts-functional-administration
   roles:
-    - {role: vitam, vitam_component: functional-administration, java_args: /vitam/conf/functional-administration/functional-administration.conf }
+    - {role: vitam, vitam_component: functional-administration, java_args: /vitam/conf/functional-administration/functional-administration.conf, port_http: "{{vitam_functional_administration_port}}" }
 
 - hosts: hosts-log-server
   roles:
     - log-server
+
+- hosts: hosts-elasticsearch-data
+  roles:
+    - {role: elasticsearch-cluster, cluster_name: elasticsearch-data , port_http: "{{vitam_functional_administration_port}}", groupe: data }

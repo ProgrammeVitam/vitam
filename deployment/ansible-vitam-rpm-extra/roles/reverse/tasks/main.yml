@@ -1,0 +1,13 @@
+---
+# tasks file for reverse
+- name: copy template
+  template:
+    src: httpd_config
+    dest: /etc/httpd/conf.d/zz_{{environnement}}.env.programmevitam.fr.conf
+    owner: root
+    mode: 0644
+
+- name: restart httpd reverse
+  service:
+    name: httpd
+    state: restarted
