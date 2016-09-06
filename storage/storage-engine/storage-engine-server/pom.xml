@@ -9,7 +9,7 @@
 	<artifactId>storage-engine-server</artifactId>
 	<name>Storage Engine Server</name>
 	<properties>
-		<unix.name>storage-engine</unix.name>
+		<unix.name>storage</unix.name>
 		<unix.user>vitam</unix.user>
 		<unix.group>vitam</unix.group>
 	</properties>
