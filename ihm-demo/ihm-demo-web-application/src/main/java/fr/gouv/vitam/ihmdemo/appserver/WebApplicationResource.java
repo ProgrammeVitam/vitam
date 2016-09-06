@@ -27,10 +27,13 @@
 package fr.gouv.vitam.ihmdemo.appserver;
 
 import java.io.InputStream;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.CookieParam;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -38,9 +41,13 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
+import javax.xml.bind.DatatypeConverter;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -49,6 +56,7 @@ import fr.gouv.vitam.access.common.exception.AccessClientServerException;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -61,6 +69,8 @@ import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
 import fr.gouv.vitam.ihmdemo.core.JsonTransformer;
 import fr.gouv.vitam.ihmdemo.core.UiConstants;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
+import fr.gouv.vitam.ihmdemo.core.auth.shiro.AuthenticationService;
+import fr.gouv.vitam.ihmdemo.core.auth.shiro.AuthenticationServiceFactory;
 import fr.gouv.vitam.ingest.external.api.IngestExternalException;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -79,9 +89,18 @@ public class WebApplicationResource {
     private static final String ACCESS_SERVER_EXCEPTION_MSG = "Access Server exception";
     private static final String INTERNAL_SERVER_ERROR_MSG = "INTERNAL SERVER ERROR";
     private static final String SEARCH_CRITERIA_MANDATORY_MSG = "Search criteria payload is mandatory";
-    private static final String UPDATE_CRITERIA_MANDATORY_MSG = "Update criteria payload is mandatory";
     private static final String FIELD_ID_KEY = "fieldId";
     private static final String NEW_FIELD_VALUE_KEY = "newFieldValue";
+
+    @Context
+    private HttpServletRequest request;
+    private static AuthenticationService authenticationService =
+        AuthenticationServiceFactory.getInstance().getAuthenticationService();
+    // the maximum age of the cookie in seconds
+    private int maxAge = 18000;
+    // specifies whether the cookie will only be sent over a secure connection
+    private boolean secure = false;
+
 
     /**
      * @param criteria criteria search for units
@@ -90,27 +109,31 @@ public class WebApplicationResource {
     @POST
     @Path("/archivesearch/units")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getArchiveSearchResult(String criteria) {
+    public Response getArchiveSearchResult(@CookieParam ("sessionId") String sessionId, String criteria) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, criteria);
-        try {
-            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(criteria));
-            Map<String, String> criteriaMap = JsonHandler.getMapStringFromString(criteria);
-            String preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(criteriaMap);
-            JsonNode searchResult = UserInterfaceTransactionManager.searchUnits(preparedQueryDsl);
-            return Response.status(Status.OK).entity(searchResult).build();
+        if(authenticationService.getSession(sessionId)) {
+            try {
+                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(criteria));
+                Map<String, String> criteriaMap = JsonHandler.getMapStringFromString(criteria);
+                String preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(criteriaMap);
+                JsonNode searchResult = UserInterfaceTransactionManager.searchUnits(preparedQueryDsl);
+                return Response.status(Status.OK).entity(searchResult).build();
 
-        } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
-            LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
-            return Response.status(Status.BAD_REQUEST).build();
-        } catch (final AccessClientServerException e) {
-            LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        } catch (final AccessClientNotFoundException e) {
-            LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
-            return Response.status(Status.NOT_FOUND).build();
-        } catch (final Exception e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
+                LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
+                return Response.status(Status.BAD_REQUEST).build();
+            } catch (final AccessClientServerException e) {
+                LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
+                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            } catch (final AccessClientNotFoundException e) {
+                LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
+                return Response.status(Status.NOT_FOUND).build();
+            } catch (final Exception e) {
+                LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            }
+        } else{
+            return Response.status(Status.UNAUTHORIZED).build();
         }
     }
 
@@ -121,30 +144,33 @@ public class WebApplicationResource {
     @GET
     @Path("/archivesearch/unit/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getArchiveUnitDetails(@PathParam("id") String unitId) {
+    public Response getArchiveUnitDetails(@CookieParam ("sessionId") String sessionId, @PathParam("id") String unitId) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitId);
+        if(authenticationService.getSession(sessionId)) {
+            try {
+                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(unitId));
+                // Prepare required map
+                Map<String, String> selectUnitIdMap = new HashMap<String, String>();
+                selectUnitIdMap.put(UiConstants.SELECT_BY_ID.toString(), unitId);
+                String preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(selectUnitIdMap);
+                JsonNode archiveDetails = UserInterfaceTransactionManager.getArchiveUnitDetails(preparedQueryDsl, unitId);
 
-        try {
-            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(unitId));
-            // Prepare required map
-            Map<String, String> selectUnitIdMap = new HashMap<String, String>();
-            selectUnitIdMap.put(UiConstants.SELECT_BY_ID.toString(), unitId);
-            String preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(selectUnitIdMap);
-            JsonNode archiveDetails = UserInterfaceTransactionManager.getArchiveUnitDetails(preparedQueryDsl, unitId);
-
-            return Response.status(Status.OK).entity(archiveDetails).build();
-        } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
-            LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
-            return Response.status(Status.BAD_REQUEST).build();
-        } catch (final AccessClientServerException e) {
-            LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        } catch (final AccessClientNotFoundException e) {
-            LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
-            return Response.status(Status.NOT_FOUND).build();
-        } catch (final Exception e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+                return Response.status(Status.OK).entity(archiveDetails).build();
+            } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
+                LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
+                return Response.status(Status.BAD_REQUEST).build();
+            } catch (final AccessClientServerException e) {
+                LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
+                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            } catch (final AccessClientNotFoundException e) {
+                LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
+                return Response.status(Status.NOT_FOUND).build();
+            } catch (final Exception e) {
+                LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            }
+        } else{
+            return Response.status(Status.UNAUTHORIZED).build();
         }
     }
 
@@ -155,28 +181,32 @@ public class WebApplicationResource {
     @POST
     @Path("/logbook/operations")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getLogbookResult(String options) {
-        JsonNode result = null;
-        try {
-            ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
-            result = JsonHandler.getFromString("{}");
-            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-            String query = "";
-            Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
-            query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-            LogbookClient logbookClient = LogbookClientFactory.getInstance().getLogbookOperationClient();
-            result = logbookClient.selectOperation(query);
-        } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
-            LOGGER.error("Bad request Exception ", e);
-            return Response.status(Status.BAD_REQUEST).build();
-        } catch (final LogbookClientException e) {
-            LOGGER.error("Logbook Client NOT FOUND Exception ", e);
-            return Response.status(Status.NOT_FOUND).build();
-        } catch (final Exception e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+    public Response getLogbookResult(@CookieParam ("sessionId") String sessionId, String options) {
+        if(authenticationService.getSession(sessionId)) {
+            JsonNode result = null;
+            try {
+                ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
+                result = JsonHandler.getFromString("{}");
+                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
+                String query = "";
+                Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
+                query = DslQueryHelper.createSingleQueryDSL(optionsMap);
+                LogbookClient logbookClient = LogbookClientFactory.getInstance().getLogbookOperationClient();
+                result = logbookClient.selectOperation(query);
+            } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
+                LOGGER.error("Bad request Exception ", e);
+                return Response.status(Status.BAD_REQUEST).build();
+            } catch (final LogbookClientException e) {
+                LOGGER.error("Logbook Client NOT FOUND Exception ", e);
+                return Response.status(Status.NOT_FOUND).build();
+            } catch (final Exception e) {
+                LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            }
+            return Response.status(Status.OK).entity(result).build();
+        } else{
+            return Response.status(Status.UNAUTHORIZED).build();
         }
-        return Response.status(Status.OK).entity(result).build();
     }
 
     /**
@@ -187,25 +217,31 @@ public class WebApplicationResource {
     @POST
     @Path("/logbook/operations/{idOperation}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getLogbookResultById(@PathParam("idOperation") String operationId, String options) {
-        JsonNode result = null;
-        try {
-            ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
-            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-            result = JsonHandler.getFromString("{}");
-            LogbookClient logbookClient = LogbookClientFactory.getInstance().getLogbookOperationClient();
-            result = logbookClient.selectOperationbyId(operationId);
-        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
-            LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-        } catch (final LogbookClientException e) {
-            LOGGER.error("Logbook Client NOT FOUND Exception ", e);
-            return Response.status(Status.NOT_FOUND).build();
-        } catch (final Exception e) {
-            LOGGER.error("INTERNAL SERVER ERROR", e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+    public Response getLogbookResultById(@CookieParam ("sessionId") String sessionId, @PathParam("idOperation") String operationId, String options) {
+
+        if(authenticationService.getSession(sessionId)) {
+            JsonNode result = null;
+
+            try {
+                ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
+                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
+                result = JsonHandler.getFromString("{}");
+                LogbookClient logbookClient = LogbookClientFactory.getInstance().getLogbookOperationClient();
+                result = logbookClient.selectOperationbyId(operationId);
+            } catch (final IllegalArgumentException | InvalidParseOperationException e) {
+                LOGGER.error(e);
+                return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+            } catch (final LogbookClientException e) {
+                LOGGER.error("Logbook Client NOT FOUND Exception ", e);
+                return Response.status(Status.NOT_FOUND).build();
+            } catch (final Exception e) {
+                LOGGER.error("INTERNAL SERVER ERROR", e);
+                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            }
+            return Response.status(Status.OK).entity(result).build();
+        } else{
+            return Response.status(Status.UNAUTHORIZED).build();
         }
-        return Response.status(Status.OK).entity(result).build();
     }
 
     /**
@@ -230,16 +266,20 @@ public class WebApplicationResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response upload(InputStream stream) {
+    public Response upload(@CookieParam ("sessionId") String sessionId, InputStream stream) {
         ParametersChecker.checkParameter("SIP is a mandatory parameter", stream);
-        try {
-            IngestExternalClientFactory.getInstance().getIngestExternalClient().upload(stream);
-        } catch (final IngestExternalException e) {
-            LOGGER.error("IngestExternalException in Upload sip", e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .build();
+        if(authenticationService.getSession(sessionId)) {
+            try {
+                IngestExternalClientFactory.getInstance().getIngestExternalClient().upload(stream);
+            } catch (final IngestExternalException e) {
+                LOGGER.error("IngestExternalException in Upload sip", e);
+                return Response.status(Status.INTERNAL_SERVER_ERROR)
+                    .build();
+            }
+            return Response.status(Status.OK).build();
+        } else{
+            return Response.status(Status.UNAUTHORIZED).build();
         }
-        return Response.status(Status.OK).build();
     }
 
     /**
@@ -253,47 +293,51 @@ public class WebApplicationResource {
     @Path("/archiveupdate/units/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response updateArchiveUnitDetails(@PathParam("id") String unitId, String updateSet) {
+    public Response updateArchiveUnitDetails(@CookieParam ("sessionId") String sessionId, @PathParam("id") String unitId, String updateSet) {
 
-        try {
-            ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitId);
-            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(unitId));
-            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(updateSet));
+        if(authenticationService.getSession(sessionId)) {
+            try {
+                ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitId);
+                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(unitId));
+                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(updateSet));
 
-        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
-            LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-        }
-
-        try {
-            // Parse updateSet
-            Map<String, String> updateUnitIdMap = new HashMap<String, String>();
-            JsonNode modifiedFields = JsonHandler.getFromString(updateSet);
-            if (modifiedFields != null && modifiedFields.isArray()) {
-                for (final JsonNode modifiedField : modifiedFields) {
-                    updateUnitIdMap.put(modifiedField.get(FIELD_ID_KEY).textValue(),
-                        modifiedField.get(NEW_FIELD_VALUE_KEY).textValue());
-                }
+            } catch (final IllegalArgumentException | InvalidParseOperationException e) {
+                LOGGER.error(e);
+                return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
             }
 
-            // Add ID to set root part
-            updateUnitIdMap.put(UiConstants.SELECT_BY_ID.toString(), unitId);
+            try {
+                // Parse updateSet
+                Map<String, String> updateUnitIdMap = new HashMap<String, String>();
+                JsonNode modifiedFields = JsonHandler.getFromString(updateSet);
+                if (modifiedFields != null && modifiedFields.isArray()) {
+                    for (final JsonNode modifiedField : modifiedFields) {
+                        updateUnitIdMap.put(modifiedField.get(FIELD_ID_KEY).textValue(),
+                            modifiedField.get(NEW_FIELD_VALUE_KEY).textValue());
+                    }
+                }
 
-            String preparedQueryDsl = DslQueryHelper.createUpdateDSLQuery(updateUnitIdMap);
-            JsonNode archiveDetails = UserInterfaceTransactionManager.updateUnits(preparedQueryDsl, unitId);
-            return Response.status(Status.OK).entity(archiveDetails).build();
-        } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
-            LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
-            return Response.status(Status.BAD_REQUEST).build();
-        } catch (final AccessClientServerException e) {
-            LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        } catch (final AccessClientNotFoundException e) {
-            LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
-            return Response.status(Status.NOT_FOUND).build();
-        } catch (final Exception e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+                // Add ID to set root part
+                updateUnitIdMap.put(UiConstants.SELECT_BY_ID.toString(), unitId);
+
+                String preparedQueryDsl = DslQueryHelper.createUpdateDSLQuery(updateUnitIdMap);
+                JsonNode archiveDetails = UserInterfaceTransactionManager.updateUnits(preparedQueryDsl, unitId);
+                return Response.status(Status.OK).entity(archiveDetails).build();
+            } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
+                LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
+                return Response.status(Status.BAD_REQUEST).build();
+            } catch (final AccessClientServerException e) {
+                LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
+                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            } catch (final AccessClientNotFoundException e) {
+                LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
+                return Response.status(Status.NOT_FOUND).build();
+            } catch (final Exception e) {
+                LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            }
+        } else{
+            return Response.status(Status.UNAUTHORIZED).build();
         }
     }
 
@@ -304,28 +348,32 @@ public class WebApplicationResource {
     @POST
     @Path("/admin/formats")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getFileFormats(String options) {
+    public Response getFileFormats(@CookieParam ("sessionId") String sessionId, String options) {
         ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
-        String query = "";
-        JsonNode result = null;
-        try {
-            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-            result = JsonHandler.getFromString("{}");
-            Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
-            query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-            AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getAdminManagementClient();
-            result = adminClient.getFormats(JsonHandler.getFromString(query));
-        } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
-            LOGGER.error("Bad request Exception ", e);
-            return Response.status(Status.BAD_REQUEST).build();
-        } catch (final ReferentialException e) {
-            LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
-            return Response.status(Status.NOT_FOUND).build();
-        } catch (final Exception e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        if(authenticationService.getSession(sessionId)) {
+            String query = "";
+            JsonNode result = null;
+            try {
+                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
+                result = JsonHandler.getFromString("{}");
+                Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
+                query = DslQueryHelper.createSingleQueryDSL(optionsMap);
+                AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getAdminManagementClient();
+                result = adminClient.getFormats(JsonHandler.getFromString(query));
+            } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
+                LOGGER.error("Bad request Exception ", e);
+                return Response.status(Status.BAD_REQUEST).build();
+            } catch (final ReferentialException e) {
+                LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
+                return Response.status(Status.NOT_FOUND).build();
+            } catch (final Exception e) {
+                LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            }
+            return Response.status(Status.OK).entity(result).build();
+        } else{
+            return Response.status(Status.UNAUTHORIZED).build();
         }
-        return Response.status(Status.OK).entity(result).build();
     }
 
     /**
@@ -336,27 +384,33 @@ public class WebApplicationResource {
     @POST
     @Path("/admin/formats/{idFormat}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getFormatById(@PathParam("idFormat") String formatId, String options) {
-        JsonNode result = null;
-        try {
-            ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
-            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-            ParametersChecker.checkParameter("Format Id is mandatory", formatId);
-            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(formatId));
-            result = JsonHandler.getFromString("{}");
-            AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getAdminManagementClient();
-            result = adminClient.getFormatByID(formatId);
-        } catch (final InvalidParseOperationException e) {
-            LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
-            return Response.status(Status.BAD_REQUEST).build();
-        } catch (final ReferentialException e) {
-            LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
-            return Response.status(Status.NOT_FOUND).build();
-        } catch (final Exception e) {
-            LOGGER.error("INTERNAL SERVER ERROR", e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+    public Response getFormatById(@CookieParam ("sessionId") String sessionId, @PathParam("idFormat") String formatId, String options) {
+
+        if(authenticationService.getSession(sessionId)) {
+            JsonNode result = null;
+
+            try {
+                ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
+                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
+                ParametersChecker.checkParameter("Format Id is mandatory", formatId);
+                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(formatId));
+                result = JsonHandler.getFromString("{}");
+                AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getAdminManagementClient();
+                result = adminClient.getFormatByID(formatId);
+            } catch (final InvalidParseOperationException e) {
+                LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
+                return Response.status(Status.BAD_REQUEST).build();
+            } catch (final ReferentialException e) {
+                LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
+                return Response.status(Status.NOT_FOUND).build();
+            } catch (final Exception e) {
+                LOGGER.error("INTERNAL SERVER ERROR", e);
+                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            }
+            return Response.status(Status.OK).entity(result).build();
+        } else{
+            return Response.status(Status.UNAUTHORIZED).build();
         }
-        return Response.status(Status.OK).entity(result).build();
     }
 
 
@@ -370,14 +424,18 @@ public class WebApplicationResource {
     @Path("/format/check")
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response checkRefFormat(InputStream input) {
-        AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
-        try {
-            client.checkFormat(input);
-        } catch (final ReferentialException e) {
-            return Response.status(Status.FORBIDDEN).build();
+    public Response checkRefFormat(@CookieParam ("sessionId") String sessionId, InputStream input) {
+        if(authenticationService.getSession(sessionId)) {
+            AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
+            try {
+                client.checkFormat(input);
+            } catch (final ReferentialException e) {
+                return Response.status(Status.FORBIDDEN).build();
+            }
+            return Response.status(Status.OK).build();
+        } else{
+            return Response.status(Status.UNAUTHORIZED).build();
         }
-        return Response.status(Status.OK).build();
     }
 
     /**
@@ -390,16 +448,21 @@ public class WebApplicationResource {
     @Path("/format/upload")
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response uploadRefFormat(InputStream input) {
-        AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
-        try {
-            client.importFormat(input);
-        } catch (final ReferentialException e) {
-            return Response.status(Status.FORBIDDEN).build();
-        } catch (final DatabaseConflictException e) {
-            return Response.status(Status.FORBIDDEN).build();
+    public Response uploadRefFormat(@CookieParam ("sessionId") String sessionId, InputStream input) {
+
+        if(authenticationService.getSession(sessionId)) {
+            AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
+            try {
+                client.importFormat(input);
+            } catch (final ReferentialException e) {
+                return Response.status(Status.FORBIDDEN).build();
+            } catch (final DatabaseConflictException e) {
+                return Response.status(Status.FORBIDDEN).build();
+            }
+            return Response.status(Status.OK).build();
+        } else{
+            return Response.status(Status.UNAUTHORIZED).build();
         }
-        return Response.status(Status.OK).build();
     }
 
     /**
@@ -410,14 +473,101 @@ public class WebApplicationResource {
     @Path("/format/delete")
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    public Response deleteFormat() {
-        AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
-        try {
-            client.deleteFormat();
-        } catch (final ReferentialException e) {
-            return Response.status(Status.FORBIDDEN).build();
+    public Response deleteFormat(@CookieParam ("sessionId") String sessionId) {
+        if(authenticationService.getSession(sessionId)) {
+            AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
+            try {
+                client.deleteFormat();
+            } catch (final ReferentialException e) {
+                return Response.status(Status.FORBIDDEN).build();
+            }
+            return Response.status(Status.OK).build();
+        } else{
+            return Response.status(Status.UNAUTHORIZED).build();
         }
-        return Response.status(Status.OK).build();
+    }
+
+
+
+    /**
+     * Decode the authorization header and use authentication service to login
+     * 
+     * @return a response containing the session Id in header
+     */
+    @POST
+    @Path("/login")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response login() {
+
+        String decodedAuthorization = null;
+        String username = null;
+        try {
+            String header = request.getHeader("authorization");
+
+            if (header == null) {
+                LOGGER.error("invalid authorization header");
+                return Response.status(Status.UNAUTHORIZED).build();
+            }
+
+            String codedAuthorization = header.substring(header.indexOf(" ") + 1);
+
+            byte[] bytes = DatatypeConverter.parseBase64Binary(codedAuthorization);
+            decodedAuthorization = new String(bytes);
+
+            String[] parts = decodedAuthorization.split(":");
+            username = parts[0];
+            String password = parts[1];
+
+
+            Serializable sessionId = authenticationService.login(username, password, true);
+            LOGGER.info("User login : " + username + " logged in successfully using PASSWORD " + "sessionId : " +
+                sessionId.toString());
+
+            // using cookie
+            NewCookie newCookie = new NewCookie("sessionId", sessionId.toString(),
+                "/", "", 0, "", maxAge, secure);
+
+            ResponseBuilder response = Response.ok().cookie(newCookie);
+
+            return response.build();
+
+        } catch (VitamException e) {
+            LOGGER.info("User login failure : " + username + " using PASSWORD");
+            LOGGER.debug(e.getMessage(), e);
+            return Response.status(Status.UNAUTHORIZED).build();
+        } catch (Exception e) {
+            LOGGER.debug(e.getMessage(), e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Use the session id to log out 
+     * 
+     * @param sessionId of loggedIn user
+     * @return a response with status OK or UNAUTHORIZED
+     */
+    @POST
+    @Path("/logout")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response logout(@CookieParam("sessionId") String sessionId) {
+
+        try {
+            authenticationService.logout(sessionId);
+
+        } catch (VitamException e) {
+            LOGGER.info("User logout failure : " + sessionId);
+            LOGGER.debug(e.getMessage(), e);
+            return Response.status(Status.UNAUTHORIZED).entity(e.getMessage()).build();
+        }
+
+
+        LOGGER.info("User logout : " + sessionId + " logged out successfully");
+        NewCookie newCookie = new NewCookie("sessionId", "",
+            "/", "", 0, "", 0, secure);
+
+        ResponseBuilder response = Response.ok().cookie(newCookie);
+        return response.build();
     }
 
 
@@ -430,31 +580,36 @@ public class WebApplicationResource {
     @GET
     @Path("/archiveunit/objects/{idOG}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getArchiveObjectGroup(@PathParam("idOG") String objectGroupId) {
+    public Response getArchiveObjectGroup(@CookieParam ("sessionId") String sessionId, @PathParam("idOG") String objectGroupId) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, objectGroupId);
-        try {
-            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(objectGroupId));
+        if(authenticationService.getSession(sessionId)) {
+            try {
+                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(objectGroupId));
 
-            HashMap<String, String> qualifierProjection = new HashMap<>();
-            qualifierProjection.put("projection_qualifiers", "#qualifiers");
-            String preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(qualifierProjection);
-            JsonNode searchResult = UserInterfaceTransactionManager.selectObjectbyId(preparedQueryDsl, objectGroupId);
+                HashMap<String, String> qualifierProjection = new HashMap<>();
+                qualifierProjection.put("projection_qualifiers", "#qualifiers");
+                String preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(qualifierProjection);
+                JsonNode searchResult = UserInterfaceTransactionManager.selectObjectbyId(preparedQueryDsl, objectGroupId);
 
-            return Response.status(Status.OK).entity(JsonTransformer.transformResultObjects(searchResult)).build();
+                return Response.status(Status.OK).entity(JsonTransformer.transformResultObjects(searchResult)).build();
 
-        } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
-            LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
-            return Response.status(Status.BAD_REQUEST).build();
-        } catch (final AccessClientServerException e) {
-            LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        } catch (final AccessClientNotFoundException e) {
-            LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
-            return Response.status(Status.NOT_FOUND).build();
-        } catch (final Exception e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
+                LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
+                return Response.status(Status.BAD_REQUEST).build();
+            } catch (final AccessClientServerException e) {
+                LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
+                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            } catch (final AccessClientNotFoundException e) {
+                LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
+                return Response.status(Status.NOT_FOUND).build();
+            } catch (final Exception e) {
+                LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            }
+        } else {
+            return Response.status(Status.UNAUTHORIZED).build();
         }
+
     }
 
     /**
@@ -467,35 +622,39 @@ public class WebApplicationResource {
     @POST
     @Path("/archiveunit/objects/download/{idOG}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response getObjectAsInputStream(@PathParam("idOG") String objectGroupId, String options) {
+    public Response getObjectAsInputStream(@CookieParam ("sessionId") String sessionId, @PathParam("idOG") String objectGroupId, String options) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, objectGroupId);
-        try {
-            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(objectGroupId));
-            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-            Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
-            String usage = optionsMap.get("usage");
-            String version = optionsMap.get("version");
-            ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, usage);
-            ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, version);
-            HashMap<String, String> emptyMap = new HashMap<>();
-            String preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(emptyMap);
-            InputStream stream =
-                UserInterfaceTransactionManager.getObjectAsInputStream(preparedQueryDsl, objectGroupId, usage,
-                    Integer.parseInt(version));
-            return Response.status(Status.OK).entity(stream).build();
+        if(authenticationService.getSession(sessionId)) {
+            try {
+                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(objectGroupId));
+                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
+                Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
+                String usage = optionsMap.get("usage");
+                String version = optionsMap.get("version");
+                ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, usage);
+                ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, version);
+                HashMap<String, String> emptyMap = new HashMap<>();
+                String preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(emptyMap);
+                InputStream stream =
+                    UserInterfaceTransactionManager.getObjectAsInputStream(preparedQueryDsl, objectGroupId, usage,
+                        Integer.parseInt(version));
+                return Response.status(Status.OK).entity(stream).build();
 
-        } catch (final InvalidCreateOperationException | InvalidParseOperationException | NumberFormatException e) {
-            LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
-            return Response.status(Status.BAD_REQUEST).build();
-        } catch (final AccessClientServerException e) {
-            LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        } catch (final AccessClientNotFoundException e) {
-            LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
-            return Response.status(Status.NOT_FOUND).build();
-        } catch (final Exception e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            } catch (final InvalidCreateOperationException | InvalidParseOperationException | NumberFormatException e) {
+                LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
+                return Response.status(Status.BAD_REQUEST).build();
+            } catch (final AccessClientServerException e) {
+                LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
+                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            } catch (final AccessClientNotFoundException e) {
+                LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
+                return Response.status(Status.NOT_FOUND).build();
+            } catch (final Exception e) {
+                LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            }
+        } else {
+            return Response.status(Status.UNAUTHORIZED).build();
         }
     }
 
