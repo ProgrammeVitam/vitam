@@ -116,7 +116,8 @@ public class ReferentialFormatFileImpl implements ReferentialFile {
                 LogbookOperationParameters logbookParametersEnd =
                     LogbookParametersFactory.newLogbookOperationParameters(
                         eip, EVENT_TYPE_CREATE, eip, LOGBOOK_PROCESS_TYPE, LogbookOutcome.OK,
-                        MESSAGE_LOGBOOK_IMPORT + " version " + pronomList.get(0).get("VersionPronom").textValue() +  " du fichier de signature PRONOM (DROID_SignatureFile)",
+                        MESSAGE_LOGBOOK_IMPORT + " version " + pronomList.get(0).get("VersionPronom").textValue() +
+                            " du fichier de signature PRONOM (DROID_SignatureFile)",
                         eip);
 
                 try {

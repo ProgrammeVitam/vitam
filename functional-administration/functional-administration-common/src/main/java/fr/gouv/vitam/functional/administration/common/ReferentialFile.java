@@ -36,44 +36,47 @@ import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
-/** ReferentialFile 
+/**
+ * ReferentialFile
  * 
  */
 public interface ReferentialFile {
-    
-    
-    /** 
+
+
+    /**
      * importFile : import reference file to database
+     * 
      * @param file as InputStream
-     * @throws ReferentialException when there is error of import 
-     * @throws DatabaseConflictException  when there is a database conflict 
+     * @throws ReferentialException when there is error of import
+     * @throws DatabaseConflictException when there is a database conflict
      */
-    void importFile(InputStream file) throws ReferentialException, DatabaseConflictException ;
-    
-    
+    void importFile(InputStream file) throws ReferentialException, DatabaseConflictException;
+
+
     /**
      * delete Format Collection
      */
     void deleteCollection();
-    
+
     /**
      * @param id of vitam document
      * @return vitam document
      * @throws ReferentialException when error occurs
      */
     public VitamDocument<?> findDocumentById(String id) throws ReferentialException;
-    
+
     /**
      * @param select filter
      * @return vitam document list
-     * @throws ReferentialException  when error occurs
+     * @throws ReferentialException when error occurs
      */
     public List<?> findDocuments(JsonNode select) throws ReferentialException;
-    
-    /** 
+
+    /**
      * checkFile : check if file is OK
+     * 
      * @param file as InputStream
      * @throws ReferentialException when there is errors import
      */
-    void checkFile(InputStream file) throws ReferentialException;   
+    void checkFile(InputStream file) throws ReferentialException;
 }

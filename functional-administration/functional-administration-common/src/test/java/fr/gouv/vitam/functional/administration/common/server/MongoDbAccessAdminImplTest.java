@@ -32,7 +32,7 @@ import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 
 public class MongoDbAccessAdminImplTest {
-    
+
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
     static MongoClient mongoClient;
@@ -43,6 +43,7 @@ public class MongoDbAccessAdminImplTest {
     static int port;
     static MongoDbAccessAdminImpl mongoAccess;
     static FileFormat file;
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         final MongodStarter starter = MongodStarter.getDefaultInstance();
@@ -55,10 +56,10 @@ public class MongoDbAccessAdminImplTest {
         mongod = mongodExecutable.start();
         mongoAccess = MongoDbAccessAdminFactory.create(
             new DbConfigurationImpl(DATABASE_HOST, port, DATABASE_NAME));
-        
+
         List<String> testList = new ArrayList<>();
         testList.add("test1");
-        
+
         file = new FileFormat()
             .setCreatedDate("now")
             .setExtension(testList)
@@ -68,7 +69,7 @@ public class MongoDbAccessAdminImplTest {
             .setPronomVersion("pronom version")
             .setPUID("puid")
             .setVersion("version");
-        
+
     }
 
     @AfterClass
@@ -77,7 +78,7 @@ public class MongoDbAccessAdminImplTest {
         mongodExecutable.stop();
         junitHelper.releasePort(port);
     }
-    
+
     @Test
     public void testImplementFunction() throws Exception {
         JsonNode jsonNode = JsonHandler.getFromString(file.toJson());
@@ -90,7 +91,8 @@ public class MongoDbAccessAdminImplTest {
         assertEquals(1, collection.count());
         Select select = new Select();
         select.setQuery(eq("Name", "name"));
-        MongoCursor<FileFormat> fileList = (MongoCursor<FileFormat>) mongoAccess.select(select.getFinalSelect(), FunctionalAdminCollections.FORMATS);
+        MongoCursor<FileFormat> fileList =
+            (MongoCursor<FileFormat>) mongoAccess.select(select.getFinalSelect(), FunctionalAdminCollections.FORMATS);
         FileFormat f1 = fileList.next();
         String id = f1.getString("_id");
         FileFormat f2 = (FileFormat) mongoAccess.getDocumentById(id, FunctionalAdminCollections.FORMATS);

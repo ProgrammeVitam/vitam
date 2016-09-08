@@ -96,12 +96,12 @@ public class AdminManagementResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response checkFormat(InputStream xmlPronom){
+    public Response checkFormat(InputStream xmlPronom) {
         ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", xmlPronom);
-        
+
         try {
             formatManagement.checkFile(xmlPronom);
-        }  catch (ReferentialException e) {
+        } catch (ReferentialException e) {
             LOGGER.error(e.getMessage());
             Status status = Status.PRECONDITION_FAILED;
             return Response.status(status)
@@ -111,7 +111,7 @@ public class AdminManagementResource {
         return Response.status(Status.OK).build();
     }
 
-    
+
     /**
      * @param xmlPronom as InputStream
      * @return Response jersey response
@@ -120,8 +120,8 @@ public class AdminManagementResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response importFormat(InputStream xmlPronom){
-        ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", xmlPronom);        
+    public Response importFormat(InputStream xmlPronom) {
+        ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", xmlPronom);
         try {
             formatManagement.importFile(xmlPronom);
         } catch (ReferentialException e) {
@@ -136,7 +136,7 @@ public class AdminManagementResource {
             return Response.status(status)
                 .entity(status)
                 .build();
-        } 
+        }
         return Response.status(Status.OK).entity(Status.OK.name()).build();
     }
 
@@ -147,47 +147,48 @@ public class AdminManagementResource {
     @Path("format/delete")
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    public Response deleteFormat() throws FileFormatException{
-        formatManagement.deleteCollection();         
+    public Response deleteFormat() throws FileFormatException {
+        formatManagement.deleteCollection();
         return Response.status(Status.OK).build();
     }
-    
+
     /**
-     * @param formatId path param as String 
+     * @param formatId path param as String
      * @return Response jersey response
-     * @throws InvalidParseOperationException 
-     * @throws IOException when error json occurs 
-     * @throws JsonMappingException when error json occurs 
+     * @throws InvalidParseOperationException
+     * @throws IOException when error json occurs
+     * @throws JsonMappingException when error json occurs
      * @throws JsonGenerationException when error json occurs
      */
-    @POST    
+    @POST
     @Path("format/{id_format}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response findFileFormatByID(@PathParam("id_format") String formatId) throws InvalidParseOperationException, JsonGenerationException, JsonMappingException, IOException{        
-        ParametersChecker.checkParameter("formatId is a mandatory parameter", formatId);        
-        FileFormat fileFormat = null;        
+    public Response findFileFormatByID(@PathParam("id_format") String formatId)
+        throws InvalidParseOperationException, JsonGenerationException, JsonMappingException, IOException {
+        ParametersChecker.checkParameter("formatId is a mandatory parameter", formatId);
+        FileFormat fileFormat = null;
         try {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(formatId));
             fileFormat = formatManagement.findDocumentById(formatId);
 
-            if(fileFormat==null) {
+            if (fileFormat == null) {
                 throw new ReferentialException("NO DATA for the specified formatId");
             }
 
-        }  catch (ReferentialException e) {
+        } catch (ReferentialException e) {
             LOGGER.error(e.getMessage());
             Status status = Status.NOT_FOUND;
             return Response.status(status).build();
         }
         return Response.status(Status.OK).entity(JsonHandler.toJsonNode(fileFormat)).build();
     }
-    
+
     /**
      * @param select as String
      * @return Response jersay Response
-     * @throws IOException  when error json occurs
-     * @throws JsonMappingException  when error json occurs
+     * @throws IOException when error json occurs
+     * @throws JsonMappingException when error json occurs
      * @throws JsonGenerationException when error json occurs
      * @throws InvalidParseOperationException when error json occurs
      */
@@ -195,22 +196,24 @@ public class AdminManagementResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response findDocument(JsonNode select) throws JsonGenerationException, JsonMappingException, InvalidParseOperationException, IOException{
-        ParametersChecker.checkParameter("select is a mandatory parameter", select);        
-        List<FileFormat> fileFormatList = new ArrayList<FileFormat>();                
+    public Response findDocument(JsonNode select)
+        throws JsonGenerationException, JsonMappingException, InvalidParseOperationException, IOException {
+        ParametersChecker.checkParameter("select is a mandatory parameter", select);
+        List<FileFormat> fileFormatList = new ArrayList<FileFormat>();
         try {
             SanityChecker.checkJsonAll(select);
             fileFormatList = formatManagement.findDocuments(select);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-        }  catch (final ReferentialException e) {
+        } catch (final ReferentialException e) {
             LOGGER.error(e.getMessage());
             Status status = Status.NOT_FOUND;
             return Response.status(status).build();
-        } 
-        
-        return Response.status(Status.OK).entity(JsonHandler.getFromString(fileFormatListToJsonString(fileFormatList))).build();
+        }
+
+        return Response.status(Status.OK).entity(JsonHandler.getFromString(fileFormatListToJsonString(fileFormatList)))
+            .build();
     }
 
     private String fileFormatListToJsonString(List<FileFormat> formatList)
@@ -221,6 +224,6 @@ public class AdminManagementResource {
         final byte[] data = ((ByteArrayOutputStream) out).toByteArray();
         final String fileFormatAsString = new String(data);
         return fileFormatAsString;
-    }    
-    
+    }
+
 }

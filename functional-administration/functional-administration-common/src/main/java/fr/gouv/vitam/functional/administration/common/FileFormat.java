@@ -34,9 +34,8 @@ import org.bson.Document;
 
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 
-/** 
- * FileFormat
- *  define the file referential format for Vitam 
+/**
+ * FileFormat define the file referential format for Vitam
  */
 
 public class FileFormat extends VitamDocument<FileFormat> {
@@ -59,13 +58,16 @@ public class FileFormat extends VitamDocument<FileFormat> {
 
     /**
      * constructor with Mongo Document
+     * 
      * @param document as Document of bson
      */
     public FileFormat(Document document) {
         super(document);
     }
 
-    /** setPUID
+    /**
+     * setPUID
+     * 
      * @param puid as String
      * @return FileFormat with puid setted
      */
@@ -74,7 +76,9 @@ public class FileFormat extends VitamDocument<FileFormat> {
         return this;
     }
 
-    /** setExtension
+    /**
+     * setExtension
+     * 
      * @param extension as a list of String
      * @return FileFormat with extension setted
      */
@@ -87,36 +91,44 @@ public class FileFormat extends VitamDocument<FileFormat> {
         return this;
     }
 
-    /** setName
+    /**
+     * setName
+     * 
      * @param name as String
      * @return FileFormat with name setted
-     */    
+     */
     public FileFormat setName(String name) {
         this.append(NAME, name);
         return this;
     }
 
-    /** setMimeType
+    /**
+     * setMimeType
+     * 
      * @param mimeType as String
      * @return FileFormat with mimeType setted
-     */    
+     */
     public FileFormat setMimeType(List<String> mimeType) {
         this.append(MIME_TYPE, mimeType);
         return this;
     }
 
-    /** setVersion
+    /**
+     * setVersion
+     * 
      * @param version as String
      * @return FileFormat with version setted
-     */    
+     */
     public FileFormat setVersion(String version) {
         this.append(VERSION, version);
         return this;
     }
 
-    /** setPriorityOverIdList
+    /**
+     * setPriorityOverIdList
+     * 
      * @param priorityOverIdList as a list of String
-     * @return FileFormat 
+     * @return FileFormat
      */
     public FileFormat setPriorityOverIdList(List<String> priorityOverIdList) {
         if (!priorityOverIdList.isEmpty()) {
@@ -127,7 +139,9 @@ public class FileFormat extends VitamDocument<FileFormat> {
         return this;
     }
 
-    /** setCreatedDate
+    /**
+     * setCreatedDate
+     * 
      * @param createdDate as String
      * @return FileFormat with createdDate setted
      */
@@ -136,10 +150,12 @@ public class FileFormat extends VitamDocument<FileFormat> {
         return this;
     }
 
-    /** setPronomVersion
+    /**
+     * setPronomVersion
+     * 
      * @param pronomVersion as String
      * @return FileFormat with pronomVersion setted
-     */    
+     */
     public FileFormat setPronomVersion(String pronomVersion) {
         this.append(VERSION_PRONOM, pronomVersion);
         return this;

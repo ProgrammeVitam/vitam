@@ -35,9 +35,9 @@ public class AdminManagementClientRestTest extends JerseyTest {
 
     protected static final String HOSTNAME = "localhost";
     protected static final String PATH = "/adminmanagement/v1";
-    
+
     protected AdminManagementClientRest client = null;
-    
+
     private static JunitHelper junitHelper;
     private static int port;
 
@@ -45,13 +45,14 @@ public class AdminManagementClientRestTest extends JerseyTest {
 
     interface ExpectedResults {
         Response post();
+
         Response checkFormat();
 
         Response delete();
 
         Response get();
-        
-        Response getDocument();        
+
+        Response getDocument();
     }
 
     public AdminManagementClientRestTest() {
@@ -77,8 +78,8 @@ public class AdminManagementClientRestTest extends JerseyTest {
         final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(JacksonFeature.class);
         return resourceConfig.registerInstances(new MockResource(mock));
-    }    
-    
+    }
+
     @Path("/adminmanagement/v1")
     public static class MockResource {
         private final ExpectedResults expectedResponse;
@@ -94,22 +95,22 @@ public class AdminManagementClientRestTest extends JerseyTest {
         public Response checkFormat(InputStream xmlPronom) {
             return expectedResponse.checkFormat();
         }
-        
+
         @POST
         @Path("/format/import")
         @Consumes(MediaType.APPLICATION_OCTET_STREAM)
         @Produces(MediaType.APPLICATION_JSON)
         public Response importFormat(InputStream xmlPronom) {
             return expectedResponse.post();
-        }        
+        }
 
         @DELETE
         @Path("/format/delete")
         @Produces(MediaType.APPLICATION_JSON)
         public Response deleteFormat() {
             return expectedResponse.post();
-        }        
-        
+        }
+
         @POST
         @Path("/format/{id_format}")
         @Consumes(MediaType.APPLICATION_JSON)
@@ -125,7 +126,7 @@ public class AdminManagementClientRestTest extends JerseyTest {
         public Response findDocument() {
             return expectedResponse.get();
         }
-        
+
         @GET
         @Path("/status")
         @Produces(MediaType.APPLICATION_JSON)
@@ -133,51 +134,52 @@ public class AdminManagementClientRestTest extends JerseyTest {
             return expectedResponse.get();
         }
     }
-    
+
     @Test
     public void givenStatusOK() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.OK).build());
         client.status();
-    }    
-    
+    }
+
     @Test
-    public void givenInputstreamOKWhenCheckThenReturnOK() throws ReferentialException{
+    public void givenInputstreamOKWhenCheckThenReturnOK() throws ReferentialException {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
         InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
         client.checkFormat(stream);
     }
-    
-    @Test(expected=ReferentialException.class)
+
+    @Test(expected = ReferentialException.class)
     public void givenInputstreamKOWhenCheckThenReturnKO() throws Exception {
         when(mock.checkFormat()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam-format-KO.xml");        
-        client.checkFormat(stream);    
-        System.out.println("Test not OK");        
+        InputStream stream =
+            Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam-format-KO.xml");
+        client.checkFormat(stream);
+        System.out.println("Test not OK");
     }
-    
-    
+
+
     @Test
     public void givenInputstreamOKWhenImportThenReturnOK() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
         InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
         client.importFormat(stream);
     }
-    
-    
+
+
     @Test
     public void whenDeteleFormatReturnKO() throws Exception {
         when(mock.delete()).thenReturn(Response.status(Status.OK).build());
         client.deleteFormat();
     }
-        
+
     @Ignore
-    @Test    
+    @Test
     public void givenAnInvalidQueryThenReturnKO() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.OK).build());        
-        Select select = new Select();        
+        when(mock.post()).thenReturn(Response.status(Status.OK).build());
+        Select select = new Select();
         InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
         client.importFormat(stream);
         when(mock.getDocument()).thenReturn(Response.status(Status.OK).build());
-        JsonNode jsonDocument = client.getFormats(select.getFinalSelect());  
-    }    
+        JsonNode jsonDocument = client.getFormats(select.getFinalSelect());
+    }
 }

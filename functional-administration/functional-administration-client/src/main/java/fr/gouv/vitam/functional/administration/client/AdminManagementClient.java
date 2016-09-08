@@ -17,56 +17,59 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
  * AdminManagementClient interface
  */
 public interface AdminManagementClient {
-    
+
     /**
      * @param stream as InputStream;
-     * @throws  ReferentialException when check exception occurs
+     * @throws ReferentialException when check exception occurs
      */
-    void checkFormat(InputStream stream) throws  ReferentialException;
-    
-    
+    void checkFormat(InputStream stream) throws ReferentialException;
+
+
     /**
      * @param stream as InputStream
-     * @throws  ReferentialException when import exception occurs
+     * @throws ReferentialException when import exception occurs
      * @throws DatabaseConflictException conflict exception occurs
      */
-    void importFormat(InputStream stream) throws  ReferentialException, DatabaseConflictException;
-    
-    
+    void importFormat(InputStream stream) throws ReferentialException, DatabaseConflictException;
+
+
     /**
-     * @throws  ReferentialException when delete exception occurs
+     * @throws ReferentialException when delete exception occurs
      */
     // FIXME delete the collection without any check on legal to do so (does any object using this referential ?) ?
-    // Il me semble que cette fonction devrait être interne et appelée par la méthode importFormat en interne de Vitam et surtout pas en externe !!!
+    // Il me semble que cette fonction devrait être interne et appelée par la méthode importFormat en interne de Vitam
+    // et surtout pas en externe !!!
     // Fonctionnalité demandé par les POs pour la démo
-    void deleteFormat() throws  ReferentialException;
-    
+    void deleteFormat() throws ReferentialException;
+
     /**
      * Get the status from the service
      *
      * @return the Message status
      */
-    
+
     Status status();
 
 
     /**
      * @param id as String
-     * @return JsonNode 
-     * @throws ReferentialException check exception occurs 
-     * @throws InvalidParseOperationException when json exception occurs 
+     * @return JsonNode
+     * @throws ReferentialException check exception occurs
+     * @throws InvalidParseOperationException when json exception occurs
      */
-    JsonNode getFormatByID(String id) throws  ReferentialException, InvalidParseOperationException;
+    JsonNode getFormatByID(String id) throws ReferentialException, InvalidParseOperationException;
 
 
     /**
      * @param query as JsonNode
-     * @return JsonNode 
-     * @throws  ReferentialException when referential format exception occurs
+     * @return JsonNode
+     * @throws ReferentialException when referential format exception occurs
      * @throws InvalidParseOperationException when json exception occurs
      * @throws IOException when io data exception occurs
      * @throws JsonMappingException when json exception occurs
      * @throws JsonGenerationException when json exception occurs
      */
-    JsonNode getFormats(JsonNode query) throws  ReferentialException, InvalidParseOperationException, JsonGenerationException, JsonMappingException, IOException;
+    JsonNode getFormats(JsonNode query)
+        throws ReferentialException, InvalidParseOperationException, JsonGenerationException, JsonMappingException,
+        IOException;
 }
