@@ -136,12 +136,7 @@ angular.module('core')
     }
 
     function login(userName, password) {
-      var userData = {
-        login: userName,
-        password: password
-      };
-
-      return ihmDemoCLient.getClient('').all('login').post(userData);
+      return ihmDemoCLient.getClient('').all('login').post();
     }
 
     function logout() {

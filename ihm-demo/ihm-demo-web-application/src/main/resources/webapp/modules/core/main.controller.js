@@ -72,6 +72,9 @@ angular.module('core')
       delete authVitamService.url;
       authVitamService.logout().then(function(res) {
         $location.path('/login');
+      }, function(err) {
+        $scope.sessionExpire(err);
+        $location.path('/login');
       });
     };
 
