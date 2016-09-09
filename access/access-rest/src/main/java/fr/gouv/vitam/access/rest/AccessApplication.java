@@ -23,14 +23,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.rest;
 
-import fr.gouv.vitam.access.config.AccessConfiguration;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.common.server.VitamServerFactory;
-import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import static java.lang.String.format;
+
+import java.util.EnumSet;
+
+import javax.servlet.DispatcherType;
+
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -38,7 +36,15 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 
-import static java.lang.String.format;
+import fr.gouv.vitam.access.config.AccessConfiguration;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.security.waf.WafFilter;
+import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.common.server.VitamServerFactory;
+import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 
 /**
  * Access web server application
@@ -50,7 +56,6 @@ public class AccessApplication extends AbstractVitamApplication<AccessApplicatio
     private static final String MODULE_NAME = "Access";
 
     private static VitamServer vitamServer;
-    private static AccessConfiguration configuration;
 
     /**
      * AccessApplication constructor
@@ -107,6 +112,10 @@ public class AccessApplication extends AbstractVitamApplication<AccessApplicatio
         final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
         context.addServlet(sh, "/*");
+        
+        context.addFilter(WafFilter.class, "/*", EnumSet.of(
+            DispatcherType.INCLUDE, DispatcherType.REQUEST,
+            DispatcherType.FORWARD, DispatcherType.ERROR));
         return context;
     }
 
