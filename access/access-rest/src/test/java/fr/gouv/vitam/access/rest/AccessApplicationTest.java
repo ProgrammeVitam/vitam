@@ -23,17 +23,22 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.rest;
 
-import fr.gouv.vitam.common.SystemPropertyUtil;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.server.VitamServer;
+import static com.jayway.restassured.RestAssured.given;
+
+import javax.ws.rs.core.Response.Status;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
+import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.http.ContentType;
+
+import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.server.VitamServer;
 
 /**
  * AccessApplication Test class
@@ -43,12 +48,9 @@ public class AccessApplicationTest {
     private final AccessApplication application = new AccessApplication();
     private final JunitHelper junitHelper = new JunitHelper();
     private int portAvailable;
-    private Client client;
 
     @Before
     public void setUpBeforeMethod() throws Exception {
-        client = ClientBuilder.newClient();
-
         portAvailable = junitHelper.findAvailablePort();
         //TODO verifier la compatibilité avec les tests parallèles sur jenkins
         SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(portAvailable));
@@ -66,29 +68,29 @@ public class AccessApplicationTest {
 
     @Test(expected = Exception.class)
     public void shouldRaiseAnExceptionWhenConfigureApplicationWithEmptyArgs() throws Exception {
-        application.startApplication("");
+        AccessApplication.startApplication("");
     }
 
     @Test
     public void shouldRaiseAnExceptionWhenConfigureApplicationWithFileNotFound() throws Exception {
-        application.startApplication("notFound.conf");
+        AccessApplication.startApplication("notFound.conf");
     }
 
     @Test
     public void shouldRunServerWhenConfigureApplicationWithFileExists() throws Exception {
-        application.startApplication("access-test.conf");
+        AccessApplication.startApplication("access-test.conf");
         Assert.assertTrue(AccessApplication.getVitamServer().getServer().isStarted());
     }
 
     @Test(expected = VitamException.class)
     public void shouldThrowExceptionWhenConfigureApplicationWithFileErr1() throws Exception {
-        application.startApplication("access-test-err1.conf");
+        AccessApplication.startApplication("access-test-err1.conf");
         Assert.assertFalse(AccessApplication.getVitamServer().getServer().isStarted());
     }
 
     @Test
     public void shouldStopServerWhenStopApplicationWithFileExistsAndRun() throws Exception {
-        application.startApplication("access-test.conf");
+        AccessApplication.startApplication("access-test.conf");
         Assert.assertTrue(AccessApplication.getVitamServer().getServer().isStarted());
 
         AccessApplication.stop();
@@ -141,5 +143,39 @@ public class AccessApplicationTest {
     @Test(expected = Exception.class)
     public void shouldRaiseAnException_WhenExecuteMainWithEmptyArgs() throws VitamException {
         AccessApplication.startApplication(null);
+    }
+    
+    @Test
+    public void shouldHeaderStripXSSWhenFilterThenReturnReturnNotAcceptable() throws VitamException {
+        AccessApplication.startApplication("src/test/resources/access-test.conf");
+
+        RestAssured.port = portAvailable;
+        RestAssured.basePath = "access/v1";
+        
+        given()
+        .contentType(ContentType.JSON)
+        .header("test", "<script>(.*?)</script>")
+        .body("{\"name\":\"123\"}")
+        .when()
+        .put("/units/1")
+        .then()
+        .statusCode(Status.NOT_ACCEPTABLE.getStatusCode());       
+    }
+    
+    @Test
+    public void shouldParamStripXSSWhenFilterThenReturnReturnNotAcceptable() throws VitamException {
+        AccessApplication.startApplication("src/test/resources/access-test.conf");
+
+        RestAssured.port = portAvailable;
+        RestAssured.basePath = "access/v1";
+        
+        given()
+        .contentType(ContentType.JSON)
+        .param("test", "<?php echo\" Hello \" ?>")
+        .body("{\"name\":\"123\"}")
+        .when()
+        .put("/units/1")
+        .then()
+        .statusCode(Status.NOT_ACCEPTABLE.getStatusCode());       
     }
 }
