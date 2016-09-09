@@ -8,13 +8,13 @@ import org.junit.Test;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatNotFoundException;
 
 public class FileFormatNotFoundExceptionTest {
-    
+
     @Test
-    public final void testFileFormatException() {    
-    assertEquals("", new FileFormatNotFoundException("").getMessage());
-    assertEquals("test", new FileFormatNotFoundException("test").getMessage());
-    assertNotNull(new FileFormatNotFoundException(new Exception()).getCause());
-    assertNotNull(new FileFormatNotFoundException("test", new Exception()).getCause());
-    assertNotNull(new FileFormatNotFoundException("test", new Exception(), true, true).getCause());
+    public final void testFileFormatException() {
+        assertEquals("", new FileFormatNotFoundException("").getMessage());
+        assertEquals("test", new FileFormatNotFoundException("test").getMessage());
+        assertNotNull(new FileFormatNotFoundException(new Exception()).getCause());
+        assertNotNull(new FileFormatNotFoundException("test", new Exception()).getCause());
+        assertNotNull(new FileFormatNotFoundException("test", new Exception(), true, true).getCause());
     }
 }

@@ -84,10 +84,11 @@ public class PronomParser {
 
     /**
      * getPronom
+     * 
      * @param xmlPronom as InputStream
      * @return : the list of file format as ArrayNode
-     * @throws FileFormatException 
-     */                            
+     * @throws FileFormatException
+     */
     @SuppressWarnings("unchecked")
     public static ArrayNode getPronom(InputStream xmlPronom) throws FileFormatException {
         FileFormat pronomFormat = new FileFormat();
@@ -137,7 +138,8 @@ public class PronomParser {
                                 Attribute attribute = attributes.next();
                                 attributesMap.put(attribute.getName().toString(), attribute.getValue());
                             }
-                            idToPUID.put(attributesMap.get(ATTR_ID).toString(), attributesMap.get(ATTR_PUID).toString());
+                            idToPUID.put(attributesMap.get(ATTR_ID).toString(),
+                                attributesMap.get(ATTR_PUID).toString());
                             attributesMap.remove(ATTR_ID);
                             pronomFormat = getNewFileFormatFromAttributes(fileFormat0, attributesMap);
                         } else if (qName.equalsIgnoreCase(TAG_EXTENSION)) {
@@ -180,7 +182,7 @@ public class PronomParser {
             }
         } catch (XMLStreamException e) {
             LOGGER.error(e.getMessage());
-            throw new InvalidFileFormatParseException("Invalid xml file format");            
+            throw new InvalidFileFormatParseException("Invalid xml file format");
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e.getMessage());
             throw new JsonNodeFormatCreationException("Invalid object to create a json");
@@ -205,7 +207,7 @@ public class PronomParser {
     private static FileFormat getNewFileFormatFromAttributes(FileFormat fileFormat, Map<String, Object> attributes) {
         FileFormat newFileFormat = new FileFormat();
         if (attributes.get(ATTR_PUID).toString().startsWith(FMT)) {
-            for(String i : fileFormat.keySet()) {
+            for (String i : fileFormat.keySet()) {
                 newFileFormat.put(i, fileFormat.get(i));
             }
             newFileFormat.putAll(attributes);
@@ -219,7 +221,7 @@ public class PronomParser {
 
     private static void copyAttributesFromFileFormat(FileFormat fileFormatSource, FileFormat fileFormatDest) {
         if (fileFormatSource.getString(ATTR_PUID).startsWith(FMT)) {
-            for(String i : fileFormatSource.keySet()) {
+            for (String i : fileFormatSource.keySet()) {
                 if (!ATTR_PUID.equals(i) && !TAG_HASPRIORITYOVERFILEFORMATID.equals(i)) {
                     fileFormatDest.put(i, fileFormatSource.get(i));
                 }

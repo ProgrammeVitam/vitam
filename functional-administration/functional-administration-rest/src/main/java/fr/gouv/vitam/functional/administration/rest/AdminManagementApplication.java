@@ -27,6 +27,8 @@
 
 package fr.gouv.vitam.functional.administration.rest;
 
+import static java.lang.String.format;
+
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -35,6 +37,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.VitamServer;
@@ -44,11 +47,14 @@ import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 /**
  * admin management web application
  */
-public final class AdminManagementApplication extends AbstractVitamApplication<AdminManagementApplication, AdminManagementConfiguration> {
-    private static final String ADMIN_MANAGEMENT_APPLICATION_STARTS_ON_DEFAULT_PORT =
-        "AdminManagementApplication starts on default port";
+public final class AdminManagementApplication
+    extends AbstractVitamApplication<AdminManagementApplication, AdminManagementConfiguration> {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementApplication.class);
-    private static final String ADMIN_MANAGEMENT_CONF_FILE_NAME = "functional-administration.conf";
+    private static final AdminManagementApplication APPLICATION = new AdminManagementApplication();
+    public static final String CONF_FILE_NAME = "functional-administration.conf";
+    private static final String MODULE_NAME = "functional-administration";
+    private static VitamServer vitamServer;
 
     /**
      * AdminManagementApplication constructor
@@ -61,54 +67,50 @@ public final class AdminManagementApplication extends AbstractVitamApplication<A
      * Main method to run the application (doing start and join)
      *
      * @param args command line parameters
-     * @throws IllegalStateException when state exception 
+     * @throws IllegalStateException when state exception
      */
     public static void main(String[] args) {
         try {
-            final VitamServer vitamServer = startApplication(args);
-            vitamServer.run();
-        } catch (final VitamApplicationServerException exc) {
-            LOGGER.error(exc);
-            throw new IllegalStateException("Cannot start the AdminManagement Application Server", exc);
+            startApplication(args);
+            if (vitamServer != null && vitamServer.isStarted()) {
+                vitamServer.join();
+            }
+        } catch (final Exception e) {
+            LOGGER.error(format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
+            System.exit(1);
         }
     }
 
     /**
      * Prepare the application to be run or started.
      *
-     * @param args parameters as String array  
+     * @param args programme
      * @return the VitamServer
      * @throws IllegalStateException when state exception
      */
-    public static VitamServer startApplication(String[] args) {
+    public static void startApplication(String[] args) throws VitamException {
         try {
-            VitamServer vitamServer;
-            if (args != null && args.length >= 2) {
-                try {
-                    final int port = Integer.parseInt(args[1]);
-                    if (port <= 0) {
-                        LOGGER.info(ADMIN_MANAGEMENT_APPLICATION_STARTS_ON_DEFAULT_PORT);
-                        vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
-                    } else {
-                        LOGGER.info("AdminManagementApplication starts on port: " + port);
-                        vitamServer = VitamServerFactory.newVitamServer(port);
-                    }
-                } catch (final NumberFormatException e) {
-                    LOGGER.info(ADMIN_MANAGEMENT_APPLICATION_STARTS_ON_DEFAULT_PORT);
-                    vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
-                }
-            } else {
-                LOGGER.info(ADMIN_MANAGEMENT_APPLICATION_STARTS_ON_DEFAULT_PORT);
-                vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
+            if (args == null || args.length == 0) {
+                LOGGER.error(format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME));
+                throw new VitamApplicationServerException(format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
+                    CONF_FILE_NAME));
             }
-            final AdminManagementApplication application = new AdminManagementApplication();
-            application.configure(application.computeConfigurationPathFromInputArguments(args));
-            vitamServer.configure(application.getApplicationHandler());
-            return vitamServer;
-        } catch (final VitamApplicationServerException exc) {
-            LOGGER.error(exc);
-            throw new IllegalStateException("Cannot start the AdminManagement Application Server", exc);
+
+            APPLICATION.configure(APPLICATION.computeConfigurationPathFromInputArguments(args[0]));
+            run(APPLICATION.getConfiguration());
+
+        } catch (final VitamApplicationServerException e) {
+            LOGGER.error(format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
+            throw new VitamException(format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
         }
+    }
+
+    private static void run(AdminManagementConfiguration configuration) throws VitamApplicationServerException {
+        final ServletContextHandler context = (ServletContextHandler) APPLICATION.buildApplicationHandler();
+        String jettyConfig = configuration.getJettyConfig();
+        vitamServer = VitamServerFactory.newVitamServerByJettyConf(jettyConfig);
+        vitamServer.configure(context);
+        vitamServer.start();
     }
 
     @Override
@@ -127,6 +129,17 @@ public final class AdminManagementApplication extends AbstractVitamApplication<A
 
     @Override
     protected String getConfigFilename() {
-        return ADMIN_MANAGEMENT_CONF_FILE_NAME;
+        return CONF_FILE_NAME;
+    }
+
+    /**
+     * Stops the vitam server
+     *
+     * @throws Exception
+     */
+    public static void stop() throws VitamApplicationServerException {
+        if (vitamServer != null && vitamServer.isStarted()) {
+            vitamServer.stop();
+        }
     }
 }

@@ -45,7 +45,7 @@ public class ReferentialFormatFileImplTest {
     static final String COLLECTION_NAME = "FileFormat";
     static int port;
     static ReferentialFormatFileImpl formatFile;
-    
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         final MongodStarter starter = MongodStarter.getDefaultInstance();
@@ -58,7 +58,7 @@ public class ReferentialFormatFileImplTest {
         mongod = mongodExecutable.start();
         formatFile = new ReferentialFormatFileImpl(
             new DbConfigurationImpl(DATABASE_HOST, port, DATABASE_NAME));
-        
+
     }
 
     @AfterClass
@@ -67,16 +67,17 @@ public class ReferentialFormatFileImplTest {
         mongodExecutable.stop();
         junitHelper.releasePort(port);
     }
-    
+
     @Test
     public void testFormatXML() throws FileNotFoundException, ReferentialException {
-        formatFile.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));        
+        formatFile.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
     }
-    
+
     @Test(expected = ReferentialException.class)
     public void testFormatXMLKO() throws FileNotFoundException, ReferentialException {
         formatFile.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_KO)));
     }
+
     @Test
     public void testimportAndDeleteFormat() throws Exception {
         formatFile.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));

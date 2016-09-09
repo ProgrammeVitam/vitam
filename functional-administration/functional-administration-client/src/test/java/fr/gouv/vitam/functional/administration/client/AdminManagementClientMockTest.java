@@ -26,38 +26,40 @@ public class AdminManagementClientMockTest {
     public void givenClientMockWhenStatusThenReturnOK() {
         client.status();
     }
-          
+
     @Test
     public void givenClientMockWhenAndInputXMLOKThenReturnOK() throws FileFormatException {
         stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
-        client.checkFormat(stream);    
+        client.checkFormat(stream);
     }
-    
+
     @Test
     public void givenClientMockWhenWhenImportThenReturnOK() throws FileFormatException {
         stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
-        client.importFormat(stream);    
-    }    
-    
+        client.importFormat(stream);
+    }
+
     @Test
     public void givenClientMockWhenDeleteThenReturnOK() throws FileFormatException {
         stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
-        client.deleteFormat();    
-    }        
-    
+        client.deleteFormat();
+    }
+
     @Test
-    public void getFormatByIDTest() throws  InvalidParseOperationException, ReferentialException {
+    public void getFormatByIDTest() throws InvalidParseOperationException, ReferentialException {
         AdminManagementClientFactory.setConfiguration(AdminManagementClientType.MOCK_CLIENT, null, 0);
         final AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
         assertNotNull(client.getFormatByID("aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaz"));
     }
 
     @Test
-    public void getDocumentTest() throws  InvalidParseOperationException, ReferentialException, JsonGenerationException, JsonMappingException, IOException {
+    public void getDocumentTest()
+        throws InvalidParseOperationException, ReferentialException, JsonGenerationException, JsonMappingException,
+        IOException {
         AdminManagementClientFactory.setConfiguration(AdminManagementClientType.MOCK_CLIENT, null, 0);
         final AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
-        Select select = new Select();        
+        Select select = new Select();
         assertNotNull(client.getFormats(select.getFinalSelect()));
     }
-    
+
 }

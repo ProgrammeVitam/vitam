@@ -26,7 +26,7 @@
  */
 
 /**
- * Core package of functional administration format module 
+ * Core package of functional administration format module
  */
 
 package fr.gouv.vitam.functional.administration.format.core;

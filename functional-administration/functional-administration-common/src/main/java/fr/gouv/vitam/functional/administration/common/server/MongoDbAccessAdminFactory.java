@@ -40,7 +40,7 @@ import fr.gouv.vitam.common.server.application.configuration.DbConfiguration;
  * Factory to get MongoDbAccess for Admin
  */
 public final class MongoDbAccessAdminFactory {
-    
+
     /**
      * Creation of one MongoDbAccess
      *

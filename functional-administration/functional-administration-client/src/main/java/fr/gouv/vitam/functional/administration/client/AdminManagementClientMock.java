@@ -49,14 +49,14 @@ import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
 
 /**
- * Mock client implementation for AdminManagement 
+ * Mock client implementation for AdminManagement
  */
 public class AdminManagementClientMock implements AdminManagementClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementClientMock.class);
 
-    private FileFormat createFileFormat(String _id){        
+    private FileFormat createFileFormat(String _id) {
         List<String> testList = new ArrayList<>();
-        testList.add("test1"); 
+        testList.add("test1");
         return (FileFormat) new FileFormat()
             .setCreatedDate("now")
             .setExtension(testList)
@@ -66,7 +66,7 @@ public class AdminManagementClientMock implements AdminManagementClient {
             .setPronomVersion("pronom version")
             .setPUID("puid")
             .setVersion("version")
-            .append("_id", _id);                          
+            .append("_id", _id);
     }
 
     private String fileFormatListToJsonString(List<FileFormat> formatList)
@@ -77,8 +77,8 @@ public class AdminManagementClientMock implements AdminManagementClient {
         final byte[] data = ((ByteArrayOutputStream) out).toByteArray();
         final String fileFormatAsString = new String(data);
         return fileFormatAsString;
-    }    
-    
+    }
+
     @Override
     public Status status() {
         return Status.OK;
@@ -88,34 +88,36 @@ public class AdminManagementClientMock implements AdminManagementClient {
     public void checkFormat(InputStream stream) throws FileFormatException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
         LOGGER.info("Check file format request:");
-        
+
     }
 
     @Override
     public void importFormat(InputStream stream) throws FileFormatException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
-        LOGGER.info("import file format request:");        
+        LOGGER.info("import file format request:");
     }
 
     @Override
     public void deleteFormat() throws FileFormatException {
         LOGGER.info("Delete file format request:");
     }
-    
+
     @Override
     public JsonNode getFormatByID(String id) throws FileFormatException, InvalidParseOperationException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", id);
-        LOGGER.info("get format by id request:");        
-        FileFormat file = createFileFormat(id);        
-        return JsonHandler.toJsonNode(file);        
+        LOGGER.info("get format by id request:");
+        FileFormat file = createFileFormat(id);
+        return JsonHandler.toJsonNode(file);
     }
-    
+
     @Override
-    public JsonNode getFormats(JsonNode query) throws FileFormatException, JsonGenerationException, JsonMappingException, InvalidParseOperationException, IOException {
+    public JsonNode getFormats(JsonNode query)
+        throws FileFormatException, JsonGenerationException, JsonMappingException, InvalidParseOperationException,
+        IOException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", query);
-        LOGGER.info("get document format request:");                
+        LOGGER.info("get document format request:");
         FileFormat file1 = createFileFormat(GUIDFactory.newGUID().toString());
-        FileFormat file2 = createFileFormat(GUIDFactory.newGUID().toString());        
+        FileFormat file2 = createFileFormat(GUIDFactory.newGUID().toString());
         List<FileFormat> fileFormatList = new ArrayList<FileFormat>();
         fileFormatList.add(file1);
         fileFormatList.add(file2);
