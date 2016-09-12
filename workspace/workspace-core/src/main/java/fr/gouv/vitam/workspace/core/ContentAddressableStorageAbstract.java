@@ -86,6 +86,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
     private static final String TMP_FOLDER = "/tmp/";
     private static final String EMPTY_STRING = "";
     private static final String DOT = ".";
+    private static final int MAX_RESULTS = 10000;
 
 
 
@@ -371,7 +372,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
             final ListContainerOptions listContainerOptions = new ListContainerOptions();
             // List of all resources in a container recursively
             final PageSet<? extends StorageMetadata> blobStoreList =
-                blobStore.list(containerName, listContainerOptions.inDirectory(folderName).recursive());
+                blobStore.list(containerName, listContainerOptions.inDirectory(folderName).recursive().maxResults(MAX_RESULTS));
 
             uriFolderListFromContainer = new ArrayList<>();
             LOGGER.info(WorkspaceMessage.BEGINNING_GET_URI_LIST_OF_DIGITAL_OBJECT.getMessage());
