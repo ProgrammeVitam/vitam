@@ -132,6 +132,19 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess{
     }
 
     /**
+     * refresh an index
+     *
+     * @param collection
+     */
+    public final void refreshIndex(final MetadataCollections collection) {
+        LOGGER.debug("refreshIndex: " + collection.getName().toLowerCase());
+        client.admin().indices().prepareRefresh(collection.getName().toLowerCase())
+        .execute().actionGet();
+           
+    }
+    
+    
+    /**
      * Add an entry in the ElasticSearch index
      *
      * @param collection
@@ -527,7 +540,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess{
      */
     public final void deleteEntryIndex(final MetadataCollections collections, final String type,
         final String id) throws MetaDataExecutionException, MetaDataNotFoundException {
-        final DeleteRequestBuilder builder = client.prepareDelete(collections.getName(), type, id);
+        final DeleteRequestBuilder builder = client.prepareDelete(collections.getName().toLowerCase(), type, id);
         final DeleteResponse response;
         try {
             response = builder.get();

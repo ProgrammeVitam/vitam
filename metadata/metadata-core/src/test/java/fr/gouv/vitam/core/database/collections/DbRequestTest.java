@@ -33,6 +33,7 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.gt;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.isNull;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.lt;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.missing;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.ne;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.nin;
@@ -129,9 +130,9 @@ public class DbRequestTest {
     private static int TCP_PORT = 9300;
     private static int HTTP_PORT = 9200;
     private static Node node;
-    
+
     private static ElasticsearchAccessMetadata esClient;
-    
+
     private static final String DATABASE_HOST = "localhost";
     private static final boolean CREATE = false;
     private static final boolean DROP = false;
@@ -155,12 +156,28 @@ public class DbRequestTest {
     static MongodProcess mongod;
     private static JunitHelper junitHelper;
     private static int port;
-    private static final String REQUEST_SELECT_TEST =
-        "{$query: {$eq: {\"id\" : \"id\" }}}";
+    private static final String REQUEST_SELECT_TEST = "{$query: {$eq: {\"id\" : \"id\" }}}";
+    private static final String REQUEST_UPDATE_TEST = "{$query: {$eq: {\"id\" : \"id\" }}}";
+    private static final String REQUEST_INSERT_TEST = "{ \"id\": \"id\" }";
 
-    private static final String REQUEST_UPDATE_TEST =
-        "{$query: {$eq: {\"id\" : \"id\" }}}";
-    private static final String REQUEST_INSERT_TEST = "{ \"id\": \"id\" }";;
+    private static final String REQUEST_SELECT_TEST_ES_1 =
+        "{$query: { $match : { 'Description' : 'OK' , '$max_expansions' : 1  } }}";
+    private static final String REQUEST_SELECT_TEST_ES_2 =
+        "{$query: { $match : { 'Description' : 'description OK' , '$max_expansions' : 1  } }}";
+    private static final String REQUEST_SELECT_TEST_ES_3 =
+        "{$query: { $match : { 'Description' : 'est OK description' , '$max_expansions' : 1  } }}";
+    private static final String REQUEST_SELECT_TEST_ES_4 =
+        "{$query: { $or : [ { $match : { 'Title' : 'vitam' , '$max_expansions' : 1  } }, " +
+         "{$match : { 'Description' : 'vitam' , '$max_expansions' : 1  } }" +
+        "] } }";
+    private static final String REQUEST_SELECT_TEST_ES_5 =
+        "{$query: { $or : [ { $match : { 'Title' : 'vitam' , '$max_expansions' : 1  } }, " +
+         "{$match : { 'Description' : 'vitam' , '$max_expansions' : 1  } }" +
+        "] } }";
+    private static final String REQUEST_INSERT_TEST_ES = "{ \"_id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaaq\", \"Title\": \"title vitam\", \"Description\": \"description est OK\" }";
+    private static final String REQUEST_INSERT_TEST_ES_2 = "{ \"_id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaar\", \"Title\": \"title vitam\", \"Description\": \"description est OK\" }";
+    private static final String REQUEST_INSERT_TEST_ES_3 = "{ \"_id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaat\", \"Title\": \"title vitam\", \"Description\": \"description est OK\" }";
+    private static final String REQUEST_INSERT_TEST_ES_4 = "{ \"_id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaas\", \"Title\": \"title vitam1\", \"Description\": \"description est OK\" }";
 
 
     /**
@@ -168,9 +185,9 @@ public class DbRequestTest {
      */
     @BeforeClass
     public static void setUp() throws Exception {
-        
+
         junitHelper = new JunitHelper();
-        //ES
+        // ES
         TCP_PORT = junitHelper.findAvailablePort();
         HTTP_PORT = junitHelper.findAvailablePort();
 
@@ -189,15 +206,15 @@ public class DbRequestTest {
             .clusterName(CLUSTER_NAME)
             .node();
 
-       node.start();
-        
+        node.start();
+
         List<ElasticsearchNode> nodes = new ArrayList<ElasticsearchNode>();
         nodes.add(new ElasticsearchNode(HOST_NAME, TCP_PORT));
-       
+
         esClient = new ElasticsearchAccessMetadata(CLUSTER_NAME, nodes);
-       
+
         final MongodStarter starter = MongodStarter.getDefaultInstance();
-       
+
         port = junitHelper.findAvailablePort();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .version(Version.Main.PRODUCTION)
@@ -210,9 +227,9 @@ public class DbRequestTest {
         mongoClient = new MongoClient(new ServerAddress(DATABASE_HOST, port), options);
         mongoDbAccess = new MongoDbAccessMetadataImpl(mongoClient, "vitam-test", CREATE, esClient);
         mongoDbVarNameAdapter = new MongoDbVarNameAdapter();
-        
-        
-        
+
+
+
     }
 
     /**
@@ -231,7 +248,7 @@ public class DbRequestTest {
         mongod.stop();
         mongodExecutable.stop();
         junitHelper.releasePort(port);
-        
+
         if (node != null) {
             node.close();
         }
@@ -1105,6 +1122,107 @@ public class DbRequestTest {
 
     }
 
+    @Test
+    public void shouldSelectUnitResultWithES() throws Exception {
+
+        esClient.deleteIndex(MetadataCollections.C_UNIT);
+        esClient.addIndex(MetadataCollections.C_UNIT);
+        
+        final DbRequest dbRequest = new DbRequest();
+        final JsonNode insertRequest = buildQueryJsonWithOptions("", REQUEST_INSERT_TEST_ES);
+        final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
+        insertParser.parse(insertRequest);
+        LOGGER.debug("InsertParser: {}", insertParser);
+        dbRequest.execRequest(insertParser, null);
+        final JsonNode selectRequest1 = JsonHandler.getFromString(REQUEST_SELECT_TEST_ES_1);
+        final SelectParserMultiple selectParser1 = new SelectParserMultiple();
+        selectParser1.parse(selectRequest1);
+        LOGGER.debug("SelectParser: {}", selectRequest1);
+        esClient.refreshIndex(MetadataCollections.C_UNIT);
+        final Result resultSelect1 = dbRequest.execRequest(selectParser1, null);
+        assertEquals(1, resultSelect1.nbResult);
+        
+        final JsonNode selectRequest2 = JsonHandler.getFromString(REQUEST_SELECT_TEST_ES_2);
+        final SelectParserMultiple selectParser2 = new SelectParserMultiple();
+        selectParser2.parse(selectRequest2);
+        LOGGER.debug("SelectParser: {}", selectRequest2);
+        final Result resultSelect2 = dbRequest.execRequest(selectParser2, null);
+        assertEquals(1, resultSelect2.nbResult);
+        
+        final JsonNode selectRequest3 = JsonHandler.getFromString(REQUEST_SELECT_TEST_ES_3);
+        final SelectParserMultiple selectParser3 = new SelectParserMultiple();
+        selectParser3.parse(selectRequest3);
+        LOGGER.debug("SelectParser: {}", selectRequest3);
+        final Result resultSelect3 = dbRequest.execRequest(selectParser3, null);
+        assertEquals(1, resultSelect3.nbResult);
+        
+        final JsonNode selectRequest4 = JsonHandler.getFromString(REQUEST_SELECT_TEST_ES_4);
+        final SelectParserMultiple selectParser4 = new SelectParserMultiple();
+        selectParser4.parse(selectRequest4);
+        LOGGER.debug("SelectParser: {}", selectRequest4);
+        final Result resultSelect4 = dbRequest.execRequest(selectParser4, null);
+        assertEquals(1, resultSelect4.nbResult);
+
+        Insert insert = new Insert();
+        insert.parseData(REQUEST_INSERT_TEST_ES_2).addRoots("aeaqaaaaaet33ntwablhaaku6z67pzqaaaaq");
+        insertParser.parse(insert.getFinalInsert());
+        LOGGER.debug("InsertParser: {}", insertParser);
+        dbRequest.execRequest(insertParser, null);
+        esClient.refreshIndex(MetadataCollections.C_UNIT);
+        
+        Select select = new Select();
+        select.addQueries(match("Description", "description OK").setDepthLimit(0)).addRoots("aeaqaaaaaet33ntwablhaaku6z67pzqaaaaq");
+        selectParser1.parse(select.getFinalSelect());
+        LOGGER.debug("SelectParser: {}", selectRequest1);
+        final Result resultSelectRel0 = dbRequest.execRequest(selectParser1, null);
+        assertEquals(1, resultSelectRel0.nbResult);
+        assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaaq", resultSelectRel0.getCurrentIds().iterator().next().toString());
+        
+        select = new Select();
+        select.addQueries(match("Description", "description OK").setDepthLimit(1)).addRoots("aeaqaaaaaet33ntwablhaaku6z67pzqaaaaq");
+        selectParser1.parse(select.getFinalSelect());
+        LOGGER.debug("SelectParser: {}", selectRequest1);
+        final Result resultSelectRel1 = dbRequest.execRequest(selectParser1, null);
+        assertEquals(1, resultSelectRel1.nbResult);
+        assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaar", resultSelectRel1.getCurrentIds().iterator().next().toString());
+
+        select = new Select();
+        select.addQueries(match("Description", "description OK").setDepthLimit(3)).addRoots("aeaqaaaaaet33ntwablhaaku6z67pzqaaaaq");
+        selectParser1.parse(select.getFinalSelect());
+        LOGGER.debug("SelectParser: {}", selectRequest1);
+        final Result resultSelectRel3 = dbRequest.execRequest(selectParser1, null);
+        assertEquals(1, resultSelectRel3.nbResult);
+        assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaar", resultSelectRel3.getCurrentIds().iterator().next().toString());
+        
+        insert = new Insert();
+        insert.parseData(REQUEST_INSERT_TEST_ES_3).addRoots("aeaqaaaaaet33ntwablhaaku6z67pzqaaaar");
+        insertParser.parse(insert.getFinalInsert());
+        LOGGER.debug("InsertParser: {}", insertParser);
+        dbRequest.execRequest(insertParser, null);
+        esClient.refreshIndex(MetadataCollections.C_UNIT);
+        // TODO fix _us then update assert
+        final Result resultSelectRel4 = dbRequest.execRequest(selectParser1, null);
+        assertEquals(1, resultSelectRel4.nbResult);
+        assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaar", resultSelectRel4.getCurrentIds().iterator().next().toString());
+        
+        
+        insert = new Insert();
+        insert.parseData(REQUEST_INSERT_TEST_ES_4).addRoots("aeaqaaaaaet33ntwablhaaku6z67pzqaaaaq");
+        insertParser.parse(insert.getFinalInsert());
+        LOGGER.debug("InsertParser: {}", insertParser);
+        dbRequest.execRequest(insertParser, null);
+        esClient.refreshIndex(MetadataCollections.C_UNIT);
+        
+        select = new Select();
+        select.addQueries(match("Title", "vitam1").setDepthLimit(1)).addRoots("aeaqaaaaaet33ntwablhaaku6z67pzqaaaaq");
+        selectParser1.parse(select.getFinalSelect());
+        LOGGER.debug("SelectParser: {}", selectRequest1);
+        final Result resultSelectRel5 = dbRequest.execRequest(selectParser1, null);
+        assertEquals(1, resultSelectRel5.nbResult);
+        assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaas", resultSelectRel5.getCurrentIds().iterator().next().toString());
+
+    }
+
     public void shouldUpdateUnitResult() throws Exception {
 
         final DbRequest dbRequest = new DbRequest();
@@ -1113,6 +1231,7 @@ public class DbRequestTest {
         updateParser.parse(updateRequest);
         LOGGER.debug("UpdateParser: {}", updateRequest);
         final Result result2 = dbRequest.execRequest(updateParser, null);
+        LOGGER.debug("result2", result2.getNbResult());
         assertEquals(1, result2.nbResult);
 
     }

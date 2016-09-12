@@ -45,6 +45,8 @@ import java.util.Set;
 
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoException;
@@ -71,6 +73,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 import fr.gouv.vitam.common.database.translators.RequestToAbstract;
+import fr.gouv.vitam.common.database.translators.elasticsearch.QueryToElasticsearch;
 import fr.gouv.vitam.common.database.translators.mongodb.DeleteToMongodb;
 import fr.gouv.vitam.common.database.translators.mongodb.InsertToMongodb;
 import fr.gouv.vitam.common.database.translators.mongodb.MongoDbHelper;
@@ -81,7 +84,6 @@ import fr.gouv.vitam.common.database.translators.mongodb.UpdateToMongodb;
 import fr.gouv.vitam.core.database.configuration.GlobalDatasDb;
 import fr.gouv.vitam.common.database.parser.query.helper.QueryDepthHelper;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
-//import fr.gouv.vitam.parser.request.parser.RequestParser;
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
 import fr.gouv.vitam.common.database.parser.query.PathQuery;
 
@@ -302,6 +304,7 @@ public class DbRequest {
      */
     protected Result checkObjectGroupStartupRoots(final RequestParserMultiple request, final Result defaultStartSet)
         throws InvalidParseOperationException {
+        // TODO add unit tests
         final Set<String> roots = request.getRequest().getRoots();
         if (defaultStartSet == null || defaultStartSet.getCurrentIds().isEmpty()) {
             // no limitation: using roots
@@ -349,6 +352,7 @@ public class DbRequest {
             // no limitation: using roots
             return current;
         }
+        // TODO add unit tests
         @SuppressWarnings("unchecked")
         final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.C_UNIT,
             MongoDbMetadataHelper.queryForAncestorsOrSame(current, defaultStartSet.getCurrentIds()),
@@ -446,6 +450,8 @@ public class DbRequest {
      */
     protected Result exactDepthUnitQuery(Query realQuery, Result previous, int exactDepth)
         throws InvalidParseOperationException {
+        
+        // TODO add unit tests
         final Result result = MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS);
         final Bson query = QueryToMongodb.getCommand(realQuery);
         final Bson roots = QueryToMongodb.getRoots(MetadataDocument.UP, previous.getCurrentIds());
@@ -482,81 +488,120 @@ public class DbRequest {
      * @param notimeout
      * @return the associated Result
      * @throws InvalidParseOperationException
+     * @throws MetaDataExecutionException 
      */
     protected Result relativeDepthUnitQuery(Query realQuery, Result previous, int relativeDepth)
-        throws InvalidParseOperationException {
-        Result result = null;
-        Bson query = QueryToMongodb.getCommand(realQuery);
-        Bson roots = null;
-        boolean tocheck = false;
-        if (previous.getCurrentIds().isEmpty()) {
-            // Change to MAX DEPTH <= relativeDepth
-            roots = lte(Unit.MAXDEPTH, relativeDepth);
-        } else {
-            if (relativeDepth < 0) {
-                // Relative parent: previous has future result in their _up
-                // so future result ids are in previous UNITDEPTHS
-                final Set<String> fathers = aggregateUnitDepths(previous.getCurrentIds(), relativeDepth);
-                roots = QueryToMongodb.getRoots(MetadataDocument.ID, fathers);
-            } else if (relativeDepth == 0) {
-                // same level: previous is in IDs of result
-                roots = QueryToMongodb.getRoots(MetadataDocument.ID, previous.getCurrentIds());
-            } else if (relativeDepth == 1) {
-                // immediate step: previous is in UNIT_TO_UNIT of result
-                roots = QueryToMongodb.getRoots(MetadataDocument.UP,
-                    previous.getCurrentIds());
+        throws InvalidParseOperationException, MetaDataExecutionException {
+       
+        if(realQuery.isFullText()){
+            //ES
+            QueryBuilder roots = null;
+            
+            if (previous.getCurrentIds().isEmpty()) {
+                if(relativeDepth<0){
+                    roots = QueryBuilders.rangeQuery(Unit.MAXDEPTH).lte(1) ;
+                }else{
+                    roots = QueryBuilders.rangeQuery(Unit.MAXDEPTH).lte(relativeDepth+1) ;
+                }
             } else {
-                // relative depth: previous is in UNITUPS of result
-                // Will need an extra test on result
-                roots = QueryToMongodb.getRoots(Unit.UNITUPS, previous.getCurrentIds());
-                tocheck = true;
+                if (relativeDepth == 1) {
+                    roots = QueryToElasticsearch.getRoots(MetadataDocument.UP,
+                        previous.getCurrentIds());
+                } else if (relativeDepth >= 1) {
+                    roots = QueryToElasticsearch.getRoots(Unit.UNITUPS, previous.getCurrentIds());
+                }
+                
             }
-        }
-        if (roots != null) {
-            query = QueryToMongodb.getFullCommand(query, roots);
-        }
-        LOGGER.debug(QUERY2 + MongoDbHelper.bsonToString(query, false));
-        result = MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS);
-        if (GlobalDatasDb.PRINT_REQUEST) {
-            LOGGER.warn("Req1LevelMD: {}", realQuery);
-        }
-        @SuppressWarnings("unchecked")
-        final FindIterable<Unit> iterable =
-            (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.C_UNIT, query,
-                Unit.UNIT_VITAM_PROJECTION);
-        final MongoCursor<Unit> cursor = iterable.iterator();
-        try {
-            while (cursor.hasNext()) {
-                final Unit unit = cursor.next();
-                if (tocheck) {
-                    // now check for relativeDepth > 1
-                    final Map<String, Integer> depths = unit.getDepths();
-                    boolean check = false;
-                    for (final String pid : previous.getCurrentIds()) {
-                        final Integer depth = depths.get(pid);
-                        if (depth != null && depth <= relativeDepth) {
-                            check = true;
-                            break;
+            
+            QueryBuilder query = QueryToElasticsearch.getCommand(realQuery);
+            if (roots != null) {
+                query = QueryToElasticsearch.getFullCommand(query, roots);
+            }
+            LOGGER.debug(QUERY2 + query.toString());
+            if (GlobalDatasDb.PRINT_REQUEST) {
+                LOGGER.warn("Req1LevelMD: {}", query);
+            }
+            previous.clear();
+            
+            return MetadataCollections.C_UNIT.getEsClient().search(MetadataCollections.C_UNIT, Unit.TYPEUNIQUE, query, null);
+            
+        }else {
+            // MongoDB
+            Bson roots = null;
+            boolean tocheck = false;
+            if (previous.getCurrentIds().isEmpty()) {
+                if (relativeDepth == 1) {
+                    roots = lte(Unit.MAXDEPTH, 1);
+                }else {
+                    roots = lte(Unit.MAXDEPTH, relativeDepth+1);
+                }
+                
+            } else {
+                if (relativeDepth < 0) {
+                    // Relative parent: previous has future result in their _up
+                    // so future result ids are in previous UNITDEPTHS
+                    final Set<String> fathers = aggregateUnitDepths(previous.getCurrentIds(), relativeDepth);
+                    roots = QueryToMongodb.getRoots(MetadataDocument.ID, fathers);
+                } else if (relativeDepth == 1) {
+                    // immediate step: previous is in UNIT_TO_UNIT of result
+                    roots = QueryToMongodb.getRoots(MetadataDocument.UP,
+                        previous.getCurrentIds());
+                } else {
+                    // relative depth: previous is in UNITUPS of result
+                    // Will need an extra test on result
+                    roots = QueryToMongodb.getRoots(Unit.UNITUPS, previous.getCurrentIds());
+                    tocheck = true;
+                }
+            }
+            
+            Result result = null;
+            Bson query = QueryToMongodb.getCommand(realQuery);
+            if (roots != null) {
+                query = QueryToMongodb.getFullCommand(query, roots);
+            }
+            LOGGER.debug(QUERY2 + MongoDbHelper.bsonToString(query, false));
+            result = MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS);
+            if (GlobalDatasDb.PRINT_REQUEST) {
+                LOGGER.warn("Req1LevelMD: {}", realQuery);
+            }
+            @SuppressWarnings("unchecked")
+            final FindIterable<Unit> iterable =
+                (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.C_UNIT, query,
+                    Unit.UNIT_VITAM_PROJECTION);
+            final MongoCursor<Unit> cursor = iterable.iterator();
+            try {
+                while (cursor.hasNext()) {
+                    final Unit unit = cursor.next();
+                    if (tocheck) {
+                        // now check for relativeDepth > 1
+                        final Map<String, Integer> depths = unit.getDepths();
+                        boolean check = false;
+                        for (final String pid : previous.getCurrentIds()) {
+                            final Integer depth = depths.get(pid);
+                            if (depth != null && depth <= relativeDepth) {
+                                check = true;
+                                break;
+                            }
+                        }
+                        if (!check) {
+                            // ignore since false positive
+                            continue;
                         }
                     }
-                    if (!check) {
-                        // ignore since false positive
-                        continue;
-                    }
+                    final String id = unit.getId();
+                    MongoDbMetadataHelper.LRU.put(id, unit);
+                    result.addId(id);
                 }
-                final String id = unit.getId();
-                MongoDbMetadataHelper.LRU.put(id, unit);
-                result.addId(id);
+            } finally {
+                previous.clear();
+                cursor.close();
             }
-        } finally {
-            previous.clear();
-            cursor.close();
+            result.setNbResult(result.getCurrentIds().size());
+            if (GlobalDatasDb.PRINT_REQUEST) {
+                LOGGER.warn("UnitRelative: {}", result);
+            }
+            return result;
         }
-        result.setNbResult(result.getCurrentIds().size());
-        if (GlobalDatasDb.PRINT_REQUEST) {
-            LOGGER.warn("UnitRelative: {}", result);
-        }
-        return result;
     }
 
     /**
@@ -567,6 +612,7 @@ public class DbRequest {
      * @return the aggregate set of multi level parents for this relativeDepth
      */
     protected Set<String> aggregateUnitDepths(Set<String> ids, int relativeDepth) {
+        // TODO add unit tests
         // Select all items from ids
         final Bson match = match(in(MetadataDocument.ID, ids));
         // aggregate all UNITDEPTH in one (ignoring depth value)
@@ -603,38 +649,62 @@ public class DbRequest {
      * @param previous
      * @return the associated Result
      * @throws InvalidParseOperationException
+     * @throws MetaDataExecutionException 
      */
-    protected Result sameDepthUnitQuery(Query realQuery, Result previous) throws InvalidParseOperationException {
-        final Result result = MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS);
-        final Bson query = QueryToMongodb.getCommand(realQuery);
-        Bson finalQuery;
-        if (previous.getCurrentIds().isEmpty()) {
-            finalQuery = query;
-        } else {
-            final Bson roots = QueryToMongodb.getRoots(MetadataDocument.UP, previous.getCurrentIds());
-            finalQuery = and(query, roots);
-        }
-        previous.clear();
-        LOGGER.debug(QUERY2 + MongoDbHelper.bsonToString(finalQuery, false));
-        @SuppressWarnings("unchecked")
-        final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper
-            .select(MetadataCollections.C_UNIT, finalQuery, Unit.UNIT_VITAM_PROJECTION);
-        final MongoCursor<Unit> cursor = iterable.iterator();
-        try {
-            while (cursor.hasNext()) {
-                final Unit unit = cursor.next();
-                final String id = unit.getId();
-                MongoDbMetadataHelper.LRU.put(id, unit);
-                result.addId(id);
+    protected Result sameDepthUnitQuery(Query realQuery, Result previous) throws InvalidParseOperationException, MetaDataExecutionException {
+        
+        Result result = MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS);
+       
+        if(realQuery.isFullText()) {
+           
+            // ES 
+            final QueryBuilder query = QueryToElasticsearch.getCommand(realQuery);
+            QueryBuilder finalQuery;
+            if (previous.getCurrentIds().isEmpty()) {
+                finalQuery = query;
+            } else {
+                final QueryBuilder roots = QueryToElasticsearch.getRoots(MetadataDocument.ID, previous.getCurrentIds());
+                finalQuery = QueryBuilders.boolQuery().must(query).must(roots);
             }
-        } finally {
-            cursor.close();
+            
+            previous.clear();
+            LOGGER.debug(QUERY2 + finalQuery.toString());
+            return MetadataCollections.C_UNIT.getEsClient().search(MetadataCollections.C_UNIT, Unit.TYPEUNIQUE, finalQuery, null);
+            
+        }else {
+        
+            // Mongo
+            // TODO add unit tests
+            final Bson query = QueryToMongodb.getCommand(realQuery);
+            Bson finalQuery;
+            if (previous.getCurrentIds().isEmpty()) {
+                finalQuery = query;
+            } else {
+                final Bson roots = QueryToMongodb.getRoots(MetadataDocument.ID, previous.getCurrentIds());
+                finalQuery = and(query, roots);
+            }
+            previous.clear();
+            LOGGER.debug(QUERY2 + MongoDbHelper.bsonToString(finalQuery, false));
+            @SuppressWarnings("unchecked")
+            final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper
+                .select(MetadataCollections.C_UNIT, finalQuery, Unit.UNIT_VITAM_PROJECTION);
+            final MongoCursor<Unit> cursor = iterable.iterator();
+            try {
+                while (cursor.hasNext()) {
+                    final Unit unit = cursor.next();
+                    final String id = unit.getId();
+                    MongoDbMetadataHelper.LRU.put(id, unit);
+                    result.addId(id);
+                }
+            } finally {
+                cursor.close();
+            }
+            result.setNbResult(result.getCurrentIds().size());
+            if (GlobalDatasDb.PRINT_REQUEST) {
+                LOGGER.warn("UnitSameDepth: {}", result);
+            }
+            return result;
         }
-        result.setNbResult(result.getCurrentIds().size());
-        if (GlobalDatasDb.PRINT_REQUEST) {
-            LOGGER.warn("UnitSameDepth: {}", result);
-        }
-        return result;
     }
 
     /**
@@ -755,6 +825,7 @@ public class DbRequest {
                 return last;
             }
             // OBJECTGROUPS:
+            // TODO add unit tests
             final UpdateResult result =
                 MongoDbMetadataHelper.update(MetadataCollections.C_OBJECTGROUP,
                     roots, update, last.getCurrentIds().size());
@@ -806,6 +877,7 @@ public class DbRequest {
                 return last;
             }
             // OBJECTGROUPS:
+            // TODO add unit tests
             final ObjectGroup og = new ObjectGroup(data);
             if (MongoDbMetadataHelper.exists(MetadataCollections.C_OBJECTGROUP, og.getId())) {
                 // Should not exist
@@ -858,6 +930,7 @@ public class DbRequest {
                 last.setNbResult(result.getDeletedCount());
                 return last;
             }
+            // TODO add unit tests
             // OBJECTGROUPS:
             final DeleteResult result =
                 MongoDbMetadataHelper.delete(MetadataCollections.C_OBJECTGROUP,

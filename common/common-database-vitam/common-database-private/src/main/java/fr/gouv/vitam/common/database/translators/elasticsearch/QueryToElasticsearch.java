@@ -77,7 +77,8 @@ public class QueryToElasticsearch {
         for (final String node : roots) {
             values[i++] = node;
         }
-        return QueryBuilders.termQuery(field, values);
+        // NB: terms and not term since multiple values
+        return QueryBuilders.termsQuery(field, values);
 
 
     }
@@ -274,6 +275,7 @@ public class QueryToElasticsearch {
      */
     private static QueryBuilder matchCommand(final QUERY query, final JsonNode content)
         throws InvalidParseOperationException {
+        // TODO add operator (and, or)
         final JsonNode max = ((ObjectNode) content).remove(QUERYARGS.MAX_EXPANSIONS.exactToken());
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(query.exactToken(), content);
         final String attribute = element.getKey();
@@ -443,7 +445,7 @@ public class QueryToElasticsearch {
                 if (!multiple) {
                     return QueryBuilders.termQuery(key, getAsObject(node));
                 }
-                return ((BoolQueryBuilder) query2).must(QueryBuilders.termQuery(key, getAsObject(node)));
+                ((BoolQueryBuilder) query2).must(QueryBuilders.termQuery(key, getAsObject(node)));
             } else {
                 final String val = node.asText();
                 QueryBuilder query3 = null;
@@ -456,7 +458,7 @@ public class QueryToElasticsearch {
                 if (!multiple) {
                     return query3;
                 }
-                return ((BoolQueryBuilder) query2).must(query3);
+                ((BoolQueryBuilder) query2).must(query3);
             }
         }
         return query2;
