@@ -159,7 +159,17 @@ public class AccessApplicationTest {
         .when()
         .put("/units/1")
         .then()
-        .statusCode(Status.NOT_ACCEPTABLE.getStatusCode());       
+        .statusCode(Status.NOT_ACCEPTABLE.getStatusCode());   
+        
+        
+        //TODO: update metadata client to return mock response
+        given()
+        .contentType(ContentType.JSON)
+        .body("{\"name\":\"123\"}")
+        .when()
+        .put("/units/1")
+        .then()
+        .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()); 
     }
     
     @Test
