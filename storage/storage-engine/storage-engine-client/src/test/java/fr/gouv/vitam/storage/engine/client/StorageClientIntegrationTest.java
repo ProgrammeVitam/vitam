@@ -48,17 +48,18 @@ public class StorageClientIntegrationTest {
     private static JunitHelper junitHelper;
     private static VitamServer vitamServer;
     private static int serverPort;
-    private static int workspacePort;
+    private static final int workspacePort = 8987;
     private static StorageClient storageClient;
     private static WorkspaceApplication workspaceApplication;
     private static WorkspaceClient workspaceClient;
-    
-    
+
+
     private static final String CONTAINER = "aeaaaaaaaaaam7mxaaaamakwfnzbudaaaaaq";
     private static final String OBJECT =
         "e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804.odp";
 
-    private static final String OBJECT_ID = "e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804";
+    private static final String OBJECT_ID =
+        "e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804";
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -67,18 +68,16 @@ public class StorageClientIntegrationTest {
 
         junitHelper = new JunitHelper();
         serverPort = junitHelper.findAvailablePort();
-        workspacePort = junitHelper.findAvailablePort();
         // launch workspace
         workspaceApplication = new WorkspaceApplication();
-        workspaceApplication
-            .configure(PropertiesUtils.getResourcesPath("workspace.conf").toString(), Integer.toString(workspacePort));
+        WorkspaceApplication.startApplication("workspace.conf");
         RestAssured.port = serverPort;
         RestAssured.basePath = REST_URI;
         StorageConfiguration serverConfiguration =
-            PropertiesUtils.readYaml(PropertiesUtils.findFile(STORAGE_CONF), StorageConfiguration.class);       
-        Pattern compiledPattern = Pattern.compile(":(\\d+)");        
-        Matcher matcher = compiledPattern.matcher(serverConfiguration.getUrlWorkspace());        
-        if (matcher.find()){
+            PropertiesUtils.readYaml(PropertiesUtils.findFile(STORAGE_CONF), StorageConfiguration.class);
+        Pattern compiledPattern = Pattern.compile(":(\\d+)");
+        Matcher matcher = compiledPattern.matcher(serverConfiguration.getUrlWorkspace());
+        if (matcher.find()) {
             String seg[] = serverConfiguration.getUrlWorkspace().split(":(\\d+)");
             serverConfiguration.setUrlWorkspace(seg[0]);
         }
@@ -104,7 +103,7 @@ public class StorageClientIntegrationTest {
 
         workspaceClient = WorkspaceClientFactory.create("http://localhost:" + workspacePort);
         destroyWorkspaceFiles();
-        createWorkspaceFiles();        
+        createWorkspaceFiles();
     }
 
     private static void createWorkspaceFiles()
@@ -121,8 +120,8 @@ public class StorageClientIntegrationTest {
                     OBJECT));
             workspaceClient.putObject(CONTAINER,
                 OBJECT_ID,
-                stream);            
-            workspaceClient.getObject(CONTAINER,OBJECT_ID);            
+                stream);
+            workspaceClient.getObject(CONTAINER, OBJECT_ID);
         } catch (Exception e) {
             LOGGER.error("Error getting or putting object : " + e);
         }
@@ -165,34 +164,32 @@ public class StorageClientIntegrationTest {
      */
     @Test
     public final void testStorage() throws VitamClientException, FileNotFoundException {
-        
+
         CreateObjectDescription description = new CreateObjectDescription();
         description.setWorkspaceContainerGUID(CONTAINER);
-        description.setWorkspaceObjectURI(OBJECT_ID);        
-        
+        description.setWorkspaceObjectURI(OBJECT_ID);
+
         // status
         storageClient.getStatus();
         try {
             JsonNode node = storageClient.getStorageInformation("0", "default");
             assertNotNull(node);
- //            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
+            // fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         } catch (VitamException svce) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
-        //TODO : when implemented, uncomment this
-        /*try {
-            storageClient.exists("0", "default", StorageCollectionType.OBJECTS, "objectId");            
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        } catch (StorageServerClientException svce) {
-            // not yet implemented
-        }*/
+        // TODO : when implemented, uncomment this
+        /*
+         * try { storageClient.exists("0", "default", StorageCollectionType.OBJECTS, "objectId");
+         * fail(SHOULD_NOT_RAIZED_AN_EXCEPTION); } catch (StorageServerClientException svce) { // not yet implemented }
+         */
         try {
             storageClient.storeFileFromWorkspace("0", "default", StorageCollectionType.OBJECTS, "objectId",
                 description);
         } catch (StorageServerClientException svce) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
-        
+
         try {
             InputStream stream = storageClient.getContainerObject("0", "default", OBJECT_ID);
             assertNotNull(stream);
@@ -200,19 +197,13 @@ public class StorageClientIntegrationTest {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
 
-        //TODO : when implemented, uncomment this
-        /*try {
-            storageClient.exists("0", "default", StorageCollectionType.OBJECTS, "objectId");
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        } catch (StorageServerClientException svce) {
-            // not yet implemented
-        }
-        try {
-            storageClient.delete("0", "default", StorageCollectionType.OBJECTS, "objectId");
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        } catch (Exception svce) {
-            // not yet implemented
-        }*/
+        // TODO : when implemented, uncomment this
+        /*
+         * try { storageClient.exists("0", "default", StorageCollectionType.OBJECTS, "objectId");
+         * fail(SHOULD_NOT_RAIZED_AN_EXCEPTION); } catch (StorageServerClientException svce) { // not yet implemented }
+         * try { storageClient.delete("0", "default", StorageCollectionType.OBJECTS, "objectId");
+         * fail(SHOULD_NOT_RAIZED_AN_EXCEPTION); } catch (Exception svce) { // not yet implemented }
+         */
 
     }
 
