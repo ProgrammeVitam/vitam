@@ -28,8 +28,10 @@
 package fr.gouv.vitam.ihmdemo.core;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
 
 import java.util.Map;
 import java.util.Map.Entry;
@@ -48,17 +50,20 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  * 
  */
 public final class DslQueryHelper {
-
+    
     public static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DslQueryHelper.class);
     // TODO: faire en sorte que LogbookMongoDbName ait une version publique "#qqc" (comme #id) pour permettre de
     // "masquer" l'implémentation.
     private static final String EVENT_TYPE_PROCESS = "evTypeProc";
+    private static final String DESCRIPTION = "Description";
+    private static final String TITLE = "Title";
     private static final String EVENT_DATE_TIME = "evDateTime";
     private static final String DEFAULT_EVENT_TYPE_PROCESS = "INGEST";
     private static final String PUID = "PUID";
     private static final String OBJECT_IDENTIFIER_INCOME = "obIdIn";
     private static final String FORMAT = "FORMAT";
     private static final String ORDER_BY = "orderby";
+    private static final String TITLE_AND_DESCRIPTION = "titleAndDescription";
     private static final String PROJECTION_PREFIX = "projection_";
     private static final String UPDATE_PREFIX = "update_";
 
@@ -156,6 +161,61 @@ public final class DslQueryHelper {
 
         }
 
+        if (booleanQueries.isReady()) {
+            select.addQueries(booleanQueries);
+        }
+
+        return select.getFinalSelect().toString();
+    }
+    /**
+     * @param searchCriteriaMap Criteria received from The IHM screen Empty Keys or Value is not allowed
+     * @return the JSONDSL File
+     * @throws InvalidParseOperationException thrown when an error occurred during parsing
+     * @throws InvalidCreateOperationException thrown when an error occurred during creation
+     */
+    public static String createSelectElasticsearchDSLQuery(Map<String, String> searchCriteriaMap)
+        throws InvalidParseOperationException, InvalidCreateOperationException {
+
+        final Select select = new Select();
+
+        BooleanQuery booleanQueries = or();
+        for (Entry<String, String> entry : searchCriteriaMap.entrySet()) {
+            String searchKeys = entry.getKey();
+            String searchValue = entry.getValue();
+
+            if (searchKeys.isEmpty() || searchValue.isEmpty()) {
+                throw new InvalidParseOperationException("Parameters should not be empty or null");
+            }
+
+            // Add projection for fields prefixed by projection_
+            if (searchKeys.startsWith(PROJECTION_PREFIX)) {
+                select.addUsedProjection(searchValue);
+                continue;
+            }
+
+            // Add order by
+            if (searchKeys.equals(ORDER_BY)) {
+                select.addOrderByAscFilter(searchValue);
+                continue;
+            }
+
+            // Add root
+            if (searchKeys.equals(UiConstants.SELECT_BY_ID.toString())) {
+                select.addRoots(searchValue);
+                continue;
+            }
+            
+            if (searchKeys.equals(TITLE_AND_DESCRIPTION)) {
+                booleanQueries.add(match(TITLE, searchValue));
+                booleanQueries.add(match(DESCRIPTION, searchValue));
+                continue;
+            }
+            
+            // By default add equals query
+            booleanQueries.add(match(searchKeys, searchValue));
+        }
+        
+        
         if (booleanQueries.isReady()) {
             select.addQueries(booleanQueries);
         }
