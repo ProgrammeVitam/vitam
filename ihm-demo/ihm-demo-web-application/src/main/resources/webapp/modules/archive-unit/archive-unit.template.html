@@ -1,159 +1,205 @@
-<header id="mainHeader" class="navbar navbar-default navbar-fixed-top">
-	<md-toolbar class="md-primary">
-	<div layout="row">
-		<md-toolbar-filler layout layout-align="center center">
-		<md-icon md-svg-icon="call:chat"></md-icon> </md-toolbar-filler>
-		<div>
-			<img src="images/150321-LogoVITAMV1-mini.jpg" />
-		</div>
-		<div class="md-toolbar-tools">
-			<h2 class="md-flex">Formulaire de l'Archive Unit :
-				{{$ctrl.archiveId}} / {{$ctrl.archiveTitle}}</h2>
-		</div>
-
-		<md-fab-toolbar md-open="false" count="0" md-direction="left">
-		<md-fab-trigger class="align-with-text"> <md-button
-			aria-label="menu" class="md-fab" style="background-color: white">
-		<md-icon md-svg-src="images/ic_menu_black_24px.svg"></md-icon> </md-button> </md-fab-trigger> <md-toolbar>
-		<md-fab-actions class="md-toolbar-tools"> <md-button
-			ng-if="!$ctrl.isEditMode" aria-label="comment" class="md-icon-button"
-			ng-click="$ctrl.switchToEditMode()" tooltip="Modifier"> <md-icon
-			md-svg-src="images/ic_mode_edit_black_24px.svg"></md-icon> </md-button> <md-button
-			ng-if="$ctrl.isEditMode" aria-label="photo" class="md-icon-button"
-			ng-click="$ctrl.cancelChanges()" tooltip="Annuler"> <md-icon
-			md-svg-src="images/ic_cancel_black_24px.svg"></md-icon> </md-button> <md-button
-			tooltip="Enregistrer" aria-label="label" class="md-icon-button"
-			ng-click="$ctrl.saveModifications($event)"> <md-icon
-			md-svg-src="images/ic_save_black_24px.svg"></md-icon> </md-button> </md-fab-actions> </md-toolbar> </md-fab-toolbar>
-	</div>
-	</md-toolbar>
-</header>
-
-<!-- <pre>{{$ctrl.updateQueryFields}}</pre>
-<pre>{{$ctrl.archiveArray}}</pre> -->
-
-<div id="global" class="container-fluid" >
-	<ol class="breadcrumb">
+<div id="global" class="container-fluid">
+  <ol class="breadcrumb">
     <li><a href="#">Page d'accueil</a></li>
     <li><a href="#!/archiveSearch">Formulaire de l'Archive Unit : {{$ctrl.archiveId}} / {{$ctrl.archiveTitle}}</a></li>
   </ol>
 
-	<div class="panel panel-default col-md-12">
-			<a class="panel-header" data-toggle="collapse" data-target="#details">
-				<h2>Détails</h2>
-			</a>
+  <div class="panel panel-default col-md-12">
+    <!-- <md-content flex layout-padding> -->
+    <a class="panel-header" data-toggle="collapse" data-target="#boxContractsList">
+      <h2>Détail d'une archive </h2>
+    </a>
+    <div id="boxContractsList" class="panel-collapse collapse in">
+      <div class="panel-body">
+        <!-- Add Unit Tree -->
+        <div ng-repeat="path in $ctrl.fullArchiveTree">
+          <ul ng-repeat="parent in path.slice().reverse()">
+            <li ng-style="$ctrl.getIntent($index)">
+              <a ng-href="#!/archiveunit/{{parent._id}}">{{parent.Title}}</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="text-right">
+        <button ng-if="!$ctrl.isEditMode" data-parent="#boxContractsList" ng-click="$ctrl.switchToEditMode()">
+          <i class="material-icons pull-left">create</i>
+          <span>Modifier</span>
+        </button>
+        <button ng-if="$ctrl.isEditMode" data-parent="#boxContractsList" ng-click="$ctrl.cancelChanges()">
+          <i class="material-icons pull-left">create</i>
+          <span>Annuler</span>
+        </button>
+        <button class="md-icon-button" data-parent="#boxContractsList" ng-click="$ctrl.saveModifications($event)">
+          <i class="material-icons pull-left">save</i>
+          <span>Sauvegarder</span>
+        </button>
+      </div>
 
+      <!--
+      *
+      *    DESCRIPTION
+      *
+      -->
+      <div class="panel-body">
+        <a class="panel-header" data-target="#boxDesc" data-toggle="collapse">
+          <i>Description</i>
+        </a>
+        <!-- Get description metadata -->
+        <div class="row archive-desc panel-collapse collapse in" id="boxDesc">
+          <!-- Main And mantatory fields with specific format -->
+          <div class="col-xs-12">
+            <div class="form-group col-md-6">
+              <div class="row simple-field">
+                <archive-unit-field field-size="'11'" intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
+                                    field-object="$ctrl.mainFields['ID']" edit-mode="$ctrl.isEditMode"
+                                    ng-model="$ctrl.mainFields['ID']">
+                </archive-unit-field>
+              </div>
+            </div>
+            <div class="form-group col-md-6">
+              <div class="row simple-field">
+                <archive-unit-field intercept-user-change="$ctrl.interceptUserChanges(fieldSet)" field-size="'5'"
+                                    display-value="$ctrl.mainFields['StartDate'].fieldValue | date:'dd/MM/yyyy'"
+                                    field-object="$ctrl.mainFields['StartDate']" edit-mode="$ctrl.isEditMode">
+                </archive-unit-field>
+                <archive-unit-field field-size="'5'" intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
+                                    display-value="$ctrl.mainFields['EndDate'].fieldValue | date:'dd/MM/yyyy'"
+                                    field-object="$ctrl.mainFields['EndDate']" edit-mode="$ctrl.isEditMode">
+                </archive-unit-field>
+              </div>
+            </div>
+          </div>
+          <div class="col-xs-12">
+            <div class="form-group col-md-6">
+              <div class="row simple-field">
+                <archive-unit-field field-size="'11'" intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
+                                    field-object="$ctrl.mainFields['Title']" edit-mode="$ctrl.isEditMode">
+                </archive-unit-field>
+              </div>
+            </div>
+            <div class="form-group col-md-6">
+              <div class="row simple-field">
+                <archive-unit-field field-size="'11'" intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
+                                    field-object="$ctrl.mainFields['DescriptionLevel']" edit-mode="$ctrl.isEditMode">
+                </archive-unit-field>
+              </div>
+            </div>
+          </div>
+          <div class="col-xs-12">
+            <div class="form-group col-md-6">
+              <div class="row simple-field">
+                <archive-unit-field field-size="'11'" intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
+                                    field-object="$ctrl.mainFields['OriginatingAgency'].content[0]" edit-mode="$ctrl.isEditMode">
+                </archive-unit-field>
+              </div>
+            </div>
+            <div class="form-group col-md-6">
+              <div class="row simple-field">
+                <archive-unit-field field-size="'11'" intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
+                                    field-object="$ctrl.mainFields['OriginatingAgency'].content[1]" edit-mode="$ctrl.isEditMode">
+                </archive-unit-field>
+              </div>
+            </div>
+          </div>
+          <div class="col-xs-12">
+            <div class="form-group col-md-6">
+              <div class="row simple-field">
+                <archive-unit-field field-size="'11'" intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
+                                    field-object="$ctrl.mainFields['Description']" edit-mode="$ctrl.isEditMode">
+                </archive-unit-field>
+              </div>
+            </div>
+          </div>
+          <div class="col-xs-12">
+            <div ng-if="fieldSet.typeF === 'P'" class="clearfix visible-xs" ng-repeat-start="fieldSet in $ctrl.archiveArray"></div>
+            <div class="{{fieldSet.typeF !=='P'? 'form-group col-md-6': 'col-xs-12'}}"
+                 ng-repeat-end>
+              <archive-unit-fieldtree intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
+                                      field-object="fieldSet" edit-mode="$ctrl.isEditMode">
+              </archive-unit-fieldtree>
+            </div>
+          </div>
+        </div>
+      </div>
 
-			<div id="details" class="panel-body panel-collapse collapse in">
+      <!--
+      *
+      *    GESTION
+      *
+      -->
+      <div class="panel-body">
+        <a class="panel-header" data-target="#boxManage" data-toggle="collapse">
+          <i>Gestion</i>
+        </a>
 
-				<!-- Add Unit Tree -->
-				<div ng-repeat="path in $ctrl.fullArchiveTree">
-					<ul ng-repeat="parent in path.slice().reverse()">
-						<li ng-style="$ctrl.getIntent($index)">
-							<a ng-href="#!/archiveunit/{{parent._id}}">{{parent.Title}}</a>
-						</li>
-					</ul>
-				</div>
+        <div class="row archive-desc panel-collapse collapse in" id="boxManage">
+          <div class="col-xs-12">
+            <div ng-if="fieldSet.typeF === 'P'" class="clearfix visible-xs" ng-repeat-start="fieldSet in $ctrl.managmentItems"></div>
+            <div class="{{fieldSet.typeF !=='P'?' form-group col-md-6': 'col-xs-12'}}"
+                 ng-repeat-end>
+              <archive-unit-fieldtree intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
+                                      field-object="fieldSet" edit-mode="$ctrl.isEditMode">
+              </archive-unit-fieldtree>
+            </div>
+          </div>
+        </div>
+      </div>
 
-				<div class="row">
-					<div class="col-xs-12">
-						<script type="text/ng-template" id="fieldTree">
-
-			               <!-- Simple Field -->
-			               <div class="row simple-field" ng-if="fieldSet.typeF!=='P' && fieldSet.isChild==false">
-			                 <div class="col-md-1">
-			                   <button type="button" class="btn btn-sm" aria-label="Left Align" ng-if="fieldSet.fieldName!=='ID' && $ctrl.isEditMode && fieldSet.isModificationAllowed" ng-model="fieldSet.isFieldEdit"
-			                     ng-init="fieldSet.isFieldEdit=false" ng-click="fieldSet.isFieldEdit=!fieldSet.isFieldEdit">
-			                     <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
-			                   </button>
-			                 </div>
-			                 <div>
-			                   <div class="col-md-5"><label class="label label-primary" style="font-size:14px">{{fieldSet.fieldName}}</label></div>
-			                   <div class="col-md-1"><label>:</label></div>
-			                   <div class="col-md-3">
-			                     <input type="text" ng-model=fieldSet.currentFieldValue ng-init=fieldSet.fieldValue ng-change="$ctrl.interceptUserChanges(fieldSet)" ng-if="fieldSet.typeF!=='P' && ($ctrl.isEditMode && fieldSet.isFieldEdit)
-			                     && fieldSet.fieldName!=='ID'"></input>
-			                     <label ng-if="fieldSet.typeF!=='P' && ((!$ctrl.isEditMode || !fieldSet.isFieldEdit)||fieldSet.fieldName=='ID')">{{fieldSet.fieldValue}}</label>
-			                   </div>
-			                 </div>
-			               </div>
-
-			               <div class ="col-xs-12 col-md-4" ng-if="fieldSet.typeF!=='P' && fieldSet.isChild==true">
-			                 <div class="col-md-1">
-			                   <button type="button" class="btn btn-sm" aria-label="Left Align" ng-if="fieldSet.fieldName!=='ID' && $ctrl.isEditMode != false && fieldSet.isModificationAllowed" ng-model="fieldSet.isFieldEdit"
-			                   ng-init="fieldSet.isFieldEdit=false" ng-click="fieldSet.isFieldEdit=!fieldSet.isFieldEdit">
-			                   <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
-			                   </button>
-			                 </div>
-			                 <div class="col-md-5"><label class="label label-primary" style="font-size:14px">{{fieldSet.fieldName}}</label></div>
-			                 <div class="col-md-1"><label>:</label></div>
-			                 <div class="col-md-3">
-			                   <input type="text" ng-model=fieldSet.currentFieldValue ng-init=fieldSet.fieldValue ng-change="$ctrl.interceptUserChanges(fieldSet)" ng-if="fieldSet.typeF!=='P' && ($ctrl.isEditMode && fieldSet.isFieldEdit)
-			                   && fieldSet.fieldName!=='ID'"></input>
-			                   <label ng-if="fieldSet.typeF!=='P' && ((!$ctrl.isEditMode || !fieldSet.isFieldEdit)||fieldSet.fieldName=='ID')">{{fieldSet.fieldValue}}</label>
-			                 </div>
-			               </div>
-
-			               <!-- Complex field -->
-			               <v-accordion ng-if="fieldSet.typeF=='P'" class="vAccordion--default" multiple>
-			                   <!-- add expanded attribute to open the section -->
-			                   <v-pane>
-			                     <v-pane-header>
-			                       {{fieldSet.fieldName}}
-			                     </v-pane-header>
-			                     <v-pane-content>
-			                       <div ng-repeat="fieldSet in fieldSet.content" ng-include="'fieldTree'"></div>
-			                     </v-pane-content>
-			                   </v-pane>
-			               </v-accordion>
-
-			           </script>
-						<div
-							class="{{fieldSet.typeF !=='P'?'col-xs-12 col-md-4': 'col-xs-12 col-md-12'}}"
-							ng-repeat="fieldSet in $ctrl.archiveArray" ng-include="'fieldTree'"></div>
-					</div>
-				</div>
-</div>
-</div>
-
-<div class="clearfix"></div>
-
-<!--
-*
-*    RESULTATS
-*
--->
-<div class="panel panel-default col-md-12">
-	<a class="panel-header" data-toggle="collapse" data-target="#boxObjectsResults">
-		<h2>Résultats</h2>
-	</a>
-	<div id="boxObjectsResults" class="panel-body panel-collapse collapse in">
-		<div class="table-responsive ">
-			<table class="table table-hover">
-				<thead>
-					<tr>
-						<th>Usage</th>
-						<th>Taille</th>
-						<th>Format</th>
-						<th>Date</th>
-						<th>Téléchargement</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr ng-repeat="version in archiveObjectGroups.versions | orderBy : 'DataObjectVersion'">
-						<td>{{version.DataObjectVersion}}</td>
-						<td>{{version.Size | filterSize}}</td>
-						<td>{{version.FormatLitteral}}</td>
-						<td>{{version.LastModified  | date:"dd/MM/yyyy"}}</td>
-						<td>
-							<a href="" ng-click="download($event, archiveObjectGroupsOgId , version.DataObjectVersion, version.Rank, version.FileName)" target="_blank">
-								<i class="material-icons">file_download</i>
-							</a>
-						</td>
-					</tr>
-				</tbody>
-			</table>
-		</div>
-	</div>
+      <!--
+      *
+      *    OBJETS
+      *
+      -->
+      <a class="panel-header" data-toggle="collapse" data-target="#boxObjectsResults">
+        <h2>Objets</h2>
+      </a>
+      <div id="boxObjectsResults" class="panel-body panel-collapse collapse in">
+        <div ng-repeat="(key, value) in $ctrl.technicalItems">
+          <div class="panel-body">
+            <a class="panel-header" data-target="{{'#box' + key}}" data-toggle="collapse">
+              <i>{{key}}</i>
+            </a>
+            <div class="row archive-desc panel-collapse collapse in" id="{{'box' + key}}">
+              <div ng-if="fieldSet.typeF === 'P'" class="clearfix visible-xs" ng-repeat-start="fieldSet in value"></div>
+              <div class="{{fieldSet.typeF !=='P'?' form-group col-md-6': 'col-xs-12'}}"
+                   ng-repeat-end>
+                <archive-unit-fieldtree intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
+                                        field-object="fieldSet" edit-mode="$ctrl.isEditMode">
+                </archive-unit-fieldtree>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="table-responsive ">
+          <table class="table table-hover">
+            <thead>
+            <tr>
+              <th>Usage</th>
+              <th>Taille</th>
+              <th>Format</th>
+              <th>Date</th>
+              <th>Téléchargement</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="version in archiveObjectGroups.versions | orderBy : 'DataObjectVersion'">
+              <td>{{version.DataObjectVersion}}</td>
+              <td>{{version.Size | filterSize}}</td>
+              <td>{{version.FormatLitteral}}</td>
+              <td>{{version.LastModified | date:"dd/MM/yyyy"}}</td>
+              <td>
+                <a href=""
+                   ng-click="download($event, archiveObjectGroupsOgId , version.DataObjectVersion, version.Rank, version.FileName)"
+                   target="_blank">
+                  <i class="material-icons">file_download</i>
+                </a>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 </div>

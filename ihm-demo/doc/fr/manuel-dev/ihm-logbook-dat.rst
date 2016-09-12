@@ -51,7 +51,7 @@ RAML associé ihm-logbook-rest.rst.
 2.1. Partie Frontend
 
 La partie Fontend web se trouve dans le sous module ihm-demo-web-application. Ce fontend web est développé 
-en Angular 2.0. Dans cette partie, nous trouvons des composants différents
+en AngularJS. Dans cette partie, nous trouvons des composants différents
 
 - views 
 - modules

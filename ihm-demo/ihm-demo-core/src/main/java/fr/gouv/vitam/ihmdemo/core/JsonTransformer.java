@@ -86,6 +86,7 @@ public final class JsonTransformer {
                 if (object.get("FileInfo").get("Filename") != null){
                     objectNode.put("FileName", object.get("FileInfo").get("Filename").asText());
                 }
+                objectNode.set("metadatas", object);
                 arrayNode.add(objectNode);
                 nbObjects++;
             }

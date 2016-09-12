@@ -443,6 +443,7 @@ table {
   border-bottom: 5px solid white;
   background-color: #eeeeee;
 }
+
 .table > tbody > tr:hover > td {
   background-color: #AD9FFF;
   color: white;
@@ -492,3 +493,20 @@ table {
 }
 
 /* STORY 87 */
+
+/* STORY 886 */
+
+.archive-desc .label {
+  display: inline;
+  color: black;
+}
+
+.remove-left-padding {
+  padding-left:0;
+}
+
+.overflow-break-words {
+  overflow-wrap: break-word;
+}
+
+/* STORY 886 */

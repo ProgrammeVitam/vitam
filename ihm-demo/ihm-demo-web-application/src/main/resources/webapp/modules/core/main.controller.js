@@ -27,7 +27,7 @@
 
 angular.module('core')
   .controller('mainViewController', function($rootScope, $scope, $location, IHM_URLS, authVitamService, $window, Restangular, subject, usernamePasswordToken) {
-    $scope.showMenuBar = !$location.url().toString().startsWith(IHM_URLS.ARCHIVE_DETAILS_PATH);
+    $scope.showMenuBar = true;
     $scope.credentials = usernamePasswordToken;
     $scope.session = {};
 
