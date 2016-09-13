@@ -530,7 +530,11 @@ public abstract class BuilderToken {
         /**
          * Unit's ObjectGroup
          */
-        OBJECT("og");
+        OBJECT("object"),
+        /**
+         * Unit's immediate parents
+         */
+        UNITUPS("unitups");
 
         private final String exactToken;
 

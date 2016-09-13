@@ -29,7 +29,10 @@ package fr.gouv.vitam.ihmdemo.appserver;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
@@ -50,6 +53,7 @@ import javax.ws.rs.core.Response.Status;
 import javax.xml.bind.DatatypeConverter;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.access.common.exception.AccessClientNotFoundException;
 import fr.gouv.vitam.access.common.exception.AccessClientServerException;
@@ -91,6 +95,7 @@ public class WebApplicationResource {
     private static final String SEARCH_CRITERIA_MANDATORY_MSG = "Search criteria payload is mandatory";
     private static final String FIELD_ID_KEY = "fieldId";
     private static final String NEW_FIELD_VALUE_KEY = "newFieldValue";
+    private static final String INVALID_ALL_PARENTS_TYPE_ERROR_MSG = "The parameter \"allParents\" is not an array";
 
     @Context
     private HttpServletRequest request;
@@ -658,5 +663,66 @@ public class WebApplicationResource {
         }
     }
 
+
+
+    /**
+     * This resource returns all paths relative to a unit
+     * 
+     * @param sessionId current session
+     * @param unitId the unit id
+     * @param allParents all parents unit
+     * @return all paths relative to a unit
+     */
+    @POST
+    @Path("/archiveunit/tree/{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getUnitTree(@CookieParam("sessionId") String sessionId, @PathParam("id") String unitId,
+        String allParents) {
+
+        if (!authenticationService.getSession(sessionId)) {
+            return Response.status(Status.UNAUTHORIZED).build();
+        }
+
+        ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitId);
+        ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, allParents);
+
+        try {
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(unitId));
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(allParents));
+
+            if (!JsonHandler.getFromString(allParents).isArray()) {
+                throw new VitamException(INVALID_ALL_PARENTS_TYPE_ERROR_MSG);
+            }
+            
+            // 1- Build DSL Query
+            ArrayNode allParentsArray = (ArrayNode) JsonHandler.getFromString(allParents);
+            List<String> allParentsList =
+                StreamSupport.stream(allParentsArray.spliterator(), false).map(p -> new String(p.asText()))
+            .collect(Collectors.toList());  
+            String preparedDslQuery = DslQueryHelper.createSelectUnitTreeDSLQuery(unitId, allParentsList);
+
+            // 2- Execute Select Query
+            JsonNode parentsDetails = UserInterfaceTransactionManager.searchUnits(preparedDslQuery);
+
+            // 3- Build Unit tree (all paths)
+            JsonNode unitTree = UserInterfaceTransactionManager.buildUnitTree(unitId,
+                parentsDetails.get(UiConstants.RESULT.getConstantValue()));
+
+            return Response.status(Status.OK).entity(unitTree).build();
+        } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
+            return Response.status(Status.BAD_REQUEST).build();
+        } catch (AccessClientServerException e) {
+            LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (AccessClientNotFoundException e) {
+            LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
+            return Response.status(Status.NOT_FOUND).build();
+        } catch (Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 
 }

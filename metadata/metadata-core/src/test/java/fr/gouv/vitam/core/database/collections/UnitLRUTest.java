@@ -33,6 +33,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -40,6 +41,8 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 public class UnitLRUTest {
     private static Unit testUnit = new Unit("{\"_id\": \"" + GUIDFactory.newUnitGUID(0) + "\"}");
 
+    // This test will be deleted because the cache will not be used any more
+    @Ignore
     @Test
     public void givenMongoDbAccessConstructorWhenPutAndRemoveKeyThenWorkCorrectly() {
         final UnitLRU unitLRU = new UnitLRU();

@@ -87,17 +87,13 @@ public class UnitLRU implements Map<String, Unit> {
      */
     @Override
     public Unit get(Object key) {
-        Unit unit = LRU_UNIT_CACHED.get((String) key);
+        // FIXME Delete LRU_UNIT_CACHED
+        Unit unit = (Unit) MongoDbMetadataHelper.select(MetadataCollections.C_UNIT,
+            eq(MetadataDocument.ID, key), Unit.UNIT_VITAM_PROJECTION).first();
         if (unit == null) {
-            unit = (Unit) MongoDbMetadataHelper.select(MetadataCollections.C_UNIT,
-                eq(MetadataDocument.ID, key), Unit.UNIT_VITAM_PROJECTION).first();
-            if (unit == null) {
-                return null;
-            }
-            LRU_UNIT_CACHED.put((String) key, unit);
-        } else {
-            LRU_UNIT_CACHED.updateTtl((String) key);
+            return null;
         }
+
         return unit;
     }
 

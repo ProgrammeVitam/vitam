@@ -462,17 +462,22 @@ public class Unit extends MetadataDocument<Unit> {
      */
     public List<Bson> getSubDepth() {
         final String id = getId();
-        // addAll to temporary HashMap
+
+        // addAll to temporary ArrayList
         @SuppressWarnings("unchecked")
-        final HashMap<String, Integer> vtDomaineLevels =
-            (HashMap<String, Integer>) get(UNITDEPTHS);
+        final ArrayList<Document> vtDomaineLevels =
+            (ArrayList<Document>) get(UNITDEPTHS);
         final int size = vtDomaineLevels != null ? vtDomaineLevels.size() + 1 : 1;
+
         // must compute depth from parent
         final List<Bson> sublist = new ArrayList<Bson>(size);
         if (vtDomaineLevels != null) {
-            for (final java.util.Map.Entry<String, Integer> entry : vtDomaineLevels
-                .entrySet()) {
-                sublist.add(new BasicDBObject(entry.getKey(), entry.getValue() + 1));
+            for (int i = 0; i < vtDomaineLevels.size(); i++) {
+                Document currentParent = vtDomaineLevels.get(i);
+                for (final java.util.Map.Entry<String, Object> entry : currentParent
+                    .entrySet()) {
+                    sublist.add(new BasicDBObject(entry.getKey(), (Integer) entry.getValue() + 1));
+                }
             }
         }
         sublist.add(new BasicDBObject(id, 1));

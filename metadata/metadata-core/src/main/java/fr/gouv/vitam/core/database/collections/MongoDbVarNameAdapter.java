@@ -77,6 +77,10 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
                 case OBJECT:
                     // Valid for Unit
                     return Unit.OG;
+                case UNITUPS:
+                    // Valid for OG
+                    return Unit.UP;
+
                 default:
                     break;
             }
