@@ -68,8 +68,9 @@ public class XSSWrapper extends HttpServletRequestWrapper {
         if (headers != null) {
             while(headers.hasMoreElements()){
                 String header = headers.nextElement();
-                isInfected =  isInfected | isValidString(header, HTTP_HEADER_NAME);
-                isInfected =  isInfected | isValidString(super.getHeader(header), HTTP_HEADER_VALUE);
+                String headerValue = super.getHeader(header);
+                isInfected =  isInfected | isStringInfected(header, HTTP_HEADER_NAME);
+                isInfected =  isInfected | isStringInfected(headerValue, HTTP_HEADER_VALUE);
             }
         }
         return isInfected;
@@ -81,8 +82,9 @@ public class XSSWrapper extends HttpServletRequestWrapper {
         if (params != null) {
             while(params.hasMoreElements()){
                 String param = params.nextElement();
-                isInfected =  isInfected | isValidString(param, HTTP_PARAMETER_NAME);
-                isInfected =  isInfected | isValidString(super.getParameter(param), HTTP_PARAMETER_VALUE);
+                String paramValue = super.getParameter(param);
+                isInfected =  isInfected | isStringInfected(param, HTTP_PARAMETER_NAME);
+                isInfected =  isInfected | isStringInfected(paramValue, HTTP_PARAMETER_VALUE);
             }
         }
         return isInfected;
@@ -95,7 +97,7 @@ public class XSSWrapper extends HttpServletRequestWrapper {
      * @param validator name declared in ESAPI.properties
      * @return boolean
      */
-    private static boolean isValidString(String value, String validator) {
-        return ESAPI.validator().isValidInput(validator, value, validator, REQUEST_LIMIT, true);
+    private static boolean isStringInfected(String value, String validator) {
+        return !ESAPI.validator().isValidInput(validator, value, validator, REQUEST_LIMIT, true);
     }
 }

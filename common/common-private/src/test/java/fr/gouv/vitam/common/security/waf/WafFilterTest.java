@@ -68,7 +68,7 @@ public class WafFilterTest {
         headers = header.elements();
         
         when(httpServletRequest.getHeaderNames()).thenReturn(headers);
-        when(httpServletRequest.getHeader("test")).thenReturn("<?php echo\" Hello \" ?>");
+        when(httpServletRequest.getHeader("Sunday")).thenReturn("<?php echo\" Hello \" ?>");
         filter.doFilter(httpServletRequest, httpServletResponse, filterChain);
         
         verify(httpServletResponse).setStatus(Status.NOT_ACCEPTABLE.getStatusCode());
