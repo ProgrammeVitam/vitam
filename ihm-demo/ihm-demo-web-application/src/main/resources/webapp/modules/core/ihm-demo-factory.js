@@ -35,7 +35,8 @@ angular.module('core')
   'ARCHIVE_DETAILS_CONFIG_FILE': 'modules/config/archive-details.json',
   'ARCHIVE_DETAILS_PATH': '/archiveunit/',
   'ARCHIVE_OBJECT_GROUP_URL': '/archiveunit/objects/',
-  'ARCHIVE_OBJECT_GROUP_DOWNLOAD_URL': '/archiveunit/objects/download/'
+  'ARCHIVE_OBJECT_GROUP_DOWNLOAD_URL': '/archiveunit/objects/download/',
+  'ARCHIVE_TREE_URL': '/archiveunit/tree/'
 })
 
 /*ihmDemoCLient create a configured http client*/
@@ -68,13 +69,18 @@ angular.module('core')
   dataFactory.getArchiveObjectGroup = function(ogId){
     return $http.get(IHM_URLS.IHM_BASE_URL + IHM_URLS.ARCHIVE_OBJECT_GROUP_URL + ogId);
   };
-  
+
   //Get Object List
   dataFactory.getObjectAsInputStream = function(ogId, options){
     return $http.post(IHM_URLS.IHM_BASE_URL + IHM_URLS.ARCHIVE_OBJECT_GROUP_DOWNLOAD_URL + ogId, options , {
         headers: {'X-Http-Method-Override': 'GET', 'Accept': 'application/octet-stream'}, responseType: 'arraybuffer'  });
   };
-  
+
+  // Archive Tree
+  dataFactory.getArchiveTree = function(unitId, allParents){
+    return $http.post(IHM_URLS.IHM_BASE_URL + IHM_URLS.ARCHIVE_TREE_URL + unitId, allParents);
+  };
+
   return dataFactory;
 }])
 

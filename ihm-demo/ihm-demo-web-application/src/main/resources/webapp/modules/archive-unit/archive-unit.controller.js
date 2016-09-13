@@ -84,6 +84,7 @@ angular.module('archive.unit')
     self.archiveId = $routeParams.archiveId;
     self.archiveTitle = '';
     self.archiveArray=[];
+    self.archiveTree = [];
 
     // Get required data
     self.archiveFields = $window.data;
@@ -232,15 +233,13 @@ angular.module('archive.unit')
     	    	  }
     	      },function (error) {
     	    	  console.log("errorMsg");
-    	      });              
+    	      });
               self.archiveArray=[];
               self.displayArchiveDetails();
 
               // Refresh archive Details
               // Cancel EditMode
               self.isEditMode = false;
-              // self.showMessageToast("Mise à jour réussie de l'archive unit");
-
               self.showAlert($event, "Info", "Mise à jour réussie de l'archive unit");
             }
           };
@@ -254,8 +253,6 @@ angular.module('archive.unit')
 
       }, function (error) {
         console.log('Update Archive unit failed : ' + error.message);
-        // self.showMessageToast("Erreur survenue à la mise à jour de l'archive unit");
-
         self.showAlert($event, "Erreur", "Erreur survenue à la mise à jour de l'archive unit");
       });
     };
@@ -269,21 +266,33 @@ angular.module('archive.unit')
         } else {
           // Archive unit found
           self.archiveFields = data.$result[0];
+
           //get archive object groups informations to be displayed in the table
           ihmDemoFactory.getArchiveObjectGroup(self.archiveFields._og)
-	      .then(function (response) {
-	    	  var dataOG = response.data;	    	  ;
-	    	  if (dataOG.nbObjects == null || dataOG.nbObjects == undefined ||
-	    			  dataOG.versions == null || dataOG.versions == undefined){
-	    		  // ObjectGroups Not Found
-	    		  console.log("errorMsg");
-	    	  } else {
-	    		  $scope.archiveObjectGroups = dataOG;
-	    		  $scope.archiveObjectGroupsOgId = self.archiveFields._og;
-	    	  }
-	      },function (error) {
-	    	  console.log("errorMsg");
-	      });
+  	      .then(function (response) {
+  	    	  var dataOG = response.data;	    	  ;
+  	    	  if (dataOG.nbObjects == null || dataOG.nbObjects == undefined ||
+  	    			  dataOG.versions == null || dataOG.versions == undefined){
+  	    		  // ObjectGroups Not Found
+  	    		  console.log("errorMsg");
+  	    	  } else {
+  	    		  $scope.archiveObjectGroups = dataOG;
+  	    		  $scope.archiveObjectGroupsOgId = self.archiveFields._og;
+  	    	  }
+  	      },function (error) {
+  	    	  console.log("errorMsg");
+  	      });
+
+          // Get Archive Tree
+          ihmDemoFactory.getArchiveTree(self.archiveFields._id, self.archiveFields._us)
+  	      .then(function (response) {
+  	    	  self.archiveTree = response.data;
+            console.log("Archive tree: " + self.archiveTree);
+  	      },function (error) {
+  	    	  console.log("Archive tree search failed");
+  	      });
+
+
           self.archiveArray=[];
           self.isEditMode = false;
           self.displayArchiveDetails();
@@ -330,6 +339,16 @@ angular.module('archive.unit')
 	      },function (error) {
 	    	  console.log("errorMsg");
 	      });
+
+        // Get Archive Tree
+        ihmDemoFactory.getArchiveTree(self.archiveFields._id, self.archiveFields._us)
+        .then(function (response) {
+          self.archiveTree = response.data;
+          console.log("Archive tree: " + self.archiveTree);
+        },function (error) {
+          console.log("Archive tree search failed");
+        });
+
         // Other fields
         angular.forEach(self.archiveFields, function(value, key) {
             if(key !== ARCHIVE_UNIT_MODULE_CONST.MGT_KEY && key !== ARCHIVE_UNIT_MODULE_CONST.ID_KEY &&
@@ -408,7 +427,9 @@ angular.module('archive.unit')
           .hideDelay(3000)
       );
     };
-    
+    // **************************************************************************** //
+
+    // ************************* Download object file ********************************** //
     $scope.download = function($event, objGId, usage, version, fileName) {
         var options = {};
         options.usage = usage;
@@ -426,7 +447,7 @@ angular.module('archive.unit')
 	    	  console.log('ERROR : '+error);
 	      });
       }
-    
-    // **************************************************************************** //    
-    
+
+    // ********************************************************************************* //
+
   });
