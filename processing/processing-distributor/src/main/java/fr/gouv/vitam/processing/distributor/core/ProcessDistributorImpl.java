@@ -54,7 +54,6 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
  * The Process Distributor call the workers {@link Worker}and intercept the response for manage a post actions step
- *
  */
 public class ProcessDistributorImpl implements ProcessDistributor {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessDistributorImpl.class);
@@ -98,11 +97,11 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         final long time = System.currentTimeMillis();
         final EngineResponse errorResponse = new ProcessResponse();
         errorResponse.setStatus(StatusCode.FATAL);
-        final List<EngineResponse> responses = new ArrayList<>(); 
+        final List<EngineResponse> responses = new ArrayList<>();
         String processId = (String) workParams.getAdditionalProperties().get(WorkParams.PROCESS_ID);
         String uniqueStepId = (String) workParams.getAdditionalProperties().get(WorkParams.STEP_ID);
         try {
-            
+
             if (step.getDistribution().getKind().equals(DistributionKind.LIST)) {
                 final WorkspaceClient workspaceClient =
                     WorkspaceClientFactory.create(workParams.getServerConfiguration().getUrlWorkspace());
@@ -139,31 +138,31 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 if (objectsList == null || objectsList.isEmpty()) {
                     responses.add(errorResponse);
                 } else {
-                    //update the number of element to process                    
+                    // update the number of element to process
                     ProcessMonitoringImpl.getInstance().updateStep(processId, uniqueStepId, objectsList.size(), false);
                     for (final URI objectUri : objectsList) {
                         if (availableWorkers.isEmpty()) {
                             LOGGER.info(errorResponse.getStatus().toString());
                             responses.add(errorResponse);
                             break;
-                        } else {                            
+                        } else {
                             // TODO distribution Management
                             responses.addAll(workers.get(0).run(workParams.setObjectName(objectUri.getPath()), step));
-                            //update the number of processed element
-                            ProcessMonitoringImpl.getInstance().updateStep(processId, uniqueStepId, 0, true);                            
+                            // update the number of processed element
+                            ProcessMonitoringImpl.getInstance().updateStep(processId, uniqueStepId, 0, true);
                         }
                     }
                 }
             } else {
-                //update the number of element to process
+                // update the number of element to process
                 ProcessMonitoringImpl.getInstance().updateStep(processId, uniqueStepId, 1, false);
                 if (availableWorkers.isEmpty()) {
                     LOGGER.info(errorResponse.getStatus().toString());
                     responses.add(errorResponse);
-                } else {                    
+                } else {
                     responses.addAll(
                         workers.get(0).run(workParams.setObjectName(step.getDistribution().getElement()), step));
-                    //update the number of processed element
+                    // update the number of processed element
                     ProcessMonitoringImpl.getInstance().updateStep(processId, uniqueStepId, 0, true);
                 }
             }

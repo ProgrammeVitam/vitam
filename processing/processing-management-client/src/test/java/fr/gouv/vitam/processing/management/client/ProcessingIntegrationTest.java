@@ -26,8 +26,27 @@
  */
 package fr.gouv.vitam.processing.management.client;
 
+import static com.jayway.restassured.RestAssured.get;
+import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import java.io.File;
+import java.io.InputStream;
+import java.nio.file.Path;
+import java.util.Map;
+
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.node.Node;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
+
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -40,7 +59,6 @@ import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.metadata.rest.MetaDataApplication;
 import fr.gouv.vitam.processing.common.exception.ProcessingInternalServerException;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
@@ -49,22 +67,6 @@ import fr.gouv.vitam.processing.management.rest.ProcessManagementApplication;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.node.Node;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import java.io.File;
-import java.io.InputStream;
-import java.util.Map;
-
-import static com.jayway.restassured.RestAssured.get;
-import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 /**
  *
@@ -84,32 +86,31 @@ public class ProcessingIntegrationTest {
     private static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
 
-    private static final int PORT_SERVICE_PROCESSING = 8098;
+    private static int PORT_SERVICE_PROCESSING;
     private static final int PORT_SERVICE_WORKSPACE = 8094;
-    private static int PORT_SERVICE_METADATA; // = 8096;
+    private static final int PORT_SERVICE_METADATA = 8096;
 
     private static final String SIP_FOLDER = "SIP";
     private static final String METADATA_PATH = "/metadata/v1";
     private static final String PROCESSING_PATH = "/processing/api/v0.0.3";
     private static final String WORKSPACE_PATH = "/workspace/v1";
 
-    private static String CONFIG_PROCESSING_PATH = "";
-    private static String CONFIG_WORKSPACE_PATH = "";
-    private static String CONFIG_METADATA_PATH = "";
+    private static Path CONFIG_PROCESSING_PATH;
+    private static Path CONFIG_WORKSPACE_PATH;
+    private static Path CONFIG_METADATA_PATH;
 
     private static JunitHelper junitHelper;
 
     private static ProcessManagementApplication processApplication;
     private static WorkspaceApplication workspaceApplication;
     private static MetaDataApplication medtadataApplication;
-    //private static int PORT_SERVICE_METADATA;
 
     private WorkspaceClient workspaceClient;
     private ProcessingManagementClient processingClient;
 
     private static ProcessMonitoringImpl processMonitoring;
-    private static final String WORKSPACE_URL = "http://localhost:" + PORT_SERVICE_WORKSPACE;
-    private static final String PROCESSING_URL = "http://localhost:" + PORT_SERVICE_PROCESSING;
+    private static String WORKSPACE_URL;
+    private static String PROCESSING_URL;
 
     private static String WORFKLOW_NAME = "DefaultIngestWorkflow";
     private static String CONTAINER_NAME = GUIDFactory.newGUID().toString();
@@ -120,9 +121,9 @@ public class ProcessingIntegrationTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        CONFIG_METADATA_PATH = PropertiesUtils.getResourcesPath("metadata.conf").toString();
-        CONFIG_PROCESSING_PATH = PropertiesUtils.getResourcesPath("processing.conf").toString();
-        CONFIG_WORKSPACE_PATH = PropertiesUtils.getResourcesPath("workspace.conf").toString();
+        CONFIG_METADATA_PATH = PropertiesUtils.getResourcesPath("metadata.conf");
+        CONFIG_PROCESSING_PATH = PropertiesUtils.getResourcesPath("processing.conf");
+        CONFIG_WORKSPACE_PATH = PropertiesUtils.getResourcesPath("workspace.conf");
 
         elasticsearchHome = tempFolder.newFolder();
         Settings settings = Settings.settingsBuilder()
@@ -141,7 +142,6 @@ public class ProcessingIntegrationTest {
 
         node.start();
 
-
         final MongodStarter starter = MongodStarter.getDefaultInstance();
 
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
@@ -153,17 +153,24 @@ public class ProcessingIntegrationTest {
         // launch metadata
         junitHelper = new JunitHelper();
         medtadataApplication = new MetaDataApplication();
-        PORT_SERVICE_METADATA = junitHelper.findAvailablePort();
-        SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_METADATA));
-        medtadataApplication.configure(CONFIG_METADATA_PATH);
+        SystemPropertyUtil
+            .set(MetaDataApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_METADATA));
+        medtadataApplication.configure("metadata.conf");
 
         // launch processing
+        PORT_SERVICE_PROCESSING = junitHelper.findAvailablePort();
+        PROCESSING_URL = "http://localhost:" + PORT_SERVICE_PROCESSING;
+        SystemPropertyUtil
+            .set(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_PROCESSING));
         processApplication = new ProcessManagementApplication();
-        processApplication.configure(CONFIG_PROCESSING_PATH, Integer.toString(PORT_SERVICE_PROCESSING));
+        ProcessManagementApplication.startApplication("processing.conf");
 
         // launch workspace
+        WORKSPACE_URL = "http://localhost:" + PORT_SERVICE_WORKSPACE;
+        SystemPropertyUtil
+            .set(WorkspaceApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_WORKSPACE));
         workspaceApplication = new WorkspaceApplication();
-        workspaceApplication.configure(CONFIG_WORKSPACE_PATH, Integer.toString(PORT_SERVICE_WORKSPACE));
+        WorkspaceApplication.startApplication("workspace.conf");
 
         CONTAINER_NAME = GUIDFactory.newGUID().toString();
         processMonitoring = ProcessMonitoringImpl.getInstance();

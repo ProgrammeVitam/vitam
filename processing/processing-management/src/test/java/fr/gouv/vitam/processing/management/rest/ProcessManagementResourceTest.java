@@ -26,27 +26,27 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.rest;
 
-import static com.jayway.restassured.RestAssured.get;
-import static com.jayway.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.equalTo;
-
-import javax.ws.rs.core.Response.Status;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.http.ContentType;
+import fr.gouv.vitam.api.model.RequestResponseError;
+import fr.gouv.vitam.api.model.VitamError;
+import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.processing.common.ProcessingEntry;
+import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.http.ContentType;
+import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.api.model.RequestResponseError;
-import fr.gouv.vitam.api.model.VitamError;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.processing.common.ProcessingEntry;
-import fr.gouv.vitam.processing.common.config.ServerConfiguration;
+import static com.jayway.restassured.RestAssured.get;
+import static com.jayway.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
 
 public class ProcessManagementResourceTest {
 
@@ -56,6 +56,7 @@ public class ProcessManagementResourceTest {
     private static final String URL_METADATA = "http://localhost:8086";
     private static final String URL_WORKSPACE = "http://localhost:8084";
     private static final String CONTAINER_NAME = "sipContainer";
+    private static final String JETTY_CONFIG = "jetty-config-test.xml";
     private static JunitHelper junitHelper;
     private static int port;
 
@@ -63,10 +64,15 @@ public class ProcessManagementResourceTest {
     public static void setUpBeforeClass() throws Exception {
         junitHelper = new JunitHelper();
         port = junitHelper.findAvailablePort();
+
+        //TODO verifier la compatibilité avec les tests parallèles sur jenkins
+        SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(port));
+
         final ServerConfiguration configuration = new ServerConfiguration();
         configuration.setUrlMetada(URL_METADATA);
         configuration.setUrlWorkspace(URL_WORKSPACE);
-        ProcessManagementApplication.run(configuration, port);
+        configuration.setJettyConfig(JETTY_CONFIG);
+        ProcessManagementApplication.run(configuration);
         RestAssured.port = port;
         RestAssured.basePath = DATA_URI;
     }

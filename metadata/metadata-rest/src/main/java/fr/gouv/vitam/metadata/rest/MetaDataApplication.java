@@ -53,6 +53,7 @@ public class MetaDataApplication extends AbstractVitamApplication<MetaDataApplic
     private MetaDataConfiguration configuration;
     private static final String CONF_FILE_NAME = "metadata.conf";
     private static final String MODULE_NAME = "MataData";
+    public static final String PARAMETER_JETTY_SERVER_PORT = "jetty.metadata.port";
 
     /**
      * Metadata applicaiotn constructor

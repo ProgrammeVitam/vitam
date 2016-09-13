@@ -26,14 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.rest;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import org.junit.*;
 
 public class ProcessManagementApplicationTest {
 
@@ -56,7 +51,7 @@ public class ProcessManagementApplicationTest {
     public void setup() throws Exception {
         application = new ProcessManagementApplication();
     }
-    
+
     @After
     public void end() {
         try {
@@ -68,17 +63,27 @@ public class ProcessManagementApplicationTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void givenEmptyArgsWhenConfigureApplicationOThenRaiseAnException() throws Exception {
-        application.configure(new String[0]);
+        ProcessManagementApplication.startApplication(new String[0]);
     }
 
     @Test(expected = Exception.class)
     public void givenFileNotFoundWhenConfigureApplicationThenRaiseAnException() throws Exception {
-        application.configure(PropertiesUtils.getResourcesPath("notFound.conf").toString());
+        application.configure(PropertiesUtils.getResourcesPath("notFound.conf"));
     }
 
     @Test
     public void givenFileExistsWhenConfigureApplicationThenRunServer() throws Exception {
-        application.configure(PropertiesUtils.getResourcesPath("processing.conf").toString(), Integer.toString(port));
+        application.configure(PropertiesUtils.getResourcesPath("processing.conf"));
     }
 
+    @Test
+    public void givenConfigFileWhenGetConfigThenReturnCorrectConfig() {
+        Assert.assertEquals("processing.conf", application.getConfigFilename());
+    }
+
+    @Test
+    public void givenFileExistsWhenStartupApplicationThenRunServer() throws Exception {
+        application.startApplication("processing.conf");
+        application.stop();
+    }
 }
