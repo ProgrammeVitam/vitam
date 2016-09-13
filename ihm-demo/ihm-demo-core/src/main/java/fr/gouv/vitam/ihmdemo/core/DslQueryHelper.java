@@ -30,7 +30,10 @@ package fr.gouv.vitam.ihmdemo.core;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.gte;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.lte;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
 
@@ -38,6 +41,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import org.apache.commons.lang3.StringUtils;
 
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
@@ -71,6 +76,15 @@ public final class DslQueryHelper {
     private static final String TITLE_AND_DESCRIPTION = "titleAndDescription";
     private static final String PROJECTION_PREFIX = "projection_";
     private static final int DEPTH_LIMIT = 20;
+    private static final String START_PREFIX = "Start";
+    private static final String END_PREFIX = "End";
+    private static final String START_DATE = "StartDate";
+    private static final String END_DATE = "EndDate";
+    private static final String TRANSACTED_DATE = "TransactedDate";
+    private static final String ADVANCED_SEARCH_FLAG = "isAdvancedSearchFlag";
+    private static final String YES = "yes";
+
+
 
     /**
      * generate the DSL query after receiving the search criteria
@@ -131,6 +145,7 @@ public final class DslQueryHelper {
      * @throws InvalidParseOperationException thrown when an error occurred during parsing
      * @throws InvalidCreateOperationException thrown when an error occurred during creation
      */
+
     public static String createSelectDSLQuery(Map<String, String> searchCriteriaMap)
         throws InvalidParseOperationException, InvalidCreateOperationException {
 
@@ -186,8 +201,12 @@ public final class DslQueryHelper {
         throws InvalidParseOperationException, InvalidCreateOperationException {
 
         final Select select = new Select();
-
+        BooleanQuery andQuery = and();
         BooleanQuery booleanQueries = or();
+        String startDate = null;
+        String endDate = null;
+        String advancedSearchFlag = "";
+
         for (Entry<String, String> entry : searchCriteriaMap.entrySet()) {
             String searchKeys = entry.getKey();
             String searchValue = entry.getValue();
@@ -219,17 +238,46 @@ public final class DslQueryHelper {
                 booleanQueries.add(match(DESCRIPTION, searchValue));
                 continue;
             }
+            if (searchKeys.equalsIgnoreCase(TITLE)) {
+                andQuery.add(match(TITLE, searchValue));
+                continue;
+            }
+            if (searchKeys.equalsIgnoreCase(DESCRIPTION)) {
+                andQuery.add(match(DESCRIPTION, searchValue));
+                continue;
+            }
+            if (searchKeys.startsWith(START_PREFIX)) {
+                startDate = searchValue;
+                continue;
+            }
+            if (searchKeys.startsWith(END_PREFIX)) {
+                endDate = searchValue;
+                continue;
+            }
+            if (searchKeys.equalsIgnoreCase(ADVANCED_SEARCH_FLAG)) {
+                advancedSearchFlag = searchValue;
+                continue;
+            }
 
             // By default add equals query
             booleanQueries.add(match(searchKeys, searchValue));
         }
-
-
-        if (booleanQueries.isReady()) {
-            booleanQueries.setDepthLimit(DEPTH_LIMIT);
-            select.addQueries(booleanQueries);
+        // US 509:start AND end date must be filled.
+        if (StringUtils.isNotBlank(endDate) && StringUtils.isNotBlank(startDate)) {
+            andQuery.add(createSearchUntisQueryByDate(startDate, endDate));
         }
 
+        if (advancedSearchFlag.equalsIgnoreCase(YES)) {
+            if (andQuery.isReady()) {
+                andQuery.setDepthLimit(DEPTH_LIMIT);
+                select.addQueries(andQuery);
+            }
+        } else {
+            if (booleanQueries.isReady()) {
+                booleanQueries.setDepthLimit(DEPTH_LIMIT);
+                select.addQueries(booleanQueries);
+            }
+        }
         return select.getFinalSelect().toString();
     }
 
@@ -303,6 +351,31 @@ public final class DslQueryHelper {
         }
 
         return selectParentsDetails.getFinalSelect().toString();
+    }
+
+
+    private static BooleanQuery createSearchUntisQueryByDate(String startDate, String endDate)
+        throws InvalidCreateOperationException {
+
+        LOGGER.debug("in createSearchUntisQueryByDate / beginDate:" + startDate + "/ endDate:" + endDate);
+
+        BooleanQuery query = or();
+
+        if (StringUtils.isNotBlank(endDate) && StringUtils.isNotBlank(startDate)) {
+            BooleanQuery transactedDateBetween = and();
+            // search by transacted date
+            transactedDateBetween.add(gte(TRANSACTED_DATE, startDate));
+            transactedDateBetween.add(lte(TRANSACTED_DATE, endDate));
+            query.add(transactedDateBetween);
+            // search by begin and end date
+            BooleanQuery queryAroundDate = and();
+            queryAroundDate.add(gte(END_DATE, startDate));
+            queryAroundDate.add(lte(START_DATE, endDate));
+            query.add(queryAroundDate);
+        }
+        LOGGER.debug("in createSearchUntisQueryByDate / query:" + query.toString());
+        return query;
+
     }
 
 }

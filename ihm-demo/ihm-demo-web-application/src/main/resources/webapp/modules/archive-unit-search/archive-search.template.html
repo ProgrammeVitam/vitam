@@ -36,11 +36,11 @@
           <div id="boxAdvanced" class="panel-body panel-collapse collapse in">
             <div class="form-group col-md-4">
               <label>Titre</label>
-              <input type="text" class="form-control input-sm" />
+              <input ng-model="title" type="text" class="form-control input-sm" />
             </div>
             <div class="form-group col-md-6">
               <label>Description</label>
-              <input type="text" class="form-control input-sm" />
+              <input ng-model="description" type="text" class="form-control input-sm" />
             </div>
             <div class="form-group col-md-2">
               <label>ID</label>
@@ -49,19 +49,19 @@
             <div class="form-group col-md-2">
               <label>Dates Extrêmes</label>
               <div class="input-group">
-                <input  id="startDate" type="text" class="form-control input-sm" />
+                <input ng-model="startDate" id="startDate" type="text" class="form-control input-sm" />
                 <div class="input-group-addon"><i class="material-icons">date_range</i></div>
               </div>
             </div>
             <div class="form-group col-md-2">
               <label>&nbsp;</label>
               <div class="input-group">
-                <input  id="endDate" type="text" class="form-control input-sm" />
+                <input ng-model="endDate" id="endDate" type="text" class="form-control input-sm" />
                 <div class="input-group-addon"><i class="material-icons">date_range</i></div>
               </div>
             </div>
             <div class="clearfix"></div>
-            <button class="btn btn-primary center-block"><i class="material-icons pull-left">search</i><span>Rechercher</span></button>
+            <button class="btn btn-primary center-block" ng-click="getElasticSearchUnitsResult($event, title,description,startDate,endDate)"><i class="material-icons pull-left">search</i><span>Rechercher</span></button>
           </div>
         </div>
       </div>
@@ -70,8 +70,8 @@
     <!--  Nbre d'archives trouvées -->
     <div class="col-md-12 center-block" style="padding-bottom: 20px">
       <!-- <button ng-if="showResult" class="btn btn-primary center-block" type="button"> -->
-        <span  class="center-block" ng-if = "totalResult > 0">Nombre de résultats : <span class="badge">{{totalResult}}</span> </span>
-        <span class="center-block" ng-if = "totalResult == 0">Aucun résulat trouvé</span>
+        <span  class="center-block" ng-if = "showResult && totalResult > 0">Nombre de résultats : <span class="badge">{{totalResult}}</span> </span>
+        <span class="center-block" ng-if = "showResult && totalResult == 0">Aucun résulat trouvé</span>
       <!-- </button> -->
     </div>
   </div>
