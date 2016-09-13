@@ -5,12 +5,11 @@ import java.io.InputStream;
 
 import javax.ws.rs.core.Response.Status;
 
-import com.fasterxml.jackson.core.JsonGenerationException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
+import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
 /**
@@ -20,9 +19,10 @@ public interface AdminManagementClient {
 
     /**
      * @param stream as InputStream;
+     * @return
      * @throws ReferentialException when check exception occurs
      */
-    void checkFormat(InputStream stream) throws ReferentialException;
+    Status checkFormat(InputStream stream) throws ReferentialException;
 
 
     /**
@@ -66,10 +66,53 @@ public interface AdminManagementClient {
      * @throws ReferentialException when referential format exception occurs
      * @throws InvalidParseOperationException when json exception occurs
      * @throws IOException when io data exception occurs
-     * @throws JsonMappingException when json exception occurs
-     * @throws JsonGenerationException when json exception occurs
      */
     JsonNode getFormats(JsonNode query)
-        throws ReferentialException, InvalidParseOperationException, JsonGenerationException, JsonMappingException,
+        throws ReferentialException, InvalidParseOperationException,
+        IOException;
+
+    /**
+     * 
+     * @param stream
+     * @return
+     * @throws FileRulesException
+     */
+
+    Status checkRulesFile(InputStream stream) throws FileRulesException;
+
+    /**
+     * 
+     * @param stream
+     * @throws FileRulesException when file rules exception occurs
+     * @throws DatabaseConflictException when Database conflict exception occurs
+     */
+    void importRulesFile(InputStream stream) throws FileRulesException, DatabaseConflictException;
+
+    /**
+     * 
+     * @throws FileRulesException
+     */
+
+    void deleteRulesFile() throws FileRulesException;
+
+    /**
+     * 
+     * @param id ide de rule
+     * @return
+     * @throws FileRulesException when file rules exception occurs
+     * @throws InvalidParseOperationException when a parse problem occurs
+     */
+    JsonNode getRuleByID(String id) throws FileRulesException, InvalidParseOperationException;
+
+    /**
+     * 
+     * @param query
+     * @return
+     * @throws FileRulesException when file rules exception occurs
+     * @throws InvalidParseOperationException when a parse problem occurs
+     * @throws IOException when IO Exception occurs
+     */
+    JsonNode getRule(JsonNode query)
+        throws FileRulesException, InvalidParseOperationException,
         IOException;
 }

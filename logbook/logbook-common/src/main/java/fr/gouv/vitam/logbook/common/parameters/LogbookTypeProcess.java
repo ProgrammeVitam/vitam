@@ -56,5 +56,9 @@ public enum LogbookTypeProcess {
     /**
      * Update process
      */
-    UPDATE
+    UPDATE,
+    /**
+     * Rules Manager process
+     */
+    RULESMANAGER
 }

@@ -81,7 +81,8 @@ public final class DslQueryHelper {
      */
     public static String createSingleQueryDSL(Map<String, String> searchCriteriaMap)
         throws InvalidParseOperationException, InvalidCreateOperationException {
-        final fr.gouv.vitam.common.database.builder.request.single.Select select = new fr.gouv.vitam.common.database.builder.request.single.Select();
+        final fr.gouv.vitam.common.database.builder.request.single.Select select =
+            new fr.gouv.vitam.common.database.builder.request.single.Select();
         BooleanQuery query = and();
         for (Entry<String, String> entry : searchCriteriaMap.entrySet()) {
             String searchKeys = entry.getKey();
@@ -105,8 +106,8 @@ public final class DslQueryHelper {
                     break;
 
                 case FORMAT:
-                    query.add(exists(PUID));                    
-                    break;    
+                    query.add(exists(PUID));
+                    break;
 
                 default:
                     if (!searchValue.isEmpty()) {
@@ -158,7 +159,7 @@ public final class DslQueryHelper {
                 select.addRoots(searchValue);
                 continue;
             }
-           
+
             // By default add equals query
             booleanQueries.add(eq(searchKeys, searchValue));
         }

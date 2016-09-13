@@ -161,6 +161,9 @@
 		<esapi.version>2.1.0.1</esapi.version>
 		<xerces.version>2.11.0</xerces.version>
 		<cglib.version>2.2.2</cglib.version>
+		<opencsv.version>2.3</opencsv.version>
+		<commons-csv.version>1.4</commons-csv.version>
+		<jackson-dataformat-csv.version>2.5.1</jackson-dataformat-csv.version>
 	</properties>
 
 	<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
@@ -854,6 +857,24 @@
 				<version>${cglib.version}</version>
 				<scope>test</scope>
 			</dependency>
+				<!-- https://mvnrepository.com/artifact/net.sf.opencsv/opencsv -->
+		<dependency>
+			<groupId>net.sf.opencsv</groupId>
+			<artifactId>opencsv</artifactId>
+			<version>${opencsv.version}</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-csv -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-csv</artifactId>
+				<version>${commons-csv.version}</version>
+		</dependency>
+		
+			<dependency>
+			<groupId>com.fasterxml.jackson.dataformat</groupId>
+			<artifactId>jackson-dataformat-csv</artifactId>
+			<version>${jackson-dataformat-csv.version}</version>
+		</dependency>
 		</dependencies>
 	</dependencyManagement>
 </project>

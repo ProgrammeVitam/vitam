@@ -1,10 +1,29 @@
 package fr.gouv.vitam.functional.administration.rest;
 
+import static com.jayway.restassured.RestAssured.get;
+import static com.jayway.restassured.RestAssured.given;
+import static com.jayway.restassured.RestAssured.with;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+import javax.ws.rs.core.Response.Status;
+
+import org.jhades.JHades;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
+
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -26,25 +45,12 @@ import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
-import org.jhades.JHades;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
-import static com.jayway.restassured.RestAssured.*;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 
 public class AdminManagementResourceTest {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementResourceTest.class);
     private static final String ADMIN_MANAGEMENT_CONF = "functional-administration-test.conf";
+
 
     private static final String RESOURCE_URI = "/adminmanagement/v1";
     private static final String STATUS_URI = "/status";
@@ -56,6 +62,15 @@ public class AdminManagementResourceTest {
     private static final String FORMAT_ID_URI = "/{id_format}";
 
     private static final String GET_DOCUMENT_FORMAT_URI = "/format/document";
+
+    private static final String CHECK_RULES_URI = "/rules/check";
+    private static final String IMPORT_RULES_URI = "/rules/import";
+    private static final String DELETE_RULES_URI = "/rules/delete";
+
+    private static final String GET_BYID_RULES_URI = "/rules";
+    private static final String RULES_ID_URI = "/{id_rule}";
+
+    private static final String GET_DOCUMENT_RULES_URI = "/rules/document";
 
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
@@ -273,6 +288,134 @@ public class AdminManagementResourceTest {
             .then().statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
+    /************************** rules Management ***************************************************/
+    @Test
+    public void givenAWellFormedCSVInputstreamCheckThenReturnOK() {
+        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
+        given().contentType(ContentType.BINARY).body(stream)
+            .when().post(CHECK_RULES_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+    }
 
+    @Test
+    public void givenANotWellFormedCSVInputstreamCheckThenReturnKO() {
+        stream = Thread.currentThread().getContextClassLoader()
+            .getResourceAsStream("jeu_donnees_KO_regles_CSV_Parameters.csv");
+        given().contentType(ContentType.BINARY).body(stream)
+            .when().post(CHECK_RULES_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public void insertRulesFile() {
+        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
+        given().contentType(ContentType.BINARY).body(stream)
+            .when().post(IMPORT_RULES_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
+        given().contentType(ContentType.BINARY).body(stream)
+            .when().post(IMPORT_RULES_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+    }
+
+    @Test
+    public void deleteRulesFile() {
+        given()
+            .when().delete(DELETE_RULES_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+    }
+
+    @Test
+    public void getRuleByID() throws InvalidCreateOperationException, InvalidParseOperationException {
+        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
+        Select select = new Select();
+        select.setQuery(eq("RuleId", "APP-00001"));
+        with()
+            .contentType(ContentType.BINARY).body(stream)
+            .when().post(IMPORT_RULES_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        String document =
+            given()
+                .contentType(ContentType.JSON)
+                .body(select.getFinalSelect())
+                .when().post(GET_DOCUMENT_RULES_URI).getBody().asString();
+        JsonNode jsonDocument = JsonHandler.getFromString(document);
+
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(jsonDocument)
+            .pathParam("id_rule", jsonDocument.get(0).get("RuleId").asText())
+            .when().post(GET_BYID_RULES_URI + RULES_ID_URI)
+            .then().statusCode(Status.NOT_FOUND.getStatusCode());
+    }
+
+    @Test
+    public void givenFakeRuleByIDTheReturnNotFound()
+        throws InvalidCreateOperationException, InvalidParseOperationException {
+        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
+        Select select = new Select();
+        select.setQuery(eq("RuleId", "APP-00001"));
+        with()
+            .contentType(ContentType.BINARY).body(stream)
+            .when().post(IMPORT_RULES_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        String document =
+            given()
+                .contentType(ContentType.JSON)
+                .body(select.getFinalSelect())
+                .when().post(GET_DOCUMENT_RULES_URI).getBody().asString();
+        JsonNode jsonDocument = JsonHandler.getFromString(document);
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(jsonDocument)
+            .pathParam("id_rule", "fake_identifier")
+            .when().post(GET_BYID_RULES_URI + RULES_ID_URI)
+            .then().statusCode(Status.NOT_FOUND.getStatusCode());
+    }
+
+
+    @Test
+    public void getDocumentRulesFile() throws InvalidCreateOperationException {
+        stream = Thread.currentThread().getContextClassLoader()
+            .getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
+        Select select = new Select();
+        select.setQuery(eq("RuleId", "APP-00001"));
+        with()
+            .contentType(ContentType.BINARY).body(stream)
+            .when().post(IMPORT_RULES_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .when().post(GET_DOCUMENT_RULES_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+    }
+
+
+    @Test
+    public void givenFindDocumentRulesFileWhenNotFoundThenReturnNotFound()
+        throws IOException, InvalidParseOperationException, InvalidCreateOperationException {
+
+        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
+        Select select = new Select();
+        select.setQuery(eq("fakeName", "fakeValue"));
+
+        with()
+            .contentType(ContentType.BINARY).body(stream)
+            .when().post(IMPORT_RULES_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .when().post(GET_DOCUMENT_RULES_URI)
+            .then().statusCode(Status.NOT_FOUND.getStatusCode());
+    }
 
 }

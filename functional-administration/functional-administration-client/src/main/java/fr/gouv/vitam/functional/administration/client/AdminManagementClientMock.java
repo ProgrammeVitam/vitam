@@ -26,18 +26,16 @@
  */
 package fr.gouv.vitam.functional.administration.client;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -46,7 +44,10 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
+import fr.gouv.vitam.functional.administration.common.FileRules;
+import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
+import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 
 /**
  * Mock client implementation for AdminManagement
@@ -69,14 +70,19 @@ public class AdminManagementClientMock implements AdminManagementClient {
             .append("_id", _id);
     }
 
+    private FileRules createFileRules(String _id) {
+        return (FileRules) new FileRules()
+            .setRuleId(_id)
+            .setRuleType("testList")
+            .setRuleDescription("testList")
+            .setRuleDuration("10")
+            .setRuleMeasurement("Annee");
+
+    }
+
     private String fileFormatListToJsonString(List<FileFormat> formatList)
-        throws JsonGenerationException, JsonMappingException, IOException {
-        final OutputStream out = new ByteArrayOutputStream();
-        final ObjectMapper mapper = new ObjectMapper();
-        mapper.writeValue(out, formatList);
-        final byte[] data = ((ByteArrayOutputStream) out).toByteArray();
-        final String fileFormatAsString = new String(data);
-        return fileFormatAsString;
+        throws IOException, InvalidParseOperationException {
+        return JsonHandler.writeAsString(formatList);
     }
 
     @Override
@@ -85,9 +91,10 @@ public class AdminManagementClientMock implements AdminManagementClient {
     }
 
     @Override
-    public void checkFormat(InputStream stream) throws FileFormatException {
+    public Status checkFormat(InputStream stream) throws FileFormatException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
         LOGGER.info("Check file format request:");
+        return status();
 
     }
 
@@ -123,5 +130,56 @@ public class AdminManagementClientMock implements AdminManagementClient {
         fileFormatList.add(file2);
         return JsonHandler.getFromString(fileFormatListToJsonString(fileFormatList));
     }
+
+    @Override
+    public Status checkRulesFile(InputStream stream) throws FileRulesException {
+        ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
+        LOGGER.info("Check file rules  request:");
+        return status();
+
+    }
+
+    @Override
+    public void importRulesFile(InputStream stream) throws FileRulesException, DatabaseConflictException {
+        ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
+        LOGGER.info("import file Rules request:");
+
+    }
+
+    @Override
+    public void deleteRulesFile() throws FileRulesException {
+        LOGGER.info("Delete file rules request:");
+
+    }
+
+    @Override
+    public JsonNode getRuleByID(String id) throws FileRulesException, InvalidParseOperationException {
+        ParametersChecker.checkParameter("stream is a mandatory parameter", id);
+        LOGGER.info("get rule by id request:");
+        FileRules file = createFileRules(id);
+        return JsonHandler.toJsonNode(file);
+
+    }
+
+    @Override
+    public JsonNode getRule(JsonNode query)
+        throws FileRulesException, InvalidParseOperationException, JsonGenerationException, JsonMappingException,
+        IOException {
+        ParametersChecker.checkParameter("stream is a mandatory parameter", query);
+        LOGGER.info("get document rules request:");
+        FileRules file1 = createFileRules(GUIDFactory.newGUID().toString());
+        FileRules file2 = createFileRules(GUIDFactory.newGUID().toString());
+        List<FileRules> fileRulesList = new ArrayList<FileRules>();
+        fileRulesList.add(file1);
+        fileRulesList.add(file2);
+        return JsonHandler.getFromString(fileRulesListToJsonString(fileRulesList));
+    }
+
+    private String fileRulesListToJsonString(List<FileRules> fileRulesList)
+        throws IOException, InvalidParseOperationException {
+        return JsonHandler.writeAsString(fileRulesList);
+    }
+
+
 
 }

@@ -32,6 +32,7 @@ import com.mongodb.client.MongoDatabase;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
+import fr.gouv.vitam.functional.administration.common.FileRules;
 
 /**
  * All collections in functional admin module
@@ -40,7 +41,12 @@ public enum FunctionalAdminCollections {
     /**
      * Formats Collection
      */
-    FORMATS(FileFormat.class);
+    FORMATS(FileFormat.class),
+
+    /**
+     * Rules Collection
+     */
+    RULES(FileRules.class);
 
     private VitamCollection vitamCollection;
 

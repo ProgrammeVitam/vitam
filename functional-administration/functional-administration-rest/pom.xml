@@ -33,6 +33,12 @@
 		
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>functional-administration-rules-core</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>functional-administration-common</artifactId>
 			<version>${project.version}</version>
 		</dependency>
