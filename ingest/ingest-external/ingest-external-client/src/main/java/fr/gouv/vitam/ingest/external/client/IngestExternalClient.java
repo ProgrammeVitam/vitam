@@ -21,6 +21,7 @@ public interface IngestExternalClient {
      * Get the status from the service
      *
      * @return the Message status
+     * @throws IngestExternalException 
      */
-    Status status();
+    Status status() throws IngestExternalException;
 }

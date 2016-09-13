@@ -164,6 +164,7 @@
 		<opencsv.version>2.3</opencsv.version>
 		<commons-csv.version>1.4</commons-csv.version>
 		<jackson-dataformat-csv.version>2.5.1</jackson-dataformat-csv.version>
+ 		<bouncycastle.version>1.54</bouncycastle.version>
 	</properties>
 
 	<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
@@ -535,11 +536,6 @@
 				<version>${jclouds.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.apache.shiro</groupId>
-				<artifactId>shiro-core</artifactId>
-				<version>${apache-shiro.version}</version>
-			</dependency>
-			<dependency>
 				<groupId>org.elasticsearch</groupId>
 				<artifactId>elasticsearch</artifactId>
 				<version>${elasticsearch.version}</version>
@@ -710,6 +706,23 @@
 				<artifactId>xercesImpl</artifactId>
 				<version>${xerces.version}</version>
 			</dependency>
+			
+			<dependency>
+ 				<groupId>org.apache.shiro</groupId>
+ 				<artifactId>shiro-core</artifactId>
+ 				<version>${apache-shiro.version}</version>
+ 			</dependency>
+ 			<dependency>
+ 				<groupId>org.apache.shiro</groupId>
+ 				<artifactId>shiro-web</artifactId>
+ 				<version>${apache-shiro.version}</version>
+ 			</dependency>
+ 			<dependency>
+	
+ 				<groupId>org.bouncycastle</groupId>
+ 				<artifactId>bcprov-jdk15on</artifactId>
+ 				<version>${bouncycastle.version}</version>
+ 			</dependency>
 
 			<!-- ########################## Logger ########################## -->
 

@@ -27,23 +27,22 @@
 
 package fr.gouv.vitam.common.server;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.server.Server;
-
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import org.eclipse.jetty.xml.XmlConfiguration;
-import org.xml.sax.SAXException;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Map;
+
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.xml.XmlConfiguration;
+import org.xml.sax.SAXException;
+
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * Basic implementation of a vitam server using embedded jetty as underlying app server

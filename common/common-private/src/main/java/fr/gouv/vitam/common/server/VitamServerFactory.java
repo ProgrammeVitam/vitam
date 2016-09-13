@@ -31,7 +31,6 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import org.apache.commons.lang.StringUtils;
 
 /**
  * Vitam Server factory for REST server

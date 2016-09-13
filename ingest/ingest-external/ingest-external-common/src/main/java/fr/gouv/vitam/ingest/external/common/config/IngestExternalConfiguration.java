@@ -43,6 +43,7 @@ public class IngestExternalConfiguration {
     private String host;
     private int port;
     private String jettyConfig;
+    private boolean authentication = true;
     
     /**
      * IngestExternalConfiguration empty constructor for YAMLFactory
@@ -116,4 +117,24 @@ public class IngestExternalConfiguration {
         this.jettyConfig = jettyConfig;
         return this;
     }
+
+    /**
+     * @return the authentication
+     */
+    public boolean isAuthentication() {
+        return authentication;
+    }
+
+    /**
+     * @param authentication the authentication to set
+     *
+     * @return this
+     */
+    public IngestExternalConfiguration setAuthentication(boolean authentication) {
+        this.authentication = authentication;
+        return this;
+    }
+    
+    
+    
 }

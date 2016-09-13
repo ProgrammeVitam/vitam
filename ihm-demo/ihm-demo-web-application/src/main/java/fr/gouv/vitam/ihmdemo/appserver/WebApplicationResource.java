@@ -277,8 +277,9 @@ public class WebApplicationResource {
         ParametersChecker.checkParameter("SIP is a mandatory parameter", stream);
         if (authenticationService.getSession(sessionId)) {
             try {
-                IngestExternalClientFactory.getInstance().getIngestExternalClient().upload(stream);
-            } catch (final IngestExternalException e) {
+                   IngestExternalClientFactory.getInstance().getIngestExternalClient().upload(stream);
+               
+            } catch (final VitamException e) {
                 LOGGER.error("IngestExternalException in Upload sip", e);
                 return Response.status(Status.INTERNAL_SERVER_ERROR)
                     .build();
