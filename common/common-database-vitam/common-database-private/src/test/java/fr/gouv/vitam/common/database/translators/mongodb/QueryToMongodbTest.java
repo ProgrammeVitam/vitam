@@ -35,6 +35,8 @@ import static org.junit.Assert.fail;
 
 import java.util.List;
 
+import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
+import org.bson.BsonDocument;
 import org.bson.conversions.Bson;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -71,15 +73,18 @@ public class QueryToMongodbTest {
     private static final String multiRoots = "{ $roots: ['id0', 'id1'], $query : [], $filter : [], $projection : [] }";
     private static final String wildcard =
         "{ $roots: [], $query : [{ $wildcard : { 'mavar14' : 'motMajuscule'}}], $filter : [], $projection : [] }";
+    private static final String EMPTY_QUERY = "{ $roots: [], $query : {}, $filter : [], $projection : [] }";
     private static JsonNode example;
     private static JsonNode multiRootsJson;
     private static JsonNode wildcardJson;
+    private static JsonNode emptyQueryJson;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         example = JsonHandler.getFromString(exampleMd);
         multiRootsJson = JsonHandler.getFromString(multiRoots);
         wildcardJson = JsonHandler.getFromString(wildcard);
+        emptyQueryJson = JsonHandler.getFromString(EMPTY_QUERY);
     }
 
     @AfterClass
@@ -113,6 +118,20 @@ public class QueryToMongodbTest {
         } catch (final Exception e) {
             e.printStackTrace();
             fail(e.getMessage());
+        }
+    }
+
+    @Test
+    public void testNopCommand() {
+        SelectParserSingle request = new SelectParserSingle();
+        try {
+            request.parse(emptyQueryJson);
+            fr.gouv.vitam.common.database.builder.request.single.Select select = request.getRequest();
+            Bson command = QueryToMongodb.getCommand(select.getQuery());
+            assertEquals("{ }", command.toString());
+
+        } catch (InvalidParseOperationException e) {
+            fail("No exception should be thrown here");
         }
     }
 

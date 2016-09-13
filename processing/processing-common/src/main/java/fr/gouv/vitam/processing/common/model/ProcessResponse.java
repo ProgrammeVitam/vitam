@@ -180,22 +180,28 @@ public class ProcessResponse implements EngineResponse {
      * @return the global message
      */
     public static String getGlobalProcessOutcomeMessage(List<EngineResponse> responses) {
-        String globalOutcomeMessage = "";
+        StringBuilder globalOutcomeMessage = new StringBuilder();
         if (responses != null) {
+            boolean isFirst = true;
+            int totalStepError = responses.stream().mapToInt(EngineResponse::getErrorNumber).sum();
             for (final EngineResponse response : responses) {
                 for (final Entry<String, OutcomeMessage> entry : response.getOutcomeMessages().entrySet()) {
-                    globalOutcomeMessage += entry.getValue().value() + ". ";
-                    if (response.getErrorNumber() > 0) {
-                        globalOutcomeMessage += "Errors: " + response.getErrorNumber();
+                    if (!isFirst) {
+                        globalOutcomeMessage.append(". ");
                     }
+                    globalOutcomeMessage.append(entry.getValue().value());
+                    isFirst = false;
                 }
+            }
+            if (totalStepError > 0) {
+                globalOutcomeMessage.append(". Nombre total d'erreurs : ").append(totalStepError);
             }
         }
 
         if (StringUtils.isEmpty(globalOutcomeMessage)) {
-            globalOutcomeMessage = "DefaultMessage";
+            globalOutcomeMessage.append("DefaultMessage");
         }
-        return globalOutcomeMessage;
+        return globalOutcomeMessage.toString();
     }
 
 

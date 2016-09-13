@@ -161,6 +161,8 @@ public class QueryToMongodb {
             case GEOWITHIN:
             case PATH:
                 return pathCommand(content);
+            case NOP:
+                return new BasicDBObject();
             default:
         }
         throw new InvalidParseOperationException("Invalid command: " + req.exactToken());

@@ -116,6 +116,10 @@ public abstract class BuilderToken {
      */
     public static enum QUERY {
         /**
+         * NOP expression, used to represent nop (Null Operation) query '{'$nop':'1'}'
+         */
+        NOP("nop"),
+        /**
          * All expressions are grouped by an AND operator (all shall be true)<br>
          * $and : [ expression1, expression2, ... ]
          */

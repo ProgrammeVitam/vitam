@@ -18,6 +18,7 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.mlt;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.ne;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.nin;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.not;
+import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.nop;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.path;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.prefix;
@@ -63,6 +64,7 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 
 public class QueryParserHelperTest {
 
@@ -324,5 +326,12 @@ public class QueryParserHelperTest {
         }
     }
 
-
+    @Test
+    public void testNopQuery() throws Exception {
+        Query nop = nop();
+        assertEquals(1, nop.getCurrentQuery().size());
+        assertEquals("{\"$nop\":\"1\"}", JsonHandler.unprettyPrint(nop.getCurrentQuery()));
+        assertEquals("{\"$nop\":\"1\"}", JsonHandler.unprettyPrint(nop.getCurrentObject()));
+        assertEquals(QUERY.NOP, nop.getQUERY());
+    }
 }

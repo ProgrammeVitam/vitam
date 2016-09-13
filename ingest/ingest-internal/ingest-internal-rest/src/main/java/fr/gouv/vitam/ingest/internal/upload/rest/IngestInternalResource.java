@@ -90,7 +90,7 @@ public class IngestInternalResource implements UploadService {
     private static VitamLogger VITAM_LOGGER = VitamLoggerFactory.getInstance(IngestInternalResource.class);
 
     private static final String FOLDER_SIP = "SIP";
-    private static final String INGEST_EXT = "Sanity Check SIP";
+    private static final String INGEST_EXT = "Check Sanitaire SIP";
     private static final String INGEST_INT_UPLOAD = "Upload SIP";
     private static final String INGEST_WORKFLOW = "Process_SIP_unitary";
 
@@ -223,7 +223,7 @@ public class IngestInternalResource implements UploadService {
 
             if (parameters != null) {
                 try {
-                    String errorMsg = " Échec de la récupération du SIP : fichier " +
+                    String errorMsg = "Échec de la récupération du SIP : fichier " +
                         parameters.getParameterValue(LogbookParameterName.objectIdentifierIncome) +
                         " au format non conforme";
                     callLogbookUpdate(logbookClient, parameters, LogbookOutcome.KO, errorMsg);
