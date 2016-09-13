@@ -63,6 +63,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server.VitamServer;
@@ -93,6 +94,10 @@ public class WebApplicationResourceTest {
     private static final String UPDATE = "{title: \"myarchive\"}";
     private static final String DEFAULT_HOST = "localhost";
     private static final String JETTY_CONFIG = "jetty-config-test.xml";
+    private static final String ALL_PARENTS = "[\"P1\", \"P2\", \"P3\"]";
+    private static final String FAKE_STRING_RETURN = "Fake String";
+    private static final JsonNode FAKE_JSONNODE_RETURN = JsonHandler.createObjectNode();
+
     private static JunitHelper junitHelper;
     private static int port;
     private static String sessionId;
@@ -845,6 +850,98 @@ public class WebApplicationResourceTest {
             .expect()
             .statusCode(Status.UNAUTHORIZED.getStatusCode())
             .post("/logout");
+    }
+
+    @Test
+    public void testUnitTreeOk() throws InvalidCreateOperationException, VitamException {
+        given().contentType(ContentType.JSON).body(ALL_PARENTS)
+            .expect().statusCode(Status.UNAUTHORIZED.getStatusCode()).when()
+            .post("/archiveunit/tree/1");
+
+        PowerMockito.when(
+            DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject())).thenReturn(FAKE_STRING_RETURN);
+        PowerMockito.when(
+            UserInterfaceTransactionManager.searchUnits(anyString())).thenReturn(FAKE_JSONNODE_RETURN);
+        PowerMockito.when(
+            UserInterfaceTransactionManager.buildUnitTree(anyString(), anyObject())).thenReturn(FAKE_JSONNODE_RETURN);
+
+        given().cookie("sessionId", sessionId).contentType(ContentType.JSON).body(ALL_PARENTS)
+            .expect().statusCode(Status.OK.getStatusCode()).when()
+            .post("/archiveunit/tree/1");
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testUnitTreeWithBadRequestExceptionWhenInvalidParseOperationException()
+        throws InvalidParseOperationException, InvalidCreateOperationException {
+        PowerMockito.when(
+            DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject()))
+            .thenThrow(InvalidParseOperationException.class);
+
+        given().cookie("sessionId", sessionId).contentType(ContentType.JSON).body(ALL_PARENTS)
+            .expect().statusCode(Status.BAD_REQUEST.getStatusCode()).when()
+            .post("/archiveunit/tree/1");
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testUnitTreeWithBadRequestExceptionWhenInvalidCreateOperationException()
+        throws InvalidParseOperationException, InvalidCreateOperationException {
+        PowerMockito.when(
+            DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject()))
+            .thenThrow(InvalidCreateOperationException.class);
+
+        given().cookie("sessionId", sessionId).contentType(ContentType.JSON).body(ALL_PARENTS)
+            .expect().statusCode(Status.BAD_REQUEST.getStatusCode()).when()
+            .post("/archiveunit/tree/1");
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testUnitTreeWithAccessClientServerException()
+        throws InvalidParseOperationException, InvalidCreateOperationException, AccessClientServerException,
+        AccessClientNotFoundException {
+        PowerMockito.when(
+            DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject())).thenReturn(FAKE_STRING_RETURN);
+
+        PowerMockito.when(
+            UserInterfaceTransactionManager.searchUnits(anyString())).thenThrow(AccessClientServerException.class);
+
+        given().cookie("sessionId", sessionId).contentType(ContentType.JSON).body(ALL_PARENTS)
+            .expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
+            .post("/archiveunit/tree/1");
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testUnitTreeWithAccessClientNotFoundException()
+        throws InvalidParseOperationException, InvalidCreateOperationException, AccessClientServerException,
+        AccessClientNotFoundException {
+        PowerMockito.when(
+            DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject())).thenReturn(FAKE_STRING_RETURN);
+
+        PowerMockito.when(
+            UserInterfaceTransactionManager.searchUnits(anyString())).thenThrow(AccessClientNotFoundException.class);
+
+        given().cookie("sessionId", sessionId).contentType(ContentType.JSON).body(ALL_PARENTS)
+            .expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
+            .post("/archiveunit/tree/1");
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testUnitTreeWithUnknownException()
+        throws InvalidCreateOperationException, VitamException {
+        PowerMockito.when(
+            DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject())).thenReturn(FAKE_STRING_RETURN);
+        PowerMockito.when(
+            UserInterfaceTransactionManager.searchUnits(anyString())).thenReturn(FAKE_JSONNODE_RETURN);
+        PowerMockito.when(
+            UserInterfaceTransactionManager.buildUnitTree(anyString(), anyObject())).thenThrow(VitamException.class);
+
+        given().cookie("sessionId", sessionId).contentType(ContentType.JSON).body(ALL_PARENTS)
+            .expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
+            .post("/archiveunit/tree/1");
     }
 
 }

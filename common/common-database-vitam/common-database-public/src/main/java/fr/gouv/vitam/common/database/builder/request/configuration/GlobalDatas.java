@@ -71,6 +71,11 @@ public class GlobalDatas {
      */
     public static final boolean COMMAND_DOLLAR = true;
 
+    /**
+     * Default max depth: should be 20 but let a great margin
+     */
+    public static final int MAXDEPTH = 20;
+
     protected GlobalDatas() {
         // empty
     }

@@ -30,9 +30,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -75,30 +78,41 @@ public class DslQueryHelperTest {
         "{ $regex : { 'mavar14' : '^start?aa.*' }, $depth : -1 } " + "], " + "$filter : {$mult : false }," +
         "$action : " + updateAction + " }";
 
+    private static final String UNIT_ID = "1";
+    private static List<String> IMMEDIATE_PARENTS = new ArrayList<String>();
+
+
+    @BeforeClass
+    public static void setup() throws Exception {
+        IMMEDIATE_PARENTS.add("P1");
+        IMMEDIATE_PARENTS.add("P2");
+        IMMEDIATE_PARENTS.add("P3");
+    }
+
     /**
-             * Tests createLogBookSelectDSLQuery method : main scenario
-             * 
-             * @throws InvalidCreateOperationException
-             * @throws InvalidParseOperationException
-             */
-            @Test
-            public void testCreateSingleQueryDSL()
-                throws InvalidCreateOperationException, InvalidParseOperationException {
-        
-                HashMap<String, String> myHashMap = new HashMap<String, String>();
-                myHashMap.put("title", "Archive2");
-                myHashMap.put("date", "2006-03-05");
-                myHashMap.put("orderby", "evDateTime");
-                myHashMap.put("obIdIn", "name");
-                myHashMap.put("INGEST", "date");
-                myHashMap.put("FORMAT", "PUID");
-        
-                String request = DslQueryHelper.createSingleQueryDSL(myHashMap);
-                assertNotNull(request);
-                final SelectParserSingle request2 = new SelectParserSingle();
-                request2.parse(JsonHandler.getFromString(request));
-                assertEquals(result, request2.toString());
-            }
+     * Tests createLogBookSelectDSLQuery method : main scenario
+     * 
+     * @throws InvalidCreateOperationException
+     * @throws InvalidParseOperationException
+     */
+    @Test
+    public void testCreateSingleQueryDSL()
+        throws InvalidCreateOperationException, InvalidParseOperationException {
+
+        HashMap<String, String> myHashMap = new HashMap<String, String>();
+        myHashMap.put("title", "Archive2");
+        myHashMap.put("date", "2006-03-05");
+        myHashMap.put("orderby", "evDateTime");
+        myHashMap.put("obIdIn", "name");
+        myHashMap.put("INGEST", "date");
+        myHashMap.put("FORMAT", "PUID");
+
+        String request = DslQueryHelper.createSingleQueryDSL(myHashMap);
+        assertNotNull(request);
+        final SelectParserSingle request2 = new SelectParserSingle();
+        request2.parse(JsonHandler.getFromString(request));
+        assertEquals(result, request2.toString());
+    }
 
     @Test
     public void testCreateSelectElasticsearchDSLQuery() throws InvalidParseOperationException, InvalidCreateOperationException {
@@ -266,6 +280,36 @@ public class DslQueryHelperTest {
         Map<String, String> queryMap = new HashMap<String, String>();
         queryMap.put("", "value");
         DslQueryHelper.createUpdateDSLQuery(queryMap);
+    }
+
+    /**
+     * Tests CreateSelectUnitTreeDSLQuery method : main scenario
+     * 
+     * @throws InvalidParseOperationException
+     * @throws InvalidCreateOperationException
+     */
+    @Test
+    public void testCreateSelectUnitTreeDSLQuery()
+        throws InvalidParseOperationException, InvalidCreateOperationException {
+
+        String selectRequest = DslQueryHelper.createSelectUnitTreeDSLQuery(UNIT_ID, IMMEDIATE_PARENTS);
+        assertNotNull(selectRequest);
+
+        JsonNode selectRequestJsonNode = JsonHandler.getFromString(selectRequest);
+
+        RequestParserMultiple selectParser = RequestParserHelper.getParser(selectRequestJsonNode);
+        assertTrue(selectParser instanceof SelectParserMultiple);
+        assertTrue(((Select) selectParser.getRequest()).getNbQueries() == 1);
+        assertTrue(((Select) selectParser.getRequest()).getRoots().size() == 0);
+        assertTrue(((Select) selectParser.getRequest()).getFilter().get("$orderby") == null);
+        assertTrue(
+            ((Select) selectParser.getRequest()).getProjection().get("$fields").has(UiConstants.ID.getConstantValue()));
+        assertTrue(
+            ((Select) selectParser.getRequest()).getProjection().get("$fields")
+                .has(UiConstants.TITLE.getConstantValue()));
+        assertTrue(
+            ((Select) selectParser.getRequest()).getProjection().get("$fields")
+                .has(UiConstants.UNITUPS.getConstantValue()));
     }
 
 }

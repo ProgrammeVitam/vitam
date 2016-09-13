@@ -1148,9 +1148,13 @@ public class SedaUtils {
 
                 // Add _up to archive unit json object
                 String extension = FilenameUtils.getExtension(objectName);
-                addParents(json, objectName.replace("." + extension, ""), containerId);
 
                 Insert insertQuery = new Insert();
+                ArrayNode parents = getParents(json, objectName.replace("." + extension, ""), containerId);
+                if (parents != null) {
+                    insertQuery.addRoots(parents);
+                }
+
                 final String insertRequest = insertQuery.addData((ObjectNode) json).getFinalInsert().toString();
 
                 metadataClient.insertUnit(insertRequest);
@@ -1184,7 +1188,7 @@ public class SedaUtils {
 
     }
 
-    private void addParents(JsonNode archiveUnitJsonObject, String archiveUnitGuid, String containerId)
+    private ArrayNode getParents(JsonNode archiveUnitJsonObject, String archiveUnitGuid, String containerId)
         throws IOException, InvalidParseOperationException {
 
         final File unitIdToGuidMapFile = PropertiesUtils
@@ -1207,14 +1211,19 @@ public class SedaUtils {
             archiveUnitTree.get(guidToUnitIdMap.get(archiveUnitGuid)).get(UP_FIELD).isArray()) {
 
             ArrayNode parents = (ArrayNode) archiveUnitTree.get(guidToUnitIdMap.get(archiveUnitGuid)).get(UP_FIELD);
-            ArrayNode upNode = (ArrayNode) archiveUnitJsonObject.withArray(UP_FIELD);
+            ArrayNode upNode = JsonHandler.createArrayNode();
+
             for (JsonNode currentParentNode : parents) {
                 String currentParentId = currentParentNode.asText();
                 if (unitIdToGuidStoredMap.containsKey(currentParentId)) {
                     upNode.add(unitIdToGuidStoredMap.get(currentParentId).toString());
                 }
             }
+
+            return upNode;
         }
+
+        return null;
     }
 
     /**

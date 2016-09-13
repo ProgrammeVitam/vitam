@@ -88,7 +88,11 @@ public class ParserTokens extends BuilderToken {
         /**
          * Unit's ObjectGroup
          */
-        OBJECT("og");
+        OBJECT("object"),
+        /**
+         * Unit's immediate parents
+         */
+        UNITUPS("unitups");
 
         private static final String NOT_FOUND = "Not found";
         private final String exactToken;

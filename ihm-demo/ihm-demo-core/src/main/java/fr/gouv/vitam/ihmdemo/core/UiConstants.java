@@ -34,5 +34,47 @@ public enum UiConstants {
 	/**
 	 * Token used to specify a root item
 	 */
-	SELECT_BY_ID;
+    SELECT_BY_ID("SELECT_BY_ID", "SELECT_BY_ID"),
+
+    /**
+     * "Title" field
+     */
+    TITLE("Title", "Title"),
+
+    /**
+     * "_id" field
+     */
+    ID("#id", "_id"),
+
+    /**
+     * "_up" field
+     */
+    UNITUPS("#unitups", "_up"),
+
+    /**
+     * "_up" field
+     */
+    RESULT("$result", "$result");
+
+    private final String constantValue;
+    private final String resultValue;
+
+    private UiConstants(String constantValue, String resultValue) {
+        this.constantValue = constantValue;
+        this.resultValue = resultValue;
+    }
+
+    /**
+     * @return the DSL constant value
+     */
+    public final String getConstantValue() {
+        return constantValue;
+    }
+
+    /**
+     * @return the Result constant value
+     */
+    public final String getResultConstantValue() {
+        return resultValue;
+    }
 }

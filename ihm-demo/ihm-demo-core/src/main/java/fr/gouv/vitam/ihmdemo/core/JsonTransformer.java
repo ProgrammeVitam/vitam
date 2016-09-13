@@ -35,12 +35,18 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
  * THis class is used in order to make transformations on Json objects received from Vitam
  */
 public final class JsonTransformer {
+
+    private static final String MISSING_ID_ERROR_MSG = "Encountered Missing ID field in the given parents list.";
+    private static final String MISSING_UP_ERROR_MSG = "Encountered Missing _up field in the given parents list.";
+    private static final String INVALID_UP_FIELD_ERROR_MSG = "Encountered invalid _up field in the given parents list.";
+    private static final String MISSING_UNIT_ID_ERROR_MSG = "The unit details is missing.";
 
     /**
      * This method transforms ResultObjects so thr IHM could display results
@@ -87,5 +93,46 @@ public final class JsonTransformer {
         resultNode.put("nbObjects", nbObjects);
         resultNode.set("versions", arrayNode);
         return resultNode;
+    }
+
+    /**
+     * This method builds an ObjectNode based on list of JsonNode object
+     * 
+     * @param allParents list of JsonNode Objects used to build the referential
+     * @return An ObjectNode where the key is the identifier and the value is the parent details (Title, Id, _up)
+     * @throws VitamException
+     */
+    public static ObjectNode buildAllParentsRef(String unitId, JsonNode allParents) throws VitamException {
+        ParametersChecker.checkParameter("Result cannot be empty", allParents);
+
+        boolean hasUnitId = false;
+
+        ObjectNode allParentsRef = JsonHandler.createObjectNode();
+        for (JsonNode currentParentNode : allParents) {
+            if (!currentParentNode.has(UiConstants.ID.getResultConstantValue())) {
+                throw new VitamException(MISSING_ID_ERROR_MSG);
+            }
+
+            if (!currentParentNode.has(UiConstants.UNITUPS.getResultConstantValue())) {
+                throw new VitamException(MISSING_UP_ERROR_MSG);
+            }
+
+            if (!currentParentNode.get(UiConstants.UNITUPS.getResultConstantValue()).isArray()) {
+                throw new VitamException(INVALID_UP_FIELD_ERROR_MSG);
+            }
+
+            String currentParentId = currentParentNode.get(UiConstants.ID.getResultConstantValue()).asText();
+            allParentsRef.set(currentParentId, currentParentNode);
+
+            if (unitId.equalsIgnoreCase(currentParentId)) {
+                hasUnitId = true;
+            }
+        }
+
+        if (!hasUnitId) {
+            throw new VitamException(MISSING_UNIT_ID_ERROR_MSG);
+        }
+
+        return allParentsRef;
     }
 }

@@ -1200,12 +1200,14 @@ public class DbRequestTest {
         LOGGER.debug("InsertParser: {}", insertParser);
         dbRequest.execRequest(insertParser, null);
         esClient.refreshIndex(MetadataCollections.C_UNIT);
-        // TODO fix _us then update assert
+
         final Result resultSelectRel4 = dbRequest.execRequest(selectParser1, null);
-        assertEquals(1, resultSelectRel4.nbResult);
-        assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaar", resultSelectRel4.getCurrentIds().iterator().next().toString());
-        
-        
+        assertEquals(2, resultSelectRel4.nbResult);
+        for (String root : resultSelectRel4.getCurrentIds()) {
+            assertTrue(root.equalsIgnoreCase("aeaqaaaaaet33ntwablhaaku6z67pzqaaaat") ||
+                root.equalsIgnoreCase("aeaqaaaaaet33ntwablhaaku6z67pzqaaaar"));
+        }
+
         insert = new Insert();
         insert.parseData(REQUEST_INSERT_TEST_ES_4).addRoots("aeaqaaaaaet33ntwablhaaku6z67pzqaaaaq");
         insertParser.parse(insert.getFinalInsert());

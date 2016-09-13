@@ -41,14 +41,15 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.access.client.AccessClient;
 import fr.gouv.vitam.access.client.AccessClientFactory;
-import fr.gouv.vitam.access.client.AccessClientMock;
 import fr.gouv.vitam.access.common.exception.AccessClientNotFoundException;
 import fr.gouv.vitam.access.common.exception.AccessClientServerException;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
@@ -74,10 +75,19 @@ public class UserInterfaceTransactionManagerTest {
             "\"$actions\": {#id : 1, Title : 1, TransactedDate:1 }}";
     private static String OBJECT_GROUP_QUERY =
         "{\"$queries\": [{ \"$path\": \"aaaaa\" }],\"$filter\": { },\"$projection\": {}}";
+    private static final String ALL_PARENTS =
+        "[{_id:'ID029',Title:'ID029',_up:['ID028', 'ID030'],_dom:0}, " +
+            "{_id:'ID028',Title:'ID028',_up:['ID027'],_dom:0}," +
+            "{_id:'ID030',Title:'ID030',_up:['ID027'],_dom:0}," +
+            "{_id:'ID027',Title:'ID027',_up:['ID026', 'ID025'],_dom:0}," +
+            "{_id:'ID026',Title:'ID026',_up:[],_dom:0}," +
+            "{_id:'ID025',Title:'ID025',_up:[],_dom:0}]";
+
     private static String ID_OBJECT_GROUP = "idOG1";
     private static JsonNode unitDetails;
     private static JsonNode searchResult;
     private static JsonNode updateResult;
+    private static JsonNode allParents;
 
     private static AccessClientFactory accessClientFactory;
     private static AccessClient accessClient;
@@ -89,6 +99,7 @@ public class UserInterfaceTransactionManagerTest {
         unitDetails = JsonHandler.getFromString(UNIT_DETAILS);
         searchResult = JsonHandler.getFromString(SEARCH_RESULT);
         updateResult = JsonHandler.getFromString(UPDATE_FIELD_IMPACTED_RESULT);
+        allParents = JsonHandler.getFromString(ALL_PARENTS);
         PowerMockito.mockStatic(AccessClientFactory.class);
         accessClientFactory = PowerMockito.mock(AccessClientFactory.class);
         accessClient = org.mockito.Mockito.mock(AccessClient.class);
@@ -148,5 +159,25 @@ public class UserInterfaceTransactionManagerTest {
             UserInterfaceTransactionManager.getObjectAsInputStream(OBJECT_GROUP_QUERY, ID_OBJECT_GROUP, "usage", 1)));
     }
 
+    @Test
+    public void testBuildUnitTree() throws VitamException {
+        JsonNode unitTree = UserInterfaceTransactionManager.buildUnitTree("ID029", allParents);
+        assertTrue(unitTree.isArray());
+        assertTrue(unitTree.size() == 4);
+        assertTrue(unitTree.get(0).isArray());
+        
+        ArrayNode onePath = (ArrayNode) unitTree.get(0);
+        assertTrue(onePath.size() == 3);
 
+        JsonNode oneImmediateParent = onePath.get(0);
+        assertTrue(oneImmediateParent.get(UiConstants.ID.getResultConstantValue()).asText().equals("ID028") ||
+            oneImmediateParent.get(UiConstants.ID.getResultConstantValue()).asText().equals("ID030"));
+
+        JsonNode nextParent = onePath.get(1);
+        assertTrue(nextParent.get(UiConstants.ID.getResultConstantValue()).asText().equals("ID027"));
+
+        JsonNode oneRoot = onePath.get(2);
+        assertTrue(oneRoot.get(UiConstants.ID.getResultConstantValue()).asText().equals("ID025") ||
+            oneRoot.get(UiConstants.ID.getResultConstantValue()).asText().equals("ID026"));
+    }
 }

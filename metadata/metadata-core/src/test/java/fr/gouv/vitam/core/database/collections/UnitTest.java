@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.bson.Document;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -93,14 +94,16 @@ public class UnitTest {
         final Unit unit = new Unit(s1);
         assertEquals("[{ \"id1\" : 1}]", unit.getSubDepth().toString());
 
-        final Map<String, Integer> map = new HashMap<String, Integer>();
-        map.put("UUID1", 3);
-        map.put("UUID2", 4);
+        final List<Document> list = new ArrayList<Document>();
+        list.add(Document.parse("{\"UUID2\" : 3}"));
+        list.add(Document.parse("{\"UUID1\" : 4}"));
+
         final Map<String, Object> map2 = new HashMap<String, Object>();
-        map2.put("_uds", map);
+        map2.put("_uds", list);
         unit.putAll(map2);
-        assertEquals("Unit: Document{{_id=id1, title=title1, _uds={UUID2=4, UUID1=3}}}", unit.toString());
-        assertEquals("[{ \"UUID2\" : 5}, { \"UUID1\" : 4}, { \"id1\" : 1}]", unit.getSubDepth().toString());
+        assertEquals("Unit: Document{{_id=id1, title=title1, _uds=[Document{{UUID2=3}}, Document{{UUID1=4}}]}}",
+            unit.toString());
+        assertEquals("[{ \"UUID2\" : 4}, { \"UUID1\" : 5}, { \"id1\" : 1}]", unit.getSubDepth().toString());
     }
 
     @Test
