@@ -115,7 +115,7 @@ public class WebApplicationResource {
             try {
                 SanityChecker.checkJsonAll(JsonHandler.toJsonNode(criteria));
                 Map<String, String> criteriaMap = JsonHandler.getMapStringFromString(criteria);
-                String preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(criteriaMap);
+                String preparedQueryDsl = DslQueryHelper.createSelectElasticsearchDSLQuery(criteriaMap);
                 JsonNode searchResult = UserInterfaceTransactionManager.searchUnits(preparedQueryDsl);
                 return Response.status(Status.OK).entity(searchResult).build();
 

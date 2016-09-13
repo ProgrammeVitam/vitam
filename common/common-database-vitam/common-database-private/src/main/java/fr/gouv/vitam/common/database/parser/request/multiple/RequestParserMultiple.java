@@ -71,11 +71,6 @@ public abstract class RequestParserMultiple  extends AbstractParser<RequestMulti
      * Last computed Depth
      */
     protected int lastDepth = 0;
-    /**
-     * Contains queries to be computed by a full text index
-     */
-
-    private boolean isQueryFullText = false;
 
 
     /**
@@ -250,6 +245,8 @@ public abstract class RequestParserMultiple  extends AbstractParser<RequestMulti
         if (command == null) {
             throw new InvalidParseOperationException("Not correctly parsed");
         }
+        // new Query to analyze, so reset to false
+        hasFullTextCurrentQuery = false;
         // default is immediate next level
         int relativedepth = 1;
         // default is to not specify any exact exactdepth (implicit)
@@ -305,10 +302,9 @@ public abstract class RequestParserMultiple  extends AbstractParser<RequestMulti
                 relativedepth, exactdepth, isDepth);
         }
         
-        isQueryFullText = isCommandAsFullText(query.getQUERY());
-        QueryDepthHelper.HELPER.setDepths(query.setFullText(isQueryFullText),
+        QueryDepthHelper.HELPER.setDepths(query.setFullText(hasFullTextCurrentQuery),
             exactdepth, relativedepth);
-        hasFullTextQuery |= isQueryFullText;
+        hasFullTextQuery |= hasFullTextCurrentQuery;
         request.addQueries(query);
     }
 

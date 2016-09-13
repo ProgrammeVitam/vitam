@@ -56,7 +56,7 @@ public class DslQueryHelperTest {
 
     private static final String result =
         "QUERY: Requests: " + "{\"$and\":[" + "{\"$eq\":{\"date\":\"2006-03-05\"}}," +
-            "{\"$eq\":{\"events.obIdIn\":\"name\"}}," + "{\"$eq\":{\"evTypeProc\":\"INGEST\"}}," +
+            "{\"$eq\":{\"events.obIdIn\":\"name\"}}," + "{\"$exists\":\"PUID\"},{\"$eq\":{\"evTypeProc\":\"INGEST\"}}," +
             "{\"$eq\":{\"title\":\"Archive2\"}}]}\n" + "\tFilter: {\"$limit\":10000,\"$orderby\":{\"evDateTime\":-1}}\n" +
             "\tProjection: {}";
 
@@ -91,6 +91,7 @@ public class DslQueryHelperTest {
                 myHashMap.put("orderby", "evDateTime");
                 myHashMap.put("obIdIn", "name");
                 myHashMap.put("INGEST", "date");
+                myHashMap.put("FORMAT", "PUID");
         
                 String request = DslQueryHelper.createSingleQueryDSL(myHashMap);
                 assertNotNull(request);
@@ -99,21 +100,36 @@ public class DslQueryHelperTest {
                 assertEquals(result, request2.toString());
             }
 
-    /**
-     * Tests CreateSelectDSLQuery mthod : main scenario
-     * 
-     * @throws InvalidParseOperationException
-     * @throws InvalidCreateOperationException
-     */
     @Test
-    public void testCreateSelectDSLQuery() throws InvalidParseOperationException, InvalidCreateOperationException {
+    public void testCreateSelectElasticsearchDSLQuery() throws InvalidParseOperationException, InvalidCreateOperationException {
         Map<String, String> queryMap = new HashMap<String, String>();
-        queryMap.put("title", "Archive2");
+        queryMap.put("titleAndDescription", "Arch");
         queryMap.put("orderby", "date");
         queryMap.put("projection_", "#id");
         queryMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
 
-        String selectRequest = DslQueryHelper.createSelectDSLQuery(queryMap);
+        String selectRequest = DslQueryHelper.createSelectElasticsearchDSLQuery(queryMap);
+        assertNotNull(selectRequest);
+
+        JsonNode selectRequestJsonNode = JsonHandler.getFromString(selectRequest);
+
+        RequestParserMultiple selectParser = RequestParserHelper.getParser(selectRequestJsonNode);
+        assertTrue(selectParser instanceof SelectParserMultiple);
+        assertTrue(((Select) selectParser.getRequest()).getNbQueries() == 1);
+        assertTrue(((Select) selectParser.getRequest()).getRoots().size() == 1);
+        assertTrue(((Select) selectParser.getRequest()).getFilter().get("$orderby") != null);
+        assertTrue(((Select) selectParser.getRequest()).getProjection().size() == 1);
+    }
+    
+    @Test
+    public void testCreateSelectDSLQuery() throws InvalidParseOperationException, InvalidCreateOperationException {
+        Map<String, String> queryMap = new HashMap<String, String>();
+        queryMap.put("Title", "Archive2");
+        queryMap.put("orderby", "date");
+        queryMap.put("projection_", "#id");
+        queryMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
+
+        String selectRequest = DslQueryHelper.createSelectElasticsearchDSLQuery(queryMap);
         assertNotNull(selectRequest);
 
         JsonNode selectRequestJsonNode = JsonHandler.getFromString(selectRequest);

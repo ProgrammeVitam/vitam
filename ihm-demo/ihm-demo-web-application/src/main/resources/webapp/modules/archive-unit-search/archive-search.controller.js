@@ -56,7 +56,7 @@ function($scope, ihmDemoFactory, $window, $mdToast, $mdDialog,  ARCHIVE_SEARCH_M
   $scope.getSearchResult = function getSearchResult($event, titleCriteria){
     if(titleCriteria!=='' && titleCriteria!== null && titleCriteria!== undefined){
       // Build title criteria and default selection
-      criteriaSearch.Title = titleCriteria;
+      criteriaSearch.titleAndDescription = titleCriteria;
       criteriaSearch.projection_transactdate = "TransactedDate";
       criteriaSearch.projection_id = "#id";
       criteriaSearch.projection_title = "Title";
@@ -92,7 +92,7 @@ function($scope, ihmDemoFactory, $window, $mdToast, $mdDialog,  ARCHIVE_SEARCH_M
           $scope.showAlert($event, "Erreur", $scope.errorMessage);
         });
       }
-    }
+    };
     // *************************************************************************** //
 
 

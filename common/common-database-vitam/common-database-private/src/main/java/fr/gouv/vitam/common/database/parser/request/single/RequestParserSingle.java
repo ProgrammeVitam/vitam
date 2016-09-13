@@ -190,6 +190,8 @@ public abstract class RequestParserSingle extends AbstractParser<RequestSingle> 
         if (command == null) {
             throw new InvalidParseOperationException("Not correctly parsed");
         }
+        // new Query to analyze, so reset to false (only one there)
+        hasFullTextCurrentQuery = false;
         hasFullTextQuery = false;
         // Root may be empty: ok since it means get all
         if (command.size() == 0) {
@@ -206,7 +208,8 @@ public abstract class RequestParserSingle extends AbstractParser<RequestSingle> 
         } else {
             query = analyzeOneCommand(queryItem.getKey(), queryItem.getValue());
         }
-        request.setQuery(query);
+        hasFullTextQuery = hasFullTextCurrentQuery;
+        request.setQuery(query.setFullText(hasFullTextQuery));
     }
 
     @Override

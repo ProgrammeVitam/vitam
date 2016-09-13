@@ -77,9 +77,11 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
+ * Abstract class implementing Parser for a Request
  * 
+ * Common abstract for both Multiple and Single Request
+ * @param <E> is one of RequestMultiple or RequestSingle
  */
-// FIXME comment
 public abstract class AbstractParser<E extends AbstractRequest> {
 
     protected VarNameAdapter adapter;
@@ -91,6 +93,10 @@ public abstract class AbstractParser<E extends AbstractRequest> {
      * Contains queries to be computed by a full text index
      */
     protected boolean hasFullTextQuery = false;
+    /**
+     * Current analyzed query to be computed by a full text index
+     */
+    protected boolean hasFullTextCurrentQuery = false;
     protected JsonNode rootNode;
 
     /**
@@ -185,7 +191,7 @@ public abstract class AbstractParser<E extends AbstractRequest> {
             return queries;
         }
     }
-
+    
     /**
      * Check if the command is allowed using the "standard" database
      *
@@ -205,7 +211,7 @@ public abstract class AbstractParser<E extends AbstractRequest> {
                 return false;
         }
     }
-
+    
     /**
      * Compute the QUERY from command
      *
@@ -234,7 +240,7 @@ public abstract class AbstractParser<E extends AbstractRequest> {
         throws InvalidParseOperationException,
         InvalidCreateOperationException {
         final QUERY query = getRequestId(refCommand);
-        hasFullTextQuery |= isCommandAsFullText(query);
+        hasFullTextCurrentQuery |= isCommandAsFullText(query);
         switch (query) {
             case FLT:
             case MLT:

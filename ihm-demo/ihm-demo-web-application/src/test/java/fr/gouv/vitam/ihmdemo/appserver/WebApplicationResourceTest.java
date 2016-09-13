@@ -291,7 +291,7 @@ public class WebApplicationResourceTest {
 
         // DslqQueryHelper Exceptions : InvalidParseOperationException,
         // InvalidCreateOperationException
-        PowerMockito.when(DslQueryHelper.createSelectDSLQuery(searchCriteriaMap))
+        PowerMockito.when(DslQueryHelper.createSelectElasticsearchDSLQuery(searchCriteriaMap))
             .thenThrow(InvalidParseOperationException.class, InvalidCreateOperationException.class);
 
         given().cookie("sessionId", sessionId).contentType(ContentType.JSON).body(OPTIONS).expect()
@@ -306,7 +306,7 @@ public class WebApplicationResourceTest {
         Map<String, String> searchCriteriaMap = JsonHandler.getMapStringFromString(OPTIONS);
         String preparedDslQuery = "";
 
-        PowerMockito.when(DslQueryHelper.createSelectDSLQuery(searchCriteriaMap)).thenReturn(preparedDslQuery);
+        PowerMockito.when(DslQueryHelper.createSelectElasticsearchDSLQuery(searchCriteriaMap)).thenReturn(preparedDslQuery);
 
         // UserInterfaceTransactionManager Exception 1 :
         // AccessClientServerException
@@ -324,7 +324,7 @@ public class WebApplicationResourceTest {
         Map<String, String> searchCriteriaMap = JsonHandler.getMapStringFromString(OPTIONS);
         String preparedDslQuery = "";
 
-        PowerMockito.when(DslQueryHelper.createSelectDSLQuery(searchCriteriaMap)).thenReturn(preparedDslQuery);
+        PowerMockito.when(DslQueryHelper.createSelectElasticsearchDSLQuery(searchCriteriaMap)).thenReturn(preparedDslQuery);
 
         // UserInterfaceTransactionManager Exception 1 :
         // AccessClientServerException
@@ -343,7 +343,7 @@ public class WebApplicationResourceTest {
         Map<String, String> searchCriteriaMap = JsonHandler.getMapStringFromString(OPTIONS);
         String preparedDslQuery = "";
 
-        PowerMockito.when(DslQueryHelper.createSelectDSLQuery(searchCriteriaMap)).thenReturn(preparedDslQuery);
+        PowerMockito.when(DslQueryHelper.createSelectElasticsearchDSLQuery(searchCriteriaMap)).thenReturn(preparedDslQuery);
 
         // UserInterfaceTransactionManager Exception 1 :
         // AccessClientServerException
