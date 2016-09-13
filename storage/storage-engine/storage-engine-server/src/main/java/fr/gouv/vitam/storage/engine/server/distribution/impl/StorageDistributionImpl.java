@@ -49,6 +49,8 @@ import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -91,8 +93,8 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
- * StorageDistribution service Implementation
- * TODO: see what to do with RuntimeException (catch it and log it to let the process continue if needed)
+ * StorageDistribution service Implementation TODO: see what to do with RuntimeException (catch it and log it to let the
+ * process continue if needed)
  */
 public class StorageDistributionImpl implements StorageDistribution {
 
@@ -119,7 +121,8 @@ public class StorageDistributionImpl implements StorageDistribution {
         workspaceClient = factory.create(configuration.getUrlWorkspace());
         // TODO : a real design discussion is needed : should we force it ? Should we negociate it with the offer ?
         // FIXME Might be negotiated but limited to available digestType from Vitam (MD5, SHA-1, SHA-256, SHA-512, ...)
-        // Just to note, I prefer SHA-512 (more CPU but more accurate and already the default for Vitam, notably to allow check of duplicated files)
+        // Just to note, I prefer SHA-512 (more CPU but more accurate and already the default for Vitam, notably to
+        // allow check of duplicated files)
         digestType = DigestType.SHA256;
     }
 
@@ -149,7 +152,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         if (hotStrategy != null) {
             List<OfferReference> offerReferences = choosePriorityOffers(hotStrategy);
             if (offerReferences.isEmpty()) {
-                throw new StorageNotFoundException("No suitable offer found to be able to store data");
+                throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
             }
             Map<String, Boolean> offerResults = new HashMap<>();
 
@@ -157,7 +160,8 @@ public class StorageDistributionImpl implements StorageDistribution {
             for (OfferReference offerReference : offerReferences) {
                 // TODO: sequential process for now (we have only 1 offer anyway) but storing object should be
                 // processed in parallel for each driver, in order to not be blocked on 1 driver storage process
-                // TODO special notice: when parallel, try to get only once the inputstream and then multiplexing it to multiple intputstreams as needed
+                // TODO special notice: when parallel, try to get only once the inputstream and then multiplexing it to
+                // multiple intputstreams as needed
                 // 1 IS => 3 IS (if 3 offers) where this special class handles one IS as input to 3 IS as output
                 boolean success =
                     tryAndRetryStoreObjectInOffer(createObjectDescription, tenantId, objectId, category, jsonData,
@@ -166,7 +170,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             }
             return buildStoreDataResponse(objectId, category, offerResults);
         }
-        throw new StorageNotFoundException("No suitable strategy found to be able to store data");
+        throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
     }
 
     private StoredInfoResult buildStoreDataResponse(String objectId, DataCategory category,
@@ -178,8 +182,8 @@ public class StorageDistributionImpl implements StorageDistribution {
             .map(Map.Entry::getValue)
             .allMatch(Boolean.TRUE::equals);
         if (!allSuccess) {
-            throw new StorageTechnicalException("Could not store object with id '" + objectId + " ' on offers '" +
-                offerIds + "'");
+            throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_CANT_STORE_OBJECT,
+                objectId, offerIds));
         }
         StoredInfoResult result = new StoredInfoResult();
         LocalDateTime now = LocalDateTime.now();
@@ -274,7 +278,8 @@ public class StorageDistributionImpl implements StorageDistribution {
                 "fakeSize", offer.getId(), "X-Application-Id",
                 null, null, objectStored == true ? StorageLogbookOutcome.OK : StorageLogbookOutcome.KO));
         } catch (StorageException exc) {
-            throw new StorageTechnicalException("Operation couldnt be logged in the storage logbook", exc);
+            throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_LOGBOOK_CANNOT_LOG),
+                exc);
         }
 
         return objectStored;
@@ -342,8 +347,8 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     @Override
-    public JsonNode getContainerInformation(String tenantId, String strategyId) throws
-        StorageNotFoundException, StorageTechnicalException {
+    public JsonNode getContainerInformation(String tenantId, String strategyId)
+        throws StorageNotFoundException, StorageTechnicalException {
         ParametersChecker.checkParameter("Tenant id is mandatory", tenantId);
         ParametersChecker.checkParameter("Strategy id is mandatory", strategyId);
         // Retrieve strategy data
@@ -352,7 +357,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         if (hotStrategy != null) {
             List<OfferReference> offerReferences = choosePriorityOffers(hotStrategy);
             if (offerReferences.isEmpty()) {
-                throw new StorageNotFoundException("No suitable offer found to be able to store data");
+                throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
             }
 
             StorageCapacityRequest request = new StorageCapacityRequest();
@@ -372,7 +377,7 @@ public class StorageDistributionImpl implements StorageDistribution {
                 throw new StorageTechnicalException(exc);
             }
         }
-        throw new StorageNotFoundException("No suitable strategy found to be able to store data");
+        throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
     }
 
 
@@ -449,12 +454,12 @@ public class StorageDistributionImpl implements StorageDistribution {
         if (hotStrategy != null) {
             List<OfferReference> offerReferences = choosePriorityOffers(hotStrategy);
             if (offerReferences.isEmpty()) {
-                throw new StorageTechnicalException("No suitable offer found to be able to store data");
+                throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
             }
             GetObjectResult result = getGetObjectResult(tenantId, objectId, offerReferences);
             return result.getObject();
         }
-        throw new StorageTechnicalException("No suitable strategy found to be able to store data");
+        throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
     }
 
     private GetObjectResult getGetObjectResult(String tenantId, String objectId, List<OfferReference> offerReferences)
@@ -477,7 +482,7 @@ public class StorageDistributionImpl implements StorageDistribution {
                 LOGGER.warn("Error with the storage, take the next offer in the strategy (by priority)", exc);
             }
         }
-        throw new StorageNotFoundException("Object with id " + objectId + " not found in all strategy");
+        throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND, objectId));
     }
 
     @Override

@@ -275,7 +275,7 @@ public class DriverManager {
 
 /**
  * OfferDriverInfo use to easily have driver information.
- * Do no hesitate to had required parameters
+ * Do no hesitate to add required parameters
  */
 class OfferDriverInfo {
 
