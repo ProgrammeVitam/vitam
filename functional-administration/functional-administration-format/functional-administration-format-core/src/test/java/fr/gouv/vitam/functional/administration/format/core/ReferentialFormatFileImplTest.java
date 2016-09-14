@@ -2,6 +2,7 @@ package fr.gouv.vitam.functional.administration.format.core;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -91,6 +92,9 @@ public class ReferentialFormatFileImplTest {
         FileFormat file = formatFile.findDocumentById(id);
         assertEquals("[wps]", file.get("Extension").toString());
         assertEquals(file, fileList.get(0));
+        assertFalse(fileList.get(0).getBoolean("Alert"));
+        assertEquals(fileList.get(0).getString("Group"), "");
+        assertEquals(fileList.get(0).getString("Comment"), "");
         formatFile.deleteCollection();
         assertEquals(0, collection.count());
         client.close();
