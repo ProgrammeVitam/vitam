@@ -44,7 +44,7 @@ import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.model.Step;
-import fr.gouv.vitam.processing.common.model.WorkParams;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.worker.api.Worker;
@@ -54,6 +54,27 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
  * The Process Distributor call the workers {@link Worker}and intercept the response for manage a post actions step
+ *
+ * <pre>
+ * TODO : 
+ * - handle listing of items through a limited arraylist (memory) and through iterative (async) listing from
+ * Workspace 
+ * - handle result in FATAL mode from one distributed item to stop the distribution in FATAL mode (do not
+ * continue) 
+ * - try to handle distribution on 1 or on many as the same loop (so using a default arrayList of 1)
+ * - handle error level using order in enum in ProcessResponse.getGlobalProcessStatusCode instead of manually comparing: 
+ *  {@code
+ *    for (final EngineResponse response : responses) {
+ *       tempStatusCode = response.getStatus();
+ *       if (statusCode.ordinal() > tempStatusCode.ordinal()) {
+ *           statusCode = tempStatusCode;
+ *       }
+ *      if (statusCode.ordinal() > StatusCode.KO.ordinal()) {
+ *           break;
+ *       }
+ *     }
+ *   }
+ * </pre>
  */
 public class ProcessDistributorImpl implements ProcessDistributor {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessDistributorImpl.class);
@@ -69,13 +90,13 @@ public class ProcessDistributorImpl implements ProcessDistributor {
     private final List<String> availableWorkers = new ArrayList<String>();
 
     /**
-     * Constructor with parameter workerImpl
+     * Constructor with parameter worker
      *
-     * @param workerImpl {@link WorkerImpl} worker implementation
+     * @param worker {@link Worker} worker implementation
      */
-    protected ProcessDistributorImpl(WorkerImpl workerImpl) {
-        ParametersChecker.checkParameter("workerImpl is a mandatory parameter", workerImpl);
-        final Worker worker1 = workerImpl;
+    protected ProcessDistributorImpl(Worker worker) {
+        ParametersChecker.checkParameter("workerImpl is a mandatory parameter", worker);
+        final Worker worker1 = worker;
         workers.add(worker1);
         availableWorkers.add(worker1.getWorkerId());
     }
@@ -90,7 +111,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
     }
 
     @Override
-    public List<EngineResponse> distribute(WorkParams workParams, Step step, String workflowId) {
+    public List<EngineResponse> distribute(WorkerParameters workParams, Step step, String workflowId) {
         ParametersChecker.checkParameter("WorkParams is a mandatory parameter", workParams);
         ParametersChecker.checkParameter("Step is a mandatory parameter", step);
         ParametersChecker.checkParameter("workflowId is a mandatory parameter", workflowId);
@@ -98,13 +119,13 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         final EngineResponse errorResponse = new ProcessResponse();
         errorResponse.setStatus(StatusCode.FATAL);
         final List<EngineResponse> responses = new ArrayList<>();
-        String processId = (String) workParams.getAdditionalProperties().get(WorkParams.PROCESS_ID);
-        String uniqueStepId = (String) workParams.getAdditionalProperties().get(WorkParams.STEP_ID);
+        String processId = workParams.getProcessId();
+        String uniqueStepId = workParams.getStepUniqId();
         try {
 
             if (step.getDistribution().getKind().equals(DistributionKind.LIST)) {
                 final WorkspaceClient workspaceClient =
-                    WorkspaceClientFactory.create(workParams.getServerConfiguration().getUrlWorkspace());
+                    WorkspaceClientFactory.create(workParams.getUrlWorkspace());
                 List<URI> objectsList = null;
 
                 // Test regarding Unit to be indexed

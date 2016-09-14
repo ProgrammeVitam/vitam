@@ -44,9 +44,10 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import fr.gouv.vitam.processing.common.config.ServerConfiguration;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.model.WorkParams;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
@@ -63,9 +64,7 @@ public class ContainerExtractionUtilsTest {
     private final String CONTENT = "Content";
     private final String folder = new StringBuilder().append(SIP).append(SLASH).append(CONTENT).toString();
 
-    private final WorkParams workParams =
-        new WorkParams().setGuuid("id").setServerConfiguration(new ServerConfiguration().setUrlWorkspace("ws"))
-            .setObjectName(folder);
+
 
     private List<URI> uriListWorkspace = new ArrayList<>();
 
@@ -89,6 +88,9 @@ public class ContainerExtractionUtilsTest {
         when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject())).thenReturn(uriListWorkspace);
 
         containerExtractionUtils = new ContainerExtractionUtils();
+        WorkerParameters workParams = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory.newGUID
+            ()).setUrlWorkspace("fakeURL").setUrlMetadata("fakeURL").setObjectName(folder);
+
         uriListWorkspace = containerExtractionUtils.getDigitalObjectUriListFromWorkspace(workParams);
 
         assertThat(uriListWorkspace).isNotNull().isNotEmpty();

@@ -65,7 +65,7 @@ import fr.gouv.vitam.logbook.common.model.response.VitamError;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.helper.LogbookParametersHelper;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.server.MongoDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.database.collections.MongoDbAccessFactory;
@@ -183,7 +183,7 @@ public class LogbookResource {
                     operation.getParameterValue(LogbookOperation.getIdParameterName()).equals(operationId) + " " +
                         operation.getParameterValue(LogbookOperation.getIdParameterName()) + " =? " + operationId);
                 try {
-                    LogbookParametersHelper.checkNullOrEmptyParameters(operation);
+                    ParameterHelper.checkNullOrEmptyParameters(operation);
                 } catch (final IllegalArgumentException e) {
                     LOGGER.error("Operations is incorrect", e);
                     return Response.status(Response.Status.BAD_REQUEST).build();
@@ -223,7 +223,7 @@ public class LogbookResource {
     public Response updateOperation(@PathParam("id_op") String operationId, LogbookOperationParameters operation) {
         Response finalResponse = Response.status(Response.Status.OK).build();
         try {
-            LogbookParametersHelper.checkNullOrEmptyParameters(operation);
+            ParameterHelper.checkNullOrEmptyParameters(operation);
         } catch (final IllegalArgumentException e) {
             LOGGER.error("Operations is incorrect", e);
             return Response.status(Response.Status.BAD_REQUEST).build();
@@ -382,7 +382,7 @@ public class LogbookResource {
         try {
             try {
                 // check null or empty parameters
-                LogbookParametersHelper.checkNullOrEmptyParameters(parameters);
+                ParameterHelper.checkNullOrEmptyParameters(parameters);
             } catch (final IllegalArgumentException e) {
                 LOGGER.error("unit lifecycles is incorrect", e);
                 status = Status.BAD_REQUEST;
@@ -444,7 +444,7 @@ public class LogbookResource {
         try {
             try {
                 // check null or empty parameters
-                LogbookParametersHelper.checkNullOrEmptyParameters(parameters);
+                ParameterHelper.checkNullOrEmptyParameters(parameters);
             } catch (final IllegalArgumentException e) {
                 LOGGER.error("unit lifecycles is incorrect", e);
                 status = Status.BAD_REQUEST;
@@ -571,7 +571,7 @@ public class LogbookResource {
         try {
             try {
                 // check null or empty parameters
-                LogbookParametersHelper.checkNullOrEmptyParameters(parameters);
+                ParameterHelper.checkNullOrEmptyParameters(parameters);
             } catch (final IllegalArgumentException e) {
                 LOGGER.error("objectgrouplifecycles is incorrect", e);
                 status = Status.BAD_REQUEST;
@@ -632,7 +632,7 @@ public class LogbookResource {
         try {
             try {
                 // check null or empty parameters
-                LogbookParametersHelper.checkNullOrEmptyParameters(parameters);
+                ParameterHelper.checkNullOrEmptyParameters(parameters);
             } catch (final IllegalArgumentException e) {
                 LOGGER.error("objectgrouplifecycles is incorrect", e);
                 status = Status.BAD_REQUEST;

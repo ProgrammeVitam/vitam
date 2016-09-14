@@ -91,6 +91,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -107,7 +108,7 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingInternalServerException;
 import fr.gouv.vitam.processing.common.model.OutcomeMessage;
 import fr.gouv.vitam.processing.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.model.WorkParams;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -118,6 +119,10 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
  * SedaUtils to read or split element from SEDA
  *
  */
+// TODO: remove parameterChecker when it's a handler method
+// the check is done with ParameterHelper and the WorkerParameters classes on the worker (WorkerImpl before the
+// handler execute)
+// If you absolutely need to check values in handler's methods, also use the ParameterCheker.
 public class SedaUtils {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SedaUtils.class);
@@ -185,7 +190,7 @@ public class SedaUtils {
     private static final String CYCLE_FOUND_EXCEPTION = "Seda has an archive unit cycle ";
     private static final String SAVE_ARCHIVE_ID_TO_GUID_IOEXCEPTION_MSG =
         "Can not save unitToGuidMap to temporary file";
-    private static final String WORKPARAMS_MANDATORY_MSG = "WorkParams is a mandatory parameter";
+    private static final String WORKPARAMS_MANDATORY_MSG = "WorkerParameters is a mandatory parameter";
     private static final String WORKSPACE_MANDATORY_MSG = "WorkspaceClient is a mandatory parameter";
     private static final String FILE_COULD_NOT_BE_DELETED_MSG = "File could not be deleted";
     private static final String CANNOT_READ_SEDA = "Can not read SEDA";
@@ -277,10 +282,10 @@ public class SedaUtils {
      * @param params parameters of workspace server
      * @throws ProcessingException throw when can't read or extract element from SEDA
      */
-    public void extractSEDA(WorkParams params) throws ProcessingException {
-        ParametersChecker.checkParameter(WORKPARAMS_MANDATORY_MSG, params);
+    public void extractSEDA(WorkerParameters params) throws ProcessingException {
+        ParameterHelper.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
-        final WorkspaceClient client = WorkspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
+        final WorkspaceClient client = WorkspaceClientFactory.create(params.getUrlWorkspace());
         extractSEDAWithWorkspaceClient(client, containerId);
     }
 
@@ -291,11 +296,11 @@ public class SedaUtils {
      * @return message id
      * @throws ProcessingException throw when can't read or extract message id from SEDA
      */
-    public String getMessageIdentifier(WorkParams params) throws ProcessingException {
-        ParametersChecker.checkParameter(WORKPARAMS_MANDATORY_MSG, params);
+    public String getMessageIdentifier(WorkerParameters params) throws ProcessingException {
+        ParameterHelper.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
         String messageId = "";
-        final WorkspaceClient client = WorkspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
+        final WorkspaceClient client = WorkspaceClientFactory.create(params.getUrlWorkspace());
         InputStream xmlFile = null;
         try {
             xmlFile = client.getObject(containerId, SEDA_FOLDER + "/" + SEDA_FILE);
@@ -676,7 +681,7 @@ public class SedaUtils {
      * @return
      * @throws ProcessingException
      */
-    public void updateLifeCycleByStep(LogbookParameters logbookLifecycleParameters, WorkParams params)
+    public void updateLifeCycleByStep(LogbookParameters logbookLifecycleParameters, WorkerParameters params)
         throws ProcessingException {
 
         try {
@@ -1076,10 +1081,10 @@ public class SedaUtils {
      * @param params worker parameter
      * @return a status representing the validation of the file
      */
-    public CheckSedaValidationStatus checkSedaValidation(WorkParams params) {
-        ParametersChecker.checkParameter(WORKPARAMS_MANDATORY_MSG, params);
+    public CheckSedaValidationStatus checkSedaValidation(WorkerParameters params) {
+        ParameterHelper.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
-        final WorkspaceClient client = WorkspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
+        final WorkspaceClient client = WorkspaceClientFactory.create(params.getUrlWorkspace());
         final InputStream input;
         try {
             input = checkExistenceManifest(client, containerId);
@@ -1127,18 +1132,16 @@ public class SedaUtils {
      * @param params work parameters
      * @throws ProcessingException when error in execution
      */
-    public void indexArchiveUnit(WorkParams params) throws ProcessingException {
-        ParametersChecker.checkParameter("Work parameters is a mandatory parameter", params);
+    public void indexArchiveUnit(WorkerParameters params) throws ProcessingException {
+        ParameterHelper.checkNullOrEmptyParameters(params);
 
         final String containerId = params.getContainerName();
         final String objectName = params.getObjectName();
-        ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
-        ParametersChecker.checkParameter("ObjectName id is a mandatory parameter", objectName);
 
         final WorkspaceClient workspaceClient = WorkspaceClientFactory
-            .create(params.getServerConfiguration().getUrlWorkspace());
+            .create(params.getUrlWorkspace());
         final MetaDataClient metadataClient = metaDataClientFactory
-            .create(params.getServerConfiguration().getUrlMetada());
+            .create(params.getUrlMetadata());
         InputStream input;
         try {
             input = workspaceClient.getObject(containerId, ARCHIVE_UNIT_FOLDER + "/" + objectName);
@@ -1232,18 +1235,16 @@ public class SedaUtils {
      * @param params work parameters
      * @throws ProcessingException when error in execution
      */
-    public void indexObjectGroup(WorkParams params) throws ProcessingException {
-        ParametersChecker.checkParameter("Work parameters is a mandatory parameter", params);
+    public void indexObjectGroup(WorkerParameters params) throws ProcessingException {
+        ParameterHelper.checkNullOrEmptyParameters(params);
 
         final String containerId = params.getContainerName();
         final String objectName = params.getObjectName();
-        ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
-        ParametersChecker.checkParameter("ObjectName id is a mandatory parameter", objectName);
 
         final WorkspaceClient workspaceClient = WorkspaceClientFactory
-            .create(params.getServerConfiguration().getUrlWorkspace());
+            .create(params.getUrlWorkspace());
         final MetaDataClient metadataClient = metaDataClientFactory
-            .create(params.getServerConfiguration().getUrlMetada());
+            .create(params.getUrlMetadata());
         InputStream input = null;
         try {
             input = workspaceClient.getObject(containerId, OBJECT_GROUP + "/" + objectName);
@@ -1371,10 +1372,10 @@ public class SedaUtils {
      * @return ExtractUriResponse - Object ExtractUriResponse contains listURI, listMessages and value boolean(error).
      * @throws ProcessingException - throw when error in execution.
      */
-    public ExtractUriResponse getAllDigitalObjectUriFromManifest(WorkParams params)
+    public ExtractUriResponse getAllDigitalObjectUriFromManifest(WorkerParameters params)
         throws ProcessingException {
         final String guid = params.getContainerName();
-        final WorkspaceClient client = WorkspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
+        final WorkspaceClient client = WorkspaceClientFactory.create(params.getUrlWorkspace());
         final ExtractUriResponse extractUriResponse = parsingUriSEDAWithWorkspaceClient(client, guid);
         return extractUriResponse;
     }
@@ -1490,11 +1491,11 @@ public class SedaUtils {
      * @return list of unsupported version
      * @throws ProcessingException throws when error occurs
      */
-    public List<String> checkSupportedBinaryObjectVersion(WorkParams params)
+    public List<String> checkSupportedBinaryObjectVersion(WorkerParameters params)
         throws ProcessingException {
-        ParametersChecker.checkParameter(WORKPARAMS_MANDATORY_MSG, params);
+        ParameterHelper.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
-        final WorkspaceClient client = WorkspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
+        final WorkspaceClient client = WorkspaceClientFactory.create(params.getUrlWorkspace());
         return isSedaVersionValid(client, containerId);
     }
 
@@ -1670,12 +1671,12 @@ public class SedaUtils {
      * @throws ContentAddressableStorageServerException
      * @throws ContentAddressableStorageNotFoundException
      */
-    public List<String> checkConformityBinaryObject(WorkParams params)
+    public List<String> checkConformityBinaryObject(WorkerParameters params)
         throws ProcessingException, ContentAddressableStorageNotFoundException,
         ContentAddressableStorageServerException, URISyntaxException, ContentAddressableStorageException {
-        ParametersChecker.checkParameter(WORKPARAMS_MANDATORY_MSG, params);
+        ParameterHelper.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
-        final WorkspaceClient client = WorkspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
+        final WorkspaceClient client = WorkspaceClientFactory.create(params.getUrlWorkspace());
 
         InputStream xmlFile = null;
         List<String> digestMessageInvalidList = new ArrayList<String>();
@@ -1916,16 +1917,14 @@ public class SedaUtils {
      * @return tha map of binary data object information with their object GUID as key
      * @throws ProcessingException throws when error occurs
      */
-    public Map<String, BinaryObjectInfo> retrieveStorageInformationForObjectGroup(WorkParams params)
+    public Map<String, BinaryObjectInfo> retrieveStorageInformationForObjectGroup(WorkerParameters params)
         throws ProcessingException {
-        ParametersChecker.checkParameter("Work parameters is a mandatory parameter", params);
+        ParameterHelper.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
         final String objectName = params.getObjectName();
-        ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
-        ParametersChecker.checkParameter("ObjectName id is a mandatory parameter", objectName);
 
         final WorkspaceClient workspaceClient =
-            WorkspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
+            WorkspaceClientFactory.create(params.getUrlWorkspace());
         // retrieve SEDA FILE and get the list of objectsDatas
         Map<String, BinaryObjectInfo> binaryObjectsToStore = new HashMap<>();
         // Get binary objects informations of the SIP
@@ -2057,12 +2056,11 @@ public class SedaUtils {
      * @return the computed size of all BinaryObjects
      * @throws ProcessingException when error in getting binary object info
      */
-    public long computeTotalSizeOfObjectsInManifest(WorkParams params)
+    public long computeTotalSizeOfObjectsInManifest(WorkerParameters params)
         throws ProcessingException {
-        ParametersChecker.checkParameter("WorkParams is a mandatory parameter", params);
+        ParameterHelper.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
-        ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
-        final WorkspaceClient client = WorkspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
+        final WorkspaceClient client = WorkspaceClientFactory.create(params.getUrlWorkspace());
         return computeBinaryObjectsSizeFromManifest(client, containerId);
     }
 
@@ -2095,12 +2093,11 @@ public class SedaUtils {
      * @param params worker parameters
      * @return the size of the manifest
      */
-    public long getManifestSize(WorkParams params)
+    public long getManifestSize(WorkerParameters params)
         throws ProcessingException {
-        ParametersChecker.checkParameter("WorkParams is a mandatory parameter", params);
+        ParameterHelper.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
-        ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
-        final WorkspaceClient client = WorkspaceClientFactory.create(params.getServerConfiguration().getUrlWorkspace());
+        final WorkspaceClient client = WorkspaceClientFactory.create(params.getUrlWorkspace());
         JsonNode jsonSeda = getObjectInformation(client, containerId, SEDA_FOLDER + "/" + SEDA_FILE);
         if (jsonSeda == null || jsonSeda.get("size") == null) {
             LOGGER.error("Error while getting object size : " + SEDA_FILE);

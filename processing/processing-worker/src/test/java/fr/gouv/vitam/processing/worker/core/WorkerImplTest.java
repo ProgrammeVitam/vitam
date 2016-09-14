@@ -45,7 +45,7 @@ import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.model.Step;
-import fr.gouv.vitam.processing.common.model.WorkParams;
+import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.worker.api.Worker;
 import fr.gouv.vitam.processing.worker.handler.ActionHandler;
 import fr.gouv.vitam.processing.worker.handler.ExtractSedaActionHandler;
@@ -68,14 +68,18 @@ public class WorkerImplTest {
     public void givenWorkerImplementWhenStepIsNullThenThrowsIllegalArgumentException()
         throws IllegalArgumentException, HandlerNotFoundException, ProcessingException {
         workerImpl = new WorkerImplFactory().create();
-        workerImpl.run(new WorkParams(), null);
+        workerImpl.run(WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
+            ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
+            ("containerName"), null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void givenWorkerImplementWhenEmptyActionsInStepThenThrowsIllegalArgumentException()
         throws IllegalArgumentException, HandlerNotFoundException, ProcessingException {
         workerImpl = new WorkerImplFactory().create();
-        workerImpl.run(new WorkParams(), new Step());
+        workerImpl.run(WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
+            ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
+            ("containerName"), new Step());
     }
 
     @Test(expected = HandlerNotFoundException.class)
@@ -88,7 +92,9 @@ public class WorkerImplTest {
         action.setActionDefinition(new ActionDefinition());
         actions.add(action);
         step.setActions(actions);
-        workerImpl.run(new WorkParams(), step);
+        workerImpl.run(WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
+            ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
+            ("containerName"), step);
     }
 
     @Test
@@ -108,7 +114,9 @@ public class WorkerImplTest {
         final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK);
         when(actionHandler.execute(anyObject())).thenReturn(response);
         workerImpl = new WorkerImplFactory().create(ExtractSedaActionHandler.getId(), actionHandler);
-        workerImpl.run(new WorkParams(), step);
+        workerImpl.run(WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
+            ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
+            ("containerName"), step);
     }
 
     @Test
@@ -128,7 +136,9 @@ public class WorkerImplTest {
         final EngineResponse response = new ProcessResponse().setStatus(StatusCode.FATAL);
         when(actionHandler.execute(anyObject())).thenReturn(response);
         workerImpl = new WorkerImplFactory().create(ExtractSedaActionHandler.getId(), actionHandler);
-        workerImpl.run(new WorkParams(), step);
+        workerImpl.run(WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
+            ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
+            ("containerName"), step);
     }
     
     @Test
@@ -148,7 +158,9 @@ public class WorkerImplTest {
         final EngineResponse response = new ProcessResponse().setStatus(StatusCode.FATAL);
         when(actionHandler.execute(anyObject())).thenReturn(response);
         workerImpl = new WorkerImplFactory().create(ExtractSedaActionHandler.getId(), actionHandler);
-        workerImpl.run(new WorkParams(), step);
+        workerImpl.run(WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
+            ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
+            ("containerName"), step);
     }
     
     

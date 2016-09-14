@@ -48,9 +48,9 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import fr.gouv.vitam.client.MetaDataClientFactory;
-import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.model.WorkParams;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
@@ -66,9 +66,8 @@ public class ExtractObjectNumSedaTest {
     private WorkspaceClient client;
     private final InputStream seda = Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP);
     private SedaUtils utils;
-    private final WorkParams params = new WorkParams()
-        .setContainerName("id")
-        .setServerConfiguration(new ServerConfiguration().setUrlWorkspace("ws"));
+    private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setContainerName("id")
+        .setUrlWorkspace("fakeURL").setUrlMetadata("fakeURL");
 
     @Before
     public void setUp() {

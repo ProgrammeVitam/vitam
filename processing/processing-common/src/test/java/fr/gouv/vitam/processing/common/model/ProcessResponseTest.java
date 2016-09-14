@@ -40,7 +40,7 @@ import org.junit.Test;
 public class ProcessResponseTest {
 
     private static String TEST = "test";
-    
+
     @Test
     public void testConstructor() {
         ProcessResponse processResponse = new ProcessResponse();
@@ -52,9 +52,10 @@ public class ProcessResponseTest {
         final ArrayList<EngineResponse> list = new ArrayList<EngineResponse>();
         list.add(processResponse.setStatus(StatusCode.WARNING));
         assertEquals(StatusCode.WARNING, processResponse.getGlobalProcessStatusCode(list));
-        
-        assertFalse(processResponse.setOutcomeMessages("id", OutcomeMessage.CHECK_CONFORMITY_KO).getOutcomeMessages().isEmpty());
-        
+
+        assertFalse(processResponse.setOutcomeMessages("id", OutcomeMessage.CHECK_CONFORMITY_KO).getOutcomeMessages()
+            .isEmpty());
+
         assertEquals(0, new ProcessResponse().getErrorNumber());
         ArrayList<String> detailMessages = new ArrayList<String>();
         detailMessages.add(TEST);
@@ -63,20 +64,20 @@ public class ProcessResponseTest {
         List<EngineResponse> processResponses = new ArrayList<EngineResponse>();
         processResponses.add(processResponse.setStatus(StatusCode.KO));
         processResponses.add(new ProcessResponse().setStatus(StatusCode.OK));
-        
+
         stepResponses.put("id", processResponses);
         assertFalse(processResponse.setStepResponses(stepResponses).getStepResponses().isEmpty());
-        
+
         assertEquals(StatusCode.KO.name(), processResponse.getValue());
         assertEquals(StatusCode.FATAL.name(), new ProcessResponse().getValue());
-        
+
         processResponse.setMessageIdentifier(TEST);
         assertEquals(TEST, processResponse.getMessageIdentifier());
         assertEquals("", new ProcessResponse().getMessageIdentifier());
         assertEquals(OutcomeMessage.CHECK_CONFORMITY_KO.value() + ". Nombre total d'erreurs : 1", ProcessResponse
             .getGlobalProcessOutcomeMessage(processResponses));
         assertEquals(TEST, ProcessResponse.getMessageIdentifierFromResponse(processResponses));
-        
+
         processResponse.setProcessId(TEST);
         assertEquals(TEST, processResponse.getProcessId());
     }

@@ -29,7 +29,7 @@ import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.Step;
-import fr.gouv.vitam.processing.common.model.WorkParams;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 
 /**
  * Worker Interface
@@ -45,14 +45,14 @@ public interface Worker {
      * Worker execute the step's actions
      *
      * @param step {@link Step} null not allowed
-     * @param workParams {@link WorkParams} (one and only workItem will be in workParams)
+     * @param workParams {@link WorkerParameters} (one and only workItem will be in workParams)
      * @return List EngineResponse {@link EngineResponse} : list of action response {OK,KO,FATAL...}
      *
      * @throws IllegalArgumentException throws when arguments are null
      * @throws HandlerNotFoundException throws when handler not found
      * @throws ProcessingException throws when error in execution
      */
-    List<EngineResponse> run(WorkParams workParams, Step step)
+    List<EngineResponse> run(WorkerParameters workParams, Step step)
         throws IllegalArgumentException, HandlerNotFoundException, ProcessingException;
 
 

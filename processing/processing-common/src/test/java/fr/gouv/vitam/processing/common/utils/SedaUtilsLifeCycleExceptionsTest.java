@@ -62,10 +62,10 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCycleClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
-import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.model.WorkParams;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -88,9 +88,9 @@ public class SedaUtilsLifeCycleExceptionsTest {
 	private final InputStream seda_2 = Thread.currentThread().getContextClassLoader()
 			.getResourceAsStream(SIP_ARCHIVE_BEFORE_BDO);
     private SedaUtils utils;
-    private final WorkParams params = new WorkParams().setGuuid(OBJ).setContainerName(OBJ)
-        .setServerConfiguration(new ServerConfiguration().setUrlWorkspace(OBJ).setUrlMetada(OBJ))
-        .setObjectName(OBJ);
+	private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
+		.newGUID()).setUrlWorkspace(OBJ).setUrlMetadata(OBJ).setObjectName(OBJ).setContainerName(OBJ).setCurrentStep
+		("TEST");
 
     private static LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
     private static LogbookLifeCycleClient logbookLifeCycleClient;
@@ -143,7 +143,7 @@ public class SedaUtilsLifeCycleExceptionsTest {
 			LogbookClientServerException, LogbookClientNotFoundException, URISyntaxException,
 			ContentAddressableStorageException {
 		when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(seda);
-		PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+		PowerMockito.when(WorkspaceClientFactory.create(anyObject())).thenReturn(workspaceClient);
 		PowerMockito.doThrow(new LogbookClientBadRequestException("LogbookClientBadRequestException"))
 				.when(logbookLifeCycleClient).update(anyObject());
 

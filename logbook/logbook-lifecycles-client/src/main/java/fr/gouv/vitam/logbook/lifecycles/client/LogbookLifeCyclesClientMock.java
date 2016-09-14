@@ -43,7 +43,7 @@ import fr.gouv.vitam.logbook.common.model.response.DatabaseCursor;
 import fr.gouv.vitam.logbook.common.model.response.RequestResponseOK;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
-import fr.gouv.vitam.logbook.common.parameters.helper.LogbookParametersHelper;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 
 /**
  * LogbookLifeCyclesClient Mock implementation
@@ -106,7 +106,7 @@ class LogbookLifeCyclesClientMock implements LogbookLifeCycleClient {
             SERVER_IDENTITY.getJsonIdentity());
         parameters.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
-        LogbookParametersHelper
+        ParameterHelper
             .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
         logInformation(CREATE, parameters);
     }
@@ -118,7 +118,7 @@ class LogbookLifeCyclesClientMock implements LogbookLifeCycleClient {
             SERVER_IDENTITY.getJsonIdentity());
         parameters.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
-        LogbookParametersHelper
+        ParameterHelper
             .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
         logInformation(UPDATE, parameters);
     }
@@ -130,7 +130,7 @@ class LogbookLifeCyclesClientMock implements LogbookLifeCycleClient {
             SERVER_IDENTITY.getJsonIdentity());
         parameters.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
-        LogbookParametersHelper
+        ParameterHelper
             .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
         logInformation(COMMIT, parameters);
     }
@@ -142,7 +142,7 @@ class LogbookLifeCyclesClientMock implements LogbookLifeCycleClient {
             SERVER_IDENTITY.getJsonIdentity());
         parameters.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
-        LogbookParametersHelper
+        ParameterHelper
             .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
         logInformation(ROLLBACK, parameters);
     }

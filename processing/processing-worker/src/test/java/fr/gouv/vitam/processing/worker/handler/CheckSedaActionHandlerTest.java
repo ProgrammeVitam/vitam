@@ -36,15 +36,15 @@ import java.io.IOException;
 import javax.xml.stream.XMLStreamException;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import fr.gouv.vitam.processing.common.config.ServerConfiguration;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.model.WorkParams;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.common.utils.SedaUtils;
 import fr.gouv.vitam.processing.common.utils.SedaUtils.CheckSedaValidationStatus;
 import fr.gouv.vitam.processing.common.utils.SedaUtilsFactory;
@@ -62,14 +62,31 @@ public class CheckSedaActionHandlerTest {
     }
 
     @Test
-    public void givenWorkspaceWhenXmlNotExistThenReturnResponseFATAL()
+    public void givenWorkspaceWhenXmlNotExistThenReturnResponseKO()
         throws XMLStreamException, IOException, ProcessingException {
+        Mockito.doReturn(CheckSedaValidationStatus.NO_FILE).when(sedaUtils).checkSedaValidation(anyObject());
         when(sedaUtils.getMessageIdentifier(anyObject())).thenThrow(new ProcessingException(""));
         when(factory.create()).thenReturn(sedaUtils);
         handler = new CheckSedaActionHandler(factory);
         assertEquals(CheckSedaActionHandler.getId(), HANDLER_ID);
-        final WorkParams params =
-            new WorkParams().setServerConfiguration(new ServerConfiguration().setUrlWorkspace("")).setGuuid("");
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
+            ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
+            ("containerName");
+        final EngineResponse response = handler.execute(params);
+        assertEquals(response.getStatus(), StatusCode.KO);
+    }
+
+    @Test
+    public void givenWorkspaceWhenXmlExistButErrorOnMessageIdentifierThenReturnResponseFATAL()
+        throws XMLStreamException, IOException, ProcessingException {
+        Mockito.doReturn(CheckSedaValidationStatus.VALID).when(sedaUtils).checkSedaValidation(anyObject());
+        when(sedaUtils.getMessageIdentifier(anyObject())).thenThrow(new ProcessingException(""));
+        when(factory.create()).thenReturn(sedaUtils);
+        handler = new CheckSedaActionHandler(factory);
+        assertEquals(CheckSedaActionHandler.getId(), HANDLER_ID);
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
+            ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
+            ("containerName");
         final EngineResponse response = handler.execute(params);
         assertEquals(response.getStatus(), StatusCode.FATAL);
     }
@@ -81,8 +98,9 @@ public class CheckSedaActionHandlerTest {
         when(factory.create()).thenReturn(sedaUtils);
         handler = new CheckSedaActionHandler(factory);
         assertEquals(CheckSedaActionHandler.getId(), HANDLER_ID);
-        final WorkParams params =
-            new WorkParams().setServerConfiguration(new ServerConfiguration().setUrlWorkspace("")).setGuuid("");
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
+            ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
+            ("containerName");
         final EngineResponse response = handler.execute(params);
         assertEquals(response.getStatus(), StatusCode.OK);
     }
@@ -94,8 +112,9 @@ public class CheckSedaActionHandlerTest {
         when(factory.create()).thenReturn(sedaUtils);
         handler = new CheckSedaActionHandler(factory);
         assertEquals(CheckSedaActionHandler.getId(), HANDLER_ID);
-        final WorkParams params =
-            new WorkParams().setServerConfiguration(new ServerConfiguration().setUrlWorkspace("")).setGuuid("");
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
+            ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
+            ("containerName");
         final EngineResponse response = handler.execute(params);
         assertEquals(response.getStatus(), StatusCode.KO);
     }

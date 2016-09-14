@@ -47,11 +47,12 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import fr.gouv.vitam.processing.common.config.ServerConfiguration;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.model.WorkParams;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.common.utils.ContainerExtractionUtils;
 import fr.gouv.vitam.processing.common.utils.ContainerExtractionUtilsFactory;
 import fr.gouv.vitam.processing.common.utils.ExtractUriResponse;
@@ -68,7 +69,7 @@ public class CheckObjectsNumberActionHandlerTest {
     private CheckObjectsNumberActionHandler checkObjectsNumberActionHandler;
     private static final String HANDLER_ID = "CheckObjectsNumber";
 
-    private WorkParams workParams;
+    private WorkerParameters workParams;
 
     private SedaUtilsFactory sedaFactory;
     private SedaUtils sedaUtils;
@@ -94,9 +95,10 @@ public class CheckObjectsNumberActionHandlerTest {
 
     @Before
     public void setUp() throws Exception {
-        workParams = new WorkParams();
-        workParams.setGuuid("").setContainerName("").setObjectName("")
-            .setServerConfiguration(new ServerConfiguration().setUrlWorkspace(""));
+        workParams = WorkerParametersFactory.newWorkerParameters();
+        workParams.setWorkerGUID(GUIDFactory.newGUID()).setUrlWorkspace("fakeUrl").setUrlMetadata
+            ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
+            ("containerName");
 
         sedaFactory = mock(SedaUtilsFactory.class);
         sedaUtils = mock(SedaUtils.class);

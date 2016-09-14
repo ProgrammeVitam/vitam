@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.processing.worker.handler;
 
-import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FilenameUtils;
@@ -48,7 +47,7 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.model.WorkParams;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.utils.BinaryObjectInfo;
 import fr.gouv.vitam.processing.common.utils.SedaUtils;
 import fr.gouv.vitam.processing.common.utils.SedaUtilsFactory;
@@ -107,10 +106,8 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
 
 
     @Override
-    public EngineResponse execute(WorkParams params) {
-        ParametersChecker.checkParameter("params is a mandatory parameter", params);
-        ParametersChecker.checkParameter("ServerConfiguration is a mandatory parameter",
-            params.getServerConfiguration());
+    public EngineResponse execute(WorkerParameters params) {
+        checkMandatoryParameters(params);
         LOGGER.info("StoreObjectGroupActionHandler running ...");
 
         final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK);
@@ -168,7 +165,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
      * @param storageObjectInfo informations on the binary data object needed by the storage engine
      * @throws ProcessingException throws when error occurs
      */
-    private void storeObject(WorkParams params, String objectGUID, BinaryObjectInfo storageObjectInfo)
+    private void storeObject(WorkerParameters params, String objectGUID, BinaryObjectInfo storageObjectInfo)
         throws ProcessingException {
         LOGGER.debug("Storing object with guid: " + objectGUID);
         try {
@@ -234,7 +231,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
      * @param typeProcess type process event
      * @return updated parameters
      */
-    private void updateLifeCycleParametersLogbookByStep(WorkParams params, String typeProcess) {
+    private void updateLifeCycleParametersLogbookByStep(WorkerParameters params, String typeProcess) {
         String extension = FilenameUtils.getExtension(params.getObjectName());
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.objectIdentifier,
             params.getObjectName().replace("." + extension, ""));
@@ -261,7 +258,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
      * @param params worker parameters
      * @param bdoId binary data object id
      */
-    private void updateLifeCycleParametersLogbookForBdo(WorkParams params, String bdoId) {
+    private void updateLifeCycleParametersLogbookForBdo(WorkerParameters params, String bdoId) {
         String extension = FilenameUtils.getExtension(params.getObjectName());
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
             params.getObjectName().replace("." + extension, ""));

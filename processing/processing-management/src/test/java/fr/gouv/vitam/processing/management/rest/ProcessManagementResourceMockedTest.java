@@ -66,6 +66,7 @@ import fr.gouv.vitam.common.server.BasicVitamServer;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
+import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
@@ -108,7 +109,10 @@ public class ProcessManagementResourceMockedTest {
         resourceConfig.register(JacksonFeature.class);
         mock = Mockito.mock(ProcessManagement.class);
 
-        resourceConfig.register(new ProcessManagementResource(mock, null));
+        ServerConfiguration serverConfiguration = new ServerConfiguration();
+        serverConfiguration.setUrlWorkspace("fakeUrl");
+        serverConfiguration.setUrlMetada("fakeUrl");
+        resourceConfig.register(new ProcessManagementResource(mock, serverConfiguration));
 
         final ServletContainer servletContainer = new ServletContainer(resourceConfig);
         final ServletHolder sh = new ServletHolder(servletContainer);
