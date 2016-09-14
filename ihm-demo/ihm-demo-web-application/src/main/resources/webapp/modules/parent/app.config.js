@@ -59,6 +59,9 @@ angular.
         when('/admin/formats', {
           template: '<file-format></file-format>'
         }).
+        when('/admin/rules', {
+          template: '<file-rules></file-rules>'
+        }).
         when('/admin/logbookLifecycle', {
           templateUrl:  "views/in-progress.html"
         }).
@@ -68,6 +71,12 @@ angular.
         when('/admin/importPronoun', {
 		      templateUrl: "views/import-Pronoun.html",
 	  	}).
+      when('/admin/importFileRules', {
+        templateUrl: "views/import-FileRules.html",
+    }).
+    when('/admin/recette', {
+        templateUrl: "views/recette-features.html",
+    }).
 	  	when('/admin/journalOperations', {
               templateUrl:  "views/in-progress.html"
         }).

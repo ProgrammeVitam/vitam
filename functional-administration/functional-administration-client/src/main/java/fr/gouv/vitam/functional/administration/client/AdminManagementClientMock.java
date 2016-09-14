@@ -70,13 +70,14 @@ public class AdminManagementClientMock implements AdminManagementClient {
             .append("_id", _id);
     }
 
-    private FileRules createFileRules(String _id) {
+    private FileRules createFileRules(String ruleValue) {
         return (FileRules) new FileRules()
-            .setRuleId(_id)
-            .setRuleType("testList")
+            .setRuleId("APP_00001")
+            .setRuleType("AppraiseRule")
             .setRuleDescription("testList")
             .setRuleDuration("10")
-            .setRuleMeasurement("Annee");
+            .setRuleMeasurement("Annee")
+            .setRuleValue(ruleValue);
 
     }
 

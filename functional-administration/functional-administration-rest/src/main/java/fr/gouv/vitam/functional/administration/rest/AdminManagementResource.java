@@ -296,6 +296,8 @@ public class AdminManagementResource {
     }
 
     /**
+     * findRuleByID
+     * 
      * @param rulesId path param as String
      * @return Response jersey response
      * @throws InvalidParseOperationException
