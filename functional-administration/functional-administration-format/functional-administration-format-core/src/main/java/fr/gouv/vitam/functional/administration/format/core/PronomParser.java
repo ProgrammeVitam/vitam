@@ -172,6 +172,11 @@ public class PronomParser {
                         if (qName.equalsIgnoreCase(TAG_FILEFORMAT)) {
                             pronomFormat.setExtension(extensions);
                             pronomFormat.setPriorityOverIdList(priorityOverIdList);
+                            //Add default value
+                            pronomFormat.setAlert(false);
+                            pronomFormat.setComment("");
+                            pronomFormat.setGroup("");
+                            
                             copyAttributesFromFileFormat(pronomFormat, fileFormat0);
                             jsonPronom = JsonHandler.getFromString(pronomFormat.toJson());
                             jsonFileFormatList.add(jsonPronom);

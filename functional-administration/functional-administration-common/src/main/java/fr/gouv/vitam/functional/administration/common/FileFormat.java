@@ -47,6 +47,9 @@ public class FileFormat extends VitamDocument<FileFormat> {
     private static final String HAS_PRIORITY_OVER_FILE_FORMAT_ID = "HasPriorityOverFileFormatID";
     private static final String MIME_TYPE = "MIMEType";
     private static final String NAME = "Name";
+    private static final String GROUP = "Group";
+    private static final String ALERT = "Alert";
+    private static final String COMMENT = "Comment";
     private static final String EXTENSION = "Extension";
     private static final long serialVersionUID = 7794456688851515535L;
 
@@ -160,5 +163,37 @@ public class FileFormat extends VitamDocument<FileFormat> {
         this.append(VERSION_PRONOM, pronomVersion);
         return this;
     }
+    
+    /**
+     * setComment
+     * 
+     * @param comment as String
+     * @return FileFormat with pronomVersion setted
+     */
+    public FileFormat setComment(String comment) {
+        this.append(COMMENT, comment);
+        return this;
+    }
+    
+    /**
+     * setAlert
+     * 
+     * @param alert as boolean
+     * @return FileFormat with pronomVersion setted
+     */
+    public FileFormat setAlert(boolean alert) {
+        this.append(ALERT, alert);
+        return this;
+    }
 
+    /**
+     * setGroup
+     * 
+     * @param group as String
+     * @return FileFormat with pronomVersion setted
+     */
+    public FileFormat setGroup(String group) {
+        this.append(GROUP, group);
+        return this;
+    }
 }
