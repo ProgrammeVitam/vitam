@@ -10,6 +10,15 @@ Chaque service VITAM (en dehors de bases de données) expose une URL de statut p
 
 Cette URL doit retourner une réponse HTTP 200 (sans body) sur une requête HTTP GET.
 
+Validation via Consul
+======================
+
+Consul possède une :term:`IHM` pour afficher l'état des services VITAM.
+
+Pour chaque service, la couleur à gauche du composant doit être verte (correspondant à un statut OK).
+
+Si une autre couleur apparaît, cliquer sur le service "KO" et vérifier quel test ne fonctionne pas.
+
 Validation via SoapUI
 =====================
 
