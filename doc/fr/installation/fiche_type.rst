@@ -21,3 +21,8 @@ Fiche-type VITAM
    "processing machine(s)","base de données","vitam-prod-app-1.internet.agri","",""
    "storage-engine machine(s)","xxxx","vitam-prod-app-1.internet.agri","",""
    "storage-offer-default machine(s)","implémentation de pilote de stockage","vitam-prod-app-1.internet.agri","",""
+   "Consul servers","implémentation de Consul pour un DNS applicatif (nécessite 3 serveurs minimum ; règle (2*n+1) )","vitam-prod-app-1.internet.agri, vitam-prod-app-2.internet.agri, vitam-prod-app-3.internet.agri","",""
+   "elasticsearch data machine(s)","Cluster ElasticSearch de données VITAM (3 machines)","vitam-prod-ela-1.internet.agri,vitam-prod-ela-2.internet.agri,vitam-prod-ela-3.internet.agri","",""
+   "log central machine(s)","Centralisation des logs","vitam-prod-log-1.internet.agri","",""
+
+.. todo :: ajouter section issue du DAT sur les préconisations de colocalisation, ... et nombre de mchine pour chaque composant.

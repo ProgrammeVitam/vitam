@@ -47,6 +47,9 @@ hosts-storageofferdefault
 [hosts-storageofferdefault]
 {{local_docker0_ip}}
 
+[hosts-log-server]
+{{local_docker0_ip}}
+
 [hosts:vars]
 ansible_become=true
 ansible_connection=local
