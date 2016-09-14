@@ -114,9 +114,9 @@ public class WebApplicationResource {
     @POST
     @Path("/archivesearch/units")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getArchiveSearchResult(@CookieParam ("sessionId") String sessionId, String criteria) {
+    public Response getArchiveSearchResult(@CookieParam("sessionId") String sessionId, String criteria) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, criteria);
-        if(authenticationService.getSession(sessionId)) {
+        if (authenticationService.getSession(sessionId)) {
             try {
                 SanityChecker.checkJsonAll(JsonHandler.toJsonNode(criteria));
                 Map<String, String> criteriaMap = JsonHandler.getMapStringFromString(criteria);
@@ -137,7 +137,7 @@ public class WebApplicationResource {
                 LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
                 return Response.status(Status.INTERNAL_SERVER_ERROR).build();
             }
-        } else{
+        } else {
             return Response.status(Status.UNAUTHORIZED).build();
         }
     }
@@ -149,16 +149,17 @@ public class WebApplicationResource {
     @GET
     @Path("/archivesearch/unit/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getArchiveUnitDetails(@CookieParam ("sessionId") String sessionId, @PathParam("id") String unitId) {
+    public Response getArchiveUnitDetails(@CookieParam("sessionId") String sessionId, @PathParam("id") String unitId) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitId);
-        if(authenticationService.getSession(sessionId)) {
+        if (authenticationService.getSession(sessionId)) {
             try {
                 SanityChecker.checkJsonAll(JsonHandler.toJsonNode(unitId));
                 // Prepare required map
                 Map<String, String> selectUnitIdMap = new HashMap<String, String>();
                 selectUnitIdMap.put(UiConstants.SELECT_BY_ID.toString(), unitId);
                 String preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(selectUnitIdMap);
-                JsonNode archiveDetails = UserInterfaceTransactionManager.getArchiveUnitDetails(preparedQueryDsl, unitId);
+                JsonNode archiveDetails =
+                    UserInterfaceTransactionManager.getArchiveUnitDetails(preparedQueryDsl, unitId);
 
                 return Response.status(Status.OK).entity(archiveDetails).build();
             } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
@@ -174,7 +175,7 @@ public class WebApplicationResource {
                 LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
                 return Response.status(Status.INTERNAL_SERVER_ERROR).build();
             }
-        } else{
+        } else {
             return Response.status(Status.UNAUTHORIZED).build();
         }
     }
@@ -186,8 +187,8 @@ public class WebApplicationResource {
     @POST
     @Path("/logbook/operations")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getLogbookResult(@CookieParam ("sessionId") String sessionId, String options) {
-        if(authenticationService.getSession(sessionId)) {
+    public Response getLogbookResult(@CookieParam("sessionId") String sessionId, String options) {
+        if (authenticationService.getSession(sessionId)) {
             JsonNode result = null;
             try {
                 ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
@@ -209,7 +210,7 @@ public class WebApplicationResource {
                 return Response.status(Status.INTERNAL_SERVER_ERROR).build();
             }
             return Response.status(Status.OK).entity(result).build();
-        } else{
+        } else {
             return Response.status(Status.UNAUTHORIZED).build();
         }
     }
@@ -222,9 +223,10 @@ public class WebApplicationResource {
     @POST
     @Path("/logbook/operations/{idOperation}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getLogbookResultById(@CookieParam ("sessionId") String sessionId, @PathParam("idOperation") String operationId, String options) {
+    public Response getLogbookResultById(@CookieParam("sessionId") String sessionId,
+        @PathParam("idOperation") String operationId, String options) {
 
-        if(authenticationService.getSession(sessionId)) {
+        if (authenticationService.getSession(sessionId)) {
             JsonNode result = null;
 
             try {
@@ -244,7 +246,7 @@ public class WebApplicationResource {
                 return Response.status(Status.INTERNAL_SERVER_ERROR).build();
             }
             return Response.status(Status.OK).entity(result).build();
-        } else{
+        } else {
             return Response.status(Status.UNAUTHORIZED).build();
         }
     }
@@ -271,9 +273,9 @@ public class WebApplicationResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response upload(@CookieParam ("sessionId") String sessionId, InputStream stream) {
+    public Response upload(@CookieParam("sessionId") String sessionId, InputStream stream) {
         ParametersChecker.checkParameter("SIP is a mandatory parameter", stream);
-        if(authenticationService.getSession(sessionId)) {
+        if (authenticationService.getSession(sessionId)) {
             try {
                 IngestExternalClientFactory.getInstance().getIngestExternalClient().upload(stream);
             } catch (final IngestExternalException e) {
@@ -282,7 +284,7 @@ public class WebApplicationResource {
                     .build();
             }
             return Response.status(Status.OK).build();
-        } else{
+        } else {
             return Response.status(Status.UNAUTHORIZED).build();
         }
     }
@@ -298,9 +300,10 @@ public class WebApplicationResource {
     @Path("/archiveupdate/units/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response updateArchiveUnitDetails(@CookieParam ("sessionId") String sessionId, @PathParam("id") String unitId, String updateSet) {
+    public Response updateArchiveUnitDetails(@CookieParam("sessionId") String sessionId, @PathParam("id") String unitId,
+        String updateSet) {
 
-        if(authenticationService.getSession(sessionId)) {
+        if (authenticationService.getSession(sessionId)) {
             try {
                 ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitId);
                 SanityChecker.checkJsonAll(JsonHandler.toJsonNode(unitId));
@@ -341,7 +344,7 @@ public class WebApplicationResource {
                 LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
                 return Response.status(Status.INTERNAL_SERVER_ERROR).build();
             }
-        } else{
+        } else {
             return Response.status(Status.UNAUTHORIZED).build();
         }
     }
@@ -353,17 +356,18 @@ public class WebApplicationResource {
     @POST
     @Path("/admin/formats")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getFileFormats(@CookieParam ("sessionId") String sessionId, String options) {
+    public Response getFileFormats(@CookieParam("sessionId") String sessionId, String options) {
         ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
-        if(authenticationService.getSession(sessionId)) {
+        if (authenticationService.getSession(sessionId)) {
             String query = "";
             JsonNode result = null;
             try {
                 SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-                result = JsonHandler.getFromString("{}");
+                result = JsonHandler.createObjectNode();
                 Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
                 query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-                AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getAdminManagementClient();
+                AdminManagementClient adminClient =
+                    AdminManagementClientFactory.getInstance().getAdminManagementClient();
                 result = adminClient.getFormats(JsonHandler.getFromString(query));
             } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
                 LOGGER.error("Bad request Exception ", e);
@@ -376,7 +380,7 @@ public class WebApplicationResource {
                 return Response.status(Status.INTERNAL_SERVER_ERROR).build();
             }
             return Response.status(Status.OK).entity(result).build();
-        } else{
+        } else {
             return Response.status(Status.UNAUTHORIZED).build();
         }
     }
@@ -389,9 +393,10 @@ public class WebApplicationResource {
     @POST
     @Path("/admin/formats/{idFormat}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getFormatById(@CookieParam ("sessionId") String sessionId, @PathParam("idFormat") String formatId, String options) {
+    public Response getFormatById(@CookieParam("sessionId") String sessionId, @PathParam("idFormat") String formatId,
+        String options) {
 
-        if(authenticationService.getSession(sessionId)) {
+        if (authenticationService.getSession(sessionId)) {
             JsonNode result = null;
 
             try {
@@ -400,7 +405,8 @@ public class WebApplicationResource {
                 ParametersChecker.checkParameter("Format Id is mandatory", formatId);
                 SanityChecker.checkJsonAll(JsonHandler.toJsonNode(formatId));
                 result = JsonHandler.getFromString("{}");
-                AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getAdminManagementClient();
+                AdminManagementClient adminClient =
+                    AdminManagementClientFactory.getInstance().getAdminManagementClient();
                 result = adminClient.getFormatByID(formatId);
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
@@ -413,7 +419,7 @@ public class WebApplicationResource {
                 return Response.status(Status.INTERNAL_SERVER_ERROR).build();
             }
             return Response.status(Status.OK).entity(result).build();
-        } else{
+        } else {
             return Response.status(Status.UNAUTHORIZED).build();
         }
     }
@@ -429,8 +435,8 @@ public class WebApplicationResource {
     @Path("/format/check")
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response checkRefFormat(@CookieParam ("sessionId") String sessionId, InputStream input) {
-        if(authenticationService.getSession(sessionId)) {
+    public Response checkRefFormat(@CookieParam("sessionId") String sessionId, InputStream input) {
+        if (authenticationService.getSession(sessionId)) {
             AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
             try {
                 client.checkFormat(input);
@@ -438,7 +444,7 @@ public class WebApplicationResource {
                 return Response.status(Status.FORBIDDEN).build();
             }
             return Response.status(Status.OK).build();
-        } else{
+        } else {
             return Response.status(Status.UNAUTHORIZED).build();
         }
     }
@@ -453,9 +459,9 @@ public class WebApplicationResource {
     @Path("/format/upload")
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response uploadRefFormat(@CookieParam ("sessionId") String sessionId, InputStream input) {
+    public Response uploadRefFormat(@CookieParam("sessionId") String sessionId, InputStream input) {
 
-        if(authenticationService.getSession(sessionId)) {
+        if (authenticationService.getSession(sessionId)) {
             AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
             try {
                 client.importFormat(input);
@@ -465,7 +471,7 @@ public class WebApplicationResource {
                 return Response.status(Status.FORBIDDEN).build();
             }
             return Response.status(Status.OK).build();
-        } else{
+        } else {
             return Response.status(Status.UNAUTHORIZED).build();
         }
     }
@@ -478,8 +484,8 @@ public class WebApplicationResource {
     @Path("/format/delete")
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    public Response deleteFormat(@CookieParam ("sessionId") String sessionId) {
-        if(authenticationService.getSession(sessionId)) {
+    public Response deleteFormat(@CookieParam("sessionId") String sessionId) {
+        if (authenticationService.getSession(sessionId)) {
             AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
             try {
                 client.deleteFormat();
@@ -487,7 +493,7 @@ public class WebApplicationResource {
                 return Response.status(Status.FORBIDDEN).build();
             }
             return Response.status(Status.OK).build();
-        } else{
+        } else {
             return Response.status(Status.UNAUTHORIZED).build();
         }
     }
@@ -547,7 +553,7 @@ public class WebApplicationResource {
     }
 
     /**
-     * Use the session id to log out 
+     * Use the session id to log out
      * 
      * @param sessionId of loggedIn user
      * @return a response with status OK or UNAUTHORIZED
@@ -585,16 +591,18 @@ public class WebApplicationResource {
     @GET
     @Path("/archiveunit/objects/{idOG}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getArchiveObjectGroup(@CookieParam ("sessionId") String sessionId, @PathParam("idOG") String objectGroupId) {
+    public Response getArchiveObjectGroup(@CookieParam("sessionId") String sessionId,
+        @PathParam("idOG") String objectGroupId) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, objectGroupId);
-        if(authenticationService.getSession(sessionId)) {
+        if (authenticationService.getSession(sessionId)) {
             try {
                 SanityChecker.checkJsonAll(JsonHandler.toJsonNode(objectGroupId));
 
                 HashMap<String, String> qualifierProjection = new HashMap<>();
                 qualifierProjection.put("projection_qualifiers", "#qualifiers");
                 String preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(qualifierProjection);
-                JsonNode searchResult = UserInterfaceTransactionManager.selectObjectbyId(preparedQueryDsl, objectGroupId);
+                JsonNode searchResult =
+                    UserInterfaceTransactionManager.selectObjectbyId(preparedQueryDsl, objectGroupId);
 
                 return Response.status(Status.OK).entity(JsonTransformer.transformResultObjects(searchResult)).build();
 
@@ -627,9 +635,10 @@ public class WebApplicationResource {
     @POST
     @Path("/archiveunit/objects/download/{idOG}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response getObjectAsInputStream(@CookieParam ("sessionId") String sessionId, @PathParam("idOG") String objectGroupId, String options) {
+    public Response getObjectAsInputStream(@CookieParam("sessionId") String sessionId,
+        @PathParam("idOG") String objectGroupId, String options) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, objectGroupId);
-        if(authenticationService.getSession(sessionId)) {
+        if (authenticationService.getSession(sessionId)) {
             try {
                 SanityChecker.checkJsonAll(JsonHandler.toJsonNode(objectGroupId));
                 SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
@@ -658,6 +667,157 @@ public class WebApplicationResource {
                 LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
                 return Response.status(Status.INTERNAL_SERVER_ERROR).build();
             }
+        } else {
+            return Response.status(Status.UNAUTHORIZED).build();
+        }
+    }
+
+    /***** rules Management ************/
+
+    /**
+     * @param options the queries for searching
+     * @return Response
+     */
+    @POST
+    @Path("/admin/rules")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getFileRules(@CookieParam("sessionId") String sessionId, String options) {
+        ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
+        if (authenticationService.getSession(sessionId)) {
+            String query = "";
+            JsonNode result = null;
+            try {
+                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
+                result = JsonHandler.createObjectNode();
+                Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
+                query = DslQueryHelper.createSingleQueryDSL(optionsMap);
+                AdminManagementClient adminClient =
+                    AdminManagementClientFactory.getInstance().getAdminManagementClient();
+                result = adminClient.getRule(JsonHandler.getFromString(query));
+            } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
+                LOGGER.error("Bad request Exception ", e);
+                return Response.status(Status.BAD_REQUEST).build();
+            } catch (final ReferentialException e) {
+                LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
+                return Response.status(Status.NOT_FOUND).build();
+            } catch (final Exception e) {
+                LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            }
+            return Response.status(Status.OK).entity(result).build();
+        } else {
+            return Response.status(Status.UNAUTHORIZED).build();
+        }
+    }
+
+    /**
+     * @param ruleId id of format
+     * @param options the queries for searching
+     * @return Response
+     */
+    @POST
+    @Path("/admin/rules/{id_rule}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getRuleById(@CookieParam("sessionId") String sessionId, @PathParam("id_rule") String ruleId,
+        String options) {
+
+        if (authenticationService.getSession(sessionId)) {
+            JsonNode result = null;
+
+            try {
+                ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
+                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
+                ParametersChecker.checkParameter("rule Id is mandatory", ruleId);
+                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(ruleId));
+                result = JsonHandler.createObjectNode();
+                AdminManagementClient adminClient =
+                    AdminManagementClientFactory.getInstance().getAdminManagementClient();
+                result = adminClient.getRuleByID(ruleId);
+            } catch (final InvalidParseOperationException e) {
+                LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
+                return Response.status(Status.BAD_REQUEST).build();
+            } catch (final ReferentialException e) {
+                LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
+                return Response.status(Status.NOT_FOUND).build();
+            } catch (final Exception e) {
+                LOGGER.error("INTERNAL SERVER ERROR", e);
+                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            }
+            return Response.status(Status.OK).entity(result).build();
+        } else {
+            return Response.status(Status.UNAUTHORIZED).build();
+        }
+    }
+
+
+    /***
+     * check the referential rules
+     *
+     * @param input the rules file csv
+     * @return If the rules file is valid, return ok. If not, return the list of errors
+     */
+    @POST
+    @Path("/rules/check")
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response checkRefRule(@CookieParam("sessionId") String sessionId, InputStream input) {
+        if (authenticationService.getSession(sessionId)) {
+            AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
+            try {
+                client.checkRulesFile(input);
+            } catch (final ReferentialException e) {
+                return Response.status(Status.FORBIDDEN).build();
+            }
+            return Response.status(Status.OK).build();
+        } else {
+            return Response.status(Status.UNAUTHORIZED).build();
+        }
+    }
+
+    /**
+     * Upload the referential rules in the base
+     *
+     * @param input the format file CSV
+     * @return Response
+     */
+    @POST
+    @Path("/rules/upload")
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response uploadRefRule(@CookieParam("sessionId") String sessionId, InputStream input) {
+
+        if (authenticationService.getSession(sessionId)) {
+            AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
+            try {
+                client.importRulesFile(input);
+            } catch (final ReferentialException e) {
+                return Response.status(Status.FORBIDDEN).build();
+            } catch (final DatabaseConflictException e) {
+                return Response.status(Status.FORBIDDEN).build();
+            }
+            return Response.status(Status.OK).build();
+        } else {
+            return Response.status(Status.UNAUTHORIZED).build();
+        }
+    }
+
+    /**
+     * Delete the referential rules in the base
+     *
+     * @return Response
+     */
+    @Path("/rules/delete")
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteRulesFile(@CookieParam("sessionId") String sessionId) {
+        if (authenticationService.getSession(sessionId)) {
+            AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
+            try {
+                client.deleteRulesFile();
+            } catch (final ReferentialException e) {
+                return Response.status(Status.FORBIDDEN).build();
+            }
+            return Response.status(Status.OK).build();
         } else {
             return Response.status(Status.UNAUTHORIZED).build();
         }

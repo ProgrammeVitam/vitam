@@ -16,6 +16,6 @@
 		<module>functional-administration-format</module>
 		<module>functional-administration-rest</module>
 		<module>functional-administration-client</module>
-		<module>functional-administration-rule</module>
+		<module>functional-administration-rules</module>
 	</modules>
 </project>

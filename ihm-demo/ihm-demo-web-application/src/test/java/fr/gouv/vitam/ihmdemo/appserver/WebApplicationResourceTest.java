@@ -69,6 +69,7 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
 import fr.gouv.vitam.ihmdemo.core.UiConstants;
@@ -311,7 +312,8 @@ public class WebApplicationResourceTest {
         Map<String, String> searchCriteriaMap = JsonHandler.getMapStringFromString(OPTIONS);
         String preparedDslQuery = "";
 
-        PowerMockito.when(DslQueryHelper.createSelectElasticsearchDSLQuery(searchCriteriaMap)).thenReturn(preparedDslQuery);
+        PowerMockito.when(DslQueryHelper.createSelectElasticsearchDSLQuery(searchCriteriaMap))
+            .thenReturn(preparedDslQuery);
 
         // UserInterfaceTransactionManager Exception 1 :
         // AccessClientServerException
@@ -329,7 +331,8 @@ public class WebApplicationResourceTest {
         Map<String, String> searchCriteriaMap = JsonHandler.getMapStringFromString(OPTIONS);
         String preparedDslQuery = "";
 
-        PowerMockito.when(DslQueryHelper.createSelectElasticsearchDSLQuery(searchCriteriaMap)).thenReturn(preparedDslQuery);
+        PowerMockito.when(DslQueryHelper.createSelectElasticsearchDSLQuery(searchCriteriaMap))
+            .thenReturn(preparedDslQuery);
 
         // UserInterfaceTransactionManager Exception 1 :
         // AccessClientServerException
@@ -348,7 +351,8 @@ public class WebApplicationResourceTest {
         Map<String, String> searchCriteriaMap = JsonHandler.getMapStringFromString(OPTIONS);
         String preparedDslQuery = "";
 
-        PowerMockito.when(DslQueryHelper.createSelectElasticsearchDSLQuery(searchCriteriaMap)).thenReturn(preparedDslQuery);
+        PowerMockito.when(DslQueryHelper.createSelectElasticsearchDSLQuery(searchCriteriaMap))
+            .thenReturn(preparedDslQuery);
 
         // UserInterfaceTransactionManager Exception 1 :
         // AccessClientServerException
@@ -685,7 +689,7 @@ public class WebApplicationResourceTest {
     public void testCheckFormatOK() throws Exception {
         AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
         AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
-        doNothing().when(adminClient).checkFormat(anyObject());
+        PowerMockito.when(adminClient.checkRulesFile(anyObject())).thenReturn(Status.OK);
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject())).thenReturn(OPTIONS);
 
         PowerMockito.when(adminFactory.getAdminManagementClient()).thenReturn(adminClient);
@@ -943,5 +947,172 @@ public class WebApplicationResourceTest {
             .expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
             .post("/archiveunit/tree/1");
     }
+
+    /** rules Management ********/
+
+    @Test
+    public void givenReferentialWrongFormatRulesWhenUploadThenThrowReferentialException() throws Exception {
+
+        AdminManagementClient adminManagementClient = PowerMockito.mock(AdminManagementClient.class);
+        AdminManagementClientFactory adminManagementClientFactory =
+            PowerMockito.mock(AdminManagementClientFactory.class);
+        doThrow(ReferentialException.class).when(adminManagementClient).importRulesFile(anyObject());
+        PowerMockito.when(adminManagementClientFactory.getAdminManagementClient()).thenReturn(adminManagementClient);
+        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
+
+        InputStream stream = Thread.currentThread().getContextClassLoader()
+            .getResourceAsStream("jeu_donnees_KO_regles_CSV_Parameters.csv");
+        IOUtils.toByteArray(stream);
+
+        given()
+            .cookie("sessionId", sessionId)
+            .contentType(ContentType.BINARY)
+            .config(RestAssured.config().encoderConfig(
+                EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
+            .content(stream).expect()
+            .statusCode(Status.FORBIDDEN.getStatusCode()).when()
+            .post("/rules/upload");
+    }
+
+    @Test
+    public void testRuleUploadOK() throws Exception {
+
+        AdminManagementClient adminManagementClient = PowerMockito.mock(AdminManagementClient.class);
+        AdminManagementClientFactory adminManagementClientFactory =
+            PowerMockito.mock(AdminManagementClientFactory.class);
+        doNothing().when(adminManagementClient).importRulesFile(anyObject());
+        PowerMockito.when(adminManagementClientFactory.getAdminManagementClient()).thenReturn(adminManagementClient);
+        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
+
+        InputStream stream =
+            Thread.currentThread().getContextClassLoader().getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
+        IOUtils.toByteArray(stream);
+
+        given()
+            .contentType(ContentType.BINARY).expect()
+            .statusCode(Status.UNAUTHORIZED.getStatusCode()).when()
+            .post("/rules/upload");
+
+        given().cookie("sessionId", sessionId)
+            .contentType(ContentType.BINARY)
+            .config(RestAssured.config().encoderConfig(
+                EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
+            .content(stream).expect()
+            .statusCode(Status.OK.getStatusCode()).when()
+            .post("/rules/upload");
+    }
+
+    @Test
+    public void testSearchRulesOK() throws Exception {
+        AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
+        AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        doReturn(JsonHandler.getFromString(OPTIONS)).when(adminClient).getRule(anyObject());
+        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject())).thenReturn(OPTIONS);
+
+        PowerMockito.when(adminFactory.getAdminManagementClient()).thenReturn(adminClient);
+        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
+        given().contentType(ContentType.JSON).body(OPTIONS).expect()
+            .statusCode(Status.UNAUTHORIZED.getStatusCode()).when()
+            .post("/admin/rules");
+        given().cookie("sessionId", sessionId).contentType(ContentType.JSON).body(OPTIONS).expect()
+            .statusCode(Status.OK.getStatusCode()).when()
+            .post("/admin/rules");
+    }
+
+    @Test
+    public void testSearchRuleBadRequest() throws Exception {
+        AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
+        AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        doReturn(JsonHandler.getFromString(OPTIONS)).when(adminClient).getRule(anyObject());
+        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject()))
+            .thenThrow(new InvalidParseOperationException(""));
+
+        PowerMockito.when(adminFactory.getAdminManagementClient()).thenReturn(adminClient);
+        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
+
+        given().cookie("sessionId", sessionId).contentType(ContentType.JSON).body(OPTIONS).expect()
+            .statusCode(Status.BAD_REQUEST.getStatusCode()).when()
+            .post("/admin/rules");
+    }
+
+    @Test
+    public void testSearchRuleNotFound() throws Exception {
+        AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
+        AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        doThrow(new FileRulesException("")).when(adminClient).getRule(anyObject());
+        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject())).thenReturn(OPTIONS);
+
+        PowerMockito.when(adminFactory.getAdminManagementClient()).thenReturn(adminClient);
+        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
+
+        given().cookie("sessionId", sessionId).contentType(ContentType.JSON).body(OPTIONS).expect()
+            .statusCode(Status.NOT_FOUND.getStatusCode()).when()
+            .post("/admin/rules");
+    }
+
+    @Test
+    public void testSearchRuleByIdNotFound() throws Exception {
+        AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
+        AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        doThrow(new FileRulesException("")).when(adminClient).getRuleByID(anyObject());
+
+        PowerMockito.when(adminFactory.getAdminManagementClient()).thenReturn(adminClient);
+        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
+
+        given().cookie("sessionId", sessionId).contentType(ContentType.JSON).body(OPTIONS).expect()
+            .statusCode(Status.NOT_FOUND.getStatusCode()).when()
+            .post("/admin/rules/1");
+    }
+
+    @Test
+    public void testDeleteRulesFileOK() throws Exception {
+        AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
+        AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        doNothing().when(adminClient).deleteRulesFile();
+        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject())).thenReturn(OPTIONS);
+
+        PowerMockito.when(adminFactory.getAdminManagementClient()).thenReturn(adminClient);
+        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
+        given().config(RestAssured.config()
+            .encoderConfig(EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
+            .expect()
+            .statusCode(Status.UNAUTHORIZED.getStatusCode()).when()
+            .delete("/rules/delete");
+        given().cookie("sessionId", sessionId).config(RestAssured.config()
+            .encoderConfig(EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
+            .expect()
+            .statusCode(Status.OK.getStatusCode()).when()
+            .delete("/rules/delete");
+    }
+
+
+    @Test
+    public void testCheckRulesFileOK() throws Exception {
+        AdminManagementClient adminClient = PowerMockito.mock(AdminManagementClient.class);
+        AdminManagementClientFactory adminFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        PowerMockito.when(adminClient.checkRulesFile(anyObject())).thenReturn(Status.OK);
+        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject())).thenReturn(OPTIONS);
+
+        PowerMockito.when(adminFactory.getAdminManagementClient()).thenReturn(adminClient);
+        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
+
+        InputStream stream = Thread.currentThread().getContextClassLoader()
+            .getResourceAsStream("jeu_donnees_KO_regles_CSV_Parameters.csv");
+        IOUtils.toByteArray(stream);
+
+        given()
+            .contentType(ContentType.BINARY).expect()
+            .statusCode(Status.UNAUTHORIZED.getStatusCode()).when()
+            .post("/rules/check");
+
+        given().cookie("sessionId", sessionId)
+            .contentType(ContentType.BINARY)
+            .config(RestAssured.config().encoderConfig(
+                EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
+            .content(stream).expect()
+            .statusCode(Status.OK.getStatusCode()).when()
+            .post("/rules/check");
+    }
+
 
 }

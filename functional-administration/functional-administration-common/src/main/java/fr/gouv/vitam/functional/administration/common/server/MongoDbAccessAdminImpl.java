@@ -55,7 +55,8 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 /**
  * MongoDbAccess Implement for Admin
  */
-public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAccessReferential {
+public class MongoDbAccessAdminImpl extends MongoDbAccess
+    implements MongoDbAccessReferential {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MongoDbAccessAdminImpl.class);
 
@@ -155,4 +156,5 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
         }
         return find.iterator();
     }
+
 }

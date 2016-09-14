@@ -67,7 +67,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookClientFactory;
 /**
  * ReferentialFormatFileImpl implementing the ReferentialFormatFile interface
  */
-public class ReferentialFormatFileImpl implements ReferentialFile {
+public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat> {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReferentialFormatFileImpl.class);
     private final MongoDbAccessAdminImpl mongoAccess;
