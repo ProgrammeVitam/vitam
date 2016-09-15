@@ -207,6 +207,24 @@ public final class JsonHandler {
     }
 
     /**
+     * 
+     * @param jsonNode
+     * @param clasz
+     * @return the corresponding object
+     * @throws InvalidParseOperationException
+     */
+    public static final <T> T getFromJsonNode(JsonNode jsonNode, Class<T> clasz)
+        throws InvalidParseOperationException {
+        try {
+            ParametersChecker.checkParameter("JsonNode or class", jsonNode, clasz);
+            return OBJECT_MAPPER.treeToValue(jsonNode, clasz);
+        } catch (JsonProcessingException e) {
+            throw new InvalidParseOperationException(e);
+        }
+
+    }
+
+    /**
      *
      * @param object
      * @return the Json representation of the object

@@ -94,6 +94,8 @@ public class JsonHandlerTest {
         assertEquals(node.toString(), node3.toString());
         final TestClass tc2 = JsonHandler.getFromFile(file, TestClass.class);
         assertEquals("val", tc2.getA());
+        final TestClass tc4 = JsonHandler.getFromJsonNode(node, TestClass.class);
+        assertEquals("val", tc4.getA());
         final JsonNode node4 = JsonHandler.toJsonNode(tc2);
         assertEquals(JsonHandler.prettyPrint(node4), JsonHandler.writeAsString(tc2));
         assertEquals(JsonHandler.prettyPrint(node4), JsonHandler.prettyPrint(tc2));
