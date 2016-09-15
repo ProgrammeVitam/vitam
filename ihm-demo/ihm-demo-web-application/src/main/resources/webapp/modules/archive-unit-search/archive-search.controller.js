@@ -197,7 +197,7 @@ function($scope, ihmDemoFactory, $window, $mdToast, $mdDialog,  ARCHIVE_SEARCH_M
 
       $scope.setItemsPerPage = function(num) {
         $scope.itemsPerPage = num;
-        $scope.currentPage = 1; //reset to first paghe
+        $scope.currentPage = 1; //reset to first page
       }
       // **************************************************************************** //
 

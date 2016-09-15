@@ -214,7 +214,7 @@ angular.module('archive.unit')
           var displayUpdatedArchiveCallBack = function (data) {
             if(data.$result == null || data.$result == undefined ||
               data.$hint == null || data.$hint == undefined) {
-                console.log("errorMsg");
+                console.log("Erreur survenue à la mise à jour de l'archive unit");
                 self.showAlert($event, "Erreur", "Erreur survenue à la mise à jour de l'archive unit");
             } else {
               // Archive unit found
@@ -287,6 +287,23 @@ angular.module('archive.unit')
           ihmDemoFactory.getArchiveTree(self.archiveFields._id, self.archiveFields._us)
   	      .then(function (response) {
   	    	  self.archiveTree = response.data;
+
+            // Add displayed unit details
+            var displayedUnitDetails = {};
+            displayedUnitDetails.Title = self.archiveFields.Title;
+            displayedUnitDetails._id = self.archiveId;
+
+            self.fullArchiveTree = [];
+            angular.forEach(self.archiveTree, function(value) {
+              var currentPath = [];
+              currentPath.push(displayedUnitDetails);
+              angular.forEach(value, function(currentParent) {
+                currentPath.push(currentParent);
+              });
+
+              self.fullArchiveTree.push(currentPath);
+            });
+
             console.log("Archive tree: " + self.archiveTree);
   	      },function (error) {
   	    	  console.log("Archive tree search failed");
@@ -313,83 +330,103 @@ angular.module('archive.unit')
       } else {
         // ID Field
         var idField = self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.ID_KEY];
-        if(!angular.isObject(idField)){
-            var fieldSet = {};
-            fieldSet.fieldName = ARCHIVE_UNIT_MODULE_CONST.ID_LABEL;
-            fieldSet.fieldValue= idField;
-            fieldSet.isChild = false;
-            fieldSet.typeF= ARCHIVE_UNIT_MODULE_CONST.SIMPLE_FIELD_TYPE;
-            fieldSet.fieldId = ARCHIVE_UNIT_MODULE_CONST.ID_KEY;
-            fieldSet.parents = [];
-            fieldSet.isModificationAllowed = false;
-            self.archiveArray.push(fieldSet);
-        }
-        //get archive object groups informations to be displayed in the table
-        ihmDemoFactory.getArchiveObjectGroup(self.archiveFields._og)
-	      .then(function (response) {
-	    	  var dataOG = response.data;	    	  ;
-	    	  if (dataOG.nbObjects == null || dataOG.nbObjects == undefined ||
-	    			  dataOG.versions == null || dataOG.versions == undefined){
-	    		  // ObjectGroups Not Found
-	    		  console.log("errorMsg");
-	    	  } else {
-	    		  $scope.archiveObjectGroups = dataOG;
-	    		  $scope.archiveObjectGroupsOgId = self.archiveFields._og;
-	    	  }
-	      },function (error) {
-	    	  console.log("errorMsg");
-	      });
 
-        // Get Archive Tree
-        ihmDemoFactory.getArchiveTree(self.archiveFields._id, self.archiveFields._us)
-        .then(function (response) {
-          self.archiveTree = response.data;
-          console.log("Archive tree: " + self.archiveTree);
-        },function (error) {
-          console.log("Archive tree search failed");
-        });
-
-        // Other fields
-        angular.forEach(self.archiveFields, function(value, key) {
-            if(key !== ARCHIVE_UNIT_MODULE_CONST.MGT_KEY && key !== ARCHIVE_UNIT_MODULE_CONST.ID_KEY &&
-              key.toString().charAt(0)!==ARCHIVE_UNIT_MODULE_CONST.TECH_KEY) {
-                  // Get Title archive
-                  if(key == ARCHIVE_UNIT_MODULE_CONST.TITLE_FIELD){
-                    self.archiveTitle = value;
-                    $window.document.title = ARCHIVE_UNIT_MODULE_CONST.ARCHIVE_UNIT_FORM_PREFIX +
-                            $routeParams.archiveId + ARCHIVE_UNIT_MODULE_CONST.ARCHIVE_UNIT_FORM_TITLE_SEPARATOR + self.archiveTitle;
-                  }
-                  var parents = [];
-                  self.fieldSet = buildSingleField(value, key, key, parents);
-                  self.fieldSet.isModificationAllowed = true;
-                  self.archiveArray.push(self.fieldSet);
-            }
-        });
-
-        // _mgt field
-        var mgtField = self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.MGT_KEY];
-        if(angular.isObject(mgtField)){
-            var fieldSet = {};
-            fieldSet.fieldName = ARCHIVE_UNIT_MODULE_CONST.MGT_LABEL;
-            fieldSet.fieldValue= mgtField;
-            fieldSet.isChild = false;
-            fieldSet.typeF= ARCHIVE_UNIT_MODULE_CONST.COMPLEX_FIELD_TYPE;
-            fieldSet.fieldId = ARCHIVE_UNIT_MODULE_CONST.MGT_WITH_CSHARP_KEY;
-            fieldSet.parents = [];
-
-            var contentField = mgtField;
-            fieldSet.content = [];
-
-            angular.forEach(contentField, function(value, key) {
-                if(key !== ARCHIVE_UNIT_MODULE_CONST.MGT_KEY && key !== ARCHIVE_UNIT_MODULE_CONST.ID_KEY &&
-                  key.toString().charAt(0)!==ARCHIVE_UNIT_MODULE_CONST.TECH_KEY){
-                  var fieldSetSecond = buildSingleField(value, key, ARCHIVE_UNIT_MODULE_CONST.MGT_WITH_CSHARP_KEY, fieldSet.parents);
-                  fieldSetSecond.isModificationAllowed = false;
-                  fieldSet.content.push(fieldSetSecond);
-                }
-            });
-            self.archiveArray.push(fieldSet);
+        if(idField !== self.archiveId){
+          self.refreshArchiveDetails();
+        } else {
+          if(!angular.isObject(idField)){
+              var fieldSet = {};
+              fieldSet.fieldName = ARCHIVE_UNIT_MODULE_CONST.ID_LABEL;
+              fieldSet.fieldValue= idField;
+              fieldSet.isChild = false;
+              fieldSet.typeF= ARCHIVE_UNIT_MODULE_CONST.SIMPLE_FIELD_TYPE;
+              fieldSet.fieldId = ARCHIVE_UNIT_MODULE_CONST.ID_KEY;
+              fieldSet.parents = [];
+              fieldSet.isModificationAllowed = false;
+              self.archiveArray.push(fieldSet);
           }
+          //get archive object groups informations to be displayed in the table
+          ihmDemoFactory.getArchiveObjectGroup(self.archiveFields._og)
+  	      .then(function (response) {
+  	    	  var dataOG = response.data;	    	  ;
+  	    	  if (dataOG.nbObjects == null || dataOG.nbObjects == undefined ||
+  	    			  dataOG.versions == null || dataOG.versions == undefined){
+  	    		  // ObjectGroups Not Found
+  	    		  console.log("errorMsg");
+  	    	  } else {
+  	    		  $scope.archiveObjectGroups = dataOG;
+  	    		  $scope.archiveObjectGroupsOgId = self.archiveFields._og;
+  	    	  }
+  	      },function (error) {
+  	    	  console.log("errorMsg");
+  	      });
+
+          // Get Archive Tree
+          ihmDemoFactory.getArchiveTree(self.archiveFields._id, self.archiveFields._us)
+          .then(function (response) {
+            self.archiveTree = response.data;
+
+            // Add displayed unit details
+            var displayedUnitDetails = {};
+            displayedUnitDetails.Title = self.archiveFields.Title;
+            displayedUnitDetails._id = self.archiveId;
+
+            self.fullArchiveTree = [];
+            angular.forEach(self.archiveTree, function(value) {
+              var currentPath = [];
+              currentPath.push(displayedUnitDetails);
+              angular.forEach(value, function(currentParent) {
+                currentPath.push(currentParent);
+              });
+
+              self.fullArchiveTree.push(currentPath);
+            });
+          },function (error) {
+            console.log("Archive tree search failed");
+          });
+
+          // Other fields
+          angular.forEach(self.archiveFields, function(value, key) {
+              if(key !== ARCHIVE_UNIT_MODULE_CONST.MGT_KEY && key !== ARCHIVE_UNIT_MODULE_CONST.ID_KEY &&
+                key.toString().charAt(0)!==ARCHIVE_UNIT_MODULE_CONST.TECH_KEY) {
+                    // Get Title archive
+                    if(key == ARCHIVE_UNIT_MODULE_CONST.TITLE_FIELD){
+                      self.archiveTitle = value;
+                      $window.document.title = ARCHIVE_UNIT_MODULE_CONST.ARCHIVE_UNIT_FORM_PREFIX +
+                              $routeParams.archiveId + ARCHIVE_UNIT_MODULE_CONST.ARCHIVE_UNIT_FORM_TITLE_SEPARATOR + self.archiveTitle;
+                    }
+                    var parents = [];
+                    self.fieldSet = buildSingleField(value, key, key, parents);
+                    self.fieldSet.isModificationAllowed = true;
+                    self.archiveArray.push(self.fieldSet);
+              }
+          });
+
+          // _mgt field
+          var mgtField = self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.MGT_KEY];
+          if(angular.isObject(mgtField)){
+              var fieldSet = {};
+              fieldSet.fieldName = ARCHIVE_UNIT_MODULE_CONST.MGT_LABEL;
+              fieldSet.fieldValue= mgtField;
+              fieldSet.isChild = false;
+              fieldSet.typeF= ARCHIVE_UNIT_MODULE_CONST.COMPLEX_FIELD_TYPE;
+              fieldSet.fieldId = ARCHIVE_UNIT_MODULE_CONST.MGT_WITH_CSHARP_KEY;
+              fieldSet.parents = [];
+
+              var contentField = mgtField;
+              fieldSet.content = [];
+
+              angular.forEach(contentField, function(value, key) {
+                  if(key !== ARCHIVE_UNIT_MODULE_CONST.MGT_KEY && key !== ARCHIVE_UNIT_MODULE_CONST.ID_KEY &&
+                    key.toString().charAt(0)!==ARCHIVE_UNIT_MODULE_CONST.TECH_KEY){
+                    var fieldSetSecond = buildSingleField(value, key, ARCHIVE_UNIT_MODULE_CONST.MGT_WITH_CSHARP_KEY, fieldSet.parents);
+                    fieldSetSecond.isModificationAllowed = false;
+                    fieldSet.content.push(fieldSetSecond);
+                  }
+              });
+              self.archiveArray.push(fieldSet);
+            }
+        }
       }
     };
 
@@ -449,5 +486,16 @@ angular.module('archive.unit')
       }
 
     // ********************************************************************************* //
+
+    // ******************** Calculate Intent to render unit tree *********************** //
+    self.getIntent = function(index) {
+      var treeBranchStyle = {
+        'margin-left': (index * 20)+'px'
+      };
+
+      return treeBranchStyle;
+    };
+    // ********************************************************************************* //
+
 
   });
