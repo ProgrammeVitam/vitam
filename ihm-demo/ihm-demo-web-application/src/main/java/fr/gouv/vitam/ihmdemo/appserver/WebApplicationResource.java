@@ -27,7 +27,6 @@
 package fr.gouv.vitam.ihmdemo.appserver;
 
 import java.io.InputStream;
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +35,6 @@ import java.util.stream.StreamSupport;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.CookieParam;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -46,11 +44,12 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
-import javax.xml.bind.DatatypeConverter;
+
+import org.apache.shiro.authc.UsernamePasswordToken;
+import org.apache.shiro.subject.Subject;
+import org.apache.shiro.util.ThreadContext;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -73,8 +72,6 @@ import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
 import fr.gouv.vitam.ihmdemo.core.JsonTransformer;
 import fr.gouv.vitam.ihmdemo.core.UiConstants;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
-import fr.gouv.vitam.ihmdemo.core.auth.shiro.AuthenticationService;
-import fr.gouv.vitam.ihmdemo.core.auth.shiro.AuthenticationServiceFactory;
 import fr.gouv.vitam.ingest.external.api.IngestExternalException;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -99,13 +96,6 @@ public class WebApplicationResource {
 
     @Context
     private HttpServletRequest request;
-    private static AuthenticationService authenticationService =
-        AuthenticationServiceFactory.getInstance().getAuthenticationService();
-    // the maximum age of the cookie in seconds
-    private int maxAge = 18000;
-    // specifies whether the cookie will only be sent over a secure connection
-    private boolean secure = false;
-
 
     /**
      * @param criteria criteria search for units
@@ -114,9 +104,8 @@ public class WebApplicationResource {
     @POST
     @Path("/archivesearch/units")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getArchiveSearchResult(@CookieParam("sessionId") String sessionId, String criteria) {
+    public Response getArchiveSearchResult(String criteria) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, criteria);
-        if (authenticationService.getSession(sessionId)) {
             try {
                 SanityChecker.checkJsonAll(JsonHandler.toJsonNode(criteria));
                 Map<String, String> criteriaMap = JsonHandler.getMapStringFromString(criteria);
@@ -137,9 +126,6 @@ public class WebApplicationResource {
                 LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
                 return Response.status(Status.INTERNAL_SERVER_ERROR).build();
             }
-        } else {
-            return Response.status(Status.UNAUTHORIZED).build();
-        }
     }
 
     /**
@@ -149,9 +135,8 @@ public class WebApplicationResource {
     @GET
     @Path("/archivesearch/unit/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getArchiveUnitDetails(@CookieParam("sessionId") String sessionId, @PathParam("id") String unitId) {
+    public Response getArchiveUnitDetails(@PathParam("id") String unitId) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitId);
-        if (authenticationService.getSession(sessionId)) {
             try {
                 SanityChecker.checkJsonAll(JsonHandler.toJsonNode(unitId));
                 // Prepare required map
@@ -175,9 +160,6 @@ public class WebApplicationResource {
                 LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
                 return Response.status(Status.INTERNAL_SERVER_ERROR).build();
             }
-        } else {
-            return Response.status(Status.UNAUTHORIZED).build();
-        }
     }
 
     /**
@@ -187,8 +169,7 @@ public class WebApplicationResource {
     @POST
     @Path("/logbook/operations")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getLogbookResult(@CookieParam("sessionId") String sessionId, String options) {
-        if (authenticationService.getSession(sessionId)) {
+    public Response getLogbookResult(String options) {
             JsonNode result = null;
             try {
                 ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
@@ -210,9 +191,6 @@ public class WebApplicationResource {
                 return Response.status(Status.INTERNAL_SERVER_ERROR).build();
             }
             return Response.status(Status.OK).entity(result).build();
-        } else {
-            return Response.status(Status.UNAUTHORIZED).build();
-        }
     }
 
     /**
@@ -223,10 +201,8 @@ public class WebApplicationResource {
     @POST
     @Path("/logbook/operations/{idOperation}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getLogbookResultById(@CookieParam("sessionId") String sessionId,
-        @PathParam("idOperation") String operationId, String options) {
+    public Response getLogbookResultById(@PathParam("idOperation") String operationId, String options) {
 
-        if (authenticationService.getSession(sessionId)) {
             JsonNode result = null;
 
             try {
@@ -246,9 +222,6 @@ public class WebApplicationResource {
                 return Response.status(Status.INTERNAL_SERVER_ERROR).build();
             }
             return Response.status(Status.OK).entity(result).build();
-        } else {
-            return Response.status(Status.UNAUTHORIZED).build();
-        }
     }
 
     /**
@@ -273,9 +246,8 @@ public class WebApplicationResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response upload(@CookieParam("sessionId") String sessionId, InputStream stream) {
+    public Response upload(InputStream stream) {
         ParametersChecker.checkParameter("SIP is a mandatory parameter", stream);
-        if (authenticationService.getSession(sessionId)) {
             try {
                    IngestExternalClientFactory.getInstance().getIngestExternalClient().upload(stream);
                
@@ -285,9 +257,6 @@ public class WebApplicationResource {
                     .build();
             }
             return Response.status(Status.OK).build();
-        } else {
-            return Response.status(Status.UNAUTHORIZED).build();
-        }
     }
 
     /**
@@ -301,10 +270,9 @@ public class WebApplicationResource {
     @Path("/archiveupdate/units/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response updateArchiveUnitDetails(@CookieParam("sessionId") String sessionId, @PathParam("id") String unitId,
+    public Response updateArchiveUnitDetails(@PathParam("id") String unitId,
         String updateSet) {
 
-        if (authenticationService.getSession(sessionId)) {
             try {
                 ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitId);
                 SanityChecker.checkJsonAll(JsonHandler.toJsonNode(unitId));
@@ -345,9 +313,6 @@ public class WebApplicationResource {
                 LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
                 return Response.status(Status.INTERNAL_SERVER_ERROR).build();
             }
-        } else {
-            return Response.status(Status.UNAUTHORIZED).build();
-        }
     }
 
     /**
@@ -357,9 +322,8 @@ public class WebApplicationResource {
     @POST
     @Path("/admin/formats")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getFileFormats(@CookieParam("sessionId") String sessionId, String options) {
+    public Response getFileFormats(String options) {
         ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
-        if (authenticationService.getSession(sessionId)) {
             String query = "";
             JsonNode result = null;
             try {
@@ -381,9 +345,6 @@ public class WebApplicationResource {
                 return Response.status(Status.INTERNAL_SERVER_ERROR).build();
             }
             return Response.status(Status.OK).entity(result).build();
-        } else {
-            return Response.status(Status.UNAUTHORIZED).build();
-        }
     }
 
     /**
@@ -394,10 +355,9 @@ public class WebApplicationResource {
     @POST
     @Path("/admin/formats/{idFormat}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getFormatById(@CookieParam("sessionId") String sessionId, @PathParam("idFormat") String formatId,
+    public Response getFormatById(@PathParam("idFormat") String formatId,
         String options) {
 
-        if (authenticationService.getSession(sessionId)) {
             JsonNode result = null;
 
             try {
@@ -420,9 +380,6 @@ public class WebApplicationResource {
                 return Response.status(Status.INTERNAL_SERVER_ERROR).build();
             }
             return Response.status(Status.OK).entity(result).build();
-        } else {
-            return Response.status(Status.UNAUTHORIZED).build();
-        }
     }
 
 
@@ -436,8 +393,7 @@ public class WebApplicationResource {
     @Path("/format/check")
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response checkRefFormat(@CookieParam("sessionId") String sessionId, InputStream input) {
-        if (authenticationService.getSession(sessionId)) {
+    public Response checkRefFormat(InputStream input) {
             AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
             try {
                 client.checkFormat(input);
@@ -445,9 +401,6 @@ public class WebApplicationResource {
                 return Response.status(Status.FORBIDDEN).build();
             }
             return Response.status(Status.OK).build();
-        } else {
-            return Response.status(Status.UNAUTHORIZED).build();
-        }
     }
 
     /**
@@ -460,9 +413,8 @@ public class WebApplicationResource {
     @Path("/format/upload")
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response uploadRefFormat(@CookieParam("sessionId") String sessionId, InputStream input) {
+    public Response uploadRefFormat(InputStream input) {
 
-        if (authenticationService.getSession(sessionId)) {
             AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
             try {
                 client.importFormat(input);
@@ -472,9 +424,6 @@ public class WebApplicationResource {
                 return Response.status(Status.FORBIDDEN).build();
             }
             return Response.status(Status.OK).build();
-        } else {
-            return Response.status(Status.UNAUTHORIZED).build();
-        }
     }
 
     /**
@@ -485,8 +434,7 @@ public class WebApplicationResource {
     @Path("/format/delete")
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    public Response deleteFormat(@CookieParam("sessionId") String sessionId) {
-        if (authenticationService.getSession(sessionId)) {
+    public Response deleteFormat() {
             AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
             try {
                 client.deleteFormat();
@@ -494,94 +442,7 @@ public class WebApplicationResource {
                 return Response.status(Status.FORBIDDEN).build();
             }
             return Response.status(Status.OK).build();
-        } else {
-            return Response.status(Status.UNAUTHORIZED).build();
-        }
     }
-
-
-
-    /**
-     * Decode the authorization header and use authentication service to login
-     * 
-     * @return a response containing the session Id in header
-     */
-    @POST
-    @Path("/login")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response login() {
-
-        String decodedAuthorization = null;
-        String username = null;
-        try {
-            String header = request.getHeader("authorization");
-
-            if (header == null) {
-                LOGGER.error("invalid authorization header");
-                return Response.status(Status.UNAUTHORIZED).build();
-            }
-
-            String codedAuthorization = header.substring(header.indexOf(" ") + 1);
-
-            byte[] bytes = DatatypeConverter.parseBase64Binary(codedAuthorization);
-            decodedAuthorization = new String(bytes);
-
-            String[] parts = decodedAuthorization.split(":");
-            username = parts[0];
-            String password = parts[1];
-
-
-            Serializable sessionId = authenticationService.login(username, password, true);
-            LOGGER.info("User login : " + username + " logged in successfully using PASSWORD " + "sessionId : " +
-                sessionId.toString());
-
-            // using cookie
-            NewCookie newCookie = new NewCookie("sessionId", sessionId.toString(),
-                "/", "", 0, "", maxAge, secure);
-
-            ResponseBuilder response = Response.ok().cookie(newCookie);
-
-            return response.build();
-
-        } catch (VitamException e) {
-            LOGGER.info("User login failure : " + username + " using PASSWORD");
-            LOGGER.debug(e.getMessage(), e);
-            return Response.status(Status.UNAUTHORIZED).build();
-        } catch (Exception e) {
-            LOGGER.debug(e.getMessage(), e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
-    /**
-     * Use the session id to log out
-     * 
-     * @param sessionId of loggedIn user
-     * @return a response with status OK or UNAUTHORIZED
-     */
-    @POST
-    @Path("/logout")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response logout(@CookieParam("sessionId") String sessionId) {
-
-        try {
-            authenticationService.logout(sessionId);
-
-        } catch (VitamException e) {
-            LOGGER.info("User logout failure : " + sessionId);
-            LOGGER.debug(e.getMessage(), e);
-            return Response.status(Status.UNAUTHORIZED).entity(e.getMessage()).build();
-        }
-
-
-        LOGGER.info("User logout : " + sessionId + " logged out successfully");
-        NewCookie newCookie = new NewCookie("sessionId", "",
-            "/", "", 0, "", 0, secure);
-
-        ResponseBuilder response = Response.ok().cookie(newCookie);
-        return response.build();
-    }
-
 
     /**
      * Retrieve an ObjectGroup as Json data based on the provided ObjectGroup id
@@ -592,10 +453,8 @@ public class WebApplicationResource {
     @GET
     @Path("/archiveunit/objects/{idOG}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getArchiveObjectGroup(@CookieParam("sessionId") String sessionId,
-        @PathParam("idOG") String objectGroupId) {
+    public Response getArchiveObjectGroup(@PathParam("idOG") String objectGroupId) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, objectGroupId);
-        if (authenticationService.getSession(sessionId)) {
             try {
                 SanityChecker.checkJsonAll(JsonHandler.toJsonNode(objectGroupId));
 
@@ -620,9 +479,6 @@ public class WebApplicationResource {
                 LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
                 return Response.status(Status.INTERNAL_SERVER_ERROR).build();
             }
-        } else {
-            return Response.status(Status.UNAUTHORIZED).build();
-        }
 
     }
 
@@ -636,10 +492,8 @@ public class WebApplicationResource {
     @POST
     @Path("/archiveunit/objects/download/{idOG}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response getObjectAsInputStream(@CookieParam("sessionId") String sessionId,
-        @PathParam("idOG") String objectGroupId, String options) {
+    public Response getObjectAsInputStream(@PathParam("idOG") String objectGroupId, String options) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, objectGroupId);
-        if (authenticationService.getSession(sessionId)) {
             try {
                 SanityChecker.checkJsonAll(JsonHandler.toJsonNode(objectGroupId));
                 SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
@@ -668,9 +522,6 @@ public class WebApplicationResource {
                 LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
                 return Response.status(Status.INTERNAL_SERVER_ERROR).build();
             }
-        } else {
-            return Response.status(Status.UNAUTHORIZED).build();
-        }
     }
 
     /***** rules Management ************/
@@ -682,9 +533,8 @@ public class WebApplicationResource {
     @POST
     @Path("/admin/rules")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getFileRules(@CookieParam("sessionId") String sessionId, String options) {
+    public Response getFileRules(String options) {
         ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
-        if (authenticationService.getSession(sessionId)) {
             String query = "";
             JsonNode result = null;
             try {
@@ -706,9 +556,6 @@ public class WebApplicationResource {
                 return Response.status(Status.INTERNAL_SERVER_ERROR).build();
             }
             return Response.status(Status.OK).entity(result).build();
-        } else {
-            return Response.status(Status.UNAUTHORIZED).build();
-        }
     }
 
     /**
@@ -719,10 +566,9 @@ public class WebApplicationResource {
     @POST
     @Path("/admin/rules/{id_rule}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getRuleById(@CookieParam("sessionId") String sessionId, @PathParam("id_rule") String ruleId,
+    public Response getRuleById(@PathParam("id_rule") String ruleId,
         String options) {
 
-        if (authenticationService.getSession(sessionId)) {
             JsonNode result = null;
 
             try {
@@ -745,9 +591,6 @@ public class WebApplicationResource {
                 return Response.status(Status.INTERNAL_SERVER_ERROR).build();
             }
             return Response.status(Status.OK).entity(result).build();
-        } else {
-            return Response.status(Status.UNAUTHORIZED).build();
-        }
     }
 
 
@@ -761,8 +604,7 @@ public class WebApplicationResource {
     @Path("/rules/check")
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response checkRefRule(@CookieParam("sessionId") String sessionId, InputStream input) {
-        if (authenticationService.getSession(sessionId)) {
+    public Response checkRefRule(InputStream input) {
             AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
             try {
                 client.checkRulesFile(input);
@@ -770,9 +612,6 @@ public class WebApplicationResource {
                 return Response.status(Status.FORBIDDEN).build();
             }
             return Response.status(Status.OK).build();
-        } else {
-            return Response.status(Status.UNAUTHORIZED).build();
-        }
     }
 
     /**
@@ -785,9 +624,8 @@ public class WebApplicationResource {
     @Path("/rules/upload")
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response uploadRefRule(@CookieParam("sessionId") String sessionId, InputStream input) {
+    public Response uploadRefRule(InputStream input) {
 
-        if (authenticationService.getSession(sessionId)) {
             AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
             try {
                 client.importRulesFile(input);
@@ -797,9 +635,6 @@ public class WebApplicationResource {
                 return Response.status(Status.FORBIDDEN).build();
             }
             return Response.status(Status.OK).build();
-        } else {
-            return Response.status(Status.UNAUTHORIZED).build();
-        }
     }
 
     /**
@@ -810,8 +645,7 @@ public class WebApplicationResource {
     @Path("/rules/delete")
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    public Response deleteRulesFile(@CookieParam("sessionId") String sessionId) {
-        if (authenticationService.getSession(sessionId)) {
+    public Response deleteRulesFile() {
             AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
             try {
                 client.deleteRulesFile();
@@ -819,9 +653,6 @@ public class WebApplicationResource {
                 return Response.status(Status.FORBIDDEN).build();
             }
             return Response.status(Status.OK).build();
-        } else {
-            return Response.status(Status.UNAUTHORIZED).build();
-        }
     }
 
 
@@ -838,12 +669,8 @@ public class WebApplicationResource {
     @Path("/archiveunit/tree/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getUnitTree(@CookieParam("sessionId") String sessionId, @PathParam("id") String unitId,
+    public Response getUnitTree(@PathParam("id") String unitId,
         String allParents) {
-
-        if (!authenticationService.getSession(sessionId)) {
-            return Response.status(Status.UNAUTHORIZED).build();
-        }
 
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitId);
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, allParents);
@@ -884,6 +711,38 @@ public class WebApplicationResource {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
+    }
+    
+    /**
+     * @param object user credentials
+     * @return Response OK if login success
+     */
+    @POST
+    @Path("login")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response login(JsonNode object) {
+        Subject subject = ThreadContext.getSubject();
+        String username = object.get("token").get("principal").textValue();
+        String password =  object.get("token").get("credentials").textValue();
+
+        if (username == null || password == null) {
+            return Response.status(Status.UNAUTHORIZED).build();
+        }
+
+        UsernamePasswordToken token = new UsernamePasswordToken(username, password);
+        token.setRememberMe(true);
+
+        try {
+            subject.login(token);
+            //TODO add access log
+            LOGGER.info("Login success: " + username);
+        } catch (Exception uae) {
+            LOGGER.debug("Login fail: " + username);
+            return Response.status(Status.UNAUTHORIZED).build();
+        } 
+
+        return Response.status(Status.OK).build();
     }
 
 }

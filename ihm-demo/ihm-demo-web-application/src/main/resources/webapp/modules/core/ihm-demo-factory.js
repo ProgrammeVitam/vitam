@@ -141,7 +141,7 @@ angular.module('core')
       return $cookies.get(key);
     }
 
-    function login(userName, password) {
+    function login() {
       return ihmDemoCLient.getClient('').all('login').post();
     }
 

@@ -19,6 +19,7 @@
     "angular-file-upload": "^2.3.4",
     "restangular": "^1.5.2",
     "v-accordion": "^1.6.0",
-    "angular-cookies": "1.5.7"
+    "angular-cookies": "1.5.7",
+    "angular-shiro": "^0.1.3"
   }
 }

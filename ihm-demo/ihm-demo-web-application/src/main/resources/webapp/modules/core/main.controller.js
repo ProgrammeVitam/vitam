@@ -26,9 +26,9 @@
  */
 
 angular.module('core')
-  .controller('mainViewController', function($rootScope, $scope, $location, IHM_URLS, authVitamService, $window, Restangular) {
+  .controller('mainViewController', function($rootScope, $scope, $location, IHM_URLS, authVitamService, $window, Restangular, subject, usernamePasswordToken) {
     $scope.showMenuBar = !$location.url().toString().startsWith(IHM_URLS.ARCHIVE_DETAILS_PATH);
-
+    $scope.credentials = usernamePasswordToken;
     $scope.session = {};
 
     $rootScope.$on('$routeChangeSuccess', function(event, next, current) {
@@ -46,12 +46,12 @@ angular.module('core')
       }
     });
 
-    $scope.connectUser = function(login, password) {
-      Restangular.setDefaultHeaders({ Authorization: "Basic " + btoa(login+':'+password) });
-      authVitamService.login(login, password).then(
+    $scope.connectUser = function() {
+      subject.login($scope.credentials)
+        .then(
         function(res) {
           authVitamService.createCookie('role', res.role);
-          authVitamService.createCookie('userCredentials', btoa(login+':'+password));
+          authVitamService.createCookie('userCredentials', btoa(''+':'+''));
           $scope.session.status = 'logged';
           $scope.logginError = false;
           if (authVitamService.url && authVitamService.url != '') {
@@ -68,6 +68,7 @@ angular.module('core')
     };
 
     $scope.logoutUser = function() {
+      subject.logout();
       $scope.session.status = 'notlogged';
       delete authVitamService.url;
       authVitamService.logout().then(function(res) {

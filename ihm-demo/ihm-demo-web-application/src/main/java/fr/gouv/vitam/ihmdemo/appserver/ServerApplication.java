@@ -26,13 +26,19 @@
  */
 package fr.gouv.vitam.ihmdemo.appserver;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.common.server.VitamServerFactory;
+import static java.lang.String.format;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.EnumSet;
+
+import javax.servlet.DispatcherType;
+
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shiro.web.env.EnvironmentLoaderListener;
+import org.apache.shiro.web.servlet.ShiroFilter;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.DefaultHandler;
@@ -43,11 +49,12 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 
-import java.io.File;
-import java.net.URISyntaxException;
-import java.net.URL;
-
-import static java.lang.String.format;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.common.server.VitamServerFactory;
 
 /**
  * Server application for ihm-demo
@@ -58,6 +65,7 @@ public class ServerApplication {
     private static VitamServer vitamServer;
     private static final String CONF_FILE_NAME = "ihm-demo.conf";
     private static final String MODULE_NAME = "ihm-demo";
+    private static final String SHIRO_FILE = "shiro.ini";
 
 
     /**
@@ -134,6 +142,23 @@ public class ServerApplication {
         final ServletHolder restResourceHolder = new ServletHolder(servletContainer);
 
         final ServletContextHandler restResourceContext = new ServletContextHandler(ServletContextHandler.SESSIONS);
+
+        if (configuration.isSecure()) {
+            File shiroFile = null;
+
+            try {
+                shiroFile = PropertiesUtils.findFile(SHIRO_FILE);
+                restResourceContext.setInitParameter("shiroConfigLocations", "file:"+shiroFile.getAbsolutePath());
+            } catch (FileNotFoundException e) {
+                LOGGER.error(e.getMessage(), e);
+                throw new VitamApplicationServerException(e.getMessage());
+            }
+            restResourceContext.addEventListener(new EnvironmentLoaderListener());
+            restResourceContext.addFilter(ShiroFilter.class, "/*", EnumSet.of(
+                DispatcherType.INCLUDE, DispatcherType.REQUEST,
+                DispatcherType.FORWARD, DispatcherType.ERROR));
+        }
+
         restResourceContext.setContextPath(configuration.getBaseUrl());
         restResourceContext.setVirtualHosts(new String[] {configuration.getServerHost()});
         restResourceContext.addServlet(restResourceHolder, "/*");

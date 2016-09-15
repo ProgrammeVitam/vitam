@@ -38,6 +38,7 @@ public class WebApplicationConfig {
     private String baseUrl;
     private String staticContent;
     private String jettyConfig;
+    private boolean secure;
 
     /**
      * @return port
@@ -123,6 +124,22 @@ public class WebApplicationConfig {
     public WebApplicationConfig setJettyConfig(String jettyConfig) {
         ParametersChecker.checkParameter("jetty configuration is mandatory", staticContent);
         this.jettyConfig = jettyConfig;
+        return this;
+    }
+
+    /**
+     * @return secure value
+     */
+    public boolean isSecure() {
+        return secure;
+    }
+
+    /**
+     * @param secure value
+     * @return WebApplicationConfig object
+     */
+    public WebApplicationConfig setSecure(boolean secure) {
+        this.secure = secure;
         return this;
     }
 }
