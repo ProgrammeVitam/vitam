@@ -368,22 +368,8 @@ public class SedaUtils {
                     final StartElement element = event.asStartElement();
                     if (element.getName().equals(unitName)) {
                         writeArchiveUnitToWorkspace(client, containerId, reader, element, archiveUnitTree);
-
-                        // Update created Unit life cycles
-                        for (String unitGuid : unitIdToGuid.values()) {
-                            if (guidToLifeCycleParameters.get(unitGuid) != null) {
-                                guidToLifeCycleParameters.get(unitGuid).setStatus(LogbookOutcome.OK);
-                                guidToLifeCycleParameters.get(unitGuid)
-                                    .putParameterValue(LogbookParameterName.outcomeDetail, LogbookOutcome.OK.name());
-                                guidToLifeCycleParameters.get(unitGuid).putParameterValue(
-                                    LogbookParameterName.outcomeDetailMessage,
-                                    OutcomeMessage.CREATE_LOGBOOK_LIFECYCLE_OK.value());
-                                LOGBOOK_LIFECYCLE_CLIENT.update(guidToLifeCycleParameters.get(unitGuid));
-                            }
-                        }
                     } else if (element.getName().equals(dataObjectName)) {
                         String objectGroupGuid = writeBinaryDataObjectInLocal(reader, element, containerId);
-
                         if (guidToLifeCycleParameters.get(objectGroupGuid) != null) {
                             guidToLifeCycleParameters.get(objectGroupGuid).setStatus(LogbookOutcome.OK);
                             guidToLifeCycleParameters.get(objectGroupGuid)
@@ -400,6 +386,19 @@ public class SedaUtils {
                 }
             }
             reader.close();
+
+            // Update created Unit life cycles
+            for (String unitGuid : unitIdToGuid.values()) {
+                if (guidToLifeCycleParameters.get(unitGuid) != null) {
+                    guidToLifeCycleParameters.get(unitGuid).setStatus(LogbookOutcome.OK);
+                    guidToLifeCycleParameters.get(unitGuid)
+                        .putParameterValue(LogbookParameterName.outcomeDetail, LogbookOutcome.OK.name());
+                    guidToLifeCycleParameters.get(unitGuid).putParameterValue(
+                        LogbookParameterName.outcomeDetailMessage,
+                        OutcomeMessage.CREATE_LOGBOOK_LIFECYCLE_OK.value());
+                    LOGBOOK_LIFECYCLE_CLIENT.update(guidToLifeCycleParameters.get(unitGuid));
+                }
+            }
 
             // Save Archive Unit Tree
             // Create temporary file to store archive unit tree

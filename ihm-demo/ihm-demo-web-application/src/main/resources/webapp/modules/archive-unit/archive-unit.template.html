@@ -43,12 +43,15 @@
 				<h2>Détails</h2>
 			</a>
 
-			<!-- Add Unit Tree -->
+
 			<div id="details" class="panel-body panel-collapse collapse in">
-				<div ng-repeat = "path in $ctrl.archiveTree" class="treeview">
+
+				<!-- Add Unit Tree -->
+				<div ng-repeat="path in $ctrl.fullArchiveTree">
 					<ul ng-repeat="parent in path.slice().reverse()">
-						<li ng-if="$index==0 || $index%2 == 0"><a ng-href="#!/archiveunit/{{parent._id}}">{{parent.Title}}</a></li>
-						<ul ng-if="$index==1 || $index%2 !== 0"><a ng-href="#!/archiveunit/{{parent._id}}">{{parent.Title}}</a></ul>
+						<li ng-style="$ctrl.getIntent($index)">
+							<a ng-href="#!/archiveunit/{{parent._id}}">{{parent.Title}}</a>
+						</li>
 					</ul>
 				</div>
 
@@ -153,5 +156,4 @@
 		</div>
 	</div>
 </div>
-
 </div>
