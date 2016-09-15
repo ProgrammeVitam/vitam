@@ -66,7 +66,7 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<?>, C>
      *
      * @return the generated Handler
      */
-    protected abstract Handler buildApplicationHandler();
+    protected abstract Handler buildApplicationHandler() throws VitamApplicationServerException;
 
     /**
      * Must return the name as a string of your configuration file. Example : "logbook.conf"

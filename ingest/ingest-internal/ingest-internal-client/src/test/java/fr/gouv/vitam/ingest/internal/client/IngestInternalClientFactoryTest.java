@@ -44,7 +44,7 @@ public class IngestInternalClientFactoryTest {
 
     @Before
     public void initFileConfiguration() {
-    	IngestInternalClientFactory.getInstance().changeConfigurationFile("ingest-internal-client.conf");
+    	IngestInternalClientFactory.getInstance().changeConfigurationFile("ingest-internal-client-test.conf");
     }
 
     @Test

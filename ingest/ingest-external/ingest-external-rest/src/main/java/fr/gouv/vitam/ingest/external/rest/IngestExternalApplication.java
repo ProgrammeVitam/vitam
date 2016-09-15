@@ -26,14 +26,16 @@
  */
 package fr.gouv.vitam.ingest.external.rest;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.common.server.VitamServerFactory;
-import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
-import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
+import static java.lang.String.format;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.EnumSet;
+
+import javax.servlet.DispatcherType;
+
+import org.apache.shiro.web.env.EnvironmentLoaderListener;
+import org.apache.shiro.web.servlet.ShiroFilter;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -41,11 +43,15 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-
-import static java.lang.String.format;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.common.server.VitamServerFactory;
+import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
 
 /**
  * Ingest External web application
@@ -53,11 +59,12 @@ import static java.lang.String.format;
 public final class IngestExternalApplication extends AbstractVitamApplication<IngestExternalApplication, IngestExternalConfiguration> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalApplication.class);
     private static final String CONF_FILE_NAME = "ingest-external.conf";
+    private static final String SHIRO_FILE = "shiro.ini";
     private static final String MODULE_NAME = "ingest-external";
-    private static IngestExternalConfiguration configuration;
+    private static IngestExternalConfiguration serverConfiguration;
 
     /**
-     * LogbookApplication constructor
+     * Ingest External constructor
      */
     protected IngestExternalApplication() {
         super(IngestExternalApplication.class, IngestExternalConfiguration.class);
@@ -96,10 +103,10 @@ public final class IngestExternalApplication extends AbstractVitamApplication<In
 
         final IngestExternalApplication application = new IngestExternalApplication();
         application.configure(application.computeConfigurationPathFromInputArguments(moduleConf));
-        configuration = application.getConfiguration();
+        serverConfiguration = application.getConfiguration();
 
         LOGGER.info(format(VitamServer.SERVER_START_WITH_JETTY_CONFIG, MODULE_NAME));
-        VitamServer vitamServer = VitamServerFactory.newVitamServerByJettyConf(configuration.getJettyConfig());
+        VitamServer vitamServer = VitamServerFactory.newVitamServerByJettyConf(serverConfiguration.getJettyConfig());
         vitamServer.configure(application.getApplicationHandler());
 
         return vitamServer;
@@ -114,9 +121,10 @@ public final class IngestExternalApplication extends AbstractVitamApplication<In
      * Implement this method to construct your application specific handler
      *
      * @return the generated Handler
+     * @throws VitamApplicationServerException 
      */
     @Override
-    protected Handler buildApplicationHandler() {
+    protected Handler buildApplicationHandler() throws VitamApplicationServerException {
         final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(JacksonFeature.class);
         resourceConfig.register(new IngestExternalResource(getConfiguration()));
@@ -124,6 +132,23 @@ public final class IngestExternalApplication extends AbstractVitamApplication<In
         final ServletContainer servletContainer = new ServletContainer(resourceConfig);
         final ServletHolder sh = new ServletHolder(servletContainer);
         final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
+        
+        if(getConfiguration().isAuthentication()) {
+        
+            File shiroFile=null;
+            try {
+                shiroFile = PropertiesUtils.findFile(SHIRO_FILE);
+            } catch (FileNotFoundException e) {
+                LOGGER.error(e.getMessage(), e);
+                throw new VitamApplicationServerException(e.getMessage());
+            }
+            context.setInitParameter("shiroConfigLocations", "file:"+shiroFile.getAbsolutePath());
+            context.addEventListener(new EnvironmentLoaderListener());
+            context.addFilter(ShiroFilter.class, "/*", EnumSet.of(
+                DispatcherType.INCLUDE, DispatcherType.REQUEST,
+                DispatcherType.FORWARD, DispatcherType.ERROR));
+        }
+        
         context.setContextPath("/");
         context.addServlet(sh, "/*");
         return context;

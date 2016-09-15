@@ -23,7 +23,9 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.model.SSLConfiguration;
 import fr.gouv.vitam.ingest.external.api.IngestExternalException;
 
 public class IngestExternalClientRestTest extends JerseyTest{
@@ -40,8 +42,8 @@ public class IngestExternalClientRestTest extends JerseyTest{
         Response get();
     }
     
-    public IngestExternalClientRestTest() {
-        client = new IngestExternalClientRest(HOSTNAME, port);
+    public IngestExternalClientRestTest() throws VitamException {
+        client = new IngestExternalClientRest(HOSTNAME, port,false, new SSLConfiguration(), false);
     }
     
     @BeforeClass
