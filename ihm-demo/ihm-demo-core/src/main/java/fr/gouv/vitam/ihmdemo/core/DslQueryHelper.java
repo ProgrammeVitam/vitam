@@ -28,11 +28,11 @@
 package fr.gouv.vitam.ihmdemo.core;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,7 +53,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  * 
  */
 public final class DslQueryHelper {
-    
+
     public static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DslQueryHelper.class);
     // TODO: faire en sorte que LogbookMongoDbName ait une version publique "#qqc" (comme #id) pour permettre de
     // "masquer" l'implémentation.
@@ -63,8 +63,10 @@ public final class DslQueryHelper {
     private static final String EVENT_DATE_TIME = "evDateTime";
     private static final String DEFAULT_EVENT_TYPE_PROCESS = "INGEST";
     private static final String PUID = "PUID";
+    private static final String RULEVALUE = "RULEVALUE";
     private static final String OBJECT_IDENTIFIER_INCOME = "obIdIn";
     private static final String FORMAT = "FORMAT";
+    private static final String RULES = "RULES";
     private static final String ORDER_BY = "orderby";
     private static final String TITLE_AND_DESCRIPTION = "titleAndDescription";
     private static final String PROJECTION_PREFIX = "projection_";
@@ -108,7 +110,9 @@ public final class DslQueryHelper {
                 case FORMAT:
                     query.add(exists(PUID));
                     break;
-
+                case RULES:
+                    query.add(exists(RULEVALUE));
+                    break;
                 default:
                     if (!searchValue.isEmpty()) {
                         query.add(eq(searchKeys, searchValue));
@@ -171,6 +175,7 @@ public final class DslQueryHelper {
 
         return select.getFinalSelect().toString();
     }
+
     /**
      * @param searchCriteriaMap Criteria received from The IHM screen Empty Keys or Value is not allowed
      * @return the JSONDSL File
@@ -208,18 +213,18 @@ public final class DslQueryHelper {
                 select.addRoots(searchValue);
                 continue;
             }
-            
+
             if (searchKeys.equals(TITLE_AND_DESCRIPTION)) {
                 booleanQueries.add(match(TITLE, searchValue));
                 booleanQueries.add(match(DESCRIPTION, searchValue));
                 continue;
             }
-            
+
             // By default add equals query
             booleanQueries.add(match(searchKeys, searchValue));
         }
-        
-        
+
+
         if (booleanQueries.isReady()) {
             booleanQueries.setDepthLimit(DEPTH_LIMIT);
             select.addQueries(booleanQueries);

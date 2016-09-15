@@ -41,10 +41,15 @@
   <script src="js/controller/upload-sip-controller.js"></script>
   <script src="modules/logbook/logbook-controller.js"></script>
   <script src="modules/logbook/logbook-component.js"></script>
+  
   <script src="modules/file-format/fileformat-component.js"></script>
   <script src="modules/file-format/fileformat-controller.js"></script>
   <script src="js/controller/admin-controller.js"></script>
   <script src="js/controller/import-pronoun-controller.js"></script>
+
+  <script src="modules/file-rules/filerules-component.js"></script>
+  <script src="modules/file-rules/filerules-controller.js"></script>
+  <script src="js/controller/import-rulesfile-controller.js"></script>
 
   <script src="modules/core/core.module.js"></script>
   <script src="modules/core/ihm-demo-factory.js"></script>
@@ -112,12 +117,13 @@
                                 <span class="pull-left m-l-10">Administration</span>
                             </button>
                             <ul class="dropdown-menu" role="menu" aria-labelledby="AdminFonctionnelle">
+                                 <li><a href="#!/admin/rules">Référentiel des règles de gestion</a></li>
                             	<li><a href="#!/admin/formats">Référentiel des formats</a></li>
                                 <li><a href="#!/admin/journalOperations">Journal des Opérations</a></li>
                                 <li><a href="#!/admin/logbookLifecycle">Journal de Cycles de vie</a></li>
                                 <li class="divider"></li>
+                                <li><a href="#!/admin/importFileRules">Import du Référentiel des Règles de gestion</a></li>
                                 <li><a href="#!/admin/importPronoun">Import du Référentiel des formats</a></li>
-                                <li><a href="#!/admin/managementrules">Règles de gestion</a></li>
                             </ul>
                         </li>
                         <li class="@@mainMenu2">
@@ -134,6 +140,7 @@
                             </button>
                             <ul class="dropdown-menu" role="menu">
                                 <li><a href="" ng-click="logoutUser()">Déconnexion</a></li>
+                                 <li><a href="#!/admin/recette">Recette</a></li>
                             </ul>
                         </li>
                     </ul>

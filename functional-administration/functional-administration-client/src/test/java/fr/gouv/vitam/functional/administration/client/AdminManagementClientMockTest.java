@@ -93,7 +93,7 @@ public class AdminManagementClientMockTest {
         AdminManagementClientFactory.setConfiguration(AdminManagementClientType.MOCK_CLIENT, null, 0);
         final AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
         ObjectNode objectNode = (ObjectNode) (client.getRuleByID("APP-00001"));
-        assertEquals("testList", objectNode.get("RuleType").asText().toString());
+        assertEquals("AppraiseRule", objectNode.get("RuleType").asText().toString());
         assertEquals("10", objectNode.get("RuleDuration").asText().toString());
         assertEquals("Annee", objectNode.get("RuleMeasurement").asText().toString());
     }

@@ -1,0 +1,32 @@
+<div class="container" ng-controller="MyController">
+
+	<ol class="breadcrumb">
+		<li><a href="#">Home</a></li>
+        <li><a href="#">Administration</a></li>
+        <li><a href="#">Import du Référentiel des Règles de gestion</a></li>
+    </ol>
+
+	<div class="panel panel-default col-md-12">
+    <a class="panel-header" data-toggle="collapse">
+      <h2>Import du Référentiel des Règles de gestion</h2>
+    </a>
+
+    <div id="boxEntriesSearchForm" class="panel-body panel-collapse collapse in">
+    	<div class="col-md-4">
+           	<div class="form-group">
+				<label for="InputFile">Fichier</label>
+				<input id="InputFile" placeholder="Sélect. fichiers" class="form-control-file" type="file" ng-model="FileInput" nv-file-select="" uploader="uploader">
+				<small class="text-muted">Fichier .csv uniquement</small>
+            </div>
+		</div>
+		<div class="text-left">
+			<button class="btn btn-primary" type="button" class="btn btn-success btn-s" ng-disabled="checked" ng-click="validAction()">
+				<i class="material-icons pull-left">file_download</i>
+				<span>Valider</span>
+			</button>
+		</div>
+		<hr>
+    </div>
+
+    </div>
+</div>
