@@ -44,7 +44,9 @@ public class IngestExternalConfiguration {
     private int port;
     private String jettyConfig;
     private boolean authentication = true;
-    
+    private String antiVirusScriptName;
+    private long timeoutScanDelay;
+
     /**
      * IngestExternalConfiguration empty constructor for YAMLFactory
      */
@@ -135,6 +137,35 @@ public class IngestExternalConfiguration {
         return this;
     }
     
+    /**
+     * @return antiVirusScriptName
+     */
+    public String getAntiVirusScriptName() {
+        return antiVirusScriptName;
+    }
+
+    /**
+     * @param antiVirusScriptName
+     * @return IngestExternalConfiguration
+     */
+    public IngestExternalConfiguration setAntiVirusScriptName(String antiVirusScriptName) {
+        this.antiVirusScriptName = antiVirusScriptName;
+        return this;
+    }
     
-    
+    /**
+     * @return long
+     */
+    public long getTimeoutScanDelay() {
+        return timeoutScanDelay;
+    }
+
+    /**
+     * @param timeoutScanDelay
+     * @return IngestExternalConfiguration
+     */
+    public IngestExternalConfiguration setTimeoutScanDelay(long timeoutScanDelay) {
+        this.timeoutScanDelay = timeoutScanDelay;
+        return this;
+    }
 }

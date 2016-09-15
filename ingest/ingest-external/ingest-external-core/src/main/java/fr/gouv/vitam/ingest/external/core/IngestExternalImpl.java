@@ -61,10 +61,6 @@ public class IngestExternalImpl implements IngestExternal {
 
     private static final String INGEST_EXT = "Ckeck Sanitaire SIP";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalImpl.class);
-    // FIXME non paramétré et qui plus est, devrait être plutôt "scan.sh" (ou mieux faire l'objet d'une classe standard
-    // remplaçable qui pourrait être
-    // réimplémenté autrement, mais pas l'objet de cette story à ce stade)
-    private static final String SCRIPT_SCAN_CLAMAV = "scan-clamav.sh";
     private final IngestExternalConfiguration config;
 
     /**
@@ -83,6 +79,8 @@ public class IngestExternalImpl implements IngestExternal {
         GUID containerName = GUIDFactory.newGUID();
         GUID objectName = GUIDFactory.newGUID();
         FileSystem workspaceFileSystem = new FileSystem(new StorageConfiguration().setStoragePath(config.getPath()));
+        String antiVirusScriptName = config.getAntiVirusScriptName();
+        long timeoutScanDelay = config.getTimeoutScanDelay();
         while (true) {
             boolean hasError = false;
             try {
@@ -128,7 +126,7 @@ public class IngestExternalImpl implements IngestExternal {
              * Return values of script scan-clamav.sh return 0: scan OK - no virus 1: virus found and corrected 2: virus
              * found but not corrected 3: Fatal scan not performed
              */
-            antiVirusResult = JavaExecuteScript.executeCommand(SCRIPT_SCAN_CLAMAV, filePath);
+            antiVirusResult = JavaExecuteScript.executeCommand(antiVirusScriptName, filePath, timeoutScanDelay);
         } catch (Exception e) {
             LOGGER.error("Can not scan virus", e);
             throw new IngestExternalException(e);
