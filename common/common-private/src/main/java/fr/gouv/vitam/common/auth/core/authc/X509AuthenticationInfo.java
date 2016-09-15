@@ -46,7 +46,7 @@ public class X509AuthenticationInfo extends SimpleAuthenticationInfo {
      * 
      */
     // Name Constrains Extensions (RFC 3280 4.2.1.11)
-    private static final String NAME_CONSTRAINTS_ASN_1 = "2.5.29.30";
+    private static final String NAME_CONSTRAINTS_ASN_1 = "2.5.29.30"; // NOSONAR : ASN-1 OID
     private static final long serialVersionUID = 1L;
     private final X509Certificate clientCertificate;
     private final Set<X509Certificate> grantedIssuers = new HashSet<>();
@@ -145,7 +145,7 @@ public class X509AuthenticationInfo extends SimpleAuthenticationInfo {
     public Set<TrustAnchor> getGrantedTrustAnchors() {
         Set<TrustAnchor> trustAnchors = new HashSet<>();
         for (X509Certificate eachCert : grantedIssuers) {
-            trustAnchors.add(new TrustAnchor(eachCert, eachCert.getExtensionValue(NAME_CONSTRAINTS_ASN_1)));
+            trustAnchors.add(new TrustAnchor(eachCert, eachCert.getExtensionValue(NAME_CONSTRAINTS_ASN_1))); 
         }
         return trustAnchors;
 

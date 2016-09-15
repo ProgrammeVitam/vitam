@@ -1,6 +1,4 @@
 /**
- * Copyright Paul Merlin 2011 (Apache Licence v2.0)
- * 
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -26,48 +24,9 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.common.auth.web.filter;
-
-import java.security.cert.X509Certificate;
-
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.shiro.ShiroException;
-import org.apache.shiro.authc.AuthenticationToken;
-import org.apache.shiro.web.filter.authc.AuthenticatingFilter;
-
-import fr.gouv.vitam.common.auth.core.authc.X509AuthenticationToken;
 
 /**
- * 
+ * Shiro Realm X509
+ *
  */
-public class X509AuthenticationFilter extends AuthenticatingFilter {
-
-    @Override
-    protected boolean onAccessDenied(ServletRequest request, ServletResponse response)
-        throws Exception {
-
-        if (!executeLogin(request, response)) {
-            ((HttpServletResponse) response).sendError(403, "Access Denied . Need a valid TLS client certificate");
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    protected AuthenticationToken createToken(ServletRequest request, ServletResponse response)
-        throws Exception {
-
-        X509Certificate[] clientCertChain =
-            (X509Certificate[]) request.getAttribute("javax.servlet.request.X509Certificate");
-        if (clientCertChain == null || clientCertChain.length < 1) {
-            throw new ShiroException("Request do not contain any X509Certificate ");
-        }
-        return new X509AuthenticationToken(clientCertChain, getHost(request));
-
-    }
-
-
-}
+package fr.gouv.vitam.common.auth.core.realm;
