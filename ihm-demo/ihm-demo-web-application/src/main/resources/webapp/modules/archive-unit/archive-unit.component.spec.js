@@ -36,24 +36,43 @@ describe('formArchive', function() {
   describe('ArchiveUnitController', function() {
     var $httpBackend, ctrl;
 
-    beforeEach(inject(function($componentController, _$httpBackend_, $routeParams) {
+    beforeEach(inject(function($componentController, _$httpBackend_) {
       $httpBackend = _$httpBackend_;
       $httpBackend.expectGET('archives/archiveUnit.json')
-          .respond({_id: 'GUID', description: 'Description test'});
+          .respond({_id: 'GUID', description: 'Description test', language: 'fr-FR'});
 
       ctrl = $componentController('formArchive', {
          $routeParams: {archiveId: '1'}
       });
     }));
 
-    it('should create an array of 2 objects of type fieldSet with `$http`', function() {
+    it('should create ID and description in mainFields with `$http`', function() {
       jasmine.addCustomEqualityTester(angular.equals);
 
       expect(ctrl.archiveArray).toEqual([]);
 
       $httpBackend.flush();
-      expect(ctrl.archiveArray).toEqual([{fieldName: 'ID', fieldValue:'GUID', isChild:false, typeF:'S'},
-        {fieldName: 'description', fieldValue:'Description test', isChild:false, typeF:'S'}]);
+      expect(ctrl.mainFields['ID']).toEqual({fieldName: 'ID', fieldValue:'GUID', isChild:false, typeF:'S'});
+      expect(ctrl.mainFields['description']).toEqual({fieldName: 'description', fieldValue:'Description test', isChild:false, typeF:'S'});
+    });
+
+    it('should init other feilds as EndDate in mainFields', function() {
+      jasmine.addCustomEqualityTester(angular.equals);
+
+      expect(ctrl.archiveArray).toEqual([]);
+
+      $httpBackend.flush();
+      expect(ctrl.mainFields['EndDate']).toEqual({fieldName: 'EndDate', fieldValue:'', isChild:false, typeF:'S'});
+    });
+
+
+    it('should create other fields in archiveArray with $http', function() {
+      jasmine.addCustomEqualityTester(angular.equals);
+
+      expect(ctrl.archiveArray).toEqual([]);
+
+      $httpBackend.flush();
+      expect(ctrl.archiveArray).toEqual([{fieldName: 'language', fieldValue:'fr-FR', isChild:false, typeF:'S'}]);
     });
   });
 
