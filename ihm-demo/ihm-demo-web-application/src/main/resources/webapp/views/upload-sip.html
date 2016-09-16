@@ -1,32 +1,32 @@
    <div id="global" class="container-fluid" >
     		<ol class="breadcrumb">
-                <li><a href="#">Home</a></li>  
-                <li><a href="#">Entrées</a></li>  
-                <li><a href="#">Transfert</a></li>  
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Entrées</a></li>
+                <li><a href="#">Transfert</a></li>
             </ol>
-   
+
 	 <!-- ////////////////////////////////////////////////////////////////////////////// -->
 
  			<div class="panel panel-default col-md-12">
-				<table class="table">
-					<tbody>
-					<tr>
-					  <h3>TELECHARGEMENT DU SIP</h3>
-					</tr>
-						<tr>
-							 <h3>Fichier</h3>
-							<td height="150" width="50%" >
-				                <input type="file" nv-file-select="" uploader="uploader" ng-click="uploader.clear()"/>
-			                </td>
-			                <td height="150">
-					                <button type="button" class="btn btn-primary" ng-click="uploader.checkExtension($event,uploader.queue[0].file.name);uploader.uploadAll()" ng-disabled="!uploader.getNotUploadedItems().length" >
-					                    <i class="material-icons pull-left">file_download</i>
-					                    <span></span> Importer
-					                </button>
-			                </td>
-		                </tr>
-	                </tbody>
-	            </table>
+    			<table class="table upload">
+    				<tbody>
+        				<tr>
+        				  <h3>TELECHARGEMENT DU SIP</h3>
+        				</tr>
+        				<tr>
+          					<h3>Fichier</h3>
+          					<td height="150" width="50%" >
+          			      <input type="file" nv-file-select="" uploader="uploader" ng-click="uploader.clear()"/>
+          		      </td>
+          		      <td height="150">
+          				      <button type="button" class="btn btn-primary" ng-click="uploader.checkExtension($event,uploader.queue[0].file.name);uploader.uploadAll()" ng-disabled="!uploader.getNotUploadedItems().length" >
+          				        <i class="material-icons pull-left">file_download</i>
+          				        <span></span> Importer
+          				      </button>
+          		       </td>
+        	        </tr>
+              </tbody>
+            </table>
             <br>
             <br>
             <table class="table">

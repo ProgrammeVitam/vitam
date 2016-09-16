@@ -450,6 +450,12 @@ table {
   cursor: pointer;
 }
 
+.upload > tbody > tr:hover > td {
+  background-color: #eeeeee;
+  color: black;
+  cursor: default;
+}
+
 .ui-datepicker {
   display: none;
   z-index: 1051 !important;
