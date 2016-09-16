@@ -33,11 +33,11 @@ public enum IngestExternalOutcomeMessage {
     /**
      * Virus control / OK: No virus
      */
-    OK_VIRUS("Le SIP ne contient pas de virus"),
+    OK_VIRUS("Contrôle sanitaire réalisé avec succès : aucun virus détecté"),
     /**
      * Virus control / KO: Viral infection
      */
-    KO_VIRUS("Échec du contrôle sanitaire du SIP : fichier %s détecté comme infecté");
+    KO_VIRUS("Echec Contrôle sanitaire : virus détecté SIP infecté");
 
     private String value;
 

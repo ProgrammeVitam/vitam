@@ -59,7 +59,7 @@ import fr.gouv.vitam.workspace.core.filesystem.FileSystem;
  */
 public class IngestExternalImpl implements IngestExternal {
 
-    private static final String INGEST_EXT = "Ckeck Sanitaire SIP";
+    private static final String INGEST_EXT = "Contrôle sanitaire SIP";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalImpl.class);
     private final IngestExternalConfiguration config;
 
