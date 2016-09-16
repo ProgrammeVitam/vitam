@@ -23,6 +23,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.rest;
 
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,6 +48,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -303,22 +309,24 @@ public class AdminManagementResource {
      * @throws InvalidParseOperationException
      * @throws IOException when error json occurs
      * @throws ReferentialException
+     * @throws InvalidCreateOperationException
      */
     @POST
     @Path("rules/{id_rule}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response findRuleByID(@PathParam("id_rule") String rulesId)
+    public Response findRuleByID(@PathParam("id_rule") String ruleId)
         throws InvalidParseOperationException, IOException,
-        ReferentialException {
-        ParametersChecker.checkParameter("ruleId is a mandatory parameter", rulesId);
-        FileRules fileRules = null;
+        ReferentialException, InvalidCreateOperationException {
+        ParametersChecker.checkParameter("ruleId is a mandatory parameter", ruleId);
+        List<FileRules> fileRules = null;
+        JsonNode result = null;
         try {
-            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(rulesId));
-            fileRules = rulesFileManagement.findDocumentById(rulesId);
-
-            if (fileRules == null) {
-                throw new FileRulesException("NO DATA for the specified rulesId");
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(ruleId));
+            result = findRulesByRuleValueQueryBuilder(ruleId);
+            fileRules = rulesFileManagement.findDocuments(result);
+            if (fileRules == null || fileRules.size() > 1) {
+                throw new FileRulesException("NO DATA for the specified rule Value or More than one records exists");
             }
 
         } catch (FileRulesException e) {
@@ -326,7 +334,28 @@ public class AdminManagementResource {
             Status status = Status.NOT_FOUND;
             return Response.status(status).build();
         }
-        return Response.status(Status.OK).entity(JsonHandler.toJsonNode(fileRules)).build();
+        return Response.status(Status.OK).entity(JsonHandler.toJsonNode(fileRules.get(0))).build();
+    }
+
+    /**
+     * findRulesByRuleValueQueryBuilder
+     * 
+     * @param rulesValue
+     * @return
+     * @throws InvalidCreateOperationException
+     * @throws InvalidParseOperationException
+     */
+    private JsonNode findRulesByRuleValueQueryBuilder(String rulesId)
+        throws InvalidCreateOperationException, InvalidParseOperationException {
+        JsonNode result;
+        final Select select =
+            new Select();
+        select.addOrderByDescFilter(rulesId);
+        BooleanQuery query = and();
+        query.add(eq("RuleId", rulesId));
+        select.setQuery(query);
+        result = JsonHandler.getFromString(select.getFinalSelect().toString());
+        return result;
     }
 
     /**

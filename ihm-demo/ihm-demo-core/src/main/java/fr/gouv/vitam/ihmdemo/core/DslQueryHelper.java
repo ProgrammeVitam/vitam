@@ -68,7 +68,7 @@ public final class DslQueryHelper {
     private static final String EVENT_DATE_TIME = "evDateTime";
     private static final String DEFAULT_EVENT_TYPE_PROCESS = "INGEST";
     private static final String PUID = "PUID";
-    private static final String RULEVALUE = "RULEVALUE";
+    private static final String RULEVALUE = "RuleValue";
     private static final String OBJECT_IDENTIFIER_INCOME = "obIdIn";
     private static final String FORMAT = "FORMAT";
     private static final String RULES = "RULES";
