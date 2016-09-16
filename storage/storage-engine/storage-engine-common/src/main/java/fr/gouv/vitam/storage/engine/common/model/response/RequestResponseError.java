@@ -27,6 +27,7 @@
 package fr.gouv.vitam.storage.engine.common.model.response;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.error.VitamError;
 
 /**
  * Storage RequestResponseError class contains error list
@@ -45,7 +46,7 @@ public class RequestResponseError extends RequestResponse {
         if (error != null) {
             return error;
         }
-        return new VitamError(0);
+        return new VitamError("0");
     }
 
     /**

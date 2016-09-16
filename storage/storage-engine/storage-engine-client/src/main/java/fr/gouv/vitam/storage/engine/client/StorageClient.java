@@ -150,7 +150,7 @@ public interface StorageClient extends BasicClient {
      * @throws StorageNotFoundException if the Server got a NotFound result, if the container or the object does not
      *         exist
      */
-    public InputStream getContainerObject(String tenantId, String strategyId, String guid)
+    InputStream getContainerObject(String tenantId, String strategyId, String guid)
         throws StorageServerClientException, StorageNotFoundException;
 
 

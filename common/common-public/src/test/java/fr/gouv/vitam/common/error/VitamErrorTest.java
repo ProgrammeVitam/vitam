@@ -33,7 +33,7 @@
  * knowledge of the CeCILL 2.1 license and that you accept its terms.
  */
 
-package fr.gouv.vitam.storage.engine.common.model.response;
+package fr.gouv.vitam.common.error;
 
 import org.junit.Test;
 
@@ -43,20 +43,22 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
+import fr.gouv.vitam.common.error.VitamError;
+
 /**
  *
  */
 public class VitamErrorTest {
 
-    private static VitamError vitamError = new VitamError(1);
+    private static VitamError vitamError = new VitamError("1");
 
     private static final String ERROR_JSON = "{\"code\":\"0\",\"context\":\"context\",\"state\":\"state\"," +
         "\"message\":\"message\",\"description\":\"description\",\"errors\":[{\"code\":\"1\",\"context\":\"\"," +
         "\"state\":\"\",\"message\":\"\",\"description\":\"\",\"errors\":[]}]}";
     @Test
     public void testSetGetCode() throws Exception {
-        vitamError.setCode(2);
-        assertEquals(2, vitamError.getCode());
+        vitamError.setCode("2");
+        assertEquals("2", vitamError.getCode());
     }
 
     @Test
@@ -93,12 +95,12 @@ public class VitamErrorTest {
 
     @Test
     public void testToString() throws Exception {
-        VitamError error = new VitamError(0);
+        VitamError error = new VitamError("0");
         error.setMessage("message");
         error.setDescription("description");
         error.setState("state");
         error.setContext("context");
-        error.setErrors(Collections.singletonList(new VitamError(1)));
+        error.setErrors(Collections.singletonList(new VitamError("1")));
         assertEquals(ERROR_JSON, error.toString());
     }
 }

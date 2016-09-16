@@ -47,6 +47,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.engine.common.exception.StorageDriverMapperException;
@@ -71,7 +73,7 @@ public class FileDriverMapper implements DriverMapper {
             configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(DRIVER_MAPPING_CONF_FILE),
                 FileDriverMapperConfiguration.class);
         } catch (IOException exc) {
-            LOGGER.error("Cannot initialize FileDriverMapper, error on configuration file, please check it", exc);
+            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_DRIVER_MAPPING_INITIALIZE), exc);
         }
     }
 
@@ -83,8 +85,7 @@ public class FileDriverMapper implements DriverMapper {
      */
     public static FileDriverMapper getInstance() throws StorageDriverMapperException {
         if (configuration == null) {
-            throw new StorageDriverMapperException("Cannot initialize FileDriverMapper, error on configuration file, please check " +
-                "it");
+            throw new StorageDriverMapperException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_DRIVER_MAPPING_INITIALIZE));
         }
         return INSTANCE;
     }
@@ -97,8 +98,9 @@ public class FileDriverMapper implements DriverMapper {
             LOGGER.warn(String.format("Configuration file not found for %s, then return empty list", driverName));
             return new ArrayList<>();
         } catch (IOException exc) {
-            LOGGER.error(String.format("Cannot retrieve file content for driver %s, that's an error !", driverName));
-            throw new StorageDriverMapperException(exc);
+            String log = VitamCodeHelper.getLogMessage(VitamCode.STORAGE_DRIVER_MAPPER_FILE_CONTENT, driverName);
+            LOGGER.error(log);
+            throw new StorageDriverMapperException(log, exc);
         }
     }
 
@@ -176,8 +178,9 @@ public class FileDriverMapper implements DriverMapper {
         } catch (FileNotFoundException exc) { // NOSONAR : this exception don't have to be rethrown
             LOGGER.warn(String.format("Configuration file not found for %s, then return empty list", driverName));
         } catch (IOException exc) {
-            LOGGER.error(String.format("Cannot retrieve file content for driver %s, that's an error !", driverName));
-            throw new StorageDriverMapperException(exc);
+            String log = VitamCodeHelper.getLogMessage(VitamCode.STORAGE_DRIVER_MAPPER_FILE_CONTENT, driverName);
+            LOGGER.error(log);
+            throw new StorageDriverMapperException(log, exc);
         }
         if (offerIds == null) {
             offerIds = new ArrayList<>();
@@ -189,8 +192,9 @@ public class FileDriverMapper implements DriverMapper {
         try {
             Files.write(Paths.get(configuration.getDriverMappingPath() + driverName), getContentFrom(offerIds).getBytes());
         } catch (IOException exc) {
-            LOGGER.error(String.format("Cannot save driver %s mapping !", driverName));
-            throw new StorageDriverMapperException(exc);
+            String log = VitamCodeHelper.getLogMessage(VitamCode.STORAGE_DRIVER_MAPPING_SAVE, driverName);
+            LOGGER.error(log);
+            throw new StorageDriverMapperException(log, exc);
         }
     }
 

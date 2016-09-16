@@ -32,40 +32,9 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL 2.1 license and that you accept its terms.
  */
-
-package fr.gouv.vitam.storage.engine.common.model.response;
-
-import org.junit.Test;
-
-import static org.junit.Assert.*;
-
-import fr.gouv.vitam.common.error.VitamError;
-
 /**
- *
+ * Contains services codes and there name
+ * Contains domains codes and there name
+ * Contains public Vitam codes
  */
-public class RequestResponseErrorTest {
-
-    private static RequestResponseError requestResponseError = new RequestResponseError();
-
-
-
-    @Test
-    public void testGetSetError() throws Exception {
-        VitamError vitamError = new VitamError("1");
-        requestResponseError.setError(vitamError);
-        assertEquals(vitamError, requestResponseError.getError());
-        RequestResponseError responseError = new RequestResponseError();
-        VitamError error = responseError.getError();
-        assertEquals("0", error.getCode());
-    }
-
-    @Test
-    public void testToString() throws Exception {
-        RequestResponseError responseError = new RequestResponseError();
-        assertEquals("", responseError.toString());
-        VitamError error = new VitamError("0");
-        responseError.setError(error);
-        assertEquals(error.toString(), responseError.toString());
-    }
-}
+package fr.gouv.vitam.common.error;

@@ -48,21 +48,22 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamCodeHelper;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusMessage;
+import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
+import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
-import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
-import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.RequestResponseError;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
-import fr.gouv.vitam.storage.engine.common.model.response.VitamError;
 import fr.gouv.vitam.storage.engine.server.distribution.DataCategory;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistributionImpl;
@@ -75,13 +76,6 @@ public class StorageResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageResource.class);
 
     private final StorageDistribution distribution;
-
-    /*
-    * TODO : Use custom ObjectMapper because the ObjectMapper used in JsonHandler requires UPPER Camel case
-    * json attribute to be able to map automatically json properties (ie: without field annotation) to java
-    * attributes. Need a discussion on this with Frédéric.
-    */
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     /**
      * Constructor
@@ -122,18 +116,15 @@ public class StorageResource {
      * @return null if strategy and tenant headers have values, an error response otherwise
      */
     private Response checkTenantStrategyHeader(HttpHeaders headers) {
-        Status status;
         if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.TENANT_ID) ||
             !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.STRATEGY_ID)) {
-            status = Status.PRECONDITION_FAILED;
-            return buildErrorResponse(status);
+            return buildErrorResponse(VitamCode.STORAGE_MISSING_HEADER);
         }
         return null;
     }
 
     /**
-     * Get storage information for a specific tenant/strategy
-     * For example the usable space
+     * Get storage information for a specific tenant/strategy For example the usable space
      *
      * @param headers http headers
      * @return Response containing the storage information as json, or an error (404, 500)
@@ -143,7 +134,7 @@ public class StorageResource {
     public Response getStorageInformation(@Context HttpHeaders headers) {
         Response response = checkTenantStrategyHeader(headers);
         if (response == null) {
-            Status status;
+            VitamCode vitamCode;
             String tenantId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.TENANT_ID).get(0);
             String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
             try {
@@ -151,12 +142,12 @@ public class StorageResource {
                 return Response.status(Status.OK).entity(result).build();
             } catch (StorageNotFoundException exc) {
                 LOGGER.error(exc);
-                status = Status.NOT_FOUND;
+                vitamCode = VitamCode.STORAGE_NOT_FOUND;
             } catch (StorageTechnicalException exc) {
                 LOGGER.error(exc);
-                status = Status.INTERNAL_SERVER_ERROR;
+                vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
             }
-            return buildErrorResponse(status);
+            return buildErrorResponse(vitamCode);
         }
         return response;
     }
@@ -165,8 +156,8 @@ public class StorageResource {
      * Search the header value for 'X-Http-Method-Override' and return an error response id it's value is not 'GET'
      *
      * @param headers the http headers to check
-     * @return OK response if no header is found, NULL if header value is correct, BAD_REQUEST if the header contain
-     * an other value than GET
+     * @return OK response if no header is found, NULL if header value is correct, BAD_REQUEST if the header contain an
+     *         other value than GET
      */
     public Response checkPostHeader(HttpHeaders headers) {
         if (HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.METHOD_OVERRIDE)) {
@@ -186,8 +177,7 @@ public class StorageResource {
 
 
     /**
-     * Get a list of containers
-     * Note : this is NOT to be handled in item #72.
+     * Get a list of containers Note : this is NOT to be handled in item #72.
      *
      * @param headers http headers
      * @return Response containing the storage information as an input stream, or an error (412 or 404)
@@ -204,8 +194,8 @@ public class StorageResource {
     /**
      * Create a container
      * <p>
-     * TODO : container creation possibility needs to be re-think then deleted or implemented. Vitam Architects
-     * are aware of this
+     * TODO : container creation possibility needs to be re-think then deleted or implemented. Vitam Architects are
+     * aware of this
      *
      * @param headers http header
      * @return Response NOT_IMPLEMENTED
@@ -249,8 +239,7 @@ public class StorageResource {
 
 
     /**
-     * Get a list of objects
-     * Note : this is NOT to be handled in item #72.
+     * Get a list of objects Note : this is NOT to be handled in item #72.
      *
      * @param headers http header
      * @return Response NOT_IMPLEMENTED
@@ -264,10 +253,9 @@ public class StorageResource {
     }
 
     /**
-     * Get object metadata as json
-     * Note : this is NOT to be handled in item #72.
+     * Get object metadata as json Note : this is NOT to be handled in item #72.
      *
-     * @param headers  http header
+     * @param headers http header
      * @param objectId the id of the object
      * @return Response NOT_IMPLEMENTED
      */
@@ -280,10 +268,9 @@ public class StorageResource {
     }
 
     /**
-     * Get an object data
-     * Note : this is NOT to be handled in item #72.
+     * Get an object data Note : this is NOT to be handled in item #72.
      *
-     * @param headers  http header
+     * @param headers http header
      * @param objectId the id of the object
      * @return Response NOT_IMPLEMENTED
      * @throws IOException throws an IO Exception
@@ -295,7 +282,7 @@ public class StorageResource {
         throws IOException {
         Response response = checkTenantStrategyHeader(headers);
         if (response == null) {
-            Status status;
+            VitamCode vitamCode;
             String tenantId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.TENANT_ID).get(0);
             String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
             try {
@@ -303,13 +290,13 @@ public class StorageResource {
                 return Response.status(Status.OK).entity(result).build();
             } catch (StorageNotFoundException exc) {
                 LOGGER.error(exc);
-                status = Status.NOT_FOUND;
+                vitamCode = VitamCode.STORAGE_NOT_FOUND;
             } catch (StorageTechnicalException exc) {
                 LOGGER.error(exc);
-                status = Status.INTERNAL_SERVER_ERROR;
+                vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
             }
             // If here, an error occurred
-            return buildErrorResponse(status);
+            return buildErrorResponse(vitamCode);
         }
         return response;
     }
@@ -318,7 +305,7 @@ public class StorageResource {
     /**
      * Post a new object
      *
-     * @param headers  http header
+     * @param headers http header
      * @param objectId the id of the object
      * @param createObjectDescription the object description
      * @return Response
@@ -333,7 +320,7 @@ public class StorageResource {
         if (createObjectDescription != null) {
             Response response = checkTenantStrategyHeader(headers);
             if (response == null) {
-                Status status;
+                VitamCode vitamCode;
                 String tenantId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.TENANT_ID).get(0);
                 String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
                 try {
@@ -342,13 +329,13 @@ public class StorageResource {
                     return Response.status(Status.CREATED).entity(result).build();
                 } catch (StorageNotFoundException exc) {
                     LOGGER.error(exc);
-                    status = Status.NOT_FOUND;
+                    vitamCode = VitamCode.STORAGE_NOT_FOUND;
                 } catch (StorageTechnicalException exc) {
                     LOGGER.error(exc);
-                    status = Status.INTERNAL_SERVER_ERROR;
+                    vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
                 }
                 // If here, an error occurred
-                return buildErrorResponse(status);
+                return buildErrorResponse(vitamCode);
             }
             return response;
         } else {
@@ -369,6 +356,7 @@ public class StorageResource {
 
     /**
      * Retrieve an object data (equivalent to GET with body)
+     * 
      * @param headers http headers
      * @param objectId the object identifier to retrieve
      * @return Precondtion failed or not yet implemented for now
@@ -393,7 +381,7 @@ public class StorageResource {
     /**
      * Delete an object
      *
-     * @param headers  http header
+     * @param headers http header
      * @param objectId the id of the object
      * @return Response NOT_IMPLEMENTED
      */
@@ -402,7 +390,6 @@ public class StorageResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response deleteObject(@Context HttpHeaders headers, @PathParam("id_object") String objectId) {
-        Status status;
         String tenantId, strategyId;
         Response response = checkTenantStrategyHeader(headers);
         if (response == null) {
@@ -413,8 +400,7 @@ public class StorageResource {
                 return Response.status(Status.NO_CONTENT).build();
             } catch (StorageNotFoundException e) {
                 LOGGER.error(e);
-                status = Status.NOT_FOUND;
-                return buildErrorResponse(status);
+                return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND);
             }
         }
         return response;
@@ -423,7 +409,7 @@ public class StorageResource {
     /**
      * Check the existence of an object
      *
-     * @param headers  http header
+     * @param headers http header
      * @param objectId the id of the object
      * @return Response NOT_IMPLEMENTED
      */
@@ -432,7 +418,6 @@ public class StorageResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response checkObject(@Context HttpHeaders headers, @PathParam("id_object") String objectId) {
-        Status status;
         String tenantId, strategyId;
         Response response = checkTenantStrategyHeader(headers);
         if (response == null) {
@@ -443,8 +428,7 @@ public class StorageResource {
                 return Response.status(Status.OK).build();
             } catch (StorageNotFoundException e) {
                 LOGGER.error(e);
-                status = Status.NOT_FOUND;
-                return buildErrorResponse(status);
+                return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND);
             }
         }
         return response;
@@ -472,7 +456,7 @@ public class StorageResource {
      * <p>
      * Note : this is NOT to be handled in item #72.
      *
-     * @param headers   http header
+     * @param headers http header
      * @param logbookId the id of the logbook
      * @return Response NOT_IMPLEMENTED
      */
@@ -487,8 +471,8 @@ public class StorageResource {
     /**
      * Post a new object
      *
-     * @param logbook   the logbook to be created
-     * @param headers   http header
+     * @param logbook the logbook to be created
+     * @param headers http header
      * @param logbookId the id of the logbookId
      * @return Response NOT_IMPLEMENTED
      */
@@ -499,7 +483,7 @@ public class StorageResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createLogbook(JsonNode logbook, @Context HttpHeaders headers,
         @PathParam("id_logbook") String logbookId) {
-        Status status;
+        VitamCode vitamCode;
         Response responsePost = checkPostHeader(headers);
         if (responsePost == null) {
             return getLogbook(headers, logbookId);
@@ -514,13 +498,13 @@ public class StorageResource {
                     return Response.status(Status.CREATED).entity(result).build();
                 } catch (StorageNotFoundException e) {
                     LOGGER.error(e);
-                    status = Status.NOT_FOUND;
+                    vitamCode = VitamCode.STORAGE_NOT_FOUND;
                 } catch (StorageTechnicalException e) {
                     LOGGER.error(e);
-                    status = Status.INTERNAL_SERVER_ERROR;
+                    vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
                 }
                 // If here, an error occurred
-                return buildErrorResponse(status);
+                return buildErrorResponse(vitamCode);
             }
             return response;
         } else {
@@ -529,10 +513,9 @@ public class StorageResource {
     }
 
     /**
-     * Delete a logbook
-     * Note : this is NOT to be handled in item #72.
+     * Delete a logbook Note : this is NOT to be handled in item #72.
      *
-     * @param headers   http header
+     * @param headers http header
      * @param logbookId the id of the logbook
      * @return Response NOT_IMPLEMENTED
      */
@@ -545,10 +528,9 @@ public class StorageResource {
     }
 
     /**
-     * Check the existence of a logbook
-     * Note : this is NOT to be handled in item #72.
+     * Check the existence of a logbook Note : this is NOT to be handled in item #72.
      *
-     * @param headers   http header
+     * @param headers http header
      * @param logbookId the id of the logbook
      * @return Response NOT_IMPLEMENTED
      */
@@ -582,7 +564,7 @@ public class StorageResource {
      * <p>
      * Note : this is NOT to be handled in item #72.
      *
-     * @param headers    http header
+     * @param headers http header
      * @param metadataId the id of the unit metadata
      * @return Response NOT_IMPLEMENTED
      */
@@ -598,8 +580,8 @@ public class StorageResource {
     /**
      * Post a new unit metadata
      *
-     * @param unit       the unit to be created
-     * @param headers    http header
+     * @param unit the unit to be created
+     * @param headers http header
      * @param metadataId the id of the unit metadata
      * @return Response NOT_IMPLEMENTED
      */
@@ -610,7 +592,7 @@ public class StorageResource {
     public Response createUnitMetadata(JsonNode unit, @Context HttpHeaders headers,
         @PathParam("id_md") String metadataId) {
 
-        Status status;
+        VitamCode vitamCode;
         Response responsePost = checkPostHeader(headers);
         if (responsePost == null) {
             return getUnit(headers, metadataId);
@@ -625,12 +607,12 @@ public class StorageResource {
                     return Response.status(Status.CREATED).entity(result).build();
                 } catch (StorageNotFoundException e) {
                     LOGGER.error(e);
-                    status = Status.NOT_FOUND;
+                    vitamCode = VitamCode.STORAGE_NOT_FOUND;
                 } catch (StorageTechnicalException e) {
                     LOGGER.error(e);
-                    status = Status.INTERNAL_SERVER_ERROR;
+                    vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
                 }
-                return buildErrorResponse(status);
+                return buildErrorResponse(vitamCode);
             }
             return response;
         } else {
@@ -643,7 +625,7 @@ public class StorageResource {
      * <p>
      * Note : this is NOT to be handled in item #72.
      *
-     * @param headers    http header
+     * @param headers http header
      * @param metadataId the id of the unit metadata
      * @param query the query as a JsonNode
      * @return Response NOT_IMPLEMENTED
@@ -660,7 +642,7 @@ public class StorageResource {
     /**
      * Delete a unit metadata
      *
-     * @param headers    http header
+     * @param headers http header
      * @param metadataId the id of the unit metadata
      * @return Response NOT_IMPLEMENTED
      */
@@ -675,7 +657,7 @@ public class StorageResource {
     /**
      * Check the existence of a unit metadata
      *
-     * @param headers    http header
+     * @param headers http header
      * @param metadataId the id of the unit metadata
      * @return Response NOT_IMPLEMENTED
      */
@@ -709,7 +691,7 @@ public class StorageResource {
      * <p>
      * Note : this is NOT to be handled in item #72.
      *
-     * @param headers    http header
+     * @param headers http header
      * @param metadataId the id of the Object Group metadata
      * @return Response NOT_IMPLEMENTED
      */
@@ -726,8 +708,8 @@ public class StorageResource {
      *
      * Note : this is NOT to be handled in item #72.
      *
-     * @param object     the object to be created
-     * @param headers    http header
+     * @param object the object to be created
+     * @param headers http header
      * @param metadataId the id of the Object Group metadata
      * @return Response Created, not found or internal server error
      */
@@ -738,7 +720,7 @@ public class StorageResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createObjectGroup(JsonNode object, @Context HttpHeaders headers,
         @PathParam("id_md") String metadataId) {
-        Status status;
+        VitamCode vitamCode;
         Response responsePost = checkPostHeader(headers);
         if (responsePost == null) {
             return getObjectGroup(headers, metadataId);
@@ -753,13 +735,13 @@ public class StorageResource {
                     return Response.status(Status.CREATED).entity(result).build();
                 } catch (StorageNotFoundException e) {
                     LOGGER.error(e);
-                    status = Status.NOT_FOUND;
+                    vitamCode = VitamCode.STORAGE_NOT_FOUND;
                 } catch (StorageTechnicalException e) {
                     LOGGER.error(e);
-                    status = Status.INTERNAL_SERVER_ERROR;
+                    vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
                 }
                 // If here, an error occurred
-                return buildErrorResponse(status);
+                return buildErrorResponse(vitamCode);
             }
             return response;
         } else {
@@ -772,7 +754,7 @@ public class StorageResource {
      * <p>
      * Note : this is NOT to be handled in item #72.
      *
-     * @param headers    http header
+     * @param headers http header
      * @param metadataId the id of the unit metadata
      * @param query the query as a JsonNode
      * @return Response NOT_IMPLEMENTED
@@ -791,7 +773,7 @@ public class StorageResource {
      *
      * Note : this is NOT to be handled in item #72.
      *
-     * @param headers    http header
+     * @param headers http header
      * @param metadataId the id of the Object Group metadata
      * @return Response NOT_IMPLEMENTED
      */
@@ -808,7 +790,7 @@ public class StorageResource {
      *
      * Note : this is NOT to be handled in item #72.
      *
-     * @param headers    http header
+     * @param headers http header
      * @param metadataId the id of the Object Group metadata
      * @return Response OK if the object exists, NOT_FOUND otherwise (or BAD_REQUEST in cas of bad request format)
      */
@@ -820,13 +802,13 @@ public class StorageResource {
         return Response.status(Status.NOT_IMPLEMENTED).build();
     }
 
-    private Response buildErrorResponse(Status status) {
-        return Response.status(status).entity((new RequestResponseError().setError(
-            new VitamError(status.getStatusCode())
-                .setContext("storage")
-                .setState("code_vitam")
-                .setMessage(status.getReasonPhrase())
-                .setDescription(status.getReasonPhrase()))).toString())
+    private Response buildErrorResponse(VitamCode vitamCode) {
+        return Response.status(vitamCode.getStatus()).entity((new RequestResponseError().setError(
+            new VitamError(VitamCodeHelper.getCode(vitamCode))
+                .setContext(vitamCode.getService().getName())
+                .setState(vitamCode.getDomain().getName())
+                .setMessage(vitamCode.getMessage())
+                .setDescription(vitamCode.getMessage()))).toString())
             .build();
     }
 
