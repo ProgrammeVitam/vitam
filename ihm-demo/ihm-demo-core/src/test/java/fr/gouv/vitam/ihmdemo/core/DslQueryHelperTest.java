@@ -142,6 +142,7 @@ public class DslQueryHelperTest {
         queryMap.put("orderby", "date");
         queryMap.put("projection_", "#id");
         queryMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
+        queryMap.put("isAdvancedSearchFlag", "YES");
 
         String selectRequest = DslQueryHelper.createSelectElasticsearchDSLQuery(queryMap);
         assertNotNull(selectRequest);
