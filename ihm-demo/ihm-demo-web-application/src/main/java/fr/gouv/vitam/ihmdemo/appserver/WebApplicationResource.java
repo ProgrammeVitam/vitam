@@ -559,7 +559,7 @@ public class WebApplicationResource {
     }
 
     /**
-     * @param ruleId id of format
+     * @param ruleId id of rule
      * @param options the queries for searching
      * @return Response
      */
@@ -682,12 +682,12 @@ public class WebApplicationResource {
             if (!JsonHandler.getFromString(allParents).isArray()) {
                 throw new VitamException(INVALID_ALL_PARENTS_TYPE_ERROR_MSG);
             }
-            
+
             // 1- Build DSL Query
             ArrayNode allParentsArray = (ArrayNode) JsonHandler.getFromString(allParents);
             List<String> allParentsList =
                 StreamSupport.stream(allParentsArray.spliterator(), false).map(p -> new String(p.asText()))
-            .collect(Collectors.toList());  
+                    .collect(Collectors.toList());
             String preparedDslQuery = DslQueryHelper.createSelectUnitTreeDSLQuery(unitId, allParentsList);
 
             // 2- Execute Select Query

@@ -11,8 +11,6 @@
 	                    <h2>Référentiel des règles de gestion</h2>
 	                </a>
 					<div id="boxEntriesSearchForm" class="panel-body panel-collapse collapse in">
-
-
 	                <div class="col-md-12">
 	                        <div class="form-group col-md-12">
 	                            <label for="entryName">Intitulé</label>
@@ -22,15 +20,14 @@
 	                            <label for="entryType">Type</label>
 								<select multiple="" class="form-control" name="entryType" ng-model="filerulesCtrl.RuleTypes" >
 									<option value="" selected="">Tous</option>
-									<option value="AppraisalRule">Durée d'utlité Administrative</option>
+									<option value="AppraisalRule">DUA</option>
 									<option value="AccessRule">Délai de communicabilité</option>
-									<option value="StorageRule">Durée d'utlité Courante</option>
+									<option value="StorageRule">DUC</option>
 									<option value="DisseminationRule">Délai de diffusion</option>
 									<option value="ReuseRule">Durée de réutilisation</option>
 									<option value="ClassificationRule">Durée de classification</option>
 								</select>
 	                        </div>
-
 	                    </div>
   <button class="btn btn-primary center-block"  type="button submit"  ng-click="filerulesCtrl.getFileRules()"><i class="material-icons pull-left">search</i><span>Rechercher</span></button>
 										</div>
@@ -39,7 +36,6 @@
     	<a class="panel-header" data-target="#boxSearchResults" data-toggle="collapse">
         	<h2>Résultats</h2>
         </a>
-
         <div id="boxSearchResults" class="panel-body panel-collapse collapse in">
         	<div class="table-responsive">
         		<div class="col-md-9" style="float: right">
@@ -51,7 +47,7 @@
                 		Next
             		</button>
         		</div>
-        		<div class="col-md-9" style="padding-top: 40px">
+        		<div style="padding-top: 40px">
             		<table class="table ">
 									<tr data-original-title="" title="">
 								<th>Intitulé</th>
@@ -61,12 +57,12 @@
 								<th>Identifiant</th>
                             </tr>
                 		<tbody ng-repeat="file in filerulesCtrl.fileRulesList | startFileRules:(filerulesCtrl.currentPage-1)*filerulesCtrl.itemsPerPage | limitTo:filerulesCtrl.itemsPerPage">
-                		<tr ng-click="filerulesCtrl.openDialog($event, file.RuleValue)">
-                    		<td nowrap scope="row">{{file.RuleValue}}</td>
-							<td nowrap>{{file.RuleType}}</td>
-							<td nowrap>{{file.RuleDuration.toString()}}</td>
-              <td nowrap>{{file.RuleDescription.toString()}}</td>
-              <td nowrap  >{{file.RuleId.toString()}}</td>
+                		<tr ng-click="filerulesCtrl.openDialog($event, file.RuleId)">
+              <td  style="text-overflow: ellipsis;max-width:20%" >{{file.RuleValue}}</td>
+							<td style="text-overflow: ellipsis;max-width:20%">{{file.RuleType}}</td>
+							<td style="text-overflow: ellipsis;max-width:20%">{{file.RuleDuration.toString()+" "+file.RuleMeasurement.toString()}}</td>
+              <td style="text-overflow: ellipsis;max-width:20%">>{{file.RuleDescription.toString()}}</td>
+              <td style="text-overflow: ellipsis;max-width:20%"> >{{file.RuleId.toString()}}</td>
                 		</tr>
                 		</tbody>
             		</table>
