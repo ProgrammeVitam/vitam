@@ -68,12 +68,11 @@
     </div>
 
     <!--  Nbre d'archives trouvées -->
-    <div class="col-md-12 center-block" style="padding-bottom: 20px">
-      <!-- <button ng-if="showResult" class="btn btn-primary center-block" type="button"> -->
-        <span  class="center-block" ng-if = "showResult && totalResult > 0">Nombre de résultats : <span class="badge">{{totalResult}}</span> </span>
-        <span class="center-block" ng-if = "showResult && totalResult == 0">Aucun résulat trouvé</span>
-      <!-- </button> -->
+    <div class="text-center" style="padding-bottom: 20px">
+        <label ng-if = "showResult && totalResult > 0">Nombre de résultats : <span class="badge">{{totalResult}}</span> </label>
+        <label ng-if = "showResult && totalResult == 0">Aucun résulat trouvé</label>
     </div>
+
   </div>
 </div>
 
@@ -127,8 +126,8 @@
             <span ng-show="orderByField == 'og' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
             <span ng-show="orderByField == 'og' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
           </th>
-
         </tr>
+
         <tbody ng-if="showResult && totalResult>0">
           <tr data-toggle="popover" data-trigger="focus" data-placement="top" ng-click="displayArchiveUnitForm($event, result._id)" ng-repeat="result in archiveUnitsSearchResult.slice(((currentPage-1)*itemsPerPage), ((currentPage)*itemsPerPage)) | orderBy:orderByField:reverseSort">
             <td>{{result._id}}</td>
