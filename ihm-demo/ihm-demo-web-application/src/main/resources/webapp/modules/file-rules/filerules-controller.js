@@ -63,9 +63,9 @@ angular.module('ihm.demo')
       clearResults();
       ctrl.searchOptions.RULES = "all";
       ctrl.searchOptions.orderby = "RuleValue";
-      if( ctrl.RuleTypes)
+      if( ctrl.RuleType)
       {
-      ctrl.searchOptions.RuleTypes = ctrl.RuleTypes[0];
+      ctrl.searchOptions.RuleType = ctrl.RuleType.toString();
     }
       ctrl.client.all('rules').post(ctrl.searchOptions).then(function(response) {
         ctrl.fileRulesList = response.data.sort(function (a, b) {
