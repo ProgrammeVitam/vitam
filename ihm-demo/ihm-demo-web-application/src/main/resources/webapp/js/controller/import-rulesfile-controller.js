@@ -28,7 +28,7 @@
 'use strict';
 
 angular.module('ihm.demo')
-.controller('MyController', function($scope, $http, FileUploader, $mdDialog, $route){
+.controller('MyRulesController', function($scope, $http, FileUploader, $mdDialog, $route){
 	$scope.mustShow = false;
 
 	var serviceURI = "/ihm-demo/v1/api/rules";
