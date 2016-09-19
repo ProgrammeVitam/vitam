@@ -85,8 +85,7 @@ public class WorkerRegister implements Runnable {
 
     private boolean register(ProcessingManagementClient processingClient) {
         WorkerRemoteConfiguration remoteConfiguration = new WorkerRemoteConfiguration(
-            this.configuration.getRegisterServerHost(), this.configuration.getRegisterServerPort(),
-            this.configuration.getRegisterServerContextPath(), this.configuration.isRegisterUseSSL());
+            this.configuration.getRegisterServerHost(), this.configuration.getRegisterServerPort());
 
         WorkerBean workerBean = new WorkerBean(ServerIdentity.getInstance().getName(), DEFAULT_FAMILY, 1L, 1L, "active",
             remoteConfiguration);

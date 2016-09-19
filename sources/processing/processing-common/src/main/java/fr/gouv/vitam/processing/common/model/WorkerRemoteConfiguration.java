@@ -37,30 +37,19 @@ public class WorkerRemoteConfiguration {
     private String serverHost;
     @JsonProperty("serverPort")
     private int serverPort;
-    @JsonProperty("serverContextPath")
-    private String serverContextPath;
-    @JsonProperty("useSSL")
-    private boolean useSSL;
 
 
     /**
      * @param serverHost : the worker server host
      * @param serverPort : the worker server port
-     * @param serverContextPath : the worker server servlet context path
-     * @param useSSL : the worker server use SSL
      */
     @JsonCreator
     public WorkerRemoteConfiguration(@JsonProperty("serverHost") String serverHost,
-        @JsonProperty("serverPort") int serverPort,
-        @JsonProperty("serverContextPath") String serverContextPath, @JsonProperty("useSSL") boolean useSSL) {
+        @JsonProperty("serverPort") int serverPort) {
         ParametersChecker.checkParameter("serverPort is a mandatory parameter", serverPort);
         ParametersChecker.checkParameter("serverHost is a mandatory parameter", serverHost);
-        ParametersChecker.checkParameter("serverContextPath is a mandatory parameter", serverContextPath);
-        ParametersChecker.checkParameter("useSSL is a mandatory parameter", useSSL);
         this.serverHost = serverHost;
         this.serverPort = serverPort;
-        this.serverContextPath = serverContextPath;
-        this.useSSL = useSSL;
     }
 
     /**
@@ -98,45 +87,6 @@ public class WorkerRemoteConfiguration {
     }
 
     /**
-     * @return the serverContextPath
-     */
-    public String getServerContextPath() {
-        return serverContextPath;
-    }
-
-
-
-    /**
-     * @param serverContextPath the serverContextPath to set
-     *
-     * @return this
-     */
-    public WorkerRemoteConfiguration setServerContextPath(String serverContextPath) {
-        this.serverContextPath = serverContextPath;
-        return this;
-    }
-
-
-    /**
-     * @return the useSSL
-     */
-    public boolean getUseSSL() {
-        return useSSL;
-    }
-
-
-    /**
-     * @param useSSL the useSSL to set
-     *
-     * @return this
-     */
-    public WorkerRemoteConfiguration setUseSSL(boolean useSSL) {
-        this.useSSL = useSSL;
-        return this;
-    }
-
-
-    /**
      * toString : get the worker remote configuration
      */
     @Override
@@ -144,8 +94,6 @@ public class WorkerRemoteConfiguration {
         final StringBuilder sb = new StringBuilder();
         sb.append("serverHost=" + getServerHost() + "\n");
         sb.append("serverPort=" + getServerPort() + "\n");
-        sb.append("serverContextPath=" + getServerContextPath() + "\n");
-        sb.append("useSSL=" + getUseSSL() + "\n");
         return sb.toString();
     }
 

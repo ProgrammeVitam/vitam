@@ -36,8 +36,6 @@ public final class WorkerConfiguration {
     private String processingUrl;
     private String urlMetada;
     private String urlWorkspace;
-    private boolean registerUseSSL = false;
-    private String registerServerContextPath;
     private String registerServerHost;
     private int registerServerPort;
     private long registerDelay = 60;
@@ -127,46 +125,6 @@ public final class WorkerConfiguration {
      */
     public WorkerConfiguration setUrlWorkspace(String urlWorkspace) {
         this.urlWorkspace = urlWorkspace;
-        return this;
-    }
-
-    /**
-     * Get the registerUseSSL
-     * 
-     * @return registerUseSSL
-     */
-    public boolean isRegisterUseSSL() {
-        return registerUseSSL;
-    }
-
-    /**
-     * The registerUseSSL setter
-     * 
-     * @param registerUseSSL the registerUseSSL
-     * @return the updated WorkerConfiguration object
-     */
-    public WorkerConfiguration setRegisterUseSSL(boolean registerUseSSL) {
-        this.registerUseSSL = registerUseSSL;
-        return this;
-    }
-
-    /**
-     * Get the registerServerContextPath
-     * 
-     * @return registerServerContextPath
-     */
-    public String getRegisterServerContextPath() {
-        return registerServerContextPath;
-    }
-
-    /**
-     * The registerServerContextPath setter
-     * 
-     * @param registerServerContextPath the registerServerContextPath
-     * @return the updated WorkerConfiguration object
-     */
-    public WorkerConfiguration setRegisterServerContextPath(String registerServerContextPath) {
-        this.registerServerContextPath = registerServerContextPath;
         return this;
     }
 

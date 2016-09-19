@@ -75,16 +75,15 @@ import org.junit.Test;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.StatusMessage;
-import fr.gouv.vitam.common.server.application.configuration.ClientConfigurationImpl;
 
-public class AbstractClientTest extends JerseyTest {
+public class AbstractSSLClientTest extends JerseyTest {
     protected static final String HOSTNAME = "localhost";
     protected static final String RESOURCE_PATH = "/vitam-test/v1";
     protected static int serverPort;
     protected final BasicClient client;
     private static JunitHelper junitHelper;
 
-    protected AbstractClientTest.ExpectedResults mock;
+    protected AbstractSSLClientTest.ExpectedResults mock;
 
     interface ExpectedResults {
         Response get();
@@ -105,7 +104,7 @@ public class AbstractClientTest extends JerseyTest {
     protected Application configure() {
         enable(TestProperties.DUMP_ENTITY);
         forceSet(TestProperties.CONTAINER_PORT, Integer.toString(serverPort));
-        mock = mock(AbstractClientTest.ExpectedResults.class);
+        mock = mock(AbstractSSLClientTest.ExpectedResults.class);
         final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(JacksonFeature.class);
         return resourceConfig.registerInstances(new MockResource(mock));
@@ -113,9 +112,9 @@ public class AbstractClientTest extends JerseyTest {
 
     @Path(RESOURCE_PATH)
     public static class MockResource {
-        private final AbstractClientTest.ExpectedResults expectedResponse;
+        private final AbstractSSLClientTest.ExpectedResults expectedResponse;
 
-        public MockResource(AbstractClientTest.ExpectedResults expectedResponse) {
+        public MockResource(AbstractSSLClientTest.ExpectedResults expectedResponse) {
             this.expectedResponse = expectedResponse;
         }
 
@@ -124,10 +123,10 @@ public class AbstractClientTest extends JerseyTest {
         @Produces(MediaType.APPLICATION_JSON)
         public Response getStatus() {
             return expectedResponse.get();
-        }        
+        }
     }
 
-    public AbstractClientTest() throws VitamClientException {
+    public AbstractSSLClientTest() throws VitamClientException {
         client = new FakeClient();
     }
 
@@ -156,7 +155,6 @@ public class AbstractClientTest extends JerseyTest {
         assertEquals(1, message.getPid());
     }
 
-    
     @Test(expected = VitamClientException.class)
     public void failsStatusExecution() throws Exception {
         when(mock.get()).thenReturn(Response.status(Response.Status.NOT_IMPLEMENTED).build());
@@ -168,13 +166,13 @@ public class AbstractClientTest extends JerseyTest {
         client.shutdown();
     }
 
-    private class FakeClient extends AbstractClient {
+    private class FakeClient extends AbstractSSLClient {
         FakeClient() throws VitamClientException {
-            super(new ClientConfigurationImpl(HOSTNAME, serverPort), RESOURCE_PATH, false);
+            super(new SSLClientConfiguration(HOSTNAME, serverPort, false, "/"), RESOURCE_PATH, false);
         }
 
         FakeClient(Client client) throws VitamClientException {
-            super(new ClientConfigurationImpl(HOSTNAME, serverPort), RESOURCE_PATH, client);
+            super(new SSLClientConfiguration(HOSTNAME, serverPort, false, "/"), RESOURCE_PATH, client);
         }
 
         public <R> R handleCommonResponseStatus(Response response, Class<R> responseType) throws VitamClientException {

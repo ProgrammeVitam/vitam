@@ -208,9 +208,7 @@ public class WorkerIntegrationTest {
     private static WorkerClientConfiguration getWorkerClientConfiguration() {
         WorkerClientConfiguration workerClientConfiguration =
             new WorkerClientConfiguration("localhost",
-                PORT_SERVICE_WORKER,
-                false,
-                "/");
+                PORT_SERVICE_WORKER);
         return workerClientConfiguration;
     }
 
@@ -401,8 +399,7 @@ public class WorkerIntegrationTest {
 
     @Test
     public void testRegistration() throws Exception {
-        WorkerRemoteConfiguration remoteConfiguration =
-            new WorkerRemoteConfiguration("localhost", PORT_SERVICE_WORKER, "/", false);
+        WorkerRemoteConfiguration remoteConfiguration = new WorkerRemoteConfiguration("localhost", PORT_SERVICE_WORKER);
         WorkerBean workerBean =
             new WorkerBean("name", WorkerRegister.DEFAULT_FAMILY, 1L, 1L, "active", remoteConfiguration);
         processingClient = ProcessingManagementClientFactory.create(PROCESSING_URL);

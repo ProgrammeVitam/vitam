@@ -46,8 +46,8 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.client.SSLClientConfiguration;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.server.application.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.model.Step;
@@ -112,8 +112,7 @@ public class WorkerClientRestTest extends JerseyTest {
     }
 
     public WorkerClientRestTest() {
-        client = new WorkerClientRest(new SSLClientConfiguration(HOSTNAME, serverPort, false, "/"),
-            "/worker/v1", false);
+        client = new WorkerClientRest(new ClientConfigurationImpl(HOSTNAME, serverPort), "/worker/v1", false);
     }
 
     @Test

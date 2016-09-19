@@ -30,9 +30,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import fr.gouv.vitam.common.ServerIdentity;
-import fr.gouv.vitam.common.client.SSLClientConfiguration;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.model.StatusMessage;
+import fr.gouv.vitam.common.server.application.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;
@@ -49,7 +49,7 @@ class WorkerClientMock extends WorkerClientRest implements WorkerClient {
      * Constructor
      */
     WorkerClientMock() {
-        super(new SSLClientConfiguration("mock", 1, false, "/"), "/", false);
+        super(new ClientConfigurationImpl("mock", 1), "/", false);
     }
 
     @Override

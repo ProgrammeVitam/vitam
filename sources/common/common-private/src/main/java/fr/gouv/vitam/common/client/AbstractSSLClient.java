@@ -47,46 +47,54 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusMessage;
-import fr.gouv.vitam.common.server.application.configuration.ClientConfigurationImpl;
 
 /**
- * Abstract client class for all vitam client not using SSL
+ * Abstract SSL client class for all vitam client using SSL
  */
-public abstract class AbstractClient implements BasicClient {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AbstractClient.class);
+public abstract class AbstractSSLClient implements BasicClient {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AbstractSSLClient.class);
 
     protected static final String INTERNAL_SERVER_ERROR = "Internal Server Error";
 
     private final String serviceUrl;
     private String resourcePath;
     private final Client client;
-    private final ClientConfigurationImpl clientConfiguration;
+    private final SSLClientConfiguration clientConfiguration;
 
     /**
-     * Constructor using given scheme (http)
+     * Constructor using given scheme (http or https)
      *
      * @param configuration The client configuration
      * @param resourcePath the resource path of the server for the client calls
      * @param suppressHttpCompliance define if client (Jetty Client feature) check if request id HTTP compliant
      * @throws UnsupportedOperationException HTTPS not implemented yet
      */
-    protected AbstractClient(ClientConfigurationImpl configuration, String resourcePath,
+    protected AbstractSSLClient(SSLClientConfiguration configuration, String resourcePath,
         boolean suppressHttpCompliance) {
         ParametersChecker.checkParameter("Configuration cannot be null", configuration);
         ParametersChecker.checkParameter("resourcePath cannot be null", resourcePath);
         String scheme = "http";
-
+        if (configuration.getUseSSL()) {
+            throw new UnsupportedOperationException("SSL is not yet implemented");
+        }
         ParametersChecker.checkParameter("Host cannot be null", configuration.getServerHost());
         ParametersChecker.checkValue("Port has invalid value", configuration.getServerPort(), 1);
+        ParametersChecker.checkParameter("Context path cannot be null", configuration.getServerContextPath());
         this.clientConfiguration = configuration;
 
         this.resourcePath = Optional.ofNullable(resourcePath).orElse("/");
+        if (clientConfiguration.getServerContextPath().endsWith("/") && this.resourcePath.length() > 1) {
+            this.resourcePath = resourcePath.substring(1);
+        }
 
         this.resourcePath = resourcePath;
         String uri = this.resourcePath;
+        if (clientConfiguration.getServerContextPath().endsWith("/") && this.resourcePath.length() > 1) {
+            uri = this.resourcePath.substring(1);
+        }
 
-        serviceUrl =
-            scheme + "://" + clientConfiguration.getServerHost() + ":" + clientConfiguration.getServerPort() + uri;
+        serviceUrl = scheme + "://" + clientConfiguration.getServerHost() + ":" + clientConfiguration.getServerPort() +
+            clientConfiguration.getServerContextPath() + uri;
         final ClientConfig config = configure(suppressHttpCompliance);
         client = ClientBuilder.newClient(config);
     }
@@ -99,18 +107,26 @@ public abstract class AbstractClient implements BasicClient {
      * @param client the HTTP client to use
      * @throws UnsupportedOperationException HTTPS not implemented yet
      */
-    protected AbstractClient(ClientConfigurationImpl configuration, String resourcePath, Client client) {
+    protected AbstractSSLClient(SSLClientConfiguration configuration, String resourcePath, Client client) {
         ParametersChecker.checkParameter("Jersey client", client);
         ParametersChecker.checkParameter("Configuration cannot be null ", configuration);
+        ParametersChecker.checkParameter("Context path cannot be null ", configuration.getServerContextPath());
         ParametersChecker.checkParameter("Context path cannot be null ", configuration.getServerHost());
         ParametersChecker.checkParameter("ResourcePath cannot be null", resourcePath);
         ParametersChecker.checkValue("port", configuration.getServerPort(), 1);
         clientConfiguration = configuration;
+        if (clientConfiguration.getUseSSL()) {
+            throw new UnsupportedOperationException("SSL is not yet implemented");
+        }
 
         this.resourcePath = resourcePath;
         String uri = this.resourcePath;
+        if (clientConfiguration.getServerContextPath().endsWith("/") && this.resourcePath.length() > 1) {
+            uri = this.resourcePath.substring(1);
+        }
 
-        serviceUrl = "http://" + clientConfiguration.getServerHost() + ":" + clientConfiguration.getServerPort() + uri;
+        serviceUrl = "http://" + clientConfiguration.getServerHost() + ":" + clientConfiguration.getServerPort() +
+            clientConfiguration.getServerContextPath() + uri;
         this.client = client;
     }
 

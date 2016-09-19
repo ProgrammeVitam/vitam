@@ -42,9 +42,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.AbstractClient;
-import fr.gouv.vitam.common.client.SSLClientConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.application.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.OutcomeMessage;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
@@ -61,12 +61,12 @@ public class WorkerClientRest extends AbstractClient implements WorkerClient {
     private static final String DATA_MUST_HAVE_A_VALID_VALUE = "data must have a valid value";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerClientRest.class);
 
-    WorkerClientRest(SSLClientConfiguration clientConfiguration, String resourcePath,
+    WorkerClientRest(ClientConfigurationImpl clientConfiguration, String resourcePath,
         boolean suppressHttpCompliance) {
         super(clientConfiguration, resourcePath, suppressHttpCompliance);
     }
 
-    WorkerClientRest(SSLClientConfiguration clientConfiguration, String resourcePath, Client client) {
+    WorkerClientRest(ClientConfigurationImpl clientConfiguration, String resourcePath, Client client) {
         super(clientConfiguration, resourcePath, client);
     }
 

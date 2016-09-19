@@ -241,9 +241,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
     private void loadWorkerClient(WorkerBean workerBean) {
         WorkerClientConfiguration workerClientConfiguration =
             new WorkerClientConfiguration(workerBean.getConfiguration().getServerHost(),
-                workerBean.getConfiguration().getServerPort(),
-                workerBean.getConfiguration().getUseSSL(),
-                workerBean.getConfiguration().getServerContextPath());
+                workerBean.getConfiguration().getServerPort());
         WorkerClientFactory.setConfiguration(WorkerClientType.WORKER, workerClientConfiguration);
     }
 
