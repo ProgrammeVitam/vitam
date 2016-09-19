@@ -25,8 +25,6 @@
   - "server-identity.conf"
   - "setenv.sh"
   - "logback.xml"
-  - "version.conf"
-  - "storage-client.conf"
   - "antisamy-esapi.xml"
   - "jetty-config.xml"
 

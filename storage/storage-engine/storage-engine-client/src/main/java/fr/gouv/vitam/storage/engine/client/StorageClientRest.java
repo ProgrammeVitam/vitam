@@ -43,6 +43,7 @@ import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.AbstractClient;
 import fr.gouv.vitam.common.client.SSLClientConfiguration;
@@ -285,8 +286,8 @@ class StorageClientRest extends AbstractClient implements StorageClient {
      */
     private MultivaluedHashMap<String, Object> getDefaultHeaders(String tenantId, String strategyId) {
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add("X-Tenant-Id", tenantId);
-        headers.add("X-Strategy-Id", strategyId);
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        headers.add(GlobalDataRest.X_STRATEGY_ID, strategyId);
         return headers;
     }
 

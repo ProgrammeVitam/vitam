@@ -50,7 +50,7 @@ import static org.hamcrest.Matchers.equalTo;
 
 public class ProcessManagementResourceTest {
 
-    private static final String DATA_URI = "/processing/api/v0.0.3";
+    private static final String DATA_URI = "/processing/v1";
     private static final String NOT_EXITS_WORKFLOW_ID = "workflowJSONv3";
     private static final String EXITS_WORKFLOW_ID = "workflowJSONv2";
     private static final String URL_METADATA = "http://localhost:8086";

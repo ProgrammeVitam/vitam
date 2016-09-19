@@ -21,6 +21,7 @@ hosts-storage-engine
 hosts-storage-offer-default
 hosts-ingest-external
 hosts-functional-administration
+hosts-worker
 hosts-log-server
 hosts-consul-server
 hosts-elasticsearch-data
@@ -64,6 +65,9 @@ vitam-iaas-storage-01.int3
 
 [hosts-storage-offer-default]
 vitam-iaas-defoffer-01.int3
+
+[hosts-worker]
+vitam-iaas-processing-01.int3
 
 [hosts-log-server]
 vitam-iaas-log-01.int3

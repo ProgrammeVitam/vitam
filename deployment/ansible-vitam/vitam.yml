@@ -26,6 +26,10 @@
   roles:
     - processing
 
+- hosts: hosts-worker
+  roles:
+  - worker
+
 - hosts: hosts-metadata
   roles:
     - metadata

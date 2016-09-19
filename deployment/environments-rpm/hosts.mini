@@ -13,6 +13,7 @@ hosts-storageengine
 hosts-storageofferdefault
 hosts-ingest-external
 hosts-functional-administration
+hosts-worker
 
 [hosts-mongodb]
 vitam-iaas-mini-01.int3
@@ -48,6 +49,9 @@ vitam-iaas-mini-01.int3
 vitam-iaas-mini-01.int3
 
 [hosts-functional-administration]
+vitam-iaas-mini-01.int3
+
+[hosts-worker]
 vitam-iaas-mini-01.int3
 
 

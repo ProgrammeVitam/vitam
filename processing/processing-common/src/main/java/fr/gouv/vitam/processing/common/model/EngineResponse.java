@@ -27,7 +27,8 @@ import java.util.Map;
 
 
 /**
- * Model of Response from worker
+ * Model of Response from worker <br>
+ * TODO : remove interface since we want to use this object as a rest response entity.
  */
 public interface EngineResponse {
 
@@ -62,18 +63,18 @@ public interface EngineResponse {
      * @return EngineResponse
      */
     EngineResponse setOutcomeMessages(String handlerId, OutcomeMessage messages);
-    
-    /**
-    *
-    * @return list of functional error message
-    */
-   public int getErrorNumber();
 
-   /**
-    * @param number the number of errors during the workflow
-    * @return EngineResponse
-    */
-   EngineResponse setErrorNumber(int number);
+    /**
+     *
+     * @return list of functional error message
+     */
+    public int getErrorNumber();
+
+    /**
+     * @param number the number of errors during the workflow
+     * @return EngineResponse
+     */
+    EngineResponse setErrorNumber(int number);
 
     /**
      *

@@ -36,6 +36,10 @@
   roles:
     - {role: vitam, vitam_component: processing,java_args: /vitam/conf/processing/processing.conf, port_http: "{{vitam_processing_port}}" } 
 
+- hosts: hosts-worker
+  roles:
+    - {role: vitam, vitam_component: worker,java_args: /vitam/conf/worker/worker.conf } 
+
 - hosts: hosts-access
   roles:
     - {role: vitam, vitam_component: access, java_args: /vitam/conf/access/access.conf, port_http: "{{vitam_access_port}}" } 

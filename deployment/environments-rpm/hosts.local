@@ -10,7 +10,6 @@ hosts-ingest
 hosts-storageengine
 hosts-storageofferdefault
 
-
 [hosts-ihm-demo]
 {{local_docker0_ip}}
 

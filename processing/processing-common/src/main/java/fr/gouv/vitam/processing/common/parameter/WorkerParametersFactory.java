@@ -86,7 +86,7 @@ public class WorkerParametersFactory {
      * @param mandatoryFieldsToAdd set of WorkerParameterName to add to the default mandatory fields, can be null
      * @return the new instance of WorkerParameters
      */
-    static WorkerParameters newWorkerParameters(Set<WorkerParameterName> mandatoryFieldsToAdd) {
+    static DefaultWorkerParameters newWorkerParameters(Set<WorkerParameterName> mandatoryFieldsToAdd) {
         return new DefaultWorkerParameters(initMandatoriesParameters(mandatoryFieldsToAdd));
     }
 
@@ -95,7 +95,7 @@ public class WorkerParametersFactory {
      *
      * @return the new instance of WorkerParameters
      */
-    public static WorkerParameters newWorkerParameters() {
+    public static DefaultWorkerParameters newWorkerParameters() {
         return new DefaultWorkerParameters(initMandatoriesParameters(null));
     }
 
@@ -113,13 +113,13 @@ public class WorkerParametersFactory {
      * @return the new instance of WorkerParameters
      * @throws IllegalArgumentException if any parameter is null or empty
      */
-    public static WorkerParameters newWorkerParameters(String processId, String stepUniqId, String containerName, String
+    public static DefaultWorkerParameters newWorkerParameters(String processId, String stepUniqId, String containerName, String
         currentStep, String objectName, String urlMetadata,
         String urlWorkspace) {
         ParametersChecker.checkParameter("Parameters cannot be null or empty", processId, stepUniqId, containerName,
             currentStep, objectName,
             urlMetadata, urlWorkspace);
-        final WorkerParameters parameters = new DefaultWorkerParameters(initMandatoriesParameters(null));
+        final DefaultWorkerParameters parameters = new DefaultWorkerParameters(initMandatoriesParameters(null));
         parameters.putParameterValue(WorkerParameterName.processId, processId);
         parameters.putParameterValue(WorkerParameterName.stepUniqId, stepUniqId);
         parameters.putParameterValue(WorkerParameterName.containerName, containerName);

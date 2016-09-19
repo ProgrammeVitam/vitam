@@ -43,7 +43,7 @@ import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
-
+import fr.gouv.vitam.processing.distributor.rest.ProcessDistributorResource;
 
 
 /**
@@ -131,7 +131,7 @@ public class ProcessManagementApplication
     /**
      * stop the lauched vitamServer
      *
-     * @throws Exception
+     * @throws Exception if the application can not be stopped
      */
     public static void stop() throws Exception {
         if (vitamServer != null && vitamServer.isStarted()) {
@@ -144,12 +144,13 @@ public class ProcessManagementApplication
      *
      * @return the generated Handler
      */
-    @Override 
+    @Override
     protected Handler buildApplicationHandler() {
         final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(JacksonFeature.class);
         resourceConfig.register(MultiPartFeature.class);
         resourceConfig.register(new ProcessManagementResource(getConfiguration()));
+        resourceConfig.register(new ProcessDistributorResource(getConfiguration()));
 
         final ServletContainer servletContainer = new ServletContainer(resourceConfig);
         final ServletHolder sh = new ServletHolder(servletContainer);
@@ -164,7 +165,8 @@ public class ProcessManagementApplication
      *
      * @return the name of the application configuration file
      */
-    @Override protected String getConfigFilename() {
+    @Override
+    protected String getConfigFilename() {
         return CONF_FILE_NAME;
     }
 }

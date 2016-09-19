@@ -31,8 +31,8 @@ public class WorkflowNotFoundException extends ProcessingException {
 
     /**
      *
-     * @param message
-     * @param cause
+     * @param message to be set
+     * @param cause to be set
      */
     public WorkflowNotFoundException(String message, Throwable cause) {
         super(message, cause);
@@ -40,7 +40,7 @@ public class WorkflowNotFoundException extends ProcessingException {
 
     /**
      *
-     * @param message
+     * @param message to be set
      */
     public WorkflowNotFoundException(String message) {
         super(message);
