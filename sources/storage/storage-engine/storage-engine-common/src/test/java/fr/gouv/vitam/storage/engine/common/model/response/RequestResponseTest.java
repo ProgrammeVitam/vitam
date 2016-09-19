@@ -35,12 +35,13 @@
 
 package fr.gouv.vitam.storage.engine.common.model.response;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.gouv.vitam.common.json.JsonHandler;
+import static org.junit.Assert.assertEquals;
+
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import com.fasterxml.jackson.databind.JsonNode;
+
+import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
  *

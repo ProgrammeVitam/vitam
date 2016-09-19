@@ -174,7 +174,7 @@ public class DefaultOfferResource {
         }
         try {
             ObjectInit objectInitFilled =
-                DefaultOfferServiceImpl.getInstance().createContainer(xTenantId, objectInit, objectGUID);
+                DefaultOfferServiceImpl.getInstance().initCreateObject(xTenantId, objectInit, objectGUID);
             return Response.status(Response.Status.CREATED).entity(objectInitFilled).build();
         } catch (ContentAddressableStorageException exc) {
             LOGGER.error(exc);

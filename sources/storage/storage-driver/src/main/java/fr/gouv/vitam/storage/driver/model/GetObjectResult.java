@@ -42,13 +42,32 @@ import java.io.InputStream;
  */
 public class GetObjectResult {
 
+    private String tenantId;
+    
     private InputStream object;
 
+    /**
+     * Initialize the needed parameters for get results
+     * 
+     * @param tenantId The request tenantId
+     * @param object Datastream of the object in the offer
+     */
+    public GetObjectResult(String tenantId, InputStream object) {
+        this.tenantId = tenantId;
+        this.object = object;
+    }
+
+    /**
+     * @return the object datastream
+     */
     public InputStream getObject() {
         return object;
     }
 
-    public void setObject(InputStream object) {
-        this.object = object;
+    /**
+     * @return the request tenantId
+     */
+    public String getTenantId() {
+        return tenantId;
     }
 }

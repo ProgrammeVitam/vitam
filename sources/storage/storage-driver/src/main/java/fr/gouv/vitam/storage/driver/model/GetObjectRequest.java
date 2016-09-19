@@ -38,28 +38,39 @@ public class GetObjectRequest {
 
     private String folder;
 
+    /**
+     * Initialize the needed parameters for get/head requests
+     * 
+     * @param tenantId the request tenantId
+     * @param guid the object guid
+     * @param folder the folder
+     */
+    public GetObjectRequest(String tenantId, String guid, String folder) {
+        this.tenantId = tenantId;
+        this.folder = folder;
+        this.guid = guid;
+    }
+
+    /**
+     * @return the request tenantId
+     */
     public String getTenantId() {
         return tenantId;
     }
 
-    public void setTenantId(String tenantId) {
-        this.tenantId = tenantId;
-    }
-
-
+    /**
+     * @return the object guid
+     */
     public String getGuid() {
         return guid;
     }
 
-    public void setGuid(String guid) {
-        this.guid = guid;
-    }
-
+    /**
+     * 
+     * @return the folder
+     */
     public String getFolder() {
         return folder;
     }
 
-    public void setFolder(String type) {
-        this.folder = type;
-    }
 }

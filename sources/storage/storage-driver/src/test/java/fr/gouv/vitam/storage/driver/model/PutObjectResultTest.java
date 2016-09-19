@@ -35,10 +35,10 @@
 
 package fr.gouv.vitam.storage.driver.model;
 
+import static org.junit.Assert.assertEquals;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 /**
  *
@@ -48,18 +48,21 @@ public class PutObjectResultTest {
 
     @BeforeClass
     public static void init() {
-        putObjectResult = new PutObjectResult();
+        putObjectResult = new PutObjectResult("doi", "dhb16", "ti");
     }
 
     @Test
-    public void testGetSetDistantObjectId() throws Exception {
-        putObjectResult.setDistantObjectId("dd");
-        assertEquals("dd", putObjectResult.getDistantObjectId());
+    public void testGetSetDistantObjectId() {
+        assertEquals("doi", putObjectResult.getDistantObjectId());
     }
 
     @Test
-    public void testGetDigestHashBase16() throws Exception {
-        putObjectResult.setDigestHashBase16("dd");
-        assertEquals("dd", putObjectResult.getDigestHashBase16());
+    public void testGetDigestHashBase16() {
+        assertEquals("dhb16", putObjectResult.getDigestHashBase16());
+    }
+    
+    @Test
+    public void testGetTenantId() {
+        assertEquals("ti", putObjectResult.getTenantId());
     }
 }

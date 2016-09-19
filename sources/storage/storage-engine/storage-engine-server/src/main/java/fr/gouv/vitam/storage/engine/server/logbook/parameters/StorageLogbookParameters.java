@@ -32,8 +32,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -68,20 +66,16 @@ public class StorageLogbookParameters {
     @JsonIgnore
     private final Map<StorageLogbookParameterName, String> mapParameters = new TreeMap<>();
 
-    // FIXME create a constructor with mandatory parameters ! Date must be set by the constructor
-    // FIXME set explicit setter for only non mandatories elements and remove putParameterValue
     /**
-     * Put parameter value on parameters map
-     *
-     * @param parameterName the parameter name to put
-     * @param parameterValue the parameter value for the parameter name
-     * @return this (fluent style)
+     * Set directly at least all mandatory parameters in the StorageLogbookParameters.
+     * This constructor checks if all mandatory parameters are set
+     * 
+     * @param mapParameters The initial parameters (MUST contains mandatory parameters
+     * @throws StorageException 
      */
-    @JsonIgnore
-    public StorageLogbookParameters putParameterValue(StorageLogbookParameterName parameterName,
-        String parameterValue) {
-        mapParameters.put(parameterName, parameterValue);
-        return this;
+    public StorageLogbookParameters(Map<StorageLogbookParameterName, String> mapParameters) {
+        this.mapParameters.putAll(mapParameters);
+        checkMandatoryParameters();
     }
 
     /**
@@ -92,10 +86,7 @@ public class StorageLogbookParameters {
     @JsonIgnore
     public LocalDateTime getEventDateTime() {
         final String date = mapParameters.get(StorageLogbookParameterName.eventDateTime);
-        if (!StringUtils.isBlank(date)) {
-            return LocalDateTime.parse(date);
-        }
-        return null;
+        return LocalDateTime.parse(date);
     }
 
     /**
@@ -118,10 +109,7 @@ public class StorageLogbookParameters {
     @JsonIgnore
     public StorageLogbookOutcome getStatus() {
         final String status = mapParameters.get(StorageLogbookParameterName.outcome);
-        if (status != null) {
-            return StorageLogbookOutcome.valueOf(status);
-        }
-        return null;
+        return StorageLogbookOutcome.valueOf(status);
     }
 
 
@@ -149,4 +137,27 @@ public class StorageLogbookParameters {
         return mapParameters;
     }
 
+    /**
+     * set The output detail message of the operation
+     * 
+     * @param outcomeDetailMessage the output message
+     * @return the StorageLogbookParameters after the parameter has been added
+     */
+    @JsonIgnore
+    public StorageLogbookParameters setOutcomDetailMessage(String outcomeDetailMessage) {
+        mapParameters.put(StorageLogbookParameterName.outcomeDetailMessage, outcomeDetailMessage);
+        return this;
+    }
+
+    /**
+     * set The External Object Identifier
+     * 
+     * @param objectIdentifierIncome the External Object Identifier
+     * @return the StorageLogbookParameters after the parameter has been added
+     */
+    @JsonIgnore
+    public StorageLogbookParameters setObjectIdentifierIncome(String objectIdentifierIncome) {
+        mapParameters.put(StorageLogbookParameterName.objectIdentifierIncome, objectIdentifierIncome);
+        return this;
+    }
 }

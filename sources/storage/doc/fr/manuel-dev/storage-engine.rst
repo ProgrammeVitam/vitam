@@ -67,10 +67,6 @@ Ces fonctionnalités sont :
 
    - pour les metadatas Json (objectGroup, unit, logbook -- pas encore implémenté côté serveur) :
 
-.. code-block:: java
-
-		JsonNode result = storeJson("0", "default", StorageCollectionType.UNIT, "aeaaaaaaaaaam7mxaaaamakv3x3yehaaaaaq");
-
  - la vérification de l'existance d'un objet dans l'offre de stockage selon  une stratégie donnée :
    - pour les conteneurs (pas encore implémenté côté serveur) :
 

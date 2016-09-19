@@ -69,7 +69,9 @@ public interface DefaultOfferService {
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
 
     /**
-     * Create container on offer
+     * Initialize object creation
+     * 
+     * Create container on offer if does not exist for one object Also update digest type and object GUID
      *
      * @param containerName the container name to create
      * @param objectInit informations about object to create
@@ -79,7 +81,7 @@ public interface DefaultOfferService {
      * @throws ContentAddressableStorageAlreadyExistException thrown if the container to create already exists
      * @throws ContentAddressableStorageNotFoundException thrown if the container storage could not be created
      */
-    ObjectInit createContainer(String containerName, ObjectInit objectInit, String objectGUID)
+    ObjectInit initCreateObject(String containerName, ObjectInit objectInit, String objectGUID)
         throws ContentAddressableStorageServerException, ContentAddressableStorageAlreadyExistException,
         ContentAddressableStorageNotFoundException;
 

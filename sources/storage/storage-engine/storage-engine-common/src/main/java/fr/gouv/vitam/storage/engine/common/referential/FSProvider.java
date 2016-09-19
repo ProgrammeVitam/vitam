@@ -35,15 +35,16 @@
 
 package fr.gouv.vitam.storage.engine.common.referential;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
-
-import java.io.IOException;
 
 /**
  * File system implementation of the storage strategy and storage offer provider
@@ -52,13 +53,6 @@ class FSProvider implements StorageStrategyProvider, StorageOfferProvider {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(FSProvider.class);
     private static final String STRATEGY_FILENAME = "static-strategy.json";
     private static final String OFFER_FILENAME = "static-offer.json";
-    /*
-     * TODO : Use custom ObjectMapper because the ObjectMapper used in JsonHandler requires UPPER Camel case
-     * json attribute to be able to map automatically json properties (ie: without field annotation) to java
-     * attributes. Need a discussion on this with Frédéric.
-     * TODO you can force Json variable to start with UpperCamelCase too ! so using the default ObjectMapper (which is UpperCamelCase since Seda is so)
-     */
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private StorageStrategy storageStrategy;
     private StorageOffer storageOffer;
 
@@ -85,7 +79,7 @@ class FSProvider implements StorageStrategyProvider, StorageOfferProvider {
         }
         try {
             loadReferential(ReferentialType.STRATEGY);
-        } catch (IOException exc) {
+        } catch (IOException | InvalidParseOperationException exc) {
             throw new StorageTechnicalException(exc);
         }
         return storageStrategy;
@@ -100,7 +94,7 @@ class FSProvider implements StorageStrategyProvider, StorageOfferProvider {
         }
         try {
             loadReferential(ReferentialType.OFFER);
-        } catch (IOException exc) {
+        } catch (IOException | InvalidParseOperationException exc) {
             throw new StorageTechnicalException(exc);
         }
         return storageOffer;
@@ -112,22 +106,26 @@ class FSProvider implements StorageStrategyProvider, StorageOfferProvider {
             loadReferential(ReferentialType.STRATEGY);
         } catch (IOException exc) {
             LOGGER.warn("Couldn't load " + STRATEGY_FILENAME + " file", exc);
+        } catch (InvalidParseOperationException exc) {
+            LOGGER.warn("Couldn't parse " + STRATEGY_FILENAME + " file", exc);
         }
         try {
             loadReferential(ReferentialType.OFFER);
         } catch (IOException exc) {
             LOGGER.warn("Couldn't load " + OFFER_FILENAME + " file", exc);
+        } catch (InvalidParseOperationException exc) {
+            LOGGER.warn("Couldn't parse " + OFFER_FILENAME + " file", exc);
         }
     }
 
-    private void loadReferential(ReferentialType type) throws IOException {
+    private void loadReferential(ReferentialType type) throws IOException, InvalidParseOperationException {
         switch (type) {
             case STRATEGY:
-                storageStrategy = OBJECT_MAPPER.readValue(PropertiesUtils.findFile(STRATEGY_FILENAME),
+                storageStrategy = JsonHandler.getFromFileLowerCamelCase(PropertiesUtils.findFile(STRATEGY_FILENAME),
                     StorageStrategy.class);
                 break;
             case OFFER:
-                storageOffer = OBJECT_MAPPER.readValue(PropertiesUtils.findFile(OFFER_FILENAME),
+                storageOffer = JsonHandler.getFromFileLowerCamelCase(PropertiesUtils.findFile(OFFER_FILENAME),
                     StorageOffer.class);
                 break;
             default:

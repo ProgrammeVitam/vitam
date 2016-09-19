@@ -40,22 +40,67 @@ package fr.gouv.vitam.storage.driver.model;
  */
 public class StorageCapacityResult {
 
+    private String tenantId;
+    
     private long usableSpace;
 
     private long usedSpace;
 
+    public StorageCapacityResult() {
+        // Empty
+    }
+    
+    /**
+     * Initialize the needed parameters for get capacity results
+     * 
+     * @param tenantId The request tenantId
+     * @param usableSpace The usable space in offer
+     * @param usedSpace The used space in offer
+     */
+    public StorageCapacityResult(String tenantId, long usableSpace, long usedSpace) {
+        this.tenantId = tenantId;
+        this.usableSpace = usableSpace;
+        this.usedSpace = usedSpace;
+    }
+    
+    /**
+     * @return The request tenantId
+     */
+    public String getTenantId() {
+        return tenantId;
+    }
+    
+    /**
+     * @return The offer usable space
+     */
     public long getUsableSpace() {
         return usableSpace;
     }
 
-    public void setUsableSpace(long usableSpace) {
-        this.usableSpace = usableSpace;
-    }
-
+    /**
+     * @return The offer used space
+     */
     public long getUsedSpace() {
         return usedSpace;
     }
 
+    /**
+     * @param tenantId The request tenantId
+     */
+    public void setTenantId(String tenantId) {
+        this.tenantId = tenantId;
+    }
+    
+    /**
+     * @param usableSpace The usable space in offer
+     */
+    public void setUsableSpace(long usableSpace) {
+        this.usableSpace = usableSpace;
+    }
+    
+    /**
+     * @param usedSpace The used space in offer
+     */
     public void setUsedSpace(long usedSpace) {
         this.usedSpace = usedSpace;
     }

@@ -38,17 +38,21 @@ import org.junit.Test;
  * Test for GetObjectResult
  */
 public class GetObjectResultTest {
+    private static ByteArrayInputStream BYTES = new ByteArrayInputStream("dsds".getBytes());
     private static GetObjectResult getObjectResult;
 
     @BeforeClass
     public static void init() {
-        getObjectResult = new GetObjectResult();
+        getObjectResult = new GetObjectResult("ti", BYTES);
     }
 
     @Test
-    public void testGetResultStream() throws Exception {
-        ByteArrayInputStream bytes = new ByteArrayInputStream("dsds".getBytes());
-        getObjectResult.setObject(bytes);
-        assertEquals(bytes, getObjectResult.getObject());
+    public void testGetTenentId() {
+        assertEquals("ti", getObjectResult.getTenantId());
+    }
+    
+    @Test
+    public void testGetResultStream() {
+        assertEquals(BYTES, getObjectResult.getObject());
     }
 }

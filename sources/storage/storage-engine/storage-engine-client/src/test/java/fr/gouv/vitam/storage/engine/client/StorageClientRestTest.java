@@ -61,9 +61,6 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.client.SSLClientConfiguration;
 import fr.gouv.vitam.common.exception.VitamClientException;
@@ -74,7 +71,6 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientExcept
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 
@@ -83,7 +79,6 @@ import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
  */
 public class StorageClientRestTest extends JerseyTest {
 
-    private static final JsonNode JSON_NODE_TEST = new ObjectMapper().convertValue("{\"id\":\"1\"}", JsonNode.class);
     protected static final String HOSTNAME = "localhost";
     protected static int serverPort;
     protected final StorageClientRest client;
@@ -280,62 +275,6 @@ public class StorageClientRestTest extends JerseyTest {
         client.getStorageInformation("idTenant", "idStrategy");
     }
 
-    @Test
-    public void createFromJsonOK() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Response.Status.CREATED).build());
-        client.storeJson("idTenant", "idStrategy", StorageCollectionType.UNITS, "idUnit", JSON_NODE_TEST);
-        client.storeJson("idTenant", "idStrategy", StorageCollectionType.OBJECTGROUPS, "idObjectGroup", JSON_NODE_TEST);
-        client.storeJson("idTenant", "idStrategy", StorageCollectionType.LOGBOOKS, "idLogbook", JSON_NODE_TEST);
-    }
-
-    @Test(expected = StorageNotFoundClientException.class)
-    public void createFromJsonNotFound() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
-        client.storeJson("idTenant", "idStrategy", StorageCollectionType.UNITS, "idUnit", JSON_NODE_TEST);
-    }
-
-    @Test(expected = StorageAlreadyExistsClientException.class)
-    public void createFromJsonAlreadyExist() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Response.Status.CONFLICT).build());
-        client.storeJson("idTenant", "idStrategy", StorageCollectionType.UNITS, "idUnit", JSON_NODE_TEST);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void createJsonWithTenantIllegalArgumentException() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Response.Status.CREATED).build());
-        client.storeJson("", "idStrategy", StorageCollectionType.UNITS, "idUnit", JSON_NODE_TEST);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void createJsonWithStrategyIllegalArgumentException() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Response.Status.CREATED).build());
-        client.storeJson("idTenant", null, StorageCollectionType.OBJECTGROUPS, "idObjectGroup", JSON_NODE_TEST);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void createJsonWithObjectTypeIllegalArgumentException() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Response.Status.CREATED).build());
-        client.storeJson("idTenant", "idStrategy", StorageCollectionType.OBJECTS, "idLogbook", JSON_NODE_TEST);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void createJsonWithObjectIdIllegalArgumentException() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Response.Status.CREATED).build());
-        client.storeJson(null, "idStrategy", StorageCollectionType.LOGBOOKS, "", JSON_NODE_TEST);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void createJsonWithDataIllegalArgumentException() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Response.Status.CREATED).build());
-        client.storeJson(null, "idStrategy", StorageCollectionType.UNITS, "idUnit", null);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void createJsonWithContainersIllegalArgumentException() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Response.Status.CREATED).build());
-        client.storeJson(null, "idStrategy", StorageCollectionType.CONTAINERS, "idContainer", null);
-    }
-
     /** FIXME : Waiting for server */
     @Test
     public void createFromWorkspaceOK() throws Exception {
@@ -376,13 +315,6 @@ public class StorageClientRestTest extends JerseyTest {
     public void createFromWorkspaceWithStrategyIllegalArgumentException() throws Exception {
         when(mock.post()).thenReturn(Response.status(Response.Status.CREATED).build());
         client.storeFileFromWorkspace("idTenant", null, StorageCollectionType.OBJECTS, "idObject", getDescription());
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void createFromWorkspaceWithObjectTypeIllegalArgumentException() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Response.Status.CREATED).build());
-        client.storeFileFromWorkspace("idTenant", "idStrategy", StorageCollectionType.UNITS, "idUnits",
-            getDescription());
     }
 
     @Test(expected = IllegalArgumentException.class)

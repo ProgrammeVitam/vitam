@@ -7,16 +7,17 @@ import static org.junit.Assert.fail;
 
 import java.util.Properties;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.model.GetObjectRequest;
 import fr.gouv.vitam.storage.driver.model.GetObjectResult;
 import fr.gouv.vitam.storage.driver.model.PutObjectRequest;
 import fr.gouv.vitam.storage.driver.model.RemoveObjectRequest;
-import fr.gouv.vitam.storage.driver.model.StorageCapacityRequest;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 
 public class FakeDriverImplTest {
@@ -36,39 +37,51 @@ public class FakeDriverImplTest {
         props.setProperty("fail", "fail");
         driver.connect("props", props);
     }
-    
+
 
     @Test
     public void givenCorrectPropertiesThenConnect() throws Exception {
-        Properties props = new Properties();        
+        Properties props = new Properties();
         Connection connect = driver.connect("props", props);
         assertNotNull(connect);
-        StorageCapacityRequest storageCapacityRequest = new StorageCapacityRequest();
-        StorageCapacityResult storageCapacityResult = connect.getStorageCapacity(storageCapacityRequest);
+        StorageCapacityResult storageCapacityResult = connect.getStorageCapacity("0");
         assertEquals(storageCapacityResult.getUsableSpace(), 1000000);
-        assertEquals(storageCapacityResult.getUsedSpace(), 99999);        
+        assertEquals(storageCapacityResult.getUsedSpace(), 99999);
 
         try {
-            storageCapacityRequest.setTenantId("daFakeTenant");
-            storageCapacityResult = connect.getStorageCapacity(storageCapacityRequest);
+            storageCapacityResult = connect.getStorageCapacity("daFakeTenant");
             fail("Should raized an exception");
         } catch (final StorageDriverException e) {
 
         }
-        
-        GetObjectResult getObjectResult = connect.getObject(new GetObjectRequest());
+
+        GetObjectResult getObjectResult = connect.getObject(new GetObjectRequest("0", "guid", "folder"));
         assertNotNull(getObjectResult);
         assertNotNull(getObjectResult.getObject());
-        PutObjectRequest putObjectRequest = new PutObjectRequest();
-        putObjectRequest.setGuid("digest_bad_test");
-        assertNotNull(connect.putObject(putObjectRequest));        
-        assertNotNull(connect.putObject(putObjectRequest, null));
-        
+        PutObjectRequest putObjectRequest =
+            new PutObjectRequest("tenantId", DigestType.SHA256.getName(), "guid", IOUtils.toInputStream("Vitam test"),
+                "type");
+        assertNotNull(connect.putObject(putObjectRequest));
+
+        try {
+            PutObjectRequest putObjectRequest2 =
+                new PutObjectRequest("tenantId", "fakeAlgorithm", "guid", IOUtils.toInputStream("Vitam test"),
+                    "type");
+            connect.putObject(putObjectRequest2);
+            fail("Should raized an exception");
+        } catch (final StorageDriverException e) {
+
+        }
+
+        PutObjectRequest putObjectRequest3 =
+            new PutObjectRequest("tenantId", DigestType.SHA256.getName(), "digest_bad_test",
+                IOUtils.toInputStream("Vitam test"),
+                "type");
+        assertNotNull(connect.putObject(putObjectRequest3));
+
         assertNotNull(connect.removeObject(new RemoveObjectRequest()));
-        GetObjectRequest getORequest = new GetObjectRequest();
-        getORequest.setGuid("already_in_offer");
-        assertTrue(connect.objectExistsInOffer(getORequest));
-        
+        assertTrue(connect.objectExistsInOffer(new GetObjectRequest("0", "already_in_offer", "folder")));
+
         connect.close();
     }
 

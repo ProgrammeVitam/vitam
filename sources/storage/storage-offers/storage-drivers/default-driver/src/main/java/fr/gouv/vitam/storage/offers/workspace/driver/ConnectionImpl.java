@@ -27,7 +27,6 @@
 package fr.gouv.vitam.storage.offers.workspace.driver;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -56,6 +55,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.model.GetObjectRequest;
@@ -64,10 +64,8 @@ import fr.gouv.vitam.storage.driver.model.PutObjectRequest;
 import fr.gouv.vitam.storage.driver.model.PutObjectResult;
 import fr.gouv.vitam.storage.driver.model.RemoveObjectRequest;
 import fr.gouv.vitam.storage.driver.model.RemoveObjectResult;
-import fr.gouv.vitam.storage.driver.model.StorageCapacityRequest;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
-import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 
@@ -122,13 +120,12 @@ public class ConnectionImpl implements Connection {
     }
 
     @Override
-    public StorageCapacityResult getStorageCapacity(StorageCapacityRequest request) throws StorageDriverException {
-        ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
-        ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
+    public StorageCapacityResult getStorageCapacity(String tenantId) throws StorageDriverException {
+        ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, tenantId);
         Response response = null;
         try {
             response = getClient().target(getServiceUrl()).path(OBJECTS_PATH).request(MediaType.APPLICATION_JSON)
-                .header(GlobalDataRest.X_TENANT_ID, request.getTenantId()).method(HttpMethod.GET);
+                .header(GlobalDataRest.X_TENANT_ID, tenantId).method(HttpMethod.GET);
             if (Response.Status.OK.getStatusCode() == response.getStatus()) {
                 StorageCapacityResult storageCapacityResult =
                     handleResponseStatus(response, StorageCapacityResult.class);
@@ -171,8 +168,7 @@ public class ConnectionImpl implements Connection {
                         throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.NOT_FOUND,
                             e.getMessage());
                     }
-                    GetObjectResult result = new GetObjectResult();
-                    result.setObject(stream);
+                    GetObjectResult result = new GetObjectResult(request.getTenantId(), stream);
                     return result;
                 case NOT_FOUND:
                     throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.NOT_FOUND, "Object " +
@@ -223,11 +219,6 @@ public class ConnectionImpl implements Connection {
         } finally {
             Optional.ofNullable(response).ifPresent(Response::close);
         }
-    }
-
-    @Override
-    public PutObjectResult putObject(PutObjectRequest request, File object) throws StorageDriverException {
-        throw new UnsupportedOperationException(NOT_YET_IMPLEMENTED);
     }
 
     @Override
@@ -399,9 +390,7 @@ public class ConnectionImpl implements Connection {
                                 .headers(getDefaultHeaders(tenantId, StorageConstants.COMMAND_END))
                                 .accept(MediaType.APPLICATION_JSON).method(HttpMethod.PUT, entity);
                         JsonNode json = handleResponseStatus(response, JsonNode.class);
-                        finalResult = new PutObjectResult();
-                        finalResult.setDigestHashBase16(json.get("digest").textValue());
-                        finalResult.setDistantObjectId(result.getId());
+                        finalResult = new PutObjectResult(result.getId(), json.get("digest").textValue(), tenantId);
                     } finally {
                         Optional.ofNullable(response).ifPresent(Response::close);
                     }

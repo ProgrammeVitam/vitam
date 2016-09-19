@@ -54,17 +54,14 @@ public interface StorageDistribution {
      * @param objectId        the workspace URI of the data to be retrieve (and stored in offer)
      * @param createObjectDescription object additional informations
      * @param category                the category of the data to store (unit, object...)
-     * FIXME should never be json
-     * @param jsonData                the data to store. <em>MUST</em> be null for data of category Object since the binary content is
-     *                                retrieved on workspace based on the objectId parameter.
      * @return a StoredInfoResult containing informations about the created Data
      * @throws StorageNotFoundException  Thrown if the Container does not exist
      * @throws StorageTechnicalException Thrown in case of any technical problem
      * @throws StorageObjectAlreadyExistsException 
      */
     StoredInfoResult storeData(String tenantId, String strategyId, String objectId,
-        CreateObjectDescription createObjectDescription, DataCategory category,
-        JsonNode jsonData) throws StorageTechnicalException, StorageNotFoundException, StorageObjectAlreadyExistsException;
+        CreateObjectDescription createObjectDescription, DataCategory category) 
+            throws StorageTechnicalException, StorageNotFoundException, StorageObjectAlreadyExistsException;
 
     /**
      * Get Storage Information (availability and capacity) for the requested tenant + strategy

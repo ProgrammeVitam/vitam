@@ -81,17 +81,9 @@ public class StorageClientMockTest {
         StorageClientFactory.setConfiguration(StorageClientFactory.StorageClientType.MOCK_STORAGE, null);
         final StorageClient client = StorageClientFactory.getInstance().getStorageClient();
 
-
         StoredInfoResult result =
             client.storeFileFromWorkspace("idTenant", "idStrategy", StorageCollectionType.OBJECTS, "guid", description);
         assertEquals(result.getId(), expectedResult.getId());
-
-        JsonNode objectJson =
-            new ObjectMapper().convertValue(StorageClientMock.MOCK_INFOS_RESULT.replace("{id}", "guid"),
-                JsonNode.class);
-        StoredInfoResult result2 =
-            client.storeJson("idTenant", "idStrategy", StorageCollectionType.UNITS, "guid", objectJson);
-        assertEquals(result2.getId(), expectedResult.getId());
     }
 
     @Test

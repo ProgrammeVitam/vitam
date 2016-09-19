@@ -364,12 +364,12 @@ public class StorageResourceTest {
 
         given().contentType(ContentType.JSON).body("").when()
             .post(LOGBOOKS_URI + LOGBOOK_ID_URI, "idl1").then()
-            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
         given().contentType(ContentType.JSON)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
             .body("").when()
             .post(LOGBOOKS_URI + LOGBOOK_ID_URI, "idl1").then()
-            .statusCode(Status.CREATED.getStatusCode());
+            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
         given().contentType(ContentType.JSON)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID,
                 VitamHttpHeader.METHOD_OVERRIDE.getName(), HttpMethod.GET)
@@ -381,19 +381,19 @@ public class StorageResourceTest {
                 VitamHttpHeader.METHOD_OVERRIDE.getName(), HttpMethod.PUT)
             .body("").when()
             .post(LOGBOOKS_URI + LOGBOOK_ID_URI, "idl1").then()
-            .statusCode(Status.BAD_REQUEST.getStatusCode());
+            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
         given().contentType(ContentType.JSON)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
                 TENANT_ID_A_E)
             .body("").when()
             .post(LOGBOOKS_URI + LOGBOOK_ID_URI, "idl1").then()
-            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
         given().contentType(ContentType.JSON)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
                 TENANT_ID_E)
             .body("").when()
             .post(LOGBOOKS_URI + LOGBOOK_ID_URI, "idl1").then()
-            .statusCode(Status.NOT_FOUND.getStatusCode());
+            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
 
 
         given().contentType(ContentType.JSON).body("").when()
@@ -501,12 +501,12 @@ public class StorageResourceTest {
 
         given().contentType(ContentType.JSON).body("").when()
             .post(UNITS_URI + METADATA_ID_URI, "idmd1").then()
-            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
         given().contentType(ContentType.JSON).body("")
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
             .when()
             .post(UNITS_URI + METADATA_ID_URI, "idmd1").then()
-            .statusCode(Status.CREATED.getStatusCode());
+            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
         given().contentType(ContentType.JSON).body("")
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID,
                 VitamHttpHeader.METHOD_OVERRIDE.getName(), HttpMethod.GET)
@@ -519,17 +519,17 @@ public class StorageResourceTest {
                 VitamHttpHeader.METHOD_OVERRIDE.getName(), HttpMethod.PUT)
             .when()
             .post(UNITS_URI + METADATA_ID_URI, "idmd1").then()
-            .statusCode(Status.BAD_REQUEST.getStatusCode());
+            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
         given().contentType(ContentType.JSON).body("")
         .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_E)
         .when()
         .post(UNITS_URI + METADATA_ID_URI, "idmd1").then()
-        .statusCode(Status.NOT_FOUND.getStatusCode());
+        .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
         given().contentType(ContentType.JSON).body("")
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_A_E)
             .when()
             .post(UNITS_URI + METADATA_ID_URI, "idmd1").then()
-            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
 //        .statusCode(Status.CONFLICT.getStatusCode());
 
         given().contentType(ContentType.JSON).body("").when()
@@ -633,12 +633,12 @@ public class StorageResourceTest {
 
         given().contentType(ContentType.JSON).body("").when()
             .post(OBJECT_GROUPS_URI + METADATA_ID_URI, "idmd1").then()
-            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
         given().contentType(ContentType.JSON).body("")
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
             .when()
             .post(OBJECT_GROUPS_URI + METADATA_ID_URI, "idmd1").then()
-            .statusCode(Status.CREATED.getStatusCode());
+            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
         given().contentType(ContentType.JSON).body("")
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID,
                 VitamHttpHeader.METHOD_OVERRIDE.getName(), HttpMethod.GET)
@@ -651,17 +651,17 @@ public class StorageResourceTest {
                 VitamHttpHeader.METHOD_OVERRIDE.getName(), HttpMethod.PUT)
             .when()
             .post(OBJECT_GROUPS_URI + METADATA_ID_URI, "idmd1").then()
-            .statusCode(Status.BAD_REQUEST.getStatusCode());
+            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
         given().contentType(ContentType.JSON).body("")
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_E)
             .when()
             .post(OBJECT_GROUPS_URI + METADATA_ID_URI, "idmd1").then()
-            .statusCode(Status.NOT_FOUND.getStatusCode());
+            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
         given().contentType(ContentType.JSON).body("")
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_A_E)
             .when()
             .post(OBJECT_GROUPS_URI + METADATA_ID_URI, "idmd1").then()
-            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
         //            .statusCode(Status.CREATED.getStatusCode());
 
         given().contentType(ContentType.JSON).body("").when()
@@ -776,8 +776,7 @@ public class StorageResourceTest {
 
         @Override
         public StoredInfoResult storeData(String tenantId, String strategyId, String objectId,
-            CreateObjectDescription createObjectDescription, DataCategory category,
-            JsonNode jsonData)
+            CreateObjectDescription createObjectDescription, DataCategory category)
             throws StorageTechnicalException, StorageNotFoundException {
             if (TENANT_ID_E.equals(tenantId)) {
                 throw new StorageNotFoundException("Not Found");

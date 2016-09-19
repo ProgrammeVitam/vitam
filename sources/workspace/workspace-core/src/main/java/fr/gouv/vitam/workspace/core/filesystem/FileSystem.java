@@ -69,12 +69,23 @@ public class FileSystem extends ContentAddressableStorageAbstract {
         ContentAddressableStorageNotFoundException {
         File baseDirFile = getBaseDir(containerName);
         long usableSpace = baseDirFile.getUsableSpace();
-        long totalSpace = baseDirFile.getTotalSpace();
-        long usedSpace = totalSpace - usableSpace;
+        long usedSpace = getFolderUsedSize(baseDirFile);
         ContainerInformation containerInformation = new ContainerInformation();
         containerInformation.setUsableSpace(usableSpace);
         containerInformation.setUsedSpace(usedSpace);
         return containerInformation;
+    }
+
+    private long getFolderUsedSize(File directory) {
+        long usedSpace = 0;
+        for (File file : directory.listFiles()) {
+            if (file.isFile()) {
+                usedSpace += file.length();
+            } else {
+                usedSpace += getFolderUsedSize(file);
+            }
+        }
+        return usedSpace;
     }
 
     private File getBaseDir(String containerName) throws ContentAddressableStorageNotFoundException {

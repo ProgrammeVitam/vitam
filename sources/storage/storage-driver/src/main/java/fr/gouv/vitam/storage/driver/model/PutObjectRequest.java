@@ -39,43 +39,58 @@ public class PutObjectRequest {
     private String type;
     private InputStream dataStream;
 
+    /**
+     * Initialize the needed parameters for put requests
+     * 
+     * @param tenantId request tenantId
+     * @param digestAlgorithm the object digestAlgorithm
+     * @param guid the object guid
+     * @param dataStream data stream of the object to put in offer
+     * @param type the type
+     */
+    public PutObjectRequest(String tenantId, String digestAlgorithm, String guid, InputStream dataStream, String type) {
+        this.tenantId = tenantId;
+        this.digestAlgorithm = digestAlgorithm;
+        this.guid = guid;
+        this.dataStream = dataStream;
+        this.type = type;
+    }
+
+    /**
+     * @return the request tenantId
+     */
     public String getTenantId() {
         return tenantId;
     }
 
-    public void setTenantId(String tenantId) {
-        this.tenantId = tenantId;
-    }
-
+    /**
+     * @return the object data stream
+     */
     public InputStream getDataStream() {
         return dataStream;
     }
 
-    public void setDataStream(InputStream dataStream) {
-        this.dataStream = dataStream;
-    }
-
+    /**
+     * @return the object guid
+     */
     public String getGuid() {
         return guid;
     }
 
-    public void setGuid(String guid) {
-        this.guid = guid;
-    }
-
+    /**
+     * 
+     * @return the type
+     */
     public String getType() {
         return type;
     }
 
-    public void setType(String type) {
-        this.type = type;
-    }
-
+    /**
+     * 
+     * @return the digestAlgorithm
+     */
     public String getDigestAlgorithm() {
         return digestAlgorithm;
     }
 
-    public void setDigestAlgorithm(String digestAlgorithm) {
-        this.digestAlgorithm = digestAlgorithm;
-    }
 }

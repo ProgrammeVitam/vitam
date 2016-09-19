@@ -35,9 +35,10 @@
 
 package fr.gouv.vitam.storage.engine.common.referential;
 
-import org.junit.Test;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 /**
  *
