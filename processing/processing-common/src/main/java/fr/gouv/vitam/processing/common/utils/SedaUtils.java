@@ -563,18 +563,10 @@ public class SedaUtils {
                         childArchiveUnitNode = JsonHandler.createObjectNode();
                     }
 
-                    // Check if a Cycle already exist during Parsing
-                    ObjectNode archiveUnitTreeCheck = archiveUnitTree.deepCopy();
-                    String archiveUnitCheckId = archiveUnitId;
-                    String childArchiveUnitRefCheck = childArchiveUnitRef;
-                    ObjectNode childArchiveUnitNodeCheck = childArchiveUnitNode.deepCopy();
-
-                    checkifCycleInParsing(archiveUnitTreeCheck, archiveUnitCheckId, childArchiveUnitRefCheck,
-                        childArchiveUnitNodeCheck);
-
                     // Reference Management during tree creation
                     ArrayNode parentsField = childArchiveUnitNode.withArray(UP_FIELD);
                     parentsField.addAll((ArrayNode) archiveUnitTree.get(archiveUnitId).get("_up"));
+                    archiveUnitTree.set(childArchiveUnitRef, childArchiveUnitNode);
                     archiveUnitTree.without(archiveUnitId);
                 } else {
                     writer.add(event);
@@ -596,18 +588,6 @@ public class SedaUtils {
 
         archiveUnitToTmpFileMap.put(elementGuid, tmpFile);
         return archiveUnitToTmpFileMap;
-    }
-
-    private void checkifCycleInParsing(ObjectNode archiveUnitTreeCheck, String archiveUnitCheckId,
-        String childArchiveUnitRefCheck, ObjectNode childArchiveUnitNodeCheck)
-        throws CycleFoundException {
-        ArrayNode parentsFieldCheck = childArchiveUnitNodeCheck.withArray(UP_FIELD);
-        parentsFieldCheck.add(archiveUnitCheckId);
-        archiveUnitTreeCheck.set(childArchiveUnitRefCheck, childArchiveUnitNodeCheck);
-        DirectedCycle cycleCheck = new DirectedCycle(new DirectedGraph(archiveUnitTreeCheck));
-        if (cycleCheck.isCyclic()) {
-            throw new CycleFoundException(GRAPH_CYCLE_MSG);
-        }
     }
 
     private LogbookParameters initLogbookLifeCycleParameters(String guid, boolean isArchive, boolean isObjectGroup) {
