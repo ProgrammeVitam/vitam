@@ -21,10 +21,8 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.BasicVitamServer;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
@@ -45,9 +43,9 @@ public class StorageClientIntegrationTest {
 
     private static final String REST_URI = StorageClient.RESOURCE_PATH;
     private static final String STORAGE_CONF = "storage-engine.conf";
-    private static JunitHelper junitHelper;
+    // private static JunitHelper junitHelper;
     private static VitamServer vitamServer;
-    private static int serverPort;
+    private static int serverPort = 8583;
     private static final int workspacePort = 8987;
     private static StorageClient storageClient;
     private static WorkspaceApplication workspaceApplication;
@@ -66,8 +64,8 @@ public class StorageClientIntegrationTest {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
 
-        junitHelper = new JunitHelper();
-        serverPort = junitHelper.findAvailablePort();
+        // junitHelper = new JunitHelper();
+        // serverPort = junitHelper.findAvailablePort();
         // launch workspace
         workspaceApplication = new WorkspaceApplication();
         WorkspaceApplication.startApplication("workspace.conf");
@@ -85,10 +83,8 @@ public class StorageClientIntegrationTest {
             .setUrlWorkspace(serverConfiguration.getUrlWorkspace() + ":" + Integer.toString(workspacePort));
         PropertiesUtils.writeYaml(PropertiesUtils.findFile(STORAGE_CONF), serverConfiguration);
         try {
-            vitamServer = StorageApplication.startApplication(
-                new String[] {PropertiesUtils.getResourcesFile(STORAGE_CONF).getAbsolutePath(),
-                    Integer.toString(serverPort)});
-            ((BasicVitamServer) vitamServer).start();
+            StorageApplication.startApplication(
+                STORAGE_CONF);
         } catch (VitamApplicationServerException e) {
             LOGGER.error(e);
             throw new IllegalStateException(
@@ -148,14 +144,10 @@ public class StorageClientIntegrationTest {
         LOGGER.debug("Ending tests");
         destroyWorkspaceFiles();
         storageClient.shutdown();
-        try {
-            ((BasicVitamServer) vitamServer).stop();
-        } catch (final VitamApplicationServerException e) {
-            LOGGER.error(e);
-        }
         workspaceApplication.stop();
-        junitHelper.releasePort(workspacePort);
-        junitHelper.releasePort(serverPort);
+        StorageApplication.stop();
+        // junitHelper.releasePort(workspacePort);
+        // junitHelper.releasePort(serverPort);
     }
 
 
