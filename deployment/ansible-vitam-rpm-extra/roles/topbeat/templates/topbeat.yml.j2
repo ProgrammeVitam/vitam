@@ -40,7 +40,7 @@ output:
     # Scheme and port can be left out and will be set to the default (http and 9200)
     # In case you specify and additional path, the scheme is required: http://localhost:9200/path
     # IPv6 addresses should always be defined as: https://[2001:db8::1]:9200
-    hosts: ["{{vitam_log_host}}:{{elasticsearch_port}}"]
+    hosts: ["{{vitam_log_host}}:{{elasticsearch_log_http_port}}"]
 
     # Optional protocol and basic auth credentials.
     #protocol: "https"
@@ -60,13 +60,13 @@ output:
     template:
 
       # Template name. By default the template name is topbeat.
-      name: "topbeat"
+      #name: "topbeat"
 
       # Path to template file
-      path: "topbeat.template.json"
+      path: "/etc/topbeat/topbeat.template.json"
 
       # Overwrite existing template
-      #overwrite: false
+      overwrite: true
 
     # Optional HTTP Path
     #path: "/elasticsearch"

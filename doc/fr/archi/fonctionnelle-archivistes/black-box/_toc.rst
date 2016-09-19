@@ -1,10 +1,8 @@
-Interfaces de la solution
-#########################
-
-Cette section détaille les interactions métier entre la solution VITAM et les projets d'implémentation qui l'instancient.
+Vue d'ensemble
+##############
 
 .. toctree::
    :maxdepth: 5
 
-   provided.rst
-   consumed.rst
+   enjeux.rst
+   interfaces.rst

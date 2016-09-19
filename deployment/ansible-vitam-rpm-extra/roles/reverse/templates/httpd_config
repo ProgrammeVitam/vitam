@@ -48,15 +48,20 @@
   ProxyPass /elasticsearch http://{{vitam_log_host}}:5601/elasticsearch
   ProxyPassReverse /elasticsearch http://{{vitam_log_host}}:5601/elasticsearch
 
+# Documentation
+  ProxyPass /doc http://{{groups['library'][0]}}:{{vitam_library_port}}/doc
+  ProxyPassReverse /doc http://{{groups['library'][0]}}:{{vitam_library_port}}/doc
+
+
 # Elasticsearch
-  ProxyPass /_plugin http://{{vitam_log_host}}:{{elasticsearch_port}}/_plugin
-  ProxyPassReverse _plugin/ http://{{vitam_log_host}}:{{elasticsearch_port}}/_plugin
+  ProxyPass /_plugin http://{{vitam_log_host}}:{{elasticsearch_log_http_port}}/_plugin
+  ProxyPassReverse _plugin/ http://{{vitam_log_host}}:{{elasticsearch_log_http_port}}/_plugin
 
-  ProxyPass /elasticsearch-log http://{{vitam_log_host}}:{{elasticsearch_port}}/
-  ProxyPassReverse /elasticsearch-log http://{{vitam_log_host}}:{{elasticsearch_port}}/
+  ProxyPass /elasticsearch-log http://{{vitam_log_host}}:{{elasticsearch_log_http_port}}/
+  ProxyPassReverse /elasticsearch-log http://{{vitam_log_host}}:{{elasticsearch_log_http_port}}/
 
-  ProxyPass /elasticsearch-data http://{{groups['hosts-elasticsearch-data'][0]}}:{{elasticsearch_port}}/
-  ProxyPassReverse /elasticsearch-data http://{{groups['hosts-elasticsearch-data'][0]}}:{{elasticsearch_port}}/
+  ProxyPass /elasticsearch-data http://{{groups['hosts-elasticsearch-data'][0]}}:{{elasticsearch_data_http_port}}/
+  ProxyPassReverse /elasticsearch-data http://{{groups['hosts-elasticsearch-data'][0]}}:{{elasticsearch_data_http_port}}/
 
 # ProxyPass /_cluster http://vitam-iaas-log-01.int3:9200/_cluster
 # ProxyPassReverse _cluster/ http://vitam-iaas-log-01.int3:9200/_cluster

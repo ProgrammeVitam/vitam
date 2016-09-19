@@ -8,6 +8,12 @@
 	</parent>
 	<artifactId>worker-server</artifactId>
 	<name>Worker Server</name>
+	<properties>
+		<unix.name>worker</unix.name>
+		<unix.user>vitam</unix.user>
+		<unix.group>vitam</unix.group>
+	</properties>
+	<description>worker server module</description>
 
 	<dependencies>
 		<dependency>
@@ -175,7 +181,7 @@
 					<!-- Images specification -->
 					<baseImage>${vitam.docker.registry.pull}/${vitam.docker.baseimage}</baseImage>
 					<imageName>${vitam.docker.registry.push}/vitam/worker</imageName>
-					<!-- copy the service's jar file from target into the root directory 
+					<!-- copy the service's jar file from target into the root directory
 						of the image -->
 					<resources>
 						<resource>

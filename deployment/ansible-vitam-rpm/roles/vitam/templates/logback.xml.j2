@@ -5,22 +5,29 @@
 	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
 		<!-- By default, encoders are assigned the type ch.qos.logback.classic.encoder.PatternLayoutEncoder -->
 		<encoder>
-			<pattern>%d{ISO8601} [%thread] %-5level %logger - %replace(%caller{1..2}){'Caller\+1	 at |\n',''} : %msg %rootException%n</pattern>
+			<pattern>%d{ISO8601} [[%thread]] %-5level %logger - %replace(%caller{1..2}){'Caller\+1	 at |\n',''} : %msg %rootException%n</pattern>
 		</encoder>
 	</appender>
-	<appender name="FILE" class="ch.qos.logback.core.FileAppender">
+	<!-- <appender name="FILE" class="ch.qos.logback.core.FileAppender"> -->
+	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>{{vitam_folder_log}}/{{ vitam_component }}.%d{yyyy-MM-dd}.log</fileNamePattern>
+			<maxHistory>30</maxHistory>
+      		<totalSizeCap>5GB</totalSizeCap>
+		</rollingPolicy>
+
 		<!-- TODO : replace with rolling file appender -->
-		<file>{{vitam_folder_log}}/{{ vitam_component }}.log</file>
-		<append>true</append>
+		<!-- <file>{{vitam_folder_log}}/{{ vitam_component }}.log</file>
+		<append>true</append> -->
 		<encoder>
-			<pattern>%d{ISO8601} [%thread] %-5level %logger - %replace(%caller{1..2}){'Caller\+1     at |\n',''} : %msg %rootException%n</pattern>
+			<pattern>%d{ISO8601} [[%thread]] %-5level %logger - %replace(%caller{1..2}){'Caller\+1     at |\n',''} : %msg %rootException%n</pattern>
 		</encoder>
 	</appender>
 
 	<appender name="SYSLOG" class="ch.qos.logback.classic.net.SyslogAppender">
 		<syslogHost>localhost</syslogHost>
 		<facility>{{syslog_facility}}</facility>
-		<suffixPattern>vitam-{{vitam_component}}: %d{ISO8601} [%thread] %-5level %logger - %replace(%caller{1..2}){'Caller\+1     at |\n',''} : %msg %rootException%n</suffixPattern>
+		<suffixPattern>vitam-{{vitam_component}}: %d{ISO8601} [[%thread]] %-5level %logger - %replace(%caller{1..2}){'Caller\+1     at |\n',''} : %msg %rootException%n</suffixPattern>
 	</appender>
 	<!-- By default, the level of the root level is set to TRACE -->
 	<root level="INFO">

@@ -1,5 +1,5 @@
-Architecture fonctionnelle : archivistes
-########################################
+Architecture : archivistes
+##########################
 
 
 .. toctree::

@@ -20,7 +20,7 @@ cluster.name: {{cluster_name}}
 #
 # Use a descriptive name for the node:
 #
-node.name: {{ansible_nodename}}
+node.name: {{ansible_nodename}}.{{environnement}}
 #
 # Add custom attributes to the node:
 #
@@ -51,11 +51,13 @@ path.logs: {{elasticsearch_log_dir}}
 #
 # Set the bind address to a specific IP (IPv4 or IPv6):
 #
-network.host: {{ansible_nodename}}
+network.host: {{ansible_nodename}}.{{environnement}}
 #
 # Set a custom port for HTTP:
 #
-http.port: {{elasticsearch_port}}
+http.port: {{port_http}}
+network.port: {{port_tcp}}
+transport.tcp.port: {{port_tcp}}
 #
 # For more information, see the documentation at:
 # <http://www.elastic.co/guide/en/elasticsearch/reference/current/modules-network.html>

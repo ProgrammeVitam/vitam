@@ -11,18 +11,6 @@
 # -----------------------------------------------------------------------
 
 input {
-         # KWA TODO : A supprimer quand ES enverra ses logs en syslog
-        file {
-                type => "import_elastic"
-                path => ["{{elasticsearch_log_dir}}/{{cluster_name}}.log"]
-                sincedb_path => "/tmp/data"
-                #start_position => beginning
-                codec => multiline {
-                        pattern => "^\[%{TIMESTAMP_ISO8601:timestamp}\]"
-                        negate => true
-                        what => previous
-                }
-        }
         # KWA TODO : A étudier lorsqu'on changera la localisation ES
         file {
                 type => "import_curator"
@@ -58,15 +46,6 @@ filter {
     }
   }
   #---------------------------
-  if [type] == "import_elastic" {
-    mutate { add_field => [ "type_input", "%{type}" ] }
-    grok {
-      break_on_match => false
-      keep_empty_captures => true
-      match => [ "path", "(?:%{UNIXPATH:path_file})/(?<cluster_name>[^.]*)"]
-      match => [ "path_file", "(?:%{UNIXPATH:path_log})/(?<program>[^.]*)"]
-    }
-  }
   if [type] == "import_curator" {
     mutate { add_field => [ "type_input", "%{type}" ] }
     grok {
@@ -78,7 +57,7 @@ filter {
   #---------------------------
   if [program] =~ "vitam-" {
       mutate { replace => { type => "logback" } }
-  } else if [program] =~ "elastic" {
+  } else if [program] =~ "elasticsearch" {
       mutate { replace => { type => "elastic" } }
   } else if [program] =~ "curator" {
       mutate { replace => { type => "curator" } }
@@ -93,10 +72,11 @@ filter {
         break_on_match => false
         keep_empty_captures => true
 
-        # 2016-08-04 13:53:00,161 [main] INFO  fr.gouv.vitam.access.rest.AccessApplication - fr.gouv.vitam.access.rest.AccessApplication.startApplication(AccessApplication.java:122) : [access_1:access:425367] AccessApplication Starts on default
-        # 2016-08-04 13:51:55,661 [main] INFO  org.godb.driver.cluster - com.godb.connection.SingleServerCluster.<init>(SingleServerCluster.java:45) : Cluster created with settings {hosts=[vitam-prod-app-17.internet.agri:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+        # 2016-08-04 13:53:00,161 [[main]] INFO  fr.gouv.vitam.access.rest.AccessApplication - fr.gouv.vitam.access.rest.AccessApplication.startApplication(AccessApplication.java:122) : [access_1:access:425367] AccessApplication Starts on default
+        # 2016-08-04 13:51:55,661 [[main]] INFO  org.godb.driver.cluster - com.godb.connection.SingleServerCluster.<init>(SingleServerCluster.java:45) : Cluster created with settings {hosts=[vitam-prod-app-17.internet.agri:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+        # 2016-09-15 09:12:41,566 [[qtp934275857-13-acceptor-0@5167268-ServerConnector@62379589{HTTP/1.1,[http/1.1]}{0.0.0.0:8002}]] DEBUG org.eclipse.jetty.io.ManagedSelector - Caller+1#011 at org.eclipse.jetty.io.SelectorManager.accept(SelectorManager.java:233) : Queued change org.eclipse.jetty.io.ManagedSelector$Accept@5ae98f2c on org.eclipse.jetty.io.ManagedSelector@3c291aad id=0 keys=4 selected=
 
-        match => [ "message", "%{TIMESTAMP_ISO8601:timestamp}(%{SPACE:space}) \[(?<module_name>[^\]]*)\] (?:%{SPACE:space}?)%{WORD:err_level}(?:%{SPACE:space}?)(?:%{GREEDYDATA:msg_data})"]
+        match => [ "message", "%{TIMESTAMP_ISO8601:timestamp}(%{SPACE:space}) \[\[(?<module_name>.*)\]\] (?:%{SPACE:space}?)%{WORD:err_level}(?:%{SPACE:space}?)(?:%{GREEDYDATA:msg_data})"]
         match => [ "msg_data",
                    "(?<class_name>[^\b]*)%{SPACE:space}-%{SPACE:space}(?<module_acces>[^\b]*)(%{SPACE:space}) : (?:%{GREEDYDATA:msg_info})" ]
 
@@ -183,7 +163,7 @@ output {
           template => "{{logstash_confextra_dir}}/elasticsearch-template.json"
           index => "logstash-vitam-%{+YYYY.MM.dd}"
           # KWA TODO : use a join on the ansible group of elastisearch nodes (Cf. consul role)
-          hosts => ["{{vitam_logserver_host}}:{{elasticsearch_port}}"]
+          hosts => ["{{vitam_logserver_host}}:{{elasticsearch_log_http_port}}"]
         }
       } else {
         if [type_input] == "import_elastic" or [type_input] == "import_curator" {
@@ -191,14 +171,14 @@ output {
             template => "{{logstash_confextra_dir}}/elasticsearch-template.json"
             index => "logstash-logs-%{+YYYY.MM.dd}"
             # KWA TODO : use a join on the ansible group of elastisearch nodes (Cf. consul role)
-            hosts => ["{{vitam_logserver_host}}:{{elasticsearch_port}}"]
+            hosts => ["{{vitam_logserver_host}}:{{elasticsearch_log_http_port}}"]
           }
         } else {
           elasticsearch {
             template => "{{logstash_confextra_dir}}/elasticsearch-template.json"
             index => "logstash-%{type}-%{+YYYY.MM.dd}"
             # KWA TODO : use a join on the ansible group of elastisearch nodes (Cf. consul role)
-            hosts => ["{{vitam_logserver_host}}:{{elasticsearch_port}}"]
+            hosts => ["{{vitam_logserver_host}}:{{elasticsearch_log_http_port}}"]
           }
         }
       }
@@ -207,7 +187,7 @@ output {
     if [type] =~ "logback" or [type] =~ "elastic" or [type] =~ "mongo" or [type] =~ "scripts" {
         elasticsearch {
           index => "logstash-failure-%{+YYYY.MM.dd}"
-          hosts => ["{{vitam_logserver_host}}:{{elasticsearch_port}}"]
+          hosts => ["{{vitam_logserver_host}}:{{elasticsearch_log_http_port}}"]
         }
      }
   }
