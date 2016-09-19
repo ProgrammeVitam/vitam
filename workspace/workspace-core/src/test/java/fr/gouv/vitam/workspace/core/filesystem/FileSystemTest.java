@@ -431,7 +431,6 @@ public class FileSystemTest {
     public void givenNullInputStreamWhenUnzipObjectThenRaiseAnException()
         throws IOException, Exception {
         workspace.createContainer(CONTAINER_NAME);
-
         workspace.unzipObject(CONTAINER_NAME, SIP_FOLDER, null);
     }
 
@@ -459,6 +458,13 @@ public class FileSystemTest {
     @Test(expected = IllegalArgumentException.class)
     public void givenEmptyContainerNameParamWhenUnzipSipThenRaiseAnException() throws Exception {
         workspace.unzipObject(null, null, null);
+    }
+
+    @Test(expected = ContentAddressableStorageZipException.class)
+    public void givenTarGzSIPWhenUnzipObjectThenRaiseAnException()
+        throws IOException, Exception {
+        workspace.createContainer(CONTAINER_NAME);
+        workspace.unzipObject(CONTAINER_NAME, SIP_FOLDER, getInputStream("SIP.tar.gz"));
     }
 
     @Test

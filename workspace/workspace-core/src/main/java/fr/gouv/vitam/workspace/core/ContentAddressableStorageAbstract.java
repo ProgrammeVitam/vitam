@@ -26,9 +26,29 @@
  */
 package fr.gouv.vitam.workspace.core;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
+import java.util.zip.ZipInputStream;
+
+import org.jclouds.blobstore.BlobStore;
+import org.jclouds.blobstore.BlobStoreContext;
+import org.jclouds.blobstore.ContainerNotFoundException;
+import org.jclouds.blobstore.domain.Blob;
+import org.jclouds.blobstore.domain.PageSet;
+import org.jclouds.blobstore.domain.StorageMetadata;
+import org.jclouds.blobstore.domain.StorageType;
+import org.jclouds.blobstore.options.ListContainerOptions;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.base.Strings;
+
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
@@ -45,24 +65,6 @@ import fr.gouv.vitam.workspace.api.model.ContainerInformation;
 import fr.gouv.vitam.workspace.common.ErrorMessage;
 import fr.gouv.vitam.workspace.common.UriUtils;
 import fr.gouv.vitam.workspace.common.WorkspaceMessage;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
-import org.jclouds.blobstore.BlobStore;
-import org.jclouds.blobstore.BlobStoreContext;
-import org.jclouds.blobstore.ContainerNotFoundException;
-import org.jclouds.blobstore.domain.Blob;
-import org.jclouds.blobstore.domain.PageSet;
-import org.jclouds.blobstore.domain.StorageMetadata;
-import org.jclouds.blobstore.domain.StorageType;
-import org.jclouds.blobstore.options.ListContainerOptions;
-
-import java.io.*;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipException;
-import java.util.zip.ZipInputStream;
 
 /**
  * Abstract Content Addressable Storage
@@ -76,9 +78,6 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
     // TODO: passed to protected but is it desired ? Better with getter ?
     protected final BlobStoreContext context;
 
-    private static final String TMP_FOLDER = "/tmp/";
-    private static final String EMPTY_STRING = "";
-    private static final String DOT = ".";
     private static final int MAX_RESULTS = 10000;
 
 
@@ -366,7 +365,8 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
             final ListContainerOptions listContainerOptions = new ListContainerOptions();
             // List of all resources in a container recursively
             final PageSet<? extends StorageMetadata> blobStoreList =
-                blobStore.list(containerName, listContainerOptions.inDirectory(folderName).recursive().maxResults(MAX_RESULTS));
+                blobStore.list(containerName,
+                    listContainerOptions.inDirectory(folderName).recursive().maxResults(MAX_RESULTS));
 
             uriFolderListFromContainer = new ArrayList<>();
             LOGGER.info(WorkspaceMessage.BEGINNING_GET_URI_LIST_OF_DIGITAL_OBJECT.getMessage());
@@ -437,11 +437,11 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
     /**
      * extract compressed SIP and push the objects on the SIP folder
      *
-     * @param containerName:    GUID
-     * @param folderName:       folder Name
+     * @param containerName: GUID
+     * @param folderName: folder Name
      * @param inputStreamObject :compressed SIP stream
      * @throws ContentAddressableStorageZipException if the file is not a zip or an empty zip
-     * @throws ContentAddressableStorageException    if an IOException occure when unzipping the file
+     * @throws ContentAddressableStorageException if an IOException occure when unzipping the file
      */
     private void extractZippedInputStreamOnContainer(String containerName, String folderName,
         InputStream inputStreamObject)
@@ -449,38 +449,21 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
 
         try {
             ZipEntry zipEntry;
-            final ZipInputStream zInputStream =
-                new ZipInputStream(inputStreamObject);
+            final ZipInputStream zInputStream = new ZipInputStream(inputStreamObject);
 
             boolean isEmpty = true;
             while ((zipEntry = zInputStream.getNextEntry()) != null) {
 
-                LOGGER.info("containerName : " + containerName + "    / ZipEntryName : " + zipEntry.getName());
+                LOGGER.debug("containerName : " + containerName + "    / ZipEntryName : " + zipEntry.getName());
                 isEmpty = false;
                 if (zipEntry.isDirectory()) {
                     continue;
                 }
-
-                final File tempFile = File.createTempFile(TMP_FOLDER, DOT + getExtensionFile(zipEntry.getName()));
-                // tempFile will be deleted on exit
-                // FIXME Si le temp file est absolument nécessaire, alors ne pas utiliser deleteOnExit mais un delete
-                // explicite (car sinon on remplit le filesystem jusqu'à la fin de la VM, hors plantage brutal)
-                tempFile.deleteOnExit();
-                final FileOutputStream fileOutputStream = new FileOutputStream(tempFile);
-                // FIXME should use zInputStream.closeEntry()
-                // FIXME Why use a copy of the stream ?
-                IOUtils.copy(zInputStream, fileOutputStream);
-                // put object on container Guid
-
+                // create entryInputStream to resolve the stream closed problem
+                final EntryImputStream entryInputStream = new EntryImputStream(zInputStream);
+                // put object in container
                 putObject(containerName, folderName + File.separator + zipEntry.getName(),
-                    new FileInputStream(tempFile));
-
-                // close outpuStram
-                fileOutputStream.close();
-                // exit && delete tempFile
-                // FIXME Si le temp file est absolument nécessaire, alors ne pas utiliser deleteOnExit mais un delete
-                // explicite (car sinon on remplit le filesystem jusqu'à la fin de la VM, hors plantage brutal)
-                tempFile.exists();
+                    entryInputStream);
             }
             zInputStream.close();
 
@@ -535,13 +518,44 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
         return jsonNodeObjectInformation;
     }
 
-    private String getExtensionFile(String name) {
+    /**
+     * EntryImputStream class
+     */
+    static class EntryImputStream extends InputStream {
 
-        if (!Strings.isNullOrEmpty(name)) {
-            return FilenameUtils.getExtension(name);
+
+        ZipInputStream zipInputStream;
+
+        /**
+         * @param in
+         */
+        public EntryImputStream(ZipInputStream in) {
+            this.zipInputStream = (ZipInputStream) in;
         }
-        return EMPTY_STRING;
+
+        @Override
+        public int read() throws IOException {
+            return zipInputStream.read();
+        }
+
+        @Override
+        public int read(byte[] b) throws IOException {
+            return zipInputStream.read(b);
+        }
+
+        @Override
+        public int read(byte[] b, int off, int len) throws IOException {
+            return zipInputStream.read(b, off, len);
+        }
+
+        @Override
+        public void close() throws IOException {
+            zipInputStream.closeEntry();
+        }
+
     }
 
+
 }
+
 
