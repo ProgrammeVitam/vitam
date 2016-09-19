@@ -26,6 +26,15 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.rest;
 
+import static java.lang.String.format;
+
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
+import org.glassfish.jersey.jackson.JacksonFeature;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.servlet.ServletContainer;
+
 import fr.gouv.vitam.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -34,14 +43,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
-import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-import org.glassfish.jersey.jackson.JacksonFeature;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.servlet.ServletContainer;
-
-import static java.lang.String.format;
 
 /**
  * MetaData web server application
@@ -50,13 +51,12 @@ public class MetaDataApplication extends AbstractVitamApplication<MetaDataApplic
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetaDataApplication.class);
 
     private static VitamServer vitamServer;
-    private MetaDataConfiguration configuration;
     private static final String CONF_FILE_NAME = "metadata.conf";
     private static final String MODULE_NAME = "MataData";
     public static final String PARAMETER_JETTY_SERVER_PORT = "jetty.metadata.port";
 
     /**
-     * Metadata applicaiotn constructor
+     * Metadata application constructor
      */
     public MetaDataApplication() {
         super(MetaDataApplication.class, MetaDataConfiguration.class);
@@ -89,7 +89,7 @@ public class MetaDataApplication extends AbstractVitamApplication<MetaDataApplic
 
 
     /**
-     * read the configured parameters of lauched server from the file
+     * read the configured parameters of launched server from the file
      *
      * @param configFile : name of configured file
      * @throws Exception
@@ -153,7 +153,8 @@ public class MetaDataApplication extends AbstractVitamApplication<MetaDataApplic
      *
      * @return the generated Handler
      */
-    @Override protected Handler buildApplicationHandler() {
+    @Override
+    protected Handler buildApplicationHandler() {
         final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(JacksonFeature.class);
         resourceConfig.register(new MetaDataResource(getConfiguration()));
@@ -171,7 +172,8 @@ public class MetaDataApplication extends AbstractVitamApplication<MetaDataApplic
      *
      * @return the name of the application configuration file
      */
-    @Override protected String getConfigFilename() {
+    @Override
+    protected String getConfigFilename() {
         return CONF_FILE_NAME;
     }
 }
