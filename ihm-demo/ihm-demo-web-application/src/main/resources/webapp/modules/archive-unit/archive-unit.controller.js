@@ -457,6 +457,9 @@ angular.module('archive.unit')
               angular.forEach(mustBeAdded, function(childKey) {
                 self.fieldSet = buildSingleField('', childKey, key, []);
                 self.fieldSet.isModificationAllowed = true;
+                if (!self.mainFields[key].content) {
+                  self.mainFields[key].content = [];
+                }
                 self.mainFields[key].content.push(self.fieldSet);
               });
             }
@@ -556,7 +559,16 @@ angular.module('archive.unit')
           console.log('ERROR : '+error);
         });
     };
-
     // **************************************************************************** //
+
+    // ******************** Calculate Intent to render unit tree *********************** //
+    self.getIntent = function(index) {
+      var treeBranchStyle = {
+        'margin-left': (index * 20)+'px'
+      };
+
+      return treeBranchStyle;
+    };
+    // ********************************************************************************* //
 
   });
