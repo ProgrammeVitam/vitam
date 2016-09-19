@@ -27,6 +27,8 @@
 
 package fr.gouv.vitam.logbook.rest;
 
+import static java.lang.String.format;
+
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -35,6 +37,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.VitamServer;
@@ -42,13 +45,15 @@ import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 
 /**
- * Logbook web application
+ * Logbook web APPLICATION
  */
 public final class LogbookApplication extends AbstractVitamApplication<LogbookApplication, LogbookConfiguration> {
-    private static final String LOGBOOK_APPLICATION_STARTS_ON_DEFAULT_PORT =
-        "LogbookApplication Starts on default port";
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookApplication.class);
-    private static final String LOGBOOK_CONF_FILE_NAME = "logbook.conf";
+    private static final LogbookApplication APPLICATION = new LogbookApplication();
+    private static final String CONF_FILE_NAME = "logbook.conf";
+    private static final String MODULE_NAME = "logBook";
+    private static VitamServer vitamServer;
 
     /**
      * LogbookApplication constructor
@@ -58,66 +63,87 @@ public final class LogbookApplication extends AbstractVitamApplication<LogbookAp
     }
 
     /**
-     * Main method to run the application (doing start and join)
+     * Main method to run the APPLICATION (doing start and join)
      *
      * @param args command line parameters
      * @throws IllegalStateException
      */
     public static void main(String[] args) {
         try {
-            final VitamServer vitamServer = startApplication(args);
-            vitamServer.run();
-        } catch (final VitamApplicationServerException exc) {
-            LOGGER.error(exc);
-            throw new IllegalStateException("Cannot start the Logbook Application Server", exc);
+            startApplication(args);
+
+            if (vitamServer != null && vitamServer.isStarted()) {
+                vitamServer.join();
+            }
+
+        } catch (final Exception e) {
+            LOGGER.error(format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
+            System.exit(1);
         }
     }
 
     /**
-     * Prepare the application to be run or started.
+     * Prepare the APPLICATION to be run or started.
      *
      * @param args
      * @return the VitamServer
      * @throws IllegalStateException
      */
-    public static VitamServer startApplication(String[] args) {
+    public static void startApplication(String[] args) throws VitamException {
         try {
-            VitamServer vitamServer;
-            if (args != null && args.length >= 2) {
-                try {
-                    final int port = Integer.parseInt(args[1]);
-                    if (port <= 0) {
-                        LOGGER.info(LOGBOOK_APPLICATION_STARTS_ON_DEFAULT_PORT);
-                        vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
-                    } else {
-                        LOGGER.info("LogbookApplication Starts on port: " + port);
-                        vitamServer = VitamServerFactory.newVitamServer(port);
-                    }
-                } catch (final NumberFormatException e) {
-                    LOGGER.info(LOGBOOK_APPLICATION_STARTS_ON_DEFAULT_PORT);
-                    vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
-                }
-            } else {
-                LOGGER.info(LOGBOOK_APPLICATION_STARTS_ON_DEFAULT_PORT);
-                vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
+            if (args == null || args.length == 0) {
+                LOGGER.error(format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME));
+                throw new VitamApplicationServerException(format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
+                    CONF_FILE_NAME));
             }
-            final LogbookApplication application = new LogbookApplication();
-            application.configure(application.computeConfigurationPathFromInputArguments(args));
-            vitamServer.configure(application.getApplicationHandler());
-            return vitamServer;
-        } catch (final VitamApplicationServerException exc) {
-            LOGGER.error(exc);
-            throw new IllegalStateException("Cannot start the Logbook Application Server", exc);
+
+            APPLICATION.configure(APPLICATION.computeConfigurationPathFromInputArguments(args[0]));
+            run(APPLICATION.getConfiguration());
+
+        } catch (final VitamApplicationServerException e) {
+            LOGGER.error(format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
+            throw new VitamException(format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
         }
     }
 
+    /**
+     * run a server instance with the configuration only
+     *
+     * @param configuration as LogbookConfiguration {@link LogbookConfiguration}
+     * @throws VitamApplicationServerException when server does'nt launched
+     */
+    public static void run(LogbookConfiguration configuration) throws VitamApplicationServerException {
+        final ResourceConfig resourceConfig = new ResourceConfig();
+        resourceConfig.register(JacksonFeature.class);
+        resourceConfig.register(new LogbookResource(configuration));
+
+        final ServletContainer servletContainer = new ServletContainer(resourceConfig);
+        final ServletHolder sh = new ServletHolder(servletContainer);
+        final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+        context.setContextPath("/");
+        context.addServlet(sh, "/*");
+        String jettyConfig = configuration.getJettyConfig();
+        vitamServer = VitamServerFactory.newVitamServerByJettyConf(jettyConfig);
+        vitamServer.getServer().setHandler(context);
+
+        try {
+            vitamServer.getServer().start();
+        } catch (Exception e) {
+            LOGGER.error(format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
+            throw new VitamApplicationServerException(
+                format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
+        }
+    }
+
+
     @Override
     protected Handler buildApplicationHandler() {
+
         final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(JacksonFeature.class);
         resourceConfig.register(new LogbookResource(getConfiguration()));
-
-        final ServletContainer servletContainer = new ServletContainer(resourceConfig);
+        final ServletContainer servletContainer =
+            new ServletContainer(resourceConfig);
         final ServletHolder sh = new ServletHolder(servletContainer);
         final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
         context.setContextPath("/");
@@ -127,6 +153,17 @@ public final class LogbookApplication extends AbstractVitamApplication<LogbookAp
 
     @Override
     protected String getConfigFilename() {
-        return LOGBOOK_CONF_FILE_NAME;
+        return CONF_FILE_NAME;
+    }
+
+    /**
+     * Stops the vitam server
+     *
+     * @throws Exception
+     */
+    public static void stop() throws VitamApplicationServerException {
+        if (vitamServer != null && vitamServer.isStarted()) {
+            vitamServer.stop();
+        }
     }
 }

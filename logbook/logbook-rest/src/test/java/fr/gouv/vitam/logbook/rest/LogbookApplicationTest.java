@@ -47,9 +47,11 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.server.BasicVitamServer;
+import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.logbook.common.server.MongoDbAccess;
@@ -59,7 +61,7 @@ import fr.gouv.vitam.logbook.common.server.database.collections.MongoDbAccessFac
 public class LogbookApplicationTest {
     private static final String SHOULD_NOT_RAIZED_AN_EXCEPTION = "Should not raized an exception";
 
-    private static final String LOGBOOK_CONF = "logbook.conf";
+    private static final String LOGBOOK_CONF = "logbook-test.conf";
     private static final String DATABASE_HOST = "localhost";
     private static MongoDbAccess mongoDbAccess;
     private static MongodExecutable mongodExecutable;
@@ -95,6 +97,9 @@ public class LogbookApplicationTest {
                 new DbConfigurationImpl(DATABASE_HOST, databasePort,
                     "vitam-test"));
         serverPort = junitHelper.findAvailablePort();
+        // TODO verifier la compatibilité avec les tests parallèles sur jenkins
+        SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
+
         oldPort = VitamServerFactory.getDefaultPort();
         VitamServerFactory.setDefaultPort(serverPort);
     }
@@ -112,39 +117,23 @@ public class LogbookApplicationTest {
     @Test
     public final void testFictiveLaunch() {
         try {
-            ((BasicVitamServer) LogbookApplication.startApplication(new String[] {
-                logbook.getAbsolutePath(), "-1"
-            })).stop();
+            LogbookApplication.startApplication(new String[] {LOGBOOK_CONF});
+            LogbookApplication.stop();
         } catch (final IllegalStateException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         } catch (final VitamApplicationServerException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        }
-        try {
-            ((BasicVitamServer) LogbookApplication.startApplication(new String[] {
-                logbook.getAbsolutePath(), "-1xx"
-            })).stop();
-        } catch (final IllegalStateException e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        } catch (final VitamApplicationServerException e) {
+        } catch (VitamException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
-        try {
-            ((BasicVitamServer) LogbookApplication.startApplication(new String[] {
-                logbook.getAbsolutePath(), Integer.toString(serverPort)
-            })).stop();
-        } catch (final IllegalStateException e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        } catch (final VitamApplicationServerException e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        }
-        try {
-            ((BasicVitamServer) LogbookApplication.startApplication(new String[0])).stop();
-        } catch (final IllegalStateException e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        } catch (final VitamApplicationServerException e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        }
+    }
+
+
+    @Test(expected = VitamException.class)
+    public final void shouldRaiseException() throws VitamException {
+
+        LogbookApplication.startApplication(new String[0]);
+        LogbookApplication.stop();
 
     }
 
