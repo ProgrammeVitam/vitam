@@ -10,6 +10,6 @@ clusterName: {{cluster_name}}
 elasticsearchNodes:
 {% for server in groups['hosts-elasticsearch-data'] %}
 - hostName: {{server}}
-  tcpPort: {{elasticsearch_tcp_port}}
+  tcpPort: {{elasticsearch_data_tcp_port}}
 
 {% endfor %}

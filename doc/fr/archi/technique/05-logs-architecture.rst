@@ -1,4 +1,3 @@
-##################################################
 Concentration et exploitation des logs applicatifs
 ##################################################
 
@@ -48,21 +47,11 @@ De manière générale, l'implémentation s'appuie fortement sur une architectur
     Architecture du sous-système de centralisation des logs
 
 
+
 Protocoles
-----------
+^^^^^^^^^^
 
-Les protocoles utilisés entre les composants sont les suivants : 
-
-* Protocole d'emission de logs (entre l'émetteur et l'agent de transport) : 
-
-  + Le format syslog unix (écriture dans ``/dev/log``) est privilégié pour les messages émis par les scripts shell (protocole par défaut de la commande logger) . 
-  + Le format syslog udp (sans garantie d'acheminement) est privilégié pour les messages émis par les applications Java.
-
-.. note:: Le protocole syslog UDP est le protocole mis en oeuvre dans les appender Java, car il est plus agnostique de la plateforme qu'un socket unix). A noter que le manque de fiabilité d'udp est contre-balancé par le fait que le socket UDP est en local (écriture vers l'agent de transport qui se trouve sur le même OS).
-
-* Protocole de transport du log (entre agent de transport et concentrateur) : 
-
-  + Le format syslog tcp (RFC 3195, basé sur la RFC 3164) est imposé pour tous les agents de transport.
+Le protocoles de transport du log (entre agent de transport et concentrateur) doit être conforme au format syslog tcp (RFC 3195, basé sur la RFC 3164).
     
 .. note:: Ce format est est privilégié car il est un bon compromis entre fiabilité (sécurité d'acheminement de TCP) et exploitabilité . Il n'y a en effet pas de contraintes imposant des protocoles plus 'reliable' comme RLTP ou RELP.   
 
@@ -73,6 +62,7 @@ Dans les deux cas, et en se basant sur la RFC 5424, les paramètres imposés sur
 * Le positionnement du champ ``APP-NAME`` correspondant à l'application ; pour les applications VITAM, ce champ doit être égal à l'id du composant vitam (devant respecter le pattern ``vitam-.*``). Pour les scripts, il doit être égal au nom du script (comportement par défaut pour un logger unix)
  
 .. note:: A noter que l'instance de l'application n'est pas mise dans le champ ``APP-NAME`` car du fait des principes de packaging, il ne peut y avoir qu'une seule instance d'application par OS et le tuple (``HOSTNAME``, ``APPNAME``) identifie bien l'application.
+
 
 
 Emetteur de logs
@@ -88,6 +78,7 @@ Un émetteur de logs a les responsabilités suivantes :
 * Le formattage du message selon le format de log préconisé pour l'application ;
 * L'envoi des logs à l'agent de transport de logs selon le protocole défini au paragraphe `Protocoles`_
 
+.. note:: Dans cette version de la solution VITAM, l'envoi des stacktraces Java à l'agent de transport de log est désactivé.
 
 Agent de transport de log
 -------------------------
@@ -124,9 +115,9 @@ Stockage des logs
 
 * Taille du cluster (pour les déploiements VITAM de taille importante, ce nombre pourra être amené à évoluer (Cf. les abbaques :doc:`fournies plus loin <20-resources>`)) :
 
-    - Nombre nominal de noeuds : 1 ; 
+    - Nombre nominal de noeuds : 2 ; 
 	- Nombre nominal de shards primaires par index : 4 ;
-	- Nombre nominal de replica : 0 ;
+	- Nombre nominal de replica : 1 ;
 	
 .. note::
 	Ces paramètres ne permettent pas de se parer contre la perte d'un noeud elasticsearch, et correspondent à un compromis en terme d'usage des resources VS résilience du système.
@@ -136,24 +127,34 @@ Stockage des logs
 
 * Index : chaque index stockant des données de logs correspond à 1 jour de logs (déterminé à partir du timestamp du log). Les index définis sont les suivants :
 
-    - ``logstash-vitam-YYYY.MM.dd`` pour les messages concernant les composants du système Vitam, avec un type de données par format de logs, i.e. :
+    - ``logstash-vitam-YYYY.MM.dd`` pour les messages concernant les composants de la solution VITAM, avec un type de données par format de logs, i.e. :
 
         + type ``logback`` pour les logs issus des applications Java ;
         + type ``scripts`` pour logs issus des scripts ;
         + type ``mongo`` pour les logs de mongodb ;
         + type ``elastic`` pour les logs d'elasticsearch (cluster métier).
 
-    - ``logstash-logs-YYYY.MM.dd``  pour les logs issus du sous-système de logs, avec un type de données par format de logs, i.e. :
+    - ``logstash-logs-YYYY.MM.dd`` pour les logs issus du sous-système de logs, avec un type de données par format de logs, i.e. :
 
         + type ``elastic`` pour les logs d'elasticsearch (cluster de logs) ;
         + type ``logstash`` pour les logs de logstash (``WARN`` ou plus) ;
         + type ``kibana`` pour les logs issus de Kibana.
+        + type ``curator`` pour les logs issus de Curator.
 
     - ``logstash-failure-YYYY.MM.dd`` (1 par jour ; le jour correspond au jour de l'horodatage des messages), pour les messages correspondant à un échec de parsing.
 
-La durée de rétention nominale pour les logs est définie à 7 jours ; cette valeur doit pouvoir être paramétrable.
+    - ``.kibana`` pour le stockage des paramètres (et notamment des dashboards) Kibana.
 
-.. todo:: Cette réflexion n'intègre pas la problématique des traces associées aux actions utilisateur (par exemple : accès au système, lancement d'une opération sur les archives, consultations d'archives, échec d'authentification, refus d'accès, ...) ; cette problématique est encore en cours d'étude, notamment pour en définir les besoins en terme de criticité (et notamment la non-perte d'information, leur degré de confidentialité et d'intégrité.), et sera potentiellement prise en compte par un autre sous-système.
+.. todo:: Dans le cadre de cette version de la solution VITAM, cette réflexion n'intègre pas la problématique des traces associées aux actions utilisateur (par exemple : accès au système, lancement d'une opération sur les archives, consultations d'archives, échec d'authentification, refus d'accès, ...) ; cette problématique est encore en cours d'étude, notamment pour en définir les besoins en terme de criticité (et notamment la non-perte d'information, leur degré de confidentialité et d'intégrité.), et sera potentiellement prise en compte par un autre sous-système.
+
+Gestion des index
++++++++++++++++++
+
+La création des templates d'index et des index doit être réalisée par l'application à l'origine de l'écriture dans Elasticsearch (kibana pour l'index ``.kibana``, logstash pour les autres index). La gestion des index est réalisée par l'application `Curator <https://www.elastic.co/guide/en/elasticsearch/client/curator/4.0/index.html>`_. Par défaut, l'outil est livré avec la configuration suivante :
+
+* Durée de maintien des index "online" : 30 jours ; cela signifie qu'au bout de 30 jours, les index seront fermés, et n'apparaîtront donc plus dans l'IHM de suivi des logs. Cependant, ils sont conservés, et pourront donc être réouverts en cas de besoin.
+* Durée de conservation des index : 365 jours ; au bout de cette durée, les index seront supprimés.
+
 
 Visualisation des logs
 ----------------------
@@ -162,11 +163,17 @@ La visalisation des logs se fait par le composant Kibana. Il est instancié de m
 
 Aucun mécanisme d'authentification n'est mis en place pour sécuriser l'accès à Kibana.
 
+.. hint:: La version opensource de Kibana, utilisée dans VITAM, ne supporte pas nativement l'authentification des clients ; d'autres solutions peuvent être mises en place (ex: l'utilisation du composant `shield <https://www.elastic.co/products/shield>`_ ), sous réserve d'une étude de compatibilité de la solution choisie.
+
+
 
 Intégration à un système de gestion de logs existants
 =====================================================
 
-L'intégration à un autre système de logs est possible ; le point d'ancrage prévu se situe au niveau de rsyslog. Ainsi, il est possible d'aiguiller les logs vers un autre système de gestion de logs en modifiant la configuration de rsyslog.
+L'intégration à un autre système de logs (pour y dupliquer les logs) est possible ; deux points d'ancrage sont possibles :
+
+* au niveau de logback ; ce point d'extension ne permet que d'obtenir les logs en provenance des applicatifs métier (java) ;
+* au niveau de rsyslog ; ce point d'extension permet d'agir sur les logs provenant de tous les composants déployés (y compris les bases de données et d'autres composants d'infrastructure déployés dans le cader de VITAM).
 
 
 Limites

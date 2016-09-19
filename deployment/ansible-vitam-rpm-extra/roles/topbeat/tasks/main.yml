@@ -5,28 +5,6 @@
     name: topbeat
     state: latest
 
-# - name: adapt elasticsearch connection
-#   replace: 
-#     dest: /etc/topbeat/topbeat.yml 
-#     regexp: '^    hosts:.*$' 
-#     replace: '    hosts: ["{{vitam_log_host}}:{{elasticsearch_port}}"]'
-#   notify:
-#     - restart topbeat
-
-# - name: adapt proc 
-#   replace: 
-#     dest: /etc/topbeat/topbeat.yml 
-#     regexp: '^  procs:.*$' 
-#     replace: '  procs: ["java|node"]'
-#   notify:
-#     - restart topbeat
-
-# - name: activate topbeat index
-#   command: curl -XDELETE 'http://{{vitam_log_host}}:{{elasticsearch_port}}/topbeat-*';curl -XPUT 'http://{{vitam_log_host}}:{{elasticsearch_port}}/_template/topbeat' -d@/etc/topbeat/topbeat.template.json
-#   notify:
-#     - restart kibana
-#   delegate_to: "{{vitam_log_host}}"
-#   run_once: true
 
 - name: apply Topbeat configuration
   template:
@@ -35,10 +13,19 @@
     owner: root
     mode: 0644
 
+# OMA Commented curl -XDELETE 'http://{{vitam_log_host}}:{{elasticsearch_log_http_port}}/topbeat-*';
+- name: force use topbeat index
+  command: curl -XPUT 'http://{{vitam_log_host}}:{{elasticsearch_log_http_port}}/_template/topbeat' -d@/etc/topbeat/topbeat.template.json
+  notify:
+    - restart kibana
+  delegate_to: "{{vitam_log_host}}"
+  run_once: true
+
 - name: restart topbeat
   service:
     name: topbeat
     state: restarted
+    enabled: true
 
 - name: apply configuration files for curator
   template:

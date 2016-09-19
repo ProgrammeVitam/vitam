@@ -7,6 +7,9 @@ Ordonnanceurs techniques / batchs
 
 Sans objet pour cette version de VITAM.
 
+.. note:: Curator permet d'effectuer des opérations périodiques de maintenance sur les index elasticsearch ; cependant, il gère lui-même le déclenchement de ses actions, et ne nécessite donc pas la configuration d'un ordonnanceur externe.
+
+.. note:: Des batchs d'exploitation seront disponibles dans les versions ultérieures de la solution VITAM (ex : validation périodique de la validité des certificats clients)
 
 Socles d'exécution
 ==================

@@ -56,7 +56,7 @@
         <Set name="outputBufferSize">32768</Set>
         <Set name="requestHeaderSize">8192</Set>
         <Set name="responseHeaderSize">8192</Set>
-        <Set name="sendServerVersion">true</Set>
+        <Set name="sendServerVersion">false</Set>
         <Set name="sendDateHeader">false</Set>
         <Set name="headerCacheSize">512</Set>
 
@@ -80,6 +80,9 @@
                     </Array>
                 </Arg>
                 <Set name="port">{{port_http}}</Set>
+                <Set name="idleTimeout">
+                    <Property name="http.timeout" default="{{port_http_timeout}}"/>
+                </Set>
             </New>
         </Arg>
     </Call>
@@ -105,11 +108,20 @@
                     <Item>
                         <New id="DefaultHandler" class="org.eclipse.jetty.server.handler.DefaultHandler"/>
                     </Item>
+                   <Item>
+	                <New id="RequestLogHandler" class="org.eclipse.jetty.server.handler.RequestLogHandler"/>
+                   </Item>
                 </Array>
             </Set>
         </New>
     </Set>
-
+    <Ref id="RequestLogHandler">
+        <Set name="requestLog"> 
+            <New id="requestLogImpl" class="ch.qos.logback.access.jetty.RequestLogImpl">
+	        <Set name="fileName">{{vitam_folder_conf}}/logback-access.xml</Set>
+          </New>   
+        </Set>
+    </Ref>
     <!-- =========================================================== -->
     <!-- extra server options                                        -->
     <!-- =========================================================== -->
@@ -117,5 +129,87 @@
     <Set name="stopTimeout">5000</Set>
     <Set name="dumpAfterStart">false</Set>
     <Set name="dumpBeforeStop">false</Set>
-
+{% if tls_active %}
+   <New id="httpsConfig" class="org.eclipse.jetty.server.HttpConfiguration">
+        <Call name="addCustomizer">
+            <Arg>
+                <New class="org.eclipse.jetty.server.SecureRequestCustomizer" />
+            </Arg>
+        </Call>
+    </New>
+        <New id="sslContextFactory" class="org.eclipse.jetty.util.ssl.SslContextFactory">
+        <Set name="KeyStorePath">{{vitam_folder_conf}}/keystore_{{vitam_component}}.jks</Set>
+        <Set name="KeyStorePassword">{{KeyStorePassword_ingest_external}}</Set>
+        <Set name="KeyManagerPassword">{{KeyManagerPassword_ingest_external}}</Set>
+        <Set name="TrustStorePath">{{vitam_folder_conf}}/truststore_{{vitam_component}}.jks</Set> 
+        <Set name="TrustStorePassword">{{TrustStorePassword_ingest_external}}</Set> 
+        <Set name="TrustStoreType">JKS</Set>
+        <Set name="NeedClientAuth">false</Set>
+        <Set name="WantClientAuth">true</Set>
+      <Set name="IncludeCipherSuites">
+        <Array type="String">
+          <Item>TLS_ECDHE.*</Item>
+          <Item>TLS_DHE_RSA.*</Item>
+        </Array>
+      </Set>
+       <Set name="IncludeProtocols">
+        <Array type="String">
+          <Item>TLSv1</Item>
+          <Item>TLSv1.1</Item>
+          <Item>TLSv1.2</Item>
+        </Array>
+      </Set>
+      <Set name="ExcludeCipherSuites">
+        <Array type="String">
+          <Item>.*NULL.*</Item>
+          <Item>.*RC4.*</Item>
+          <Item>.*MD5.*</Item>
+          <Item>.*DES.*</Item>
+          <Item>.*DSS.</Item>
+        </Array>
+      </Set>
+        <Set name="UseCipherSuitesOrder">true</Set>
+        <Set name="RenegotiationAllowed">true</Set>     
+    </New>
+    <New id="sslConnectionFactory" class="org.eclipse.jetty.server.SslConnectionFactory">
+        <Arg name="sslContextFactory">
+            <Ref refid="sslContextFactory" />
+        </Arg>
+        <Arg name="next">http/1.1</Arg>
+    </New>
+    <New id="sslConnector" class="org.eclipse.jetty.server.ServerConnector">
+        <Arg name="server">
+            <Ref refid="Server" />
+        </Arg>
+        <Arg name="factories">
+            <Array type="org.eclipse.jetty.server.ConnectionFactory">
+                <Item>
+                    <Ref refid="sslConnectionFactory" />
+                </Item>
+                <Item>
+                    <New class="org.eclipse.jetty.server.HttpConnectionFactory">
+                        <Arg name="config">
+                            <Ref refid="httpsConfig" />
+                        </Arg>
+                    </New>
+                </Item>
+            </Array>
+        </Arg>
+        <Set name="port">
+            <SystemProperty name="jetty.port" default="{{vitam_ingestexternal_port_https}}"/>
+        </Set>
+    </New>
+    <Call name="setConnectors">
+        <Arg>
+             <Array type="org.eclipse.jetty.server.ServerConnector">
+               <!--    <Item>
+                    <Ref refid="connector" />
+                </Item> -->
+                <Item>
+                    <Ref refid="sslConnector" />
+                </Item>
+            </Array>
+        </Arg>
+    </Call>
+{% endif %}
 </Configure>

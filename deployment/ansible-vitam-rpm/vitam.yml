@@ -1,15 +1,31 @@
 ---
 
 # Vitam solution deployment
+
+# MongoDB installation
 - hosts: hosts-mongodb
   roles:
     - mongodb
 
+# ElasticSearch-data installation
+- hosts: hosts-elasticsearch-data
+  roles:
+    - {role: elasticsearch-cluster, cluster_name: elasticsearch-data , port_http: "{{elasticsearch_data_http_port}}", port_tcp: "{{elasticsearch_data_tcp_port}}", groupe: data }
+
+- hosts: hosts-elasticsearch-log
+  roles:
+    - {role: elasticsearch-cluster, cluster_name: elasticsearch-log , port_http: "{{elasticsearch_log_http_port}}", port_tcp: "{{elasticsearch_log_tcp_port}}", groupe: log, when: vitam_environment != 'local' }
+
+# Consul installation
 - hosts: hosts-consul-server
   serial: 1
   roles:
     - {role: consul, server: true } 
 
+
+
+
+## VITAM ###################################################################################""
 - hosts: hosts-logbook
   roles:
     - {role: vitam, vitam_component: logbook, java_args: /vitam/conf/logbook/logbook.conf, port_http: "{{vitam_logbook_port}}" } 
@@ -29,7 +45,7 @@
 
 - hosts: hosts-ingest-external
   roles:
-    - {role: vitam, vitam_component: ingest-external, java_args: /vitam/conf/ingest-external/ingest-external.conf, port_http: "{{vitam_ingestexternal_port}}" }
+    - {role: vitam, vitam_component: ingest-external, java_args: /vitam/conf/ingest-external/ingest-external.conf, port_http: "{{vitam_ingestexternal_port}}", tls_active: true }
     - ingest-external
 
 - hosts: hosts-processing
@@ -63,8 +79,5 @@
 
 - hosts: hosts-log-server
   roles:
-    - log-server
+    - {role: log-server, cluster_name: elasticsearch-log, when: vitam_environment != 'local'}
 
-- hosts: hosts-elasticsearch-data
-  roles:
-    - {role: elasticsearch-cluster, cluster_name: elasticsearch-data , port_http: "{{vitam_functional_administration_port}}", groupe: data }

@@ -1,2 +1,6 @@
 Cluster/Composant source,Cluster/Composant cible,Protocole,Port cible,Description
-ingest-external.vitam,ingest-internal.vitam,http,9000,
+ingest-external.vitam,ingest-internal.vitam,http,9000," "
+ingest-external.vitam,ingest-internal.vitam,http,9000," "
+ingest-external.vitam,ingest-internal.vitam,http,9000," "
+ingest-external.vitam,ingest-internal.vitam,http,9000," "
+\*,logstash-01.log.vitam,syslog/tcp,10514,Envoi des logs au concentrateur

@@ -110,10 +110,13 @@
 
 - name: apply elasticsearch yml 
   template:
-    src: "elasticsearch.{{groupe}}.yml.j2"
-    dest: "{{elasticsearch_conf_dir}}/elasticsearch.yml"
+    src: "{{item}}.{{groupe}}.yml.j2"
+    dest: "{{elasticsearch_conf_dir}}/{{item}}.yml"
     owner: "{{elasticsearch_user}}"
     mode: 0750
+  with_items:
+    - elasticsearch
+    - logging
 
 
 # OMA : inspired from https://hobo.house/2016/04/08/automate-elk-stack-and-clients-with-ansible/
@@ -123,6 +126,25 @@
       dest: /etc/sysconfig/elasticsearch
       regexp: '^#CONF_DIR=.*$'
       replace: 'CONF_DIR={{elasticsearch_conf_dir}}'
+  register: elasticsearch_updated
+  notify:
+    - restart elasticsearch
+
+- name: Activate GC logs
+  replace: 
+      dest: /etc/sysconfig/elasticsearch
+      regexp: '^#ES_GC_LOG_FILE=.*$'
+      replace: 'ES_GC_LOG_FILE={{elasticsearch_log_dir}}-gc.log'
+  register: elasticsearch_updated
+  notify:
+    - restart elasticsearch
+
+
+- name: Implement the Vitam GC log standard
+  replace: 
+      dest: /etc/sysconfig/elasticsearch
+      regexp: '^#ES_JAVA_OPTS=.*$'
+      replace: 'ES_JAVA_OPTS="-XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=10M -XX:+PrintGCDetails -XX:+PrintGCApplicationStoppedTime"'
   register: elasticsearch_updated
   notify:
     - restart elasticsearch

@@ -12,17 +12,24 @@ Les fichiers de déploiement sont disponibles dans la version VITAM livrée dans
  * le playbook ansible, présent dans le sous-répertoire |repertoire_playbook ansible|, qui est indépendant de l'environnement à déployer
  * les fichiers d'inventaire (1 par environnement à déployer) ; des fichiers d'exemple sont disponibles dans le sous-répertoire |repertoire_inventory|
 
-Pour configurer le déploiement, il est nécessaire de créer dans  le répertoire |repertoire_deploiement|/|repertoire_inventory| un nouveau fichier d'inventaire comportant les informations suivantes :
+ 
+Configuration du déploiement
+============================
 
-.. literalinclude:: ../../../../deployment/environments-rpm/hosts.int3
-   :language: yaml
+Informations "plate-forme"
+--------------------------
+
+Pour configurer le déploiement, il est nécessaire de créer (dans n'importe quel répertoire en dehors du répertoire |repertoire_inventory| un nouveau fichier d'inventaire comportant les informations suivantes :
+
+.. literalinclude:: ../../../../deployment/environments-rpm/hosts.int2
+   :language: ini
    :linenos:
 
 Pour chaque type de "host" (lignes 19 à 59), indiquer le(s) serveur(s) défini(s) pour chaque fonction. Une colocalisation de composants est possible.
 
 .. warning:: indiquer les contre-indications !
 
-Ensuite, dans la section ``hosts:vars`` (lignes 62 à 76), renseigner les valeurs comme décrit :
+Ensuite, dans la section ``hosts:vars`` (lignes 62 à 71), renseigner les valeurs comme décrit :
 
 .. csv-table:: Définition des variables
    :header: "Clé", "Description","Valeur"
@@ -38,7 +45,6 @@ Ensuite, dans la section ``hosts:vars`` (lignes 62 à 76), renseigner les valeur
    "vitam_ihm_demo_external_dns","A revoir..",""
    "https_reverse_proxy","<nom ou IP>:<port>",""
 	"proxy_host","Hôte proxy",""
-   "dns_server","Serveur DNS",""
 	"proxy_port","Port du proxy",""
    "rpm_version","Version à installer",""
    "days_to_delete","Période de grâce des données sous Elastricsearch avant destuction (valeur en jours)",""
@@ -53,16 +59,38 @@ A titre informatif, le positionnement des variables ainsi que des dérivations d
 
 Le déploiement s'effectue depuis la machine "ansible" et va distribuer la solution VITAM selon l'inventaire correctement renseigné.
 
-1. Test du déploiement
+
+Paramétrage de l'antivirus (ingest-externe)
+-------------------------------------------
+
+.. todo:: A expliquer
+
+Paramétrage des certificats (\*-externe)
+---------------------------------------
+
+.. todo:: A expliquer
+
+
+
+Test de la configuration
+========================
 
 Pour tester le déploiement de VITAM, il faut se placer dans le répertoire |repertoire_deploiement| et entrer la commande suivante :
 
 ``ansible-playbook`` |repertoire_playbook ansible| ``/vitam.yml -i`` |repertoire_inventory| ``/<ficher d'inventaire> --check``
 
-
-2. Déploiement
+Déploiement
+===========
 
 Si la commande de test se termine avec succès, le déploiement est à réaliser avec la commande suivante :
 
 ansible-playbook |repertoire_playbook ansible|/vitam.yml -i |repertoire_inventory|/<ficher d'inventaire> 
 
+.. todo:: CPO
+ - Pas assez de précision sur l'install
+ - Aprés avoir installé ansible,j'ai généré une clé publique et privée sur mon poste ou serveur via ssh et aprés ou je transfert ma clé public?
+ - Il manque des informations sur le déploiement des VM sur l'environnement cible 
+ - Quels sont les scripts ansible qu'on utilise pour déployer les VM et les composants VITAM?
+ - Il serait mieux de faire une doc d'install en séparant le déploiement des VM (instance) et des composants VITAM
+ 
+ 
