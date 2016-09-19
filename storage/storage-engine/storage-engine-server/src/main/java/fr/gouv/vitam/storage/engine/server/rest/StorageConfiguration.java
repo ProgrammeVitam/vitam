@@ -33,6 +33,7 @@ package fr.gouv.vitam.storage.engine.server.rest;
 public final class StorageConfiguration {
 
     private String urlWorkspace;
+    private String jettyConfig;
 
     /**
      * StorageConfiguration empty constructor for YAMLFactory
@@ -55,6 +56,27 @@ public final class StorageConfiguration {
      */
     public StorageConfiguration setUrlWorkspace(String urlWorkspace) {
         this.urlWorkspace = urlWorkspace;
+        return this;
+    }
+
+    /**
+     * getter jettyConfig
+     *
+     * @return return the jettyConfiguartion file name
+     */
+    public String getJettyConfig() {
+        return jettyConfig;
+    }
+
+
+    /**
+     * setter jettyConfig file name
+     *
+     * @param jettyConfig the jetty config file name
+     * @return StorageConfiguration
+     */
+    public StorageConfiguration setJettyConfig(String jettyConfig) {
+        this.jettyConfig = jettyConfig;
         return this;
     }
 
