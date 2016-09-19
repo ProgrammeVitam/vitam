@@ -8,8 +8,7 @@ import java.io.FileNotFoundException;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.server.BasicVitamServer;
+import fr.gouv.vitam.common.exception.VitamException;
 
 /**
  * DefaultOfferApplication Test
@@ -23,35 +22,28 @@ public class DefaultOfferApplicationTest {
     @Test
     public final void testFictiveLaunch() {
         try {
-            ((BasicVitamServer) DefaultOfferApplication.startApplication(new String[] {
-                PropertiesUtils.getResourcesFile(WORKSPACE_OFFER_CONF).getAbsolutePath(), "-1"
-            })).stop();
-        } catch (final IllegalStateException | VitamApplicationServerException | FileNotFoundException e) {
+            DefaultOfferApplication.startApplication(new String[] {
+                PropertiesUtils.getResourcesFile(WORKSPACE_OFFER_CONF).getAbsolutePath()});
+            DefaultOfferApplication.stop();
+        } catch (final IllegalStateException | VitamException |
+
+            FileNotFoundException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
         try {
-            ((BasicVitamServer) DefaultOfferApplication.startApplication(new String[] {
-                PropertiesUtils.getResourcesFile(WORKSPACE_OFFER_CONF).getAbsolutePath(), "-1xx"
-            })).stop();
-        } catch (final IllegalStateException | FileNotFoundException | VitamApplicationServerException e) {
+            DefaultOfferApplication.startApplication(new String[] {
+                PropertiesUtils.getResourcesFile(WORKSPACE_OFFER_CONF).getAbsolutePath()});
+            DefaultOfferApplication.stop();
+        } catch (final IllegalStateException | FileNotFoundException |
+            VitamException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
         try {
-            ((BasicVitamServer) DefaultOfferApplication.startApplication(new String[0])).stop();
-        } catch (final IllegalStateException | VitamApplicationServerException e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        }
-        try {
-            ((BasicVitamServer) DefaultOfferApplication.startApplication(new String[] {
-                PropertiesUtils.getResourcesFile(WORKSPACE_OFFER_CONF).getAbsolutePath(), "666"})).stop();
-        } catch (final IllegalStateException | FileNotFoundException | VitamApplicationServerException e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        }
-        try {
-            ((BasicVitamServer) DefaultOfferApplication.startApplication(new String[] {
-                PropertiesUtils.getResourcesFile(WORKSPACE_OFFER2_CONF).getAbsolutePath(), "666"})).stop();
+            DefaultOfferApplication.startApplication(new String[] {
+                PropertiesUtils.getResourcesFile(WORKSPACE_OFFER2_CONF).getAbsolutePath()});
             fail("Should raize an FileNotFoundException");
-        } catch (VitamApplicationServerException | FileNotFoundException | UnsupportedOperationException exc) {
+        } catch (VitamException | FileNotFoundException |
+            UnsupportedOperationException exc) {
             // Expected UnsupportedOperationException
             assertTrue(exc instanceof FileNotFoundException);
         }
