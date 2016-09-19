@@ -35,6 +35,8 @@ import fr.gouv.vitam.common.server.application.configuration.VitamApplicationCon
 public class DefaultOfferConfiguration implements VitamApplicationConfiguration {
     private String contextPath;
     private String storagePath;
+    private String jettyConfig;
+
 
     private static final String CONFIGURATION_PARAMETERS = "DefaultOfferConfiguration parameters";
 
@@ -97,6 +99,26 @@ public class DefaultOfferConfiguration implements VitamApplicationConfiguration 
      */
     public DefaultOfferConfiguration setStoragePath(String storagePath) {
         this.storagePath = storagePath;
+        return this;
+    }
+
+    /**
+     * getter of jetty config
+     *
+     * @return the jetty config
+     */
+    public String getJettyConfig() {
+        return jettyConfig;
+    }
+
+    /**
+     * setter of jetty config
+     *
+     * @param jettyConfig the jetty config to be set
+     * @return
+     */
+    public DefaultOfferConfiguration setJettyConfig(String jettyConfig) {
+        this.jettyConfig = jettyConfig;
         return this;
     }
 

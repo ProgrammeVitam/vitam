@@ -27,6 +27,8 @@
 
 package fr.gouv.vitam.storage.offers.workspace.rest;
 
+import static java.lang.String.format;
+
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -35,6 +37,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.VitamServer;
@@ -49,7 +52,9 @@ public final class DefaultOfferApplication
     private static final String WORKSPACE_APPLICATION_STARTS_ON_DEFAULT_PORT =
         "DefaultOfferApplication Starts on default port";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultOfferApplication.class);
+    private static final DefaultOfferApplication APPLICATION = new DefaultOfferApplication();
     private static final String WORKSPACE_CONF_FILE_NAME = "default-offer.conf";
+    private static VitamServer vitamServer;
 
     /**
      * DefaultOfferApplication constructor
@@ -66,50 +71,78 @@ public final class DefaultOfferApplication
      */
     public static void main(String[] args) {
         try {
-            final VitamServer vitamServer = startApplication(args);
-            vitamServer.run();
-        } catch (final VitamApplicationServerException exc) {
-            LOGGER.error(exc);
-            throw new IllegalStateException("Cannot start the  Workspace Offer Application Server", exc);
+            startApplication(args);
+
+            if (vitamServer != null && vitamServer.isStarted()) {
+                vitamServer.join();
+            }
+
+        } catch (final Exception e) {
+            LOGGER.error(VitamServer.SERVER_CAN_NOT_START + e.getMessage(), e);
+            System.exit(1);
         }
     }
+
+
 
     /**
      * Prepare the application to be run or started.
      *
      * @param args the list of arguments as an array of strings
-     * @return the VitamServer
+     * @throws VitamException
      * @throws IllegalStateException if the server cannot be configured, meaning there are problem with the
      *         configuration
      */
-    public static VitamServer startApplication(String[] args) {
+    public static void startApplication(String[] args) throws VitamException {
         try {
-            VitamServer vitamServer;
-            if (args != null && args.length >= 2) {
-                try {
-                    final int port = Integer.parseInt(args[1]);
-                    if (port <= 0) {
-                        LOGGER.info(WORKSPACE_APPLICATION_STARTS_ON_DEFAULT_PORT);
-                        vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
-                    } else {
-                        LOGGER.info("DefaultOfferApplication Starts on port: " + port);
-                        vitamServer = VitamServerFactory.newVitamServer(port);
-                    }
-                } catch (final NumberFormatException e) {
-                    LOGGER.info(WORKSPACE_APPLICATION_STARTS_ON_DEFAULT_PORT);
-                    vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
-                }
-            } else {
-                LOGGER.info(WORKSPACE_APPLICATION_STARTS_ON_DEFAULT_PORT);
-                vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
+            // VitamServer vitamServer;
+            if (args == null || args.length == 0) {
+                LOGGER.error(format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, WORKSPACE_CONF_FILE_NAME));
+                throw new VitamApplicationServerException(format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
+                    WORKSPACE_CONF_FILE_NAME));
             }
-            final DefaultOfferApplication application = new DefaultOfferApplication();
-            application.configure(application.computeConfigurationPathFromInputArguments(args));
-            vitamServer.configure(application.getApplicationHandler());
-            return vitamServer;
-        } catch (final VitamApplicationServerException exc) {
-            LOGGER.error(exc);
-            throw new IllegalStateException("Cannot start the Workspace Offer Application Server", exc);
+
+            APPLICATION.configure(APPLICATION.computeConfigurationPathFromInputArguments(args[0]));
+            run(APPLICATION.getConfiguration());
+
+        } catch (final VitamApplicationServerException e) {
+            LOGGER.error(VitamServer.SERVER_CAN_NOT_START + e.getMessage(), e);
+            throw new VitamException(VitamServer.SERVER_CAN_NOT_START + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * run a server instance with the configuration only
+     *
+     * @param configuration as DefaultOfferConfiguration {@link DefaultOfferConfiguration}
+     * @throws VitamApplicationServerException when server does'nt launched
+     */
+    public static void run(DefaultOfferConfiguration configuration)
+        throws VitamApplicationServerException {
+        final ResourceConfig resourceConfig = new ResourceConfig();
+        resourceConfig.register(JacksonFeature.class);
+        resourceConfig.register(new DefaultOfferResource(configuration));
+
+        final ServletContainer servletContainer = new ServletContainer(resourceConfig);
+        final ServletHolder sh = new ServletHolder(servletContainer);
+        final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+        context.setContextPath("/");
+        context.addServlet(sh, "/*");
+        String jettyConfig = configuration.getJettyConfig();
+        vitamServer = VitamServerFactory.newVitamServerByJettyConf(jettyConfig);
+        vitamServer.getServer().setHandler(context);
+
+        try {
+            // TODO change http port before start server (port will be filled in main method for example args[1])
+            // Connector[] https = vitamServer.getServer().getConnectors();
+            // if (https != null && https.length > 1)
+            // ((ServerConnector) https[0])
+            // .setPort(Integer.valueOf(System.getProperty("jetty.port", port)));
+            vitamServer.getServer().start();
+        } catch (Exception e) {
+            LOGGER.error(VitamServer.SERVER_CAN_NOT_START + e.getMessage(), e);
+            throw new VitamApplicationServerException(
+                VitamServer.SERVER_CAN_NOT_START + e.getMessage(), e);
         }
     }
 
@@ -130,5 +163,16 @@ public final class DefaultOfferApplication
     @Override
     protected String getConfigFilename() {
         return WORKSPACE_CONF_FILE_NAME;
+    }
+
+    /**
+     * Stops the vitam server
+     *
+     * @throws Exception
+     */
+    public static void stop() throws VitamApplicationServerException {
+        if (vitamServer != null && vitamServer.isStarted()) {
+            vitamServer.stop();
+        }
     }
 }
