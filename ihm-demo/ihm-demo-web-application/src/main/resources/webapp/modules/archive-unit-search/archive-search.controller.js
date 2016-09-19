@@ -205,10 +205,8 @@ function($scope, ihmDemoFactory, $window, $mdToast, $mdDialog,  ARCHIVE_SEARCH_M
       // **************************************************************************** //
 
       // *****************  Archive Units Search Result  ********************** //
-      $scope.archiveUnitsSearchResult;
-      var criteriaSearch = {};
-
       $scope.getElasticSearchUnitsResult = function getElasticSearchUnitsResult($event,title,description,startDate,endDate){
+         criteriaSearch = {};
          var atLeastOneValidCriteriaExists = false;
          if(title!=='' && title!== null && title!== undefined){
            // Add title to criteria
@@ -223,12 +221,10 @@ function($scope, ihmDemoFactory, $window, $mdToast, $mdDialog,  ARCHIVE_SEARCH_M
          }
 
          // Control dates
-         var isStartDateSet = startDate!=='' && startDate!== null && startDate!== undefined;
-         var isEndDateSet = endDate!=='' && endDate!== null && endDate!== undefined;
-
-         var dateRegExp = /^[0-9]{2}\/[0-9]{2}\/[0-9]{4}$/;
-         var isValidStartDate = isStartDateSet && dateRegExp.test(startDate);
-         var isValidEndDate = isEndDateSet && dateRegExp.test(endDate);
+         var isStartDateSet = startDate!=='';
+         var isEndDateSet = endDate!=='';
+         var isValidStartDate = isStartDateSet && Date.parse(startDate).toString() !== 'NaN';
+         var isValidEndDate = isEndDateSet && Date.parse(endDate).toString() !== 'NaN';
 
          if(isStartDateSet || isEndDateSet){
            if((isStartDateSet && !isEndDateSet) || (!isStartDateSet && isEndDateSet)){
