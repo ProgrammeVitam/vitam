@@ -100,11 +100,41 @@ public class Unit extends MetadataDocument<Unit> {
      */
     public static final String MANAGEMENT = "_mgt";
 
+    
+    /**
+     * ES Mapping
+     */
+    public static final String TYPEUNIQUE = "typeunique";
+    
+    // TODO add Nested objects or Parent/child relationships
+    public static final String MAPPING = "{" + TYPEUNIQUE + ": {"+
+        "properties : { " + Unit.UNITDEPTHS + " : { type : \"object\", enabled : false }, " +
+        Unit.UNITUPS + " : { type : \"string\", index : \"not_analyzed\" }, " +
+        Unit.NBCHILD + " : { type : \"long\" }," +
+        VitamLinks.UNIT_TO_UNIT.field2to1 + " : { type : \"string\", index : \"not_analyzed\" }, " +
+        VitamLinks.UNIT_TO_UNIT.field1to2 + " : { type : \"object\", enabled : false }, " +
+        VitamLinks.UNIT_TO_OBJECTGROUP.field1to2 + " : { type : \"string\", index : \"not_analyzed\" }, " +
+        
+        "Title : { type : \"string\", index : \"analyzed\" , analyzer :  \"french\"  }, " +
+        "Description : { type : \"string\", index : \"analyzed\", analyzer :  \"french\"  }, " +
+        "DescriptionLevel : { type : \"string\", index : \"not_analyzed\" }, " +
+        "TransactedDate : { type : \"date\", index : \"analyzed\" } " +
+         
+        " } } }";
+    
+    
     /**
      * Quick projection for ID and ObjectGroup Only
      */
     public static final BasicDBObject UNIT_OBJECTGROUP_PROJECTION =
         new BasicDBObject(MetadataDocument.ID, 1).append(MetadataDocument.OG, 1).append(DOMID, 1);
+    
+    /**
+     * Es projection (no UPS)
+     */
+    public static final BasicDBObject UNIT_ES_PROJECTION =
+        new BasicDBObject(UNITDEPTHS, 0);
+    
     /**
      * Unit Id, Vitam fields Only projection (no content nor management)
      */
@@ -432,17 +462,22 @@ public class Unit extends MetadataDocument<Unit> {
      */
     public List<Bson> getSubDepth() {
         final String id = getId();
-        // addAll to temporary HashMap
+
+        // addAll to temporary ArrayList
         @SuppressWarnings("unchecked")
-        final HashMap<String, Integer> vtDomaineLevels =
-            (HashMap<String, Integer>) get(UNITDEPTHS);
+        final ArrayList<Document> vtDomaineLevels =
+            (ArrayList<Document>) get(UNITDEPTHS);
         final int size = vtDomaineLevels != null ? vtDomaineLevels.size() + 1 : 1;
+
         // must compute depth from parent
         final List<Bson> sublist = new ArrayList<Bson>(size);
         if (vtDomaineLevels != null) {
-            for (final java.util.Map.Entry<String, Integer> entry : vtDomaineLevels
-                .entrySet()) {
-                sublist.add(new BasicDBObject(entry.getKey(), entry.getValue() + 1));
+            for (int i = 0; i < vtDomaineLevels.size(); i++) {
+                Document currentParent = vtDomaineLevels.get(i);
+                for (final java.util.Map.Entry<String, Object> entry : currentParent
+                    .entrySet()) {
+                    sublist.add(new BasicDBObject(entry.getKey(), (Integer) entry.getValue() + 1));
+                }
             }
         }
         sublist.add(new BasicDBObject(id, 1));
@@ -526,6 +561,14 @@ public class Unit extends MetadataDocument<Unit> {
         return depth;
     }
 
+    private void updateAfterAddingSubUnit() throws MetaDataExecutionException {
+        BasicDBObject update = new BasicDBObject()
+            .append(UPDATEACTION.INC.exactToken(),
+            new BasicDBObject(NBCHILD, nb));
+        nb = 0;
+        update(update);
+        MongoDbMetadataHelper.LRU.put(getId(), this);
+    }
 
     /**
      * Add the link (N)-N between this Unit and sub Unit (update only subUnit)
@@ -575,6 +618,7 @@ public class Unit extends MetadataDocument<Unit> {
                 nb += nbc;
                 sublist.clear();
                 subids.clear();
+                updateAfterAddingSubUnit();
             } catch (final MongoException e) {
                 LOGGER.error(EXCEPTION_FOR + update, e);
                 throw new MetaDataExecutionException(e);
@@ -633,6 +677,7 @@ public class Unit extends MetadataDocument<Unit> {
                     and(in(ID, ids), gt(MINDEPTH, min)),
                     new BasicDBObject(MINDEPTH, min),
                     new UpdateOptions().upsert(false));
+                updateAfterAddingSubUnit();
             } catch (final MongoException e) {
                 LOGGER.error(EXCEPTION_FOR + update, e);
                 throw new MetaDataExecutionException(e);
@@ -693,16 +738,15 @@ public class Unit extends MetadataDocument<Unit> {
      */
     public Unit addObjectGroup(final ObjectGroup data)
         throws MetaDataExecutionException {
-        // String old = this.getObjectGroupId(false);
+        String old = this.getObjectGroupId(false);
+        String newGOT = data.getId();
+        // TODO when update is ready: change Junit to reflect this case
+        if (old != null && ! old.isEmpty() && ! old.equals(newGOT)) {
+            throw new MetaDataExecutionException("Cannot change ObjectGroup of Unit without removing it first");
+        }
         BasicDBObject update =
             MongoDbMetadataHelper.addLink(this, VitamLinks.UNIT_TO_OBJECTGROUP, data);
         if (update != null) {
-            // TODO when update is ready: change Junit to reflect this case
-            /*
-            if (! old.equals(this.getObjectGroupId(false))) {
-                throw new MetaDataExecutionException("Cannot change ObjectGroup of Unit without removing it first");
-            }
-            */
             data.update(update);
             this.updated();
         }

@@ -64,7 +64,9 @@ angular.module('ihm.demo')
       ctrl.searchOptions.FORMAT = "all";
       ctrl.searchOptions.orderby = "Name";
       ctrl.client.all('formats').post(ctrl.searchOptions).then(function(response) {
-        ctrl.fileFormatList = response.data;
+        ctrl.fileFormatList = response.data.sort(function (a, b) {
+          return a.Name.toLowerCase().localeCompare(b.Name.toLowerCase());
+        });
         ctrl.resultPages = Math.ceil(ctrl.fileFormatList.length/10);
         ctrl.currentPage = 1;
       }, function(response) {
@@ -76,7 +78,9 @@ angular.module('ihm.demo')
       ctrl.searchOptions = {};
       clearResults();
       ctrl.client.all('formats').post({FORMAT: "all", orderby: "Name"}).then(function(response) {
-        ctrl.fileFormatList = response.data;
+        ctrl.fileFormatList = response.data.sort(function (a, b) {
+          return a.Name.toLowerCase().localeCompare(b.Name.toLowerCase());
+        });
         ctrl.resultPages = Math.ceil(ctrl.fileFormatList.length/10);
         ctrl.currentPage = 1;
       }, function(response) {
@@ -96,23 +100,39 @@ angular.module('ihm.demo')
         }
 
       })
-    }
+    };
+
+    ctrl.clearSearchOptions();
 
   })
   .controller('fileformatEntryController', function($scope, $mdDialog, formatId, ihmDemoCLient, idOperationService) {
     var self = this;
 
-    ihmDemoCLient.getClient('admin/formats').all(formatId).post({}).then(function(response) {
-      self.detail = {
-        PUID: response.data.PUID ? response.data.PUID.toString() : "",
-        "Nom du fomat": response.data.Name ? response.data.Name.toString() : "",
-        "MIME types": response.data.MIMEType ? response.data.MIMEType.toString() : "",
-        "Extensions": response.data.Extension ? response.data.Extension.toString() : "",
-        "Priorité sur les versions précédentes": response.data.HasPriorityOverFileFormatID ? response.data.HasPriorityOverFileFormatID.toString(): ""
-      };
-      self.pronomLink = response.data.PUID ? "http://www.nationalarchives.gov.uk/PRONOM/" + response.data.PUID.toString() : "";
-    });
+    self.getFormatEntry = function(id) {
+      ihmDemoCLient.getClient('admin/formats').all(id).post({}).then(function(response) {
+        updateEntry(response.data);
+      });
+    };
 
+    self.getFormatEntryByPUID = function(puid) {
+      ihmDemoCLient.getClient('admin').all('formats').post({FORMAT: "all", PUID: puid}).then(function(response) {
+        updateEntry(response.data[0]);
+      });
+    };
+
+    function updateEntry(reponse) {
+      self.detail = {
+        PUID: reponse.PUID ? reponse.PUID.toString() : "",
+        "Nom du fomat": reponse.Name ? reponse.Name.toString() : "",
+        "MIME types": reponse.MIMEType ? reponse.MIMEType.toString() : "",
+        "Extensions": reponse.Extension ? reponse.Extension.toString() : ""
+      };
+
+      self.listPriorityPUID = reponse.HasPriorityOverFileFormatID;
+      self.pronomLink = reponse.PUID ? "http://www.nationalarchives.gov.uk/PRONOM/" + reponse.PUID.toString() : "";
+    }
+
+    self.getFormatEntry(formatId);
     self.close = function() {
       $mdDialog.cancel();
     };

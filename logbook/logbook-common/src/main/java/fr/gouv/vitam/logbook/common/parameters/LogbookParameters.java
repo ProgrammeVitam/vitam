@@ -28,26 +28,13 @@ package fr.gouv.vitam.logbook.common.parameters;
 
 import java.time.LocalDateTime;
 import java.util.Map;
-import java.util.Set;
+
+import fr.gouv.vitam.common.parameter.VitamParameter;
 
 /**
  * Logbook parameters
  */
-public interface LogbookParameters {
-
-    /**
-     * Get all the parameters
-     *
-     * @return a map with all parameters (key = attribute name, value = attribute value)
-     */
-    Map<LogbookParameterName, String> getMapParameters();
-
-    /**
-     * Get the attributes name which not have to be empty or null
-     *
-     * @return a set of attributes name
-     */
-    Set<LogbookParameterName> getMandatoriesParameters();
+public interface LogbookParameters extends VitamParameter<LogbookParameterName> {
 
     /**
      * The EventDateTime is set by the Logbook methods during creation or append
@@ -101,7 +88,7 @@ public interface LogbookParameters {
     LogbookParameters putParameterValue(LogbookParameterName parameterName, String parameterValue);
 
     /**
-     * Get the paramater according to the parameterName
+     * Get the parameter according to the parameterName
      *
      * @param parameterName
      * @return the value or null if not found

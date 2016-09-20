@@ -32,7 +32,11 @@ angular.module('archiveSearch')
   'SEARCH_ERROR_MSG': 'Une erreur est survernue lors de la recherche. Veuillez contacter votre administrateur!',
   'ARCHIVE_SEARCH_ERROR_MSG': 'Une erreur est survernue lors de la recherche de l\'unit. Veuillez contacter votre administrateur!',
   'ARCHIVE_NOT_FOUND_MSG': 'L\'archive unit sélectionnée est introuvable.',
-  'SEARCH_RESULT_INVALID': 'La réponse reçue est invalide. Impossible d\'afficher le résultat de la recherche.'
+  'SEARCH_RESULT_INVALID': 'La réponse reçue est invalide. Impossible d\'afficher le résultat de la recherche.',
+  'STARTDATE_GREATER_THAN_ENDDATE': 'La recherche ne peut pas être lancée car la date de début doit être inférieure à la date de fin.',
+  'STARTDATE_INVALID': 'La date de début est invalide.',
+  'ENDDATE_INVALID': 'La date de fin est invalide.',
+  'ONLY_ONE_DATE_SET': 'Il faudrait renseigner les deux dates extrêmes pour lancer la recherche.'
 })
 .controller('ArchiveUnitSearchController', ['$scope','ihmDemoFactory','$window', '$mdToast', '$mdDialog', 'ARCHIVE_SEARCH_MODULE_CONST', 'archiveDetailsService',
 function($scope, ihmDemoFactory, $window, $mdToast, $mdDialog,  ARCHIVE_SEARCH_MODULE_CONST, archiveDetailsService) {
@@ -56,11 +60,13 @@ function($scope, ihmDemoFactory, $window, $mdToast, $mdDialog,  ARCHIVE_SEARCH_M
   $scope.getSearchResult = function getSearchResult($event, titleCriteria){
     if(titleCriteria!=='' && titleCriteria!== null && titleCriteria!== undefined){
       // Build title criteria and default selection
-      criteriaSearch.Title = titleCriteria;
+      criteriaSearch.titleAndDescription = titleCriteria;
       criteriaSearch.projection_transactdate = "TransactedDate";
       criteriaSearch.projection_id = "#id";
       criteriaSearch.projection_title = "Title";
+      criteriaSearch.projection_object = "#object";
       criteriaSearch.orderby = "TransactedDate";
+      criteriaSearch.isAdvancedSearchFlag = "No";
 
       ihmDemoFactory.searchArchiveUnits(criteriaSearch)
       .then(function (response) {
@@ -77,6 +83,10 @@ function($scope, ihmDemoFactory, $window, $mdToast, $mdDialog,  ARCHIVE_SEARCH_M
 
             // Set Total result
             $scope.totalResult = response.data.$hint.total;
+
+            // ************************************Pagination **************************** //
+            $scope.totalItems = $scope.archiveUnitsSearchResult.length;
+            // **************************************************************************** //
           }
 
         }, function (error) {
@@ -87,9 +97,7 @@ function($scope, ihmDemoFactory, $window, $mdToast, $mdDialog,  ARCHIVE_SEARCH_M
           $scope.showAlert($event, "Erreur", $scope.errorMessage);
         });
       }
-    }
-    // *************************************************************************** //
-
+    };
 
     // Display Selected Archive unit form
     $scope.openedArchiveId=[];
@@ -168,13 +176,140 @@ function($scope, ihmDemoFactory, $window, $mdToast, $mdDialog,  ARCHIVE_SEARCH_M
         archiveDetailsService.findArchiveUnitDetails(archiveId, displayFormCallBack, failureCallback);
       }
 
-      // Mock search result
-      // ******************* Mock response *************** //
-      // $scope.showResult=true;
-      // $scope.totalResult = 10;
-      // $scope.archiveUnitsSearchResult =  [ {"_id":"1", "Title":"Archive1", "Date":"2016-01-01"},
-      // {"_id":"1", "Title":"Archive2", "Date":"2016-01-01"},
-      // {"_id":"2", "Title":"Archive3", "Date":"2016-01-01"}];
-      // ************************************************ //
+      $scope.isObjectExist = function isObjectExist(object){
+        if(object !== null && object !== undefined && !angular.equals(object, "")){
+          return true;
+        }else{
+          return false;
+        }
+      };
+
+      // ************************************Pagination **************************** //
+      $scope.viewby = 10;
+      $scope.currentPage = 1;
+      $scope.itemsPerPage = $scope.viewby;
+      $scope.maxSize = 5;
+
+      $scope.setPage = function (pageNo) {
+        $scope.currentPage = pageNo;
+      };
+
+      $scope.pageChanged = function() {
+        console.log('Page changed to: ' + $scope.currentPage);
+      };
+
+      $scope.setItemsPerPage = function(num) {
+        $scope.itemsPerPage = num;
+        $scope.currentPage = 1; //reset to first page
+      }
+      // **************************************************************************** //
+
+      // *****************  Archive Units Search Result  ********************** //
+      $scope.getElasticSearchUnitsResult = function getElasticSearchUnitsResult($event,title,description,startDate,endDate){
+         criteriaSearch = {};
+         var atLeastOneValidCriteriaExists = false;
+         if(title!=='' && title!== null && title!== undefined){
+           // Add title to criteria
+           atLeastOneValidCriteriaExists = true;
+           criteriaSearch.Title = title;
+         }
+
+         if(description!=='' && description!== null && description!== undefined){
+           // Add description to criteria
+           atLeastOneValidCriteriaExists = true;
+           criteriaSearch.Description = description;
+         }
+
+         // Control dates
+         var isStartDateSet = startDate!=='';
+         var isEndDateSet = endDate!=='';
+         var isValidStartDate = isStartDateSet && Date.parse(startDate).toString() !== 'NaN';
+         var isValidEndDate = isEndDateSet && Date.parse(endDate).toString() !== 'NaN';
+
+         if(isStartDateSet || isEndDateSet){
+           if((isStartDateSet && !isEndDateSet) || (!isStartDateSet && isEndDateSet)){
+             atLeastOneValidCriteriaExists = false;
+             $scope.showAlert($event, "Erreur", ARCHIVE_SEARCH_MODULE_CONST.ONLY_ONE_DATE_SET);
+           } else if(isValidStartDate && isValidEndDate){
+             // Check if startDate <= endDate
+             var startDateParts = startDate.split('/');
+
+             // new Date(year, month [, day [, hours[, minutes[, seconds[, ms]]]]])
+             var startDateAsDate = new Date(startDateParts[2], startDateParts[1] - 1, startDateParts[0], "23", "59", "59");
+
+             var endDateParts = endDate.split('/');
+             var endDateAsDate = new Date(endDateParts[2], endDateParts[1] - 1, endDateParts[0], "00", "00", "00");
+
+             if(startDateAsDate <= endDateAsDate){
+               atLeastOneValidCriteriaExists = true;
+               criteriaSearch.StartDate = startDateAsDate;
+               criteriaSearch.EndDate = endDateAsDate;
+             } else {
+               atLeastOneValidCriteriaExists = false;
+               $scope.showAlert($event, "Erreur", ARCHIVE_SEARCH_MODULE_CONST.STARTDATE_GREATER_THAN_ENDDATE);
+             }
+           } else if(!isValidStartDate){
+              atLeastOneValidCriteriaExists = false;
+              $scope.showAlert($event, "Erreur", ARCHIVE_SEARCH_MODULE_CONST.STARTDATE_INVALID);
+           } else if(!isValidEndDate){
+             atLeastOneValidCriteriaExists = false;
+              $scope.showAlert($event, "Erreur", ARCHIVE_SEARCH_MODULE_CONST.ENDDATE_INVALID);
+           }
+         }
+
+         if(atLeastOneValidCriteriaExists){
+           criteriaSearch.projection_transactdate = "TransactedDate";
+           criteriaSearch.projection_id = "#id";
+           criteriaSearch.projection_title = "Title";
+           criteriaSearch.projection_object = "#object";
+           criteriaSearch.orderby = "TransactedDate";
+           criteriaSearch.isAdvancedSearchFlag = "Yes";
+
+           ihmDemoFactory.searchArchiveUnits(criteriaSearch)
+           .then(function (response) {
+
+             if(response.data.$result == null || response.data.$result == undefined ||
+               response.data.$hint == null || response.data.$hint == undefined){
+                 $scope.error=true;
+                 $scope.showResult=false;
+                 $scope.errorMessage = ARCHIVE_SEARCH_MODULE_CONST.SEARCH_RESULT_INVALID;
+                 $scope.showAlert($event, "Erreur", $scope.errorMessage);
+               }else{
+                 $scope.archiveUnitsSearchResult = response.data.$result;
+                 $scope.showResult=true;
+                 $scope.error=false;
+
+                 // Set Total result
+                 $scope.totalResult = response.data.$hint.total;
+
+                 // ************************************Pagination **************************** //
+                 $scope.totalItems = $scope.archiveUnitsSearchResult.length;
+                 // **************************************************************************** //
+               }
+             }, function (error) {
+               console.log('Error retrieving archive units! ' + error.message);
+               $scope.error=true;
+               $scope.showResult=false;
+               $scope.errorMessage = ARCHIVE_SEARCH_MODULE_CONST.SEARCH_ERROR_MSG;
+               $scope.showAlert($event, "Erreur", $scope.errorMessage);
+             });
+         }else{
+           // Clear old result eventually
+           $scope.showResult = false;
+         }
+     }
+     // *************************************************************************** //
+
+       // Mock search result
+       // ******************* Mock response *************** //
+       // $scope.showResult=true;
+       // $scope.totalResult = 6;
+       // $scope.archiveUnitsSearchResult =  [
+       // {"_id":"1", "Title":"Archive1", "TransactedDate":"2016-01-01", "_og": "XXXXXXXXXX"},
+       // {"_id":"1", "Title":"Archive2", "TransactedDate":"2016-01-01", "_og": ''},
+       // {"_id":"2", "Title":"Archive3", "TransactedDate":"2016-01-01", "_og": "YYYYYYYYYY"},
+       // {"_id":"2", "Title":"Archive3", "TransactedDate":"2016-01-01", "_og": "YYYYYYYYYY"},
+       // {"_id":"2", "Title":"Archive3", "TransactedDate":"2016-01-01", "_og": "YYYYYYYYYY"},
+       // {"_id":"2", "Title":"Archive3", "TransactedDate":"2016-01-01", "_og": "YYYYYYYYYY"}];
 
     }]);

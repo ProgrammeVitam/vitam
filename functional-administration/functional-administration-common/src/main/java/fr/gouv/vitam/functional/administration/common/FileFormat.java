@@ -27,45 +27,50 @@
 
 package fr.gouv.vitam.functional.administration.common;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.bson.Document;
 
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 
-/** 
- * FileFormat
- *  define the file referential format for Vitam 
+/**
+ * FileFormat define the file referential format for Vitam
  */
 
 public class FileFormat extends VitamDocument<FileFormat> {
 
     public static final String PUID = "PUID";
-    
     private static final String VERSION_PRONOM = "VersionPronom";
     private static final String VERSION = "Version";
     private static final String CREATED_DATE = "CreatedDate";
     private static final String HAS_PRIORITY_OVER_FILE_FORMAT_ID = "HasPriorityOverFileFormatID";
     private static final String MIME_TYPE = "MIMEType";
     private static final String NAME = "Name";
+    private static final String GROUP = "Group";
+    private static final String ALERT = "Alert";
+    private static final String COMMENT = "Comment";
     private static final String EXTENSION = "Extension";
     private static final long serialVersionUID = 7794456688851515535L;
-    
+
 
     /**
      * empty constructor
      */
     public FileFormat() {}
-    
+
     /**
      * constructor with Mongo Document
+     * 
      * @param document as Document of bson
      */
     public FileFormat(Document document) {
         super(document);
     }
 
-    /** setPUID
+    /**
+     * setPUID
+     * 
      * @param puid as String
      * @return FileFormat with puid setted
      */
@@ -74,52 +79,72 @@ public class FileFormat extends VitamDocument<FileFormat> {
         return this;
     }
 
-    /** setExtension
+    /**
+     * setExtension
+     * 
      * @param extension as a list of String
      * @return FileFormat with extension setted
      */
     public FileFormat setExtension(List<String> extension) {
-        this.append(EXTENSION, extension);
+        if (!extension.isEmpty()) {
+            List<String> ext = new ArrayList<>();
+            ext.addAll(extension);
+            this.append(EXTENSION, ext);
+        }
         return this;
     }
 
-    /** setName
+    /**
+     * setName
+     * 
      * @param name as String
      * @return FileFormat with name setted
-     */    
+     */
     public FileFormat setName(String name) {
         this.append(NAME, name);
         return this;
     }
 
-    /** setMimeType
+    /**
+     * setMimeType
+     * 
      * @param mimeType as String
      * @return FileFormat with mimeType setted
-     */    
+     */
     public FileFormat setMimeType(List<String> mimeType) {
         this.append(MIME_TYPE, mimeType);
         return this;
     }
 
-    /** setVersion
+    /**
+     * setVersion
+     * 
      * @param version as String
      * @return FileFormat with version setted
-     */    
+     */
     public FileFormat setVersion(String version) {
         this.append(VERSION, version);
         return this;
     }
 
-    /** setPriorityOverIdList
+    /**
+     * setPriorityOverIdList
+     * 
      * @param priorityOverIdList as a list of String
-     * @return FileFormat 
+     * @return FileFormat
      */
     public FileFormat setPriorityOverIdList(List<String> priorityOverIdList) {
-        this.append(HAS_PRIORITY_OVER_FILE_FORMAT_ID, priorityOverIdList);
+        if (!priorityOverIdList.isEmpty()) {
+            List<String> priorityList = new ArrayList<>();
+            priorityList.addAll(priorityOverIdList);
+            this.append(HAS_PRIORITY_OVER_FILE_FORMAT_ID, priorityList);
+        }
         return this;
     }
 
-    /** setCreatedDate
+    /**
+     * setCreatedDate
+     * 
      * @param createdDate as String
      * @return FileFormat with createdDate setted
      */
@@ -128,12 +153,47 @@ public class FileFormat extends VitamDocument<FileFormat> {
         return this;
     }
 
-    /** setPronomVersion
+    /**
+     * setPronomVersion
+     * 
      * @param pronomVersion as String
      * @return FileFormat with pronomVersion setted
-     */    
+     */
     public FileFormat setPronomVersion(String pronomVersion) {
         this.append(VERSION_PRONOM, pronomVersion);
+        return this;
+    }
+    
+    /**
+     * setComment
+     * 
+     * @param comment as String
+     * @return FileFormat with pronomVersion setted
+     */
+    public FileFormat setComment(String comment) {
+        this.append(COMMENT, comment);
+        return this;
+    }
+    
+    /**
+     * setAlert
+     * 
+     * @param alert as boolean
+     * @return FileFormat with pronomVersion setted
+     */
+    public FileFormat setAlert(boolean alert) {
+        this.append(ALERT, alert);
+        return this;
+    }
+
+    /**
+     * setGroup
+     * 
+     * @param group as String
+     * @return FileFormat with pronomVersion setted
+     */
+    public FileFormat setGroup(String group) {
+        this.append(GROUP, group);
         return this;
     }
 }

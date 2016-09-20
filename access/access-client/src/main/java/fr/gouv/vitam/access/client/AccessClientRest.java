@@ -235,13 +235,12 @@ public class AccessClientRest implements AccessClient {
         Response response = null;
         try {
             response =
-                client.target(serviceUrl).path("objects/" + objectGroupId).request(MediaType.APPLICATION_JSON)
+                client.target(serviceUrl).path("objects/" + objectGroupId).request(MediaType.APPLICATION_OCTET_STREAM)
                     .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
                     .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
                     .header(GlobalDataRest.X_REQUEST_ID, guid.toString())
                     .header(GlobalDataRest.X_QUALIFIER, usage)
                     .header(GlobalDataRest.X_VERSION, version)
-                    .accept(MediaType.APPLICATION_OCTET_STREAM)
                     .post(Entity.entity(selectObjectQuery, MediaType.APPLICATION_JSON), Response.class);
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {

@@ -1,12 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-	<!--
-	This test file exemplifies a dynamic-insertion rule.
-
-	Protection #1: All instances of "</body>" in the response body will be replaced by
-	               "this is a test".
-
-	-->
+<!-- This test file exemplifies a dynamic-insertion rule. Protection #1: 
+	All instances of "</body>" in the response body will be replaced by "this 
+	is a test". -->
 
 <policy>
 
@@ -23,5 +19,5 @@
 			<replacement><![CDATA[this is a test]]></replacement>
 		</dynamic-insertion>
 	</outbound-rules>
-	
+
 </policy>

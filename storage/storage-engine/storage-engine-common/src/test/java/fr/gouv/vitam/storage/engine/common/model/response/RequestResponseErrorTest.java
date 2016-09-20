@@ -37,9 +37,9 @@ package fr.gouv.vitam.storage.engine.common.model.response;
 
 import org.junit.Test;
 
-import java.util.Collections;
-
 import static org.junit.Assert.*;
+
+import fr.gouv.vitam.common.error.VitamError;
 
 /**
  *
@@ -52,19 +52,19 @@ public class RequestResponseErrorTest {
 
     @Test
     public void testGetSetError() throws Exception {
-        VitamError vitamError = new VitamError(1);
+        VitamError vitamError = new VitamError("1");
         requestResponseError.setError(vitamError);
         assertEquals(vitamError, requestResponseError.getError());
         RequestResponseError responseError = new RequestResponseError();
         VitamError error = responseError.getError();
-        assertEquals(0, error.getCode());
+        assertEquals("0", error.getCode());
     }
 
     @Test
     public void testToString() throws Exception {
         RequestResponseError responseError = new RequestResponseError();
         assertEquals("", responseError.toString());
-        VitamError error = new VitamError(0);
+        VitamError error = new VitamError("0");
         responseError.setError(error);
         assertEquals(error.toString(), responseError.toString());
     }

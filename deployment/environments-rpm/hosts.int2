@@ -14,6 +14,7 @@ hosts-storage-engine
 hosts-storage-offer-default
 hosts-ingest-external
 hosts-functional-administration
+hosts-worker
 hosts-log-server
 
 [hosts-mongodb]
@@ -55,6 +56,9 @@ vitam-iaas-storage-01.int2
 [hosts-storage-offer-default]
 vitam-iaas-defoffer-01.int2
 
+[hosts-worker]
+vitam-iaas-processing-01.int2
+
 [hosts-log-server]
 vitam-iaas-log-01.int2
 
@@ -69,6 +73,8 @@ environnement=int2
 vitam_ihm_demo_external_dns=int2.env.programmevitam.fr
 https_reverse_proxy=10.220.23.1:3128
 proxy_host=10.220.23.1
+dns_server=172.16.1.21
 proxy_port=3128
-rpm_version=0.7.0-SNAPSHOT*
+rpm_version=0.8.0-SNAPSHOT*
 days_to_delete=30
+dns_server=172.16.1.21

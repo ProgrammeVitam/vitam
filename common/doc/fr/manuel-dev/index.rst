@@ -26,6 +26,7 @@ Sommaire
    JunitHelper.rst
    client.rst
    graph.rst
+   VitamCode.rst
 
 
 ##############

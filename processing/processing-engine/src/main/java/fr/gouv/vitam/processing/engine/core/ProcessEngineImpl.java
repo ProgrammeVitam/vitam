@@ -24,6 +24,7 @@
 package fr.gouv.vitam.processing.engine.core;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -40,6 +41,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookClientFactory;
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
@@ -47,7 +49,7 @@ import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.model.StepType;
 import fr.gouv.vitam.processing.common.model.WorkFlow;
-import fr.gouv.vitam.processing.common.model.WorkParams;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.utils.ProcessPopulator;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImplFactory;
@@ -88,7 +90,7 @@ public class ProcessEngineImpl implements ProcessEngine {
      * ProcessEngineImpl constructor populate also the workflow to the pool of workflow
      */
     protected ProcessEngineImpl() {
-        processDistributor = new ProcessDistributorImplFactory().create();
+        processDistributor = ProcessDistributorImplFactory.getDefaultDistributor();
         poolWorkflows = new HashMap<>();
         try {
             setWorkflow("DefaultIngestWorkflow");
@@ -97,13 +99,9 @@ public class ProcessEngineImpl implements ProcessEngine {
         }
     }
 
-    /**
-     * Implement method startWorkflow of ProcessEngine API Ref : see return and params of method in ProcessEngine API
-     * class
-     */
     @Override
-    public EngineResponse startWorkflow(WorkParams workParams, String workflowId)
-        throws WorkflowNotFoundException {
+    public EngineResponse startWorkflow(WorkerParameters workParams, String workflowId)
+        throws WorkflowNotFoundException, ProcessingException {
         ParametersChecker.checkParameter("WorkParams is a mandatory parameter", workParams);
         ParametersChecker.checkParameter("workflowId is a mandatory parameter", workflowId);
         final long time = System.currentTimeMillis();
@@ -117,7 +115,7 @@ public class ProcessEngineImpl implements ProcessEngine {
             throw new WorkflowNotFoundException(WORKFLOW_NOT_FOUND_MESSAGE);
         }
         final ProcessResponse processResponse = new ProcessResponse();
-        final Map<String, List<EngineResponse>> stepsResponses = new HashMap<>();
+        final Map<String, List<EngineResponse>> stepsResponses = new LinkedHashMap<>();
 
         try {
             final WorkFlow workFlow = poolWorkflows.get(workflowId);
@@ -125,10 +123,11 @@ public class ProcessEngineImpl implements ProcessEngine {
             if (workFlow != null && workFlow.getSteps() != null && !workFlow.getSteps().isEmpty()) {
                 final GUID processId = GUIDFactory.newGUID();
                 processResponse.setProcessId(processId.getId());
-                workParams.setAdditionalProperty(WorkParams.PROCESS_ID, processId.getId());
-                
+                workParams.setProcessId(processId.getId());
+
+
                 Map<String, ProcessStep> processSteps = ProcessMonitoringImpl.getInstance().initOrderedWorkflow(
-                    (String) workParams.getAdditionalProperties().get(WorkParams.PROCESS_ID), workFlow,
+                    workParams.getProcessId(), workFlow,
                     workParams.getContainerName());
 
                 /**
@@ -138,7 +137,7 @@ public class ProcessEngineImpl implements ProcessEngine {
                 for (Map.Entry<String, ProcessStep> entry : processSteps.entrySet()) {
                     ProcessStep step = entry.getValue();
                     String uniqueId = entry.getKey();
-                    workParams.setAdditionalProperty(WorkParams.STEP_ID, uniqueId);
+                    workParams.setStepUniqId(uniqueId);
 
                     LogbookParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
                         GUIDFactory.newGUID(),
@@ -153,7 +152,7 @@ public class ProcessEngineImpl implements ProcessEngine {
 
                     // update the process monitoring for this step
                     ProcessMonitoringImpl.getInstance().updateStepStatus(
-                        (String) workParams.getAdditionalProperties().get(WorkParams.PROCESS_ID), uniqueId,
+                        workParams.getProcessId(), uniqueId,
                         StatusCode.STARTED);
 
                     workParams.setCurrentStep(step.getStepName());
@@ -162,7 +161,8 @@ public class ProcessEngineImpl implements ProcessEngine {
                         processDistributor.distribute(workParams, step, workflowId);
 
 
-                    final StatusCode stepStatus = processResponse.getGlobalProcessStatusCode(stepResponse);
+                    final StatusCode stepStatus =
+                        processResponse.getGlobalProcessStatusCode(stepResponse);
                     if (messageIdentifier == null) {
                         messageIdentifier = ProcessResponse.getMessageIdentifierFromResponse(stepResponse);
                     }
@@ -181,7 +181,7 @@ public class ProcessEngineImpl implements ProcessEngine {
 
                     // update the process monitoring with the final status
                     ProcessMonitoringImpl.getInstance().updateStepStatus(
-                        (String) workParams.getAdditionalProperties().get(WorkParams.PROCESS_ID), uniqueId,
+                        workParams.getProcessId(), uniqueId,
                         stepStatus);
 
                     // if the step has been defined as Blocking, then, we check the stepStatus then break the process if

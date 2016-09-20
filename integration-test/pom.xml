@@ -1,0 +1,61 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>fr.vitam.soapui</groupId>
+	<artifactId>integration-test</artifactId>
+	<packaging>jar</packaging>
+	<version>1.0-SNAPSHOT</version>
+	<name>Integration tests</name>
+
+
+	<!--Add the repository for where Maven can find the soapUI Plugin-->
+	<pluginRepositories>
+		<pluginRepository>
+			<id>vitam</id>
+			<url>https://dev.programmevitam.fr/nexus/content/groups/public/</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</pluginRepository>
+	</pluginRepositories>
+	
+	<build>
+		<plugins>
+			<plugin>
+		        <groupId>com.smartbear.soapui</groupId>
+		        <artifactId>soapui-maven-plugin</artifactId>
+				<!--This is the version of soapUI to grab from plugin repo-->
+				<!--At the time of writing the 3.0.1 plugin had not been created-->
+				<version>5.2.1</version>
+				<configuration>
+					<projectProperties>
+						<projectProperty>ingestHost=${ingest.host}</projectProperty>
+						<projectProperty>ihmdemoHost=${ihmdemo.host}</projectProperty>
+						<projectProperty>logbookHost=${logbook.host}</projectProperty>
+						<projectProperty>dataFolder=${data.folder}</projectProperty>
+					</projectProperties>
+					<!--The location of your soapUI setting file-->
+					<projectFile>story-tests.xml</projectFile>
+					<!--Where to place the output of the run-->
+					<outputFolder>target/soapui</outputFolder>
+					<!--Make the jUnit results file-->
+					<junitReport>true</junitReport>
+				</configuration>
+				<executions>
+					<execution>
+						<id>soapUI</id>
+						<!--Run as part of the test phase in the Maven lifecycle-->
+						<phase>test</phase>
+						<goals>
+							<!--Run the test phase of eviware:maven-soapui-plugin-->
+							<goal>test</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>

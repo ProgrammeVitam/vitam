@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.ingest.internal.upload.rest;
 
-import com.fasterxml.jackson.databind.JsonMappingException;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -55,6 +54,7 @@ public class IngestInternalApplication extends AbstractVitamApplication<IngestIn
 
     private static final String INGEST_INTERNAL_APPLICATION_STARTS_ON_DEFAULT_PORT =
         "IngestInternalApplication Starts on default port";
+    private static final String CONFIG_FILE_IS_A_MANDATORY_ARGUMENT = "Config file is a mandatory argument";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestInternalApplication.class);
     private static final String INGEST_INTERNAL_CONF_FILE_NAME = "ingest-internal.conf";
     private static IngestInternalConfiguration configuration;
@@ -75,9 +75,9 @@ public class IngestInternalApplication extends AbstractVitamApplication<IngestIn
         try {
             final VitamServer vitamServer = startApplication(args);
             vitamServer.run();
-        } catch (final VitamApplicationServerException exc) {
-            LOGGER.error(exc);
-            throw new IllegalStateException("Cannot start the Ingest Internal  Application Server", exc);
+        } catch (final Exception e) {
+            LOGGER.error("Can not start Ingest External Application server. "+e.getMessage(), e);
+            System.exit(1);
         }
     }
 
@@ -99,46 +99,24 @@ public class IngestInternalApplication extends AbstractVitamApplication<IngestIn
                     configuration = PropertiesUtils.readYaml(yamlFile, IngestInternalConfiguration.class);
                     String jettyConfig = configuration.getJettyConfig();
 
-                    //TODO ne plus gerer le port en 2e parametres.
-                    //TODO Essayer de le setter dans le fichier de conf jetty
-                    if (args.length >= 2 ) {
-                        try {
-                            final int port = Integer.parseInt(args[1]);
-                            if (port <= 0) {
-                                LOGGER.info(INGEST_INTERNAL_APPLICATION_STARTS_ON_DEFAULT_PORT);
-                                vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
-                            } else {
-                                LOGGER.info("Ingest Internal Starts on port: " + port);
-                                vitamServer = VitamServerFactory.newVitamServer(port);
-                            }
-                        } catch (final NumberFormatException e) {
-                            LOGGER.info("The port " + args + " is not a number. Ingest Internal  Starts on default port", e);
-                            vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
-                        }
-                    } else {
-                        LOGGER.info("Ingest Internal Starts with jetty config");
-                        vitamServer = VitamServerFactory.newVitamServerByJettyConf(jettyConfig);
-                    }
-
+                    LOGGER.info("Ingest Internal Starts with jetty config");
+                    vitamServer = VitamServerFactory.newVitamServerByJettyConf(jettyConfig);
 
                 } catch (FileNotFoundException e) {
                     LOGGER.info(INGEST_INTERNAL_APPLICATION_STARTS_ON_DEFAULT_PORT+", config file not found ", e);
-                    vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
-                } catch (JsonMappingException e) {
-                    LOGGER.info(INGEST_INTERNAL_APPLICATION_STARTS_ON_DEFAULT_PORT+", config file parsing error ", e);
                     vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
                 } catch (IOException e) {
                     LOGGER.info(INGEST_INTERNAL_APPLICATION_STARTS_ON_DEFAULT_PORT+", config file io error ", e);
                     vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
                 }
             } else {
-                LOGGER.info(INGEST_INTERNAL_APPLICATION_STARTS_ON_DEFAULT_PORT+", empty config file");
-                vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
+                LOGGER.error(CONFIG_FILE_IS_A_MANDATORY_ARGUMENT);
+                throw new IllegalArgumentException(CONFIG_FILE_IS_A_MANDATORY_ARGUMENT);
             }
 
             final IngestInternalApplication application = new IngestInternalApplication();
             application.configure(application.computeConfigurationPathFromInputArguments(args));
-            if(vitamServer!=null) {
+            if(vitamServer != null) {
                 vitamServer.configure(application.getApplicationHandler());
             }
             return vitamServer;

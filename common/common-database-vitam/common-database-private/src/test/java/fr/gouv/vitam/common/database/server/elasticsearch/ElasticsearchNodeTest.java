@@ -37,9 +37,13 @@ public class ElasticsearchNodeTest {
 
     @Test
     public void testElasticsearchNode() {
-        ElasticsearchNode node = new ElasticsearchNode(HOST, PORT);
-        assertEquals(HOST, node.getHostName());
-        assertEquals(PORT, node.getTcpPort());
+        ElasticsearchNode node1 = new ElasticsearchNode(HOST, PORT);
+        assertEquals(HOST, node1.getHostName());
+        assertEquals(PORT, node1.getTcpPort());
+        
+        ElasticsearchNode node2 = new ElasticsearchNode();
+        assertEquals(HOST, node2.setHostName(HOST).getHostName());
+        assertEquals(PORT, node2.setTcpPort(PORT).getTcpPort());
 
     }
 

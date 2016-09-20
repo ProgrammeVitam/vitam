@@ -4,12 +4,12 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>storage-engine</artifactId>
-		<version>0.7.0-SNAPSHOT</version>
+		<version>0.8.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>storage-engine-server</artifactId>
 	<name>Storage Engine Server</name>
 	<properties>
-		<unix.name>storage-engine</unix.name>
+		<unix.name>storage</unix.name>
 		<unix.user>vitam</unix.user>
 		<unix.group>vitam</unix.group>
 	</properties>

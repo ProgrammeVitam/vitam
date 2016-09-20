@@ -12,6 +12,8 @@ Typologie de consommation de resources :
 	* Mémoire : fort
 	* Réseau : fort (entrant et sortant)
 	* Disque : faible
+	  
+.. todo : à confirmer l'usage de disque faible (cache local des fichiers de travail ?)
 
 
 Particularités
@@ -19,7 +21,7 @@ Particularités
 
 Les workers utilisent des outils externes pouvant avoir des pré-requis importants sur les OS utilisés ; pour réduire l'impact sur les systèmes, ces outils seront packagés dans des conteneurs Docker. 
 
-Aucun conteneur Docker n'est fourni dans cette version du système VITAM.
+Aucun conteneur Docker n'est fourni dans cette version de la solution VITAM.
 
 
 .. Conteneurs Docker

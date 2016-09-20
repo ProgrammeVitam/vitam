@@ -39,22 +39,26 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingInternalServerException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnauthorizeException;
+import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
+import fr.gouv.vitam.processing.common.model.WorkerBean;
 
 /**
  *
  */
 public class ProcessingManagementClient {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessingManagementClient.class);
 
     private final Client client;
     private final String url;
-    private static final String RESOURCE_PATH = "/processing/api/v0.0.3";
+    private static final String RESOURCE_PATH = "/processing/v1";
 
     // FIXME REVIEW user should not specified the url, the factory should handle this directly (see Logbook client)
     /**
@@ -80,34 +84,94 @@ public class ProcessingManagementClient {
     /**
      * executeVitamProcess : processing operation of a workflow
      *
-     * @param container : name of container
-     * @param workflow : id of workflow
-     * @return : Engine response containe message and status
-     * @throws ProcessingException
+     * @param container : name of the container
+     * @param workflow : id of the workflow
+     * @return Engine response containing message and status
+     * @throws IllegalArgumentException thrown in case of illegal argument in request server error
+     * @throws WorkflowNotFoundException thrown if the defined workfow is not found by server
+     * @throws ProcessingUnauthorizeException thrown in case of unauthorized request server error
+     * @throws ProcessingBadRequestException thrown in case of bad request server error
+     * @throws ProcessingInternalServerException thrown in case of internal server error or technical error between
+     *         client and server
      */
     public String executeVitamProcess(String container, String workflow)
-        throws ProcessingException, InvalidParseOperationException {
+        throws ProcessingUnauthorizeException, ProcessingBadRequestException, WorkflowNotFoundException,
+        ProcessingException {
         ParametersChecker.checkParameter("container is a mandatory parameter", container);
         ParametersChecker.checkParameter("workflow is a mandatory parameter", workflow);
 
-        final Response response = client.target(url).path("operations").request(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON)
-            .post(Entity.entity(new ProcessingEntry(container, workflow), MediaType.APPLICATION_JSON), Response.class);
+        try {
+
+            final Response response = client.target(url).path("operations").request(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .post(Entity.entity(new ProcessingEntry(container, workflow), MediaType.APPLICATION_JSON),
+                    Response.class);
+
+            if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                throw new WorkflowNotFoundException("Workflow Not Found");
+            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
+                throw new IllegalArgumentException("Illegal Argument");
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                throw new ProcessingUnauthorizeException("Unauthorized Operation");
+            } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
+                throw new ProcessingBadRequestException("Bad Request");
+            } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+                throw new ProcessingInternalServerException("Internal Server Error");
+            }
+
+            // XXX: theoretically OK status case
+            // Don't we thrown an exception if it is another status ?
+            return response.readEntity(String.class);
+        } catch (javax.ws.rs.ProcessingException e) {
+            LOGGER.error(e);
+            throw new ProcessingInternalServerException("Internal Server Error", e);
+        }
+    }
+
+    /**
+     * Register a new worker knowing its family and with a WorkerBean. If a problem is encountered, an exception is
+     * thrown.
+     * 
+     * @param familyId the id of the family to which the worker has to be registered
+     * @param workerId the id of the worker to be registered
+     * @param workerDescription the description of the worker as a workerBean
+     * @throws ProcessingBadRequestException if a bad request has been sent
+     * @throws WorkerAlreadyExistsException if the worker family does not exist
+     */
+    public void registerWorker(String familyId, String workerId, WorkerBean workerDescription)
+        throws ProcessingBadRequestException, WorkerAlreadyExistsException {
+        ParametersChecker.checkParameter("familyId is a mandatory parameter", familyId);
+        ParametersChecker.checkParameter("workerId is a mandatory parameter", workerId);
+        ParametersChecker.checkParameter("workerDescription is a mandatory parameter", workerDescription);
+        final Response response = client.target(url).path("worker_family/" + familyId + "/" + "workers" +
+            "/" + workerId).request(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .post(Entity.entity(workerDescription, MediaType.APPLICATION_JSON), Response.class);
+
+        if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
+            throw new ProcessingBadRequestException("Bad Request");
+        } else if (response.getStatus() == Status.CONFLICT.getStatusCode()) {
+            throw new WorkerAlreadyExistsException("Worker already exist");
+        }
+    }
+
+    /**
+     * Unregister a worker knowing its family and its workerId. If the familyId or the workerId is unknown, an exception
+     * is thrown.
+     * 
+     * @param familyId the id of the family to which the worker has to be registered
+     * @param workerId the id of the worker to be registered
+     * @throws ProcessingBadRequestException if the worker or the family does not exist
+     */
+    public void unregisterWorker(String familyId, String workerId)
+        throws ProcessingBadRequestException {
+        ParametersChecker.checkParameter("familyId is a mandatory parameter", familyId);
+        ParametersChecker.checkParameter("workerId is a mandatory parameter", workerId);
+        final Response response = client.target(url).path("worker_family/" + familyId + "/" + "workers" +
+            "/" + workerId).request(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .delete();
 
         if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-            throw new WorkflowNotFoundException("Workflow Not Found");
-        } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-            throw new IllegalArgumentException("Illegal Argument");
-        } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-            throw new ProcessingUnauthorizeException("Unauthorized Operation");
-        } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
-            throw new ProcessingBadRequestException("Bad Request");
-        } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-            throw new ProcessingInternalServerException("Internal Server Error");
+            throw new ProcessingBadRequestException("Worker Family, or worker does not exist");
         }
-
-        // XXX: theoretically OK status case
-        // Don't we thrown an exception if it is another status ?
-        return response.readEntity(String.class);
     }
 }

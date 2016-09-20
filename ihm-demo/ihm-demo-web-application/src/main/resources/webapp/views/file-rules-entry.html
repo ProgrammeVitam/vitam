@@ -1,0 +1,22 @@
+<md-dialog aria-label="File Rules Entry" ng-cloak style="max-width:50%; max-height:800px; height:auto; width: auto;">
+    <md-toolbar>
+        <div class="md-toolbar-tools">
+            <h3>{{entryRulesCtrl.detail["RuleId"]}}</h3>
+            <span flex></span>
+        </div>
+    </md-toolbar>
+    <md-dialog-content>
+        <table class="table" id="detail" align="center">
+            <tbody>
+                <tr ng-repeat="(key, value) in entryRulesCtrl.detail"  ng-if="value != ''">
+                    <td> {{key}} </td> <td> {{ value }} </td>
+                </tr>
+            </tbody>
+        </table>
+
+
+    </md-dialog-content>
+    <md-dialog-actions>
+        <md-button aria-label="Close" ng-click="entryRulesCtrl.close()">Close</md-button>
+    </md-dialog-actions>
+</md-dialog>

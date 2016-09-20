@@ -9,11 +9,11 @@ import fr.gouv.vitam.functional.administration.common.exception.InvalidFileForma
 
 public class InvalidFileFormatParseExceptionTest {
     @Test
-    public final void testFileFormatException() {    
-    assertEquals("", new InvalidFileFormatParseException("").getMessage());
-    assertEquals("test", new InvalidFileFormatParseException("test").getMessage());
-    assertNotNull(new InvalidFileFormatParseException(new Exception()).getCause());
-    assertNotNull(new InvalidFileFormatParseException("test", new Exception()).getCause());
-    assertNotNull(new InvalidFileFormatParseException("test", new Exception(), true, true).getCause());
+    public final void testFileFormatException() {
+        assertEquals("", new InvalidFileFormatParseException("").getMessage());
+        assertEquals("test", new InvalidFileFormatParseException("test").getMessage());
+        assertNotNull(new InvalidFileFormatParseException(new Exception()).getCause());
+        assertNotNull(new InvalidFileFormatParseException("test", new Exception()).getCause());
+        assertNotNull(new InvalidFileFormatParseException("test", new Exception(), true, true).getCause());
     }
 }

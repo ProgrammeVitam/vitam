@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>ingest-external</artifactId>
-		<version>0.7.0-SNAPSHOT</version>
+		<version>0.8.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>ingest-external-rest</artifactId>
 	<name>ingest-external-rest</name>
@@ -14,7 +14,7 @@
 		<unix.group>vitam</unix.group>
 	</properties>
 	<description>ingest external rest module</description>
-	
+
 	<dependencies>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
@@ -26,7 +26,7 @@
 			<artifactId>ingest-external-core</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -55,8 +55,18 @@
 			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-module-junit4</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-api-mockito</artifactId>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
-	
+
 	<build>
 		<plugins>
 			<plugin>
@@ -140,7 +150,7 @@
 					<!-- Images specification -->
 					<baseImage>${vitam.docker.registry.pull}/${vitam.docker.baseimage.antivirus}</baseImage>
 					<imageName>${vitam.docker.registry.push}/vitam/ingest-external</imageName>
-					<!-- copy the service's jar file from target into the root directory
+					<!-- copy the service's jar file from target into the root directory 
 						of the image -->
 					<resources>
 						<resource>
@@ -165,21 +175,41 @@
 					</resources>
 				</configuration>
 			</plugin>
-            <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>rpm-maven-plugin</artifactId>
-                    <configuration>
-                            <disabled>false</disabled>
-                    </configuration>
-            </plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>rpm-maven-plugin</artifactId>
+				<configuration>
+					<disabled>false</disabled>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.eclipse.jetty</groupId>
 				<artifactId>jetty-maven-plugin</artifactId>
 				<version>${jetty.version}</version>
 			</plugin>
 
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.6</version>
+				<executions>
+					<execution>
+						<id>process-test-classes</id>
+						<phase>process-test-classes</phase>
+						<configuration>
+							<target>
+								<chmod file="target/test-classes/scan-clamav.sh" perm="755" />
+							</target>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
 		</plugins>
 
 	</build>
-	
+
 </project>

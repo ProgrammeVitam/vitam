@@ -1,14 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-	<!--
-	This test file exemplifies a detect-content rule.
-
-	Protection #1: The rule should fire whenever the string "2008" appears in
-	               a response body.
-	Exception #1:  The rule should -not- fire when the content type is anything
-	               but text/*.
-
-	-->
+<!-- This test file exemplifies a detect-content rule. Protection #1: The 
+	rule should fire whenever the string "2008" appears in a response body. Exception 
+	#1: The rule should -not- fire when the content type is anything but text/*. -->
 
 <policy>
 
@@ -23,5 +17,5 @@
 	<outbound-rules>
 		<detect-content content-type=".*text/.*" pattern=".*2008.*" />
 	</outbound-rules>
-	
+
 </policy>

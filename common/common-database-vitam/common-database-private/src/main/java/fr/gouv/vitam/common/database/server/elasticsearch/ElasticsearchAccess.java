@@ -47,7 +47,7 @@ public class ElasticsearchAccess {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ElasticsearchAccess.class);
 
-    protected final Client client;
+    protected final TransportClient client;
     protected final String clusterName;
     protected final List<ElasticsearchNode> nodes;
 
@@ -76,14 +76,12 @@ public class ElasticsearchAccess {
 
         try {
 
-            TransportClient transportClient = TransportClient.builder().settings(settings).build();
+            client = TransportClient.builder().settings(settings).build();
 
             for (ElasticsearchNode node : nodes) {
-                transportClient.addTransportAddress(
+                client.addTransportAddress(
                     new InetSocketTransportAddress(InetAddress.getByName(node.getHostName()), node.getTcpPort()));
             }
-
-            client = TransportClient.builder().build();
 
         } catch (UnknownHostException e) {
             LOGGER.error(e.getMessage(), e);

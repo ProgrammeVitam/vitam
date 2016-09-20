@@ -1,0 +1,13 @@
+Ingest-internal
+###############
+
+Type :
+	Composant VITAM Java
+
+Données stockées : Aucune
+
+Typologie de consommation de resources :
+	* CPU : faible
+	* Mémoire : faible
+	* Réseau : généralement faible, sauf dans le cas d'entrées massive d'archives (entrant)
+	* Disque : faible

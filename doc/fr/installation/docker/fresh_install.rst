@@ -1,16 +1,22 @@
 Première installation
 #####################
 
+.. |repertoire_deploiement| replace:: ``deployment``
+.. |repertoire_inventory| replace:: ``environments``
+.. |repertoire_playbook ansible| replace:: ``ansible-vitam``
+
+
+
 Les fichiers de déploiement sont disponibles dans la version VITAM livrée dans le répertoire ``deployment`` Ils consistent en 2 parties :
  
- * le playbook ansible, présent dans le répertoire « ansible-vitam », qui est indépendant de l'environnement à déployer
- * les fichiers d'inventaire (1 par environnement à déployer) ; des fichiers d'exemple sont disponibles dans le répertoire ``environments``
+ * le playbook ansible, présent dans le sous-répertoire |repertoire_playbook ansible|, qui est indépendant de l'environnement à déployer
+ * les fichiers d'inventaire (1 par environnement à déployer) ; des fichiers d'exemple sont disponibles dans le sous-répertoire |repertoire_inventory|
 
-Pour configurer le déploiement, il est nécessaire de créer (dans n'importe quel répertoire en dehors du répertoire ``environments`` un nouveau fichier d'inventaire comportant les informations suivantes :
+Pour configurer le déploiement, il est nécessaire de créer dans le répertoire |repertoire_deploiement|/|repertoire_inventory| un nouveau fichier d'inventaire comportant les informations suivantes :
 
 
 .. literalinclude:: ../../../../deployment/environments/hosts.int
-   :language: ini
+   :language: yaml
    :linenos:
 
 Pour chaque type de "host" (lignes 16 à 54), indiquer le serveur défini pour chaque fonction.
@@ -31,17 +37,27 @@ Ensuite, dans la section ``hosts:vars``, renseigner comme suit :
    "local_user","Utilisateur créé sur les hôtes des docker pour le mapping correct entre docker et hôte",""
    "vitam_docker_tag","Tag des *containers* au téléchargement ; assimilable à la version",""
 
+
+A titre informatif, le positionnement des variables ainsi que des dérivations des déclarations de variables sont effectuées sous |repertoire_inventory| ``/group_vars/all``, comme suit :
+
+.. literalinclude:: ../../../../deployment/environments/group_vars/all
+   :language: yaml
+   :linenos:
+
+
+
 Le déploiement s'effectue depuis la machine "ansible" et va distribuer la solution VITAM selon l'inventaire correctement renseigné.
 
-1. Test 
+1. Test du déploiement
 
-Pour tester le déploiement de VITAM, il faut se placer dans le répertoire ``deployment`` et entrer la commande suivante :
+Pour tester le déploiement de VITAM, il faut se placer dans le répertoire |repertoire_deploiement| et entrer la commande suivante :
 
-``ansible-playbook ansible-vitam/vitam.yml -i <path du fichier d'inventaire créé plus haut> --check``
+``ansible-playbook`` |repertoire_playbook ansible| ``/vitam.yml -i`` |repertoire_inventory| ``/<ficher d'inventaire> --check``
+
 
 2. Déploiement
 
 Si la commande de test se termine avec succès, le déploiement est à réaliser avec la commande suivante :
 
-``ansible-playbook ansible-vitam/vitam.yml -i <path du fichier d'inventaire créé plus haut>``
+ansible-playbook |repertoire_playbook ansible|/vitam.yml -i |repertoire_inventory|/<ficher d'inventaire> 
 

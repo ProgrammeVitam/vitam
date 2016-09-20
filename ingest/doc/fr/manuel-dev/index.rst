@@ -20,7 +20,11 @@ Sommaire
    :maxdepth: 2
 
    introduction.rst
-   GUID.rst
+   ingest-internal-dat.rst
+   ingest-external-dat.rst
+   ingest-internal-client.rst
+   ingest-external-client.rst
+   ingest-external-antivirus.rst
 
 
 ##############

@@ -56,4 +56,12 @@ public class IngestExternalException extends VitamException {
     public IngestExternalException(Throwable exception) {
         super(exception);
     }
+    
+    /**
+     * @param message associated message
+     * @param cause associated cause
+     */
+    public IngestExternalException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

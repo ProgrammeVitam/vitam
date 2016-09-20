@@ -28,7 +28,7 @@
 package fr.gouv.vitam.functional.administration.common.exception;
 
 /**
- * Exception when creating a json object node from invalid object   
+ * Exception when creating a json object node from invalid object
  */
 public class JsonNodeFormatCreationException extends FileFormatException {
 

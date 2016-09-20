@@ -1,0 +1,99 @@
+/*******************************************************************************
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ *
+ * contact.vitam@culture.gouv.fr
+ *
+ * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
+ * high volumetry securely and efficiently.
+ *
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
+ * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ *
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
+ *
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
+ *
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
+ * accept its terms.
+ *******************************************************************************/
+package fr.gouv.vitam.processing.common.model;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+
+import org.junit.Test;
+
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+
+public class WorkerBeanTest {
+
+
+    private static final String JSON_WORKER =
+        "{ \"name\" : \"workername\", \"family\" : \"familyname\", \"capacity\" : 10, \"storage\" : 100," +
+            "\"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : 89102, " +
+            "\"serverContextPath\" : \"/\", \"useSSL\" : false } }";
+
+    @Test
+    public void testConstructor() {
+        WorkerBean wb = new WorkerBean();
+        assertEquals(null, wb.getFamily());
+        assertEquals(null, wb.getName());
+        assertEquals(0, wb.getCapacity());
+        assertEquals(0, wb.getStorage());
+        assertEquals(null, wb.getStatus());
+        assertEquals(null, wb.getWorkerId());
+        assertEquals(null, wb.getConfiguration());
+        assertNotNull(wb.toString());
+    }
+
+    @Test
+    public void testWorkBeanFromJson() throws InvalidParseOperationException {
+        WorkerBean wb = JsonHandler.getFromString(JSON_WORKER, WorkerBean.class);
+        assertEquals("familyname", wb.getFamily());
+        assertEquals("workername", wb.getName());
+        assertEquals(10, wb.getCapacity());
+        assertEquals(100, wb.getStorage());
+        assertEquals("Active", wb.getStatus());
+        assertNotEquals(null, wb.getConfiguration());
+        assertEquals("localhost", wb.getConfiguration().getServerHost());
+        assertEquals(89102, wb.getConfiguration().getServerPort());
+        assertEquals("/", wb.getConfiguration().getServerContextPath());
+        assertEquals(false, wb.getConfiguration().getUseSSL());
+        // Id information is not in the json
+        assertEquals(null, wb.getWorkerId());
+        assertNotNull(wb.toString());
+        System.out.println(wb.toString());
+    }
+
+    @Test
+    public void testWorkBeanSetters() throws InvalidParseOperationException {
+        WorkerBean wb = new WorkerBean();
+        wb.setCapacity(0).setFamily("family").setName("name")
+            .setStatus("Active").setStorage(0).setWorkerId("workerId");
+        WorkerRemoteConfiguration wc = new WorkerRemoteConfiguration("localhost",89102,"/",false);
+        wb.setConfiguration(wc);
+        assertEquals("family", wb.getFamily());
+        assertEquals("name", wb.getName());
+        assertEquals(0, wb.getCapacity());
+        assertEquals(0, wb.getStorage());
+        assertEquals("Active", wb.getStatus());
+        assertNotEquals(null, wb.getConfiguration());
+        assertEquals("/", wb.getConfiguration().getServerContextPath());
+        assertEquals("localhost", wb.getConfiguration().getServerHost());
+        assertEquals(89102, wb.getConfiguration().getServerPort());
+        assertEquals(false, wb.getConfiguration().getUseSSL());
+        assertEquals("workerId", wb.getWorkerId());
+        assertNotNull(wb.toString());
+    }
+
+}

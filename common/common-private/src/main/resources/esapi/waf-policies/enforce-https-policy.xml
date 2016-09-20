@@ -1,12 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-	<!--
-	This test file exemplifies an enforce-https rule.
-
-	Protection #1: a request of any kind for /foo should be redirected to secure request with 302.
-	Exception #1: Static path /index.html
-	Exception #2: Pattern path /images/.*
-	-->
+<!-- This test file exemplifies an enforce-https rule. Protection #1: a request 
+	of any kind for /foo should be redirected to secure request with 302. Exception 
+	#1: Static path /index.html Exception #2: Pattern path /images/.* -->
 
 <policy>
 

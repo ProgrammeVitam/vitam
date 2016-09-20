@@ -1,0 +1,22 @@
+---
+
+# Vitam solution deployment
+- hosts: vitam
+  roles:
+    - topbeat
+
+- hosts: hosts-storage-offer-default
+  roles:
+    - storage-offer-default
+
+- hosts: hosts-mongo-express
+  roles:
+    - mongo-express
+
+- hosts: library
+  roles:
+    - {role: vitam, vitam_component: library,java_args: /vitam/conf/library/library.conf, port_http: "{{vitam_library_port}}" } 
+
+- hosts: reverse
+  roles:
+    - reverse

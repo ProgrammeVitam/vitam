@@ -1,19 +1,19 @@
 {
   "service": {
     "name": "{{ vitam_component }}",
-    "port": {{ port }},
+    "port": {{ port_http }},
     "enableTagOverride": false,
     "checks": [
       {
         "id": "external-status",
         "notes": "Status applicatif externe : /{{ vitam_component }}/v1/status",
-        "http": "http://localhost:{{ port }}/{{ vitam_component }}/v1/status",
+        "http": "http://localhost:{{ port_http }}/{{ vitam_component }}/v1/status",
         "interval": "1s"
       },
       {
         "id": "external-port",
-        "notes": "Port externe ouvert : {{ port }}",
-        "tcp": "localhost:{{ port }}",
+        "notes": "Port externe ouvert : {{ port_http }}",
+        "tcp": "localhost:{{ port_http }}",
         "interval": "1s"
       }
     ]

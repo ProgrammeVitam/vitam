@@ -1,9 +1,9 @@
 Matrice des flux
 ################
 
-.. seealso:: La matrice complète des flux s'appuie sur les schémas présentés dans :doc:`la description de l'architecture technique <01-technical-architecture>`.
+.. seealso:: La matrice complète des flux s'appuie sur les schémas présentés dans :doc:`la description de l'architecture technique <01-technical-architecture>`, en y ajoutant notamment les flux internes au cluster.
 
-.. tabularcolumns:: |p{2cm}|p{2cm}|p{1cm}|p{0.5cm}|p{5cm}|
+.. .. tabularcolumns:: |p{2cm}|p{2cm}|p{1cm}|p{0.5cm}|p{5cm}|
 
 .. csv-table:: Matrice des flux métier
 	:header-rows: 1

@@ -26,42 +26,45 @@
  */
 package fr.gouv.vitam.ingest.external.rest;
 
-import com.fasterxml.jackson.databind.JsonMappingException;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.common.server.VitamServerFactory;
-import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
-import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
+import static java.lang.String.format;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.EnumSet;
+
+import javax.servlet.DispatcherType;
+
+import org.apache.shiro.web.env.EnvironmentLoaderListener;
+import org.apache.shiro.web.servlet.ShiroFilter;
 import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.common.server.VitamServerFactory;
+import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
 
 /**
  * Ingest External web application
  */
 public final class IngestExternalApplication extends AbstractVitamApplication<IngestExternalApplication, IngestExternalConfiguration> {
-    private static final String INGEST_EXTERNAL_APPLICATION_STARTS_ON_DEFAULT_PORT =
-        "IngestExternalApplication Starts on default port";
-    private static final String INGEST_EXTERNAL_APPLICATION_STARTS_ON_JETTY_CONFIG =
-        "IngestExternalApplication Starts with jetty config";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalApplication.class);
-    private static final String INGEST_EXTERNAL_CONF_FILE_NAME = "ingest-external.conf";
-    private static Server server;
-    private static IngestExternalConfiguration configuration;
+    private static final String CONF_FILE_NAME = "ingest-external.conf";
+    private static final String SHIRO_FILE = "shiro.ini";
+    private static final String MODULE_NAME = "ingest-external";
+    private static IngestExternalConfiguration serverConfiguration;
 
     /**
-     * LogbookApplication constructor
+     * Ingest External constructor
      */
     protected IngestExternalApplication() {
         super(IngestExternalApplication.class, IngestExternalConfiguration.class);
@@ -75,91 +78,53 @@ public final class IngestExternalApplication extends AbstractVitamApplication<In
      */
     public static void main(String[] args) {
         try {
-            final VitamServer vitamServer = startApplication(args);
+            if (args == null || args.length == 0) {
+                LOGGER.error(format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME));
+                throw new IllegalArgumentException(format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
+                    CONF_FILE_NAME));
+            }
+
+            final VitamServer vitamServer = startApplication(args[0]);
             vitamServer.run();
-        } catch (final VitamApplicationServerException exc) {
-            LOGGER.error(exc);
-            throw new IllegalStateException("Cannot start the Ingest External Application Server", exc);
+        } catch (final Exception e) {
+            LOGGER.error(format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
+            System.exit(1);
         }
     }
 
     /**
      * Prepare the application to be run or started.
      *
-     * @param args
+     * @param moduleConf moduleconf
      * @return the VitamServer
      * @throws IllegalStateException
      */
-    public static VitamServer startApplication(String[] args) {
+    public static VitamServer startApplication(String moduleConf) throws VitamException {
 
-        try {
-            VitamServer vitamServer = null;
+        final IngestExternalApplication application = new IngestExternalApplication();
+        application.configure(application.computeConfigurationPathFromInputArguments(moduleConf));
+        serverConfiguration = application.getConfiguration();
 
-            if (args!=null && args.length >= 1) {
+        LOGGER.info(format(VitamServer.SERVER_START_WITH_JETTY_CONFIG, MODULE_NAME));
+        VitamServer vitamServer = VitamServerFactory.newVitamServerByJettyConf(serverConfiguration.getJettyConfig());
+        vitamServer.configure(application.getApplicationHandler());
 
-                try {
-                    final File yamlFile = PropertiesUtils.findFile(args[0]);
-                    configuration = PropertiesUtils.readYaml(yamlFile, IngestExternalConfiguration.class);
-                    String jettyConfig = configuration.getJettyConfig();
-
-                    //TODO ne plus gerer le port en 2e parametres.
-                    //TODO Essayer de le setter dans le fichier de conf jetty
-                    if (args.length >= 2) {
-                        try {
-                            final int port = Integer.parseInt(args[1]);
-                            if (port <= 0) {
-                                LOGGER.info(INGEST_EXTERNAL_APPLICATION_STARTS_ON_DEFAULT_PORT);
-                                vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
-                            } else {
-                                LOGGER.info("IngestExternalApplication Starts on port: " + port);
-                                vitamServer = VitamServerFactory.newVitamServer(port);
-                            }
-                        } catch (final NumberFormatException e) {
-                            LOGGER.info(INGEST_EXTERNAL_APPLICATION_STARTS_ON_DEFAULT_PORT);
-                            vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
-                        }
-                    } else {
-                        LOGGER.info(INGEST_EXTERNAL_APPLICATION_STARTS_ON_JETTY_CONFIG);
-                        vitamServer = VitamServerFactory.newVitamServerByJettyConf(jettyConfig);
-                    }
-
-                } catch (FileNotFoundException e) {
-                    LOGGER.info(INGEST_EXTERNAL_APPLICATION_STARTS_ON_DEFAULT_PORT + ", config file not found ", e);
-                    vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
-                } catch (JsonMappingException e) {
-                    LOGGER.info(INGEST_EXTERNAL_APPLICATION_STARTS_ON_DEFAULT_PORT + ", config file parsing error ", e);
-                    vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
-                } catch (IOException e) {
-                    LOGGER.info(INGEST_EXTERNAL_APPLICATION_STARTS_ON_DEFAULT_PORT + ", config file io error ", e);
-                    vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
-                }
-            } else {
-                LOGGER.info(INGEST_EXTERNAL_APPLICATION_STARTS_ON_DEFAULT_PORT+", empty config file");
-                vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
-            }
-
-            final IngestExternalApplication application = new IngestExternalApplication();
-            application.configure(application.computeConfigurationPathFromInputArguments(args));
-            vitamServer.configure(application.getApplicationHandler());
-            return vitamServer;
-        } catch (final VitamApplicationServerException exc) {
-            LOGGER.error(exc);
-            throw new IllegalStateException("Cannot start the IngestExternal Application Server", exc);
-        }
+        return vitamServer;
     }
     
     @Override
     protected String getConfigFilename() {
-        return INGEST_EXTERNAL_CONF_FILE_NAME;
+        return CONF_FILE_NAME;
     }
 
     /**
      * Implement this method to construct your application specific handler
      *
      * @return the generated Handler
+     * @throws VitamApplicationServerException 
      */
     @Override
-    protected Handler buildApplicationHandler() {
+    protected Handler buildApplicationHandler() throws VitamApplicationServerException {
         final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(JacksonFeature.class);
         resourceConfig.register(new IngestExternalResource(getConfiguration()));
@@ -167,6 +132,23 @@ public final class IngestExternalApplication extends AbstractVitamApplication<In
         final ServletContainer servletContainer = new ServletContainer(resourceConfig);
         final ServletHolder sh = new ServletHolder(servletContainer);
         final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
+        
+        if(getConfiguration().isAuthentication()) {
+        
+            File shiroFile=null;
+            try {
+                shiroFile = PropertiesUtils.findFile(SHIRO_FILE);
+            } catch (FileNotFoundException e) {
+                LOGGER.error(e.getMessage(), e);
+                throw new VitamApplicationServerException(e.getMessage());
+            }
+            context.setInitParameter("shiroConfigLocations", "file:"+shiroFile.getAbsolutePath());
+            context.addEventListener(new EnvironmentLoaderListener());
+            context.addFilter(ShiroFilter.class, "/*", EnumSet.of(
+                DispatcherType.INCLUDE, DispatcherType.REQUEST,
+                DispatcherType.FORWARD, DispatcherType.ERROR));
+        }
+        
         context.setContextPath("/");
         context.addServlet(sh, "/*");
         return context;

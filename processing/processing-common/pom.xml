@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>processing</artifactId>
-		<version>0.7.0-SNAPSHOT</version>
+		<version>0.8.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>processing-common</artifactId>
 
@@ -40,7 +40,7 @@
 		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>metadata-builder</artifactId>
+			<artifactId>common-database-public</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>

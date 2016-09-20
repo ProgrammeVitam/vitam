@@ -31,7 +31,6 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import org.apache.commons.lang.StringUtils;
 
 /**
  * Vitam Server factory for REST server
@@ -102,9 +101,9 @@ public class VitamServerFactory {
             ParametersChecker.checkParameter("jetty config file", jettyConfigFile);
             return new BasicVitamServer(jettyConfigFile);
         } catch (IllegalArgumentException e) {
-            LOGGER.error("Jetty server not run with jetty config file, " + jettyConfigFile + "", e);
+            LOGGER.error("Jetty server can not run with this jetty config file : " + jettyConfigFile + e.getMessage(), e);
             throw new VitamApplicationServerException(
-                "Jetty server not run with jetty config file, " + jettyConfigFile);
+                "Jetty server can not run with this jetty config file : " + jettyConfigFile);
         }
     }
 }

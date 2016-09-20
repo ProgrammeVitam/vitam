@@ -9,12 +9,12 @@ import fr.gouv.vitam.functional.administration.common.exception.JsonNodeFormatCr
 
 public class JsonNodeFormatCreationExceptionTest {
     @Test
-    public final void testFileFormatException() {    
-    assertEquals("", new JsonNodeFormatCreationException("").getMessage());
-    assertEquals("test", new JsonNodeFormatCreationException("test").getMessage());
-    assertNotNull(new JsonNodeFormatCreationException(new Exception()).getCause());
-    assertNotNull(new JsonNodeFormatCreationException("test", new Exception()).getCause());
-    assertNotNull(new JsonNodeFormatCreationException("test", new Exception(), true, true).getCause());
+    public final void testFileFormatException() {
+        assertEquals("", new JsonNodeFormatCreationException("").getMessage());
+        assertEquals("test", new JsonNodeFormatCreationException("test").getMessage());
+        assertNotNull(new JsonNodeFormatCreationException(new Exception()).getCause());
+        assertNotNull(new JsonNodeFormatCreationException("test", new Exception()).getCause());
+        assertNotNull(new JsonNodeFormatCreationException("test", new Exception(), true, true).getCause());
     }
 
 }

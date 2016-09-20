@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+        targetNamespace="fr:gouv:culture:archivesdefrance:seda:v2.0"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:xlink="http://www.w3.org/1999/xlink"
+        xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0"
+        elementFormDefault="qualified"
+        attributeFormDefault="unqualified"
+        version="1.0">
+    
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" schemaLocation="http://www.w3.org/2001/xml.xsd"/>
+    <xsd:import namespace="http://www.w3.org/1999/xlink" schemaLocation="http://www.w3.org/1999/xlink.xsd"/>
+
+    <!--
+                *****************************
+                ***   Types de base
+                *****************************
+        -->
+    <!-- Code -->
+    <xsd:complexType name="CodeType">
+        <xsd:simpleContent>
+            <xsd:extension base="NonEmptyTokenType">
+                <xsd:attribute name="listID" type="xsd:token" use="optional"/>
+                <xsd:attribute name="listAgencyID" type="xsd:token" use="optional"/>
+                <xsd:attribute name="listAgencyName" type="xsd:string" use="optional"/>
+                <xsd:attribute name="listName" type="xsd:string" use="optional"/>
+                <xsd:attribute name="listVersionID" type="xsd:token" use="optional"/>
+                <xsd:attribute name="name" type="xsd:string" use="optional"/>
+                <xsd:attribute name="languageID" type="xsd:language" use="optional"/>
+                <xsd:attribute name="listURI" type="xsd:anyURI" use="optional"/>
+                <xsd:attribute name="listSchemeURI" type="xsd:anyURI" use="optional"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    
+    <!-- Texte -->
+    <xsd:complexType name="TextType">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+                <xsd:attribute ref="xml:lang" use="optional"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    
+    <!-- Identifiant -->
+    <xsd:complexType name="IdentifierType">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:token">
+                <xsd:attribute name="schemeID" type="xsd:token" use="optional"/>
+                <xsd:attribute name="schemeName" type="xsd:string" use="optional"/>
+                <xsd:attribute name="schemeAgencyID" type="xsd:token" use="optional"/>
+                <xsd:attribute name="schemeAgencyName" type="xsd:string" use="optional"/>
+                <xsd:attribute name="schemeVersionID" type="xsd:token" use="optional"/>
+                <xsd:attribute name="schemeDataURI" type="xsd:anyURI" use="optional"/>
+                <xsd:attribute name="schemeURI" type="xsd:anyURI" use="optional"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    
+    <!-- Type à spécifier -->
+    <xsd:attributeGroup name="OpenTypeAttributeGroup">
+        <xsd:attribute ref="xml:id" use="optional"/>
+        <xsd:attribute ref="xlink:href" use="optional"/>
+    </xsd:attributeGroup>
+    <xsd:complexType name="OpenType" abstract="true">
+        <xsd:sequence>
+            <xsd:any namespace="##other" processContents="lax" minOccurs="0"/>
+        </xsd:sequence>
+        <xsd:attributeGroup ref="OpenTypeAttributeGroup"/>
+    </xsd:complexType> 
+
+    <xsd:simpleType name="NonEmptyTokenType">
+        <xsd:annotation>
+            <xsd:documentation>Elément ne pouvant être vide.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:token">
+            <xsd:minLength value="1"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <!-- ID -->
+    <xsd:simpleType name="DataObjectIdType">
+        <xsd:annotation>
+            <xsd:documentation>Identifiant utilisé pour les objets-données.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:ID"/>
+    </xsd:simpleType>
+    <xsd:simpleType name="DataObjectRefIdType">
+        <xsd:annotation>
+            <xsd:documentation>Identifiant servant aux relations des objets-données.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:IDREF"/>
+    </xsd:simpleType>
+    <xsd:simpleType name="GroupIdType">
+        <xsd:annotation>
+            <xsd:documentation>Identifiant utilisé pour les groupes d'objets-données.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:union>
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:ID"/>
+            </xsd:simpleType>
+        </xsd:union>
+    </xsd:simpleType>
+    <xsd:simpleType name="GroupRefIdType">
+        <xsd:annotation>
+            <xsd:documentation>Identifiant utilisé pour référencer les groupes d'objets-données.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:IDREF"/>
+    </xsd:simpleType>
+    <xsd:complexType name="DataObjectRefType">
+        <xsd:annotation>
+            <xsd:documentation>Référence à un objet-données ou à un groupe d'objets-données.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:choice>
+                <xsd:element name="DataObjectReferenceId" type="DataObjectRefIdType">
+                    <xsd:annotation>
+                        <xsd:documentation>Référence à un objet-données listé dans les métadonnées de transport.</xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="DataObjectGroupReferenceId" type="GroupRefIdType">
+                    <xsd:annotation>
+                        <xsd:documentation>Référence à un groupe d'objets-données listé dans les métadonnées de transport.</xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:choice>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:ID" use="optional"/>
+    </xsd:complexType>
+    
+    <!-- ID of an ArchiveUnit -->
+    <xsd:simpleType name="ArchiveUnitIdType">
+        <xsd:annotation>
+            <xsd:documentation>Identifiant utilisé pour les unités d'archives.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:ID"/>
+    </xsd:simpleType>
+    <xsd:simpleType name="ArchiveUnitRefIdType">
+        <xsd:annotation>
+            <xsd:documentation>Référence aux identifiants utilisés pour les unités d'archives.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:IDREF"/>
+    </xsd:simpleType>
+    
+    <xsd:simpleType name="SizeInBytesType">
+        <xsd:annotation>
+            <xsd:documentation>Poids des objets-données binaires en bytes.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:positiveInteger"/>
+    </xsd:simpleType>
+
+    <!-- Binary encoding -->
+    <xsd:simpleType name="BinaryType">
+        <xsd:annotation>
+            <xsd:documentation>Représentation binaire : utilisation possible de base64 ou d'hexadécimal.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:union memberTypes="xsd:base64Binary xsd:hexBinary"/>
+    </xsd:simpleType>
+    
+    <!-- Digest -->
+    <xsd:group name="DigestAlgorithmCodeListGroup">
+        <xsd:sequence>
+            <xsd:element name="MessageDigestAlgorithmCodeListVersion" type="CodeType">
+                <xsd:annotation>
+                    <xsd:documentation>Liste de l'algorithme de hachage utilisé dans le message.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:group>
+    <xsd:simpleType name="DigestAlgorithmCodeType">
+        <xsd:annotation>
+            <xsd:documentation>Algorithme de hachage spécifié dans DigestAlgorithmCodeList.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="NonEmptyTokenType"/>
+    </xsd:simpleType>
+    <xsd:complexType name="MessageDigestBinaryObjectType">
+        <xsd:simpleContent>
+            <xsd:extension base="BinaryType">
+                <xsd:attribute name="algorithm" type="DigestAlgorithmCodeType" use="required"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    
+    <!--
+                *****************************
+                ***   Types métier
+                *****************************
+ 
+        -->
+    
+    <!-- Contenu de données binaire -->
+    <xsd:complexType name="BinaryObjectType"> 
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:base64Binary">
+                <xsd:attribute name="filename" type="xsd:string" use="optional"/>
+                <xsd:attribute name="uri" type="xsd:anyURI" use="optional"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType> 
+    
+    <!-- Données liées -->
+    <xsd:complexType name="RelationshipType">
+        <xsd:attribute name="target" type="xsd:IDREF" use="required"/>
+        <xsd:attribute name="type" type="NonEmptyTokenType" use="required"/>
+    </xsd:complexType>
+    
+    <!-- Organisation -->
+    <xsd:complexType name="OrganizationType">
+        <xsd:sequence>
+            <xsd:element name="Identifier" type="IdentifierType">
+                <xsd:annotation>
+                    <xsd:documentation>Identifiant de l'organisation.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="OrganizationDescriptiveMetadata" type="OrganizationDescriptiveMetadataType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Métadonnées de description de l'organisation.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <!--
+                ***************************** 
+                ***   Objets à redéfinir
+                *****************************
+                La redéfinition permet de fixer le nom de la balise tout en permettant la définition du type ultérieurement
+        -->
+    
+    <!-- Métadonnées descriptives pour une organisation -->
+    <xsd:complexType name="OrganizationDescriptiveMetadataType">
+        <xsd:annotation>
+            <xsd:documentation>Contient toutes les métadonnées de description des organisations.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="OpenType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+        
+    <!-- Signature in Main message block -->
+    <xsd:complexType name="SignatureType">
+        <xsd:annotation>
+            <xsd:documentation>Contient toutes les métadonnées dsur la signature.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="OpenType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <!-- In CoreMetadataType from seda-2.0-technical.xsd: Technical Metadata Content -->
+    <xsd:complexType name="TextTechnicalMetadataType">
+        <xsd:annotation>
+            <xsd:documentation>Contient toutes les métadonnées techniques de base pour les objets-données de type texte(XML, JSON, CSV, ...).</xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="OpenType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:complexType name="DocumentTechnicalMetadataType">
+        <xsd:annotation>
+            <xsd:documentation>Contient toutes les métadonnées techniques de base pour les objets-données de type document (Word, PDF, XLS, LibreOffice, ...).</xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="OpenType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:complexType name="ImageTechnicalMetadataType">
+        <xsd:annotation>
+            <xsd:documentation>Contient toutes les métadonnées techniques de base pour les objets-données de type image.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="OpenType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:complexType name="AudioTechnicalMetadataType">
+        <xsd:annotation>
+            <xsd:documentation>Contient toutes les métadonnées techniques de base pour les objets-données de type audio.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="OpenType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:complexType name="VideoTechnicalMetadataType">
+        <xsd:annotation>
+            <xsd:documentation>Contient toutes les métadonnées techniques de base pour les objets-données de type video.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="OpenType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:complexType name="DescriptiveTechnicalMetadataType">
+        <xsd:annotation>
+            <xsd:documentation>Contient toutes les métadonnées techniques et/ou descriptives définies dans un schéma par un service producteur ou versant mais n'étant pas présentes dans les métadonnées de base.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="OpenType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+    
+    <!--
+                ******************************************* 
+                ***   Objets à spécifier par substitution
+                *******************************************
+                La substitution permet de ne pas fixer le nom de la balise, d'en autoriser plusieurs et de laisser l'implémentation choisir en fonction de ses besoins.
+        -->
+    <!-- In ObjectGroup from seda-2-0-ontology.xsd: Extra Descriptive Metadata Content -->
+    <xsd:element name="ObjectGroupExtenstionAbstract" abstract="true">
+        <xsd:annotation>
+            <xsd:documentation>Permet d'étendre ObjectGroup avec d'autres métadonnées descriptives.</xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    
+    <!-- In PhysicalTechnicalDescriptionGroup from seda-2.0-technical.xsd: extra dimension techncal description for PhysicalDataObject -->
+    <xsd:element name="OtherDimensionsAbstract" abstract="true">
+        <xsd:annotation>
+            <xsd:documentation>Permet d'étendre &lt;OtherDimensions&gt; avec d'autres métadonnées de description des objets-données physiques.</xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    
+    <!-- In CoreMetadataType from seda-2.0-technical.xsd: extra Core TechnicalMetadata (Database, 3D, plan, ...) -->
+    <xsd:element name="OtherCoreTechnicalMetadataAbstract" abstract="true" type="OpenType">
+        <xsd:annotation>
+            <xsd:documentation>Contient toutes les métadonnées techniques de base pour d'autres types.</xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    
+    <!-- In ArchiveUnitType from seda-2.0-descriptive.xsd: Abstract for ArchiveUnit reference from within EAS -->
+    <xsd:element name="ArchiveUnitReferenceAbstract" abstract="true">
+        <xsd:annotation>
+            <xsd:documentation>Contient les requêtes nécessaires pour trouver un ArchiveUnit et pointer sur lui dans un prochain ArchiveUnit.
+                Permet de référencer un noeud déjà existant dans un arbre à partir d'un transfert précédent.</xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    
+    <!-- In ManagementGroup from seda-2.0-management.xsd: for Management extension -->
+    <xsd:element name="OtherManagementAbstract" abstract="true">
+        <xsd:annotation>
+            <xsd:documentation>Utilisé par exemple pour manipuler un ArchiveUnit déjà existant dans le système d'archivage électronique.</xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    
+    <!-- In CodeListVersionsType from seda-2.0-main.xsd: If needed, extra CodeList could be added -->
+    <xsd:element name="OtherCodeListAbstract" abstract="true" type="CodeType">
+        <xsd:annotation>
+            <xsd:documentation>Permet d'ajouter de nouvelles listes de codes si l'ajout d'autres métadonnées l'impose.</xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    
+</xsd:schema>
+ 

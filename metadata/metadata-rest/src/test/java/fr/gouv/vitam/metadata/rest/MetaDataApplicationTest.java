@@ -26,13 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.rest;
 
-import java.io.File;
-import java.io.IOException;
-
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -42,7 +35,19 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.node.Node;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import java.io.File;
+
+import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
 
 public class MetaDataApplicationTest {
     private static final String METADATA_CONF = "metadata.conf";
@@ -52,10 +57,42 @@ public class MetaDataApplicationTest {
     private static JunitHelper junitHelper;
     private static int port;
 
+    @ClassRule
+    public static TemporaryFolder tempFolder = new TemporaryFolder();
+    private static File elasticsearchHome;
+
+    private final static String CLUSTER_NAME = "vitam-cluster";
+    private static int TCP_PORT = 9300;
+    private static int HTTP_PORT = 9200;
+    private static Node node;
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        final MongodStarter starter = MongodStarter.getDefaultInstance();
         junitHelper = new JunitHelper();
+
+        // ES
+        TCP_PORT = junitHelper.findAvailablePort();
+        HTTP_PORT = junitHelper.findAvailablePort();
+
+        elasticsearchHome = tempFolder.newFolder();
+        Settings settings = Settings.settingsBuilder()
+            .put("http.enabled", true)
+            .put("discovery.zen.ping.multicast.enabled", false)
+            .put("transport.tcp.port", TCP_PORT)
+            .put("http.port", HTTP_PORT)
+            .put("path.home", elasticsearchHome.getCanonicalPath())
+            .build();
+
+        node = nodeBuilder()
+            .settings(settings)
+            .client(false)
+            .clusterName(CLUSTER_NAME)
+            .node();
+
+        node.start();
+
+        final MongodStarter starter = MongodStarter.getDefaultInstance();
+
         port = junitHelper.findAvailablePort();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .version(Version.Main.PRODUCTION)
@@ -69,11 +106,18 @@ public class MetaDataApplicationTest {
         mongod.stop();
         mongodExecutable.stop();
         junitHelper.releasePort(port);
+
+        if (node != null) {
+            node.close();
+        }
+
+        junitHelper.releasePort(TCP_PORT);
+        junitHelper.releasePort(HTTP_PORT);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = VitamApplicationServerException.class)
     public void givenEmptyArgsWhenConfigureApplicationThenRaiseAnException() throws Exception {
-        application.configure(new String[0]);
+        application.configure("");
     }
 
     @Test(expected = Exception.class)
@@ -86,10 +130,11 @@ public class MetaDataApplicationTest {
         File conf = PropertiesUtils.findFile(METADATA_CONF);
         MetaDataConfiguration config = PropertiesUtils.readYaml(conf, MetaDataConfiguration.class);
         config.setPort(port);
+        config.getElasticsearchNodes().get(0).setTcpPort(TCP_PORT);
         File newConf = File.createTempFile("test", METADATA_CONF, conf.getParentFile());
         PropertiesUtils.writeYaml(newConf, config);
         int serverPort = junitHelper.findAvailablePort();
-        application.configure(newConf.getAbsolutePath(), Integer.toString(serverPort));
+        application.configure(newConf.getAbsolutePath());
         newConf.delete();
         junitHelper.releasePort(serverPort);
         application.stop();
@@ -100,6 +145,7 @@ public class MetaDataApplicationTest {
         File conf = PropertiesUtils.findFile(METADATA_CONF);
         MetaDataConfiguration config = PropertiesUtils.readYaml(conf, MetaDataConfiguration.class);
         config.setPort(port);
+        config.getElasticsearchNodes().get(0).setTcpPort(TCP_PORT);
         File newConf = File.createTempFile("test", METADATA_CONF, conf.getParentFile());
         PropertiesUtils.writeYaml(newConf, config);
         application.configure(newConf.getAbsolutePath());
@@ -112,9 +158,10 @@ public class MetaDataApplicationTest {
         File conf = PropertiesUtils.findFile(METADATA_CONF);
         MetaDataConfiguration config = PropertiesUtils.readYaml(conf, MetaDataConfiguration.class);
         config.setPort(port);
+        config.getElasticsearchNodes().get(0).setTcpPort(TCP_PORT);
         File newConf = File.createTempFile("test", METADATA_CONF, conf.getParentFile());
         PropertiesUtils.writeYaml(newConf, config);
-        application.configure(newConf.getAbsolutePath(), "-12");
+        application.configure(newConf.getAbsolutePath());
         newConf.delete();
         application.stop();
     }

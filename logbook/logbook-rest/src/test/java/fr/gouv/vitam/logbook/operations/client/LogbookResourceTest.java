@@ -49,10 +49,8 @@ import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.BasicVitamServer;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -70,7 +68,7 @@ import fr.gouv.vitam.logbook.rest.LogbookConfiguration;
 public class LogbookResourceTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookResourceTest.class);
 
-    private static final String LOGBOOK_CONF = "logbook.conf";
+    private static final String LOGBOOK_CONF = "logbook-test.conf";
     private static final String DATABASE_HOST = "localhost";
     private static MongoDbAccess mongoDbAccess;
     private static MongodExecutable mongodExecutable;
@@ -81,9 +79,9 @@ public class LogbookResourceTest {
     private static final String OPERATIONS_URI = "/operations";
     private static final String OPERATION_ID_URI = "/{id_op}";
     private static final String STATUS_URI = "/status";
-    private static int databasePort;
-    private static int serverPort;
-    private static File newLogbookConf;
+    private static int databasePort = 52661;
+    private static int serverPort = 8889;
+    // private static File newLogbookConf;
 
     private static LogbookOperationParameters logbookParametersStart;
     private static LogbookOperationParameters logbookParametersAppend;
@@ -95,13 +93,13 @@ public class LogbookResourceTest {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
 
-        final JunitHelper junitHelper = new JunitHelper();
-        databasePort = junitHelper.findAvailablePort();
+        // final JunitHelper junitHelper = new JunitHelper();
+        // databasePort = junitHelper.findAvailablePort();
         final File logbook = PropertiesUtils.findFile(LOGBOOK_CONF);
         final LogbookConfiguration realLogbook = PropertiesUtils.readYaml(logbook, LogbookConfiguration.class);
         realLogbook.setDbPort(databasePort);
-        newLogbookConf = File.createTempFile("test", LOGBOOK_CONF, logbook.getParentFile());
-        PropertiesUtils.writeYaml(newLogbookConf, realLogbook);
+        // newLogbookConf = File.createTempFile("test", LOGBOOK_CONF, logbook.getParentFile());
+        // PropertiesUtils.writeYaml(newLogbookConf, realLogbook);
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .version(Version.Main.PRODUCTION)
@@ -112,13 +110,10 @@ public class LogbookResourceTest {
             MongoDbAccessFactory.create(
                 new DbConfigurationImpl(DATABASE_HOST, databasePort,
                     "vitam-test"));
-        serverPort = junitHelper.findAvailablePort();
+        // serverPort = junitHelper.findAvailablePort();
 
         try {
-            vitamServer = LogbookApplication.startApplication(new String[] {
-                newLogbookConf.getAbsolutePath(),
-                Integer.toString(serverPort)});
-            ((BasicVitamServer) vitamServer).start();
+            LogbookApplication.startApplication(new String[] {LOGBOOK_CONF});
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
             throw new IllegalStateException(
@@ -150,14 +145,14 @@ public class LogbookResourceTest {
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
         try {
-            ((BasicVitamServer) vitamServer).stop();
+            LogbookApplication.stop();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
         }
         mongoDbAccess.close();
         mongod.stop();
         mongodExecutable.stop();
-        newLogbookConf.delete();
+        // newLogbookConf.delete();
     }
 
 

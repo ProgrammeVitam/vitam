@@ -35,7 +35,7 @@ import fr.gouv.vitam.common.ParametersChecker;
  *
  */
 public class IngestExternalError {
-// FIXME aucun getter ?
+
     private int code;
     private String context;
     private String state;
@@ -109,5 +109,29 @@ public class IngestExternalError {
         ParametersChecker.checkParameter("List errors is a mandatory parameter", errors);
         this.errors = errors;
         return this;
+    }
+
+    public int getCode() {
+        return code;
+    }
+
+    public String getContext() {
+        return context;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public List<IngestExternalError> getErrors() {
+        return errors;
     }
 }

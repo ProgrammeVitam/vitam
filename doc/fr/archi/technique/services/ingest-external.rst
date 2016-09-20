@@ -1,0 +1,42 @@
+Ingest-external
+###############
+
+Type :
+	Composant VITAM Java
+
+Données stockées :
+	* Fichiers SEDA (sas de validation de conformité et sanity checks)
+
+Typologie de consommation de resources :
+	* CPU : faible
+	* Mémoire : faible
+	* Réseau : généralement faible, sauf dans le cas d'entrées massive d'archives (entrant)
+	* Disque : important (stockage temporaire des fichiers SEDA entrants)
+
+
+Antivirus
+=========
+
+Lors de l'entrée d'un fichier SEDA, ce dernier est soumis à un scan antivirus. L'antivirus utilisé est configurable ; la configuration du service ``ingest-external`` permet de définir un exécutable (ou script shell) qui est lancé pour réaliser l'analyse antivirus. Cet exécutable doit respecter le contrat suivant :
+
+* Sémantique des codes de retour
+  
+   - 0 : Analyse terminée - aucun virus trouvé
+   - 1 : Analyse terminée - virus trouvé et corrigé
+   - 2 : Analyse terminée - virus trouvé mais non corrigé
+   - 3 : Analyse en échec
+
+* Arguments
+
+    - Argument 1 : chemin absolu du fichier à analyser
+
+* Streams de sortie
+ 
+   - stdout : 
+
+      + Si l'analyse se termine : nom des virus trouvés, un par ligne
+      + Si l'analyse échoue : raison de l'échec
+
+  - stderr : 
+
+      + Messages de log de l'antivirus

@@ -8,8 +8,9 @@ public class IngestExternalOutcomeMessageTest {
 
     @Test
     public void givenIngestExternalWhenGetAntiVirusResultThenSendOutcomeMessage() {
-        assertEquals("Le SIP ne contient pas de virus", IngestExternalOutcomeMessage.valueOf("OK_VIRUS").value());
-        assertEquals("SIP infecté", IngestExternalOutcomeMessage.valueOf("KO_VIRUS").value());
+        assertEquals("Contrôle sanitaire réalisé avec succès : aucun virus détecté", IngestExternalOutcomeMessage.valueOf("OK_VIRUS").value());
+        assertEquals("Echec Contrôle sanitaire : virus détecté SIP infecté",
+            IngestExternalOutcomeMessage.valueOf("KO_VIRUS").value());
     }
 
 }

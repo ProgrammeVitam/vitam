@@ -12,6 +12,7 @@ hosts-storageengine
 hosts-storageofferdefault
 hosts-ingest-external
 hosts-functional-administration
+hosts-worker
 
 [hosts-ihm-demo]
 {{local_docker0_ip}}
@@ -52,6 +53,9 @@ hosts-functional-administration
 [hosts-storageofferdefault]
 {{local_docker0_ip}}
 
+[hosts-worker]
+{{local_docker0_ip}}
+
 [hosts:vars]
 ansible_become=true
 ansible_connection=local
@@ -61,6 +65,6 @@ vitam_folder_permission=0775
 vitam_conf_permission=0775
 pull_strategy=missing
 local_user=vitam
-vitam_docker_tag=0.7.0-SNAPSHOT
+vitam_docker_tag=0.8.0-SNAPSHOT
 
 local_docker0_ip=172.17.0.1

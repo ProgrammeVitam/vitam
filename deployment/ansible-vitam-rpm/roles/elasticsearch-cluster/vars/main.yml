@@ -1,8 +1,7 @@
 ---
 # vars file for elasticsaerch-cluster
-vitam_component: "elasticsearch-data"
+elasticsearch_user: "elasticsearch"
 elasticsearch_max_open_files: "65535"
-elasticsearch_port: "9200"
-cluster_name: "{{environnement}}_data"
-elasticsearch_log_dir: "/vitam/log/{{vitam_component}}"
-elasticsearch_data_dir: "/vitam/data/{{vitam_component}}"
+elasticsearch_log_dir: "{{vitam_folder_root}}/log/{{cluster_name}}"
+elasticsearch_data_dir: "{{vitam_folder_root}}/data/{{cluster_name}}"
+elasticsearch_conf_dir: "{{vitam_folder_root}}/conf/{{cluster_name}}"

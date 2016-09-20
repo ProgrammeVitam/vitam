@@ -14,11 +14,16 @@ Bibliothèques structurantes
 ---------------------------
 
 * Jetty : moteur de servlet
-* Jersey 2 : framework REST
-
 
 Requises
 ========
 
-* Java runtime
-  
+* Java (:term:`JRE`) 8 
+
+
+.. seealso::
+
+	Pour chaque version du système VITAM :
+
+	* les composant fournis ou installés par dépendance sont précisés dans la documentation d'installation (:term:`DIN`) ;
+	* la liste des bibliothèques opensources incluses est précisée dans les release notes.

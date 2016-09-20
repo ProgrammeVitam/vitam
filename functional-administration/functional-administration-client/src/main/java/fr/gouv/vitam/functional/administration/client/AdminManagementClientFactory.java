@@ -37,22 +37,22 @@ import fr.gouv.vitam.common.server.application.configuration.ClientConfiguration
 import fr.gouv.vitam.common.server.application.configuration.ClientConfigurationImpl;
 
 /**
- * admin management client factory
- * use to get client by type "rest" or "mock"
+ * admin management client factory use to get client by type "rest" or "mock"
  */
 public class AdminManagementClientFactory {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementClientFactory.class);
     private static AdminManagementClientType defaultClientType;
-    private static final AdminManagementClientFactory ADMIN_MANAGEMENT_CLIENT_FACTORY = new AdminManagementClientFactory();
+    private static final AdminManagementClientFactory ADMIN_MANAGEMENT_CLIENT_FACTORY =
+        new AdminManagementClientFactory();
     private static final String CONFIGURATION_FILENAME = "functional-administration-client.conf";
-    
+
     private String server = "localhost";
     private int port = VitamServerFactory.getDefaultPort();
-    
-    private AdminManagementClientFactory(){
+
+    private AdminManagementClientFactory() {
         changeConfigurationFile(CONFIGURATION_FILENAME);
     }
-    
+
     /**
      * Set the AdminManagementClientFactory configuration
      *
@@ -69,7 +69,7 @@ public class AdminManagementClientFactory {
         ADMIN_MANAGEMENT_CLIENT_FACTORY.server = server;
         ADMIN_MANAGEMENT_CLIENT_FACTORY.port = port;
     }
-    
+
     /**
      * Get the AdminManagementClientFactory instance
      *
@@ -78,7 +78,7 @@ public class AdminManagementClientFactory {
     public static final AdminManagementClientFactory getInstance() {
         return ADMIN_MANAGEMENT_CLIENT_FACTORY;
     }
-    
+
     /**
      * Get the default type admin management client
      *
@@ -98,7 +98,7 @@ public class AdminManagementClientFactory {
         }
         return client;
     }
-    
+
     /**
      * Modify the default AdminManagement client type
      *
@@ -109,7 +109,7 @@ public class AdminManagementClientFactory {
         ParametersChecker.checkParameter("type is a mandatory parameter", type);
         defaultClientType = type;
     }
-    
+
     /**
      * Change client configuration from a Yaml files
      *
@@ -122,7 +122,8 @@ public class AdminManagementClientFactory {
             configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
                 ClientConfigurationImpl.class);
         } catch (final IOException fnf) {
-            //TODO : See how to alert on the use of the mock system (can be dangerous in production to run with the mock)
+            // TODO : See how to alert on the use of the mock system (can be dangerous in production to run with the
+            // mock)
             LOGGER.error(String.format("Error when retrieving configuration file %s, using mock",
                 configurationPath),
                 fnf);
@@ -135,8 +136,8 @@ public class AdminManagementClientFactory {
             port = configuration.getServerPort();
             changeDefaultClientType(AdminManagementClientType.REST_CLIENT);
         }
-    }    
-    
+    }
+
     /**
      * enum to define client type
      */

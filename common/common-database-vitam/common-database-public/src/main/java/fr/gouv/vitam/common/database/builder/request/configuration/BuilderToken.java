@@ -48,23 +48,20 @@ public abstract class BuilderToken {
     }
 
     /**
-     *For a Select :<br>
-     *                { $roots: roots, $query : query, $filter : filter, $projection : projection } or [ roots, query,
-     *                filter, projection ]<br>
-     *                For an Update : <br>
-     *                { $roots: roots, $query : query, $filter : multi, $action : action } or [ roots, query, multi,
-     *                action ]<br>
-     *                For an Insert : <br>
-     *                { $roots: roots, $query : query, $filter : multi, $data : data } or [ roots, query, multi, data ]
-     *                <br>
-     *                For a Delete : <br>
-     *                { $roots: roots, $query : query, $filter : multi } or [ roots, query, multi ]<br>
+     * For a Select :<br>
+     * { $roots: roots, $query : query, $filter : filter, $projection : projection } or [ roots, query, filter,
+     * projection ]<br>
+     * For an Update : <br>
+     * { $roots: roots, $query : query, $filter : multi, $action : action } or [ roots, query, multi, action ]<br>
+     * For an Insert : <br>
+     * { $roots: roots, $query : query, $filter : multi, $data : data } or [ roots, query, multi, data ] <br>
+     * For a Delete : <br>
+     * { $roots: roots, $query : query, $filter : multi } or [ roots, query, multi ]<br>
      *
-     *                Select is in a subtree, by default next level (1), except if $exactdepth is set with a value
-     *                (exact depth) or $depth with a relative value (+ or -, meaning leaves or parents, 0 for no limit
-     *                in leaves depth) Only one of $exactdepth and $depth might be set. If both are set, only $depth
-     *                will be kept. <br>
-     *                { expression, $exactdepth : exactdepth, $depth : /- depth }
+     * Select is in a subtree, by default next level (1), except if $exactdepth is set with a value (exact depth) or
+     * $depth with a relative value (+ or -, meaning leaves or parents, 0 for no limit in leaves depth) Only one of
+     * $exactdepth and $depth might be set. If both are set, only $depth will be kept. <br>
+     * { expression, $exactdepth : exactdepth, $depth : /- depth }
      * 
      */
     public static enum GLOBAL {
@@ -118,6 +115,10 @@ public abstract class BuilderToken {
      *
      */
     public static enum QUERY {
+        /**
+         * NOP expression, used to represent nop (Null Operation) query '{'$nop':'1'}'
+         */
+        NOP("nop"),
         /**
          * All expressions are grouped by an AND operator (all shall be true)<br>
          * $and : [ expression1, expression2, ... ]
@@ -511,6 +512,10 @@ public abstract class BuilderToken {
          */
         ALL("all"),
         /**
+         * Qualifiers field
+         */
+        QUALIFIERS("qualifiers"),
+        /**
          * Object size
          */
         SIZE("size"),
@@ -521,7 +526,15 @@ public abstract class BuilderToken {
         /**
          * Unit/ObjectGroup type
          */
-        TYPE("type");
+        TYPE("type"),
+        /**
+         * Unit's ObjectGroup
+         */
+        OBJECT("object"),
+        /**
+         * Unit's immediate parents
+         */
+        UNITUPS("unitups");
 
         private final String exactToken;
 
@@ -558,7 +571,7 @@ public abstract class BuilderToken {
          * Query should not have a timeout (scrolling)
          */
         NOTIMEOUT("notimeout"),
-        
+
         /**
          * Query concerns Others
          */

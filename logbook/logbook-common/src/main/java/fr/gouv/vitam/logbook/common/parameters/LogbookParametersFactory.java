@@ -55,6 +55,8 @@ import fr.gouv.vitam.common.guid.GUID;
  *     }
  * </pre>
  */
+// TODO: see WorkerParametersFactory and create a common factory
+// for all "vitam parameters" using generic (for example)
 public class LogbookParametersFactory {
 
     private static final String NO_PARAMETER_CAN_BE_NULL_OR_EMPTY = "No parameter can be null or empty";

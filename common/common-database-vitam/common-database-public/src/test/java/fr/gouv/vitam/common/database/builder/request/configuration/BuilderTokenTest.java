@@ -31,6 +31,7 @@ public class BuilderTokenTest {
         assertEquals(QUERY.AND.exactToken(), "$and");
         assertEquals(SELECTFILTER.LIMIT.exactToken(), "$limit");
         assertEquals(GLOBAL.QUERY.exactToken(), "$query");
+        assertEquals(PROJECTIONARGS.QUALIFIERS.exactToken(), "#qualifiers");
     }
 
 

@@ -4,7 +4,7 @@
     <parent>
         <groupId>fr.gouv.vitam</groupId>
         <artifactId>ingest-internal</artifactId>
-		<version>0.7.0-SNAPSHOT</version>
+		<version>0.8.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>ingest-internal-rest</artifactId>
@@ -22,7 +22,8 @@
 				<plugin>
 					<!-- Run the Junit unit tests in an isolated classloader and not Parallel. -->
 					<artifactId>maven-surefire-plugin</artifactId>
-					<configuration>
+					<version>2.19.1</version>
+                    <configuration>
 						<parallel>classes</parallel>
 						<threadCount>1</threadCount>
 						<perCoreThreadCount>false</perCoreThreadCount>
@@ -272,7 +273,6 @@
             <artifactId>jersey-test-framework-provider-jetty</artifactId>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>org.glassfish.grizzly</groupId>
             <artifactId>grizzly-http-server</artifactId>

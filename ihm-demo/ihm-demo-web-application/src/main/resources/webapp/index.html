@@ -18,6 +18,7 @@
 
   <script src="bower_components/jquery/dist/jquery.js"></script>
   <script src="bower_components/angular/angular.js"></script>
+  <script src="bower_components/angular-cookies/angular-cookies.min.js"></script>
   <script src="bower_components/angular-aria/angular-aria.min.js"></script>
   <script src="bower_components/angular-material/angular-material.min.js"></script>
   <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
@@ -30,6 +31,9 @@
   <script src="bower_components/restangular/dist/restangular.min.js"></script>
   <script src="bower_components/angular-messages/angular-messages.js"></script>
   <script src="bower_components/v-accordion/dist/v-accordion.js"></script>
+  <script src="bower_components/angular-shiro/dist/angular-shiro.js"></script>
+  <script src="bower_components/jquery-ui/jquery-ui.js"></script>
+
 
   <script src="modules/parent/app.module.js"></script>
   <script src="modules/parent/app.config.js"></script>
@@ -37,10 +41,15 @@
   <script src="js/controller/upload-sip-controller.js"></script>
   <script src="modules/logbook/logbook-controller.js"></script>
   <script src="modules/logbook/logbook-component.js"></script>
+  
   <script src="modules/file-format/fileformat-component.js"></script>
   <script src="modules/file-format/fileformat-controller.js"></script>
   <script src="js/controller/admin-controller.js"></script>
   <script src="js/controller/import-pronoun-controller.js"></script>
+
+  <script src="modules/file-rules/filerules-component.js"></script>
+  <script src="modules/file-rules/filerules-controller.js"></script>
+  <script src="js/controller/import-rulesfile-controller.js"></script>
 
   <script src="modules/core/core.module.js"></script>
   <script src="modules/core/ihm-demo-factory.js"></script>
@@ -53,8 +62,11 @@
   <script src="modules/archive-unit-search/archive-search.component.js"></script>
 
   <script src="modules/archive-unit/archive-unit.module.js"></script>
+  <script src="modules/archive-unit/archive-unit.constant.js"></script>
   <script src="modules/archive-unit/archive-unit.controller.js"></script>
   <script src="modules/archive-unit/archive-unit.component.js"></script>
+  <script src="modules/archive-unit/directives/archive-unit-field.directive.js"></script>
+  <script src="modules/archive-unit/directives/archive-unit-fieldtree.directive.js"></script>
 
 </head>
 
@@ -81,10 +93,10 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
-                    <a href="index.html" class="navbar-brand"><img class="logo img-responsive pull-left" src="images/logo.png" alt="Vitam" title="Vitam" />vitam</a>
+                    <a href="#" class="navbar-brand"><img class="logo img-responsive pull-left" src="images/logo.png" alt="Vitam" title="Vitam" />vitam</a>
                 </div>
 
-                <div id="navbar" class="navbar-collapse collapse">
+                <div id="navbar" class="navbar-collapse collapse" ng-if="session.status=='logged'">
                     <ul class="nav navbar-nav">
                         <li class="@@mainMenu1 dropdown">
                             <button class="block dropdown-toggle" data-toggle="dropdown">
@@ -93,6 +105,7 @@
                             </button>
                             <ul class="dropdown-menu" role="menu" aria-labelledby="Entree">
                                 <li><a tabindex="-1" href="#!/uploadSIP">Transfert</a></li>
+                                <li><a href="#!/admin/logbookOperations">Suivi des opérations d'entrée</a></li>
                             </ul>
                         </li>
                         <li class="@@mainMenu2">
@@ -107,24 +120,33 @@
                                 <span class="pull-left m-l-10">Administration</span>
                             </button>
                             <ul class="dropdown-menu" role="menu" aria-labelledby="AdminFonctionnelle">
-                                <li><a href="#!/admin/logbookOperations">Journal des Opérations</a></li>
+                                 <li><a href="#!/admin/rules">Référentiel des règles de gestion</a></li>
+                            	<li><a href="#!/admin/formats">Référentiel des formats</a></li>
+                                <li><a href="#!/admin/journalOperations">Journal des Opérations</a></li>
                                 <li><a href="#!/admin/logbookLifecycle">Journal de Cycles de vie</a></li>
                                 <li class="divider"></li>
-                                <li><a href="#!/admin/formats">Formats</a></li>
-                                <li><a href="#!/admin/managementrules">Règles de gestion</a></li>
-
+                                <li><a href="#!/admin/importFileRules">Import du Référentiel des Règles de gestion</a></li>
+                                <li><a href="#!/admin/importPronoun">Import du Référentiel des formats</a></li>
                             </ul>
                         </li>
                         <li class="@@mainMenu2">
-                            <a href="#!/importPronoun">
+                            <a href="#!/archiveGestion">
                                 <i class="material-icons pull-left">data_usage</i>
-                                <span class="pull-left m-l-10">Import du référentiel PRONOM</span>
+                                <span class="pull-left m-l-10">Gestion des archives</span>
                             </a>
                         </li>
                     </ul>
-                    <!-- <ul class="nav navbar-nav navbar-right">
-                        <li><a href="#"><i class="material-icons">settings</i></a></li>
-                    </ul> -->
+                    <ul class="nav navbar-nav navbar-right">
+                        <li class="dropdown">
+                            <button class="block dropdown-toggle" data-toggle="dropdown">
+                                <i class="material-icons">settings</i>
+                            </button>
+                            <ul class="dropdown-menu" role="menu">
+                                <li><a href="" ng-click="logoutUser()">Déconnexion</a></li>
+                                 <li><a href="#!/admin/recette">Recette</a></li>
+                            </ul>
+                        </li>
+                    </ul>
                 </div>
 
             </div>
@@ -133,10 +155,6 @@
         <!-- end MAIN HEADER -->
 
         <!-- ////////////////////////////////////////////////////////////////////////////// -->
-
-        <!-- <ol class="breadcrumb">
-            <li><a href="#">Home</a></li>
-        </ol> -->
 
         <div class="page-container" ng-if="showMenuBar">
           <div ng-view class="page"></div>
@@ -153,38 +171,5 @@
 
     </div>
 </body>
-
-
-
-
-
-
-<!-- <body ng-controller='mainViewController'>
-  Menu
-  <md-toolbar class="md-menu-toolbar" ng-if="showMenuBar">
-    <div layout="row">
-      <md-toolbar-filler layout layout-align="center center">
-        <md-icon md-svg-icon="call:chat"></md-icon>
-      </md-toolbar-filler>
-      <div>
-        <img src="images/150321-LogoVITAMV1-mini.jpg"/>
-      </div>
-      <md-nav-bar md-selected-nav-item="currentNavItem" nav-bar-aria-label="navigation links">
-        <md-nav-item md-nav-href="#!/uploadSIP" name="uplaodSip">Téléchargement SIP</md-nav-item>
-        <md-nav-item md-nav-href="#!/archiveSearch" name="archievSearch">Recherche Archive Units</md-nav-item>
-        <md-nav-item md-nav-href="#!/admin" name="admin">Administration</md-nav-item>
-        <md-nav-item md-nav-href="#!/importPronoun" name="importPronoun">L'import du référentiel PRONOM</md-nav-item>
-      </md-nav-bar>
-    </div>
-  </md-toolbar>
-
-  View
-  <div class="page-container" ng-if="showMenuBar">
-    <div ng-view class="page"></div>
-  </div>
-  <div class="view-container" ng-if="!showMenuBar">
-    <div ng-view class="view-frame"></div>
-  </div>
-</body> -->
 
 </html>

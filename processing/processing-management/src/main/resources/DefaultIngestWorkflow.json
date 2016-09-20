@@ -1,6 +1,6 @@
 {
     "id": "DefaultIngestWorkflow",
-    "comment":"Default Ingest Workflow V4",
+    "comment":"Default Ingest Workflow V6",
     "steps":
     [
     {
@@ -14,8 +14,8 @@
         "actions":[{"action":{"actionKey": "checkSeda", "actionType": "BLOCK"}},
         		{"action":{"actionKey": "CheckVersion", "actionType": "BLOCK"}},
         		{"action":{"actionKey": "CheckObjectsNumber", "actionType": "NOBLOCK"}},
-        		{"action":{"actionKey": "CheckConformity", "actionType": "BLOCK"}},
-        		{"action":{"actionKey": "ExtractSeda", "actionType": "BLOCK"}}]
+        		{"action":{"actionKey": "ExtractSeda", "actionType": "BLOCK"}},
+        		{"action":{"actionKey": "CheckConformity", "actionType": "BLOCK"}}]
     },    
     {
     "workerGroupId" :"DefaultWorker",

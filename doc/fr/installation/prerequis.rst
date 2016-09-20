@@ -15,6 +15,20 @@ Le déploiement est orchestré depuis un poste ou serveur d'administration ; les
  * il est vivement conseillé d'avoir configuré une authentification ssh par certificat vers les serveurs cible
  * tous les serveurs cible doivent avoir accès au registry docker vitam (docker.programmevitam.fr) => A commenter, car cela n'est nécessaire que dans une installation docker.
 
+Matériel
+========
+
+Les prérequis matériel sont définis dans le :term:`DAT` ; à l'heure actuelle, le minimum recommandé pour la solution Vitam est 2 CPUs et 512Mo de RAM disponible par composant applicatif installé sur chaque machine.
+
+Concernant l'espace disque, à l'heure actuelle, aucun pré-requis n'a été défini ; cependant, sont à prévoir par la suite des espace de stockage conséquents pour les composant suivants :
+
+* default-offer
+* solution de centralisation des logs (elasticsearch)
+* workspace
+* elasticsearch des données Vitam
+
+L'arborescence associée sur les partitions associées est : ``/vitam/data/<composant>``
+
 
 .. include:: ../archi/technique/10-it-services.rst
 

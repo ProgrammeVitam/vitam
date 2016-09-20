@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>metadata</artifactId>
-		<version>0.7.0-SNAPSHOT</version>
+		<version>0.8.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>metadata-rest</artifactId>
 	<name>metadata Rest</name>
@@ -85,7 +85,6 @@
 			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>
-
 
 		<!-- <dependency> <groupId>org.testcontainers</groupId> <artifactId>testcontainers</artifactId> 
 			<scope>test</scope> </dependency> -->

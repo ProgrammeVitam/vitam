@@ -70,6 +70,10 @@ public class ParserTokens extends BuilderToken {
          */
         ALL("all"),
         /**
+         * Qualifiers field
+         */
+        QUALIFIERS("qualifiers"),
+        /**
          * Object size
          */
         SIZE("size"),
@@ -80,7 +84,15 @@ public class ParserTokens extends BuilderToken {
         /**
          * Unit/ObjectGroup type
          */
-        TYPE("type");
+        TYPE("type"),
+        /**
+         * Unit's ObjectGroup
+         */
+        OBJECT("object"),
+        /**
+         * Unit's immediate parents
+         */
+        UNITUPS("unitups");
 
         private static final String NOT_FOUND = "Not found";
         private final String exactToken;
@@ -136,7 +148,9 @@ public class ParserTokens extends BuilderToken {
                         case FORMAT:
                         case ID:
                         case NBUNITS:
+                        case QUALIFIERS:
                         case SIZE:
+                        case OBJECT:
                             return true;
                         default:
                     }

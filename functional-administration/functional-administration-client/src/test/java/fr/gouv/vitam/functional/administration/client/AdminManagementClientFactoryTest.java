@@ -15,23 +15,23 @@ public class AdminManagementClientFactoryTest {
 
     @Test
     public void givenRestClient() {
-        AdminManagementClientFactory.setConfiguration(AdminManagementClientFactory.AdminManagementClientType.REST_CLIENT, "localhost", 8082);
-        final AdminManagementClient client 
-            = AdminManagementClientFactory.getInstance().getAdminManagementClient();
+        AdminManagementClientFactory
+            .setConfiguration(AdminManagementClientFactory.AdminManagementClientType.REST_CLIENT, "localhost", 8082);
+        final AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
         assertNotNull(client);
     }
 
     @Test
     public void givenMockClient() {
-        AdminManagementClientFactory.setConfiguration(AdminManagementClientFactory.AdminManagementClientType.MOCK_CLIENT, "localhost", 8082);
-        final AdminManagementClient client 
-            = AdminManagementClientFactory.getInstance().getAdminManagementClient();
+        AdminManagementClientFactory
+            .setConfiguration(AdminManagementClientFactory.AdminManagementClientType.MOCK_CLIENT, "localhost", 8082);
+        final AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
         assertNotNull(client);
-    }    
+    }
 
-    @Test(expected=IllegalArgumentException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void givenClientWhenWrongTypeThenThrowException() {
         AdminManagementClientFactory.setConfiguration(null, null, 0);
     }
-    
+
 }

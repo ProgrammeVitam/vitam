@@ -27,53 +27,63 @@
 
 package fr.gouv.vitam.functional.administration.common;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
-/** ReferentialFile 
+/**
+ * ReferentialFile<E>
  * 
  */
-public interface ReferentialFile {
-    
-    
-    /** 
+public interface ReferentialFile<E> {
+
+
+    /**
      * importFile : import reference file to database
+     * 
      * @param file as InputStream
-     * @throws ReferentialException when there is error of import 
-     * @throws DatabaseConflictException  when there is a database conflict 
+     * @throws ReferentialException when there is error of import
+     * @throws DatabaseConflictException when there is a database conflict
+     * @throws IOException
+     * @throws InvalidParseOperationException
      */
-    void importFile(InputStream file) throws ReferentialException, DatabaseConflictException ;
-    
-    
+    void importFile(InputStream file)
+        throws ReferentialException, DatabaseConflictException, IOException, InvalidParseOperationException;
+
+
     /**
      * delete Format Collection
      */
     void deleteCollection();
-    
+
     /**
      * @param id of vitam document
      * @return vitam document
      * @throws ReferentialException when error occurs
      */
-    public VitamDocument<?> findDocumentById(String id) throws ReferentialException;
-    
+    public VitamDocument<E> findDocumentById(String id) throws ReferentialException;
+
     /**
      * @param select filter
      * @return vitam document list
-     * @throws ReferentialException  when error occurs
+     * @throws ReferentialException when error occurs
      */
-    public List<?> findDocuments(JsonNode select) throws ReferentialException;
-    
-    /** 
+    public List<E> findDocuments(JsonNode select) throws ReferentialException;
+
+    /**
      * checkFile : check if file is OK
+     * 
      * @param file as InputStream
      * @throws ReferentialException when there is errors import
+     * @throws IOException when there is IO Exception
      */
-    void checkFile(InputStream file) throws ReferentialException;   
+    void checkFile(InputStream file) throws ReferentialException, IOException;
+
 }

@@ -21,7 +21,7 @@
 
 - name: ensure elasticsearch directories exist
   file:
-    path: "/vitam/{{item}}/{{vitam_component}}"
+    path: "/vitam/{{item}}/{{cluster_name}}"
     owner: elasticsearch
     state: directory
     mode: 0755
@@ -41,72 +41,83 @@
   notify: restart elasticsearch
 
 # TODO : voir s'il ne faut pas plutôt templatiser /etc/elasticsearch/elasticsearch.yml
-- name: change IP address for elasticsearch listening
-  replace: 
-    dest: /etc/elasticsearch/elasticsearch.yml 
-    regexp: '^# network.host:.*$' 
-    replace: "network.host: {{ansible_nodename}}"
-  notify:
-    - restart elasticsearch
+# - name: change IP address for elasticsearch listening
+#   replace: 
+#     dest: /etc/elasticsearch/elasticsearch.yml 
+#     regexp: '^# network.host:.*$' 
+#     replace: "network.host: {{ansible_nodename}}"
+#   notify:
+#     - restart elasticsearch
 
-- name: change port for elasticsearch listening
-  replace: 
-    dest: /etc/elasticsearch/elasticsearch.yml 
-    regexp: '^# network.port:.*$'
-    replace: 'network.port: {{elasticsearch_port}}'
-  notify:
-    - restart elasticsearch
+# - name: change port for elasticsearch listening
+#   replace: 
+#     dest: /etc/elasticsearch/elasticsearch.yml 
+#     regexp: '^# network.port:.*$'
+#     replace: 'network.port: {{elasticsearch_port}}'
+#   notify:
+#     - restart elasticsearch
 
-- name: change port for elasticsearch listening
-  replace: 
-    dest: /etc/elasticsearch/elasticsearch.yml 
-    regexp: '^# http\.port:.*$'
-    replace: 'http.port: {{elasticsearch_port}}'
-  notify:
-    - restart elasticsearch
+# - name: change port for elasticsearch listening
+#   replace: 
+#     dest: /etc/elasticsearch/elasticsearch.yml 
+#     regexp: '^# http\.port:.*$'
+#     replace: 'http.port: {{elasticsearch_port}}'
+#   notify:
+#     - restart elasticsearch
 
-- name: change data storage for elasticsearch
-  replace: 
-    dest: /etc/elasticsearch/elasticsearch.yml 
-    regexp: '^# path.data:.*$'
-    replace: 'path.data: {{elasticsearch_data_dir}}'
-  notify:
-    - restart elasticsearch
+# - name: change data storage for elasticsearch
+#   replace: 
+#     dest: /etc/elasticsearch/elasticsearch.yml 
+#     regexp: '^# path.data:.*$'
+#     replace: 'path.data: {{elasticsearch_data_dir}}'
+#   notify:
+#     - restart elasticsearch
 
-- name: change log for elasticsearch
-  replace: 
-    dest: /etc/elasticsearch/elasticsearch.yml 
-    regexp: '^# path.logs:.*$'
-    replace: 'path.logs: {{elasticsearch_log_dir}}'
-  notify:
-    - restart elasticsearch
+# - name: change log for elasticsearch
+#   replace: 
+#     dest: /etc/elasticsearch/elasticsearch.yml 
+#     regexp: '^# path.logs:.*$'
+#     replace: 'path.logs: {{elasticsearch_log_dir}}'
+#   notify:
+#     - restart elasticsearch
 
-- name: change cluster name for elasticsearch
-  replace: 
-    dest: /etc/elasticsearch/elasticsearch.yml 
-    regexp: '^# cluster.name:.*$'
-    replace: 'cluster.name: {{cluster_name}}'
-  notify:
-    - restart elasticsearch
+# - name: change cluster name for elasticsearch
+#   replace: 
+#     dest: /etc/elasticsearch/elasticsearch.yml 
+#     regexp: '^# cluster.name:.*$'
+#     replace: 'cluster.name: {{cluster_name}}'
+#   notify:
+#     - restart elasticsearch
 
-# OMA : for cluster, add
-# directive for node.name ; example : node.name: ${HOSTNAME}
-- name: change node name for elasticsearch
-  replace: 
-    dest: /etc/elasticsearch/elasticsearch.yml 
-    regexp: '^# node.name:.*$'
-    replace: 'node.name: {{ansible_nodename}}'
-  notify:
-    - restart elasticsearch
+# # OMA : for cluster, add
+# # directive for node.name ; example : node.name: ${HOSTNAME}
+# - name: change node name for elasticsearch
+#   replace: 
+#     dest: /etc/elasticsearch/elasticsearch.yml 
+#     regexp: '^# node.name:.*$'
+#     replace: 'node.name: {{ansible_nodename}}'
+#   notify:
+#     - restart elasticsearch
 
-# directive for discovering other hosts ; example : discovery.zen.ping.unicast.hosts: ["node01", "node02", "node03"]
-- name: discover other nodes in elasticsearch
-  replace: 
-    dest: /etc/elasticsearch/elasticsearch.yml 
-    regexp: '^# discovery.zen.ping.unicast.hosts:.*$'
-    replace: 'discovery.zen.ping.unicast.hosts: [ "{{ groups['hosts-elasticsearch-data']|join('", "') }}" ]'
-  notify:
-    - restart elasticsearch
+# # directive for discovering other hosts ; example : discovery.zen.ping.unicast.hosts: ["node01", "node02", "node03"]
+# - name: discover other nodes in elasticsearch
+#   replace: 
+#     dest: /etc/elasticsearch/elasticsearch.yml 
+#     regexp: '^# discovery.zen.ping.unicast.hosts:.*$'
+#     replace: 'discovery.zen.ping.unicast.hosts: [ "{{ groups['hosts-elasticsearch-data']|join('", "') }}" ]'
+#   notify:
+#     - restart elasticsearch
+
+- name: apply elasticsearch yml 
+  template:
+    src: "{{item}}.{{groupe}}.yml.j2"
+    dest: "{{elasticsearch_conf_dir}}/{{item}}.yml"
+    owner: "{{elasticsearch_user}}"
+    mode: 0750
+  with_items:
+    - elasticsearch
+    - logging
+
 
 # OMA : inspired from https://hobo.house/2016/04/08/automate-elk-stack-and-clients-with-ansible/
 # TODO : revoir ; 1. templatiser elasticsearch.yml et 2. pointer sous l a directive CONF_DIR {{vitam_root_folder ???}}/conf/{{vitam_component}}
@@ -114,7 +125,26 @@
   replace: 
       dest: /etc/sysconfig/elasticsearch
       regexp: '^#CONF_DIR=.*$'
-      replace: 'CONF_DIR=/etc/elasticsearch'
+      replace: 'CONF_DIR={{elasticsearch_conf_dir}}'
+  register: elasticsearch_updated
+  notify:
+    - restart elasticsearch
+
+- name: Activate GC logs
+  replace: 
+      dest: /etc/sysconfig/elasticsearch
+      regexp: '^#ES_GC_LOG_FILE=.*$'
+      replace: 'ES_GC_LOG_FILE={{elasticsearch_log_dir}}-gc.log'
+  register: elasticsearch_updated
+  notify:
+    - restart elasticsearch
+
+
+- name: Implement the Vitam GC log standard
+  replace: 
+      dest: /etc/sysconfig/elasticsearch
+      regexp: '^#ES_JAVA_OPTS=.*$'
+      replace: 'ES_JAVA_OPTS="-XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=10M -XX:+PrintGCDetails -XX:+PrintGCApplicationStoppedTime"'
   register: elasticsearch_updated
   notify:
     - restart elasticsearch
@@ -139,18 +169,18 @@
   notify:
     - restart elasticsearch
 
-- name: add directives in elasticsearch
-  blockinfile:
-    backup: yes
-    dest: /etc/elasticsearch/elasticsearch.yml
-    marker: "# {mark} ANSIBLE MANAGED BLOCK"
-    block: |
-      index.number_of_replicas: 0
-      index.refresh_interval: 10s
-      indices.memory.index_buffer_size: 30%
-      index.translog.flush_threshold_ops: 50000
-      refresh_interval_in_millis: 30000
-      threadpool.search.queue_size: 12000
+# - name: add directives in elasticsearch
+#   blockinfile:
+#     backup: yes
+#     dest: /etc/elasticsearch/elasticsearch.yml
+#     marker: "# {mark} ANSIBLE MANAGED BLOCK"
+#     block: |
+#       index.number_of_replicas: 1
+#       index.refresh_interval: 10s
+#       indices.memory.index_buffer_size: 30%
+#       index.translog.flush_threshold_ops: 50000
+#       refresh_interval_in_millis: 30000
+#       threadpool.search.queue_size: 12000
 
 # TODO : à remplacer par autre chose pour ne pas partir sur internet !
 - name : get HEAD plug-in for Elasticsearch

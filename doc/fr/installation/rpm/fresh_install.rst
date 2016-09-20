@@ -9,8 +9,15 @@ Première installation
 
 Les fichiers de déploiement sont disponibles dans la version VITAM livrée dans le sous-répertoire |repertoire_deploiement| . Ils consistent en 2 parties :
  
- * le playbook ansible, présent dans le répertoire |repertoire_inventory|, qui est indépendant de l'environnement à déployer
- * les fichiers d'inventaire (1 par environnement à déployer) ; des fichiers d'exemple sont disponibles dans le répertoire |repertoire_inventory|
+ * le playbook ansible, présent dans le sous-répertoire |repertoire_playbook ansible|, qui est indépendant de l'environnement à déployer
+ * les fichiers d'inventaire (1 par environnement à déployer) ; des fichiers d'exemple sont disponibles dans le sous-répertoire |repertoire_inventory|
+
+ 
+Configuration du déploiement
+============================
+
+Informations "plate-forme"
+--------------------------
 
 Pour configurer le déploiement, il est nécessaire de créer (dans n'importe quel répertoire en dehors du répertoire |repertoire_inventory| un nouveau fichier d'inventaire comportant les informations suivantes :
 
@@ -18,7 +25,9 @@ Pour configurer le déploiement, il est nécessaire de créer (dans n'importe qu
    :language: ini
    :linenos:
 
-Pour chaque type de "host" (lignes 19 à 59), indiquer le serveur défini pour chaque fonction.
+Pour chaque type de "host" (lignes 19 à 59), indiquer le(s) serveur(s) défini(s) pour chaque fonction. Une colocalisation de composants est possible.
+
+.. warning:: indiquer les contre-indications !
 
 Ensuite, dans la section ``hosts:vars`` (lignes 62 à 71), renseigner les valeurs comme décrit :
 
@@ -41,25 +50,51 @@ Ensuite, dans la section ``hosts:vars`` (lignes 62 à 71), renseigner les valeur
    "days_to_delete","Période de grâce des données sous Elastricsearch avant destuction (valeur en jours)",""
 
 
-A titre informatif, le positionnement des variables ainsi que des dérivations des déclarations de variables sont effectuées sous |repertoire_inventory| ``/group_vars/all``, comme suit :
+A titre informatif, le positionnement des variables ainsi que des dérivations des déclarations de variables sont effectuées sous |repertoire_inventory| ``/group_vars/all/all``, comme suit :
 
-.. literalinclude:: ../../../../deployment/environments-rpm/group_vars/all
-   :language: ini
+.. literalinclude:: ../../../../deployment/environments-rpm/group_vars/all/all
+   :language: yaml
    :linenos:
 
 
+Le ``vault.yml`` est également présent sous |repertoire_inventory| ``/group_vars/all/all`` et contient les secrets ; ce fichier est encrypté par ``ansible-vault``.
+
 Le déploiement s'effectue depuis la machine "ansible" et va distribuer la solution VITAM selon l'inventaire correctement renseigné.
 
-1. Test du déploiement
+
+Paramétrage de l'antivirus (ingest-externe)
+-------------------------------------------
+
+.. todo:: A expliquer
+
+Paramétrage des certificats (\*-externe)
+-----------------------------------------
+
+.. todo:: A expliquer
+
+
+
+Test de la configuration
+========================
 
 Pour tester le déploiement de VITAM, il faut se placer dans le répertoire |repertoire_deploiement| et entrer la commande suivante :
 
-ansible-playbook |repertoire_playbook ansible| /vitam.yml -i |repertoire_inventory| /<ficher d'inventaire> --check
+``ansible-playbook`` |repertoire_playbook ansible| ``/vitam.yml -i`` |repertoire_inventory| ``/<ficher d'inventaire> --check``
 
+.. note:: cette commande n'est pas recommandée, du fait de limitations de check.
 
-2. Déploiement
+Déploiement
+===========
 
 Si la commande de test se termine avec succès, le déploiement est à réaliser avec la commande suivante :
 
-ansible-playbook |repertoire_playbook ansible|/vitam.yml -i |repertoire_inventory|/<ficher d'inventaire> 
+ansible-playbook |repertoire_playbook ansible|/vitam.yml -i |repertoire_inventory|/<ficher d'inventaire> --ask-vault-pass
 
+.. todo:: CPO
+ - Pas assez de précision sur l'install
+ - Aprés avoir installé ansible,j'ai généré une clé publique et privée sur mon poste ou serveur via ssh et aprés ou je transfert ma clé public?
+ - Il manque des informations sur le déploiement des VM sur l'environnement cible 
+ - Quels sont les scripts ansible qu'on utilise pour déployer les VM et les composants VITAM?
+ - Il serait mieux de faire une doc d'install en séparant le déploiement des VM (instance) et des composants VITAM
+ 
+ 

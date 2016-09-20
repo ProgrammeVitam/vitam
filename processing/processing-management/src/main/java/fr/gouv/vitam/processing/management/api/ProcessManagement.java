@@ -27,11 +27,10 @@
 package fr.gouv.vitam.processing.management.api;
 
 
-import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
-import fr.gouv.vitam.processing.common.model.WorkParams;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 
 /**
  * ProcessManagement interface
@@ -46,12 +45,10 @@ public interface ProcessManagement {
      * @param workParams null not allowed
      * @param workflowId null not allowed
      * @return Response :global process response such as OK, KO, FATAL,WARNING
-     * @throws WorkflowNotFoundException
-     * @throws HandlerNotFoundException
-     * @throws ProcessingException
-     * @throws IllegalArgumentException
-     */
+     * @throws WorkflowNotFoundException thrown if the workflow was not found
+     * @throws ProcessingException thrown in case of a technical exception in the execution
+     * @throws IllegalArgumentException thrown in case parameters workParams or workflowId are null
 
-    EngineResponse submitWorkflow(WorkParams workParams, String workflowId)
-        throws WorkflowNotFoundException, HandlerNotFoundException, ProcessingException;
+     */
+    EngineResponse submitWorkflow(WorkerParameters workParams, String workflowId) throws ProcessingException;
 }

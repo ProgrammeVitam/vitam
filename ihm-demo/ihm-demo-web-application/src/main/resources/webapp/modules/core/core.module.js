@@ -25,4 +25,8 @@
  * accept its terms.
  */
  
-angular.module('core', ['restangular']);
+angular.module('core', ['restangular',  'angularShiro'])
+  .config(function(angularShiroConfigProvider) {
+    angularShiroConfigProvider.setAuthenticateUrl('/ihm-demo/v1/api/login');
+    angularShiroConfigProvider.setLoginPath ('/#!/login');
+  });

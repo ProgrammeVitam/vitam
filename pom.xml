@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>fr.gouv.vitam</groupId>
 	<artifactId>parent</artifactId>
-	<version>0.7.0-SNAPSHOT</version>
+	<version>0.8.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>vitam-parent</name>
 	<description>${project.artifactId}</description>
@@ -22,6 +22,7 @@
 		<module>access</module>
 		<module>ingest</module>
 		<module>processing</module>
+		<module>worker</module>
 		<module>logbook</module>
 		<module>workspace</module>
 		<module>storage</module>
@@ -133,6 +134,7 @@
 		<!-- 1.0.5 ? -->
 		<testcontainers.version>1.0.4</testcontainers.version>
 		<yamlbeans.version>1.09</yamlbeans.version>
+		<apache-shiro.version>1.3.0</apache-shiro.version>
 		<jetty.version>9.3.9.v20160517</jetty.version>
 		<assertj.version>2.4.0</assertj.version>
 		<rest-assured.version>2.9.0</rest-assured.version>
@@ -160,6 +162,10 @@
 		<esapi.version>2.1.0.1</esapi.version>
 		<xerces.version>2.11.0</xerces.version>
 		<cglib.version>2.2.2</cglib.version>
+		<opencsv.version>2.3</opencsv.version>
+		<commons-csv.version>1.4</commons-csv.version>
+		<jackson-dataformat-csv.version>2.5.1</jackson-dataformat-csv.version>
+		<bouncycastle.version>1.54</bouncycastle.version>
 	</properties>
 
 	<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
@@ -171,6 +177,13 @@
 			<properties>
 				<vitam.docker.registry.push>vitam-prod-app-6.internet.agri:8082</vitam.docker.registry.push>
 			</properties>
+		</profile>
+		<profile>
+			<id>doc</id>
+			<modules>
+				<module>library</module>
+				<module>doc</module>
+			</modules>
 		</profile>
 	</profiles>
 
@@ -330,6 +343,7 @@
 					<version>2.10.3</version>
 					<configuration>
 						<source>${java.version}</source>
+						<additionalparam>-Xdoclint:none</additionalparam>
 					</configuration>
 				</plugin>
 				<plugin>
@@ -439,6 +453,7 @@
 						<group>Application/Archiving</group>
 						<packager>Vitam Package Team</packager>
 						<defineStatements />
+						<targetOS>linux</targetOS>
 						<requires>
 							<require>java-1.8.0</require>
 							<require>vitam-user-${unix.user}</require>
@@ -470,6 +485,8 @@
 									</source>
 								</sources>
 							</mapping>
+							<!-- OMA : added for future use -->
+
 
 							<mapping>
 								<directory>/usr/lib/systemd/system/</directory>
@@ -486,6 +503,25 @@
 						</mappings>
 					</configuration>
 				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-antrun-plugin</artifactId>
+					<version>1.6</version>
+					<executions>
+						<execution>
+							<id>process-test-classes</id>
+							<phase>process-test-classes</phase>
+							<configuration>
+								<target>
+									<chmod file="target/test-classes/test.sh" perm="755" />
+								</target>
+							</configuration>
+							<goals>
+								<goal>run</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
 			</plugins>
 		</pluginManagement>
 
@@ -493,6 +529,17 @@
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>aggregate-jar</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
@@ -609,7 +656,16 @@
 				<artifactId>jackson-dataformat-yaml</artifactId>
 				<version>${jackson.version}</version>
 			</dependency>
-
+			<dependency>
+				<groupId>org.apache.shiro</groupId>
+				<artifactId>shiro-core</artifactId>
+				<version>${apache-shiro.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.shiro</groupId>
+				<artifactId>shiro-web</artifactId>
+				<version>${apache-shiro.version}</version>
+			</dependency>
 
 
 			<dependency>
@@ -653,6 +709,12 @@
 				<version>${javax.servlet.version}</version>
 			</dependency>
 
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-lang3</artifactId>
+				<version>${commons-lang3}</version>
+			</dependency>
+
 			<!-- ########################## Security ########################## -->
 
 			<dependency>
@@ -681,6 +743,23 @@
 				<version>${xerces.version}</version>
 			</dependency>
 
+			<dependency>
+				<groupId>org.apache.shiro</groupId>
+				<artifactId>shiro-core</artifactId>
+				<version>${apache-shiro.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.shiro</groupId>
+				<artifactId>shiro-web</artifactId>
+				<version>${apache-shiro.version}</version>
+			</dependency>
+			<dependency>
+
+				<groupId>org.bouncycastle</groupId>
+				<artifactId>bcprov-jdk15on</artifactId>
+				<version>${bouncycastle.version}</version>
+			</dependency>
+
 			<!-- ########################## Logger ########################## -->
 
 			<dependency>
@@ -692,6 +771,11 @@
 			<dependency>
 				<groupId>ch.qos.logback</groupId>
 				<artifactId>logback-classic</artifactId>
+				<version>${logback.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>ch.qos.logback</groupId>
+				<artifactId>logback-access</artifactId>
 				<version>${logback.version}</version>
 			</dependency>
 			<dependency>
@@ -847,6 +931,24 @@
 				<artifactId>cglib</artifactId>
 				<version>${cglib.version}</version>
 				<scope>test</scope>
+			</dependency>
+			<!-- https://mvnrepository.com/artifact/net.sf.opencsv/opencsv -->
+			<dependency>
+				<groupId>net.sf.opencsv</groupId>
+				<artifactId>opencsv</artifactId>
+				<version>${opencsv.version}</version>
+			</dependency>
+			<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-csv -->
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-csv</artifactId>
+				<version>${commons-csv.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>com.fasterxml.jackson.dataformat</groupId>
+				<artifactId>jackson-dataformat-csv</artifactId>
+				<version>${jackson-dataformat-csv.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

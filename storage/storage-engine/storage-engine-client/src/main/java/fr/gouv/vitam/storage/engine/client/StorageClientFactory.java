@@ -30,6 +30,8 @@ import java.io.IOException;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
@@ -77,7 +79,7 @@ public class StorageClientFactory {
      * @param configuration the configuration to us
      * @throws IllegalArgumentException if server is null or empty or port <= 0
      */
-    static final void setConfiguration(StorageClientConfiguration configuration) {
+    static void setConfiguration(StorageClientConfiguration configuration) {
         checkConfiguration(configuration);
         STORAGE_CLIENT_FACTORY.clientConfiguration = configuration;
     }
@@ -89,7 +91,7 @@ public class StorageClientFactory {
      * @param configuration the client configuration
      * @throws IllegalArgumentException if type null or if type is STORAGE and server is null or empty or port <= 0
      */
-    static final void setConfiguration(StorageClientType type, StorageClientConfiguration configuration) {
+    static void setConfiguration(StorageClientType type, StorageClientConfiguration configuration) {
         changeDefaultClientType(type);
         if (type == StorageClientType.STORAGE) {
             checkConfiguration(configuration);
@@ -102,7 +104,7 @@ public class StorageClientFactory {
      *
      * @return the instance
      */
-    public static final StorageClientFactory getInstance() {
+    public static StorageClientFactory getInstance() {
         return STORAGE_CLIENT_FACTORY;
     }
 
@@ -121,7 +123,7 @@ public class StorageClientFactory {
                 client = new StorageClientRest(clientConfiguration, StorageClient.RESOURCE_PATH, true);
                 break;
             default:
-                throw new IllegalArgumentException("Storage client type unknown");
+                throw new IllegalArgumentException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_CLIENT_UNKNOWN));
         }
         return client;
     }

@@ -12,6 +12,7 @@ hosts-storageengine
 hosts-storageofferdefault
 hosts-ingest-external
 hosts-functional-administration
+hosts-worker
 
 [hosts-ihm-demo]
 vitam-prod-app-18.internet.agri
@@ -51,6 +52,9 @@ vitam-prod-app-16.internet.agri
 
 [hosts-storageofferdefault]
 vitam-prod-app-17.internet.agri
+
+[hosts-worker]
+vitam-prod-app-16.internet.agri
 
 
 [hosts:vars]

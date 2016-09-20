@@ -35,7 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Ignore;
+import org.bson.Document;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -47,12 +47,9 @@ import fr.gouv.vitam.common.json.JsonHandler;
 public class UnitTest {
     private static final String s1 = "{\"_id\":\"id1\", \"title\":\"title1\"}";
     private static final String s2 = "{\"_id\":\"id2\", \"title\":\"title2\", \"_up\":\"id1\"}";
-    private static final String s3 = "{\"_id\":\"id3\", \"title\":\"title3\", \"_up\":\"id1\"}";
     private static final String sub1 = "{\"_id\":\"id2\",\"description\":\"description1\"}";
     private static final String sub2 = "{\"_id\":\"id3\",\"champ\":\"champ1\"}";
-
-    private static final String s = "{\"_id\":\"id4\", \"title\":\"title1\", \"_up\":\"id2\", \"_uds\":\"id1\"}";
-
+    
     @Test
     public void testUnitInitialization() throws InvalidParseOperationException {
         final JsonNode json = JsonHandler.getFromString(s1);
@@ -97,14 +94,16 @@ public class UnitTest {
         final Unit unit = new Unit(s1);
         assertEquals("[{ \"id1\" : 1}]", unit.getSubDepth().toString());
 
-        final Map<String, Integer> map = new HashMap<String, Integer>();
-        map.put("UUID1", 3);
-        map.put("UUID2", 4);
+        final List<Document> list = new ArrayList<Document>();
+        list.add(Document.parse("{\"UUID2\" : 3}"));
+        list.add(Document.parse("{\"UUID1\" : 4}"));
+
         final Map<String, Object> map2 = new HashMap<String, Object>();
-        map2.put("_uds", map);
+        map2.put("_uds", list);
         unit.putAll(map2);
-        assertEquals("Unit: Document{{_id=id1, title=title1, _uds={UUID2=4, UUID1=3}}}", unit.toString());
-        assertEquals("[{ \"UUID2\" : 5}, { \"UUID1\" : 4}, { \"id1\" : 1}]", unit.getSubDepth().toString());
+        assertEquals("Unit: Document{{_id=id1, title=title1, _uds=[Document{{UUID2=3}}, Document{{UUID1=4}}]}}",
+            unit.toString());
+        assertEquals("[{ \"UUID2\" : 4}, { \"UUID1\" : 5}, { \"id1\" : 1}]", unit.getSubDepth().toString());
     }
 
     @Test

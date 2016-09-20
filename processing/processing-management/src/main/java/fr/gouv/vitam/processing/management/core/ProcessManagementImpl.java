@@ -26,13 +26,14 @@
  */
 package fr.gouv.vitam.processing.management.core;
 
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
-import fr.gouv.vitam.processing.common.model.WorkParams;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
 import fr.gouv.vitam.processing.engine.core.ProcessEngineImplFactory;
 import fr.gouv.vitam.processing.management.api.ProcessManagement;
@@ -47,32 +48,12 @@ public class ProcessManagementImpl implements ProcessManagement {
     private ServerConfiguration serverConfig;
 
     /**
-     * get the server configuration
-     *
-     * @return serverConfig of type ServerConfiguration
-     */
-    public ServerConfiguration getServerConfig() {
-        return serverConfig;
-    }
-
-    // FIXME REVIEW check null
-    /**
-     * set the server configuration
-     *
-     * @param serverConfig
-     * @return ProcessManagementImpl instance with serverConfig is setted
-     */
-    public ProcessManagementImpl setServerConfig(ServerConfiguration serverConfig) {
-        this.serverConfig = serverConfig;
-        return this;
-    }
-
-    /**
      * constructor of ProcessManagementImpl
      *
-     * @param serverConfig
+     * @param serverConfig configuration of process engine server
      */
     public ProcessManagementImpl(ServerConfiguration serverConfig) {
+        ParametersChecker.checkParameter("Server config cannot be null", serverConfig);
         /**
          * inject process engine
          */
@@ -81,13 +62,35 @@ public class ProcessManagementImpl implements ProcessManagement {
     }
 
     /**
+     * set the server configuration
+     *
+     * @param serverConfig configuration of process engine server
+     * @return ProcessManagementImpl instance with serverConfig is setted
+     */
+    public ProcessManagementImpl setServerConfig(ServerConfiguration serverConfig) {
+        ParametersChecker.checkParameter("Server config cannot be null", serverConfig);
+        this.serverConfig = serverConfig;
+        return this;
+    }
+
+    /**
+     * get the server configuration
+     *
+     * @return serverConfig of type ServerConfiguration
+     */
+    public ServerConfiguration getServerConfig() {
+        return serverConfig;
+    }
+
+    /**
      * submitWorkflow implemente submitWorkflow of ProcessManagement API see params and return in ProcessManagement API
      * class
      */
     @Override
-    public EngineResponse submitWorkflow(WorkParams workParams, String workflowId) throws ProcessingException {
-        EngineResponse response = null;
-        workParams.setServerConfiguration(serverConfig);
+    public EngineResponse submitWorkflow(WorkerParameters workParams, String workflowId) throws ProcessingException {
+        EngineResponse response;
+        workParams.setUrlMetadata(serverConfig.getUrlMetada());
+        workParams.setUrlWorkspace(serverConfig.getUrlWorkspace());
         try {
             response = processEngine.startWorkflow(workParams, workflowId);
         } catch (final WorkflowNotFoundException e) {

@@ -27,14 +27,12 @@
 
 package fr.gouv.vitam.functional.administration.format.core;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-//FIXME unused import
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
@@ -48,6 +46,8 @@ import javax.xml.stream.events.XMLEvent;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -55,7 +55,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
-import fr.gouv.vitam.functional.administration.common.exception.FileFormatNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.InvalidFileFormatParseException;
 import fr.gouv.vitam.functional.administration.common.exception.JsonNodeFormatCreationException;
 
@@ -65,13 +64,19 @@ import fr.gouv.vitam.functional.administration.common.exception.JsonNodeFormatCr
 
 public class PronomParser {
 
+    /**
+     * FileFormat prefix which indicate Inheritance
+     */
+    private static final String FMT = "fmt/";
+
+    private static final String VERSION_PRONOM = "VersionPronom";
     private static final String TAG_FFSIGNATUREFILE = "FFSignatureFile";
     private static final String TAG_FILEFORMAT = "FileFormat";
     private static final String TAG_EXTENSION = "Extension";
-    private static final String TAG_PRIVIOUSVERION = "HasPriorityOverFileFormatID";
-    private static final String ATTR_MIMETYPE = "MIMEType";
-    private static final String ATTR_NAME = "Name";
+    private static final String TAG_HASPRIORITYOVERFILEFORMATID = "HasPriorityOverFileFormatID";
     private static final String ATTR_PUID = "PUID";
+    private static final String ATTR_ID = "ID";
+    private static final String CREATED_DATE = "CreatedDate";
     private static final String ATTR_VERSION = "Version";
     private static final String ATTR_CREATEDDATE = "DateCreated";
 
@@ -79,26 +84,26 @@ public class PronomParser {
 
     /**
      * getPronom
+     * 
      * @param xmlPronom as InputStream
      * @return : the list of file format as ArrayNode
-     * @throws FileFormatException 
+     * @throws FileFormatException
      */
+    @SuppressWarnings("unchecked")
     public static ArrayNode getPronom(InputStream xmlPronom) throws FileFormatException {
         FileFormat pronomFormat = new FileFormat();
+        FileFormat fileFormat0 = new FileFormat();
         boolean bExtension = false;
         boolean bFileFormat = false;
         boolean bPriorityOverId = false;
-        String pronomVersion = null;
-        String createdDate = null;
 
         JsonNode jsonPronom = null;
         ArrayNode jsonFileFormatList = JsonHandler.createArrayNode();
 
-        List<String> mimeTypes = new ArrayList<String>();
         List<String> extensions = new ArrayList<String>();
         List<String> priorityOverIdList = new ArrayList<String>();
+        Map<String, String> idToPUID = new HashMap<>();
 
-        // FIXME l'algorithme est faux et ne tient pas compte des X-FMT et des FMT (cf https://dev.programmevitam.fr/plugins/tracker/?aid=561&group_id=108)
         try {
             final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
             XMLEventReader eventReader = xmlInputFactory.createXMLEventReader(xmlPronom);
@@ -108,55 +113,41 @@ public class PronomParser {
                     case XMLStreamConstants.START_ELEMENT:
                         StartElement startElement = event.asStartElement();
                         String qName = startElement.getName().getLocalPart();
-                        if (qName.equalsIgnoreCase(TAG_FILEFORMAT)) {
-                            pronomFormat = new FileFormat();
-                            pronomFormat.setCreatedDate(createdDate);
-                            pronomFormat.setPronomVersion(pronomVersion);
-                            extensions.clear();
-                            priorityOverIdList.clear();
-                            mimeTypes.clear();
-
-                            bFileFormat = true;
-                            Iterator<Attribute> attributes = startElement.getAttributes();
-                            while (attributes.hasNext()) {
-                                Attribute attribute = attributes.next();
-                                switch (attribute.getName().toString()) {
-
-                                    case ATTR_MIMETYPE:
-                                        mimeTypes.add(attribute.getValue());
-                                        pronomFormat.setMimeType(mimeTypes);
-                                        break;
-                                    case ATTR_NAME:
-                                        pronomFormat.setName(attribute.getValue());
-                                        break;
-                                    case ATTR_PUID:
-                                        pronomFormat.setPUID(attribute.getValue());
-                                        break;
-                                    case ATTR_VERSION:
-                                        pronomFormat.setVersion(attribute.getValue());
-                                        break;
-                                }
-                            }
-                        } else if (qName.equalsIgnoreCase(TAG_EXTENSION)) {
-                            bExtension = true;
-
-                        } else if (qName.equalsIgnoreCase(TAG_PRIVIOUSVERION)) {
-                            bPriorityOverId = true;
-
-                        } else if (qName.equalsIgnoreCase(TAG_FFSIGNATUREFILE)) {
+                        if (qName.equalsIgnoreCase(TAG_FFSIGNATUREFILE)) {
                             Iterator<Attribute> attributes = startElement.getAttributes();
                             while (attributes.hasNext()) {
                                 Attribute attribute = attributes.next();
                                 switch (attribute.getName().toString()) {
                                     case ATTR_CREATEDDATE:
-                                        createdDate = attribute.getValue();
+                                        fileFormat0.setCreatedDate(attribute.getValue());
                                         break;
                                     case ATTR_VERSION:
-                                        pronomVersion = attribute.getValue();
+                                        fileFormat0.setPronomVersion(attribute.getValue());
                                         break;
                                 }
 
                             }
+                        } else if (qName.equalsIgnoreCase(TAG_FILEFORMAT)) {
+                            extensions.clear();
+                            priorityOverIdList.clear();
+                            bFileFormat = true;
+
+                            Iterator<Attribute> attributes = startElement.getAttributes();
+                            Map<String, Object> attributesMap = new HashMap<>();
+                            while (attributes.hasNext()) {
+                                Attribute attribute = attributes.next();
+                                attributesMap.put(attribute.getName().toString(), attribute.getValue());
+                            }
+                            idToPUID.put(attributesMap.get(ATTR_ID).toString(),
+                                attributesMap.get(ATTR_PUID).toString());
+                            attributesMap.remove(ATTR_ID);
+                            pronomFormat = getNewFileFormatFromAttributes(fileFormat0, attributesMap);
+                        } else if (qName.equalsIgnoreCase(TAG_EXTENSION)) {
+                            bExtension = true;
+
+                        } else if (qName.equalsIgnoreCase(TAG_HASPRIORITYOVERFILEFORMATID)) {
+                            bPriorityOverId = true;
+
                         }
 
                         break;
@@ -181,6 +172,12 @@ public class PronomParser {
                         if (qName.equalsIgnoreCase(TAG_FILEFORMAT)) {
                             pronomFormat.setExtension(extensions);
                             pronomFormat.setPriorityOverIdList(priorityOverIdList);
+                            //Add default value
+                            pronomFormat.setAlert(false);
+                            pronomFormat.setComment("");
+                            pronomFormat.setGroup("");
+                            
+                            copyAttributesFromFileFormat(pronomFormat, fileFormat0);
                             jsonPronom = JsonHandler.getFromString(pronomFormat.toJson());
                             jsonFileFormatList.add(jsonPronom);
                             bFileFormat = false;
@@ -190,12 +187,54 @@ public class PronomParser {
             }
         } catch (XMLStreamException e) {
             LOGGER.error(e.getMessage());
-            throw new InvalidFileFormatParseException("Invalid xml file format");            
+            throw new InvalidFileFormatParseException("Invalid xml file format");
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e.getMessage());
             throw new JsonNodeFormatCreationException("Invalid object to create a json");
         }
 
+        for (Iterator<JsonNode> it = jsonFileFormatList.elements(); it.hasNext();) {
+            ObjectNode node = (ObjectNode) it.next();
+            ArrayNode priorityVersionList = (ArrayNode) node.get(TAG_HASPRIORITYOVERFILEFORMATID);
+            if (priorityVersionList != null) {
+                ArrayNode newPriorityVersionList = JsonHandler.createArrayNode();
+                for (Iterator<JsonNode> iterator = priorityVersionList.elements(); iterator.hasNext();) {
+                    TextNode childId = (TextNode) iterator.next();
+                    newPriorityVersionList.add(idToPUID.get(childId.asText()));
+                }
+                node.set(TAG_HASPRIORITYOVERFILEFORMATID, newPriorityVersionList);
+            }
+        }
+
         return jsonFileFormatList;
+    }
+
+    private static FileFormat getNewFileFormatFromAttributes(FileFormat fileFormat, Map<String, Object> attributes) {
+        FileFormat newFileFormat = new FileFormat();
+        if (attributes.get(ATTR_PUID).toString().startsWith(FMT)) {
+            for (String i : fileFormat.keySet()) {
+                newFileFormat.put(i, fileFormat.get(i));
+            }
+            newFileFormat.putAll(attributes);
+        } else {
+            newFileFormat.append(CREATED_DATE, fileFormat.getString(CREATED_DATE));
+            newFileFormat.append(VERSION_PRONOM, fileFormat.getString(VERSION_PRONOM));
+            newFileFormat.putAll(attributes);
+        }
+        return newFileFormat;
+    }
+
+    private static void copyAttributesFromFileFormat(FileFormat fileFormatSource, FileFormat fileFormatDest) {
+        if (fileFormatSource.getString(ATTR_PUID).startsWith(FMT)) {
+            for (String i : fileFormatSource.keySet()) {
+                if (!ATTR_PUID.equals(i) && !TAG_HASPRIORITYOVERFILEFORMATID.equals(i)) {
+                    fileFormatDest.put(i, fileFormatSource.get(i));
+                }
+            }
+        } else {
+            fileFormatDest.clear();
+            fileFormatDest.append(CREATED_DATE, fileFormatSource.getString(CREATED_DATE));
+            fileFormatDest.append(VERSION_PRONOM, fileFormatSource.getString(VERSION_PRONOM));
+        }
     }
 }

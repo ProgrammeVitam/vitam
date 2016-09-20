@@ -1,52 +1,30 @@
 /**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- *
+ * <p>
  * contact.vitam@culture.gouv.fr
- *
+ * <p>
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
- *
+ * <p>
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
  * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- *
+ * <p>
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
- *
+ * <p>
  * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- *
+ * <p>
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
 package fr.gouv.vitam.workspace.rest;
-
-import static com.jayway.restassured.RestAssured.get;
-import static com.jayway.restassured.RestAssured.given;
-import static com.jayway.restassured.RestAssured.with;
-import static org.junit.Assert.fail;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
-
-import org.apache.commons.io.IOUtils;
-import org.hamcrest.Matchers;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -55,16 +33,30 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.config.EncoderConfig;
 import com.jayway.restassured.http.ContentType;
-
+import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
+import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.workspace.common.Entry;
 import fr.gouv.vitam.workspace.common.RequestResponseError;
 import fr.gouv.vitam.workspace.common.VitamError;
+import org.apache.commons.io.IOUtils;
+import org.hamcrest.Matchers;
+import org.junit.*;
+import org.junit.rules.TemporaryFolder;
 
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 
+import static com.jayway.restassured.RestAssured.*;
+import static org.junit.Assert.fail;
+
+/**
+ */
 public class WorkspaceResourceTest {
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
@@ -84,6 +76,7 @@ public class WorkspaceResourceTest {
     private static JunitHelper junitHelper;
     private static int port;
 
+    private static final String CONFIG_FILE_NAME = "workspace-test.conf";
     private static final String SHOULD_NOT_RAIZED_AN_EXCEPTION = "Should not raized an exception";
     private static final ObjectMapper OBJECT_MAPPER;
 
@@ -97,7 +90,6 @@ public class WorkspaceResourceTest {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         junitHelper = new JunitHelper();
-        port = junitHelper.findAvailablePort();
     }
 
     @AfterClass
@@ -107,11 +99,17 @@ public class WorkspaceResourceTest {
 
     @Before
     public void setup() throws Exception {
-        final StorageConfiguration configuration = new StorageConfiguration();
+        final WorkspaceConfiguration configuration = new WorkspaceConfiguration();
         final File tempDir = tempFolder.newFolder();
         configuration.setStoragePath(tempDir.getCanonicalPath());
+        configuration.setJettyConfig("jetty-config-test.xml");
+
+        port = junitHelper.findAvailablePort();
+        //TODO verifier la compatibilité avec les tests parallèles sur jenkins
+        SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(port));
+
         workspaceApplication = new WorkspaceApplication();
-        WorkspaceApplication.run(configuration, port);
+        WorkspaceApplication.startApplication(configuration);
         RestAssured.port = port;
         RestAssured.basePath = RESOURCE_URI;
     }

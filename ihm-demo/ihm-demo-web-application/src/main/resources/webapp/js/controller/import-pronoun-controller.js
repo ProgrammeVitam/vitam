@@ -67,9 +67,7 @@ angular.module('ihm.demo')
     		var confirm = $mdDialog.confirm()
     			.title('Referentiel de formats importé')
     			.ok("Fermer");
-    		$mdDialog.show(confirm).then(function(){
-    			$route.reload();
-    		});
+    		$mdDialog.show(confirm);
     	}
     	
     };

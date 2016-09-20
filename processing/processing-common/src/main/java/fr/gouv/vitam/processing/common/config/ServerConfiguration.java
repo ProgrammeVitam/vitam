@@ -24,16 +24,14 @@
 package fr.gouv.vitam.processing.common.config;
 
 /**
- *
  * ServerConfiguration class contains the different parameter {hostName ,ipAddress, port }to connect a remote server
  * such as workspace or metaData
- *
  */
 public class ServerConfiguration {
 
     private String urlMetada;
-
     private String urlWorkspace;
+    private String jettyConfig;
 
     /**
      * @return the urlMetada
@@ -47,6 +45,7 @@ public class ServerConfiguration {
 
     /**
      * @param urlMetada the urlMetada to set
+     * @return the update ServerConfiguration object
      */
     public ServerConfiguration setUrlMetada(String urlMetada) {
         // FIXME REVIEW null check
@@ -66,6 +65,7 @@ public class ServerConfiguration {
 
     /**
      * @param urlWorkspace the urlWorkspace to set
+     * @return the update ServerConfiguration object
      */
     public ServerConfiguration setUrlWorkspace(String urlWorkspace) {
         // FIXME REVIEW null check
@@ -73,4 +73,22 @@ public class ServerConfiguration {
         return this;
     }
 
+    /**
+     * jettyConfig setter
+     *
+     * @return jettyConfig
+     */
+    public String getJettyConfig() {
+        return jettyConfig;
+    }
+
+    /**
+     * jettyConfig getter
+     *
+     * @param jettyConfig to be set
+     */
+    public ServerConfiguration setJettyConfig(String jettyConfig) {
+        this.jettyConfig = jettyConfig;
+        return this;
+    }
 }

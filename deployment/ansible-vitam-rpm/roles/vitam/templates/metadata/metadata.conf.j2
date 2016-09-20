@@ -4,3 +4,12 @@ port: {{vitam_mongodb_port}}
 dbName: Vitam
 
 jettyConfig: jetty-config.xml
+
+# ElasticSearch
+clusterName: {{cluster_name}}
+elasticsearchNodes:
+{% for server in groups['hosts-elasticsearch-data'] %}
+- hostName: {{server}}
+  tcpPort: {{elasticsearch_data_tcp_port}}
+
+{% endfor %}

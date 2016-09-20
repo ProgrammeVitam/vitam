@@ -68,7 +68,6 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusMessage;
-import fr.gouv.vitam.common.server.BasicVitamServer;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
@@ -87,7 +86,7 @@ public class DefaultOfferResourceTest {
     private static VitamServer vitamServer;
 
     private static final String REST_URI = "/offer/v1";
-    private static int serverPort;
+    private static int serverPort = 8784;
     private static JunitHelper junitHelper;
     private static final String OBJECTS_URI = "/objects";
     private static final String OBJECT_ID_URI = "/{id}";
@@ -111,8 +110,6 @@ public class DefaultOfferResourceTest {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
 
-        junitHelper = new JunitHelper();
-        serverPort = junitHelper.findAvailablePort();
 
         RestAssured.port = serverPort;
         RestAssured.basePath = REST_URI;
@@ -124,10 +121,8 @@ public class DefaultOfferResourceTest {
         PropertiesUtils.writeYaml(newWorkspaceOfferConf, realWorkspaceOffer);
 
         try {
-            vitamServer = DefaultOfferApplication.startApplication(new String[] {
-                newWorkspaceOfferConf.getAbsolutePath(),
-                Integer.toString(serverPort)});
-            ((BasicVitamServer) vitamServer).start();
+            DefaultOfferApplication.startApplication(new String[] {
+                workspaceOffer.getAbsolutePath()});
         } catch (VitamApplicationServerException e) {
             LOGGER.error(e);
             throw new IllegalStateException(
@@ -139,11 +134,11 @@ public class DefaultOfferResourceTest {
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
         try {
-            ((BasicVitamServer) vitamServer).stop();
+            DefaultOfferApplication.stop();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
         }
-        junitHelper.releasePort(serverPort);
+        // junitHelper.releasePort(serverPort);
     }
 
     @After
@@ -167,8 +162,8 @@ public class DefaultOfferResourceTest {
     public void getCapacityTestOk() {
         // create tenant
         ObjectInit objectInit = new ObjectInit();
-        given().header(GlobalDataRest.X_TENANT_ID, "0").header(GlobalDataRest.X_COMMAND, StorageConstants
-            .COMMAND_INIT).contentType(MediaType.APPLICATION_JSON)
+        given().header(GlobalDataRest.X_TENANT_ID, "0").header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_INIT)
+            .contentType(MediaType.APPLICATION_JSON)
             .content(objectInit).when().post(OBJECTS_URI + "/" + "id1").then().statusCode(201);
         // test
         given().header(GlobalDataRest.X_TENANT_ID, "0").when().get(OBJECTS_URI).then().statusCode(200);
@@ -188,15 +183,15 @@ public class DefaultOfferResourceTest {
             .statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .get(OBJECTS_URI + OBJECT_ID_URI, "id1");
     }
-    
+
     @Test
-    public void getObjectTestOK() throws Exception{
-        
+    public void getObjectTestOK() throws Exception {
+
         ObjectInit objectInit = new ObjectInit();
         with().header(GlobalDataRest.X_TENANT_ID, "1").header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_INIT)
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectInit).when().post(OBJECTS_URI + "/" + "id1");
-        
+
         try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
             assertNotNull(in);
             FileChannel fc = in.getChannel();
@@ -230,7 +225,7 @@ public class DefaultOfferResourceTest {
                 read = fc.read(bb);
             }
         }
-        
+
         // found
         given().header(GlobalDataRest.X_TENANT_ID, "1").contentType(MediaType.APPLICATION_JSON).then()
             .statusCode(Status.OK.getStatusCode()).when()

@@ -23,6 +23,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.rest;
 
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,20 +44,24 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import com.fasterxml.jackson.core.JsonGenerationException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.function.administration.rules.core.RulesManagerFileImpl;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
-import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
+import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
+import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
+import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.format.core.ReferentialFormatFileImpl;
 
@@ -65,6 +72,7 @@ import fr.gouv.vitam.functional.administration.format.core.ReferentialFormatFile
 public class AdminManagementResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementResource.class);
     private ReferentialFormatFileImpl formatManagement;
+    private RulesManagerFileImpl rulesFileManagement;
 
     /**
      * Constructor
@@ -73,6 +81,7 @@ public class AdminManagementResource {
      */
     public AdminManagementResource(AdminManagementConfiguration configuration) {
         formatManagement = new ReferentialFormatFileImpl(configuration);
+        rulesFileManagement = new RulesManagerFileImpl(configuration);
         LOGGER.info("init Admin Management Resource server");
     }
 
@@ -96,12 +105,12 @@ public class AdminManagementResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response checkFormat(InputStream xmlPronom){
+    public Response checkFormat(InputStream xmlPronom) {
         ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", xmlPronom);
-        
+
         try {
             formatManagement.checkFile(xmlPronom);
-        }  catch (ReferentialException e) {
+        } catch (ReferentialException e) {
             LOGGER.error(e.getMessage());
             Status status = Status.PRECONDITION_FAILED;
             return Response.status(status)
@@ -111,7 +120,7 @@ public class AdminManagementResource {
         return Response.status(Status.OK).build();
     }
 
-    
+
     /**
      * @param xmlPronom as InputStream
      * @return Response jersey response
@@ -120,8 +129,8 @@ public class AdminManagementResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response importFormat(InputStream xmlPronom){
-        ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", xmlPronom);        
+    public Response importFormat(InputStream xmlPronom) {
+        ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", xmlPronom);
         try {
             formatManagement.importFile(xmlPronom);
         } catch (ReferentialException e) {
@@ -136,7 +145,7 @@ public class AdminManagementResource {
             return Response.status(status)
                 .entity(status)
                 .build();
-        } 
+        }
         return Response.status(Status.OK).entity(Status.OK.name()).build();
     }
 
@@ -147,80 +156,246 @@ public class AdminManagementResource {
     @Path("format/delete")
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    public Response deleteFormat() throws FileFormatException{
-        formatManagement.deleteCollection();         
+    public Response deleteFormat() throws FileFormatException {
+        formatManagement.deleteCollection();
         return Response.status(Status.OK).build();
     }
-    
+
     /**
-     * @param formatId path param as String 
+     * @param formatId path param as String
      * @return Response jersey response
-     * @throws InvalidParseOperationException 
-     * @throws IOException when error json occurs 
-     * @throws JsonMappingException when error json occurs 
-     * @throws JsonGenerationException when error json occurs
+     * @throws InvalidParseOperationException
+     * @throws IOException when error json occurs
      */
-    @POST    
+    @POST
     @Path("format/{id_format}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response findFileFormatByID(@PathParam("id_format") String formatId) throws InvalidParseOperationException, JsonGenerationException, JsonMappingException, IOException{        
-        ParametersChecker.checkParameter("formatId is a mandatory parameter", formatId);        
-        FileFormat fileFormat = null;        
+    public Response findFileFormatByID(@PathParam("id_format") String formatId)
+        throws InvalidParseOperationException, IOException {
+        ParametersChecker.checkParameter("formatId is a mandatory parameter", formatId);
+        FileFormat fileFormat = null;
         try {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(formatId));
             fileFormat = formatManagement.findDocumentById(formatId);
 
-            if(fileFormat==null) {
+            if (fileFormat == null) {
                 throw new ReferentialException("NO DATA for the specified formatId");
             }
 
-        }  catch (ReferentialException e) {
+        } catch (ReferentialException e) {
             LOGGER.error(e.getMessage());
             Status status = Status.NOT_FOUND;
             return Response.status(status).build();
         }
         return Response.status(Status.OK).entity(JsonHandler.toJsonNode(fileFormat)).build();
     }
-    
+
     /**
      * @param select as String
      * @return Response jersay Response
-     * @throws IOException  when error json occurs
-     * @throws JsonMappingException  when error json occurs
-     * @throws JsonGenerationException when error json occurs
+     * @throws IOException when error json occurs
      * @throws InvalidParseOperationException when error json occurs
      */
     @Path("format/document")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response findDocument(JsonNode select) throws JsonGenerationException, JsonMappingException, InvalidParseOperationException, IOException{
-        ParametersChecker.checkParameter("select is a mandatory parameter", select);        
-        List<FileFormat> fileFormatList = new ArrayList<FileFormat>();                
+    public Response findDocument(JsonNode select)
+        throws InvalidParseOperationException, IOException {
+        ParametersChecker.checkParameter("select is a mandatory parameter", select);
+        List<FileFormat> fileFormatList = new ArrayList<FileFormat>();
         try {
             SanityChecker.checkJsonAll(select);
             fileFormatList = formatManagement.findDocuments(select);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-        }  catch (final ReferentialException e) {
+        } catch (final ReferentialException e) {
             LOGGER.error(e.getMessage());
             Status status = Status.NOT_FOUND;
             return Response.status(status).build();
-        } 
-        
-        return Response.status(Status.OK).entity(JsonHandler.getFromString(fileFormatListToJsonString(fileFormatList))).build();
+        }
+
+        return Response.status(Status.OK).entity(JsonHandler.getFromString(fileFormatListToJsonString(fileFormatList)))
+            .build();
     }
 
     private String fileFormatListToJsonString(List<FileFormat> formatList)
-        throws JsonGenerationException, JsonMappingException, IOException {
+        throws IOException {
         final OutputStream out = new ByteArrayOutputStream();
         final ObjectMapper mapper = new ObjectMapper();
         mapper.writeValue(out, formatList);
         final byte[] data = ((ByteArrayOutputStream) out).toByteArray();
         final String fileFormatAsString = new String(data);
         return fileFormatAsString;
-    }    
-    
+    }
+
+    /***************************************** rules Manager *************************************/
+    /**
+     * @param rulesStream as InputStream
+     * @return Response response jersey
+     * @throws IOException
+     */
+    @Path("rules/check")
+    @POST
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response checkRulesFile(InputStream rulesStream) throws IOException {
+        ParametersChecker.checkParameter("rulesStream is a mandatory parameter", rulesStream);
+
+        try {
+            rulesFileManagement.checkFile(rulesStream);
+        } catch (FileRulesException e) {
+            LOGGER.error(e.getMessage());
+            Status status = Status.PRECONDITION_FAILED;
+            return Response.status(status)
+                .entity(status)
+                .build();
+        }
+        return Response.status(Status.OK).build();
+    }
+
+
+    /**
+     * @param rulesManager as InputStream
+     * @return Response jersey response
+     * @throws IOException when error json occurs
+     * @throws InvalidParseOperationException when error json occurs
+     * @throws ReferentialException
+     */
+    @Path("rules/import")
+    @POST
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response importRulesFile(InputStream rulesStream)
+        throws InvalidParseOperationException, ReferentialException, IOException {
+        ParametersChecker.checkParameter("rulesStream is a mandatory parameter", rulesStream);
+        try {
+            rulesFileManagement.importFile(rulesStream);
+        } catch (FileRulesException e) {
+            LOGGER.error(e.getMessage());
+            Status status = Status.PRECONDITION_FAILED;
+            return Response.status(status)
+                .entity(status)
+                .build();
+        } catch (DatabaseConflictException e) {
+            LOGGER.error(e);
+            Status status = Status.CONFLICT;
+            return Response.status(status)
+                .entity(status)
+                .build();
+        }
+        return Response.status(Status.OK).entity(Status.OK.name()).build();
+    }
+
+    /**
+     * @return Response
+     * @throws FileRulesException when delete exception
+     */
+    @Path("rules/delete")
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteRulesFile() throws FileRulesException {
+        rulesFileManagement.deleteCollection();
+        return Response.status(Status.OK).build();
+    }
+
+    /**
+     * findRuleByID
+     * 
+     * @param rulesId path param as String
+     * @return Response jersey response
+     * @throws InvalidParseOperationException
+     * @throws IOException when error json occurs
+     * @throws ReferentialException
+     * @throws InvalidCreateOperationException
+     */
+    @POST
+    @Path("rules/{id_rule}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response findRuleByID(@PathParam("id_rule") String ruleId)
+        throws InvalidParseOperationException, IOException,
+        ReferentialException, InvalidCreateOperationException {
+        ParametersChecker.checkParameter("ruleId is a mandatory parameter", ruleId);
+        List<FileRules> fileRules = null;
+        JsonNode result = null;
+        try {
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(ruleId));
+            result = findRulesByRuleValueQueryBuilder(ruleId);
+            fileRules = rulesFileManagement.findDocuments(result);
+            if (fileRules == null || fileRules.size() > 1) {
+                throw new FileRulesException("NO DATA for the specified rule Value or More than one records exists");
+            }
+
+        } catch (FileRulesException e) {
+            LOGGER.error(e.getMessage());
+            Status status = Status.NOT_FOUND;
+            return Response.status(status).build();
+        }
+        return Response.status(Status.OK).entity(JsonHandler.toJsonNode(fileRules.get(0))).build();
+    }
+
+    /**
+     * findRulesByRuleValueQueryBuilder
+     * 
+     * @param rulesValue
+     * @return
+     * @throws InvalidCreateOperationException
+     * @throws InvalidParseOperationException
+     */
+    private JsonNode findRulesByRuleValueQueryBuilder(String rulesId)
+        throws InvalidCreateOperationException, InvalidParseOperationException {
+        JsonNode result;
+        final Select select =
+            new Select();
+        select.addOrderByDescFilter(rulesId);
+        BooleanQuery query = and();
+        query.add(eq("RuleId", rulesId));
+        select.setQuery(query);
+        result = JsonHandler.getFromString(select.getFinalSelect().toString());
+        return result;
+    }
+
+    /**
+     * @param select as String
+     * @return Response jersay Response
+     * @throws IOException when error json occurs
+     * @throws InvalidParseOperationException when error json occurs
+     */
+    @Path("rules/document")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response findDocumentRules(JsonNode select)
+        throws InvalidParseOperationException, IOException {
+        ParametersChecker.checkParameter("select is a mandatory parameter", select);
+        List<FileRules> filerulesList = new ArrayList<FileRules>();
+        try {
+            SanityChecker.checkJsonAll(select);
+            filerulesList = rulesFileManagement.findDocuments(select);
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        } catch (final ReferentialException e) {
+            LOGGER.error(e.getMessage());
+            Status status = Status.NOT_FOUND;
+            return Response.status(status).build();
+        }
+
+        return Response.status(Status.OK).entity(JsonHandler.getFromString(fileRulesListToJsonString(filerulesList)))
+            .build();
+    }
+
+    private String fileRulesListToJsonString(List<FileRules> rulesList)
+        throws IOException {
+        final OutputStream out = new ByteArrayOutputStream();
+        final ObjectMapper mapper = new ObjectMapper();
+        mapper.writeValue(out, rulesList);
+        final byte[] data = ((ByteArrayOutputStream) out).toByteArray();
+        final String fileRulesAsString = new String(data);
+        return fileRulesAsString;
+    }
+
 }

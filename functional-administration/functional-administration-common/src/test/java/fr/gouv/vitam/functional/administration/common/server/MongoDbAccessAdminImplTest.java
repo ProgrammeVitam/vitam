@@ -30,19 +30,24 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
+import fr.gouv.vitam.functional.administration.common.FileRules;
 
 public class MongoDbAccessAdminImplTest {
-    
+
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
     static MongoClient mongoClient;
     static JunitHelper junitHelper;
     static final String DATABASE_HOST = "localhost";
-    static final String DATABASE_NAME = "vitam-test";
+    static final String DATABASE_NAME = "vitamtest";
     static final String COLLECTION_NAME = "FileFormat";
+    static final String COLLECTION_RULES = "FileRules";
+
     static int port;
     static MongoDbAccessAdminImpl mongoAccess;
     static FileFormat file;
+    static FileRules fileRules;
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         final MongodStarter starter = MongodStarter.getDefaultInstance();
@@ -55,10 +60,10 @@ public class MongoDbAccessAdminImplTest {
         mongod = mongodExecutable.start();
         mongoAccess = MongoDbAccessAdminFactory.create(
             new DbConfigurationImpl(DATABASE_HOST, port, DATABASE_NAME));
-        
+
         List<String> testList = new ArrayList<>();
         testList.add("test1");
-        
+
         file = new FileFormat()
             .setCreatedDate("now")
             .setExtension(testList)
@@ -68,7 +73,16 @@ public class MongoDbAccessAdminImplTest {
             .setPronomVersion("pronom version")
             .setPUID("puid")
             .setVersion("version");
-        
+
+        fileRules = new FileRules()
+            .setRuleId("APK-485")
+            .setRuleType("testList")
+            .setRuleDescription("testList")
+            .setRuleDuration("10")
+            .setRuleMeasurement("Annee");
+
+
+
     }
 
     @AfterClass
@@ -77,7 +91,7 @@ public class MongoDbAccessAdminImplTest {
         mongodExecutable.stop();
         junitHelper.releasePort(port);
     }
-    
+
     @Test
     public void testImplementFunction() throws Exception {
         JsonNode jsonNode = JsonHandler.getFromString(file.toJson());
@@ -90,12 +104,36 @@ public class MongoDbAccessAdminImplTest {
         assertEquals(1, collection.count());
         Select select = new Select();
         select.setQuery(eq("Name", "name"));
-        MongoCursor<FileFormat> fileList = (MongoCursor<FileFormat>) mongoAccess.select(select.getFinalSelect(), FunctionalAdminCollections.FORMATS);
+        MongoCursor<FileFormat> fileList =
+            (MongoCursor<FileFormat>) mongoAccess.select(select.getFinalSelect(), FunctionalAdminCollections.FORMATS);
         FileFormat f1 = fileList.next();
         String id = f1.getString("_id");
         FileFormat f2 = (FileFormat) mongoAccess.getDocumentById(id, FunctionalAdminCollections.FORMATS);
         assertEquals(f2, f1);
         mongoAccess.deleteCollection(FunctionalAdminCollections.FORMATS);
+        assertEquals(0, collection.count());
+        client.close();
+    }
+
+    @Test
+    public void testRulesFunction() throws Exception {
+        JsonNode jsonNode = JsonHandler.getFromString(fileRules.toJson());
+        ArrayNode arrayNode = JsonHandler.createArrayNode();
+        arrayNode.add(jsonNode);
+        mongoAccess.insertDocuments(arrayNode, FunctionalAdminCollections.RULES);
+        assertEquals("FileRules", FunctionalAdminCollections.RULES.getName());
+        MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
+        MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_RULES);
+        assertEquals(1, collection.count());
+        Select select = new Select();
+        select.setQuery(eq("RuleId", "APK-485"));
+        MongoCursor<FileRules> fileList =
+            (MongoCursor<FileRules>) mongoAccess.select(select.getFinalSelect(), FunctionalAdminCollections.RULES);
+        FileRules f1 = fileList.next();
+        assertEquals("APK-485", f1.getString("RuleId"));
+        String id = f1.getString("RuleId");
+        FileRules f2 = (FileRules) mongoAccess.getDocumentById(id, FunctionalAdminCollections.RULES);
+        mongoAccess.deleteCollection(FunctionalAdminCollections.RULES);
         assertEquals(0, collection.count());
         client.close();
     }

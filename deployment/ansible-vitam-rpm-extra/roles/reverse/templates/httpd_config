@@ -1,0 +1,83 @@
+<VirtualHost *:8080>
+  ProxyPreserveHost Off
+  ServerName {{environnement}}.env.programmevitam.fr
+
+# VITAM
+  ProxyPass /ihm-demo http://{{vitam_ihm_demo_host}}:{{vitam_ihm_demo_port}}/ihm-demo acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+  ProxyPassReverse  /ihm-demo http://{{vitam_ihm_demo_host}}:{{vitam_ihm_demo_port}}/ihm-demo
+
+  ProxyPass /logbook http://{{groups['hosts-logbook'][0]}}:{{vitam_logbook_port}}/logbook acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+  ProxyPassReverse  /logbook http://{{groups['hosts-logbook'][0]}}:{{vitam_logbook_port}}/logbook
+
+#  ProxyPass /metadata http://vitam-iaas-metadata-01.int3:8082/metadata acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+#  ProxyPassReverse  /metadata http://vitam-iaas-metadata-01.int3:8082/metadata
+
+#  ProxyPass /workspace http://vitam-iaas-workspace-01.int3:8082/workspace acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+#  ProxyPassReverse  /workspace http://vitam-iaas-workspace-01.int3:8082/workspace
+
+#  ProxyPass /processing http://vitam-iaas-processing-01.int3:8082/processing acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+#  ProxyPassReverse  /processing http://vitam-iaas-processing-01.int3:8082/processing
+
+#  ProxyPass /ingest http://vitam-iaas-ingest-01.int3:8082/ingest acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+#  ProxyPassReverse  /ingest http://vitam-iaas-ingest-01.int3:8082/ingest
+
+#  ProxyPass /access http://vitam-iaas-access-01.int3:8082/access acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+#  ProxyPassReverse  /access http://vitam-iaas-access-01.int3:8082/access
+
+# Default offer visualization
+  ProxyPass /offer-view http://{{vitam_storageofferdefault_host}}/offer-view  acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+  ProxyPassReverse  /offer-view http://{{vitam_storageofferdefault_host}}/offer-view
+
+# Mongo express
+  ProxyPass /mongo-express http://{{groups['hosts-mongo-express'][0]}}:8081/mongo-express acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+  ProxyPassReverse  /mongo-express http://{{groups['hosts-mongo-express'][0]}}:8081/mongo-express
+
+
+# Kibana
+
+  ProxyPass /app/kibana http://{{vitam_log_host}}:5601/app/kibana acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+  ProxyPassReverse /app/kibana http://{{vitam_log_host}}:5601/app/kibana
+
+  ProxyPass /api/status http://{{vitam_log_host}}:5601/api/status acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+  ProxyPassReverse /api/status http://{{vitam_log_host}}:5601/api/status
+
+  ProxyPass /bundles http://{{vitam_log_host}}:5601/bundles acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+  ProxyPassReverse /bundles http://{{vitam_log_host}}:5601/bundles
+
+  # Needed as it conflicts with Elasticsearch reverse proxy
+  ProxyPass /elasticsearch http://{{vitam_log_host}}:5601/elasticsearch
+  ProxyPassReverse /elasticsearch http://{{vitam_log_host}}:5601/elasticsearch
+
+# Documentation
+  ProxyPass /doc http://{{groups['library'][0]}}:{{vitam_library_port}}/doc
+  ProxyPassReverse /doc http://{{groups['library'][0]}}:{{vitam_library_port}}/doc
+
+
+# Elasticsearch
+  ProxyPass /_plugin http://{{vitam_log_host}}:{{elasticsearch_log_http_port}}/_plugin
+  ProxyPassReverse _plugin/ http://{{vitam_log_host}}:{{elasticsearch_log_http_port}}/_plugin
+
+  ProxyPass /elasticsearch-log http://{{vitam_log_host}}:{{elasticsearch_log_http_port}}/
+  ProxyPassReverse /elasticsearch-log http://{{vitam_log_host}}:{{elasticsearch_log_http_port}}/
+
+  ProxyPass /elasticsearch-data http://{{groups['hosts-elasticsearch-data'][0]}}:{{elasticsearch_data_http_port}}/
+  ProxyPassReverse /elasticsearch-data http://{{groups['hosts-elasticsearch-data'][0]}}:{{elasticsearch_data_http_port}}/
+
+# ProxyPass /_cluster http://vitam-iaas-log-01.int3:9200/_cluster
+# ProxyPassReverse _cluster/ http://vitam-iaas-log-01.int3:9200/_cluster
+
+# ProxyPass /_stats http://vitam-iaas-log-01.int3:9200/_stats
+# ProxyPassReverse _stats/ http://vitam-iaas-log-01.int3:9200/_stats
+
+# ProxyPass /_nodes http://vitam-iaas-log-01.int3:9200/_nodes
+# ProxyPassReverse /_nodes http://vitam-iaas-log-01.int3:9200/_nodes
+
+# Consul UI
+
+  ProxyPass /ui http://{{groups['hosts-consul-server'][0]}}:8500/ui
+  ProxyPassReverse /ui http://{{groups['hosts-consul-server'][0]}}:8500/ui
+
+  ProxyPass /v1 http://{{groups['hosts-consul-server'][0]}}:8500/v1
+  ProxyPassReverse /v1 http://{{groups['hosts-consul-server'][0]}}:8500/v1
+
+</VirtualHost>

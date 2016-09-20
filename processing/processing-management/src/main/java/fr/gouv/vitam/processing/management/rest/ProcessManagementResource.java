@@ -45,15 +45,15 @@ import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
-import fr.gouv.vitam.processing.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.model.WorkParams;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.management.api.ProcessManagement;
 import fr.gouv.vitam.processing.management.core.ProcessManagementImpl;
 
 /**
  * This class is resource provider of ProcessManagement
  */
-@Path("/processing/api/v0.0.3")
+@Path("/processing/v1")
 public class ProcessManagementResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessManagementResource.class);
@@ -63,7 +63,7 @@ public class ProcessManagementResource {
     /**
      * ProcessManagementResource : initiate the ProcessManagementResource resources
      *
-     * @param configuration
+     * @param configuration the server configuration to be applied
      */
     public ProcessManagementResource(ServerConfiguration configuration) {
         processManagement = new ProcessManagementImpl(configuration);
@@ -79,7 +79,7 @@ public class ProcessManagementResource {
      */
     ProcessManagementResource(ProcessManagement pManagement, ServerConfiguration configuration) {
         this.processManagement = pManagement;
-        this.config = configuration;
+        this.config = configuration;        
     }
 
     /**
@@ -107,10 +107,8 @@ public class ProcessManagementResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response executeVitamProcess(ProcessingEntry process) {
         Status status;
-        final WorkParams workParam = new WorkParams();
-
-        workParam.setContainerName(process.getContainer());
-        workParam.setServerConfiguration(config);
+        final WorkerParameters workParam = WorkerParametersFactory.newWorkerParameters().setContainerName(process
+            .getContainer()).setUrlMetadata(config.getUrlMetada()).setUrlWorkspace(config.getUrlWorkspace());
         ProcessResponse resp;
 
         try {

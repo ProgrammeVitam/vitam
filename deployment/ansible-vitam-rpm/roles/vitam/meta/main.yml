@@ -36,7 +36,9 @@ galaxy_info:
     # alphanumeric characters. Maximum 20 tags per role.
 
 dependencies:
-  - { role: "rsyslog"}
+  - { role: "rsyslog" , when: vitam_environment != 'local'}
+  - { role: "consul" , when: vitam_environment != 'local' }
+  - { role: "resolv_consul" , when: vitam_environment != 'local'}
   # List your role dependencies here, one per line.
   # Be sure to remove the '[]' above if you add dependencies
   # to this list.

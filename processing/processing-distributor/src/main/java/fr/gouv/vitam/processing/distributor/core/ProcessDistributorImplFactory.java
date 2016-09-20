@@ -26,25 +26,20 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.distributor.core;
 
-import fr.gouv.vitam.processing.worker.core.WorkerImpl;
-
 /**
  * ProcessDistributorImpl Factory to create ProcessDistributorImpl
  */
-public class ProcessDistributorImplFactory {
+public final class ProcessDistributorImplFactory {
+
+    private static final ProcessDistributorImpl PROCESS_DISTRIBUTOR = new ProcessDistributorImpl();
 
     /**
-     * @return ProcessDistributorImpl
+     * Retrieve a process distributor
+     * 
+     * @return the default ProcessDistributorImpl
      */
-    public ProcessDistributorImpl create() {
-        return new ProcessDistributorImpl();
+    public static ProcessDistributorImpl getDefaultDistributor() {
+        return PROCESS_DISTRIBUTOR;
     }
 
-    /**
-     * @param workerImpl {@link WorkerImpl} worker implementation
-     * @return ProcessDistributorImpl
-     */
-    public ProcessDistributorImpl create(WorkerImpl workerImpl) {
-        return new ProcessDistributorImpl(workerImpl);
-    }
 }

@@ -25,7 +25,6 @@
  * accept its terms.
  */
 /**
- * 
+ * Functional administration common package
  */
-// FIXME comment
 package fr.gouv.vitam.functional.administration.common;

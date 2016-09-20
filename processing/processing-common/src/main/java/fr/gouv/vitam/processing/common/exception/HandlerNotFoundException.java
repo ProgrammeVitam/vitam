@@ -32,15 +32,15 @@ public class HandlerNotFoundException extends ProcessingException {
     private static final long serialVersionUID = -2509124610929085300L;
 
     /**
-     * @param message
-     * @param cause
+     * @param message to be set
+     * @param cause to be set
      */
     public HandlerNotFoundException(String message, Throwable cause) {
         super(message, cause);
     }
 
     /**
-     * @param message
+     * @param message to be set
      */
     public HandlerNotFoundException(String message) {
         super(message);

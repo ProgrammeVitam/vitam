@@ -1,26 +1,26 @@
 /**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- *
+ * <p>
  * contact.vitam@culture.gouv.fr
- *
+ * <p>
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
- *
+ * <p>
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
  * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- *
+ * <p>
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
- *
+ * <p>
  * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- *
+ * <p>
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
@@ -56,7 +56,6 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.BasicVitamServer;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
@@ -77,7 +76,7 @@ public class LogBookLifeCycleObjectGroupTest {
 
     private static final String REST_URI = "/logbook/v1";
 
-    private static final String LOGBOOK_CONF = "logbook.conf";
+    private static final String LOGBOOK_CONF = "logbook-test.conf";
     private static final String DATABASE_HOST = "localhost";
     private static MongoDbAccess mongoDbAccess;
     private static MongodExecutable mongodExecutable;
@@ -86,9 +85,9 @@ public class LogBookLifeCycleObjectGroupTest {
 
     private static final String LIFE_OBJECT_GROUP_ID_URI = "/operations/{id_op}/objectgrouplifecycles/{id_lc}";
 
-    private static int databasePort;
-    private static int serverPort;
-    private static File newLogbookConf;
+    private static int databasePort = 52661;
+    private static int serverPort = 8889;
+    // private static File newLogbookConf;
 
     private static LogbookLifeCycleObjectGroupParameters logbookLifeCyclesObjectGroupParametersStart;
     private static LogbookLifeCycleObjectGroupParameters logbookLCObjectGroupParametersAppend;
@@ -103,13 +102,13 @@ public class LogBookLifeCycleObjectGroupTest {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
 
-        junitHelper = new JunitHelper();
-        databasePort = junitHelper.findAvailablePort();
+        // junitHelper = new JunitHelper();
+        // databasePort = junitHelper.findAvailablePort();
         final File logbook = PropertiesUtils.findFile(LOGBOOK_CONF);
         final LogbookConfiguration realLogbook = PropertiesUtils.readYaml(logbook, LogbookConfiguration.class);
         realLogbook.setDbPort(databasePort);
-        newLogbookConf = File.createTempFile("test", LOGBOOK_CONF, logbook.getParentFile());
-        PropertiesUtils.writeYaml(newLogbookConf, realLogbook);
+        // newLogbookConf = File.createTempFile("test", LOGBOOK_CONF, logbook.getParentFile());
+        // PropertiesUtils.writeYaml(newLogbookConf, realLogbook);
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .version(Version.Main.PRODUCTION)
@@ -120,16 +119,15 @@ public class LogBookLifeCycleObjectGroupTest {
             MongoDbAccessFactory.create(
                 new DbConfigurationImpl(DATABASE_HOST, databasePort,
                     "vitam-test"));
-        serverPort = junitHelper.findAvailablePort();
+        // serverPort = junitHelper.findAvailablePort();
+        // TODO verifier la compatibilité avec les tests parallèles sur jenkins
+        // SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
 
         RestAssured.port = serverPort;
         RestAssured.basePath = REST_URI;
 
         try {
-            vitamServer = LogbookApplication.startApplication(new String[] {
-                newLogbookConf.getAbsolutePath(),
-                Integer.toString(serverPort)});
-            ((BasicVitamServer) vitamServer).start();
+            LogbookApplication.startApplication(new String[] {LOGBOOK_CONF});
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
             throw new IllegalStateException(
@@ -164,7 +162,7 @@ public class LogBookLifeCycleObjectGroupTest {
 
         /**
          * update
-         * 
+         *
          */
             final GUID eip2 = GUIDFactory.newWriteLogbookGUID(0);
         final GUID iop2 = GUIDFactory.newWriteLogbookGUID(0);
@@ -179,7 +177,7 @@ public class LogBookLifeCycleObjectGroupTest {
         logbookLifeCyclesObjectGroupParametersUpdate.putParameterValue(LogbookParameterName.objectIdentifier,
             ioL2.toString());
         /**
-         * 
+         *
          * update
          */
 
@@ -196,16 +194,16 @@ public class LogBookLifeCycleObjectGroupTest {
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
         try {
-            ((BasicVitamServer) vitamServer).stop();
+            LogbookApplication.stop();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
         }
         mongoDbAccess.close();
-        junitHelper.releasePort(serverPort);
+        // junitHelper.releasePort(serverPort);
         mongod.stop();
         mongodExecutable.stop();
-        newLogbookConf.delete();
-        junitHelper.releasePort(databasePort);
+        // newLogbookConf.delete();
+        // junitHelper.releasePort(databasePort);
     }
 
     @Test

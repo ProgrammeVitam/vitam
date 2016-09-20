@@ -1,11 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-	<!--
-	This test file exemplifies a restrict-extension rule.
-
-	Protection #1: any URI ending with .log will be rejected
-	Protection #2: any URI ending with .jsp will be allowed
-	-->
+<!-- This test file exemplifies a restrict-extension rule. Protection #1: 
+	any URI ending with .log will be rejected Protection #2: any URI ending with 
+	.jsp will be allowed -->
 
 <policy>
 

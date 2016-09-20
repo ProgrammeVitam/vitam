@@ -3,39 +3,34 @@
  *
  * contact.vitam@culture.gouv.fr
  *
- * This software is a computer program whose purpose is to implement a digital
- * archiving back-office system managing high volumetry securely and efficiently.
+ * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
+ * high volumetry securely and efficiently.
  *
- * This software is governed by the CeCILL 2.1 license under French law and
- * abiding by the rules of distribution of free software.  You can  use,
- * modify and/ or redistribute the software under the terms of the CeCILL 2.1
- * license as circulated by CEA, CNRS and INRIA at the following URL
- * "http://www.cecill.info".
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
+ * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
  *
- * As a counterpart to the access to the source code and  rights to copy,
- * modify and redistribute granted by the license, users are provided only
- * with a limited warranty  and the software's author,  the holder of the
- * economic rights,  and the successive licensors  have only  limited
- * liability.
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
  *
- * In this respect, the user's attention is drawn to the risks associated
- * with loading,  using,  modifying and/or developing or reproducing the
- * software by the user in light of its specific status of free software,
- * that may mean  that it is complicated to manipulate,  and  that  also
- * therefore means  that it is reserved for developers  and  experienced
- * professionals having in-depth computer knowledge. Users are therefore
- * encouraged to load and test the software's suitability as regards their
- * requirements in conditions enabling the security of their systems and/or
- * data to be ensured and,  more generally, to use and operate it in the
- * same conditions as regards security.
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
  *
- * The fact that you are presently reading this means that you have had
- * knowledge of the CeCILL 2.1 license and that you accept its terms.
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
+ * accept its terms.
  */
 
 package fr.gouv.vitam.storage.offers.workspace.driver;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -58,7 +53,6 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.BasicVitamServer;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
@@ -78,6 +72,7 @@ public class DriverToOfferTest {
     private static final String WORKSPACE_OFFER_CONF = "default-offer.conf";
     private static final String DEFAULT_STORAGE_CONF = "default-storage.conf";
     private static final String ARCHIVE_FILE_TXT = "archivefile.txt";
+
     private static File newWorkspaceOfferConf;
 
     private static VitamServer vitamServer;
@@ -97,7 +92,7 @@ public class DriverToOfferTest {
         new JHades().overlappingJarsReport();
 
         junitHelper = new JunitHelper();
-        serverPort = junitHelper.findAvailablePort();
+        serverPort = 8784;
 
         RestAssured.port = serverPort;
         RestAssured.basePath = REST_URI;
@@ -105,14 +100,12 @@ public class DriverToOfferTest {
         final File workspaceOffer = PropertiesUtils.findFile(WORKSPACE_OFFER_CONF);
         final DefaultOfferConfiguration realWorkspaceOffer =
             PropertiesUtils.readYaml(workspaceOffer, DefaultOfferConfiguration.class);
-        newWorkspaceOfferConf = File.createTempFile("test", WORKSPACE_OFFER_CONF, workspaceOffer.getParentFile());
-        PropertiesUtils.writeYaml(newWorkspaceOfferConf, realWorkspaceOffer);
+        // newWorkspaceOfferConf = File.createTempFile("test", WORKSPACE_OFFER_CONF, workspaceOffer.getParentFile());
+        // PropertiesUtils.writeYaml(newWorkspaceOfferConf, realWorkspaceOffer);
 
         try {
-            vitamServer = DefaultOfferApplication.startApplication(new String[] {
-                newWorkspaceOfferConf.getAbsolutePath(),
-                Integer.toString(serverPort)});
-            ((BasicVitamServer) vitamServer).start();
+            DefaultOfferApplication.startApplication(new String[] {
+                workspaceOffer.getAbsolutePath()});
         } catch (VitamApplicationServerException e) {
             LOGGER.error(e);
             throw new IllegalStateException(
@@ -127,9 +120,10 @@ public class DriverToOfferTest {
         if (connection != null) {
             connection.close();
         }
-        ((BasicVitamServer) vitamServer).stop();
         junitHelper.releasePort(serverPort);
 
+
+        DefaultOfferApplication.stop();
         // delete files
         StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
             StorageConfiguration.class);
@@ -174,7 +168,7 @@ public class DriverToOfferTest {
             request.setDataStream(fin);
             connection.putObject(request);
             fail("Should have an exception !");
-        } catch(StorageDriverException exc) {
+        } catch (StorageDriverException exc) {
             // Nothing, missing tenant parameter
         }
     }

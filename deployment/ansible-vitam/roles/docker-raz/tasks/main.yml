@@ -18,6 +18,7 @@
   - "ingest-external"
   - "storage-engine"
   - "storage-offer-default"
+  - "worker"
   ignore_errors: true
 
 - name: stop all VITAM containers from {{docker_registry_external_hostname}} (except mongo)
@@ -38,6 +39,7 @@
   - "ingest-external"
   - "storage-engine"
   - "storage-offer-default"
+  - "worker"
   ignore_errors: true
 
 - name: stop all VITAM containers from {{docker_registry_push_hostname}} (except mongo)
@@ -58,6 +60,7 @@
   - "ingest-external"
   - "storage-engine"
   - "storage-offer-default"
+  - "worker"
   ignore_errors: true
 
 
@@ -81,6 +84,7 @@
   - "storage-engine"
   - "storage-offer-default"
   - "functional-administration"
+  - "worker"
   ignore_errors: true
  
 - name: delete all VITAM containers from {{docker_registry_external_hostname}} (except mongo)
@@ -102,6 +106,7 @@
   - "storage-engine"
   - "storage-offer-default"
   - "functional-administration"
+  - "worker"
   ignore_errors: true
 
 - name: delete all VITAM containers from {{docker_registry_push_hostname}} (except mongo)
@@ -123,6 +128,7 @@
   - "storage-engine"
   - "storage-offer-default"
   - "functional-administration"
+  - "worker"
   ignore_errors: true
 
 # name="{{item}}-{{vitam_environment}}"
@@ -145,6 +151,7 @@
   - "storage-engine"
   - "storage-offer-default"
   - "functional-administration"
+  - "worker"
   ignore_errors: true
 
 # name="{{item}}-{{vitam_environment}}"
@@ -168,6 +175,7 @@
   - "storage-engine"
   - "storage-offer-default"
   - "functional-administration"
+  - "worker"
   ignore_errors: true
 
 #- name: delete all containers
@@ -191,3 +199,4 @@
   - "storage-engine"
   - "storage-offer-default"
   - "functional-administration"
+  - "worker"

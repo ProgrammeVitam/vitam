@@ -30,29 +30,35 @@ import java.io.IOException;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.SSLConfiguration;
 import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.common.server.application.configuration.ClientConfiguration;
 import fr.gouv.vitam.common.server.application.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.server.application.configuration.SecureClientConfiguration;
+import fr.gouv.vitam.common.server.application.configuration.SecureClientConfigurationImpl;
 
 /**
- * Ingest external client factory
- * use to get client by type "rest" or "mock"
+ * Ingest external client factory use to get client by type "rest" or "mock"
  */
 public class IngestExternalClientFactory {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalClientFactory.class);
     private static IngestExternalClientType defaultClientType;
     private static final IngestExternalClientFactory INGEST_EXTERNAL_CLIENT_FACTORY = new IngestExternalClientFactory();
-    private static final String CONFIGURATION_FILENAME = "ingest-external-client-test.conf";
-    
+    private static final String CONFIGURATION_FILENAME = "ingest-external-client.conf";
+
     private String server = "localhost";
     private int port = VitamServerFactory.getDefaultPort();
-    
-    private IngestExternalClientFactory(){
+    private boolean secure = true;
+    private SSLConfiguration sslConfiguration = new SSLConfiguration();
+    private boolean hostnameVerification = true;
+
+    private IngestExternalClientFactory() {
         changeConfigurationFile(CONFIGURATION_FILENAME);
     }
-    
+
     /**
      * Set the IngestExternalClientFactory configuration
      *
@@ -69,7 +75,7 @@ public class IngestExternalClientFactory {
         INGEST_EXTERNAL_CLIENT_FACTORY.server = server;
         INGEST_EXTERNAL_CLIENT_FACTORY.port = port;
     }
-    
+
     /**
      * Get the IngestExternalClientFactory instance
      *
@@ -78,27 +84,28 @@ public class IngestExternalClientFactory {
     public static final IngestExternalClientFactory getInstance() {
         return INGEST_EXTERNAL_CLIENT_FACTORY;
     }
-    
+
     /**
      * Get the default type ingest external client
      *
      * @return the default ingest external client
+     * @throws VitamException
      */
-    public IngestExternalClient getIngestExternalClient() {
+    public IngestExternalClient getIngestExternalClient() throws VitamException {
         IngestExternalClient client;
         switch (defaultClientType) {
             case MOCK_CLIENT:
                 client = new IngestExternalClientMock();
                 break;
             case REST_CLIENT:
-                client = new IngestExternalClientRest(server, port);
+                client = new IngestExternalClientRest(server, port,secure,sslConfiguration, hostnameVerification);
                 break;
             default:
                 throw new IllegalArgumentException("Ingest type unknown");
         }
         return client;
     }
-    
+
     /**
      * Modify the default Ingest External client type
      *
@@ -109,7 +116,7 @@ public class IngestExternalClientFactory {
         ParametersChecker.checkParameter("type is a mandatory parameter", type);
         defaultClientType = type;
     }
-    
+
     /**
      * Change client configuration from a Yaml files
      *
@@ -117,12 +124,13 @@ public class IngestExternalClientFactory {
      */
     public final void changeConfigurationFile(String configurationPath) {
         changeDefaultClientType(IngestExternalClientType.MOCK_CLIENT);
-        ClientConfiguration configuration = null;
+        SecureClientConfiguration configuration = null;
         try {
             configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
-                ClientConfigurationImpl.class);
+                SecureClientConfigurationImpl.class);
         } catch (final IOException fnf) {
-            //TODO : See how to alert on the use of the mock system (can be dangerous in production to run with the mock)
+            // TODO : See how to alert on the use of the mock system (can be dangerous in production to run with the
+            // mock)
             LOGGER.error(String.format("Error when retrieving configuration file %s, using mock",
                 configurationPath),
                 fnf);
@@ -133,10 +141,13 @@ public class IngestExternalClientFactory {
         } else {
             server = configuration.getServerHost();
             port = configuration.getServerPort();
+            secure=configuration.isSecure();
+            sslConfiguration=configuration.getSslConfiguration();
+            hostnameVerification=configuration.isHostnameVerification();
             changeDefaultClientType(IngestExternalClientType.REST_CLIENT);
         }
-    }    
-    
+    }
+
     /**
      * enum to define client type
      */
@@ -148,7 +159,8 @@ public class IngestExternalClientFactory {
         /**
          * Use real service (need server to be set)
          */
-        REST_CLIENT
+        REST_CLIENT,
+       
     }
 
 }

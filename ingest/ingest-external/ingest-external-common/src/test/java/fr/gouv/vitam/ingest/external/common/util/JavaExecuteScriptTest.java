@@ -14,12 +14,14 @@ public class JavaExecuteScriptTest {
     private static final String NO_VIRUS_FILE = "no-virus.txt";
     private static final String SCRIPT_SCAN_CLAMAV = "scan-clamav.sh";
     
+    private static final long timeoutScanDelay = 60000;
+    
     @Test
     public void givenExecuteScanClamAVWhenVirusFoundButNotCorrectedThenReturn2() 
         throws Exception {
-        assertEquals(1, JavaExecuteScript.executeCommand(SCRIPT_SCAN_CLAMAV,PropertiesUtils.getResourcesFile(FIXED_VIRUS_FILE).getPath()));
-        assertEquals(2, JavaExecuteScript.executeCommand(SCRIPT_SCAN_CLAMAV,PropertiesUtils.getResourcesFile(UNFIXED_VIRUS_FILE).getPath()));
-        assertEquals(0, JavaExecuteScript.executeCommand(SCRIPT_SCAN_CLAMAV,PropertiesUtils.getResourcesFile(NO_VIRUS_FILE).getPath()));
+        assertEquals(1, JavaExecuteScript.executeCommand(SCRIPT_SCAN_CLAMAV,PropertiesUtils.getResourcesFile(FIXED_VIRUS_FILE).getPath(), timeoutScanDelay));
+        assertEquals(2, JavaExecuteScript.executeCommand(SCRIPT_SCAN_CLAMAV,PropertiesUtils.getResourcesFile(UNFIXED_VIRUS_FILE).getPath(), timeoutScanDelay));
+        assertEquals(0, JavaExecuteScript.executeCommand(SCRIPT_SCAN_CLAMAV,PropertiesUtils.getResourcesFile(NO_VIRUS_FILE).getPath(), timeoutScanDelay));
     }
 
 }
