@@ -54,7 +54,7 @@
 
 - hosts: hosts-worker
   roles:
-    - {role: vitam, vitam_component: worker,java_args: /vitam/conf/worker/worker.conf } 
+    - {role: vitam, vitam_component: worker,java_args: /vitam/conf/worker/worker.conf, port_http: "{{vitam_worker_port}}" } 
 
 - hosts: hosts-access
   roles:

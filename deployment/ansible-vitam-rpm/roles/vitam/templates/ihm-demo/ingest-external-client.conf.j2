@@ -3,6 +3,6 @@ serverPort: {{vitam_ingestexternal_port_https}}
 secure: true
 sslConfiguration :
  keystore :
-  - keyPath : {{vitam_folder_conf}}/{{ vitam_component }}.p12
+  - keyPath : {{vitam_folder_conf}}/keystore_{{ vitam_component }}.p12
     keyPassword : {{p12_ihm_demo_password}}
 hostnameVerification: false

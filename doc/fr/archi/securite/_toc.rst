@@ -61,6 +61,7 @@ Les secrets nécessaires au bon déploiement de VITAM sont les suivants :
  
 Les secrets définis lors de l'installation de VITAM sont les suivants :
 
+* Mots de passe des keystores ;
 * Mots de passe des administrateurs fonctionnels de l'application VITAM ;
 * Mots de passe d'administration de base de données MongoDB ;
 * Mots de passe des comptes d'accès aux bases de données MongoDB.

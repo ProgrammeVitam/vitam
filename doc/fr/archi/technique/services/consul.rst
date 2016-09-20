@@ -24,9 +24,11 @@ Typologie de consommation de resources :
 Architecture de déploiement
 ===========================
 
+L'architecture de déploiement conseillée correspond aux principes présentés dans :doc:`la section d'introduction à Consul </technique/07-consul>` :
+
 * 2n + 1 noeuds pour les serveurs ; chaque noeud serveur doit répondre aux requêtes RPC des agents et expose l'IHM de suivi de l'état du cluster consul ;
 * 1 noeud agent par serveur hébergeant des services VITAM ; chaque noeud agent agit comme serveur DNS local.
-  
+
 Les ports utilisés par Consul sont les suivants :
 
 * tcp:8300 : Port RPC ; il permet aux agents d'exécuter des requêtes vers les serveurs.

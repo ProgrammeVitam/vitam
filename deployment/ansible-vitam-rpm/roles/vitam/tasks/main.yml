@@ -82,14 +82,6 @@
   # notify:
   #   - restart consul
 
-- name: copy files section 
-  template:
-    src: "{{role_path}}/files/{{ vitam_component }}/{{item}}"
-    dest: "{{vitam_folder_conf}}/{{item }}"
-    owner: "{{ vitam_user }}"
-    group: "{{ vitam_group }}"
-    mode: "{{vitam_conf_permission}}"
-  with_items: "{{ lookup('pipe','find {{role_path}}/files/{{ vitam_component }}/ -type f -exec basename {} \\;').split('\n') }}"
 
 - name: Deploy specific configuration files (can override the common configuration files)
   template:
@@ -126,6 +118,16 @@
 #     - log 
 #     - data
 #     - tmp
+
+- name: copy files section 
+  copy:
+    src: "{{role_path}}/files/{{ vitam_component }}/{{item}}"
+    dest: "{{vitam_folder_conf}}/{{item }}"
+    owner: "{{ vitam_user }}"
+    group: "{{ vitam_group }}"
+    mode: "{{vitam_conf_permission}}"
+  with_items: "{{ lookup('pipe','find {{role_path}}/files/{{ vitam_component }}/ -type f -exec basename {} \\;').split('\n') }}"
+
 
 - name: systemctl reload-daemon
   command: systemctl daemon-reload

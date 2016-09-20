@@ -50,12 +50,14 @@ Ensuite, dans la section ``hosts:vars`` (lignes 62 à 71), renseigner les valeur
    "days_to_delete","Période de grâce des données sous Elastricsearch avant destuction (valeur en jours)",""
 
 
-A titre informatif, le positionnement des variables ainsi que des dérivations des déclarations de variables sont effectuées sous |repertoire_inventory| ``/group_vars/all``, comme suit :
+A titre informatif, le positionnement des variables ainsi que des dérivations des déclarations de variables sont effectuées sous |repertoire_inventory| ``/group_vars/all/all``, comme suit :
 
-.. literalinclude:: ../../../../deployment/environments-rpm/group_vars/all
+.. literalinclude:: ../../../../deployment/environments-rpm/group_vars/all/all
    :language: yaml
    :linenos:
 
+
+Le ``vault.yml`` est également présent sous |repertoire_inventory| ``/group_vars/all/all`` et contient les secrets ; ce fichier est encrypté par ``ansible-vault``.
 
 Le déploiement s'effectue depuis la machine "ansible" et va distribuer la solution VITAM selon l'inventaire correctement renseigné.
 
@@ -66,7 +68,7 @@ Paramétrage de l'antivirus (ingest-externe)
 .. todo:: A expliquer
 
 Paramétrage des certificats (\*-externe)
----------------------------------------
+-----------------------------------------
 
 .. todo:: A expliquer
 
@@ -79,12 +81,14 @@ Pour tester le déploiement de VITAM, il faut se placer dans le répertoire |rep
 
 ``ansible-playbook`` |repertoire_playbook ansible| ``/vitam.yml -i`` |repertoire_inventory| ``/<ficher d'inventaire> --check``
 
+.. note:: cette commande n'est pas recommandée, du fait de limitations de check.
+
 Déploiement
 ===========
 
 Si la commande de test se termine avec succès, le déploiement est à réaliser avec la commande suivante :
 
-ansible-playbook |repertoire_playbook ansible|/vitam.yml -i |repertoire_inventory|/<ficher d'inventaire> 
+ansible-playbook |repertoire_playbook ansible|/vitam.yml -i |repertoire_inventory|/<ficher d'inventaire> --ask-vault-pass
 
 .. todo:: CPO
  - Pas assez de précision sur l'install

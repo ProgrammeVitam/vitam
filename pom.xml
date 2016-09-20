@@ -453,6 +453,7 @@
 						<group>Application/Archiving</group>
 						<packager>Vitam Package Team</packager>
 						<defineStatements />
+						<targetOS>linux</targetOS>
 						<requires>
 							<require>java-1.8.0</require>
 							<require>vitam-user-${unix.user}</require>
