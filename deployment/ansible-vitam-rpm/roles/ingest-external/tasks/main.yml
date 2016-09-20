@@ -1,5 +1,10 @@
 ---
 # tasks file for engine-external
+- name: change perms on scan-clamav.sh
+  file:
+    path: /vitam/conf/ingest-external/scan-clamav.sh
+    mode: 0750
+
 - name: installe epel-release
   yum:
     name=epel-release

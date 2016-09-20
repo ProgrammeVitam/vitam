@@ -23,7 +23,7 @@ Services
 Le système VITAM est découpé en services autonomes interagissant pour permettre de rendre le service global; ce découpage applicatif suit en grande partie le découpage présenté plus haut dans l'architecture fonctionnelle :
 
 .. figure:: images/vitam-applicative-architecture.*
-	:align: center
+  :align: center
 
 	Architecture applicative et flux d'informations entre composants.
 

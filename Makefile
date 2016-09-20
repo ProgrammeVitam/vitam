@@ -65,6 +65,6 @@ latexpdf:
 .PHONY: all
 all:
 	for module in $(LIST_MODULES); do \
-		$(MAKE) clean html latexpdf MODULE=$${module}; \
+		$(MAKE) clean html latexpdf MODULE=$${module} BUILDDIR=${PWD}/target/doc/$${module}; \
 	done;
 	
