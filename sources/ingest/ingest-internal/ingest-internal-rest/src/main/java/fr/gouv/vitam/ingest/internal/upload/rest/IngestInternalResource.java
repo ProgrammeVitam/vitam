@@ -178,7 +178,7 @@ public class IngestInternalResource implements UploadService {
             logbookClient = logbookInitialisation(ingestGuid, containerGUID, tenantId);
 
             // Log Ingest External operations
-            VITAM_LOGGER.info("Log Ingest External operations");
+            VITAM_LOGGER.debug("Log Ingest External operations");
 
             for (LogbookParameters logbookParameters : logbookOperationParametersList.getLogbookOperationList()) {
                 parameters.putParameterValue(LogbookParameterName.eventType, INGEST_EXT);
@@ -200,7 +200,7 @@ public class IngestInternalResource implements UploadService {
                 ParametersChecker.checkParameter("HTTP Request must contains 2 multiparts part", uploadedInputStream);
 
                 // Save sip file
-                VITAM_LOGGER.info("Starting up the save file sip");
+                VITAM_LOGGER.debug("Starting up the save file sip");
                 // workspace
                 parameters.putParameterValue(LogbookParameterName.eventType, INGEST_INT_UPLOAD);
                 callLogbookUpdate(logbookClient, parameters, LogbookOutcome.STARTED,
@@ -335,7 +335,7 @@ public class IngestInternalResource implements UploadService {
             ContentAddressableStorageZipException, ContentAddressableStorageServerException {
 
         parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, "Try to push stream to workspace...");
-        VITAM_LOGGER.info("Try to push stream to workspace...");
+        VITAM_LOGGER.debug("Try to push stream to workspace...");
 
         // call workspace
         if (!workspaceClient.isExistingContainer(containerName)) {
@@ -345,7 +345,7 @@ public class IngestInternalResource implements UploadService {
             throw new ContentAddressableStorageAlreadyExistException(containerName + "already exist");
         }
 
-        VITAM_LOGGER.info(" -> push stream to workspace finished");
+        VITAM_LOGGER.debug(" -> push stream to workspace finished");
         parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, "-> push stream to workspace finished");
     }
 

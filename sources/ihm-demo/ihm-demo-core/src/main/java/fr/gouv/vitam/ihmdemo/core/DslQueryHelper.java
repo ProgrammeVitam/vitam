@@ -154,7 +154,7 @@ public final class DslQueryHelper {
             query.add(queryOr);
         }
         select.setQuery(query);
-        LOGGER.info(select.getFinalSelect().toString());
+        LOGGER.debug(select.getFinalSelect().toString());
         return select.getFinalSelect().toString();
     }
 

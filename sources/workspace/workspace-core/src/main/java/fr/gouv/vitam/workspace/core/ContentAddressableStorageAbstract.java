@@ -248,7 +248,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
             final BlobStore blobStore = context.getBlobStore();
 
             if (isExistingObject(containerName, objectName)) {
-                LOGGER.info(ErrorMessage.OBJECT_ALREADY_EXIST.getMessage() + objectName);
+                LOGGER.debug(ErrorMessage.OBJECT_ALREADY_EXIST.getMessage() + objectName);
             }
 
             final Blob blob = blobStore.blobBuilder(objectName).payload(stream).build();
@@ -369,7 +369,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
                     listContainerOptions.inDirectory(folderName).recursive().maxResults(MAX_RESULTS));
 
             uriFolderListFromContainer = new ArrayList<>();
-            LOGGER.info(WorkspaceMessage.BEGINNING_GET_URI_LIST_OF_DIGITAL_OBJECT.getMessage());
+            LOGGER.debug(WorkspaceMessage.BEGINNING_GET_URI_LIST_OF_DIGITAL_OBJECT.getMessage());
 
             // TODO
             // Get the uri
@@ -391,7 +391,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
                     uriFolderListFromContainer.add(new URI(UriUtils.splitUri(storageMetada.getName())));
                 }
             }
-            LOGGER.info(WorkspaceMessage.ENDING_GET_URI_LIST_OF_DIGITAL_OBJECT.getMessage());
+            LOGGER.debug(WorkspaceMessage.ENDING_GET_URI_LIST_OF_DIGITAL_OBJECT.getMessage());
         } catch (final ContainerNotFoundException e) {
             LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
             throw new ContentAddressableStorageNotFoundException(e);
@@ -410,7 +410,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
         throws ContentAddressableStorageException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, folderName);
-        LOGGER.info("init unzip method  ...");
+        LOGGER.debug("init unzip method  ...");
 
         if (!isExistingContainer(containerName)) {
             throw new ContentAddressableStorageNotFoundException(ErrorMessage.CONTAINER_NOT_FOUND.getMessage());
@@ -424,7 +424,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
             LOGGER.error(ErrorMessage.FOLDER_ALREADY_EXIST.getMessage() + ":folderName" + folderName);
             throw new ContentAddressableStorageAlreadyExistException(ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
         }
-        LOGGER.info("create folder name " + folderName);
+        LOGGER.debug("create folder name " + folderName);
 
         createFolder(containerName, folderName);
         extractZippedInputStreamOnContainer(containerName, folderName, inputStreamObject);

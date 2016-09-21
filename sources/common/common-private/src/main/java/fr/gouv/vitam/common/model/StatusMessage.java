@@ -29,6 +29,7 @@ package fr.gouv.vitam.common.model;
 import fr.gouv.vitam.common.ServerIdentityInterface;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 
 /**
  * Default Status message (at that time)
@@ -96,7 +97,8 @@ public class StatusMessage {
     public String toString() {
         try {
             return JsonHandler.writeAsString(this);
-        } catch (final InvalidParseOperationException e) {// NOSONAR ignore
+        } catch (final InvalidParseOperationException e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             return "unknownStatusMessage";
         }
     }

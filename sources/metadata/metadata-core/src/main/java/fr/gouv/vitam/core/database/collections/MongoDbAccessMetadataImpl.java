@@ -142,6 +142,7 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess{
         }
         for (final MetadataCollections coll : MetadataCollections.values()) {
             if (coll != null && coll.getCollection() != null) {
+                @SuppressWarnings("unchecked")
                 final ListIndexesIterable<Document> list = coll.getCollection().listIndexes();
                 for (final Document dbObject : list) {
                     builder.append(coll.getName()).append(' ').append(dbObject).append('\n');

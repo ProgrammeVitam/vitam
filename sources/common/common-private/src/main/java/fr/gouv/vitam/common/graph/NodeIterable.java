@@ -100,14 +100,14 @@ public class NodeIterable<Item> implements Iterable<Item> {
     }
 
     // an iterator, doesn't implement remove() since it's optional
-    private class ListIterator<Item> implements Iterator<Item> {
-        private Node<Item> current;
+    private class ListIterator<E> implements Iterator<E> {
+        private Node<E> current;
 
         /**
          * 
          * @param first
          */
-        public ListIterator(Node<Item> first) {
+        public ListIterator(Node<E> first) {
             current = first;
         }
 
@@ -130,11 +130,11 @@ public class NodeIterable<Item> implements Iterable<Item> {
         /**
          * iterate if has next
          */
-        public Item next() {
+        public E next() {
             if (!hasNext()) {
                 throw new NoSuchElementException();
             }
-            Item item = current.item;
+            E item = current.item;
             current = current.next;
             return item;
         }

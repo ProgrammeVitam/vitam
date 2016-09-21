@@ -202,19 +202,21 @@ public class SSLConfiguration {
      * @throws VitamException
      */
     private TrustManager[] loadTrustManagers() throws VitamException {
-        TrustManager[] trustManager = new TrustManager[] {new X509TrustManager() {
+        return new TrustManager[] {new X509TrustManager() {
             public void checkClientTrusted(X509Certificate[] arg0,
-                String arg1) throws CertificateException {}
+                String arg1) throws CertificateException {
+                // Empty
+            }
 
             public void checkServerTrusted(X509Certificate[] arg0,
-                String arg1) throws CertificateException {}
+                String arg1) throws CertificateException {
+                // Empty
+            }
 
             public X509Certificate[] getAcceptedIssuers() {
                 return new X509Certificate[0];
             }
         }};
-
-        return trustManager;
     }
 
     /**

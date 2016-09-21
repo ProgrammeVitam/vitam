@@ -544,7 +544,7 @@ public class LogbookResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response commitUnitLifeCyclesByOperation(@PathParam("id_op") String operationId,
         @PathParam("id_lc") String unitLcId) {
-        LOGGER.info("UnitLifeCycle commited: " + unitLcId);
+        LOGGER.debug("UnitLifeCycle commited: " + unitLcId);
         return Response.status(Response.Status.OK).build();
     }
 
@@ -732,7 +732,7 @@ public class LogbookResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response commitObjectGroupLifeCyclesByOperation(@PathParam("id_op") String operationId,
         @PathParam("id_lc") String objGrpId) {
-        LOGGER.info("ObjectGroupLifeCycle commited: " + objGrpId);
+        LOGGER.debug("ObjectGroupLifeCycle commited: " + objGrpId);
         return Response.status(Response.Status.OK).build();
     }
 

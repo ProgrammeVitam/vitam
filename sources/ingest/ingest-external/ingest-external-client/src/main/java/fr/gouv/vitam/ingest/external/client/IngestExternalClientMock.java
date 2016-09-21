@@ -45,7 +45,7 @@ public class IngestExternalClientMock implements IngestExternalClient {
         if (stream == null) {
             throw new IngestExternalException("stream is null");
         }
-        LOGGER.info("Running mock upload");
+        LOGGER.debug("Running mock upload");
     }
 
     @Override

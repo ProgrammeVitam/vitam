@@ -39,6 +39,7 @@ package fr.gouv.vitam.processing.common.exception;
  * Define a Processing Exception to be thrown when an unauthorize operation is required
  */
 public class ProcessingUnauthorizeException extends ProcessingException {
+    private static final long serialVersionUID = 3397334664006921698L;
 
     /**
      * @param message associated message

@@ -72,7 +72,7 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
     @Override
     public EngineResponse execute(WorkerParameters params) {
         checkMandatoryParameters(params);
-        LOGGER.info("IndexObjectGroupActionHandler running ...");
+        LOGGER.debug("IndexObjectGroupActionHandler running ...");
         final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK);
         final SedaUtils sedaUtils = sedaUtilsFactory.create();
 
@@ -103,7 +103,7 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
             response.setOutcomeMessages(HANDLER_ID, OutcomeMessage.LOGBOOK_COMMIT_KO);
         }
 
-        LOGGER.info("IndexObjectGroupActionHandler response: " + response.getStatus().name());
+        LOGGER.debug("IndexObjectGroupActionHandler response: " + response.getStatus().name());
         return response;
     }
 

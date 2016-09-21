@@ -395,7 +395,7 @@ public class WorkspaceResource {
         }
 
         if (algo != null) {
-            LOGGER.info("X-digest-algorithm : " + algo);
+            LOGGER.debug("X-digest-algorithm : " + algo);
             String messageDigest = null;
             try {
                 messageDigest = workspace.computeObjectDigest(containerName, objectName, DigestType.fromValue(algo));

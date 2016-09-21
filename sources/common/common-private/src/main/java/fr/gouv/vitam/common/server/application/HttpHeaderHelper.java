@@ -188,8 +188,8 @@ public final class HttpHeaderHelper {
                 tmpWantedValues.removeAll(headersValues);
                 if (!tmpHeadersValues.isEmpty()) {
                     // error ?
-                    LOGGER.warn(String.format("Some values (%s) from header %s were not check (not asked)",
-                        Joiner.on(", ").join(tmpHeadersValues), wantedHeaderName));
+                    LOGGER.warn("Some values ({}) from header {} were not check (not asked)",
+                        Joiner.on(", ").join(tmpHeadersValues), wantedHeaderName);
                 }
             }
             if (!tmpWantedValues.isEmpty()) {

@@ -148,14 +148,14 @@ public class WorkerClientFactory {
                 WorkerClientConfiguration.class);
         } catch (final IOException fnf) {
             LOGGER
-                .warn(String.format("Error when retrieving configuration file %s, using mock",
-                    CONFIGURATION_FILENAME),
+                .warn("Error when retrieving configuration file {}, using mock",
+                    CONFIGURATION_FILENAME,
                     fnf);
         }
         if (configuration == null) {
             this.clientConfiguration = null;
-            LOGGER.warn(String.format("Error when retrieving configuration file %s, using mock",
-                CONFIGURATION_FILENAME));
+            LOGGER.warn("Error when retrieving configuration file {}, using mock",
+                CONFIGURATION_FILENAME);
         } else {
             checkConfiguration(configuration);
             this.clientConfiguration = configuration;

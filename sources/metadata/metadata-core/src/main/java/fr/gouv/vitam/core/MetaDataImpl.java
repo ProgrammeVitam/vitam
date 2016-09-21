@@ -144,7 +144,6 @@ public final class MetaDataImpl implements MetaData {
     public JsonNode selectUnitsByQuery(String selectQuery)
         throws MetaDataExecutionException, InvalidParseOperationException,
         MetaDataDocumentSizeException {
-        LOGGER.info("Begin selectUnitsByQuery ...");
         LOGGER.debug("SelectUnitsByQuery/ selectQuery: " + selectQuery);
         return selectMetadataObject(selectQuery, null, null);
 
@@ -154,7 +153,6 @@ public final class MetaDataImpl implements MetaData {
     public JsonNode selectUnitsById(String selectQuery, String unitId)
         throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataDocumentSizeException {
-        LOGGER.info("Begin selectUnitsById .../id:" + unitId);
         LOGGER.debug("SelectUnitsById/ selectQuery: " + selectQuery);
         return selectMetadataObject(selectQuery, unitId, null);
     }
@@ -218,8 +216,6 @@ public final class MetaDataImpl implements MetaData {
         return jsonNodeResponse;
     }
 
-    // FIXME ne jamais supprimer une deprecation warning !
-    @SuppressWarnings("deprecation")
     @Override
     public JsonNode updateUnitbyId(String updateQuery, String unitId)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataDocumentSizeException {

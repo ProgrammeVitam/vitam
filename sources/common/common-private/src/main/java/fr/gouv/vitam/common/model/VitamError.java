@@ -31,16 +31,12 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * Access RequestResponseError class
  *
  */
 public final class VitamError {
-
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamError.class);
 
     private int code;
     private String context;

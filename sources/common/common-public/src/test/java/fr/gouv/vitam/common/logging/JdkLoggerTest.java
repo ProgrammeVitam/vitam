@@ -62,7 +62,7 @@ public class JdkLoggerTest {
 
     @AfterClass
     public static void tearDownAfterClass() {
-        System.setErr(out);
+        System.setOut(out);
     }
 
     @Test

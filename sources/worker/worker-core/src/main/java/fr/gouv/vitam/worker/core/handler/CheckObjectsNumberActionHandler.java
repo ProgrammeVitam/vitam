@@ -87,7 +87,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
     @Override
     public EngineResponse execute(WorkerParameters params) {
         checkMandatoryParameters(params);        
-        LOGGER.info("CheckObjectsNumberActionHandler running ...");
+        LOGGER.debug("CheckObjectsNumberActionHandler running ...");
 
         EngineResponse response = new ProcessResponse();
         response.setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_OK);

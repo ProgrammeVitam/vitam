@@ -103,10 +103,10 @@ public class IngestInternalApplication extends AbstractVitamApplication<IngestIn
                     vitamServer = VitamServerFactory.newVitamServerByJettyConf(jettyConfig);
 
                 } catch (FileNotFoundException e) {
-                    LOGGER.info(INGEST_INTERNAL_APPLICATION_STARTS_ON_DEFAULT_PORT+", config file not found ", e);
+                    LOGGER.warn(INGEST_INTERNAL_APPLICATION_STARTS_ON_DEFAULT_PORT+", config file not found ", e);
                     vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
                 } catch (IOException e) {
-                    LOGGER.info(INGEST_INTERNAL_APPLICATION_STARTS_ON_DEFAULT_PORT+", config file io error ", e);
+                    LOGGER.warn(INGEST_INTERNAL_APPLICATION_STARTS_ON_DEFAULT_PORT+", config file io error ", e);
                     vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
                 }
             } else {

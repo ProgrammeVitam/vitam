@@ -31,10 +31,8 @@ package fr.gouv.vitam.common;
  * Global Variables and eventually method used by REST services
  */
 public class GlobalDataRest {
-
     /**
-     * X_HTTP_METHOD_OVERRIDE : used in case of POST methods overriding GET
-     * methods
+     * X_HTTP_METHOD_OVERRIDE : used in case of POST methods overriding GET methods
      */
     public static final String X_HTTP_METHOD_OVERRIDE = "X-Http-Method-Override";
 
@@ -65,4 +63,8 @@ public class GlobalDataRest {
      * The X_STRATEGY_ID header, used in requests to use a particular strategy
      */
     public static final String X_STRATEGY_ID = "X-Strategy-Id";
+
+    private GlobalDataRest() {
+        // empty
+    }
 }

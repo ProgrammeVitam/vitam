@@ -107,7 +107,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
     @Override
     public EngineResponse execute(WorkerParameters params) {
         checkMandatoryParameters(params);
-        LOGGER.info("StoreObjectGroupActionHandler running ...");
+        LOGGER.debug("StoreObjectGroupActionHandler running ...");
 
         final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK);
 
@@ -152,7 +152,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
             }
         }
 
-        LOGGER.info("StoreObjectGroupActionHandler response: " + response.getStatus().name());
+        LOGGER.debug("StoreObjectGroupActionHandler response: " + response.getStatus().name());
         return response;
     }
 

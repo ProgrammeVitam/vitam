@@ -463,14 +463,14 @@ public class GUIDImplPrivateTest {
         } catch (final IllegalArgumentException e) {// NOSONAR
             // Ignore
         }
-        final GUID guid = GUIDFactory.newGUID(1, 2, false);
+        final GUID guid = GUIDFactory.newOperationIdGUID(2);
         assertNotNull(guid.toString());
         assertNotNull(guid.toHex());
         assertNotNull(guid.toBase32());
         assertNotNull(guid.toBase64());
         assertNotNull(guid.toArk());
         assertTrue(guid.getCounter() >= 0);
-        assertTrue(guid.getObjectId() == 1);
+        assertTrue(guid.getObjectId() == GUIDObjectType.OPERATIONID_TYPE);
         assertTrue(guid.getPlatformId() >= 0);
         assertTrue(guid.getProcessId() >= 0);
         assertTrue(guid.getTenantId() == 2);

@@ -54,6 +54,7 @@ import com.google.json.JsonSanitizer;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 
 /**
  * Checker for Sanity of XML and Json <br>
@@ -62,24 +63,28 @@ import fr.gouv.vitam.common.json.JsonHandler;
  * XML: check if XML file is not exceed the limit size, and it does not contain CDATA, ENTITY or SCRIPT tag
  *
  */
-// FIXME pom.xml contient maven-jar-plugin version 3.0.2 : pourquoi ! Erreur/Warning dans Eclipse
 public class SanityChecker {
+    private static final int DEFAULT_LIMIT_PARAMETER_SIZE = 1000;
+    private static final int DEFAULT_LIMIT_FIELD_SIZE = 10000000;
+    private static final int DEFAULT_LIMIT_JSON_SIZE = 16000000;
+    private static final long DEFAULT_LIMIT_FILE_SIZE = 8000000000L;
+
     /**
      * max size of xml file
      */
-    private static long limitFileSize = 8000000000L;
+    private static long limitFileSize = DEFAULT_LIMIT_FILE_SIZE;
     /**
      * max size of json
      */
-    private static long limitJsonSize = 16000000;
+    private static long limitJsonSize = DEFAULT_LIMIT_JSON_SIZE;
     /**
      * max size of Json or Xml value field
      */
-    private static int limitFieldSize = 10000000;
+    private static int limitFieldSize = DEFAULT_LIMIT_FIELD_SIZE;
     /**
      * max size of parameter value field (low)
      */
-    private static int limitParamSize = 1000;
+    private static int limitParamSize = DEFAULT_LIMIT_PARAMETER_SIZE;
 
     // default parameters for XML check
     private static final String CDATA_TAG_UNESCAPED = "<![CDATA[";
@@ -126,10 +131,10 @@ public class SanityChecker {
         RULES.add(ENTITY_TAG_ESCAPED);
         RULES.add(SCRIPT_TAG_UNESCAPED);
         RULES.add(SCRIPT_TAG_ESCAPED);
-        // ISSUE with integration 
+        // ISSUE with integration
         ESAPI = new DefaultValidator();
     }
-    
+
     /**
      * checkXMLAll : check xml sanity all aspect : size, tag size, invalid tag
      * 
@@ -230,8 +235,9 @@ public class SanityChecker {
                 if (reader != null) {
                     try {
                         reader.close();
-                    } catch (XMLStreamException e) {// NOSONAR ignore exception
+                    } catch (XMLStreamException e) {
                         // Ignore
+                        SysErrLogger.FAKE_LOGGER.ignoreLog(e);
                     }
                 }
             }
@@ -301,22 +307,22 @@ public class SanityChecker {
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
     private static final void checkSanityEsapi(String line, int limit) throws InvalidParseOperationException {
-            if (line.length() > limit) {
-                throw new InvalidParseOperationException("Invalid input bytes length");
-            }
-            if (UNPRINTABLE_PATTERN.matcher(line).find()) {
-                throw new InvalidParseOperationException("Invalid input bytes");
-            }
-            // ESAPI.getValidPrintable Not OK
-            // Issue with integration of ESAPI
-            try {
-                ESAPI.getValidSafeHTML("CheckSafeHtml", line, limit, true);
-            } catch (NoClassDefFoundError e) {//NOSONAR Ignore and no LOG
-                // Ignore
-                throw new InvalidParseOperationException("Invalid ESAPI sanity check", e);
-            } catch (ValidationException | IntrusionException e) {
-                throw new InvalidParseOperationException("Invalid ESAPI sanity check", e);
-            }
+        if (line.length() > limit) {
+            throw new InvalidParseOperationException("Invalid input bytes length");
+        }
+        if (UNPRINTABLE_PATTERN.matcher(line).find()) {
+            throw new InvalidParseOperationException("Invalid input bytes");
+        }
+        // ESAPI.getValidPrintable Not OK
+        // Issue with integration of ESAPI
+        try {
+            ESAPI.getValidSafeHTML("CheckSafeHtml", line, limit, true);
+        } catch (NoClassDefFoundError e) {
+            // Ignore
+            throw new InvalidParseOperationException("Invalid ESAPI sanity check", e);
+        } catch (ValidationException | IntrusionException e) {
+            throw new InvalidParseOperationException("Invalid ESAPI sanity check", e);
+        }
     }
 
     /**

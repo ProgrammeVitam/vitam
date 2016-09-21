@@ -124,13 +124,13 @@ public class AdminManagementClientFactory {
         } catch (final IOException fnf) {
             // TODO : See how to alert on the use of the mock system (can be dangerous in production to run with the
             // mock)
-            LOGGER.error(String.format("Error when retrieving configuration file %s, using mock",
-                configurationPath),
+            LOGGER.error("Error when retrieving configuration file {}, using mock",
+                configurationPath,
                 fnf);
         }
         if (configuration == null) {
-            LOGGER.error(String.format("Error when retrieving configuration file %s, using mock",
-                configurationPath));
+            LOGGER.error("Error when retrieving configuration file {}, using mock",
+                configurationPath);
         } else {
             server = configuration.getServerHost();
             port = configuration.getServerPort();

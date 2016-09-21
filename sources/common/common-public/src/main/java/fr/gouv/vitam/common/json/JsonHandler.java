@@ -51,6 +51,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 
 /**
  * JSON handler using Json format
@@ -266,7 +267,8 @@ public final class JsonHandler {
             ParametersChecker.checkParameter(OBJECT, object);
             return OBJECT_MAPPER.writerWithDefaultPrettyPrinter()
                 .writeValueAsString(object);
-        } catch (final JsonProcessingException | IllegalArgumentException e) {// NOSONAR
+        } catch (final JsonProcessingException | IllegalArgumentException e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             return "{}";
         }
     }
@@ -280,7 +282,8 @@ public final class JsonHandler {
         try {
             ParametersChecker.checkParameter(OBJECT, object);
             return OBJECT_MAPPER_UNPRETTY.writeValueAsString(object);
-        } catch (final JsonProcessingException | IllegalArgumentException e) {// NOSONAR
+        } catch (final JsonProcessingException | IllegalArgumentException e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             return "{}";
         }
     }

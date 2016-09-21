@@ -123,7 +123,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess{
             final PutMappingResponse response =
                 client.admin().indices().preparePutMapping().setIndices(collection.getName().toLowerCase()).setType(type)
                     .setSource(mapping).get();
-            LOGGER.info(type + ":" + response.isAcknowledged());
+            LOGGER.debug(type + ":" + response.isAcknowledged());
             return response.isAcknowledged();
         } catch (final Exception e) {
             LOGGER.error("Error while set Mapping", e);
@@ -331,13 +331,13 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess{
             filter = QueryBuilders.boolQuery()
                 .should(QueryBuilders.termsQuery(VitamLinks.UNIT_TO_UNIT.field2to1, currentNodes));
             if (GlobalDatasDb.PRINT_REQUEST) {
-                LOGGER.warn("Filter: terms {} = {}", VitamLinks.UNIT_TO_OBJECTGROUP.field2to1,
+                LOGGER.debug("Filter: terms {} = {}", VitamLinks.UNIT_TO_OBJECTGROUP.field2to1,
                     currentNodes);
             }
         } else {
             filter = QueryBuilders.termsQuery(Unit.UNITUPS, currentNodes);
             if (GlobalDatasDb.PRINT_REQUEST) {
-                LOGGER.warn("ESReq: terms {} = {}", Unit.UNITUPS, currentNodes);
+                LOGGER.debug("ESReq: terms {} = {}", Unit.UNITUPS, currentNodes);
             }
         }
         if (filterCond != null) {
@@ -515,7 +515,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess{
                 } else if (val instanceof Integer) {
                     nb += (Integer) val;
                     if (GlobalDatasDb.PRINT_REQUEST) {
-                        LOGGER.warn("Result: {} : {}", id, val);
+                        LOGGER.debug("Result: {} : {}", id, val);
                     }
                 } else {
                     LOGGER.error("Not Integer: " + val.getClass().getName());
@@ -525,7 +525,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess{
         }
         resultRequest.setNbResult(nb);
         if (GlobalDatasDb.PRINT_REQUEST) {
-            LOGGER.warn("FinalEsResult: {} : {}", resultRequest.getCurrentIds(), resultRequest.getNbResult());
+            LOGGER.debug("FinalEsResult: {} : {}", resultRequest.getCurrentIds(), resultRequest.getNbResult());
         }
         return resultRequest;
     }

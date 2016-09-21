@@ -287,8 +287,10 @@ final class MessageFormatter {
         try {
             final String oAsString = o.toString();
             sbuild.append(oAsString);
-        } catch (final Throwable t) { // NOSONAR
-            System.err.println("SLF4J: Failed toString() invocation on an object of type [" //NOSONAR ignore since no logger
+        } catch (final Exception t) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(t);
+            SysErrLogger.FAKE_LOGGER.syserr(
+                "SLF4J: Failed toString() invocation on an object of type ["
                 + o.getClass().getName() + ']' + t.getMessage());
             sbuild.append("[FAILED toString()]");
         }

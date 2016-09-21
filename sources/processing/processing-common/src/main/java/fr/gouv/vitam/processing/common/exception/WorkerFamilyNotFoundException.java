@@ -29,6 +29,7 @@ package fr.gouv.vitam.processing.common.exception;
  *
  */
 public class WorkerFamilyNotFoundException extends ProcessingException {
+    private static final long serialVersionUID = 4459496830992927713L;
 
     /**
      *

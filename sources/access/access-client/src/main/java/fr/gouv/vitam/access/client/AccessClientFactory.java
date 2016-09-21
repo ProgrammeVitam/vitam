@@ -150,13 +150,12 @@ public class AccessClientFactory {
 					ClientConfigurationImpl.class);
 		} catch (final IOException fnf) {
 			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug(String.format("Error when retrieving configuration file %s, using mock",
-						CONFIGURATION_FILENAME), fnf);
+				LOGGER.debug("Error when retrieving configuration file {}, using mock",
+						CONFIGURATION_FILENAME, fnf);
 			}
 		}
 		if (configuration == null) {
-			LOGGER.debug(
-					String.format("Error when retrieving configuration file %s, using mock", CONFIGURATION_FILENAME));
+			LOGGER.debug("Error when retrieving configuration file {}, using mock", CONFIGURATION_FILENAME);
 		} else {
 			server = configuration.getServerHost();
 			port = configuration.getServerPort();

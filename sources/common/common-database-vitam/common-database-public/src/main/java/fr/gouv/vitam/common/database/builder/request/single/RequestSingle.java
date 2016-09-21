@@ -51,9 +51,8 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
- * 
+ * Request for Single Mode Query
  */
-// FIXME comment
 public abstract class RequestSingle extends AbstractRequest {
     protected Query query;
 

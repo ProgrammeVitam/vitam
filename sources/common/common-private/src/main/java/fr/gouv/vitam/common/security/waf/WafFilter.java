@@ -43,10 +43,12 @@ public class WafFilter implements Filter{
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
+        // Empty
     }
 
     @Override
     public void destroy() {
+        // Empty
     }
 
     @Override

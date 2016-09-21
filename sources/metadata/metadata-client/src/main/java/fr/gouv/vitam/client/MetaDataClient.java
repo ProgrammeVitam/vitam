@@ -63,8 +63,6 @@ public class MetaDataClient {
     private static final String INVALID_PARSE_OPERATION = "Invalid Parse Operation";
     private static final String MISSING_SELECT_QUERY = "Missing Select Query";
 
-    private static final String ELAPSED_TIME_MESSAGE =
-        "MetaDataClient / Total elapsed time in execution of method";
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(MetaDataClient.class);
 
@@ -100,15 +98,15 @@ public class MetaDataClient {
             .post(Entity.entity(insertQuery, MediaType.APPLICATION_JSON), Response.class);
 
         if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-            throw new MetaDataExecutionException("Internal Server Error");
+            throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
         } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
             throw new MetaDataNotFoundException("Not Found Exception");
         } else if (response.getStatus() == Status.CONFLICT.getStatusCode()) {
             throw new MetaDataAlreadyExistException("Data Already Exists");
         } else if (response.getStatus() == Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode()) {
-            throw new MetaDataDocumentSizeException("Document Size is Too Large");
+            throw new MetaDataDocumentSizeException(SIZE_TOO_LARGE);
         } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
-            throw new InvalidParseOperationException("Invalid Parse Operation");
+            throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
         }
 
         return response.readEntity(String.class);
@@ -138,20 +136,19 @@ public class MetaDataClient {
         if (StringUtils.isEmpty(selectQuery)) {
             throw new InvalidParseOperationException(SELECT_UNITS_QUERY_NULL);
         }
-        long time = System.currentTimeMillis();
         final Response response =
             client.target(url).path("units").request(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON).header(X_HTTP_METHOD, "GET")
                 .post(Entity.entity(selectQuery, MediaType.APPLICATION_JSON), Response.class);
 
         if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-            throw new MetaDataExecutionException("Internal Server Error");
+            throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
         } else if (response.getStatus() == Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode()) {
-            throw new MetaDataDocumentSizeException("Document Size is Too Large");
+            throw new MetaDataDocumentSizeException(SIZE_TOO_LARGE);
         } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
-            throw new InvalidParseOperationException("Invalid Parse Operation");
+            throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
         }
-        LOGGER.info(ELAPSED_TIME_MESSAGE + "selectUnits :" + ((System.currentTimeMillis() - time) / 1000) + "s");
+        LOGGER.debug("selectUnits");
         return response.readEntity(JsonNode.class);
     }
 
@@ -172,7 +169,6 @@ public class MetaDataClient {
     public JsonNode selectUnitbyId(String selectQuery, String unitId)
         throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
         IllegalArgumentException {
-        long time = System.currentTimeMillis();
         // check parameters before call web service
         // check select query
         if (StringUtils.isBlank(selectQuery)) {
@@ -189,14 +185,14 @@ public class MetaDataClient {
                 .post(Entity.entity(selectQuery, MediaType.APPLICATION_JSON), Response.class);
 
         if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-            throw new MetaDataExecutionException("Internal Server Error");
+            throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
         } else if (response.getStatus() == Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode()) {
-            throw new MetaDataDocumentSizeException("Document Size is Too Large");
+            throw new MetaDataDocumentSizeException(SIZE_TOO_LARGE);
         } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
-            throw new InvalidParseOperationException("Invalid Parse Operation");
+            throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
         }
 
-        LOGGER.info(ELAPSED_TIME_MESSAGE + "selectUnits :" + ((System.currentTimeMillis() - time) / 1000) + "s");
+        LOGGER.debug("selectUnits");
         return response.readEntity(JsonNode.class);
     }
 
@@ -217,7 +213,6 @@ public class MetaDataClient {
     public JsonNode selectObjectGrouptbyId(String selectQuery, String objectGroupId)
         throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
         IllegalArgumentException, MetadataInvalidSelectException {
-        long time = System.currentTimeMillis();
         ParametersChecker.checkParameter(SELECT_OBJECT_GROUP_QUERY_NULL, selectQuery);
         ParametersChecker.checkParameter(BLANK_PARAM, objectGroupId);
 
@@ -236,8 +231,7 @@ public class MetaDataClient {
             throw new MetadataInvalidSelectException(MISSING_SELECT_QUERY);
         }
 
-        LOGGER.info(
-            ELAPSED_TIME_MESSAGE + "selectObjectGrouptbyId :" + ((System.currentTimeMillis() - time) / 1000) + "s");
+        LOGGER.debug("selectObjectGrouptbyId");
         return response.readEntity(JsonNode.class);
     }
 
@@ -257,7 +251,6 @@ public class MetaDataClient {
     public JsonNode updateUnitbyId(String updateQuery, String unitId)
         throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
         IllegalArgumentException {
-        long time = System.currentTimeMillis();
         // check parameters before call web service
         // check update query
         if (StringUtils.isBlank(updateQuery)) {
@@ -270,14 +263,14 @@ public class MetaDataClient {
                 .put(Entity.entity(updateQuery, MediaType.APPLICATION_JSON), Response.class);
 
         if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-            throw new MetaDataExecutionException("Internal Server Error");
+            throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
         } else if (response.getStatus() == Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode()) {
-            throw new MetaDataDocumentSizeException("Document Size is Too Large");
+            throw new MetaDataDocumentSizeException(SIZE_TOO_LARGE);
         } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
-            throw new InvalidParseOperationException("Invalid Parse Operation");
+            throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
         }
 
-        LOGGER.info(ELAPSED_TIME_MESSAGE + "update Units by Id :" + ((System.currentTimeMillis() - time) / 1000) + "s");
+        LOGGER.debug("update Units by Id");
         return response.readEntity(JsonNode.class);
     }
 
@@ -300,15 +293,15 @@ public class MetaDataClient {
             .post(Entity.entity(insertQuery, MediaType.APPLICATION_JSON), Response.class);
 
         if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-            throw new MetaDataExecutionException("Internal Server Error");
+            throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
         } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
             throw new MetaDataNotFoundException("Not Found Exception");
         } else if (response.getStatus() == Status.CONFLICT.getStatusCode()) {
             throw new MetaDataAlreadyExistException("Data Already Exists");
         } else if (response.getStatus() == Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode()) {
-            throw new MetaDataDocumentSizeException("Document Size is Too Large");
+            throw new MetaDataDocumentSizeException(SIZE_TOO_LARGE);
         } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
-            throw new InvalidParseOperationException("Invalid Parse Operation");
+            throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
         }
 
         return response.readEntity(String.class);

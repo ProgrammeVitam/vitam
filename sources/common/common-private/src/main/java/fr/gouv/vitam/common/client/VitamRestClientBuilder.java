@@ -40,43 +40,36 @@ import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.SSLConfiguration;
 
-
 /**
- *  SSL Client Builder
+ * SSL Client Builder
  */
 public class VitamRestClientBuilder {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamRestClientBuilder.class); 
     private static final String PARAMETERS = "VitamRestClientBuilder parameters";
     private SSLConfiguration sslConfiguration = new SSLConfiguration();
-    private boolean hostnameVerification = true; 
-    
-    
+    private boolean hostnameVerification = true;
+
     /**
      * build a new Client
+     * 
      * @return Client
      * @throws VitamException
      */
-    public  Client build() throws VitamException {
-        
-        final SSLContext sslContext= sslConfiguration.createSSLContext();
-            ClientBuilder clientBuilder = ClientBuilder.newBuilder();
-            ClientConfig config = new ClientConfig()
-                    .register(JacksonJsonProvider.class)
-                    .register(JacksonFeature.class)
-                    .register(MultiPartFeature.class);
-            
-            ClientBuilder cb = clientBuilder.sslContext(sslContext).withConfig(config);
-            
-            if(!hostnameVerification){
-                    cb.hostnameVerifier(getAllowAllHostnameVerifier());
-            }
-            return cb.build();
+    public Client build() throws VitamException {
+        final SSLContext sslContext = sslConfiguration.createSSLContext();
+        ClientBuilder clientBuilder = ClientBuilder.newBuilder();
+        ClientConfig config = new ClientConfig().register(JacksonJsonProvider.class).register(JacksonFeature.class)
+            .register(MultiPartFeature.class);
+
+        ClientBuilder cb = clientBuilder.sslContext(sslContext).withConfig(config);
+
+        if (!hostnameVerification) {
+            cb.hostnameVerifier(getAllowAllHostnameVerifier());
+        }
+        return cb.build();
     }
-    
+
     /**
      * @param sslConfiguration the sslConfiguration to set
      * @return this
@@ -88,8 +81,6 @@ public class VitamRestClientBuilder {
         return this;
     }
 
-
-
     /**
      * @param hostnameVerification the hostnameVerification to set
      * @return this
@@ -100,7 +91,6 @@ public class VitamRestClientBuilder {
         this.hostnameVerification = hostnameVerification;
         return this;
     }
-    
 
     /**
      * @param verification
@@ -114,5 +104,5 @@ public class VitamRestClientBuilder {
             }
         };
     }
-    
+
 }

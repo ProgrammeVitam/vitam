@@ -64,7 +64,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     @Override
     public EngineResponse execute(WorkerParameters params) {
         checkMandatoryParameters(params);
-        LOGGER.info("ExtractContentActionHandler running ...");
+        LOGGER.debug("ExtractContentActionHandler running ...");
         final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID, OutcomeMessage.EXTRACT_MANIFEST_OK);
         final SedaUtils sedaUtils = sedaUtilsFactory.create();
 
@@ -74,7 +74,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID, OutcomeMessage.EXTRACT_MANIFEST_KO);
         }
 
-        LOGGER.info("ExtractSedaActionHandler response: " + response.getStatus().name());
+        LOGGER.debug("ExtractSedaActionHandler response: " + response.getStatus().name());
         return response;
     }
 

@@ -46,7 +46,7 @@ public class CheckConformityActionHandler extends ActionHandler {
     @Override
     public EngineResponse execute(WorkerParameters params) throws ProcessingException {
         checkMandatoryParameters(params);
-        LOGGER.info("CheckConformityActionHandler running ...");
+        LOGGER.debug("CheckConformityActionHandler running ...");
 
         final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID,
             OutcomeMessage.CHECK_CONFORMITY_OK);
@@ -70,7 +70,7 @@ public class CheckConformityActionHandler extends ActionHandler {
             response.setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_CONFORMITY_KO);
         }
 
-        LOGGER.info("CheckConformityActionHandler response: ", response.getStatus().name());
+        LOGGER.debug("CheckConformityActionHandler response: ", response.getStatus().name());
         return response;
     }
 

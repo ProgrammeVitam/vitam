@@ -36,6 +36,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
@@ -198,12 +199,24 @@ final class GUIDImplPrivate extends GUIDImpl {
         final long time;
         final int count;
         synchronized (FORSYNC) {
-            time = System.currentTimeMillis();
-            if (lastTimeStamp != time) {
+            long tmptime = System.currentTimeMillis();
+            if (lastTimeStamp != tmptime) {
                 counter = 0;
-                lastTimeStamp = time;
+                lastTimeStamp = tmptime;
             }
             count = ++counter;
+            if (count > 0xFFFFFF) {
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException e) {
+                    // ignore
+                    SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                }
+                tmptime = System.currentTimeMillis();
+                counter = 0;
+                lastTimeStamp = tmptime;
+            }
+            time = tmptime;
         }
         // 2 bytes = Version (8) + Object Id (8)
         guid[HEADER_POS] = (byte) VERSION;

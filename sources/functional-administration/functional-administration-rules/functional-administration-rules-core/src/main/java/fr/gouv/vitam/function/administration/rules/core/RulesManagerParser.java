@@ -67,7 +67,7 @@ public class RulesManagerParser {
         CsvSchema bootstrap = CsvSchema.emptySchema().withHeader();
         CsvMapper csvMapper = new CsvMapper();
         MappingIterator<Map<?, ?>> mappingIterator =
-            csvMapper.reader(Map.class).with(bootstrap).readValues(fileToParse);
+            csvMapper.readerFor(Map.class).with(bootstrap).readValues(fileToParse);
         ArrayNode arrayNode = JsonHandler.createArrayNode();
         List<Map<?, ?>> data = mappingIterator.readAll();
         for (Map<?, ?> c : data) {

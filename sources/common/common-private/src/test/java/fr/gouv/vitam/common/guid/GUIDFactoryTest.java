@@ -36,11 +36,6 @@ public class GUIDFactoryTest {
     @Test
     public final void testNewGUID() {
         assertEquals(0, GUIDFactory.newGUID().getObjectId());
-        assertEquals(1, GUIDFactory.newGUID(1).getObjectId());
-        assertEquals(2, GUIDFactory.newGUID(2, 1).getObjectId());
-        assertEquals(0, GUIDFactory.newGUID(false).getObjectId());
-        assertEquals(3, GUIDFactory.newGUID(3, false).getObjectId());
-        assertEquals(4, GUIDFactory.newGUID(4, 5, false).getObjectId());
         assertEquals(GUIDObjectType.OBJECTGROUP_TYPE,
             GUIDFactory.newChildrenGUID(GUIDFactory.newUnitGUID(1)).getObjectId());
         final GUID unit = GUIDFactory.newUnitGUID(0);

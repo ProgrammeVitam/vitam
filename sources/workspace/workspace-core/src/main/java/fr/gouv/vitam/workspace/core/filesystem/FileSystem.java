@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.workspace.core.filesystem;
 
-import java.awt.*;
 import java.io.File;
 import java.util.Properties;
 
@@ -61,7 +60,7 @@ public class FileSystem extends ContentAddressableStorageAbstract {
     public BlobStoreContext getContext(StorageConfiguration configuration) {
         final Properties props = new Properties();
         props.setProperty(FilesystemConstants.PROPERTY_BASEDIR, configuration.getStoragePath());
-        LOGGER.info("Get File System Context");
+        LOGGER.debug("Get File System Context");
         return ContextBuilder.newBuilder("filesystem").overrides(props).buildView(BlobStoreContext.class);
     }
 

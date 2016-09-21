@@ -89,8 +89,11 @@ public class GlobalDatas {
      */
     protected static final void sanityCheck(String arg, int size)
         throws InvalidParseOperationException {
-        // TODO REVIEW should check null
-        if (arg != null && arg.length() > size) {
+        if (arg == null) {
+            throw new InvalidParseOperationException(
+                "String is null but must not");
+        }
+        if (arg.length() > size) {
             throw new InvalidParseOperationException(
                 "String exceeds sanity check of " + size);
         }

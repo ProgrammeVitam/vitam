@@ -41,6 +41,8 @@ import java.util.Properties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
+import fr.gouv.vitam.common.logging.SysErrLogger;
+
 /**
  * Property Utility class <br>
  * <br>
@@ -56,6 +58,38 @@ public final class PropertiesUtils {
     }
 
     /**
+     * Get the InputStream representation from the local path to the Resources directory
+     *
+     * @param resourcesFile properties file from resources directory
+     * @return the associated File
+     * @throws FileNotFoundException
+     */
+    public static final InputStream getResourcesAsStream(String resourcesFile)throws FileNotFoundException {
+        if (resourcesFile == null) {
+            throw new FileNotFoundException(FILE_NOT_FOUND_IN_RESOURCES + resourcesFile);
+        }
+        InputStream stream = null;
+        try {
+            stream = Thread.currentThread().getContextClassLoader().getResourceAsStream(resourcesFile);
+        } catch (final SecurityException e) {
+            // since another exception is thrown
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+        }
+        if (stream == null) {
+            try {
+                stream = PropertiesUtils.class.getClassLoader().getResourceAsStream(resourcesFile);
+            } catch (final SecurityException e) {
+                // since another exception is thrown
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
+        }
+        if (stream == null) {
+            throw new FileNotFoundException(FILE_NOT_FOUND_IN_RESOURCES + resourcesFile);
+        }
+        return stream;
+    }
+    
+    /**
      * Get the File representation from the local path to the Resources directory
      *
      * @param resourcesFile properties file from resources directory
@@ -69,7 +103,9 @@ public final class PropertiesUtils {
         URL url;
         try {
             url = PropertiesUtils.class.getClassLoader().getResource(resourcesFile);
-        } catch (final SecurityException e) {// NOSONAR since an exception is thrown
+        } catch (final SecurityException e) {
+            // since another exception is thrown
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             throw new FileNotFoundException(FILE_NOT_FOUND_IN_RESOURCES + resourcesFile);
         }
         if (url == null) {
@@ -81,7 +117,8 @@ public final class PropertiesUtils {
         File file;
         try {
             file = new File(url.toURI());
-        } catch (final URISyntaxException e) { // NOSONAR
+        } catch (final URISyntaxException e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             file = new File(url.getFile().replaceAll("%20", " "));
         }
         if (file.exists()) {
@@ -122,7 +159,9 @@ public final class PropertiesUtils {
                 }
 
             }
-        } catch (final FileNotFoundException e) {// NOSONAR need to rewrite the exception
+        } catch (final FileNotFoundException e) {
+            // need to rewrite the exception
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             throw new FileNotFoundException("File not found: " + filename);
         }
         if (!file.exists()) {
@@ -138,7 +177,7 @@ public final class PropertiesUtils {
      * @return the full file path (no check on existing is done)
      */
     public static final File fileFromConfigFolder(String subpath) {
-        return new File(SystemPropertyUtil.getVitamConfigFolder(), subpath);
+        return new File(VitamConfiguration.getVitamConfigFolder(), subpath);
     }
 
     /**
@@ -148,7 +187,7 @@ public final class PropertiesUtils {
      * @return the full file path (no check on existing is done)
      */
     public static final File fileFromDataFolder(String subpath) {
-        return new File(SystemPropertyUtil.getVitamDataFolder(), subpath);
+        return new File(VitamConfiguration.getVitamDataFolder(), subpath);
     }
 
     /**
@@ -158,7 +197,7 @@ public final class PropertiesUtils {
      * @return the full file path (no check on existing is done)
      */
     public static final File fileFromLogFolder(String subpath) {
-        return new File(SystemPropertyUtil.getVitamLogFolder(), subpath);
+        return new File(VitamConfiguration.getVitamLogFolder(), subpath);
     }
 
     /**
@@ -168,7 +207,7 @@ public final class PropertiesUtils {
      * @return the full file path (no check on existing is done)
      */
     public static final File fileFromTmpFolder(String subpath) {
-        return new File(SystemPropertyUtil.getVitamTmpFolder(), subpath);
+        return new File(VitamConfiguration.getVitamTmpFolder(), subpath);
     }
 
     /**
@@ -205,6 +244,22 @@ public final class PropertiesUtils {
             final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
             return clasz.cast(mapper.readValue(yamlFileReader, clasz));
         }
+    }
+
+    /**
+     * Read the Yaml InputStream and return the object read
+     *
+     * @param yamlInputStream
+     * @param clasz the class representing the target object
+     * @return the object read
+     * @throws IOException
+     */
+    public static final <C> C readYaml(InputStream yamlInputStream, Class<C> clasz) throws IOException {
+        if (yamlInputStream == null || clasz == null) {
+            throw new FileNotFoundException(ARGUMENTS_MUST_BE_NON_NULL);
+        }
+        final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+        return clasz.cast(mapper.readValue(yamlInputStream, clasz));
     }
 
     /**

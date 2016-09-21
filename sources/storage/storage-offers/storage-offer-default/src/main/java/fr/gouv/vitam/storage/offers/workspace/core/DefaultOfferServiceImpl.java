@@ -184,11 +184,13 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     public JsonNode getCapacity(String containerName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         if (!defaultStorage.isExistingContainer(containerName)) {
+            // FIXME logique incorrecte: ne devrait pas être créé dynamiquement mais uniquement si demandé
+            // Devrait donc retourner une valeur du type NOT_EXIST
             try {
                 defaultStorage.createContainer(containerName);
             } catch (ContentAddressableStorageAlreadyExistException e) {
                 // Log it but it's not a problem
-                LOGGER.info(e);
+                LOGGER.debug(e);
             }
         }
         ObjectNode result = JsonHandler.createObjectNode();
