@@ -13,6 +13,11 @@
 	<packaging>pom</packaging>
 	<name>VITAM Documentation</name>
 	<description>Documentation associée au programme VITAM</description>
+
+	<modules>
+		<module>library-server</module>
+	</modules>
+
 	<build>
 		<plugins>
 			<plugin>
