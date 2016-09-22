@@ -37,7 +37,7 @@ public enum IngestExternalOutcomeMessage {
     /**
      * Virus control / KO: Viral infection
      */
-    KO_VIRUS("Echec Contrôle sanitaire : virus détecté SIP infecté");
+    KO_VIRUS("Echec Contrôle sanitaire : présence de fichiers infectés");
 
     private String value;
 
