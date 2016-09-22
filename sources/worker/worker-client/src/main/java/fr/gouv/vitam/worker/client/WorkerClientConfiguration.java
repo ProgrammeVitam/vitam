@@ -26,12 +26,12 @@
  */
 package fr.gouv.vitam.worker.client;
 
-import fr.gouv.vitam.common.client.SSLClientConfiguration;
+import fr.gouv.vitam.common.server.application.configuration.ClientConfigurationImpl;
 
 /**
  * worker client configuration
  */
-public class WorkerClientConfiguration extends SSLClientConfiguration {
+public class WorkerClientConfiguration extends ClientConfigurationImpl {
 
     /**
      * Empty constructor used by YAMLFactory to instanciate the object
@@ -45,11 +45,9 @@ public class WorkerClientConfiguration extends SSLClientConfiguration {
      * 
      * @param serverHost the server hostname
      * @param serverPort the server port
-     * @param useSSL whether to use https or not
-     * @param serverContextPath context
      */
-    public WorkerClientConfiguration(String serverHost, int serverPort, boolean useSSL, String serverContextPath) {
-        super(serverHost, serverPort, useSSL, serverContextPath);
+    public WorkerClientConfiguration(String serverHost, int serverPort) {
+        super(serverHost, serverPort);
     }
 
 }

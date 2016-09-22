@@ -72,8 +72,7 @@ public class WorkerApplicationTest {
         worker = PropertiesUtils.findFile(WORKER_CONF);
         final WorkerConfiguration realWorker = PropertiesUtils.readYaml(worker, WorkerConfiguration.class);
         realWorker.setRegisterServerPort(serverPort).setRegisterServerHost("localhost")
-            .setRegisterServerContextPath("/").setRegisterUseSSL(false).setRegisterDelay(1).setRegisterRetry(1)
-            .setProcessingUrl("http://localhost:8888");
+            .setRegisterDelay(1).setRegisterRetry(1).setProcessingUrl("http://localhost:8888");
 
         try (FileOutputStream outputStream = new FileOutputStream(worker)) {
             final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());

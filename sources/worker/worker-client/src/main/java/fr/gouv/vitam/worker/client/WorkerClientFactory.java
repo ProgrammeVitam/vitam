@@ -167,8 +167,6 @@ public class WorkerClientFactory {
         ParametersChecker.checkParameter("Configuration cannot be null", configuration);
         ParametersChecker.checkParameter("Server cannot be null or empty", configuration.getServerHost());
         ParametersChecker.checkValue("Server port cannot be null", configuration.getServerPort(), 1);
-        ParametersChecker.checkParameter("Server context path cannot be null",
-            configuration.getServerContextPath());
     }
 
     /**

@@ -27,9 +27,7 @@
 package fr.gouv.vitam.worker.client;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -38,20 +36,13 @@ public class WorkerClientConfigurationTest {
 	@Test
 	public void constructorTest() {
 		WorkerClientConfiguration configuration = new WorkerClientConfiguration();
-        assertFalse(configuration.getUseSSL());
-        assertNull(configuration.getServerContextPath());
         assertNull(configuration.getServerHost());
-        configuration.setUseSSL(true);
-        configuration.setServerContextPath("/");
         configuration.setServerHost("host");
-        assertTrue(configuration.getUseSSL());
-        assertEquals("/", configuration.getServerContextPath());
         assertEquals("host", configuration.getServerHost());
 
-        WorkerClientConfiguration configuration2 = new WorkerClientConfiguration("host", 1, true, "/");
-        assertTrue(configuration2.getUseSSL());
-        assertEquals("/", configuration2.getServerContextPath());
+        WorkerClientConfiguration configuration2 = new WorkerClientConfiguration("host", 1);
         assertEquals("host", configuration2.getServerHost());
+        assertEquals(1, configuration2.getServerPort());
 	}
 
 }

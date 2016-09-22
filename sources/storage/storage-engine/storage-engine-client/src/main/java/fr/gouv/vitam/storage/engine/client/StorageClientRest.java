@@ -45,7 +45,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.client.AbstractClient;
+import fr.gouv.vitam.common.client.AbstractSSLClient;
 import fr.gouv.vitam.common.client.SSLClientConfiguration;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
@@ -61,7 +61,7 @@ import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 /**
  * StorageClient Abstract class use to set generic client configuration (not depending on client type)
  */
-class StorageClientRest extends AbstractClient implements StorageClient {
+class StorageClientRest extends AbstractSSLClient implements StorageClient {
     private static final String OBJECT_DESCRIPTION_MUST_HAVE_A_VALID_VALUE =
         "Object's description must have a valid value";
     private static final String OBJECT_DESCRIPTION_GUID_MUST_HAVE_A_VALID_VALUE =

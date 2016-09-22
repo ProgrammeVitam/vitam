@@ -40,8 +40,7 @@ public class WorkerBeanTest {
 
     private static final String JSON_WORKER =
         "{ \"name\" : \"workername\", \"family\" : \"familyname\", \"capacity\" : 10, \"storage\" : 100," +
-            "\"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : 89102, " +
-            "\"serverContextPath\" : \"/\", \"useSSL\" : false } }";
+            "\"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : 89102 } }";
 
     @Test
     public void testConstructor() {
@@ -67,8 +66,6 @@ public class WorkerBeanTest {
         assertNotEquals(null, wb.getConfiguration());
         assertEquals("localhost", wb.getConfiguration().getServerHost());
         assertEquals(89102, wb.getConfiguration().getServerPort());
-        assertEquals("/", wb.getConfiguration().getServerContextPath());
-        assertEquals(false, wb.getConfiguration().getUseSSL());
         // Id information is not in the json
         assertEquals(null, wb.getWorkerId());
         assertNotNull(wb.toString());
@@ -80,7 +77,7 @@ public class WorkerBeanTest {
         WorkerBean wb = new WorkerBean();
         wb.setCapacity(0).setFamily("family").setName("name")
             .setStatus("Active").setStorage(0).setWorkerId("workerId");
-        WorkerRemoteConfiguration wc = new WorkerRemoteConfiguration("localhost",89102,"/",false);
+        WorkerRemoteConfiguration wc = new WorkerRemoteConfiguration("localhost",89102);
         wb.setConfiguration(wc);
         assertEquals("family", wb.getFamily());
         assertEquals("name", wb.getName());
@@ -88,10 +85,8 @@ public class WorkerBeanTest {
         assertEquals(0, wb.getStorage());
         assertEquals("Active", wb.getStatus());
         assertNotEquals(null, wb.getConfiguration());
-        assertEquals("/", wb.getConfiguration().getServerContextPath());
         assertEquals("localhost", wb.getConfiguration().getServerHost());
         assertEquals(89102, wb.getConfiguration().getServerPort());
-        assertEquals(false, wb.getConfiguration().getUseSSL());
         assertEquals("workerId", wb.getWorkerId());
         assertNotNull(wb.toString());
     }

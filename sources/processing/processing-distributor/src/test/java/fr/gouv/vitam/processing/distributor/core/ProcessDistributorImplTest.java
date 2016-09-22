@@ -70,8 +70,7 @@ public class ProcessDistributorImplTest {
 
     private static final String WORKER_DESCRIPTION =
         "{ \"name\" : \"workername\", \"family\" : \"familyname\", \"capacity\" : 10, \"storage\" : 100," +
-            "\"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"89102\", " +
-            "\"serverContextPath\" : \"/\", \"useSSL\" : \"false\" } }";
+            "\"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"89102\" } }";
 
     @Before
     public void setUp() throws Exception {
@@ -242,7 +241,7 @@ public class ProcessDistributorImplTest {
     @Test
     public void testConstructor() throws Exception {
         WorkerBean bean = new WorkerBean("name", "family", 1, 1, "status",
-            new WorkerRemoteConfiguration("localhost", 89102, "/", false));
+            new WorkerRemoteConfiguration("localhost", 89102));
         ProcessDistributorImpl processDImpl = new ProcessDistributorImpl(bean, "workerId", "familtyId");
     }
 

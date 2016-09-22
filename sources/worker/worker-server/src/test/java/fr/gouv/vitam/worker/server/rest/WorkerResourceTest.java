@@ -103,8 +103,7 @@ public class WorkerResourceTest {
         final File workerFile = PropertiesUtils.findFile(WORKER_CONF);
         final WorkerConfiguration realWorker = PropertiesUtils.readYaml(workerFile, WorkerConfiguration.class);
         realWorker.setRegisterServerPort(serverPort).setRegisterServerHost("localhost")
-            .setRegisterServerContextPath("/").setRegisterUseSSL(false).setRegisterDelay(1).setRegisterRetry(1)
-            .setProcessingUrl("http://localhost:8888");
+            .setRegisterDelay(1).setRegisterRetry(1).setProcessingUrl("http://localhost:8888");
 
         newWorkerConf = File.createTempFile("test", WORKER_CONF, workerFile.getParentFile());
         PropertiesUtils.writeYaml(newWorkerConf, realWorker);
