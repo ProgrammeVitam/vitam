@@ -58,6 +58,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusMessage;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
+import fr.gouv.vitam.storage.driver.exception.StorageObjectAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
@@ -333,6 +334,9 @@ public class StorageResource {
                 } catch (StorageTechnicalException exc) {
                     LOGGER.error(exc);
                     vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
+                } catch (StorageObjectAlreadyExistsException exc) {
+                    LOGGER.error(exc);
+                    vitamCode = VitamCode.STORAGE_DRIVER_OBJECT_ALREADY_EXISTS;
                 }
                 // If here, an error occurred
                 return buildErrorResponse(vitamCode);
@@ -502,6 +506,9 @@ public class StorageResource {
                 } catch (StorageTechnicalException e) {
                     LOGGER.error(e);
                     vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
+                } catch (StorageObjectAlreadyExistsException exc) {
+                    LOGGER.error(exc);
+                    vitamCode = VitamCode.STORAGE_DRIVER_OBJECT_ALREADY_EXISTS;
                 }
                 // If here, an error occurred
                 return buildErrorResponse(vitamCode);
@@ -611,6 +618,9 @@ public class StorageResource {
                 } catch (StorageTechnicalException e) {
                     LOGGER.error(e);
                     vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
+                } catch (StorageObjectAlreadyExistsException exc) {
+                    LOGGER.error(exc);
+                    vitamCode = VitamCode.STORAGE_DRIVER_OBJECT_ALREADY_EXISTS;
                 }
                 return buildErrorResponse(vitamCode);
             }
@@ -739,6 +749,9 @@ public class StorageResource {
                 } catch (StorageTechnicalException e) {
                     LOGGER.error(e);
                     vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
+                } catch (StorageObjectAlreadyExistsException exc) {
+                    LOGGER.error(exc);
+                    vitamCode = VitamCode.STORAGE_DRIVER_OBJECT_ALREADY_EXISTS;
                 }
                 // If here, an error occurred
                 return buildErrorResponse(vitamCode);

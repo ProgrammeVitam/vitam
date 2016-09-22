@@ -14,5 +14,6 @@
 	<modules>
 		<module>storage-drivers</module>
 		<module>storage-offer-default</module>
+		<module>storage-offer-mock</module>
 	</modules>	
 </project>

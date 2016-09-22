@@ -72,11 +72,6 @@ public class DriverImplTest extends JerseyTest {
 
     }
 
-    @AfterClass
-    public static void shutdownAfterClass() {
-        junitHelper.releasePort(port);
-    }
-
     @Test(expected = StorageDriverException.class)
     public void givenNullUrlThenRaiseAnException() throws Exception {
         driver.connect(null, null);
