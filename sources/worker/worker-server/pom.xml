@@ -100,6 +100,17 @@
 	<build>
 		<plugins>
 			<plugin>
+				<!-- Run the Junit unit tests in an isolated classloader and not Parallel. -->
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<parallel>classes</parallel>
+					<threadCount>1</threadCount>
+					<perCoreThreadCount>false</perCoreThreadCount>
+					<forkCount>1</forkCount>
+					<reuseForks>false</reuseForks>
+				</configuration>
+			</plugin>
+			<plugin>
 				<!-- Dependency manipulation (copy, unpack) and analysis. -->
 				<artifactId>maven-dependency-plugin</artifactId>
 				<executions>
@@ -181,7 +192,7 @@
 					<!-- Images specification -->
 					<baseImage>${vitam.docker.registry.pull}/${vitam.docker.baseimage}</baseImage>
 					<imageName>${vitam.docker.registry.push}/vitam/worker</imageName>
-					<!-- copy the service's jar file from target into the root directory
+					<!-- copy the service's jar file from target into the root directory 
 						of the image -->
 					<resources>
 						<resource>

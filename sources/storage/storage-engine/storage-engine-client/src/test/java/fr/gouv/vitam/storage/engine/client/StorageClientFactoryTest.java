@@ -40,7 +40,7 @@ public class StorageClientFactoryTest {
 
     @Before
     public void initFileConfiguration() {
-        StorageClientFactory.getInstance().changeConfigurationFile("storage-client.conf");
+        StorageClientFactory.getInstance().changeConfigurationFile("storage-client-test.conf");
     }
 
     @Test

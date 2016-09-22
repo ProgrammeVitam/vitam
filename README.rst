@@ -18,6 +18,10 @@ Build
 
 ``mvn install``
 
+Pour ignorer les tests d'intégration:
+
+``mvn install -DskipITs``
+
 Build de la documentation
 =========================
 

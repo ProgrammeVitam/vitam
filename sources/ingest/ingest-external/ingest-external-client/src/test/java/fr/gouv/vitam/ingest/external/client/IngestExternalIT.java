@@ -58,7 +58,7 @@ import fr.gouv.vitam.ingest.external.rest.IngestExternalApplication;
 /**
  * 
  */
-public class IngestExternalIntegrationTest {
+public class IngestExternalIT {
 
     private static final String INGEST_EXTERNAL_CONF = "ingest-external-ssl-test.conf";
     private static final String INGEST_EXTERNAL_CLIENT_CONF = "ingest-external-client-secure.conf";

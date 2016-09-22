@@ -36,8 +36,8 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
 
-public class StorageClientIntegrationTest {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageClientIntegrationTest.class);
+public class StorageClientIT {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageClientIT.class);
     private static final String SHOULD_NOT_RAIZED_AN_EXCEPTION = "Should not have raized an exception";
 
 
