@@ -28,8 +28,6 @@ package fr.gouv.vitam.logbook.rest;
 
 import static com.jayway.restassured.RestAssured.given;
 
-import java.io.File;
-
 import javax.ws.rs.core.Response.Status;
 
 import org.jhades.JHades;
@@ -48,8 +46,8 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -57,14 +55,11 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.common.server.MongoDbAccess;
-import fr.gouv.vitam.logbook.common.server.database.collections.MongoDbAccessFactory;
 
 /**
  *
@@ -76,18 +71,15 @@ public class LogBookLifeCycleObjectGroupTest {
 
     private static final String REST_URI = "/logbook/v1";
 
-    private static final String LOGBOOK_CONF = "logbook-test.conf";
-    private static final String DATABASE_HOST = "localhost";
-    private static MongoDbAccess mongoDbAccess;
+    private static final String JETTY_CONFIG = "jetty-config-test.xml";
+    private static final String SERVER_HOST = "localhost";
     private static MongodExecutable mongodExecutable;
     private static MongodProcess mongod;
-    private static VitamServer vitamServer;
 
     private static final String LIFE_OBJECT_GROUP_ID_URI = "/operations/{id_op}/objectgrouplifecycles/{id_lc}";
 
-    private static int databasePort = 52661;
-    private static int serverPort = 8889;
-    // private static File newLogbookConf;
+    private static int databasePort;
+    private static int serverPort;
 
     private static LogbookLifeCycleObjectGroupParameters logbookLifeCyclesObjectGroupParametersStart;
     private static LogbookLifeCycleObjectGroupParameters logbookLCObjectGroupParametersAppend;
@@ -99,35 +91,33 @@ public class LogBookLifeCycleObjectGroupTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
 
-        // junitHelper = new JunitHelper();
-        // databasePort = junitHelper.findAvailablePort();
-        final File logbook = PropertiesUtils.findFile(LOGBOOK_CONF);
-        final LogbookConfiguration realLogbook = PropertiesUtils.readYaml(logbook, LogbookConfiguration.class);
-        realLogbook.setDbPort(databasePort);
-        // newLogbookConf = File.createTempFile("test", LOGBOOK_CONF, logbook.getParentFile());
-        // PropertiesUtils.writeYaml(newLogbookConf, realLogbook);
+        junitHelper = new JunitHelper();
+        databasePort = junitHelper.findAvailablePort();
+
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .version(Version.Main.PRODUCTION)
             .net(new Net(databasePort, Network.localhostIsIPv6()))
             .build());
-        mongod = mongodExecutable.start();
-        mongoDbAccess =
-            MongoDbAccessFactory.create(
-                new DbConfigurationImpl(DATABASE_HOST, databasePort,
-                    "vitam-test"));
-        // serverPort = junitHelper.findAvailablePort();
-        // TODO verifier la compatibilité avec les tests parallèles sur jenkins
-        // SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
 
-        RestAssured.port = serverPort;
-        RestAssured.basePath = REST_URI;
+        mongod = mongodExecutable.start();
+        serverPort = junitHelper.findAvailablePort();
+
+        // TODO verifier la compatibilité avec les tests parallèles sur jenkins
+        SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
+
 
         try {
-            LogbookApplication.startApplication(new String[] {LOGBOOK_CONF});
+            LogbookConfiguration logbookConf = new LogbookConfiguration();
+            logbookConf.setDbHost(SERVER_HOST).setDbName("vitam-test").setDbPort(databasePort);
+            logbookConf.setJettyConfig(JETTY_CONFIG);
+            SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
+            LogbookApplication.run(logbookConf);
+
+            RestAssured.port = serverPort;
+            RestAssured.basePath = REST_URI;
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
             throw new IllegalStateException(
@@ -164,7 +154,7 @@ public class LogBookLifeCycleObjectGroupTest {
          * update
          *
          */
-            final GUID eip2 = GUIDFactory.newWriteLogbookGUID(0);
+        final GUID eip2 = GUIDFactory.newWriteLogbookGUID(0);
         final GUID iop2 = GUIDFactory.newWriteLogbookGUID(0);
         final GUID ioL2 = GUIDFactory.newUnitGUID(0);
         logbookLifeCyclesObjectGroupParametersUpdate =
@@ -198,12 +188,10 @@ public class LogBookLifeCycleObjectGroupTest {
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
         }
-        mongoDbAccess.close();
-        // junitHelper.releasePort(serverPort);
         mongod.stop();
         mongodExecutable.stop();
-        // newLogbookConf.delete();
-        // junitHelper.releasePort(databasePort);
+        junitHelper.releasePort(databasePort);
+        junitHelper.releasePort(serverPort);
     }
 
     @Test

@@ -44,6 +44,7 @@ public class LogbookLifeCycleUnit extends LogbookLifeCycle<LogbookLifeCycleUnitP
         super(parameters);
     }
 
+    
     /**
      * Constructor for Codec
      *

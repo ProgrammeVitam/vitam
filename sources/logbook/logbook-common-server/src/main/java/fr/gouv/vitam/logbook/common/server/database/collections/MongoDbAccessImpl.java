@@ -481,6 +481,17 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
         }
     }
 
+    @SuppressWarnings("rawtypes")
+    final VitamDocument getDocumentForUpdate(LogbookParameters item) {
+        if (item instanceof LogbookOperationParameters) {
+            return new LogbookOperation((LogbookOperationParameters) item, true);
+        } else if (item instanceof LogbookLifeCycleUnitParameters) {
+            return new LogbookLifeCycleUnit((LogbookLifeCycleUnitParameters) item);
+        } else {
+            return new LogbookLifeCycleObjectGroup((LogbookLifeCycleObjectGroupParameters) item);
+        }
+    }
+
     @SuppressWarnings("unchecked")
     final void createLogbook(LogbookCollections collection, LogbookParameters item)
         throws LogbookDatabaseException, LogbookAlreadyExistsException {
@@ -532,7 +543,7 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
         throws LogbookDatabaseException, LogbookNotFoundException {
         ParametersChecker.checkParameter("Item cannot be null", item);
         @SuppressWarnings("rawtypes")
-        final VitamDocument document = getDocument(item);
+        final VitamDocument document = getDocumentForUpdate(item);
         try {
             // Save the _id content before removing it
             String mainLogbookDocumentId = document.getId();
@@ -632,7 +643,7 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
         if (items != null && items.length > 0) {
             final List<VitamDocument> events = new ArrayList<>(items.length);
             for (final LogbookParameters item2 : items) {
-                VitamDocument currentEvent = getDocument(item2);
+                VitamDocument currentEvent = getDocumentForUpdate(item2);
                 currentEvent.remove(LogbookDocument.EVENTS);
                 currentEvent.remove(LogbookDocument.ID);
                 events.add(currentEvent);
@@ -685,9 +696,8 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
             throw new IllegalArgumentException(AT_LEAST_ONE_ITEM_IS_NEEDED);
         }
         final List<VitamDocument> events = new ArrayList<>(items.length);
-
         // Get the first event to preserve the _id field value
-        final VitamDocument firstEvent = getDocument(items[0]);
+        final VitamDocument firstEvent = getDocumentForUpdate(items[0]);
         String mainLogbookDocumentId = firstEvent.getId();
 
         firstEvent.remove(LogbookDocument.EVENTS);

@@ -63,6 +63,7 @@ abstract class LogbookLifeCycle<T> extends VitamDocument<LogbookLifeCycle<T>> {
         append(LogbookDocument.EVENTS, Arrays.asList(new String[0]));
         checkId();
     }
+    
 
     /**
      * Constructor for Codec

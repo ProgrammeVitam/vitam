@@ -43,20 +43,23 @@ public class LogbookParametersSerializerTest {
     @Test
     public void shouldSerializeUnitParameters() throws IOException {
         final LogbookParametersSerializer logbookParametersSerializer = new LogbookParametersSerializer();
-        final LogbookLifeCycleObjectGroupParameters params = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
+        final LogbookLifeCycleObjectGroupParameters params =
+            LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
         assertNotNull(params);
 
         for (final LogbookParameterName value : LogbookParameterName.values()) {
             params.putParameterValue(value, value.name());
         }
-
+        
         StringWriter stringJson = new StringWriter();
         JsonGenerator generator = new JsonFactory().createGenerator(stringJson);
         SerializerProvider serializerProvider = new ObjectMapper().getSerializerProvider();
         logbookParametersSerializer.serialize(params, generator, serializerProvider);
         generator.flush();
-        assertThat(stringJson.toString(), is(equalTo("{\"eventIdentifier\":\"eventIdentifier\",\"eventType\":\"eventType\"," +
-                "\"eventDateTime\":\"eventDateTime\",\"eventIdentifierProcess\":\"eventIdentifierProcess\",\"eventTypeProcess\":\"eventTypeProcess\"," +
+        assertThat(stringJson.toString(),
+            is(equalTo("{\"eventIdentifier\":\"eventIdentifier\",\"eventType\":\"eventType\"," +
+                "\"eventDateTime\":\"eventDateTime\"," +
+                "\"eventIdentifierProcess\":\"eventIdentifierProcess\",\"eventTypeProcess\":\"eventTypeProcess\"," +
                 "\"outcome\":\"outcome\",\"outcomeDetail\":\"outcomeDetail\",\"outcomeDetailMessage\":\"outcomeDetailMessage\"," +
                 "\"agentIdentifier\":\"agentIdentifier\",\"agentIdentifierApplication\":\"agentIdentifierApplication\"," +
                 "\"agentIdentifierApplicationSession\":\"agentIdentifierApplicationSession\",\"eventIdentifierRequest\":\"eventIdentifierRequest\"," +

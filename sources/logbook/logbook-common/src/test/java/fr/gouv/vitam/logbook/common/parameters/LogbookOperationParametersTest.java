@@ -198,4 +198,11 @@ public class LogbookOperationParametersTest {
         params.getMapParameters().put(LogbookParameterName.eventDateTime, dateTime.toString());
         assertEquals(dateTime, params.getEventDateTime());
     }
+
+    @Test
+    public void testConstructorWithEmptyParameters() {
+        LogbookOperationParameters lop = new LogbookOperationParameters(new HashMap());
+        assertEquals(true, lop.getMapParameters().isEmpty());
+    }
+
 }

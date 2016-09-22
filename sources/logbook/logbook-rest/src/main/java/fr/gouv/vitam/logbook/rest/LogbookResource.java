@@ -172,7 +172,7 @@ public class LogbookResource {
     public Response createOrSelectOperation(@PathParam("id_op") String operationId,
         LogbookOperationParameters operation, @HeaderParam("X-HTTP-Method-Override") String xhttpOverride)
         throws InvalidParseOperationException {
-        if (xhttpOverride != null && xhttpOverride.equals("GET")) {
+        if (xhttpOverride != null && "GET".equals(xhttpOverride)) {
             ParametersChecker.checkParameter("Operation id is required", operationId);
             return getOperation(operationId);
         } else {
@@ -335,7 +335,7 @@ public class LogbookResource {
         throws InvalidParseOperationException, LogbookNotFoundException, LogbookException, JsonGenerationException,
         JsonMappingException, IOException {
         Status status;
-        if (xhttpOverride != null && xhttpOverride.equals("GET")) {
+        if (xhttpOverride != null && ("GET").equals(xhttpOverride)) {
             return selectOperation(query);
 
         } else {
