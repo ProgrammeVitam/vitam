@@ -51,6 +51,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -61,6 +62,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 public class DefaultOfferServiceTest {
 
     private static final String CONTAINER_PATH = "container";
+    private static final DataCategory OBJECT_TYPE = DataCategory.OBJECT;
     private static final String FOLDER_PATH = "folder";
     private static final String OBJECT_ID = GUIDFactory.newObjectGUID(0).getId();
     private static final String OBJECT_ID_2 = GUIDFactory.newObjectGUID(0).getId();
@@ -73,7 +75,9 @@ public class DefaultOfferServiceTest {
     public void deleteFiles() throws Exception {
         StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
             StorageConfiguration.class);
-        Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, FOLDER_PATH, OBJECT_ID));
+        Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_TYPE.getFolder(), OBJECT_ID));
+        Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_TYPE.getFolder(), OBJECT_ID_2));
+        Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_TYPE.getFolder()));
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, FOLDER_PATH));
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_ID));
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_ID_2));
@@ -91,7 +95,6 @@ public class DefaultOfferServiceTest {
         DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
         offerService.createObject("fakeContainer", OBJECT_ID, null, true);
     }
-
 
     @Test
     public void createContainerTest() throws Exception {
@@ -180,30 +183,33 @@ public class DefaultOfferServiceTest {
         }
         // check
         File testFile = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
-        File offerFile = new File(CONTAINER_PATH + "/" + OBJECT_ID);
+        File offerFile = new File(CONTAINER_PATH + "/" + objectInit.getType().getFolder() + "/" + OBJECT_ID);
         assertTrue(com.google.common.io.Files.equal(testFile, offerFile));
 
         Digest digest = Digest.digest(testFile, DigestType.SHA256);
         assertEquals(computedDigest, digest.toString());
-        assertEquals(offerService.getObjectDigest(CONTAINER_PATH, OBJECT_ID, DigestType.SHA256), digest.toString());
+        assertEquals(
+            offerService.getObjectDigest(CONTAINER_PATH, objectInit.getType().getFolder() + "/" + OBJECT_ID,
+                DigestType.SHA256),
+            digest.toString());
 
-        assertTrue(offerService.isObjectExist(CONTAINER_PATH, OBJECT_ID));
+        assertTrue(offerService.isObjectExist(CONTAINER_PATH, objectInit.getType().getFolder() + "/" + OBJECT_ID));
     }
 
     @Test
     public void getObjectTest() throws Exception {
         DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
         assertNotNull(offerService);
-
-        offerService.createContainer(CONTAINER_PATH, getObjectInit(false), OBJECT_ID_2);
+        ObjectInit objectInit = getObjectInit(false);
+        offerService.createContainer(CONTAINER_PATH, objectInit, OBJECT_ID_2);
 
         InputStream streamToStore = IOUtils.toInputStream(OBJECT_ID_2_CONTENT);
         offerService.createObject(CONTAINER_PATH, OBJECT_ID_2, streamToStore, true);
-        InputStream streamGet = offerService.getObject(CONTAINER_PATH, OBJECT_ID_2);
+        InputStream streamGet =
+            offerService.getObject(CONTAINER_PATH, objectInit.getType().getFolder() + "/" + OBJECT_ID_2);
         assertNotNull(streamGet);
         assertTrue(OBJECT_ID_2_CONTENT.equals(IOUtils.toString(streamGet, "UTF-8")));
     }
-
 
     private ObjectInit getObjectInit(boolean algo) throws IOException {
         File file = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
@@ -212,6 +218,7 @@ public class DefaultOfferServiceTest {
             objectInit.setDigestAlgorithm(DigestType.SHA256);
         }
         objectInit.setSize(file.length());
+        objectInit.setType(OBJECT_TYPE);
         return objectInit;
     }
 

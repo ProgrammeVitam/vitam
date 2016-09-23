@@ -84,7 +84,7 @@ REST API
 
 - path :
 
-  - {id} : id de l'objet
+  - {id} : path de l'objet
 
 - response :
 
@@ -104,7 +104,7 @@ REST API
 - body :
 
   - GUID
-  - ObjectInit contenant la taille (taille finale), le type (unit/objectgroup/logbook/etc), le digest-type (type de digest) ainsi qu'un identifiant vide à l'envoi qui sera rempli pour l'offre. Il s'agit de l'identifiant de l'objet sur l'offre. Dans l'implémentation par défaut, c'est le GUID.
+  - ObjectInit contenant la taille (taille finale), le type (unit/objectgroup/logbook/etc, se basant sur une enum), le digest-type (type de digest) ainsi qu'un identifiant vide à l'envoi qui sera rempli pour l'offre. Il s'agit de l'identifiant de l'objet sur l'offre. Dans l'implémentation par défaut, c'est le GUID.
 
 - response :
 
@@ -189,9 +189,7 @@ L'arborescence cible est la suivante :
 
 - pour chaque tenant un dossier est créé dans le workspace (équivalent du container) : /idTenant
 
-TODO:
-
-- pour chaque type d'objet, un sous-dossier est créé dans le dossier tenant (units, logbooks, objectgroups, objects) : /idTenant/objectgroups
+- pour chaque type d'objet, un sous-dossier est créé dans le dossier tenant (unit, logbook, objectGroup, object) : /idTenant/objectGroup
 
 Chaque objet, selon son type et le tenant associé, est stocké dans le dossier adéquat.
 Si le dossier cible n'existe pas à l'écriture de l'objet, il est créé automatiquement.

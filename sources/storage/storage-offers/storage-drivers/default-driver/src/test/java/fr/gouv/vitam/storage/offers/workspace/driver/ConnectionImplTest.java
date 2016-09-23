@@ -45,6 +45,7 @@ import fr.gouv.vitam.storage.driver.model.PutObjectRequest;
 import fr.gouv.vitam.storage.driver.model.PutObjectResult;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityRequest;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 
 public class ConnectionImplTest extends JerseyTest {
@@ -94,7 +95,7 @@ public class ConnectionImplTest extends JerseyTest {
         }
 
         @POST
-        @Path("/objects/{guid}")
+        @Path("/objects/{guid:.+}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response postObject(@PathParam("guid") String objectGUID, ObjectInit objectInit) {
@@ -102,7 +103,7 @@ public class ConnectionImplTest extends JerseyTest {
         }
 
         @PUT
-        @Path("/objects/{guid}")
+        @Path("/objects/{guid:.+}")
         @Consumes(MediaType.APPLICATION_OCTET_STREAM)
         @Produces(MediaType.APPLICATION_JSON)
         public Response putObject(@PathParam("id") String objectId, InputStream input) {
@@ -110,7 +111,7 @@ public class ConnectionImplTest extends JerseyTest {
         }
 
         @GET
-        @Path("/objects/{id}")
+        @Path("/objects/{id:.+}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(value = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_OCTET_STREAM})
         public Response getObject(@PathParam("id") String objectId) {
@@ -163,31 +164,37 @@ public class ConnectionImplTest extends JerseyTest {
 
     @Test(expected = StorageDriverException.class)
     public void putObjectRequestWithOnlyMissingTenantIdKO() throws Exception {
-        PutObjectRequest request = getPutObjectRequest(true, true, true, false);
+        PutObjectRequest request = getPutObjectRequest(true, true, true, false, true);
         connection.putObject(request);
     }
 
     @Test(expected = StorageDriverException.class)
     public void putObjectRequestWithOnlyMissingDataStreamKO() throws Exception {
-        PutObjectRequest request = getPutObjectRequest(false, true, true, true);
+        PutObjectRequest request = getPutObjectRequest(false, true, true, true, true);
         connection.putObject(request);
     }
 
     @Test(expected = StorageDriverException.class)
     public void putObjectRequestWithOnlyMissingAlgortihmKO() throws Exception {
-        PutObjectRequest request = getPutObjectRequest(true, false, true, true);
+        PutObjectRequest request = getPutObjectRequest(true, false, true, true, true);
         connection.putObject(request);
     }
 
     @Test(expected = StorageDriverException.class)
     public void putObjectRequestWithOnlyMissingGuidKO() throws Exception {
-        PutObjectRequest request = getPutObjectRequest(true, true, false, true);
+        PutObjectRequest request = getPutObjectRequest(true, true, false, true, true);
+        connection.putObject(request);
+    }
+
+    @Test(expected = StorageDriverException.class)
+    public void putObjectRequestWithOnlyMissingTypeKO() throws Exception {
+        PutObjectRequest request = getPutObjectRequest(true, true, true, true, false);
         connection.putObject(request);
     }
 
     @Test
     public void putObjectWithRequestOK() throws Exception {
-        PutObjectRequest request = getPutObjectRequest(true, true, true, true);
+        PutObjectRequest request = getPutObjectRequest(true, true, true, true, true);
         when(mock.post()).thenReturn(Response.status(Status.CREATED).entity(getPostObjectResult(-1)).build());
         when(mock.put()).thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(0)).build())
             .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(1)).build())
@@ -205,14 +212,14 @@ public class ConnectionImplTest extends JerseyTest {
 
     @Test(expected = StorageDriverException.class)
     public void putObjectWithRequestThrowsInternalServerErrorOnPostKO() throws Exception {
-        PutObjectRequest request = getPutObjectRequest(true, true, true, true);
+        PutObjectRequest request = getPutObjectRequest(true, true, true, true, true);
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         connection.putObject(request);
     }
 
     @Test(expected = StorageDriverException.class)
     public void putObjectWithRequestThrowsNotFoundErrorOnPutKO() throws Exception {
-        PutObjectRequest request = getPutObjectRequest(true, true, true, true);
+        PutObjectRequest request = getPutObjectRequest(true, true, true, true, true);
         when(mock.post()).thenReturn(Response.status(Status.CREATED).entity(getPostObjectResult(0)).build());
         when(mock.put()).thenReturn(Response.status(Status.NOT_FOUND).build());
         connection.putObject(request);
@@ -220,7 +227,7 @@ public class ConnectionImplTest extends JerseyTest {
 
     @Test(expected = StorageDriverException.class)
     public void putObjectWithRequestThrowsOtherErrorOnPutKO() throws Exception {
-        PutObjectRequest request = getPutObjectRequest(true, true, true, true);
+        PutObjectRequest request = getPutObjectRequest(true, true, true, true, true);
         when(mock.post()).thenReturn(Response.status(Status.CREATED).entity(getPostObjectResult(0)).build());
         when(mock.put()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         connection.putObject(request);
@@ -228,7 +235,7 @@ public class ConnectionImplTest extends JerseyTest {
 
     @Test(expected = StorageDriverException.class)
     public void putObjectWithRequestThrowsInternalServerErrorOnPutOK() throws Exception {
-        PutObjectRequest request = getPutObjectRequest(true, true, true, true);
+        PutObjectRequest request = getPutObjectRequest(true, true, true, true, true);
         when(mock.post()).thenReturn(Response.status(Status.CREATED).entity(getPostObjectResult(0)).build());
         when(mock.put()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         connection.putObject(request);
@@ -237,14 +244,14 @@ public class ConnectionImplTest extends JerseyTest {
     @Test(expected = StorageDriverException.class)
     public void putObjectThrowsInternalServerException() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        PutObjectRequest request = getPutObjectRequest(true, true, true, true);
+        PutObjectRequest request = getPutObjectRequest(true, true, true, true, true);
         connection.putObject(request);
     }
 
     @Test(expected = StorageDriverException.class)
     public void putObjectThrowsOtherException() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.SERVICE_UNAVAILABLE).build());
-        PutObjectRequest request = getPutObjectRequest(true, true, true, true);
+        PutObjectRequest request = getPutObjectRequest(true, true, true, true, true);
         connection.putObject(request);
     }
 
@@ -282,11 +289,12 @@ public class ConnectionImplTest extends JerseyTest {
         request.setTenantId("0");
         connection.getStorageCapacity(request);
     }
-    
+
     @Test(expected = IllegalArgumentException.class)
     public void getGetObjectGUIDIllegalArgumentException() throws Exception {
         GetObjectRequest request = new GetObjectRequest();
         request.setTenantId("0");
+        request.setFolder(DataCategory.OBJECT.getFolder());
         connection.getObject(request);
     }
 
@@ -294,6 +302,15 @@ public class ConnectionImplTest extends JerseyTest {
     public void getGetObjectTenantIdIllegalArgumentException() throws Exception {
         GetObjectRequest request = new GetObjectRequest();
         request.setGuid("guid");
+        request.setFolder(DataCategory.OBJECT.getFolder());
+        connection.getObject(request);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void getGetObjectTypeIllegalArgumentException() throws Exception {
+        GetObjectRequest request = new GetObjectRequest();
+        request.setGuid("guid");
+        request.setTenantId("0");
         connection.getObject(request);
     }
 
@@ -303,6 +320,7 @@ public class ConnectionImplTest extends JerseyTest {
         GetObjectRequest request = new GetObjectRequest();
         request.setTenantId("0");
         request.setGuid("guid");
+        request.setFolder(DataCategory.OBJECT.getFolder());
         try {
             connection.getObject(request);
             fail("Expected exception");
@@ -317,11 +335,12 @@ public class ConnectionImplTest extends JerseyTest {
         GetObjectRequest request = new GetObjectRequest();
         request.setTenantId("0");
         request.setGuid("guid");
+        request.setFolder(DataCategory.OBJECT.getFolder());
         try {
             connection.getObject(request);
             fail("Expected exception");
         } catch (StorageDriverException exc) {
-            assertEquals(exc.getErrorCode(), StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR);
+            assertEquals(StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR, exc.getErrorCode());
         }
     }
 
@@ -331,11 +350,12 @@ public class ConnectionImplTest extends JerseyTest {
         GetObjectRequest request = new GetObjectRequest();
         request.setTenantId("0");
         request.setGuid("guid");
+        request.setFolder(DataCategory.OBJECT.getFolder());
         try {
             connection.getObject(request);
             fail("Expected exception");
         } catch (StorageDriverException exc) {
-            assertEquals(exc.getErrorCode(), StorageDriverException.ErrorCode.PRECONDITION_FAILED);
+            assertEquals(StorageDriverException.ErrorCode.PRECONDITION_FAILED, exc.getErrorCode());
         }
     }
 
@@ -346,11 +366,13 @@ public class ConnectionImplTest extends JerseyTest {
         GetObjectRequest request = new GetObjectRequest();
         request.setTenantId("0");
         request.setGuid("guid");
+        request.setFolder(DataCategory.OBJECT.getFolder());
         GetObjectResult result = connection.getObject(request);
         assertNotNull(result);
     }
 
-    private PutObjectRequest getPutObjectRequest(boolean dataS, boolean digestA, boolean guid, boolean tenantId)
+    private PutObjectRequest getPutObjectRequest(boolean dataS, boolean digestA, boolean guid, boolean tenantId,
+        boolean type)
         throws Exception {
         PutObjectRequest request = new PutObjectRequest();
         if (dataS) {
@@ -366,6 +388,9 @@ public class ConnectionImplTest extends JerseyTest {
         if (tenantId) {
             request.setTenantId("0");
         }
+        if (type) {
+            request.setType(DataCategory.OBJECT.name());
+        }
 
         return request;
     }
@@ -375,7 +400,7 @@ public class ConnectionImplTest extends JerseyTest {
         object.setId("" + uniqueId);
         object.setDigestAlgorithm(DigestType.SHA256);
         object.setSize(1024);
-        object.setType("type");
+        object.setType(DataCategory.OBJECT);
         return object;
     }
 

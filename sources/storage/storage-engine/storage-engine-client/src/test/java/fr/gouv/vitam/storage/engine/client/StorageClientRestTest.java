@@ -74,6 +74,7 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientExcept
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 
@@ -272,6 +273,7 @@ public class StorageClientRestTest extends JerseyTest {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
         client.getStorageInformation("idTenant", "idStrategy");
     }
+
     @Test(expected = StorageServerClientException.class)
     public void getContainerInfosInternalServerError() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
@@ -327,7 +329,7 @@ public class StorageClientRestTest extends JerseyTest {
         when(mock.post()).thenReturn(Response.status(Response.Status.CREATED).build());
         client.storeJson(null, "idStrategy", StorageCollectionType.UNITS, "idUnit", null);
     }
-    
+
     @Test(expected = IllegalArgumentException.class)
     public void createJsonWithContainersIllegalArgumentException() throws Exception {
         when(mock.post()).thenReturn(Response.status(Response.Status.CREATED).build());
@@ -491,7 +493,7 @@ public class StorageClientRestTest extends JerseyTest {
     public void deleteContainerWithIllegalArgumentException() throws Exception {
         client.delete("idTenant", "idStrategy", StorageCollectionType.CONTAINERS, "guid");
     }
-    
+
     @Test(expected = IllegalArgumentException.class)
     public void deleteWithTenantIllegalArgumentException() throws Exception {
         when(mock.delete()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
@@ -576,7 +578,7 @@ public class StorageClientRestTest extends JerseyTest {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
         client.getContainerObject("idTenant", "idStrategy", "guid");
     }
-    
+
     @Test
     public void successGetContainerObjectExecutionWhenFound() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("Vitam test")).build());

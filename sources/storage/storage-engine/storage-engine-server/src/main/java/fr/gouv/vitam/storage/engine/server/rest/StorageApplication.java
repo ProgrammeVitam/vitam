@@ -94,8 +94,7 @@ public final class StorageApplication extends AbstractVitamApplication<StorageAp
     /**
      * Prepare the application to be run or started.
      *
-     * @param args the list of arguments as an array of strings
-     * @return the VitamServer
+     * @param configFile the configuration file
      * @throws IllegalStateException if the server cannot be configured, meaning there are problem with the
      *         configuration
      */

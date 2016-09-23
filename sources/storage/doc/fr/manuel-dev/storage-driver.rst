@@ -56,7 +56,7 @@ Vérification de la capacité de l'offre
     } catch (StorageDriverException exc) {
         // Un problème est survenu lors de la communication avec le service distant
     }
-    
+
 Put d'un objet dans l'offre de stockage
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -77,10 +77,9 @@ Put d'un objet dans l'offre de stockage
         request.setDigestAlgorithm(DigestType.MD5.getName());
         request.setGuid("GUID");
         request.setTenantId("0");
+        request.setFolder(DataCategory.OBJECT.getFolder());
         PutObjectResult result = myConnection.putObject(request);
         // On peut vérifier ici le résultat du put
     } catch (StorageDriverException exc) {
         // Un problème est survenu lors de la communication avec le service distant
     }
-
-   

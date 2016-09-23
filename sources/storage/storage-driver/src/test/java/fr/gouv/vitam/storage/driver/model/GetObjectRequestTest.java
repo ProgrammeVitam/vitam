@@ -55,4 +55,10 @@ public class GetObjectRequestTest {
         assertEquals("ff", getObjectRequest.getGuid());
     }
 
+    @Test
+    public void testGetSetType() throws Exception {
+        getObjectRequest.setFolder("object");
+        assertEquals("object", getObjectRequest.getFolder());
+    }
+
 }

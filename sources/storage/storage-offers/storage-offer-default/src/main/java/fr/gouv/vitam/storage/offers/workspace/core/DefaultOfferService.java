@@ -77,9 +77,11 @@ public interface DefaultOfferService {
      * @return objectInit with the offer object id (needed for the create object operation)
      * @throws ContentAddressableStorageServerException thrown when a server error occurs
      * @throws ContentAddressableStorageAlreadyExistException thrown if the container to create already exists
+     * @throws ContentAddressableStorageNotFoundException thrown if the container storage could not be created
      */
     ObjectInit createContainer(String containerName, ObjectInit objectInit, String objectGUID)
-        throws ContentAddressableStorageServerException, ContentAddressableStorageAlreadyExistException;
+        throws ContentAddressableStorageServerException, ContentAddressableStorageAlreadyExistException,
+        ContentAddressableStorageNotFoundException;
 
     /**
      * Create a folder on a container on the offer

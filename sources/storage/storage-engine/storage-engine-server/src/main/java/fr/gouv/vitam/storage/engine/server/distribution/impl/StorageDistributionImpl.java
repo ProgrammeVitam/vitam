@@ -68,6 +68,7 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageDriverNotFoundExcept
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.common.referential.StorageOfferProvider;
@@ -78,7 +79,6 @@ import fr.gouv.vitam.storage.engine.common.referential.model.HotStrategy;
 import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
-import fr.gouv.vitam.storage.engine.server.distribution.DataCategory;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.logbook.StorageLogbook;
 import fr.gouv.vitam.storage.engine.server.logbook.StorageLogbookFactory;
@@ -318,6 +318,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         PutObjectRequest request = new PutObjectRequest();
         request.setGuid(objectId);
         request.setTenantId(tenantId);
+        request.setType(category.name());
         request.setDigestAlgorithm(digestType.getName());
         try {
             if (DataCategory.OBJECT.equals(category)) {
@@ -456,13 +457,14 @@ public class StorageDistributionImpl implements StorageDistribution {
             if (offerReferences.isEmpty()) {
                 throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
             }
-            GetObjectResult result = getGetObjectResult(tenantId, objectId, offerReferences);
+            GetObjectResult result = getGetObjectResult(tenantId, objectId, DataCategory.OBJECT, offerReferences);
             return result.getObject();
         }
         throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
     }
 
-    private GetObjectResult getGetObjectResult(String tenantId, String objectId, List<OfferReference> offerReferences)
+    private GetObjectResult getGetObjectResult(String tenantId, String objectId, DataCategory type,
+        List<OfferReference> offerReferences)
         throws StorageTechnicalException, StorageNotFoundException {
         GetObjectResult result;
         for (OfferReference offerReference : offerReferences) {
@@ -474,6 +476,7 @@ public class StorageDistributionImpl implements StorageDistribution {
                 GetObjectRequest request = new GetObjectRequest();
                 request.setTenantId(tenantId);
                 request.setGuid(objectId);
+                request.setFolder(type.getFolder());
                 result = connection.getObject(request);
                 if (result.getObject() != null) {
                     return result;

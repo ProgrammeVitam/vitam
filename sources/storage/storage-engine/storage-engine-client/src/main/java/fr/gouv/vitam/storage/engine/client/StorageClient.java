@@ -140,7 +140,7 @@ public interface StorageClient extends BasicClient {
 
 
     /**
-     * Retrieves an object knowing its guid as an inputStream for a specific tenant/strategy
+     * Retrieves a binary object knowing its guid as an inputStream for a specific tenant/strategy
      *
      * @param tenantId the tenant id
      * @param strategyId the storage strategy id
