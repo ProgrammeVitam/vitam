@@ -8,23 +8,10 @@
 			<maxHistory>7</maxHistory>
       		<totalSizeCap>14GB</totalSizeCap>
 		</rollingPolicy>
-
-		<!-- TODO : replace with rolling file appender -->
-		<!-- <file>{{vitam_folder_log}}/{{ vitam_component }}.log</file>
-		<append>true</append> -->
 		<encoder>
-			<pattern>%h %l %u %t "%r" %>s %b "%{Referer}i" "%{User-agent}i" %{ms}T %{X-Request-ID}i %{X-TenantID}i %{X-Application-ID}i</pattern>
+			<pattern>%h %l %u %t "%r" %s %b "%i{Referer}" "%i{User-agent}" %D %i{X-Request-ID} %i{X-TenantID} %i{X-Application-ID}</pattern>
 		</encoder>
 	</appender>
-<!--
-	<appender name="FILE" class="ch.qos.logback.core.FileAppender">
-		<file>{{vitam_folder_log}}/accesslog-{{ vitam_component }}.log</file>
-		<append>true</append>
-		<encoder>
-			<pattern>%h %l %u %t "%r" %>s %b "%{Referer}i" "%{User-agent}i" %{ms}T %{X-Request-ID}i %{X-TenantID}i %{X-Application-ID}i</pattern>
-		</encoder>
-	</appender>
--->
 
 	<appender-ref ref="FILE" />
 </configuration>

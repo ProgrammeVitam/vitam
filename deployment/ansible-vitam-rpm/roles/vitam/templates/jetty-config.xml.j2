@@ -108,20 +108,20 @@
                     <Item>
                         <New id="DefaultHandler" class="org.eclipse.jetty.server.handler.DefaultHandler"/>
                     </Item>
-                   <Item>
-	                <New id="RequestLogHandler" class="org.eclipse.jetty.server.handler.RequestLogHandler"/>
-                   </Item>
                 </Array>
             </Set>
         </New>
     </Set>
-    <Ref id="RequestLogHandler">
-        <Set name="requestLog"> 
-            <New id="requestLogImpl" class="ch.qos.logback.access.jetty.RequestLogImpl">
-	        <Set name="fileName">{{vitam_folder_conf}}/logback-access.xml</Set>
-          </New>   
-        </Set>
+
+    <Set name="RequestLog">
+            <New id="RequestLogImpl" class="ch.qos.logback.access.jetty.RequestLogImpl">
+                <Set name="fileName">{{vitam_folder_conf}}/logback-access.xml</Set>
+            </New>
+    </Set>
+    <Ref id="RequestLogImpl">
+              <Call name="start"/>
     </Ref>
+
     <!-- =========================================================== -->
     <!-- extra server options                                        -->
     <!-- =========================================================== -->
