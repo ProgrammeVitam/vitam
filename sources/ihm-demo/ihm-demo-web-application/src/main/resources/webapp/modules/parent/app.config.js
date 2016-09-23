@@ -71,15 +71,15 @@ angular.
         when('/admin/importPronoun', {
 		      templateUrl: "views/import-Pronoun.html",
 	  	}).
-      when('/admin/importFileRules', {
-        templateUrl: "views/import-FileRules.html",
-    }).
-    when('/admin/recette', {
-        templateUrl: "views/recette-features.html",
-    }).
+	  	when('/admin/importFileRules', {
+	  		templateUrl: "views/import-FileRules.html",
+	  	}).
+	  	when('/admin/recette', {
+	  		templateUrl: "views/recette-features.html",
+	  	}).
 	  	when('/admin/journalOperations', {
-              templateUrl:  "views/in-progress.html"
-        }).
-	      otherwise('/uploadSIP');
+	  		template: '<all-logbook-operation></all-logbook-operation>',
+	  	}).
+	  	otherwise('/uploadSIP');
     }
   ]);

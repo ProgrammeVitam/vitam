@@ -62,6 +62,7 @@ public final class DslQueryHelper {
     // TODO: faire en sorte que LogbookMongoDbName ait une version publique "#qqc" (comme #id) pour permettre de
     // "masquer" l'implémentation.
     private static final String EVENT_TYPE_PROCESS = "evTypeProc";
+    private static final String EVENT_ID_PROCESS = "evIdProc";
     private static final String DESCRIPTION = "Description";
     private static final String TITLE = "Title";
     private static final String EVENT_DATE_TIME = "evDateTime";
@@ -70,6 +71,8 @@ public final class DslQueryHelper {
     private static final String RULEVALUE = "RuleValue";
     private static final String OBJECT_IDENTIFIER_INCOME = "obIdIn";
     private static final String FORMAT = "FORMAT";
+    private static final String EVENTID = "EventID";
+    private static final String EVENTTYPE = "EventType";
     private static final String RULES = "RULES";
     private static final String RULETYPE = "RuleType";
     private static final String ORDER_BY = "orderby";
@@ -125,6 +128,7 @@ public final class DslQueryHelper {
                 case FORMAT:
                     query.add(exists(PUID));
                     break;
+                    
                 case RULES:
                     query.add(exists(RULEVALUE));
                     break;
@@ -141,6 +145,24 @@ public final class DslQueryHelper {
                     }
                     if (!searchValue.isEmpty()) {
                         query.add(eq("RuleType", searchValue));
+                    }
+                    break;
+                    
+                case EVENTID:
+                    if (searchValue.equals("all")){
+                        query.add(exists(EVENT_ID_PROCESS));
+                    } else {
+                        query.add(eq(EVENT_ID_PROCESS, searchValue));
+                    }
+                    break;
+                    
+                case EVENTTYPE:
+                    if (!searchValue.isEmpty()) {
+                        if (searchValue.equals("all")){
+                            query.add(exists(EVENT_TYPE_PROCESS));
+                        } else {
+                            query.add(eq(EVENT_TYPE_PROCESS, searchValue.toUpperCase()));
+                        }
                     }
                     break;
 
