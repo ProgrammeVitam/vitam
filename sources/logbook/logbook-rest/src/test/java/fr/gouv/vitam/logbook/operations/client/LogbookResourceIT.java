@@ -65,8 +65,8 @@ import fr.gouv.vitam.logbook.operations.client.LogbookClientFactory.LogbookClien
 import fr.gouv.vitam.logbook.rest.LogbookApplication;
 import fr.gouv.vitam.logbook.rest.LogbookConfiguration;
 
-public class LogbookResourceTest {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookResourceTest.class);
+public class LogbookResourceIT {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookResourceIT.class);
 
     private static final String LOGBOOK_CONF = "logbook-test.conf";
     private static final String DATABASE_HOST = "localhost";

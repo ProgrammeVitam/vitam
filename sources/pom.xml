@@ -284,14 +284,15 @@
 					<configuration>
 						<argLine>-Xmx2048m -Dvitam.tmp.folder=/tmp ${coverageAgent}</argLine>
 						<!-- obsolete <forkMode>always</forkMode> -->
-						<!-- Parallel mode <parallel>classes</parallel> <threadCount>3</threadCount> 
-							<perCoreThreadCount>true</perCoreThreadCount> <forkCount>3C</forkCount> <reuseForks>false</reuseForks> -->
 						<!-- Non Parallel mode -->
 						<parallel>classes</parallel>
-						<threadCount>1</threadCount>
-						<perCoreThreadCount>false</perCoreThreadCount>
-						<forkCount>1</forkCount>
+						<threadCount>3</threadCount>
+						<perCoreThreadCount>true</perCoreThreadCount>
+						<forkCount>3C</forkCount>
 						<reuseForks>false</reuseForks>
+						<!-- Non Parallel mode -->
+						<!-- <parallel>classes</parallel> <threadCount>1</threadCount> <perCoreThreadCount>false</perCoreThreadCount> 
+							<forkCount>1</forkCount> <reuseForks>false</reuseForks> -->
 					</configuration>
 				</plugin>
 				<plugin>

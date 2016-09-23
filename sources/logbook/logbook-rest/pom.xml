@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
@@ -47,7 +48,7 @@
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>logbook-operations-client</artifactId>
-        	        <version>${project.version}</version>
+			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -55,18 +56,29 @@
 			<artifactId>common-junit</artifactId>
 			<version>${project.version}</version>
 			<scope>test</scope>
-		</dependency>		
+		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>logbook-common</artifactId>
 			<version>${project.version}</version>
-		</dependency>		
-		
+		</dependency>
+
 	</dependencies>
 
 
 	<build>
 		<plugins>
+			<plugin>
+				<!-- Run the Junit unit tests in an isolated classloader and not Parallel. -->
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<parallel>classes</parallel>
+					<threadCount>1</threadCount>
+					<perCoreThreadCount>false</perCoreThreadCount>
+					<forkCount>1</forkCount>
+					<reuseForks>false</reuseForks>
+				</configuration>
+			</plugin>
 			<plugin>
 				<!-- Dependency manipulation (copy, unpack) and analysis. -->
 				<artifactId>maven-dependency-plugin</artifactId>
@@ -106,22 +118,22 @@
 							</resources>
 						</configuration>
 					</execution>
-                                        <execution>
-                                                <id>copy-systemd-resources</id>
-                                                <phase>validate</phase>
-                                                <goals>
-                                                        <goal>copy-resources</goal>
-                                                </goals>
-                                                <configuration>
-                                                        <outputDirectory>${project.build.directory}/systemd</outputDirectory>
-                                                        <resources>
-                                                                <resource>
-                                                                        <directory>src/main/systemd</directory>
-                                                                        <filtering>true</filtering>
-                                                                </resource>
-                                                        </resources>
-                                                </configuration>
-                                        </execution>
+					<execution>
+						<id>copy-systemd-resources</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/systemd</outputDirectory>
+							<resources>
+								<resource>
+									<directory>src/main/systemd</directory>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
 
 				</executions>
 			</plugin>
@@ -149,7 +161,7 @@
 					<!-- Images specification -->
 					<baseImage>${vitam.docker.registry.pull}/${vitam.docker.baseimage}</baseImage>
 					<imageName>${vitam.docker.registry.push}/vitam/logbook</imageName>
-					<!-- copy the service's jar file from target into the root directory
+					<!-- copy the service's jar file from target into the root directory 
 						of the image -->
 					<resources>
 						<resource>
@@ -180,13 +192,13 @@
 				<artifactId>jetty-maven-plugin</artifactId>
 				<version>${jetty.version}</version>
 			</plugin>
-                       <plugin>
-                                <groupId>org.codehaus.mojo</groupId>
-                                <artifactId>rpm-maven-plugin</artifactId>
-                                <configuration>
-                                        <disabled>false</disabled>
-                                </configuration>
-                        </plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>rpm-maven-plugin</artifactId>
+				<configuration>
+					<disabled>false</disabled>
+				</configuration>
+			</plugin>
 
 		</plugins>
 

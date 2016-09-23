@@ -48,8 +48,8 @@ import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
 /**
  * Processing integration test
  */
-public class ProcessingIntegrationTest {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessingIntegrationTest.class);
+public class ProcessingIT {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessingIT.class);
     private static final int DATABASE_PORT = 12346;
     private static MongodExecutable mongodExecutable;
     static MongodProcess mongod;

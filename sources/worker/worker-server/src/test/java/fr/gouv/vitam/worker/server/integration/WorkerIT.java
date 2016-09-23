@@ -89,8 +89,8 @@ import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
 /**
  * Worker integration test
  */
-public class WorkerIntegrationTest {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerIntegrationTest.class);
+public class WorkerIT {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerIT.class);
     private static final int DATABASE_PORT = 12346;
     private static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
