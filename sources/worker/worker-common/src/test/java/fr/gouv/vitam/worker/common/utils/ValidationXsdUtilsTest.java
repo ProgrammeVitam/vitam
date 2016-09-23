@@ -35,6 +35,7 @@ import java.io.IOException;
 
 import javax.xml.stream.XMLStreamException;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.xml.sax.SAXException;
 
@@ -43,22 +44,24 @@ import fr.gouv.vitam.common.PropertiesUtils;
 public class ValidationXsdUtilsTest {
 
     private static final String SEDA_VALIDATION_FILE = "seda-2.0-main.xsd";
+    private static final String SEDA_VITAM_VALIDATION_FILE = "seda-vitam/seda-vitam-2.0-main.xsd";
     private static final String SEDA_FILE = "sip1.xml";
     private static final String SEDA_WRONG_FILE = "wrong_sip1.xml";
-
+    private static final String SEDA_ARCHIVE_TRANSFER_REPLY = "ATR_example.xml";
+    private static final String SEDA_ARCHIVE_TRANSFER_REPLY_NOTVALID = "ATR_example_notvalid.xml";
 
     @Test
     public void givenXmlCorrectWhenCheckXsdThenReturnTrue() throws XMLStreamException, SAXException, IOException {
         final ValidationXsdUtils valid = new ValidationXsdUtils();
         assertTrue(
-            valid.checkWithXSD(new FileInputStream(PropertiesUtils.getResourcesFile(SEDA_FILE)), SEDA_VALIDATION_FILE));
+            valid.checkWithXSD(PropertiesUtils.getResourcesAsStream(SEDA_FILE), SEDA_VALIDATION_FILE));
     }
 
     @Test(expected = SAXException.class)
     public void givenXmlWithInvalidContentWhenCheckXsdThenThrowSAXException()
         throws XMLStreamException, SAXException, IOException {
         final ValidationXsdUtils valid = new ValidationXsdUtils();
-        assertFalse(valid.checkWithXSD(new FileInputStream(PropertiesUtils.getResourcesFile(SEDA_WRONG_FILE)),
+        assertFalse(valid.checkWithXSD(PropertiesUtils.getResourcesAsStream(SEDA_WRONG_FILE),
             SEDA_VALIDATION_FILE));
     }
 
@@ -68,5 +71,18 @@ public class ValidationXsdUtilsTest {
         final ValidationXsdUtils valid = new ValidationXsdUtils();
         valid.checkWithXSD(new FileInputStream(PropertiesUtils.getResourcesFile("")), SEDA_VALIDATION_FILE);
     }
+    
+    @Test
+    public void givenXmlARTCorrectWhenCheckXsdThenReturnTrue() throws XMLStreamException, SAXException, IOException {
+        final ValidationXsdUtils valid = new ValidationXsdUtils();
+        assertTrue(
+            valid.checkWithXSD(PropertiesUtils.getResourcesAsStream(SEDA_ARCHIVE_TRANSFER_REPLY), SEDA_VITAM_VALIDATION_FILE));
+    }
 
+    @Test(expected = SAXException.class)
+    public void givenXmlARTNotValidWhenCheckXsdThenReturnFalse() throws XMLStreamException, SAXException, IOException {
+        final ValidationXsdUtils valid = new ValidationXsdUtils();
+        assertFalse(valid.checkWithXSD(PropertiesUtils.getResourcesAsStream(SEDA_ARCHIVE_TRANSFER_REPLY_NOTVALID), SEDA_VITAM_VALIDATION_FILE));
+    }
+    
 }
