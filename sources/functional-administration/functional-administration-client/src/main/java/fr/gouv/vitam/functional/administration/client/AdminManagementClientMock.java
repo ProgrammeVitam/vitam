@@ -94,7 +94,7 @@ public class AdminManagementClientMock implements AdminManagementClient {
     @Override
     public Status checkFormat(InputStream stream) throws FileFormatException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
-        LOGGER.info("Check file format request:");
+        LOGGER.debug("Check file format request:");
         return status();
 
     }
@@ -102,18 +102,18 @@ public class AdminManagementClientMock implements AdminManagementClient {
     @Override
     public void importFormat(InputStream stream) throws FileFormatException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
-        LOGGER.info("import file format request:");
+        LOGGER.debug("import file format request:");
     }
 
     @Override
     public void deleteFormat() throws FileFormatException {
-        LOGGER.info("Delete file format request:");
+        LOGGER.debug("Delete file format request:");
     }
 
     @Override
     public JsonNode getFormatByID(String id) throws FileFormatException, InvalidParseOperationException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", id);
-        LOGGER.info("get format by id request:");
+        LOGGER.debug("get format by id request:");
         FileFormat file = createFileFormat(id);
         return JsonHandler.toJsonNode(file);
     }
@@ -123,7 +123,7 @@ public class AdminManagementClientMock implements AdminManagementClient {
         throws FileFormatException, JsonGenerationException, JsonMappingException, InvalidParseOperationException,
         IOException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", query);
-        LOGGER.info("get document format request:");
+        LOGGER.debug("get document format request:");
         FileFormat file1 = createFileFormat(GUIDFactory.newGUID().toString());
         FileFormat file2 = createFileFormat(GUIDFactory.newGUID().toString());
         List<FileFormat> fileFormatList = new ArrayList<FileFormat>();
@@ -135,7 +135,7 @@ public class AdminManagementClientMock implements AdminManagementClient {
     @Override
     public Status checkRulesFile(InputStream stream) throws FileRulesException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
-        LOGGER.info("Check file rules  request:");
+        LOGGER.debug("Check file rules  request:");
         return status();
 
     }
@@ -143,20 +143,20 @@ public class AdminManagementClientMock implements AdminManagementClient {
     @Override
     public void importRulesFile(InputStream stream) throws FileRulesException, DatabaseConflictException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
-        LOGGER.info("import file Rules request:");
+        LOGGER.debug("import file Rules request:");
 
     }
 
     @Override
     public void deleteRulesFile() throws FileRulesException {
-        LOGGER.info("Delete file rules request:");
+        LOGGER.debug("Delete file rules request:");
 
     }
 
     @Override
     public JsonNode getRuleByID(String id) throws FileRulesException, InvalidParseOperationException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", id);
-        LOGGER.info("get rule by id request:");
+        LOGGER.debug("get rule by id request:");
         FileRules file = createFileRules(id);
         return JsonHandler.toJsonNode(file);
 
@@ -167,7 +167,7 @@ public class AdminManagementClientMock implements AdminManagementClient {
         throws FileRulesException, InvalidParseOperationException, JsonGenerationException, JsonMappingException,
         IOException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", query);
-        LOGGER.info("get document rules request:");
+        LOGGER.debug("get document rules request:");
         FileRules file1 = createFileRules(GUIDFactory.newGUID().toString());
         FileRules file2 = createFileRules(GUIDFactory.newGUID().toString());
         List<FileRules> fileRulesList = new ArrayList<FileRules>();

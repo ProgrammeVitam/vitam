@@ -89,6 +89,7 @@ public class ParameterHelper {
      * @param parameters
      * @throws IllegalArgumentException if an argument is null or empty against mandatory
      */
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public static <T extends VitamParameter> void checkNullOrEmptyParameters(T parameters) {
         ParametersChecker.checkParameter("Check Or null parameter", parameters);
         checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());

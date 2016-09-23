@@ -43,6 +43,7 @@ import java.util.Scanner;
 import java.util.regex.Pattern;
 
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.server.application.configuration.ServerIdentityConfigurationImpl;
 
 /**
@@ -89,6 +90,7 @@ import fr.gouv.vitam.common.server.application.configuration.ServerIdentityConfi
  * NOTE for developers: Do not add LOGGER there
  */
 public final class ServerIdentity implements ServerIdentityInterface {
+    private static final int MAC_ADDRESS_SUBSTRACT_LENGTH = 4;
     private static final String SERVER_IDENTITY_CONF_FILE_NAME = "server-identity.conf";
     private static final int OTHER_ADDRESS = 4;
     private static final int SITE_LOCAL_ADDRESS = 3;
@@ -116,6 +118,7 @@ public final class ServerIdentity implements ServerIdentityInterface {
     private static final int GLOBAL_ADDRESS_VALUE = 1;
 
     private static final ServerIdentity SERVER_IDENTITY = new ServerIdentity();
+    
     private String name;
     private String role;
     private int platformId;
@@ -131,12 +134,12 @@ public final class ServerIdentity implements ServerIdentityInterface {
                 PropertiesUtils.readYaml(file, ServerIdentityConfigurationImpl.class);
             setYamlConfiguration(serverIdentityConf);
             initializeCommentFormat();
-        } catch (final IOException e) {// NOSONAR no logger
-            System.err // NOSONAR no logger
-                .println(
+        } catch (final IOException e) {
+            SysErrLogger.FAKE_LOGGER.syserr(
                     "Issue while getting configuration File: " +
                         e.getMessage());
             propertyFileNotFound = true;
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
         if (propertyFileNotFound) {
             defaultServerIdentity();
@@ -152,15 +155,17 @@ public final class ServerIdentity implements ServerIdentityInterface {
                 name = System.getenv(COMPUTERNAME);
                 found = true;
             }
-        } catch (Exception e) { //NOSONAR ignore
+        } catch (Exception e) {
             // ignore
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
         if (! found) {
             try {
                 name = System.getenv(HOSTNAME);
                 found = true;
-            } catch (SecurityException e) {// NOSONAR ignore
+            } catch (SecurityException e) {
                 // ignore
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
             if (! found || name == null) {
                 // Some Unix do return null
@@ -183,8 +188,9 @@ public final class ServerIdentity implements ServerIdentityInterface {
         // Warning since it could return the real IP
         try {
             name = InetAddress.getLocalHost().getHostName();
-        } catch (final UnknownHostException e) {// NOSONAR ignore
+        } catch (final UnknownHostException e) {
             name = UNKNOWN_HOSTNAME;
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
     }
 
@@ -200,8 +206,9 @@ public final class ServerIdentity implements ServerIdentityInterface {
                     name = scanner.useDelimiter("\\A").hasNext() ? scanner.next() : "";
                 }
             }
-        } catch (final IOException e) {// NOSONAR ignore
+        } catch (final IOException e) {
             // ignore since will be checked just after
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         } finally {
             if (proc != null) {
                 proc.destroy();
@@ -280,8 +287,9 @@ public final class ServerIdentity implements ServerIdentityInterface {
             }
             svalue = properties.getProperty(MAP_KEYNAME.PLATFORMID.name());
             platformId = Integer.parseInt(svalue);
-        } catch (final IOException | NumberFormatException e) {// NOSONAR ignore
+        } catch (final IOException | NumberFormatException e) {
             // ignore
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
         initializeCommentFormat();
         return this;
@@ -301,8 +309,9 @@ public final class ServerIdentity implements ServerIdentityInterface {
                 PropertiesUtils.readYaml(yamlFile,
                     ServerIdentityConfigurationImpl.class);
             setYamlConfiguration(serverIdentityConf);
-        } catch (final IOException e) {// NOSONAR no logger
+        } catch (final IOException e) {
             // ignore
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
         initializeCommentFormat();
         return this;
@@ -444,10 +453,11 @@ public final class ServerIdentity implements ServerIdentityInterface {
             }
             machineId[0] &= 0x7F;
             return machineId;
-        } catch (final Exception e) {// NOSONAR ignore
+        } catch (final Exception e) {
             // Could not get MAC address: generate a random one
             final byte[] machineId = StringUtils.getRandom(MACHINE_ID_LEN);
             machineId[0] &= 0x7F;
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             return machineId;
         }
     }
@@ -457,7 +467,7 @@ public final class ServerIdentity implements ServerIdentityInterface {
         if (mac == null) {
             return macl;
         }
-        int i = mac.length - 4;
+        int i = mac.length - MAC_ADDRESS_SUBSTRACT_LENGTH;
         if (i < 0) {
             i = 0;
         }
@@ -529,7 +539,8 @@ public final class ServerIdentity implements ServerIdentityInterface {
             final byte[] macAddr;
             try {
                 macAddr = iface.getHardwareAddress();
-            } catch (final SocketException e) {// NOSONAR ignore
+            } catch (final SocketException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
                 continue;
             }
             boolean replace = false;

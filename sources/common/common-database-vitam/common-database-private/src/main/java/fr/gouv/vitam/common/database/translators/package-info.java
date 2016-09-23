@@ -25,7 +25,6 @@
  * accept its terms.
  */
 /**
- * 
+ * Package containing translators from Vitam DSL to native DSL
  */
-// FIXME comment
 package fr.gouv.vitam.common.database.translators;

@@ -70,7 +70,7 @@ public class IndexUnitActionHandler extends ActionHandler {
     @Override
     public EngineResponse execute(WorkerParameters params) {
         checkMandatoryParameters(params);
-        LOGGER.info("IndexUnitActionHandler running ...");
+        LOGGER.debug("IndexUnitActionHandler running ...");
         final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK);
         final SedaUtils sedaUtils = sedaUtilsFactory.create();
 
@@ -81,7 +81,7 @@ public class IndexUnitActionHandler extends ActionHandler {
             response.setStatus(StatusCode.FATAL);
         }
 
-        LOGGER.info("IndexUnitActionHandler response: " + response.getStatus().name());
+        LOGGER.debug("IndexUnitActionHandler response: " + response.getStatus().name());
 
         // Update lifeCycle
         try {

@@ -216,6 +216,7 @@ public class DbRequest {
                 // index Unit
                 if (model == FILTERARGS.UNITS) {
                     final Bson finalQuery = in(Unit.ID, ids);
+                    @SuppressWarnings("unchecked")
                     final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper
                         .select(MetadataCollections.C_UNIT, finalQuery, Unit.UNIT_ES_PROJECTION);
                     final MongoCursor<Unit> cursor = iterable.iterator();
@@ -232,7 +233,7 @@ public class DbRequest {
                // TODO index ObjectGroup
             }
             if (GlobalDatasDb.PRINT_REQUEST) {
-                LOGGER.warn("Results: " + result);
+                LOGGER.debug("Results: " + result);
             }
             return result;
         }
@@ -268,7 +269,7 @@ public class DbRequest {
             }
         }
         if (GlobalDatasDb.PRINT_REQUEST) {
-            LOGGER.warn("Results: " + result);
+            LOGGER.debug("Results: " + result);
         }
         return result;
     }
@@ -388,7 +389,7 @@ public class DbRequest {
         final Query realQuery = requestToMongodb.getNthQuery(rank);
         if (GlobalDatasDb.PRINT_REQUEST) {
             final String query = realQuery.getCurrentQuery().toString();
-            LOGGER.warn("Rank: " + rank + "\n\tPrevious: " + previous + "\n\tRequest: " + query);
+            LOGGER.debug("Rank: " + rank + "\n\tPrevious: " + previous + "\n\tRequest: " + query);
         }
         final QUERY type = realQuery.getQUERY();
         final FILTERARGS collectionType = requestToMongodb.model();
@@ -519,7 +520,7 @@ public class DbRequest {
             }
             LOGGER.debug(QUERY2 + query.toString());
             if (GlobalDatasDb.PRINT_REQUEST) {
-                LOGGER.warn("Req1LevelMD: {}", query);
+                LOGGER.debug("Req1LevelMD: {}", query);
             }
             previous.clear();
             
@@ -562,7 +563,7 @@ public class DbRequest {
             LOGGER.debug(QUERY2 + MongoDbHelper.bsonToString(query, false));
             result = MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS);
             if (GlobalDatasDb.PRINT_REQUEST) {
-                LOGGER.warn("Req1LevelMD: {}", realQuery);
+                LOGGER.debug("Req1LevelMD: {}", realQuery);
             }
             @SuppressWarnings("unchecked")
             final FindIterable<Unit> iterable =
@@ -598,7 +599,7 @@ public class DbRequest {
             }
             result.setNbResult(result.getCurrentIds().size());
             if (GlobalDatasDb.PRINT_REQUEST) {
-                LOGGER.warn("UnitRelative: {}", result);
+                LOGGER.debug("UnitRelative: {}", result);
             }
             return result;
         }

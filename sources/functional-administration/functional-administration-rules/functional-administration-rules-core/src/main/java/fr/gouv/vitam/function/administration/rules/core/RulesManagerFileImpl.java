@@ -45,7 +45,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.mongodb.client.MongoCursor;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -220,6 +220,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         try {
             csvFile = convertInputStreamToFile(rulesFileStream);
             try (FileReader reader = new FileReader(csvFile)) {
+                @SuppressWarnings("resource")
                 CSVParser parser = new CSVParser(
                     reader,
                     CSVFormat.DEFAULT.withHeader());
@@ -315,7 +316,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      * @throws IOException
      */
     private File convertInputStreamToFile(InputStream rulesStream) throws IOException {
-        File csvFile = File.createTempFile("tmp", ".txt", new File(SystemPropertyUtil.getVitamTmpFolder()));
+        File csvFile = File.createTempFile("tmp", ".txt", new File(VitamConfiguration.getVitamTmpFolder()));
         Files.copy(
             rulesStream,
             csvFile.toPath(),
@@ -331,6 +332,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     @Override
     public List<FileRules> findDocuments(JsonNode select) throws ReferentialException {
         try {
+            @SuppressWarnings("unchecked")
             MongoCursor<FileRules> rules =
                 (MongoCursor<FileRules>) this.mongoAccess.select(select,
                     FunctionalAdminCollections.RULES);

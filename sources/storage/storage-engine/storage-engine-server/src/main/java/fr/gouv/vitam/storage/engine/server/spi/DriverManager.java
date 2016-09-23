@@ -130,7 +130,7 @@ public class DriverManager {
                             urls[i] = fDir[i].toURI().toURL();
                         } catch (MalformedURLException exc) {
                             LOGGER
-                                .warn(String.format("Class loader error for %s, driver not loaded", fDir[i].getName()));
+                                .warn("Class loader error for {}, driver not loaded", fDir[i].getName());
                         }
                     }
                     ucl = new URLClassLoader(urls);
@@ -202,7 +202,7 @@ public class DriverManager {
             offersIds.add(offerId);
             persistRemoveOffers(offersIds, driver.getClass().getName());
         } else {
-            LOGGER.warn("Cannot remove no suitable driver associated to the offer ID %s", offerId);
+            LOGGER.warn("Cannot remove no suitable driver associated to the offer ID {}", offerId);
         }
     }
 
@@ -230,9 +230,9 @@ public class DriverManager {
             if (!offerIdAvailable(offerId)) {
                 driversOffers.put(offerId, driverInfo);
             } else {
-                LOGGER.warn(String.format("Cannot add driver %s with name %s to the offer ID %s, offer already define" +
-                    " for another  driver name %s", driverInfo.driver, driverInfo.name, offerId, driversOffers.get
-                    (offerId)));
+                LOGGER.warn("Cannot add driver {} with name {} to the offer ID {}, offer already define" +
+                    " for another  driver name {}", driverInfo.driver, driverInfo.name, offerId, driversOffers.get
+                    (offerId));
             }
         }
         persistAddOffers(offersIds,driverInfo.name);
@@ -246,8 +246,8 @@ public class DriverManager {
                     driversOffers.put(offerId, driverInfo);
                 }
             } catch (StorageDriverMapperException exc) {
-                LOGGER.warn(String.format("The driver mapper failed to load offers IDs for driver name %s",
-                    driverInfo.name), exc);
+                LOGGER.warn("The driver mapper failed to load offers IDs for driver name {}",
+                    driverInfo.name, exc);
             }
         }
     }

@@ -32,34 +32,60 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL 2.1 license and that you accept its terms.
  */
-package fr.gouv.vitam.common.database.parser.request;
+package fr.gouv.vitam.common.logging;
+
 
 /**
- * 
+ * Utility class to be used only in classes where VitamLogger is not allowed
  */
-//FIXME comment
-// FIXME : never used ???
-public enum DslRequestType {
-    SINGLE("single"),
+public class SysErrLogger {
     /**
-     * Data part (in case of insert)
+     * FAKE LOGGER used where no LOG could be done
      */
-    MULTIPLE("multiple");
-
-    private final String type;
-
-    /**
-     * Constructor
-     */
-    private DslRequestType(String dslType) {
-        type = dslType;
+    public static final SysErrLogger FAKE_LOGGER = new SysErrLogger();
+    
+    private SysErrLogger() {
+        // Empty
     }
 
     /**
-     * @return the exact token
+     * Utility method to log nothin
+     * 
+     * Used only in classes where VitamLogger is not allowed
+     * @param throwable
      */
-    public final String exactToken() {
-        return type;
+    public void ignoreLog(Throwable throwable) {
+        // Nothing to do
     }
 
+    /**
+     * Utility method to log through System.err
+     * 
+     * Used only in classes where VitamLogger is not allowed
+     * @param message
+     */
+    public void syserr(String message) {
+        System.err.println("ERROR " + message); // NOSONAR
+    }
+
+    /**
+     * Utility method to log through System.err the current Stacktrace
+     * 
+     * Used only in classes where VitamLogger is not allowed
+     */
+    public void syserr() {
+        new Exception("ERROR Stacktrace").printStackTrace(); // NOSONAR
+    }
+
+    /**
+     * Utility method to log through System.err the current Stacktrace
+     * 
+     * Used only in classes where VitamLogger is not allowed
+     * @param message
+     * @param cause
+     */
+    public void syserr(String message, Throwable e) {
+        System.err.print("ERROR " + message + ": "); // NOSONAR
+        e.printStackTrace(); // NOSONAR
+    }
 }

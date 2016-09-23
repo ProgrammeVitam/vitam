@@ -33,7 +33,6 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.metadata.rest.MetaDataApplication;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
@@ -86,7 +85,6 @@ public class ProcessingIT {
     private static ProcessMonitoringImpl processMonitoring;
 
     private static final String WORKSPACE_URL = "http://localhost:" + PORT_SERVICE_WORKSPACE;
-    private static final String METADATA_URL = "http://localhost:" + PORT_SERVICE_METADATA;
     private static final String PROCESSING_URL = "http://localhost:" + PORT_SERVICE_PROCESSING;
 
     private static String WORFKLOW_NAME = "DefaultIngestWorkflow";

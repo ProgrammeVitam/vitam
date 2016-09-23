@@ -43,7 +43,7 @@ public abstract class BuilderToken {
      */
     private static final String DEFAULT_HASH_PREFIX = "#";
 
-    public BuilderToken() {
+    protected BuilderToken() {
         // Empty constructor
     }
 

@@ -90,6 +90,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -178,7 +179,6 @@ public class SedaUtils {
     private static final String CYCLE_FOUND_EXCEPTION = "Seda has an archive unit cycle ";
     private static final String SAVE_ARCHIVE_ID_TO_GUID_IOEXCEPTION_MSG =
         "Can not save unitToGuidMap to temporary file";
-    private static final String WORKPARAMS_MANDATORY_MSG = "WorkerParameters is a mandatory parameter";
     private static final String WORKSPACE_MANDATORY_MSG = "WorkspaceClient is a mandatory parameter";
     private static final String FILE_COULD_NOT_BE_DELETED_MSG = "File could not be deleted";
     private static final String CANNOT_READ_SEDA = "Can not read SEDA";
@@ -199,9 +199,6 @@ public class SedaUtils {
     private final MetaDataClientFactory metaDataClientFactory;
 
     private final Map<String, LogbookParameters> guidToLifeCycleParameters;
-
-    // Messages for duplicate Uri from SEDA
-    private static final String MSG_DUPLICATE_URI_MANIFEST = "Présence d'un URI en doublon dans le bordereau: ";
 
     protected SedaUtils(MetaDataClientFactory metaDataFactory) {
         ParametersChecker.checkParameter("metaDataFactory is a mandatory parameter", metaDataFactory);
@@ -1274,6 +1271,8 @@ public class SedaUtils {
         ParametersChecker.checkParameter("Input stream is a mandatory parameter", input);
         ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
         ParametersChecker.checkParameter("ObjectName id is a mandatory parameter", objectName);
+        // FIXME since this tmpFile will be in JsonNode only at the end, use a byte array backend writer/reader 
+        // to convert to Json without going to temporary file
         final File tmpFile = PropertiesUtils.fileFromTmpFolder(GUIDFactory.newGUID().toString());
         FileWriter tmpFileWriter = null;
         final XMLEventFactory eventFactory = XMLEventFactory.newInstance();
@@ -1344,7 +1343,7 @@ public class SedaUtils {
             }
             reader.close();
             writer.close();
-            input.close();
+            StreamUtils.closeSilently(input);
             tmpFileWriter.close();
             data = JsonHandler.getFromFile(tmpFile);
             if (!tmpFile.delete()) {
@@ -1393,7 +1392,7 @@ public class SedaUtils {
             LOGGER.error("Workspace error: Can not get file");
             throw new ProcessingException(e1.getMessage());
         }
-        LOGGER.info(SedaUtils.MSG_PARSING_BDO);
+        LOGGER.debug(SedaUtils.MSG_PARSING_BDO);
 
         final ExtractUriResponse extractUriResponse = new ExtractUriResponse();
 
@@ -1430,11 +1429,11 @@ public class SedaUtils {
                     }
                 }
                 if (event.isEndDocument()) {
-                    LOGGER.info("data : " + event);
+                    LOGGER.debug("data : " + event);
                     break;
                 }
             }
-            LOGGER.info("End of extracting  Uri from manifest");
+            LOGGER.debug("End of extracting  Uri from manifest");
             evenReader.close();
 
         } catch (XMLStreamException | URISyntaxException e) {
@@ -1642,10 +1641,10 @@ public class SedaUtils {
         for (final String s : manifestVersionList) {
             if (s != null) {
                 if (!fileVersionList.contains(s)) {
-                    LOGGER.info(s + ": invalid version");
+                    LOGGER.debug(s + ": invalid version");
                     invalidVersionList.add(s);
                 } else {
-                    LOGGER.info(s + ": valid version");
+                    LOGGER.debug(s + ": valid version");
                 }
             }
         }
@@ -1771,7 +1770,7 @@ public class SedaUtils {
             final String digestMessage =
                 client.computeObjectDigest(containerId, IngestWorkflowConstants.SEDA_FOLDER + "/" + uri, algo);
             if (!digestMessage.equals(digestMessageManifest)) {
-                LOGGER.info("Binary object Digest Message Invalid : " + uri);
+                LOGGER.warn("Binary object Digest Message Invalid : " + uri);
                 digestMessageInvalidList.add(digestMessageManifest);
 
                 // Set KO status
@@ -1785,7 +1784,7 @@ public class SedaUtils {
                     LOGBOOK_LIFECYCLE_CLIENT.update(logbookLifeCycleObjGrpParam);
                 }
             } else {
-                LOGGER.info("Binary Object Digest Message Valid : " + uri);
+                LOGGER.debug("Binary Object Digest Message Valid : " + uri);
 
                 // Set OK status
                 if (logbookLifeCycleObjGrpParam != null) {
@@ -1839,7 +1838,7 @@ public class SedaUtils {
      */
     private void createIngestLevelStackFile(WorkspaceClient client, String containerId,
         Map<Integer, Set<String>> levelStackMap) throws ProcessingException {
-        LOGGER.info("Begin createIngestLevelStackFile/containerId:" + containerId);
+        LOGGER.debug("Begin createIngestLevelStackFile/containerId:" + containerId);
         ParametersChecker.checkParameter("levelStackMap is a mandatory parameter", levelStackMap);
         ParametersChecker.checkParameter("unitIdToGuid is a mandatory parameter", unitIdToGuid);
         ParametersChecker.checkParameter(WORKSPACE_MANDATORY_MSG, client);
@@ -1884,7 +1883,7 @@ public class SedaUtils {
                 tempFile.exists();
             }
         }
-        LOGGER.info("End createIngestLevelStackFile/containerId:" + containerId);
+        LOGGER.debug("End createIngestLevelStackFile/containerId:" + containerId);
 
     }
 
@@ -1933,7 +1932,6 @@ public class SedaUtils {
                     IngestWorkflowConstants.BINARY_DATA_OBJECT_ID_TO_GUID_MAP_FILE_NAME_PREFIX + containerId +
                     JSON_EXTENSION);
             objectIdToGuidStoredContent = IOUtils.toString(objectIdToGuidMapFile, "UTF-8");
-            LOGGER.error(objectIdToGuidStoredContent);
         } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException |
             IOException e) {
             LOGGER.error(e);
@@ -2006,7 +2004,7 @@ public class SedaUtils {
                 }
             } catch (XMLStreamException e) {
                 // nothing to throw
-                LOGGER.info("Can not close XML reader SEDA", e);
+                LOGGER.debug("Can not close XML reader SEDA", e);
             }
         }
 

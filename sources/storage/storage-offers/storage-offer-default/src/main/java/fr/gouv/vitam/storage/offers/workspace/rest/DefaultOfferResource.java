@@ -207,8 +207,8 @@ public class DefaultOfferResource {
         String xCommandHeader = headers.getHeaderString(GlobalDataRest.X_COMMAND);
         if (xCommandHeader == null || (!xCommandHeader.equals(StorageConstants.COMMAND_WRITE) && !xCommandHeader
             .equals(StorageConstants.COMMAND_END))) {
-            LOGGER.error(String.format("Missing the WRITE or END required command (X-Command header), %s found",
-                xCommandHeader));
+            LOGGER.error("Missing the WRITE or END required command (X-Command header), {} found",
+                xCommandHeader);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         try {

@@ -28,6 +28,7 @@ package fr.gouv.vitam.processing.common.exception;
  *
  */
 public class WorkflowNotFoundException extends ProcessingException {
+    private static final long serialVersionUID = -5651787421624064080L;
 
     /**
      *

@@ -124,6 +124,7 @@ public class ProcessEngineImpl implements ProcessEngine {
                 final GUID processId = GUIDFactory.newGUID();
                 processResponse.setProcessId(processId.getId());
                 workParams.setProcessId(processId.getId());
+                LOGGER.info("Start Workflow: " + processId.getId());
 
 
                 Map<String, ProcessStep> processSteps = ProcessMonitoringImpl.getInstance().initOrderedWorkflow(
@@ -138,7 +139,7 @@ public class ProcessEngineImpl implements ProcessEngine {
                     ProcessStep step = entry.getValue();
                     String uniqueId = entry.getKey();
                     workParams.setStepUniqId(uniqueId);
-
+                    LOGGER.info("Start Workflow: " + uniqueId + " Step:" + step.getStepName());
                     LogbookParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
                         GUIDFactory.newGUID(),
                         step.getStepName(),
@@ -183,6 +184,7 @@ public class ProcessEngineImpl implements ProcessEngine {
                     ProcessMonitoringImpl.getInstance().updateStepStatus(
                         workParams.getProcessId(), uniqueId,
                         stepStatus);
+                    LOGGER.info("End Workflow: " + uniqueId + " Step:" + step.getStepName());
 
                     // if the step has been defined as Blocking, then, we check the stepStatus then break the process if
                     // the the status is KO or FATAL
@@ -200,6 +202,7 @@ public class ProcessEngineImpl implements ProcessEngine {
                  * the global status process managed in setStepResponses method
                  */
                 processResponse.setStepResponses(stepsResponses);
+                LOGGER.info("End Workflow: " + processId.getId());
             }
         } catch (final Exception e) {
             processResponse.setStatus(StatusCode.FATAL);

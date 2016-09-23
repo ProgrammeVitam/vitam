@@ -56,12 +56,14 @@ public abstract class VitamLoggerFactory {
             f.newInstance(name)
                 .debug("Using Logback (SLF4J) as the default logging framework");
             defaultFactory = f;
-        } catch (final Throwable t1) { // NOSONAR
+        } catch (final Exception t1) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(t1);
             try {
                 f = new Log4JLoggerFactory(null);
                 f.newInstance(name).debug("Using Log4J as the default logging framework",
                     t1);
-            } catch (final Throwable t2) { // NOSONAR
+            } catch (final Exception t2) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(t2);
                 f = new JdkLoggerFactory(null);
                 f.newInstance(name).debug(
                     "Using java.util.logging as the default logging framework", t2);
@@ -80,11 +82,12 @@ public abstract class VitamLoggerFactory {
             final Class<?> clasz = Class.forName("fr.gouv.vitam.common.ServerIdentity",
                 true, VitamLoggerFactory.class.getClassLoader());
             serverIdentity = clasz.getMethod("getInstance").invoke(null);
-        } catch (ClassNotFoundException | NoClassDefFoundError e) {// NOSONAR ignore
+        } catch (ClassNotFoundException | NoClassDefFoundError e) {
             // ignore
-        } catch (IllegalAccessException | IllegalArgumentException | // NOSONAR ignore
-            InvocationTargetException | NoSuchMethodException | SecurityException e) {// NOSONAR ignore
-            e.printStackTrace();// NOSONAR : no choice since no logger yet
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+        } catch (IllegalAccessException | IllegalArgumentException |
+            InvocationTargetException | NoSuchMethodException | SecurityException e) {
+            SysErrLogger.FAKE_LOGGER.syserr("Issue while initializing Identiy", e);
         }
         initialized = true;
     }

@@ -29,6 +29,7 @@ package fr.gouv.vitam.processing.common.exception;
  *
  */
 public class WorkerNotFoundException extends ProcessingException {
+    private static final long serialVersionUID = 8409273839705269630L;
 
     /**
      *

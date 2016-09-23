@@ -26,11 +26,12 @@
  */
 package fr.gouv.vitam.common;
 
-import java.io.File;
 import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 import java.util.Properties;
+
+import fr.gouv.vitam.common.logging.SysErrLogger;
 
 /**
  * A collection of utility methods to retrieve and parse the values of the Java system properties.
@@ -43,39 +44,6 @@ public final class SystemPropertyUtil {
      * Default File encoding field
      */
     public static final String FILE_ENCODING = "file.encoding";
-    /**
-     * Property Vitam Config Folder
-     */
-    protected static final String VITAM_CONFIG_FOLDER = "vitam.config.folder";
-    /**
-     * Property Vitam Data Folder
-     */
-    protected static final String VITAM_DATA_FOLDER = "vitam.data.folder";
-    /**
-     * Property Vitam Log Folder
-     */
-    protected static final String VITAM_LOG_FOLDER = "vitam.log.folder";
-    /**
-     * Property Vitam Tmp Folder
-     */
-    protected static final String VITAM_TMP_FOLDER = "vitam.tmp.folder";
-    /**
-     * Default Vitam Config Folder
-     */
-    private static final String VITAM_CONFIG_FOLDER_DEFAULT = "/vitam/conf";
-    /**
-     * Default Vitam Config Folder
-     */
-    private static final String VITAM_DATA_FOLDER_DEFAULT = "/vitam/data";
-    /**
-     * Default Vitam Config Folder
-     */
-    private static final String VITAM_LOG_FOLDER_DEFAULT = "/vitam/log";
-    /**
-     * Default Vitam Config Folder
-     */
-    // TODO change to /vitam/tmp when configured on the PIC
-    private static final String VITAM_TMP_FOLDER_DEFAULT = "/vitam/data/tmp";
 
     private static final Properties PROPS = new Properties();
 
@@ -101,9 +69,10 @@ public final class SystemPropertyUtil {
         Properties newProps = null;
         try {
             newProps = System.getProperties();
-        } catch (final SecurityException e) { // NOSONAR
+        } catch (final SecurityException e) {
             // Since logger could be not available yet
-            System.err.println( // NOSONAR
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            SysErrLogger.FAKE_LOGGER.syserr(
                 "Unable to retrieve the system properties; default values will be used: " + e.getMessage());
             newProps = new Properties();
         }
@@ -125,22 +94,19 @@ public final class SystemPropertyUtil {
                     PROPS.clear();
                     PROPS.putAll(newProps);
                 }
-            } catch (final Exception e1) { // NOSONAR
+            } catch (final Exception e1) {
                 // Since logger could be not available yet
                 // ignore since it is a security issue and -Dfile.encoding=UTF-8
                 // should be used
-                System.err // NOSONAR
-                    .println(
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e1);
+                SysErrLogger.FAKE_LOGGER.syserr(
                         "Issue while trying to set UTF-8 as default file encoding: use -Dfile.encoding=UTF-8 as java command argument: " +
                             e1.getMessage());
-                System.err.println("Currently file.encoding is: " + get(FILE_ENCODING)); // NOSONAR
+                SysErrLogger.FAKE_LOGGER.syserr(
+                    "Currently file.encoding is: " + get(FILE_ENCODING));
             }
         }
-        String tmpFolder = getVitamTmpFolder();
-        File tmpDirectory = new File(tmpFolder);
-        if (!tmpDirectory.isDirectory()) {
-            tmpDirectory.mkdirs();
-        }
+        VitamConfiguration.checkVitamConfiguration();
     }
 
     /**
@@ -149,50 +115,6 @@ public final class SystemPropertyUtil {
      */
     public static boolean isFileEncodingCorrect() {
         return contains(FILE_ENCODING) && get(FILE_ENCODING).equalsIgnoreCase(CharsetUtils.UTF_8);
-    }
-
-    /**
-     *
-     * @return the VitamConfigFolder path
-     */
-    public static String getVitamConfigFolder() {
-        if (contains(VITAM_CONFIG_FOLDER)) {
-            return get(VITAM_CONFIG_FOLDER);
-        }
-        return VITAM_CONFIG_FOLDER_DEFAULT;
-    }
-
-    /**
-     *
-     * @return the VitamDataFolder path
-     */
-    public static String getVitamDataFolder() {
-        if (contains(VITAM_DATA_FOLDER)) {
-            return get(VITAM_DATA_FOLDER);
-        }
-        return VITAM_DATA_FOLDER_DEFAULT;
-    }
-
-    /**
-     *
-     * @return the VitamLogFolder path
-     */
-    public static String getVitamLogFolder() {
-        if (contains(VITAM_LOG_FOLDER)) {
-            return get(VITAM_LOG_FOLDER);
-        }
-        return VITAM_LOG_FOLDER_DEFAULT;
-    }
-
-    /**
-     *
-     * @return the VitamTmpFolder path
-     */
-    public static String getVitamTmpFolder() {
-        if (contains(VITAM_TMP_FOLDER)) {
-            return get(VITAM_TMP_FOLDER);
-        }
-        return VITAM_TMP_FOLDER_DEFAULT;
     }
 
     /**
@@ -268,8 +190,8 @@ public final class SystemPropertyUtil {
         if ("false".equals(value) || "no".equals(value) || "0".equals(value)) {
             return false;
         }
-
-        System.err.println("Unable to parse the boolean system property '" + key + "':" + value + " - " + // NOSONAR
+        SysErrLogger.FAKE_LOGGER.syserr(
+            "Unable to parse the boolean system property '" + key + "':" + value + " - " +
             USING_THE_DEFAULT_VALUE + def);
 
         return def;
@@ -296,13 +218,14 @@ public final class SystemPropertyUtil {
         if (value.matches("-?[0-9]+")) {
             try {
                 return Integer.parseInt(value);
-            } catch (final Exception e) { // NOSONAR
+            } catch (final Exception e) {
                 // Since logger could be not available yet
                 // Ignore
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
         }
-
-        System.err.println("Unable to parse the integer system property '" + key + "':" + value + " - " + // NOSONAR
+        SysErrLogger.FAKE_LOGGER.syserr(
+            "Unable to parse the integer system property '" + key + "':" + value + " - " +
             USING_THE_DEFAULT_VALUE + def);
 
         return def;
@@ -329,13 +252,15 @@ public final class SystemPropertyUtil {
         if (value.matches("-?[0-9]+")) {
             try {
                 return Long.parseLong(value);
-            } catch (final Exception e) { // NOSONAR
+            } catch (final Exception e) {
                 // Since logger could be not available yet
                 // Ignore
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
         }
 
-        System.err.println("Unable to parse the long integer system property '" + key + "':" + value + " - " + // NOSONAR
+        SysErrLogger.FAKE_LOGGER.syserr(
+            "Unable to parse the long integer system property '" + key + "':" + value + " - " +
             USING_THE_DEFAULT_VALUE + def);
 
         return def;
@@ -564,8 +489,9 @@ public final class SystemPropertyUtil {
             String os = "";
             try {
                 os = System.getProperty("os.name").toLowerCase();
-            } catch (Exception e) {// NOSONAR ignore
+            } catch (Exception e) {
                 // ignore
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
             if (os.indexOf("win") >= 0) {
                 m_os = Platform.WINDOWS;

@@ -28,20 +28,16 @@ import java.io.InputStream;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
-import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
-import org.eclipse.jetty.http.HttpHeader;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.api.AccessModule;
@@ -89,7 +85,7 @@ public class AccessResourceImpl implements AccessResource {
     public AccessResourceImpl(AccessConfiguration configuration) {
 
         accessModule = new AccessModuleImpl(configuration);
-        LOGGER.info("AccessResource initialized");
+        LOGGER.debug("AccessResource initialized");
     }
 
     /**
@@ -99,7 +95,7 @@ public class AccessResourceImpl implements AccessResource {
      */
     AccessResourceImpl(AccessModule accessModule) {
         this.accessModule = accessModule;
-        LOGGER.info("AccessResource initialized");
+        LOGGER.debug("AccessResource initialized");
     }
 
     /**
@@ -111,7 +107,7 @@ public class AccessResourceImpl implements AccessResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUnits(String queryDsl,
         @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
-        LOGGER.info("Execution of DSL Vitam from Access ongoing...");
+        LOGGER.debug("Execution of DSL Vitam from Access ongoing...");
         Status status;
         JsonNode result = null;
         JsonNode queryJson = null;
@@ -138,7 +134,7 @@ public class AccessResourceImpl implements AccessResource {
                 .entity(getErrorEntity(status))
                 .build();
         }
-        LOGGER.info("End of execution of DSL Vitam from Access");
+        LOGGER.debug("End of execution of DSL Vitam from Access");
         return Response.status(Status.OK).entity(result).build();
     }
 
@@ -162,7 +158,7 @@ public class AccessResourceImpl implements AccessResource {
     public Response getUnitById(String queryDsl,
         @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride,
         @PathParam("id_unit") String id_unit) {
-        LOGGER.info("Execution of DSL Vitam from Access ongoing...");
+        LOGGER.debug("Execution of DSL Vitam from Access ongoing...");
 
         Status status;
         JsonNode queryJson = null;
@@ -190,7 +186,7 @@ public class AccessResourceImpl implements AccessResource {
                 .entity(getErrorEntity(status))
                 .build();
         }
-        LOGGER.info("End of execution of DSL Vitam from Access");
+        LOGGER.debug("End of execution of DSL Vitam from Access");
         return Response.status(Status.OK).entity(result).build();
     }
 
@@ -207,7 +203,7 @@ public class AccessResourceImpl implements AccessResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateUnitById(String queryDsl, @PathParam("id_unit") String id_unit) {
 
-        LOGGER.info("Execution of DSL Vitam from Access ongoing...");
+        LOGGER.debug("Execution of DSL Vitam from Access ongoing...");
 
         Status status;
         JsonNode queryJson = null;
@@ -231,7 +227,7 @@ public class AccessResourceImpl implements AccessResource {
                     .entity(getErrorEntity(status))
                     .build();
         }
-        LOGGER.info("End of execution of DSL Vitam from Access");
+        LOGGER.debug("End of execution of DSL Vitam from Access");
         return Response.status(Status.OK).entity(result).build();
     }
 

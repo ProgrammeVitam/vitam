@@ -33,6 +33,8 @@ import fr.gouv.vitam.common.exception.VitamException;
  */
 public class IngestInternalException extends VitamException {
 
+    private static final long serialVersionUID = 8488325954307043133L;
+
     /**
      * @param message of exception
      */

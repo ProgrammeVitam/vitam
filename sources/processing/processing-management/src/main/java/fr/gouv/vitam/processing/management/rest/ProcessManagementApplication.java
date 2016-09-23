@@ -74,7 +74,7 @@ public class ProcessManagementApplication
      */
     public static void main(String[] args) {
         try {
-            APPLICATION.startApplication(args);
+            ProcessManagementApplication.startApplication(args);
 
             if (vitamServer != null && vitamServer.isStarted()) {
                 vitamServer.join();

@@ -66,6 +66,7 @@ public class DirectedGraph {
      * @param vertices the number of vertices
      * @throws IllegalArgumentException if V < 0
      */
+    @SuppressWarnings("unchecked")
     private DirectedGraph(int vertices) {
         if (vertices < 0) {
             throw new IllegalArgumentException("Number of vertices in a DirectedGraph must be nonnegative");
@@ -86,6 +87,7 @@ public class DirectedGraph {
      * @throws IllegalArgumentException if the number of vertices or edges is negative
      */
 
+    @SuppressWarnings("unchecked")
     public DirectedGraph(JsonNode jsonGraph) {
         indexMapping = new DualHashBidiMap<Integer, String>();
         vertices = jsonGraph.size() + 1;
@@ -96,11 +98,9 @@ public class DirectedGraph {
         }
         indegree = new int[vertices];
         // parse json to create graph
-        int i = 0;
         Iterator<Entry<String, JsonNode>> iterator2 = jsonGraph.fields();
         while (iterator2.hasNext()) {
             Entry<String, JsonNode> cycle = iterator2.next();
-            i++;
             String idChild = cycle.getKey();
             JsonNode up = cycle.getValue();
 

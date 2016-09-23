@@ -69,8 +69,6 @@ public class WorkerImpl implements Worker {
     private static final String EMPTY_LIST = "null or Empty Action list";
     private static final String STEP_NULL = "step paramaters is null";
     private static final String HANDLER_NOT_FOUND = ": handler not found exception";
-    private static final String ELAPSED_TIME_MESSAGE = "Total elapsed time in execution of WorkerImpl method run is :";
-
     Map<String, ActionHandler> actions = new HashMap<>();
     String workerId;
 
@@ -120,10 +118,6 @@ public class WorkerImpl implements Worker {
     @Override
     public List<EngineResponse> run(WorkerParameters workParams, Step step)
         throws IllegalArgumentException, ProcessingException {
-
-
-        final long time = System.currentTimeMillis();        
-
         // mandatory check
         ParameterHelper.checkNullOrEmptyParameters(workParams);
 
@@ -155,8 +149,7 @@ public class WorkerImpl implements Worker {
             }
         }
 
-        LOGGER.info(ELAPSED_TIME_MESSAGE + (System.currentTimeMillis() - time) / 1000 + "s / for step name :" +
-            step.getStepName());
+        LOGGER.debug("step name :" + step.getStepName());
         return responses;
     }
 

@@ -180,13 +180,13 @@ public class LogbookLifeCyclesClientFactory {
             configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
                 ClientConfigurationImpl.class);
         } catch (final IOException fnf) {
-            LOGGER.debug(String.format("Error when retrieving configuration file %s, using mock",
-                CONFIGURATION_FILENAME),
+            LOGGER.debug("Error when retrieving configuration file {}, using mock",
+                CONFIGURATION_FILENAME,
                 fnf);
         }
         if (configuration == null) {
-            LOGGER.debug(String.format("Error when retrieving configuration file %s, using mock",
-                CONFIGURATION_FILENAME));
+            LOGGER.debug("Error when retrieving configuration file {}, using mock",
+                CONFIGURATION_FILENAME);
         } else {
             server = configuration.getServerHost();
             port = configuration.getServerPort();

@@ -42,6 +42,7 @@ import org.apache.shiro.authc.SimpleAuthenticationInfo;
  */
 public class X509AuthenticationInfo extends SimpleAuthenticationInfo {
 
+    private static final int BASE_16 = 16;
     /**
      * 
      */
@@ -68,7 +69,7 @@ public class X509AuthenticationInfo extends SimpleAuthenticationInfo {
         if (clientCertificate != null) {
             this.subjectDN = clientCertificate.getSubjectX500Principal();
             this.issuerDN = clientCertificate.getIssuerX500Principal();
-            this.serialNumber = clientCertificate.getSerialNumber().toString(16);
+            this.serialNumber = clientCertificate.getSerialNumber().toString(BASE_16);
         } else {
             this.subjectDN = null;
             this.issuerDN = null;

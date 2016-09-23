@@ -24,6 +24,7 @@
 package fr.gouv.vitam.common.database.parser.query;
 
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 
 /**
  * Main language definition
@@ -42,7 +43,7 @@ public class ParserTokens extends BuilderToken {
     public static final char DEFAULT_HASH_PREFIX_CHAR = '#';
 
     private ParserTokens() {
-        
+        // Empty
     }
 
 
@@ -154,8 +155,9 @@ public class ParserTokens extends BuilderToken {
                             return true;
                         default:
                     }
-                } catch (final Exception e) {// NOSONAR
+                } catch (final Exception e) {
                     // Ignore
+                    SysErrLogger.FAKE_LOGGER.ignoreLog(e);
                 }
             }
             return false;

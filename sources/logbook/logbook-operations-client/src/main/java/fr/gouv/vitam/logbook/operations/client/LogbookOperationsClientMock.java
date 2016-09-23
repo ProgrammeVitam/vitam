@@ -151,7 +151,7 @@ class LogbookOperationsClientMock implements LogbookClient {
 
     @Override
     public JsonNode selectOperation(String select) throws LogbookClientException, InvalidParseOperationException {
-        LOGGER.info("Select request:" + select);
+        LOGGER.debug("Select request:" + select);
         final RequestResponseOK response = new RequestResponseOK().setHits(new DatabaseCursor(2, 0, 10));
         response.setQuery(JsonHandler.getFromString(select));
         response.setResult(JsonHandler.getFromString('[' + MOCK_SELECT_RESULT_1 + ',' + MOCK_SELECT_RESULT_2 + ']'));
@@ -160,7 +160,7 @@ class LogbookOperationsClientMock implements LogbookClient {
 
     @Override
     public JsonNode selectOperationbyId(String id) throws LogbookClientException, InvalidParseOperationException {
-        LOGGER.info("Select request with id:" + id);
+        LOGGER.debug("Select request with id:" + id);
         final RequestResponseOK response = new RequestResponseOK().setHits(new DatabaseCursor(1, 0, 10));
         response.setResult(JsonHandler.getFromString(MOCK_SELECT_RESULT_1));
         return new ObjectMapper().convertValue(response, JsonNode.class);

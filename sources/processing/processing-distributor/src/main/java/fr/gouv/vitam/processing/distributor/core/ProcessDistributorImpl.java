@@ -185,7 +185,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                     ProcessMonitoringImpl.getInstance().updateStep(processId, uniqueStepId, objectsList.size(), false);
                     for (final URI objectUri : objectsList) {
                         if (availableWorkers.isEmpty()) {
-                            LOGGER.info(errorResponse.getStatus().toString());
+                            LOGGER.debug(errorResponse.getStatus().toString());
                             responses.add(errorResponse);
                             break;
                         } else {
@@ -206,7 +206,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 // update the number of element to process
                 ProcessMonitoringImpl.getInstance().updateStep(processId, uniqueStepId, 1, false);
                 if (availableWorkers.isEmpty()) {                    
-                    LOGGER.info(errorResponse.getStatus().toString());
+                    LOGGER.debug(errorResponse.getStatus().toString());
                     responses.add(errorResponse);
                 } else {
                     // TODO : management of parallel distribution and availability
@@ -231,7 +231,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             responses.add(errorResponse);
             LOGGER.error(EXCEPTION_MESSAGE, e);
         } finally {
-            LOGGER.info(ELAPSED_TIME_MESSAGE + (System.currentTimeMillis() - time) / 1000 + "s /stepName :" +
+            LOGGER.debug(ELAPSED_TIME_MESSAGE + (System.currentTimeMillis() - time) / 1000 + "s /stepName :" +
                 getSafetyStepName(step) + "Status: " + responses.toString() + "/workflowId :" + workflowId);
         }
 

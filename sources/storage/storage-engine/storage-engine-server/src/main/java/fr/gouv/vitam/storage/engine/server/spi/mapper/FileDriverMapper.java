@@ -95,7 +95,7 @@ public class FileDriverMapper implements DriverMapper {
         try {
             return getOfferIdsFrom(getDriverFile(driverName));
         } catch (FileNotFoundException exc) { // NOSONAR : this exception don't have to be rethrown
-            LOGGER.warn(String.format("Configuration file not found for %s, then return empty list", driverName));
+            LOGGER.warn("Configuration file not found for {}, then return empty list", driverName);
             return new ArrayList<>();
         } catch (IOException exc) {
             String log = VitamCodeHelper.getLogMessage(VitamCode.STORAGE_DRIVER_MAPPER_FILE_CONTENT, driverName);
@@ -150,7 +150,7 @@ public class FileDriverMapper implements DriverMapper {
     private List<String> addOfferTo(String offerId, List<String> offerMapping) {
         int index = offerMapping.indexOf(offerId);
         if (index >= 0) {
-            LOGGER.warn(String.format("Offer ID %s already associated to the driver !", offerId));
+            LOGGER.warn("Offer ID {} already associated to the driver !", offerId);
         } else {
             offerMapping.add(offerId);
         }
@@ -162,7 +162,7 @@ public class FileDriverMapper implements DriverMapper {
         if (index >= 0) {
             offerMapping.remove(index);
         } else {
-            LOGGER.warn(String.format("Offer ID %s not found ! Cannot remove it in mapping configuration", offerId));
+            LOGGER.warn("Offer ID {} not found ! Cannot remove it in mapping configuration", offerId);
         }
         return offerMapping;
     }
@@ -176,7 +176,7 @@ public class FileDriverMapper implements DriverMapper {
         try {
             offerIds = getOfferIdsFrom(getDriverFile(driverName));
         } catch (FileNotFoundException exc) { // NOSONAR : this exception don't have to be rethrown
-            LOGGER.warn(String.format("Configuration file not found for %s, then return empty list", driverName));
+            LOGGER.warn("Configuration file not found for {}, then return empty list", driverName);
         } catch (IOException exc) {
             String log = VitamCodeHelper.getLogMessage(VitamCode.STORAGE_DRIVER_MAPPER_FILE_CONTENT, driverName);
             LOGGER.error(log);

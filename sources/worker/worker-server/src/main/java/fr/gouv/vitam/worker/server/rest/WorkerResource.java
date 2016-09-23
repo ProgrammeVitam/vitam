@@ -69,8 +69,6 @@ public class WorkerResource {
     private static final String WORKER_MODULE = "WORKER";
     private static final String CODE_VITAM = "code_vitam";
     private Worker worker;
-    private WorkerConfiguration configuration;
-
     /**
      * Constructor
      *
@@ -78,7 +76,6 @@ public class WorkerResource {
      */
     public WorkerResource(WorkerConfiguration configuration) {
         LOGGER.info("init Worker Resource server");
-        this.configuration = configuration;
         this.worker = WorkerImplFactory.create();
     }
 
@@ -91,7 +88,6 @@ public class WorkerResource {
      */
     WorkerResource(WorkerConfiguration configuration, Worker worker) {
         LOGGER.info("init Worker Resource server");
-        this.configuration = configuration;
         this.worker = worker;
     }
 

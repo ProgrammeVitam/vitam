@@ -63,7 +63,7 @@ public class CheckVersionActionHandler extends ActionHandler {
     @Override
     public EngineResponse execute(WorkerParameters params){
         checkMandatoryParameters(params);
-        LOGGER.info("CheckVersionActionHandler running ...");
+        LOGGER.debug("CheckVersionActionHandler running ...");
         
         final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_VERSION_OK);
         final SedaUtils sedaUtils = sedaUtilsFactory.create();
@@ -80,7 +80,7 @@ public class CheckVersionActionHandler extends ActionHandler {
             response.setStatus(StatusCode.FATAL).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_VERSION_KO);
         }
 
-        LOGGER.info("CheckVersionActionHandler response: " + response.getStatus().name());
+        LOGGER.debug("CheckVersionActionHandler response: " + response.getStatus().name());
         return response;
     }
 

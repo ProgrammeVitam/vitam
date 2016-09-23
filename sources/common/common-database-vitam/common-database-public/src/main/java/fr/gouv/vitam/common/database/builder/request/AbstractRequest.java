@@ -51,9 +51,8 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
- * 
+ * Common Abstract Request
  */
-// FIXME comment
 public abstract class AbstractRequest {
     protected ObjectNode filter;
 

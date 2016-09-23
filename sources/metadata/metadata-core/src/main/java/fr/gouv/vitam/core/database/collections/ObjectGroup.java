@@ -25,7 +25,6 @@ package fr.gouv.vitam.core.database.collections;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.bson.BSONObject;
 import org.bson.Document;

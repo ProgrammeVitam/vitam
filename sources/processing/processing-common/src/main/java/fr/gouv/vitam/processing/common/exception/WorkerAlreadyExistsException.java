@@ -29,6 +29,7 @@ package fr.gouv.vitam.processing.common.exception;
  *
  */
 public class WorkerAlreadyExistsException extends ProcessingException {
+    private static final long serialVersionUID = 8610236043849014545L;
 
     /**
      *

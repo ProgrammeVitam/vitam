@@ -29,6 +29,8 @@ package fr.gouv.vitam.common.server.application;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.logging.SysErrLogger;
+
 import org.eclipse.jetty.server.Handler;
 
 import java.io.File;
@@ -105,16 +107,18 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<?>, C>
             try {
                 final File file = PropertiesUtils.findFile(args[0]);
                 configurationFile = file.toPath();
-            } catch (final FileNotFoundException e) {// NOSONAR ignore yet
+            } catch (final FileNotFoundException e) {
                 // ignore
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
         }
         if (configurationFile == null) {
             try {
                 final File file = PropertiesUtils.findFile(getConfigFilename());
                 configurationFile = file.toPath();
-            } catch (final FileNotFoundException e) {// NOSONAR ignore yet
+            } catch (final FileNotFoundException e) {
                 // ignore
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
         }
         if (configurationFile == null) {

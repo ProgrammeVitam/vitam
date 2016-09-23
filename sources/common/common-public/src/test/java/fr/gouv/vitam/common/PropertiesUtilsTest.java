@@ -32,8 +32,10 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 
 import org.junit.Test;
@@ -44,20 +46,26 @@ public class PropertiesUtilsTest {
     public void testBuildPath() {
         final String fictivePath = "/mydir/myfile.txt";
         File file = PropertiesUtils.fileFromDataFolder(fictivePath);
-        assertTrue(file.getAbsolutePath().startsWith(SystemPropertyUtil.getVitamDataFolder()));
+        assertTrue(file.getAbsolutePath().startsWith(VitamConfiguration.getVitamDataFolder()));
         assertTrue(file.getAbsolutePath().endsWith(fictivePath));
 
         file = PropertiesUtils.fileFromConfigFolder(fictivePath);
-        assertTrue(file.getAbsolutePath().startsWith(SystemPropertyUtil.getVitamConfigFolder()));
+        assertTrue(file.getAbsolutePath().startsWith(VitamConfiguration.getVitamConfigFolder()));
         assertTrue(file.getAbsolutePath().endsWith(fictivePath));
 
         file = PropertiesUtils.fileFromLogFolder(fictivePath);
-        assertTrue(file.getAbsolutePath().startsWith(SystemPropertyUtil.getVitamLogFolder()));
+        assertTrue(file.getAbsolutePath().startsWith(VitamConfiguration.getVitamLogFolder()));
         assertTrue(file.getAbsolutePath().endsWith(fictivePath));
 
         file = PropertiesUtils.fileFromTmpFolder(fictivePath);
-        assertTrue(file.getAbsolutePath().startsWith(SystemPropertyUtil.getVitamTmpFolder()));
+        assertTrue(file.getAbsolutePath().startsWith(VitamConfiguration.getVitamTmpFolder()));
         assertTrue(file.getAbsolutePath().endsWith(fictivePath));
+        
+        try (InputStream stream = PropertiesUtils.getResourcesAsStream("json-test.json")) {
+            assertTrue(stream != null);
+        } catch (IOException e) {
+            fail("Should not raized an exception");
+        }
     }
 
     @Test(expected = FileNotFoundException.class)
@@ -103,6 +111,11 @@ public class PropertiesUtilsTest {
         fail(ResourcesPublicUtilTest.EXPECTING_EXCEPTION_FILE_NOT_FOUND_EXCEPTION);
     }
 
+    @Test(expected = FileNotFoundException.class)
+    public void testGetResourcesStreamNotFoundNull() throws FileNotFoundException {
+        PropertiesUtils.getResourcesAsStream(null);
+        fail(ResourcesPublicUtilTest.EXPECTING_EXCEPTION_FILE_NOT_FOUND_EXCEPTION);
+    }
     @Test
     public void testGetResourcesFile() throws FileNotFoundException {
         final File file = PropertiesUtils.getResourcesFile(
@@ -154,6 +167,16 @@ public class PropertiesUtilsTest {
             e1.printStackTrace();
             fail(ResourcesPublicUtilTest.SHOULD_NOT_HAVE_AN_EXCEPTION);
         }
+        try (InputStream inputStream = new FileInputStream(
+            PropertiesUtils.findFile(ResourcesPublicUtilTest.YAML_TEST_CONF))) {
+            final ConfigurationTest test = PropertiesUtils.readYaml(
+                inputStream, ConfigurationTest.class);
+            assertEquals("test", test.getTest());
+            assertEquals(12346, test.getNumber());
+        } catch (final IOException e1) {
+            e1.printStackTrace();
+            fail(ResourcesPublicUtilTest.SHOULD_NOT_HAVE_AN_EXCEPTION);
+        }
         try {
             final ConfigurationTest test = PropertiesUtils.readYaml(
                 PropertiesUtils.getResourcesFile(ResourcesPublicUtilTest.YAML_TEST_CONF),
@@ -185,6 +208,14 @@ public class PropertiesUtilsTest {
         try {
             final ConfigurationTest test = PropertiesUtils.readYaml(
                 (File) null,
+                ConfigurationTest.class);
+            fail(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
+        } catch (final IOException e1) {
+            // ignore
+        }
+        try {
+            final ConfigurationTest test = PropertiesUtils.readYaml(
+                (InputStream) null,
                 ConfigurationTest.class);
             fail(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
         } catch (final IOException e1) {

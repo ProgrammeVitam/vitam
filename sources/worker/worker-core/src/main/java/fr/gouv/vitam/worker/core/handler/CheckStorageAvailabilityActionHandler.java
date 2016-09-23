@@ -80,7 +80,7 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
     @Override
     public EngineResponse execute(WorkerParameters params) {
         checkMandatoryParameters(params);
-        LOGGER.info("CheckStorageAvailabilityActionHandler running ...");
+        LOGGER.debug("CheckStorageAvailabilityActionHandler running ...");
 
         final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK);
 

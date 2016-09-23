@@ -41,6 +41,7 @@ package fr.gouv.vitam.storage.driver.exception;
  * Note: it is intended to NOT extends VitamException in order to not have a dependency to common-public in this module
  */
 public class StorageDriverException extends Exception {
+    private static final long serialVersionUID = -5618781604751959001L;
     private final String driverInfo;
     private final ErrorCode errorCode;
 

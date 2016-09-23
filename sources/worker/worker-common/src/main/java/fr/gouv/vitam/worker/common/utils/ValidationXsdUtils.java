@@ -44,23 +44,15 @@ import org.xml.sax.SAXException;
 
 import com.sun.org.apache.xerces.internal.util.XMLCatalogResolver;
 
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-
-
 /**
  * Class ValidationXsdUtils validate the file XML by XSD Method checkWithXSD return true if XSD validate the file XML,
  * else return false
  */
 public class ValidationXsdUtils {
-
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ValidationXsdUtils.class);
     /**
      * Filename of the catalog file ; should be found in the classpath.
      */
     public static final String CATALOG_FILENAME = "catalog.xml";
-    private XMLStreamReader xmlStreamReader;
-    private Schema schema;
 
     /**
      * @param xmlFile the file to validate
@@ -75,21 +67,14 @@ public class ValidationXsdUtils {
         throws SAXException, IOException, XMLStreamException {
 
         final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+        XMLStreamReader xmlStreamReader = xmlInputFactory.createXMLStreamReader(xmlFile, "UTF-8");
         try {
-            xmlStreamReader = xmlInputFactory.createXMLStreamReader(xmlFile, "UTF-8");
-            schema = getSchema(xsdFile);
+            Schema schema = getSchema(xsdFile);
             final Validator validator = schema.newValidator();
             validator.validate(new StAXSource(xmlStreamReader));
             return true;
-        } catch (final SAXException e) {
-            LOGGER.error("SAXException");
-            throw e;
-        } catch (final IOException e) {
-            LOGGER.error("IOException");
-            throw e;
-        } catch (final XMLStreamException e) {
-            LOGGER.error("XMLStreamException");
-            throw e;
+        } finally {
+            xmlStreamReader.close();
         }
     }
 

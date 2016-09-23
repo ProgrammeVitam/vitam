@@ -82,7 +82,7 @@ public class AdminManagementResource {
     public AdminManagementResource(AdminManagementConfiguration configuration) {
         formatManagement = new ReferentialFormatFileImpl(configuration);
         rulesFileManagement = new RulesManagerFileImpl(configuration);
-        LOGGER.info("init Admin Management Resource server");
+        LOGGER.debug("init Admin Management Resource server");
     }
 
     /**

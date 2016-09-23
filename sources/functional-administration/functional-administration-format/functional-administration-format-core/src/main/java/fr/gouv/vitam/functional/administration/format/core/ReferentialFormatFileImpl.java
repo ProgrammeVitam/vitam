@@ -212,6 +212,7 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat> {
     @Override
     public List<FileFormat> findDocuments(JsonNode select) throws ReferentialException {
         try {
+            @SuppressWarnings("unchecked")
             MongoCursor<FileFormat> formats =
                 (MongoCursor<FileFormat>) this.mongoAccess.select(select, FunctionalAdminCollections.FORMATS);
             final List<FileFormat> result = new ArrayList<>();

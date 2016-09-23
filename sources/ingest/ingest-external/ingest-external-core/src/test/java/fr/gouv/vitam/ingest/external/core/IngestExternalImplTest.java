@@ -26,11 +26,13 @@
  */
 package fr.gouv.vitam.ingest.external.core;
 
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 
 import org.junit.Before;
 import org.junit.Test;
 
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.ingest.external.api.IngestExternalException;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
 
@@ -52,26 +54,26 @@ public class IngestExternalImplTest {
     }
 
     @Test
-    public void givenNoVirusFile() throws IngestExternalException {
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("no-virus.txt");
+    public void givenNoVirusFile() throws IngestExternalException, FileNotFoundException {
+        stream = PropertiesUtils.getResourcesAsStream("no-virus.txt");
         ingestExternalImpl.upload(stream);
     }
     
     @Test
-    public void givenFixedVirusFile() throws IngestExternalException {
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("fixed-virus.txt");
+    public void givenFixedVirusFile() throws IngestExternalException, FileNotFoundException {
+        stream = PropertiesUtils.getResourcesAsStream("fixed-virus.txt");
         ingestExternalImpl.upload(stream);
     }
     
     @Test
-    public void givenUnfixedVirusFile() throws IngestExternalException {
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("unfixed-virus.txt");
+    public void givenUnfixedVirusFile() throws IngestExternalException, FileNotFoundException {
+        stream = PropertiesUtils.getResourcesAsStream("unfixed-virus.txt");
         ingestExternalImpl.upload(stream);
     }
     
     @Test
-    public void givenUnknownErrorFile() throws IngestExternalException {
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("unknown.txt");
+    public void givenUnknownErrorFile() throws IngestExternalException, FileNotFoundException {
+        stream = PropertiesUtils.getResourcesAsStream("unknown.txt");
         ingestExternalImpl.upload(stream);
     }
 

@@ -35,30 +35,31 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 /**
  * Mock client implementation for Ingest Internal
  */
-public class IngestInternalClientMock implements IngestInternalClient{
+public class IngestInternalClientMock implements IngestInternalClient {
 
-	 private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestInternalClientMock.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestInternalClientMock.class);
 
-	
-	@Override
-	public int status() {
-		LOGGER.info("Get Status");
-		return 200;
-	}
-	
-	@Override
-    public UploadResponseDTO upload(List<LogbookParameters> logbookParametersList, InputStream inputStream) throws VitamException{
-		LOGGER.info("Post SIP");
-		 final UploadResponseDTO uploadResponseDTO = new UploadResponseDTO();
-	        uploadResponseDTO.setFileName("SIP");
-	        uploadResponseDTO.setHttpCode(200);
-	        uploadResponseDTO.setMessage("success");
-	        uploadResponseDTO.setVitamCode("201");
-	        uploadResponseDTO.setVitamStatus("success");
-	        uploadResponseDTO.setEngineCode("200");
-	        uploadResponseDTO.setEngineStatus("success");
-	        return uploadResponseDTO;
 
-	}
+    @Override
+    public int status() {
+        LOGGER.debug("Get Status");
+        return 200;
+    }
+
+    @Override
+    public UploadResponseDTO upload(List<LogbookParameters> logbookParametersList, InputStream inputStream)
+        throws VitamException {
+        LOGGER.debug("Post SIP");
+        final UploadResponseDTO uploadResponseDTO = new UploadResponseDTO();
+        uploadResponseDTO.setFileName("SIP");
+        uploadResponseDTO.setHttpCode(200);
+        uploadResponseDTO.setMessage("success");
+        uploadResponseDTO.setVitamCode("201");
+        uploadResponseDTO.setVitamStatus("success");
+        uploadResponseDTO.setEngineCode("200");
+        uploadResponseDTO.setEngineStatus("success");
+        return uploadResponseDTO;
+
+    }
 
 }

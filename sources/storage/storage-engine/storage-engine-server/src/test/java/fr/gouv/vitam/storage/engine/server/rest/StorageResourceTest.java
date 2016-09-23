@@ -29,7 +29,6 @@ package fr.gouv.vitam.storage.engine.server.rest;
 import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
 
-import java.io.IOException;
 import java.io.InputStream;
 
 import javax.ws.rs.HttpMethod;
@@ -285,16 +284,6 @@ public class StorageResourceTest {
             .head(OBJECTS_URI + OBJECT_ID_URI, "idO1").then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
 
-    }
-
-    private void closeStreamQuietly(InputStream stream) {
-        if (stream != null) {
-            try {
-                stream.close();
-            } catch (IOException e) {
-                // Do nothing
-            }
-        }
     }
 
     @Test

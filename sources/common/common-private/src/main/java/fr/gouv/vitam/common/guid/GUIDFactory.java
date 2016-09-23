@@ -58,69 +58,6 @@ public final class GUIDFactory {
     }
 
     /**
-     * Usable for GUID with default tenantId (0)
-     *
-     * @param objectType object type id between 0 and 255
-     * @return a new GUID
-     * @throws IllegalArgumentException if any of the argument are out of range
-     */
-    @Deprecated
-    public static final GUID newGUID(final int objectType) {
-        return new GUIDImplPrivate(objectType, 0, serverIdentity.getPlatformId(), false);
-    }
-
-    /**
-     * Usable for GUID
-     *
-     * @param objectType object type id between 0 and 255
-     * @param tenantId tenant id between 0 and 2^30-1
-     * @return a new GUID
-     * @throws IllegalArgumentException if any of the argument are out of range
-     */
-    @Deprecated
-    public static final GUID newGUID(final int objectType, final int tenantId) {
-        return new GUIDImplPrivate(objectType, tenantId, serverIdentity.getPlatformId(), false);
-    }
-
-    /**
-     * Usable for internal GUID with default tenantId (0) and objectType (0)
-     *
-     * @param worm True if Worm GUID
-     * @return a new GUID
-     */
-    @Deprecated
-    public static final GUID newGUID(final boolean worm) {
-        return new GUIDImplPrivate(0, 0, serverIdentity.getPlatformId(), worm);
-    }
-
-    /**
-     * Usable for GUID with default tenantId (0)
-     *
-     * @param objectType object type id between 0 and 255
-     * @param worm True if Worm GUID
-     * @return a new GUID
-     * @throws IllegalArgumentException if any of the argument are out of range
-     */
-    @Deprecated
-    public static final GUID newGUID(final int objectType, final boolean worm) {
-        return new GUIDImplPrivate(objectType, 0, serverIdentity.getPlatformId(), worm);
-    }
-
-    /**
-     * Usable for GUID
-     *
-     * @param objectType object type id between 0 and 255
-     * @param tenantId tenant id between 0 and 2^30-1
-     * @param worm True if Worm GUID
-     * @return a new GUID
-     * @throws IllegalArgumentException if any of the argument are out of range
-     */
-    @Deprecated
-    public static final GUID newGUID(final int objectType, final int tenantId, final boolean worm) {
-        return new GUIDImplPrivate(objectType, tenantId, serverIdentity.getPlatformId(), worm);
-    }
-
-    /**
      * Usable when a strict children GUID is to be created, therefore inherits information from parent GUID <br>
      * Keep in case in the future it could be useful.
      *

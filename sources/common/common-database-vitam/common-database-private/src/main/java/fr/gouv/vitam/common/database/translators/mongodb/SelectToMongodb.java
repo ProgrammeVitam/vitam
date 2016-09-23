@@ -35,8 +35,6 @@ import com.fasterxml.jackson.databind.node.NumericNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import org.bson.conversions.Bson;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -52,9 +50,6 @@ import fr.gouv.vitam.common.database.parser.request.AbstractParser;
  *
  */
 public class SelectToMongodb extends RequestToMongodb {
-
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SelectToMongodb.class);
-
     private static final String UNSUPPORTED_PROJECTION = "Unsupported DSL projection node: '%s'";
     private static final String SLICE_KEYWORD = "$slice";
     private static final int REQUIRED_SLICE_ARRAY_SIZE = 2;
