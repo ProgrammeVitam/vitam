@@ -43,6 +43,7 @@ De manière générale, l'implémentation s'appuie fortement sur une architectur
 
 .. figure:: images/technical-architecture-exploitation.*
     :align: center
+    :height: 15 cm
 
     Architecture du sous-système de centralisation des logs
 
@@ -145,7 +146,7 @@ Stockage des logs
 
     - ``.kibana`` pour le stockage des paramètres (et notamment des dashboards) Kibana.
 
-.. todo:: Dans le cadre de cette version de la solution VITAM, cette réflexion n'intègre pas la problématique des traces associées aux actions utilisateur (par exemple : accès au système, lancement d'une opération sur les archives, consultations d'archives, échec d'authentification, refus d'accès, ...) ; cette problématique est encore en cours d'étude, notamment pour en définir les besoins en terme de criticité (et notamment la non-perte d'information, leur degré de confidentialité et d'intégrité.), et sera potentiellement prise en compte par un autre sous-système.
+.. caution:: Dans le cadre de cette version de la solution VITAM, cette réflexion n'intègre pas la problématique des traces associées aux actions utilisateur (par exemple : accès au système, lancement d'une opération sur les archives, consultations d'archives, échec d'authentification, refus d'accès, ...) ; cette problématique est encore en cours d'étude, notamment pour en définir les besoins en terme de criticité (et notamment la non-perte d'information, leur degré de confidentialité et d'intégrité.), et sera potentiellement prise en compte par un autre sous-système.
 
 Gestion des index
 +++++++++++++++++
@@ -182,7 +183,6 @@ Limites
 La solution implémentée dans Vitam possède les limites connues suivantes :
 
 * Cette solution réutilise les principes de centralisation de logs basés sur les systèmes syslog ; par conséquent, elle en hérite certaines de ces limites, et notamment l'absence de sécurité dans les protocoles syslog (udp ou tcp) (absence d'authentification, de vérification d'intégrité ou de confidentialité des informations) ;
-* Elle n'est pas résiliente à la perte d'un noeud ; en particulier, elle n'est par défaut pas résiliente à la perte de données stockées dans ElasticSearch (absence de replica par défaut). Il est admis que le monitoring des composants et les procédures de sauvegarde / restauration des données permettent de compenser en partie ces limites et permettent d'arriver à un niveau de disponibilité acceptable pour un système de gestion de logs.
 
-.. note:: Il est à noter que les logs ne sont pas complètement perdus en cas de perte du système de centralisation des logs ; en effet, ils sont dans tous les cas déposés dans des fichiers locaux aux noeuds.
+.. tip:: Il est à noter que les logs ne sont pas complètement perdus en cas de perte du système de centralisation des logs ; en effet, ils sont dans tous les cas déposés dans des fichiers locaux aux noeuds.
 

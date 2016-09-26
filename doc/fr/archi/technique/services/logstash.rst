@@ -7,7 +7,7 @@ Type :
 Données stockées : Aucune
 
 Typologie de consommation de resources :
-	* CPU : ???
-	* Mémoire : ???
-	* Réseau : ???
-	* Disque : ???
+	* CPU : moyenne
+	* Mémoire : forte
+	* Réseau : forte
+	* Disque : faible (logs)

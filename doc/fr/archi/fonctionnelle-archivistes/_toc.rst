@@ -1,4 +1,4 @@
-Architecture : archivistes
+Architecture fonctionnelle
 ##########################
 
 

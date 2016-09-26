@@ -8,7 +8,7 @@ Type :
 	COTS
 
 Données stockées :
-	* Logs des composants déployés dans le cadre de VITAM (services java, bases de données, composants de support (logstash, curator))
+	* Logs techniques des composants déployés dans le cadre de VITAM (services java, bases de données, composants de support (logstash, curator))
 
 Typologie de consommation de resources :
 	* CPU : moyenne
@@ -20,17 +20,14 @@ Typologie de consommation de resources :
 Architecture de déploiement
 ===========================
 
-.. todo:: Expliquer la topologie de déploiement (pas trop compliquée pour ES)
+.. seealso:: Se reporter à :doc:`elasticsearch-data` pour les informations générales concernant elasticsearch.
 
-2n + 1 noeuds 
+Dans le déploiement actuel, tous les noeuds sont considérés comme des noeuds "master" et "data" ; par conséquent, le nombre de noeuds du cluster doit être impair (i.e. 2n + 1 noeuds, n > 1). 
 
-LB/HA
-=====
+.. todo Dans une prochaine version, affiner l'exposition des ports http
 
-.. todo:: Expliquer les principes de LB/HA
+.. Monitoring
+.. ==========
 
-Monitoring
-==========
-
-.. todo:: plugin head / kopf / interfaces REST natives / ...
+.. .. todo:: plugin head / kopf / interfaces REST natives / ...
 

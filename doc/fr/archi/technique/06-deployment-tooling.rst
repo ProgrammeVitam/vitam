@@ -34,8 +34,8 @@ Architecture de l'outil
 
 On dispose de 2 types de playbooks : 
 
-* 1 playbook de bootstrap qui est joué au plus une fois lors de l'initialisation de nouveaux services (ex : création des utilisateurs vitam (Cf. :doc:`la section dédiée <02-principles-users-rights>`)
-* 1 playbook de déploiement qui est le coeur du déploiement
+* 1 playbook de déploiement (``vitam-ansible``) qui est le coeur du déploiement
+* 1 playbook de déploiement (``vitam-ansible-extra``) qui contiennent des éléments potentiellement utiles, mais non nécessaires au fonctionnement du système.
 
 On dispose de 2 types de rôles : 
 

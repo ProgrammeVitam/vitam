@@ -86,6 +86,13 @@
       replace: 'LS_GC_LOG_FILE="{{logstash_log_dir}}/gc.log"' 
   register: logstash_updated
 
+- name: Implement the Vitam GC log standard fot logstash
+  replace: 
+      dest: /etc/sysconfig/logstash
+      regexp: '^#LS_JAVA_OPTS=.*$'
+      replace: 'LS_JAVA_OPTS="-XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=10M -XX:+PrintGCDetails -XX:+PrintGCApplicationStoppedTime"'
+  register: logstash_updated
+
 - name: Define config dir for logstash
   replace: 
       dest: /etc/sysconfig/logstash

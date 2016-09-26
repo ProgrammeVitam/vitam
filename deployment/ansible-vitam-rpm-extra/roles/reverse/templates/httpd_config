@@ -1,6 +1,6 @@
 <VirtualHost *:8080>
   ProxyPreserveHost Off
-  ServerName {{environnement}}.env.programmevitam.fr
+  ServerName {{vitam_reverse_domain}}.env.programmevitam.fr
 
 # VITAM
   ProxyPass /ihm-demo http://{{vitam_ihm_demo_host}}:{{vitam_ihm_demo_port}}/ihm-demo acquire=5000 connectiontimeout=3500 timeout=50 retry=5

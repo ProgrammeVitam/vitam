@@ -1,7 +1,7 @@
 Elasticsearch-data
 ##################
 
-Cluster dédié aux données métier
+Cluster d'indexation dédié aux données métier
 
 
 Type :
@@ -20,17 +20,15 @@ Typologie de consommation de resources :
 Architecture de déploiement
 ===========================
 
-.. todo:: Expliquer la topologie de déploiement (pas trop compliquée pour ES)
+.. todo:: Une présentation de l'architecture de déploiement (avec le rôle des différents noeuds), ainsi que des principes de LB/HA d'elasticsearch sera incluse dans une prochaine version de ce document.
 
-2n + 1 noeuds 
+Dans le déploiement actuel, tous les noeuds sont considérés comme des noeuds "master" et "data" ; par conséquent, le nombre de noeuds du cluster doit être impair (i.e. 2n + 1 noeuds, n > 1). 
 
-LB/HA
-=====
+.. todo Dans une prochaine version, affiner l'exposition des ports http
 
-.. todo:: Expliquer les principes de LB/HA
 
-Monitoring
-==========
+.. Monitoring
+.. ==========
 
-.. todo:: plugin head / kopf / interfaces REST natives / ...
+.. .. todo:: plugin head / kopf / interfaces REST natives / ...
 

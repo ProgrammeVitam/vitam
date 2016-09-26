@@ -1,13 +1,28 @@
 Kibana
 ######
 
+Kibana est une application web permettant de faire des recherche et de construire des dashboards à partir des données des logs techniques.
+
+.. caution:: Dans cette version du système, Kibana est nécessairement colocalisé avec logstash
+
 Type :
 	COTS
 
 Données stockées : Aucune
 
 Typologie de consommation de resources :
-	* CPU : ???
-	* Mémoire : ???
-	* Réseau : ???
-	* Disque : ???
+	* CPU : très faible
+	* Mémoire : très faible
+	* Réseau : faible
+	* Disque : très faible
+
+
+Déploiement
+===========
+
+Kibana (à partir de sa version 4) se présente sous la forme d'un serveur web qui a deux fonction :
+
+* servir les resources nécessaires à l'application web qui s'exécute dans le navigateur internet client ;
+* agir comme proxy pour les requêtes émises par le navigateur internet à destination de la base d'index de logs (elasticsearch-log).
+
+Ainsi, aucun accès direct entre un navigateur client et les serveurs elasticsearch-log n'est requis pour la visualisation des données des logs techniques.
