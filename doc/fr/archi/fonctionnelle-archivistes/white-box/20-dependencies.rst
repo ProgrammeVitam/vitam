@@ -1,19 +1,26 @@
 Dépendances logicielles
 #######################
 
+.. seealso:: La liste des dépendances logicielle exacte est décrite dans les releases notes de chaque version de VITAM.
+
 Fournies
 ========
 
 COTS
 ----
 
-* MongoDB
-* Elasticsearch
+* `MongoDB <https://www.mongodb.com/fr>`_  : base de données orientée documents
+* `Elasticsearch <https://www.elastic.co/products/elasticsearch>`_  (+ plugins) : base d'indexation
+* `Curator <https://www.elastic.co/guide/en/elasticsearch/client/curator/current/index.html>`_  : maintenance des index d'elasticsearch
+* `Logstash <https://www.elastic.co/fr/products/logstash>`_  (+ plugins) : aggrégation et traitement des logs
+* `Kibana <https://www.elastic.co/fr/products/kibana>`_  : dashboards et recherche des logs techniques
+* `Consul <https://www.consul.io/>`_ : annuaire de services
+* `Siegfried <http://www.itforarchivists.com/siegfried>`_  : identification des formats de fichiers
 
 Bibliothèques structurantes
 ---------------------------
 
-* Jetty : moteur de servlet
+* `Jetty <https://eclipse.org/jetty/>`_ : moteur de servlet
 
 Requises
 ========

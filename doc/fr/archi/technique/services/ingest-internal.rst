@@ -10,4 +10,4 @@ Typologie de consommation de resources :
 	* CPU : faible
 	* Mémoire : faible
 	* Réseau : généralement faible, sauf dans le cas d'entrées massive d'archives (entrant)
-	* Disque : faible
+	* Disque : faible (logs)

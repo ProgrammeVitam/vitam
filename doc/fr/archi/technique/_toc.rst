@@ -7,5 +7,4 @@ Architecture Technique
    :glob:
 
    *
-   services/_toc
 

@@ -1,7 +1,10 @@
 Services métiers
 ################
 
-Processing (Moteur d’exécution)
+Les services métiers sont présentés dans les sections suivantes ; pour chaque service, est indiqué son nom commun (en français), ainsi que le nom de service correspondant (en anglais, basé sur les usages OAIS (Cf. :doc:`/introduction`)).
+
+
+Moteur d’exécution (processing)
 ===============================
 
 Rôle :
@@ -23,8 +26,8 @@ Contraintes techniques :
 * Possibilité de devoir gérer des objets lourds ; cela implique notamment l'usage de l’espace de travail pour passer des informations entre tâches, et des optimisations (colocalisations ou copies directes) permettant de limiter les contraintes sur le réseau.
 
 
-Storage-engine (Moteur de stockage)
-===================================
+Moteur de stockage (storage)
+============================
 
 Rôle :
 
@@ -36,7 +39,7 @@ Fonctions :
 * Gestion des différentes offres de stockage
 
 
-Workspace (Espace de travail)
+Espace de travail (workspace)
 =============================
 
 Rôle :
@@ -52,7 +55,7 @@ Contraintes techniques :
 * Être résilient à une panne simple
 
 
-Metadata (Moteur de données)
+Moteur de données (metadata)
 ============================
 
 Rôle :
@@ -65,7 +68,7 @@ Fonctions :
 * Fournit un cache des requêtes pour optimisation
 
 
-Logbook (Moteur de journalisation)
+Moteur de journalisation (logbook)
 ==================================
 
 Rôle :
@@ -81,19 +84,33 @@ Contraintes techniques :
 * Besoin fort de fiabilité
 
 
-Functional-administration (IHM d’administration)
+IHM d’administration (functional-administration)
 ================================================
 
 Rôle :
 
-* Permettre l’administration fonctionnelle de la plateforme
+* Gérer les réfentiels métier de la plate-forme
 
 Fonctions :
 
-* Moteur de reporting (ex : billing, statistiques)
+* Gestion du référentiel des formats (PRONOM)
+* Gestion des règles de gestion des archives
+
+.. todo  : a-t-on ici également les contrats en bêta ?
+
+
+Interface de démonstration (ihm-demo)
+=====================================
+
+Rôle :
+
+* Permettre une utilisation basique de VITAM, notamment sans SIA
+
+Fonctions :
+
 * Représentation des arborescences et des graphes
 * Formulaires dynamiques
-* Suivi des opérations asynchrones
+* Suivi des opérations
 * Gestion des référentiels
 
 Contraintes techniques :
@@ -101,10 +118,9 @@ Contraintes techniques :
 * IHM intuitive (sans workflows métiers), accessible (au sens RGAA), « responsive design» (gestion des résolutions différentes tout en restant sur des écrans « PC » (15’’ et +))
 * Compatibilité avec les navigateurs actuels
 * Pas d’applets/clients lourds
-* Internationalisation (i18n, l10n etc)
 
 
-Storage-offer-default (Offre de stockage par défaut)
+Offre de stockage par défaut (storage-offer-default)
 ====================================================
 
 Rôle :
@@ -116,8 +132,9 @@ Fonctions :
 * Offre de stockage fournie par défaut
 * Stockage simple des objets numériques sur un système de fichiers local
 
-Ingest (externe & interne)
-==========================
+
+Moteur d'entrée (ingest-internal)
+=================================
 
 Rôle :
 
@@ -131,12 +148,12 @@ Fonctions :
 * Lancement des workflows de traitements liés à l'entrée dans processing
 
 
-Access (externe & interne)
-==========================
+Moteur d'accès (access-internal)
+================================
 
 Rôle :
 
-* Permettre l'accès externes aux données du système VITAM
+* Permettre l'accès aux données du système VITAM
   
 Fonction :
 
@@ -144,3 +161,15 @@ Fonction :
 * Exposition des fonctions de parcours de journaux offertes par logbook.
 
 
+API externes (ingest-external et access-external)
+=================================================
+
+Rôle :
+
+* Exposer les API publiques du système
+* Sécuriser l'accès aux API de VITAM
+
+Contraintes techniques :
+
+* Authentification forte requise de la part des clients
+* WAF

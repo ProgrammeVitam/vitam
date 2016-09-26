@@ -5,6 +5,7 @@ L'architecture technique s'appuie sur la vision des flux d'information entre les
 
 .. figure:: images/technical-architecture-legend.*
     :align: center
+    :height: 15 cm
 
     Flux réseau : légende
 
@@ -17,6 +18,8 @@ Les flux réseaux "métier" sont divisés en 3 schémas pour plus de clarté ; t
     :align: center
 
     Architecture technique : flux (1/4 : flux métiers généraux)
+
+.. todo vérifier les flux mongodb notamment
 
 Ensuite, les flux dédiés au dépôt des journaux dans le composant "logbook" :
 
@@ -41,7 +44,8 @@ A l'inverse des flux métier qui relient les composants instanciés de manière 
 
 .. figure:: images/technical-architecture-exploitation.*
     :align: center
+    :height: 15 cm
 
     Architecture technique : flux (4/4 : flux techniques)
 
-.. todo:: Les flux techniques d'accès aux CRL externes ne sont pas représentés sur les schémas ci-dessus.
+.. todo Les flux techniques d'accès aux CRL externes ne sont pas représentés sur les schémas ci-dessus. (à intégrer dans une prochaine version)

@@ -21,7 +21,7 @@ Les principes de sécurité de VITAM, dans cette version, suivent les directives
 Principes de cloisonnement
 --------------------------
 
-Les principes de cloisonnement en zones, et notamment les implications en terme de communication entre ces zones ont été décrits dans :doc:`la section dédiée aux principes de déploiement <fonctionnelle-exploitation/30-principles-deployment>`.
+Les principes de cloisonnement en zones, et notamment les implications en terme de communication entre ces zones ont été décrits dans :doc:`la section dédiée aux principes de déploiement </fonctionnelle-exploitation/30-principles-deployment>`.
 
 
 Principes de sécurisation des accès externes
@@ -29,21 +29,27 @@ Principes de sécurisation des accès externes
 
 Les services logiciels en contact direct avec les clients du SAE (i.e. les services ``*-external``) implémentent les mesures de sécurité suivantes :
 
-.. TODO : Préciser les algo & ciphers valides
+* Chiffrement du transport des données entre les applications externes et VITAM via HTTPS ; par défaut, la configuration suivante est appliquée :
 
-* Chiffrement du transport des données entre les applications externes et VITAM via HTTPS ;
+    - Protocoles exclus : ``SSLv2``, ``SSLv3``
+    - Ciphers exclus : ``.*NULL.*``, ``.*RC4.*``, ``.*MD5.*``, ``.*DES.*``, ``.*DSS.*``
+
+	.. note:: Pour la bêta VITAM, les ciphers recommandés sont : ``TLS_ECDHE.*``, ``TLS_DHE_RSA.*``
+
 * Authentification par certificat x509 requise des applications externes (authentification M2M) basée sur une liste blanche de certificats valides ;
 
     - Lors d’une connexion, la vérification synchrone confirme que le certificat proposé n’est pas expiré (not before, not after) et est bien présent dan le référentiel d’authentification des certificats valides (qui est un fichier keystore contenant la liste des certificats valides) 
     
+    .. note:: Pour la bêta VITAM, la liste des certificats reconnus est stockée dans un keystore Java 
+    
 * Filtrage exhaustif des données et requêtes entrant dans le système basés sur :
 
-    - Un WAF applicatif permettant le filtrage d'entrée filtrant les entrées pouvant être une menace pour le système (intégration de la bibliothèque `ESAPI <https://www.owasp.org/index.php/Category:OWASP_Enterprise_Security_API>`_ )
+    - Un WAF applicatif permettant le filtrage d'entrée filtrant les entrées pouvant être une menace pour le système (intégration de la bibliothèque `ESAPI <https://www.owasp.org/index.php/Category:OWASP_Enterprise_Security_API>`_ protégeant notamment contre les attaques de type XSS)
     - Support de l'utilisation d'un ou plusieurs antivirus (configurables et extensibles) dans le composant d'entrée (``ingest``) permettant de valider l'inocuité des données entrantes.
 
+.. note:: Dans cette version du système, le paramétrage de l'antivirus est supporté lors de l'installation, mais pas le paramétrage d'ESAPI (notamment  les filtres appliquées) ; cette possibilité sera néanmoins ouverte dans une version ultérieure.
 
-Principes d'authentification externes
--------------------------------------
+.. todo Parle-t-on de l'authentification des utisliateurs à l'ihm demo
 
 Liste des secrets
 =================
@@ -68,7 +74,7 @@ Les secrets définis lors de l'installation de VITAM sont les suivants :
 
 
 
-.. todo:: Intégrer (KWA : dans quelle mesure ?) l'étude ebios "cadre" qui aurait déjà été réalisée (recroiser avec Emmanuel).
+.. todo Intégrer (KWA : dans quelle mesure ?) l'étude ebios "cadre" qui aurait déjà été réalisée (recroiser avec Emmanuel).
 
 
 .. Sera à compléter au fur et à mesure.

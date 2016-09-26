@@ -1,20 +1,5 @@
-.. TODO Section à compléter après les premiers tests de performance
+Utilisation des resources informatiques
+#######################################
 
-.. Utilisation des resources informatiques
-.. #######################################
+.. note:: Les abbaques de dimensionnement sont en cours de consolidation ; une première version est pour l'instant disponible dans le tableur de dimensionnement (document externe).
 
-.. Stockage
-.. ========
-
-.. .. todo:: Sujets à adresser : Dossiers attendus / utilisateurs de service système / droits sur dossiers / abbaques d'utilisation du stockage
-
-.. Compute
-.. =======
-
-.. .. todo:: Sujets à adresser : abbaques d'utilisation du CPU
-
-
-.. Réseau
-.. ======
-
-.. .. todo:: Sujets à adresser : abbaques d'utilisation du réseau

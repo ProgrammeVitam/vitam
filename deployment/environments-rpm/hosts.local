@@ -65,7 +65,7 @@ localhost
 localhost
 
 [hosts-storage-offer-default]
-localhost
+localhost 
 
 [hosts-log-server]
 localhost
@@ -73,13 +73,10 @@ localhost
 [hosts-elasticsearch-data]
 localhost
 
-
 [hosts-consul-server]
-
-[hosts-elasticsearch-log]
 localhost
 
-[hosts-log-server]
+[hosts-elasticsearch-log]
 localhost
 
 [hosts:vars]
@@ -99,6 +96,7 @@ vitam_ihm_demo_external_dns=localhost
 https_reverse_proxy=
 proxy_host=
 proxy_port=
-rpm_version=0.8.0-SNAPSHOT*
+rpm_version=*
 days_to_delete=30
-dns_server=
+dns_server=10.100.211.222
+memory_opts="-Xms32m -Xmx256m" 

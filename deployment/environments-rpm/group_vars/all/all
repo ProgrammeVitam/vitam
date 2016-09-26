@@ -34,7 +34,7 @@ vitam_ingestexternal_baseurl: "http://{{vitam_ingestexternal_host}}:{{vitam_inge
 
 # Internal components communication configuration
 vitam_logbook_host: "logbook.service.{{consul_domain}}"
-vitam_logbook_port: 8082
+vitam_logbook_port: 9002
 vitam_logbook_baseurl: "http://{{vitam_logbook_host}}:{{vitam_logbook_port}}"
 
 vitam_workspace_host: "workspace.service.{{consul_domain}}"
@@ -50,11 +50,11 @@ vitam_worker_port: 9104
 vitam_worker_baseurl: "http://{{vitam_worker_host}}:{{vitam_worker_port}}"
 
 vitam_storageengine_host: "storage.service.{{consul_domain}}"
-vitam_storageengine_port: 8082
+vitam_storageengine_port: 9102
 vitam_storageengine_baseurl: "http://{{vitam_storageengine_host}}:{{vitam_storageengine_port}}"
 
 vitam_storageofferdefault_host: "{{ groups['hosts-storage-offer-default'][0] }}"
-vitam_storageofferdefault_port: 8082
+vitam_storageofferdefault_port: 9900
 vitam_storageofferdefault_baseurl: "http://{{vitam_storageofferdefault_host}}:{{vitam_storageofferdefault_port}}"
 
 vitam_functional_administration_host: "{{ groups['hosts-functional-administration'][0] }}"

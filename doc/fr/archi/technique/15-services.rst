@@ -9,5 +9,5 @@ Les estimations de consommation de resources pour chaque composant sont à adapt
    :maxdepth: 1
    :glob:
 
-   *
+   services/*
 

@@ -118,6 +118,12 @@
     - elasticsearch
     - logging
 
+- name: change node name ONLY for localhost use
+  replace: 
+    dest: "{{elasticsearch_conf_dir}}/elasticsearch.yml"
+    regexp: '^network.host:.*$'
+    replace: 'network.host: localhost'
+  when: vitam_environment=='local'
 
 # OMA : inspired from https://hobo.house/2016/04/08/automate-elk-stack-and-clients-with-ansible/
 # TODO : revoir ; 1. templatiser elasticsearch.yml et 2. pointer sous l a directive CONF_DIR {{vitam_root_folder ???}}/conf/{{vitam_component}}
@@ -134,7 +140,7 @@
   replace: 
       dest: /etc/sysconfig/elasticsearch
       regexp: '^#ES_GC_LOG_FILE=.*$'
-      replace: 'ES_GC_LOG_FILE={{elasticsearch_log_dir}}-gc.log'
+      replace: 'ES_GC_LOG_FILE={{elasticsearch_log_dir}}/gc.log'
   register: elasticsearch_updated
   notify:
     - restart elasticsearch
