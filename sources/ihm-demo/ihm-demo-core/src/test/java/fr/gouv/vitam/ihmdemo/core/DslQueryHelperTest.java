@@ -62,6 +62,11 @@ public class DslQueryHelperTest {
             "{\"$eq\":{\"events.obIdIn\":\"name\"}}," + "{\"$exists\":\"PUID\"},{\"$eq\":{\"evTypeProc\":\"INGEST\"}}," +
             "{\"$eq\":{\"title\":\"Archive2\"}}]}\n" + "\tFilter: {\"$limit\":10000,\"$orderby\":{\"evDateTime\":-1}}\n" +
             "\tProjection: {}";
+    
+    private static final String result2 = 
+        "QUERY: Requests: " + "{\"$and\":[{\"$exists\":\"evTypeProc\"},{\"$exists\":\"evIdProc\"}]}\n" +
+        "\tFilter: {\"$limit\":10000}\n" +
+        "\tProjection: {}";
 
     private static final String updateAction =
         "[ " + "{ $set : { mavar1 : 1, mavar2 : 1.2, mavar3 : true, mavar4 : 'ma chaine' } }," +
@@ -112,6 +117,26 @@ public class DslQueryHelperTest {
         final SelectParserSingle request2 = new SelectParserSingle();
         request2.parse(JsonHandler.getFromString(request));
         assertEquals(result, request2.toString());
+    }
+    
+    /**
+     * @throws InvalidParseOperationException
+     * @throws InvalidCreateOperationException
+     */
+    @Test
+    public void testCreateSingleQueryDSLEvent() 
+        throws InvalidParseOperationException, InvalidCreateOperationException{
+        HashMap<String, String> myHashMap = new HashMap<String, String>();
+        
+        myHashMap.put("EventID", "all");
+        myHashMap.put("EventType", "all");
+        String request = DslQueryHelper.createSingleQueryDSL(myHashMap);
+        assertNotNull(request);
+        final SelectParserSingle request2 = new SelectParserSingle();
+        request2.parse(JsonHandler.getFromString(request));
+        assertEquals(result2, request2.toString());
+        System.out.println(request2.toString());
+        
     }
 
     @Test
