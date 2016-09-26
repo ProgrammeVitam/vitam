@@ -210,6 +210,37 @@ public class LogbookLifeCyclesImplTest {
         logbookLifeCyclesImpl.rollbackObjectGroup(iop.toString(), ioL.toString());
     }
 
+    @Test(expected = LogbookDatabaseException.class)
+    public void givenSelectObjectGroupLifeCycleWhenErrorInMongoThenThrowLogbookException() throws Exception {
+        Mockito.doThrow(LogbookDatabaseException.class).when(mongoDbAccess)
+            .getLogbookLifeCycleObjectGroups(anyObject());
+        logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
+        logbookLifeCyclesImpl.selectObjectGroup(null);
+    }
+
+    @Test(expected = LogbookNotFoundException.class)
+    public void givenSelectObjectGroupLifeCycleWhenOperationNotExistsThenThrowLogbookException() throws Exception {
+        Mockito.doThrow(LogbookNotFoundException.class).when(mongoDbAccess)
+            .getLogbookLifeCycleObjectGroups(anyObject());
+        logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
+        logbookLifeCyclesImpl.selectObjectGroup(null);
+    }
+
+    @Test(expected = LogbookDatabaseException.class)
+    public void givenSelectUnitLifeCycleWhenErrorInMongoThenThrowLogbookException() throws Exception {
+        Mockito.doThrow(LogbookDatabaseException.class).when(mongoDbAccess)
+            .getLogbookLifeCycleUnits(anyObject());
+        logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
+        logbookLifeCyclesImpl.selectUnit(null);
+    }
+
+    @Test(expected = LogbookNotFoundException.class)
+    public void givenSelectUnitLifeCycleWhenOperationNotExistsThenThrowLogbookException() throws Exception {
+        Mockito.doThrow(LogbookNotFoundException.class).when(mongoDbAccess)
+            .getLogbookLifeCycleUnits(anyObject());
+        logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
+        logbookLifeCyclesImpl.selectUnit(null);
+    }
 }
 
 

@@ -55,9 +55,9 @@ abstract class LogbookLifeCycle<T> extends VitamDocument<LogbookLifeCycle<T>> {
      */
     public LogbookLifeCycle(LogbookParameters parameters) {
         ParametersChecker.checkParameter("parameters", parameters);
-        // Fill information using LogbookMongoDbName
+        // Fill information using LogbookLifeCycleMongoDbName
         final Map<LogbookParameterName, String> map = parameters.getMapParameters();
-        for (final LogbookMongoDbName name : LogbookMongoDbName.values()) {
+        for (final LogbookLifeCycleMongoDbName name : LogbookLifeCycleMongoDbName.values()) {
             append(name.getDbname(), map.get(name.getLogbookParameterName()));
         }
         append(LogbookDocument.EVENTS, Arrays.asList(new String[0]));

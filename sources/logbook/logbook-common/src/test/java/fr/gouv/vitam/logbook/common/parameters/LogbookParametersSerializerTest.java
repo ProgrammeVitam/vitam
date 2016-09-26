@@ -62,7 +62,7 @@ public class LogbookParametersSerializerTest {
                 "\"agentIdentifierApplicationSession\":\"agentIdentifierApplicationSession\",\"eventIdentifierRequest\":\"eventIdentifierRequest\"," +
                 "\"agentIdentifierSubmission\":\"agentIdentifierSubmission\",\"agentIdentifierOriginating\":\"agentIdentifierOriginating\"," +
                 "\"objectIdentifier\":\"objectIdentifier\",\"objectIdentifierRequest\":\"objectIdentifierRequest\"," +
-                "\"objectIdentifierIncome\":\"objectIdentifierIncome\"}")));
+                "\"objectIdentifierIncome\":\"objectIdentifierIncome\",\"eventDetailData\":\"eventDetailData\"}")));
     }
 
 
