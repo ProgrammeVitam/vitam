@@ -534,11 +534,18 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
         @SuppressWarnings("rawtypes")
         final VitamDocument document = getDocument(item);
         try {
+            // Save the _id content before removing it
+            String mainLogbookDocumentId = document.getId();
+
+            // Remove _id and events fields
+            document.remove(LogbookDocument.EVENTS);
+            document.remove(LogbookDocument.ID);
+
             final UpdateResult result = collection.getCollection().updateOne(
-                eq(LogbookDocument.ID, document.getId()),
+                eq(LogbookDocument.ID, mainLogbookDocumentId),
                 Updates.push(LogbookDocument.EVENTS, document));
             if (result.getModifiedCount() != 1) {
-                throw new LogbookNotFoundException(UPDATE_NOT_FOUND_ITEM + document.getId());
+                throw new LogbookNotFoundException(UPDATE_NOT_FOUND_ITEM + mainLogbookDocumentId);
             }
         } catch (final MongoException e) {
             switch (getErrorCategory(e)) {
@@ -625,7 +632,10 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
         if (items != null && items.length > 0) {
             final List<VitamDocument> events = new ArrayList<>(items.length);
             for (final LogbookParameters item2 : items) {
-                events.add(getDocument(item2));
+                VitamDocument currentEvent = getDocument(item2);
+                currentEvent.remove(LogbookDocument.EVENTS);
+                currentEvent.remove(LogbookDocument.ID);
+                events.add(currentEvent);
             }
             document.append(LogbookDocument.EVENTS, events);
         }
@@ -675,16 +685,30 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
             throw new IllegalArgumentException(AT_LEAST_ONE_ITEM_IS_NEEDED);
         }
         final List<VitamDocument> events = new ArrayList<>(items.length);
-        for (final LogbookParameters item : items) {
-            events.add(getDocument(item));
+
+        // Get the first event to preserve the _id field value
+        final VitamDocument firstEvent = getDocument(items[0]);
+        String mainLogbookDocumentId = firstEvent.getId();
+
+        firstEvent.remove(LogbookDocument.EVENTS);
+        firstEvent.remove(LogbookDocument.ID);
+        events.add(firstEvent);
+
+        for (int i = 1; i < items.length; i++) {
+            // Remove _id and events fields
+            VitamDocument currentEvent = getDocument(items[i]);
+            currentEvent.remove(LogbookDocument.EVENTS);
+            currentEvent.remove(LogbookDocument.ID);
+
+            events.add(currentEvent);
         }
+
         try {
-            final VitamDocument item = events.get(0);
             final UpdateResult result = collection.getCollection().updateOne(
-                eq(LogbookDocument.ID, item.getId()),
+                eq(LogbookDocument.ID, mainLogbookDocumentId),
                 Updates.pushEach(LogbookDocument.EVENTS, events));
             if (result.getModifiedCount() != 1) {
-                throw new LogbookNotFoundException(UPDATE_NOT_FOUND_ITEM + item.getId());
+                throw new LogbookNotFoundException(UPDATE_NOT_FOUND_ITEM + mainLogbookDocumentId);
             }
         } catch (final MongoException e) {
             switch (getErrorCategory(e)) {

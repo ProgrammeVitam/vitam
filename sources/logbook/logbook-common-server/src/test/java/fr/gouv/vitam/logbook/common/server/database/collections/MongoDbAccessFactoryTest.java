@@ -107,6 +107,14 @@ public class MongoDbAccessFactoryTest {
             assertEquals(name,
                 LogbookMongoDbName.getFromDbname(name.getDbname()));
         }
+
+        assertEquals(LogbookLifeCycleMongoDbName.eventDetailData,
+            LogbookLifeCycleMongoDbName.getLogbookLifeCycleMongoDbName(LogbookParameterName.eventDetailData));
+        for (final LogbookLifeCycleMongoDbName name : LogbookLifeCycleMongoDbName.values()) {
+            assertEquals(name,
+                LogbookLifeCycleMongoDbName.getFromDbname(name.getDbname()));
+        }
+
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters();
         for (final LogbookParameterName name : LogbookParameterName.values()) {
             parameters.putParameterValue(name,
