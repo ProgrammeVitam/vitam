@@ -554,7 +554,9 @@ angular.module('archive.unit')
           a.href = url;
           a.download = fileName;
           a.click();
-          window.URL.revokeObjectURL(url);
+          setTimeout(function() {
+            window.URL.revokeObjectURL(url);
+          }, 100);
         },function (error) {
           console.log('ERROR : '+error);
         });
