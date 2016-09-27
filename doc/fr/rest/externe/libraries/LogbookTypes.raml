@@ -1,0 +1,42 @@
+#%RAML 1.0 Library
+usage: |
+  Use to define global types for Logbook
+
+uses:
+    StandardTypes: StandardTypes.raml
+    DslTypes: DslTypes.raml
+
+#Pour le moment, LogbookResponse est générique (operations, unitlifecycle, objectlifecycle) mais
+#à l'avenir, il conviendra certainement de gérer plusieurs type
+types:
+  LogbookResponse:
+    description: Logbook Response
+    properties:
+      $hits:
+        description: Contains the hits for the response
+        required: true
+        type: object
+        properties:
+          total:
+            description: Total estimated possible answears
+            type: integer
+          offset:
+            description: Offset on possible answears
+            type: integer
+          limit:
+            description: Limit specified in the request (or implicit) from Offset
+            type: integer
+          size:
+            description: Number of currently returned answears
+            type: integer
+          time_out?:
+            description: True means the request was too long and so only partial result could be retrieved
+            type: boolean
+      $context:
+        required: true
+        description: Contains Request related to this to reply
+        type: DslTypes.DslQuery
+      $results:
+        required: true
+        description: Contains list of items
+        type: object[]

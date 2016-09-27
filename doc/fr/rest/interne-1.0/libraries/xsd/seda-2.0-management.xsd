@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+    targetNamespace="fr:gouv:culture:archivesdefrance:seda:v2.0"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0"
+    elementFormDefault="qualified"
+    attributeFormDefault="unqualified"
+    version="1.0">
+    <xsd:include schemaLocation="seda-2.0-types.xsd"/>
+    
+    <!--
+                *****************************
+                ***   Code List
+                *****************************
+ 
+        -->
+    <xsd:group name="ManagementCodeListsGroup">
+        <xsd:annotation>
+            <xsd:documentation>Listes de codes nécessaires dans les métadonnées de gestion.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:group ref="StorageRuleCodeListGroup" minOccurs="0"/>
+            <xsd:group ref="AppraisalRuleCodeListGroup" minOccurs="0"/>
+            <xsd:group ref="AccessRuleCodeListGroup" minOccurs="0"/>
+            <xsd:group ref="DisseminationRuleCodeListGroup" minOccurs="0"/>
+            <xsd:group ref="ReuseRuleCodeListGroup" minOccurs="0"/>
+            <xsd:group ref="ClassificationRuleCodeListGroup" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:group>
+
+    <!-- Management Lists and Codes -->
+    <xsd:complexType name="RuleIdType">
+        <xsd:annotation>
+            <xsd:documentation>Identifiant de la règle de gestion.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:simpleContent>
+            <xsd:extension base="NonEmptyTokenType">
+                <xsd:attribute name="id" type="xsd:ID" use="optional"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    
+    <xsd:group name="AccessRuleCodeListGroup">
+        <xsd:sequence>
+            <xsd:element name="AccessRuleCodeListVersion" type="CodeType">
+                <xsd:annotation>
+                    <xsd:documentation>Version des listes de codes pour les règles de communicabilité.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:group>
+    
+    <xsd:group name="DisseminationRuleCodeListGroup">
+        <xsd:sequence>
+            <xsd:element name="DisseminationRuleCodeListVersion" type="CodeType">
+                <xsd:annotation>
+                    <xsd:documentation>Version des listes de codes pour les règles de diffusion.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:group>
+    
+    <xsd:group name="ReuseRuleCodeListGroup">
+        <xsd:sequence>
+            <xsd:element name="ReuseRuleCodeListVersion" type="CodeType">
+                <xsd:annotation>
+                    <xsd:documentation>Version des listes de codes pour les règles de réutilisation.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:group>
+    
+    <xsd:group name="ClassificationRuleCodeListGroup">
+        <xsd:sequence>
+            <xsd:element name="ClassificationRuleCodeListVersion" type="CodeType">
+                <xsd:annotation>
+                    <xsd:documentation>Version des listes de codes pour les règles de classification.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:group>
+    
+    <xsd:group name="AppraisalRuleCodeListGroup">
+        <xsd:sequence>
+            <xsd:element name="AppraisalRuleCodeListVersion" type="CodeType">
+                <xsd:annotation>
+                    <xsd:documentation>Version des listes de codes pour les règles de durée d'utilité administrative.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:group>
+    
+    <xsd:group name="StorageRuleCodeListGroup">
+        <xsd:sequence>
+            <xsd:element name="StorageRuleCodeListVersion" type="CodeType">
+                <xsd:annotation>
+                    <xsd:documentation>Version des listes de codes pour les règles de durée d'utilité courante.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:group>
+    
+    <!-- Management content -->
+    <xsd:group name="ManagementGroup">
+        <xsd:annotation>
+            <xsd:documentation>Contient les métadonnées de gestion.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="StorageRule" type="StorageRuleType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Gestion de la durée d’utilité courante.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="AppraisalRule" type="AppraisalRuleType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Gestion de la durée d’utilité administrative.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="AccessRule" type="AccessRuleType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Gestion de la communicabilité.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="DisseminationRule" type="DisseminationRuleType"
+                minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Gestion de la diffusion.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="ReuseRule" type="ReuseRuleType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Gestion de la réutilisation.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="ClassificationRule" type="ClassificationRuleType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Gestion de la classification.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="NeedAuthorization" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Indique si une autorisation humaine est nécessaire pour vérifier ou valider les opérations de gestion des ArchiveUnit.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element ref="OtherManagementAbstract" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>Autres métadonnées de gestion.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:group>
+    
+    <!-- Example of codification of one Rule Code oustide SEDA in an external referential -->
+    <xsd:complexType name="DurationRuleType">
+        <xsd:annotation>
+            <xsd:documentation>Permet d'exprimer pour une règle de gestion quelles informations doivent en découler.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="RuleId" type="RuleIdType">
+                <xsd:annotation>
+                    <xsd:documentation>Identifiant de la règle</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Value" type="MeasurementDurationType"/>
+            <xsd:element name="Description" type="xsd:string"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:simpleType name="MeasurementDurationUnitsType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="day"/>
+            <xsd:enumeration value="DAY"/>
+            <xsd:enumeration value="month"/>
+            <xsd:enumeration value="MON"/>
+            <xsd:enumeration value="year"/>
+            <xsd:enumeration value="ANN"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:complexType name="MeasurementDurationType">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:nonNegativeInteger">
+                <xsd:attribute name="unit" type="MeasurementDurationUnitsType" use="required"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+        
+    <!-- Global inheritance control -->
+    <xsd:group name="PreventInheritanceGroup">
+        <xsd:choice>
+            <xsd:element name="PreventInheritance" type="xsd:boolean" default="false" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Indique si les règles de gestion héritées des ArchiveUnit parents doivent être ignorées pour l’ArchiveUnit concerné.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:choice>
+    </xsd:group>
+    
+    <xsd:complexType name="AccessRuleType">
+        <xsd:annotation>
+            <xsd:documentation>Gestion de la communicabilité.</xsd:documentation>
+            <xsd:documentation>Chaque règle a une startDate et un Identifiant de règle de référence pour la durée.
+                Si aucune règle n'est spécifiée et que la date actuelle est dans la StarDate, la réponse de restriction est "Aucune restriction".
+                Si la date est vide, la réponse de restriction est "Restreint" car il n'y a aucun moyen de calculer la date de fin.
+                Si une règle et une date sont précisées, alors la date de fin d'application de la règle peut être calculée et comparée avec la date courante..</xsd:documentation>
+            <xsd:documentation>La liste d'identifiants de règles à appliquer et à ignorer qui doit être appliquée à partir de cet ArchiveUnit.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:sequence minOccurs="0" maxOccurs="unbounded">
+                <xsd:element name="Rule" type="RuleIdType">
+                    <xsd:annotation>
+                        <xsd:documentation>Référence à la règle de communicabilité.</xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="StartDate" type="xsd:date" nillable="true" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>Date de départ de calcul de la règle de communicabilité.</xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:sequence>
+            <xsd:choice minOccurs="0">
+                <xsd:group ref="PreventInheritanceGroup"/>
+                <xsd:element name="RefNonRuleId" type="RuleIdType" maxOccurs="unbounded">
+                    <xsd:annotation>
+                        <xsd:documentation>Identifiant de la règle à désactiver à partir de cette ArchiveUnit.</xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:choice>
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="DisseminationRuleType">
+        <xsd:annotation>
+            <xsd:documentation>Gestion de la diffusion.</xsd:documentation>
+            <xsd:documentation>Chaque règle a une startDate et un Identifiant de règle de référence pour la durée.
+                Si aucune règle n'est spécifiée et que la date actuelle est dans la StarDate, la réponse de restriction est "Aucune restriction".
+                Si la date est vide, la réponse de restriction est "Restreint" car il n'y a aucun moyen de calculer la date de fin.
+                Si une règle et une date sont précisées, alors la règle est valable (restriction appliquée).</xsd:documentation>
+            <xsd:documentation>La liste d'identifiants de règles à appliquer et à ignorer qui doit être appliquée à partir de cet ArchiveUnit.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:sequence minOccurs="0" maxOccurs="unbounded">
+                <xsd:element name="Rule" type="RuleIdType">
+                    <xsd:annotation>
+                        <xsd:documentation>Référence à la règle de diffusion.</xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="StartDate" type="xsd:date" nillable="true" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>Date de départ de calcul de la règle de diffusion.</xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:sequence>
+            <xsd:choice minOccurs="0">
+                <xsd:group ref="PreventInheritanceGroup"/>
+                <xsd:element name="RefNonRuleId" type="RuleIdType" maxOccurs="unbounded">
+                    <xsd:annotation>
+                        <xsd:documentation>L'identifiant de la règle spécifiée pourra être retirée de l'héritage dans ce noeud.</xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:choice>
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="ReuseRuleType">
+        <xsd:annotation>
+            <xsd:documentation>Gestion de la réutilisation.</xsd:documentation>
+            <xsd:documentation>Chaque règle a une startDate et un Identifiant de règle de référence pour la durée.
+                Si aucune règle n'est spécifiée et que la date actuelle est dans la StarDate, la réponse de restriction est "Aucune restriction".
+                Si la date est vide, la réponse de restriction est "Restreint" car il n'y a aucun moyen de calculer la date de fin.
+                Si une règle et une date sont précisées, alors la règle est valable (restriction appliquée).</xsd:documentation>
+            <xsd:documentation>La liste d'identifiants de règles à appliquer et à ignorer qui doit être appliquée à partir de cet ArchiveUnit.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:sequence minOccurs="0" maxOccurs="unbounded">
+                <xsd:element name="Rule" type="RuleIdType">
+                    <xsd:annotation>
+                        <xsd:documentation>Référence à la règle de réutilisation.</xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="StartDate" type="xsd:date" nillable="true" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>Date de départ de calcul de la règle de réutilisation.</xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:sequence>
+            <xsd:choice minOccurs="0">
+                <xsd:group ref="PreventInheritanceGroup"/>
+                <xsd:element name="RefNonRuleId" type="RuleIdType" maxOccurs="unbounded">
+                    <xsd:annotation>
+                        <xsd:documentation>L'identifiant de la règle spécifiée pourra être retirée de l'héritage dans ce noeud.</xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:choice>
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="ClassificationRuleType">
+        <xsd:annotation>
+            <xsd:documentation>Gestion de la classification.</xsd:documentation>
+            <xsd:documentation>Chaque règle a une startDate et un Identifiant de règle de référence pour la durée.
+                Si aucune règle n'est spécifiée et que la date actuelle est dans la StarDate, la réponse de restriction est "Aucune restriction".
+                Si la date est vide, la réponse de restriction est "Restreint" car il n'y a aucun moyen de calculer la date de fin.
+                Si une règle et une date sont précisées, alors la règle est valable (restriction appliquée).</xsd:documentation>
+            <xsd:documentation>La liste d'identifiants de règles à appliquer et à ignorer qui doit être appliquée à partir de cet ArchiveUnit.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:sequence minOccurs="0" maxOccurs="unbounded">
+                <xsd:element name="Rule" type="RuleIdType">
+                    <xsd:annotation>
+                        <xsd:documentation>Référence à la règle de classification.</xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="StartDate" type="xsd:date" nillable="true" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>Date de départ de calcul de la règle de classification.</xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:sequence>
+            <xsd:choice minOccurs="0">
+                <xsd:group ref="PreventInheritanceGroup"/>
+                <xsd:element name="RefNonRuleId" type="RuleIdType" maxOccurs="unbounded">
+                    <xsd:annotation>
+                        <xsd:documentation>L'identifiant de la règle spécifiée pourra être retirée de l'héritage dans ce noeud.</xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:choice>
+            <xsd:element name="ClassificationLevel" type="NonEmptyTokenType">
+                <xsd:annotation>
+                    <xsd:documentation>Référence au niveau de classification.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="ClassificationOwner" type="NonEmptyTokenType">
+                <xsd:annotation>
+                    <xsd:documentation>Propriétaire de la classification. Service émetteur au sens de l’IGI 1300.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="ClassificationReassessingDate" type="xsd:date" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Date de réévaluation de la classification.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="NeedReassessingAuthorization" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Indique si une autorisation humaine est nécessaire pour réévaluer la classification.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:simpleType name="FinalActionStorageCodeType">
+        <xsd:annotation>
+            <xsd:documentation>Code correspondant à l’action à entreprendre au terme de la durée d’utilité courante.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="NonEmptyTokenType">
+            <xsd:enumeration value="RestrictAccess"/>
+            <xsd:enumeration value="Transfer"/>
+            <xsd:enumeration value="Copy"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="StorageRuleType">
+        <xsd:annotation>
+            <xsd:documentation>Gestion de la durée d'utilité courante.</xsd:documentation>
+            <xsd:documentation>Chaque règle a une startDate et un Identifiant de règle de référence pour la durée.
+                Si aucune règle n'est spécifiée et que la date actuelle est dans la StarDate, la réponse de restriction est "Aucune restriction".
+                Si la date est vide, la réponse de restriction est "Restreint" car il n'y a aucun moyen de calculer la date de fin.
+                Si une règle et une date sont précisées, alors la règle est valable (restriction appliquée).</xsd:documentation>
+            <xsd:documentation>La liste d'identifiants de règles à appliquer et à ignorer qui doit être appliquée à partir de cet ArchiveUnit.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:sequence minOccurs="0" maxOccurs="unbounded">
+                <xsd:element name="Rule" type="RuleIdType">
+                    <xsd:annotation>
+                        <xsd:documentation>Référence à la règle de durée d'utilité courante.</xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="StartDate" type="xsd:date" nillable="true" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>Date de départ de calcul de la règle d'utilité courante.</xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:sequence>
+            <xsd:choice minOccurs="0">
+                <xsd:group ref="PreventInheritanceGroup"/>
+                <xsd:element name="RefNonRuleId" type="RuleIdType" maxOccurs="unbounded">
+                    <xsd:annotation>
+                        <xsd:documentation>L'identifiant de la règle spécifiée pourra être retirée de l'héritage dans ce noeud.</xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:choice>
+            <xsd:element name="FinalAction" type="FinalActionStorageCodeType">
+                <xsd:annotation>
+                    <xsd:documentation>Action à mettre en œuvre au terme de la durée de gestion.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:simpleType name="FinalActionAppraisalCodeType">
+        <xsd:annotation>
+            <xsd:documentation>Code correspondant à l’action à entreprendre au terme de la durée d’utilité administrative.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="NonEmptyTokenType">
+            <xsd:enumeration value="Keep"/>
+            <xsd:enumeration value="Destroy"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="AppraisalRuleType">
+        <xsd:annotation>
+            <xsd:documentation>Gestion de la durée d'utilité administrative.</xsd:documentation>
+            <xsd:documentation>Chaque règle a une startDate et un Identifiant de règle de référence pour la durée.
+                Si aucune règle n'est spécifiée et que la date actuelle est dans la StarDate, la réponse de restriction est "Aucune restriction".
+                Si la date est vide, la réponse de restriction est "Restreint" car il n'y a aucun moyen de calculer la date de fin.
+                Si une règle et une date sont précisées, alors la règle est valable (restriction appliquée).</xsd:documentation>
+            <xsd:documentation>La liste d'identifiants de règles à appliquer et à ignorer qui doit être appliquée à partir de cet ArchiveUnit.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:sequence minOccurs="0" maxOccurs="unbounded">
+                <xsd:element name="Rule" type="RuleIdType">
+                    <xsd:annotation>
+                        <xsd:documentation>Référence à la règle de durée d'utilité administrative.</xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="StartDate" type="xsd:date" nillable="true" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>Date de départ de calcul de durée d'utilité administrative.</xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:sequence>
+            <xsd:choice minOccurs="0">
+                <xsd:group ref="PreventInheritanceGroup"/>
+                <xsd:element name="RefNonRuleId" type="RuleIdType" maxOccurs="unbounded">
+                    <xsd:annotation>
+                        <xsd:documentation>L'identifiant de la règle spécifiée pourra être retirée de l'héritage dans ce noeud.</xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:choice>
+            <xsd:element name="FinalAction" type="FinalActionAppraisalCodeType">
+                <xsd:annotation>
+                    <xsd:documentation>Action à mettre en œuvre au terme de la durée de gestion.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+</xsd:schema>

@@ -1,0 +1,24 @@
+{
+  "id": "id",
+  "original_technical_metadata": {},
+  "storages": [
+    { "contract_id": "preservation_contract_id_conservation_1",
+    "versions": [
+      { "id": "id_version_1", "technical_metadata": {}, "storage": [ { "ccfn_id": "id1", "storage_digest": "digest" }, { "ccfn_id": "id2", "storage_digest": "digest" }, { "ccfn_id": "id3", "storage_digest": "digest" } ] },
+      { "id": "id_version_2", "technical_metadata": {}, "storage": [ { "ccfn_id": "id1", "storage_digest": "digest" }, { "ccfn_id": "id2", "storage_digest": "digest" }, { "ccfn_id": "id3", "storage_digest": "digest" } ] },
+      { "id": "id_version_3", "technical_metadata": {}, "storage": [ { "ccfn_id": "id1", "storage_digest": "digest" }, { "ccfn_id": "id2", "storage_digest": "digest" }, { "ccfn_id": "id3", "storage_digest": "digest" } ] }
+    ]
+  },
+  { "contract_id": "preservation_contract_id_diffusion_big_1",
+    "versions": [
+      { "id": "id_version_4", "technical_metadata": {}, "storage": [ { "ccfn_id": "id1", "storage_digest": "digest" }, { "ccfn_id": "id3", "storage_digest": "digest" } ] },
+      { "id": "id_version_5", "technical_metadata": {}, "storage": [ { "ccfn_id": "id1", "storage_digest": "digest" }, { "ccfn_id": "id3", "storage_digest": "digest" } ] }
+    ]
+  },
+  { "contract_id": "preservation_contract_id_diffusion_1",
+    "versions": [
+      { "id": "id_version_6", "technical_metadata": {}, "storage": [ { "ccfn_id": "id4", "storage_digest": "digest" } ] }
+    ]
+  }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "destruction": { "frequency": "0|0|0|0|1","callback": "callback_uri" },
+  "destruction_journalisation": { "frequency": "0|0|0|0|1", "callback": "callback_uri" },
+  "default_access_contract": "id",
+  "default_ingest_contract": "id",
+  "audit": { "frequency": "0|0|0|0|1", "callback": "callback_uri" },
+  "specialized": [
+    { "audit": { "ingest_contract_id": "id", "frequency": "0|0|0|0|1", "callback": "callback_uri" } },
+    { "audit": { "access_contract_id": "id", "frequency": "0|0|0|0|1", "callback": "callback_uri" } }
+  ]
+}

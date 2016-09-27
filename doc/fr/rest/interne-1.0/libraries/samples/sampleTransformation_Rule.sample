@@ -1,0 +1,9 @@
+{
+  "id": "$id_transformation$",
+  "name": "abcdef",
+  "creation_date": "2015-07-14T17:07:14Z",
+  "from_fmt": "$id_format$",
+  "to_fmt": "ftm/123",
+  "tool": "xxx",
+  "numerical_information": 55.3
+}

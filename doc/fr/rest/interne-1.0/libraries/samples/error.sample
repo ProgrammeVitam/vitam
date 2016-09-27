@@ -1,0 +1,12 @@
+{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "File_Not_Found",
+  "message": "File is not found",
+  "description": "Operation on file xxx cannot be done since file is not found",
+  "errors": [
+    { "code": 415, "vitamCode": 123457, "context": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+    { "code": 412, "vitamCode": 123458, "context": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+  ]
+}
