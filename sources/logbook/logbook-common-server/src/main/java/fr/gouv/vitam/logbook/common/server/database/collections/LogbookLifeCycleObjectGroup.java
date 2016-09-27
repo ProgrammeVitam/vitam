@@ -44,6 +44,7 @@ public class LogbookLifeCycleObjectGroup extends LogbookLifeCycle<LogbookLifeCyc
         super(parameters);
     }
 
+    
     /**
      * Constructor for Codec
      *

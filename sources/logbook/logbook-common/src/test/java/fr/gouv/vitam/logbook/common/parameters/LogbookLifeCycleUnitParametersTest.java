@@ -162,4 +162,10 @@ public class LogbookLifeCycleUnitParametersTest {
         params.getMapParameters().put(LogbookParameterName.eventDateTime, dateTime.toString());
         assertEquals(dateTime, params.getEventDateTime());
     }
+
+    @Test
+    public void testConstructorWithEmptyParameters() {
+        LogbookLifeCycleUnitParameters llcup = new LogbookLifeCycleUnitParameters(new HashMap());
+        assertEquals(true, llcup.getMapParameters().isEmpty());
+    }
 }

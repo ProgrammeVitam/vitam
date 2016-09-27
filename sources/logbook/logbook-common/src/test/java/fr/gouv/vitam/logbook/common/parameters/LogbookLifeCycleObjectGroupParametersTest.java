@@ -162,4 +162,10 @@ public class LogbookLifeCycleObjectGroupParametersTest {
         params.getMapParameters().put(LogbookParameterName.eventDateTime, dateTime.toString());
         assertEquals(dateTime, params.getEventDateTime());
     }
+    
+    @Test
+    public void testConstructorWithEmptyParameters() {
+        LogbookLifeCycleObjectGroupParameters llcogp = new LogbookLifeCycleObjectGroupParameters(new HashMap());
+        assertEquals(true,llcogp.getMapParameters().isEmpty());
+    }
 }

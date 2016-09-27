@@ -47,6 +47,10 @@ public enum LogbookMongoDbName {
      */
     eventDateTime("evDateTime", LogbookParameterName.eventDateTime),
     /**
+     * eventDetailData
+     */
+    eventDetailData("evDetData", LogbookParameterName.eventDetailData),
+    /**
      * eventIdentifierProcess
      */
     eventIdentifierProcess("evIdProc", LogbookParameterName.eventIdentifierProcess),
@@ -159,6 +163,8 @@ public enum LogbookMongoDbName {
                 return LogbookMongoDbName.eventIdentifier;
             case "evIdProc":
                 return LogbookMongoDbName.eventIdentifierProcess;
+            case "evDetData":
+                return LogbookMongoDbName.eventDetailData;
             case "evIdReq":
                 return LogbookMongoDbName.eventIdentifierRequest;
             case "evType":

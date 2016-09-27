@@ -30,8 +30,11 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
+import java.util.List;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -107,14 +110,20 @@ public class MongoDbAccessFactoryTest {
             assertEquals(name,
                 LogbookMongoDbName.getFromDbname(name.getDbname()));
         }
-
+        
         assertEquals(LogbookLifeCycleMongoDbName.eventDetailData,
             LogbookLifeCycleMongoDbName.getLogbookLifeCycleMongoDbName(LogbookParameterName.eventDetailData));
+        
         for (final LogbookLifeCycleMongoDbName name : LogbookLifeCycleMongoDbName.values()) {
             assertEquals(name,
                 LogbookLifeCycleMongoDbName.getFromDbname(name.getDbname()));
         }
 
+        try {
+            LogbookMongoDbName.getFromDbname("fakeValue");
+            fail("Should throw an exception");            
+        } catch (final IllegalArgumentException e) {}
+        
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters();
         for (final LogbookParameterName name : LogbookParameterName.values()) {
             parameters.putParameterValue(name,
@@ -124,13 +133,29 @@ public class MongoDbAccessFactoryTest {
             LocalDateUtil.now().toString());
 
         final LogbookOperation operation = new LogbookOperation(parameters);
+        final LogbookOperation operation1 = new LogbookOperation(parameters, true);
         final LogbookOperation operation2 = new LogbookOperation(operation.toJson());
+        final LogbookOperation operation3 = new LogbookOperation(parameters, false);
         assertEquals(operation.getId(), operation2.getId());
         assertEquals(operation.getTenantId(), operation2.getTenantId());
         assertNotNull(MongoDbHelper.bsonToString(operation, true));
         assertNotNull(MongoDbHelper.bsonToString(operation, false));
         assertTrue(MongoDbHelper.bsonToString(null, false).isEmpty());
+        
+        String operation1String = MongoDbHelper.bsonToString(operation1, true);
+        assertTrue(operation1String.contains(LogbookMongoDbName.eventDetailData.getDbname()));
+        assertFalse(operation1String.contains(LogbookMongoDbName.agentIdentifierApplication.getDbname()));
+        assertFalse(operation1String.contains(LogbookMongoDbName.agentIdentifierApplicationSession.getDbname()));
+        assertFalse(operation1String.contains(LogbookMongoDbName.agentIdentifierOriginating.getDbname()));
+        assertFalse(operation1String.contains(LogbookMongoDbName.agentIdentifierSubmission.getDbname()));
 
+        String operation3String = MongoDbHelper.bsonToString(operation3, true);
+        assertTrue(operation3String.contains(LogbookMongoDbName.eventDetailData.getDbname()));
+        assertTrue(operation3String.contains(LogbookMongoDbName.agentIdentifierApplication.getDbname()));
+        assertTrue(operation3String.contains(LogbookMongoDbName.agentIdentifierApplicationSession.getDbname()));
+        assertTrue(operation3String.contains(LogbookMongoDbName.agentIdentifierOriginating.getDbname()));
+        assertTrue(operation3String.contains(LogbookMongoDbName.agentIdentifierSubmission.getDbname()));
+        
         assertTrue(LogbookOperation.getIdName().equals(LogbookMongoDbName.eventIdentifierProcess));
         assertTrue(LogbookOperation.getIdParameterName().equals(LogbookParameterName.eventIdentifierProcess));
         final LogbookLifeCycleObjectGroup lifeCycleObjectGroup = new LogbookLifeCycleObjectGroup(operation.toJson());
@@ -139,6 +164,7 @@ public class MongoDbAccessFactoryTest {
         final LogbookLifeCycleUnit lifeCycleUnit = new LogbookLifeCycleUnit(operation.toJson());
         assertTrue(LogbookLifeCycle.getIdName().equals(LogbookMongoDbName.objectIdentifier));
         assertTrue(LogbookLifeCycle.getIdParameterName().equals(LogbookParameterName.objectIdentifier));
+        
     }
 
     @Test
@@ -240,7 +266,25 @@ public class MongoDbAccessFactoryTest {
         assertEquals(nbl, mongoDbAccess.getLogbookLifeCyleUnitSize());
         assertEquals(nbo + 1, mongoDbAccess.getLogbookOperationSize());
         final String eip = parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess);
-        assertNotNull(mongoDbAccess.getLogbookOperation(eip));
+        LogbookOperation ragnarLogbook = mongoDbAccess.getLogbookOperation(eip);
+        assertNotNull(ragnarLogbook);
+        List<LogbookOperationParameters> listeOperations = ragnarLogbook.getOperations(true);
+        // Operation 0 is the insertion, so it should contain all the fields
+        LogbookOperationParameters operation0 = listeOperations.get(0);
+        assertNotNull(operation0);
+        assertNotNull(operation0.getParameterValue(LogbookParameterName.agentIdentifierApplication));
+        assertNotNull(operation0.getParameterValue(LogbookParameterName.agentIdentifierApplicationSession));
+        assertNotNull(operation0.getParameterValue(LogbookParameterName.agentIdentifierOriginating));
+        assertNotNull(operation0.getParameterValue(LogbookParameterName.agentIdentifierSubmission));
+        assertNotNull(operation0.getParameterValue(LogbookParameterName.eventDetailData));
+        // Operation 1 is the update, so it should contain restricted fields
+        LogbookOperationParameters operation1 = listeOperations.get(1);
+        assertNotNull(operation1);
+        assertNull(operation1.getParameterValue(LogbookParameterName.agentIdentifierApplication));
+        assertNull(operation1.getParameterValue(LogbookParameterName.agentIdentifierApplicationSession));
+        assertNull(operation1.getParameterValue(LogbookParameterName.agentIdentifierOriginating));
+        assertNull(operation1.getParameterValue(LogbookParameterName.agentIdentifierSubmission));
+        assertNotNull(operation1.getParameterValue(LogbookParameterName.eventDetailData));
         try {
             mongoDbAccess.updateLogbookOperation(parametersWrong);
             fail("Should throw an exception");
