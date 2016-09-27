@@ -45,6 +45,9 @@ import fr.gouv.vitam.common.security.waf.WafFilter;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server.application.AdminStatusResource;
+import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
+
 
 /**
  * Access web server application
@@ -99,20 +102,22 @@ public class AccessApplication extends AbstractVitamApplication<AccessApplicatio
             vitamServer.getServer().start();
         } catch (Exception e) {
             LOGGER.error(format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
-            throw new VitamApplicationServerException(format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
+            throw new VitamApplicationServerException(
+                format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
         }
     }
 
     private static ServletContextHandler getAccessServletContext(AccessConfiguration configuration) {
         final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(JacksonFeature.class);
+        resourceConfig.register(new AdminStatusResource(new BasicVitamStatusServiceImpl()));
         resourceConfig.register(new AccessResourceImpl(configuration));
         final ServletContainer servletContainer = new ServletContainer(resourceConfig);
         final ServletHolder sh = new ServletHolder(servletContainer);
         final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
         context.addServlet(sh, "/*");
-        
+
         context.addFilter(WafFilter.class, "/*", EnumSet.of(
             DispatcherType.INCLUDE, DispatcherType.REQUEST,
             DispatcherType.FORWARD, DispatcherType.ERROR));
@@ -150,7 +155,6 @@ public class AccessApplication extends AbstractVitamApplication<AccessApplicatio
         final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(JacksonFeature.class);
         resourceConfig.register(new AccessResourceImpl(getConfiguration()));
-
         final ServletContainer servletContainer = new ServletContainer(resourceConfig);
         final ServletHolder sh = new ServletHolder(servletContainer);
         final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
@@ -171,6 +175,7 @@ public class AccessApplication extends AbstractVitamApplication<AccessApplicatio
 
     /**
      * retrieve the vitam server
+     * 
      * @return vitam server
      */
     public static VitamServer getVitamServer() {
@@ -179,10 +184,11 @@ public class AccessApplication extends AbstractVitamApplication<AccessApplicatio
 
     /**
      * Stops the vitam server
+     * 
      * @throws Exception
      */
     public static void stop() throws Exception {
-        if (vitamServer !=  null && vitamServer.isStarted()) {
+        if (vitamServer != null && vitamServer.isStarted()) {
             vitamServer.stop();
         }
     }

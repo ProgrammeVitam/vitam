@@ -28,22 +28,19 @@ import java.io.InputStream;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
-import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.eclipse.jetty.http.HttpHeader;
-
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.access.api.AccessModule;
 import fr.gouv.vitam.access.api.AccessResource;
 import fr.gouv.vitam.access.common.exception.AccessExecutionException;
@@ -52,7 +49,6 @@ import fr.gouv.vitam.access.core.AccessModuleImpl;
 import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
-
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -61,7 +57,9 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.VitamError;
 import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
+import fr.gouv.vitam.common.server.application.InternalVitamResources;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 
@@ -73,7 +71,7 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 @Consumes("application/json")
 @Produces("application/json")
 @javax.ws.rs.ApplicationPath("webresources")
-public class AccessResourceImpl implements AccessResource {
+public class AccessResourceImpl extends InternalVitamResources implements AccessResource {
 
     private static final String ACCESS_MODULE = "ACCESS";
     private static final String CODE_VITAM = "code_vitam";
@@ -87,7 +85,7 @@ public class AccessResourceImpl implements AccessResource {
      * @param configuration to associate with AccessResourceImpl
      */
     public AccessResourceImpl(AccessConfiguration configuration) {
-
+        super(new BasicVitamStatusServiceImpl());
         accessModule = new AccessModuleImpl(configuration);
         LOGGER.info("AccessResource initialized");
     }
@@ -98,6 +96,7 @@ public class AccessResourceImpl implements AccessResource {
      * @param accessModule
      */
     AccessResourceImpl(AccessModule accessModule) {
+        super(new BasicVitamStatusServiceImpl());
         this.accessModule = accessModule;
         LOGGER.info("AccessResource initialized");
     }
@@ -140,16 +139,6 @@ public class AccessResourceImpl implements AccessResource {
         }
         LOGGER.info("End of execution of DSL Vitam from Access");
         return Response.status(Status.OK).entity(result).build();
-    }
-
-    /**
-     * Get unit status
-     */
-    @Override
-    @GET
-    @Path("/status")
-    public Response getStatus() {
-        return Response.status(200).entity("OK_status").build();
     }
 
     /**
@@ -197,8 +186,8 @@ public class AccessResourceImpl implements AccessResource {
     /**
      * update archive units by Id with Json query
      *
-     * @param queryDsl    DSK, null not allowed
-     * @param id_unit     units identifier
+     * @param queryDsl DSK, null not allowed
+     * @param id_unit units identifier
      * @return a archive unit result list
      */
     @PUT
@@ -222,14 +211,14 @@ public class AccessResourceImpl implements AccessResource {
             // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
             return Response.status(status)
-                    .entity(getErrorEntity(status))
-                    .build();
+                .entity(getErrorEntity(status))
+                .build();
         } catch (final AccessExecutionException e) {
             LOGGER.error(e.getMessage(), e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                    .entity(getErrorEntity(status))
-                    .build();
+                .entity(getErrorEntity(status))
+                .build();
         }
         LOGGER.info("End of execution of DSL Vitam from Access");
         return Response.status(Status.OK).entity(result).build();
@@ -252,7 +241,7 @@ public class AccessResourceImpl implements AccessResource {
             LOGGER.error(exc);
             status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status)).build();
-        } catch(IllegalArgumentException exc) {
+        } catch (IllegalArgumentException exc) {
             LOGGER.error(exc);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status).entity(getErrorEntity(status)).build();
@@ -285,13 +274,13 @@ public class AccessResourceImpl implements AccessResource {
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response getObjectStream(@Context HttpHeaders headers, @PathParam("id_object_group") String idObjectGroup,
         String query) {
-        if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.TENANT_ID) || !HttpHeaderHelper.hasValuesFor
-            (headers, VitamHttpHeader.QUALIFIER) || !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader
-            .VERSION)) {
+        if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.TENANT_ID) ||
+            !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.QUALIFIER) ||
+            !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.VERSION)) {
             LOGGER.error("At least one required header is missing. Required headers: (" + VitamHttpHeader.TENANT_ID
-                .name() + ", " +VitamHttpHeader.QUALIFIER.name() + ", " + VitamHttpHeader.VERSION.name() + ")");
-            return Response.status(Status.PRECONDITION_FAILED).entity(getErrorEntity(Status.PRECONDITION_FAILED).
-                toString()).build();
+                .name() + ", " + VitamHttpHeader.QUALIFIER.name() + ", " + VitamHttpHeader.VERSION.name() + ")");
+            return Response.status(Status.PRECONDITION_FAILED)
+                .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build();
         }
         String xQualifier = headers.getRequestHeader(GlobalDataRest.X_QUALIFIER).get(0);
         String xVersion = headers.getRequestHeader(GlobalDataRest.X_VERSION).get(0);
@@ -302,25 +291,25 @@ public class AccessResourceImpl implements AccessResource {
             ParametersChecker.checkParameter("Must have a dsl query", query);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(query));
             JsonNode queryJson = JsonHandler.getFromString(query);
-            result = accessModule.getOneObjectFromObjectGroup(idObjectGroup, queryJson, xQualifier, Integer.valueOf
-                (xVersion), xTenantId);
+            result = accessModule.getOneObjectFromObjectGroup(idObjectGroup, queryJson, xQualifier,
+                Integer.valueOf(xVersion), xTenantId);
         } catch (InvalidParseOperationException exc) {
             LOGGER.error(exc);
             return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST).toString()).build();
-        } catch(IllegalArgumentException exc) {
+        } catch (IllegalArgumentException exc) {
             LOGGER.error(exc);
-            return Response.status(Status.PRECONDITION_FAILED).entity(getErrorEntity(Status.PRECONDITION_FAILED).
-                toString()).build();
+            return Response.status(Status.PRECONDITION_FAILED)
+                .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build();
         } catch (AccessExecutionException exc) {
             LOGGER.error(exc.getMessage(), exc);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR)
                 .toString()).build();
-        } catch(MetaDataNotFoundException | StorageNotFoundException exc) {
+        } catch (MetaDataNotFoundException | StorageNotFoundException exc) {
             LOGGER.error(exc);
             return Response.status(Status.NOT_FOUND).entity(getErrorEntity(Status.NOT_FOUND).toString()).build();
         }
-        return Response.status(Status.OK).header("X-Qualifier", xQualifier).header("X-Version", xVersion).entity
-            (result).build();
+        return Response.status(Status.OK).header("X-Qualifier", xQualifier).header("X-Version", xVersion).entity(result)
+            .build();
     }
 
     @Override
@@ -328,11 +317,11 @@ public class AccessResourceImpl implements AccessResource {
     @Path("/objects/{id_object_group}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response getObjectStreamPost(@Context HttpHeaders headers, @PathParam ("id_object_group") String
-        idObjectGroup, String query) {
+    public Response getObjectStreamPost(@Context HttpHeaders headers,
+        @PathParam("id_object_group") String idObjectGroup, String query) {
         if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.METHOD_OVERRIDE)) {
-            return Response.status(Status.PRECONDITION_FAILED).entity(getErrorEntity(Status.PRECONDITION_FAILED).
-                toString()).build();
+            return Response.status(Status.PRECONDITION_FAILED)
+                .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build();
         }
         String xHttpOverride = headers.getRequestHeader(GlobalDataRest.X_HTTP_METHOD_OVERRIDE).get(0);
         if (!"GET".equalsIgnoreCase(xHttpOverride)) {
