@@ -1,0 +1,197 @@
+#%RAML 1.0 Library
+usage: |
+  Use to define global headers for Logbook
+uses:
+  StandardTypes: StandardTypes.raml
+  StandardTraits: StandardTraits.raml
+  DslTypes: DslTypes.raml
+  LogbookTypes: LogbookTypes.raml
+
+traits:
+
+  OperationListingResponse:
+    description: Response model for the listing of Logbook operations
+    is: [ StandardTraits.StandardOptionalHeader,
+       StandardTraits.PaginationRequestHeader,  StandardTraits.PaginationNextHeader,  StandardTraits.PaginationResponseHeader,
+       StandardTraits.StandardHeader200, StandardTraits.StandardHeader206,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    body:
+      application/json:
+        description: Body contains a Query in DSL Vitam to filter the Logbook operations
+        type: DslTypes.DslQuery
+        example: !include examples/dslQuery.json
+    responses:
+      200:
+        description: Returns the list of matching Logbook operations
+        body:
+          application/json:
+            description: Matching Logbook operations
+            type: LogbookTypes.LogbookResponse
+            example: !include examples/logbookResponse.json
+      206:
+        description: Returns the list of matching Logbook operations using Cursor
+        body:
+          application/json:
+            description: Matching Logbook operations
+            type: LogbookTypes.LogbookResponse
+            example: !include examples/logbookResponse.json
+
+  OperationItemResponse:
+    description: Response model for one Logbook operation item
+    is: [ StandardTraits.StandardOptionalHeader,
+      StandardTraits.StandardHeader200,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    body:
+      application/json:
+        description: Body contains a Query in DSL Vitam to filter the Logbook operation item
+        type: DslTypes.DslQuery
+        example: !include examples/dslQuery.json
+    responses:
+      200:
+        description: Returns one Logbook Operation item
+        body:
+          application/json:
+            description: one Logbook item
+            type: LogbookTypes.LogbookResponse
+            example: !include examples/logbookResponse.json
+
+  LogbookSingleBulkQueryCreateAppend:
+    description: Response model for one Logbook item, bulk Logbook or single Logbook creation or append
+    is: [ StandardTraits.StandardOptionalHeader,
+      StandardTraits.StandardHeader200, StandardTraits.StandardHeader201,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    body:
+      application/json:
+        type: DslTypes.DslQuery | LogbookTypes.LogbookOperation | LogbookTypes.LogbookOperation[]
+    responses:
+      200:
+        description: Append done or Query done
+        body:
+          application/json:
+            description: one Logbook item
+            type: LogbookTypes.LogbookResponse
+            example: !include examples/logbookResponse.json
+      201:
+        description: Creation done
+
+  OperationBulkCreateAppend:
+    description: Response model for bulk Logbook operation create or append
+    is: [ StandardTraits.StandardOptionalHeader,
+      StandardTraits.StandardHeader200, StandardTraits.StandardHeader201,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    body:
+      application/json:
+        type: LogbookTypes.LogbookOperation[]
+        example: !include samples/sampleLogbooks.sample
+    responses:
+      200:
+        description: Append done
+      201:
+        description: Creation done
+
+  OperationSingleCreateAppend:
+    description: Response model for one/bulk Logbook operation create or append
+    is: [ StandardTraits.StandardOptionalHeader,
+      StandardTraits.StandardHeader200, StandardTraits.StandardHeader201,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    body:
+      application/json:
+        type: LogbookTypes.LogbookOperation
+        example: !include samples/sampleLogbook.sample
+    responses:
+      200:
+        description: Append done
+      201:
+        description: Creation done
+
+  UnitLifeCycleListingResponse:
+    description: Response model for the listing of Logbook unit life cycles
+    is: [ StandardTraits.StandardOptionalHeader,
+       StandardTraits.PaginationRequestHeader,  StandardTraits.PaginationNextHeader,  StandardTraits.PaginationResponseHeader,
+       StandardTraits.StandardHeader200, StandardTraits.StandardHeader206,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    body:
+      application/json:
+        description: Body contains a Query in DSL Vitam to filter the Logbook unit life cycles
+        type: DslTypes.DslQuery
+        example: !include examples/dslQuery.json
+    responses:
+      200:
+        description: Returns the list of matching Logbook units life cycles
+        body:
+          application/json:
+            description: Matching Logbook objects life cycles
+            type: LogbookTypes.LogbookResponse
+            example: !include examples/logbookResponse.json
+      206:
+        description: Returns the list of matching Logbook units life cycles using Cursor
+        body:
+          application/json:
+            description: Matching Logbook objects life cycles
+            type: LogbookTypes.LogbookResponse
+            example: !include examples/logbookResponse.json
+
+  UnitLifeCycleItemResponse:
+    description: Response model for one Logbook unit life cycle item
+    is: [ StandardTraits.StandardOptionalHeader,
+      StandardTraits.StandardHeader200,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    body:
+      application/json:
+        description: Body contains a Query in DSL Vitam to filter the Logbook unit life cycle item
+        type: DslTypes.DslQuery
+        example: !include examples/dslQuery.json
+    responses:
+      200:
+        description: Returns one Logbook unit life cycle item
+        body:
+          application/json:
+            description: one Logbook unit life cycle item
+            type: LogbookTypes.LogbookResponse
+            example: !include examples/logbookResponseLifeCycle.json
+
+  ObjectLifeCycleListingResponse:
+    description: Response model for the listing of Logbook object life cycles
+    is: [ StandardTraits.StandardOptionalHeader,
+       StandardTraits.PaginationRequestHeader,  StandardTraits.PaginationNextHeader,  StandardTraits.PaginationResponseHeader,
+       StandardTraits.StandardHeader200, StandardTraits.StandardHeader206,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    body:
+      application/json:
+        description: Body contains a Query in DSL Vitam to filter the Logbook object life cycles
+        type: DslTypes.DslQuery
+        example: !include examples/dslQuery.json
+    responses:
+      200:
+        description: Returns the list of matching Logbook objects life cycles
+        body:
+          application/json:
+            description: Matching Logbook objects life cycles
+            type: LogbookTypes.LogbookResponse
+            example: !include examples/logbookResponse.json
+      206:
+        description: Returns the list of matching Logbook objects life cycles using Cursor
+        body:
+          application/json:
+            description: Matching Logbook objects life cycles
+            type: LogbookTypes.LogbookResponse
+            example: !include examples/logbookResponse.json
+
+  ObjectLifeCycleItemResponse:
+    description: Response model for one Logbook object life cycle item
+    is: [ StandardTraits.StandardOptionalHeader,
+      StandardTraits.StandardHeader200,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    body:
+      application/json:
+        description: Body contains a Query in DSL Vitam to filter the Logbook object life cycle item
+        type: DslTypes.DslQuery
+        example: !include examples/dslQuery.json
+    responses:
+      200:
+        description: Returns one Logbook object life cycle item
+        body:
+          application/json:
+            description: one Logbook object life cycle item
+            type: LogbookTypes.LogbookResponse
+            example: !include examples/logbookResponseLifeCycle.json

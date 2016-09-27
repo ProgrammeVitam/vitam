@@ -1,0 +1,481 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema targetNamespace="fr:gouv:culture:archivesdefrance:seda:v2.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0"
+    elementFormDefault="qualified" attributeFormDefault="unqualified" version="1.0">
+    <xsd:include schemaLocation="seda-2.0-types.xsd"/>
+
+    <!--
+                *****************************
+                ***   Code List
+                *****************************
+ 
+        -->
+    <xsd:group name="TechnicalCodeListsGroup">
+        <xsd:annotation>
+            <xsd:documentation>Liste de codes à utiliser dans les métadonnées techniques.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:group ref="DigestAlgorithmCodeListGroup"/>
+            <xsd:group ref="MimeTypeCodeListGroup" minOccurs="0"/>
+            <xsd:group ref="EncodingCodeListGroup" minOccurs="0"/>
+            <xsd:group ref="FileFormatCodeListGroup"/>
+            <xsd:group ref="CompressionAlgorithmCodeListGroup" minOccurs="0"/>
+            <xsd:group ref="DataObjectVersionCodeListGroup" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:group>
+
+    <!-- Identification of format code -->
+    <xsd:simpleType name="MimeTypeType">
+        <xsd:annotation>
+            <xsd:documentation>Code de type Mime.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="NonEmptyTokenType"/>
+    </xsd:simpleType>
+    <xsd:group name="MimeTypeCodeListGroup">
+        <xsd:sequence>
+            <xsd:element name="MimeTypeCodeListVersion" type="CodeType">
+                <xsd:annotation>
+                    <xsd:documentation>Version de la liste de code du type Mime.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:group>
+    <xsd:simpleType name="EncodingType">
+        <xsd:annotation>
+            <xsd:documentation>Encodage du fichier.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="NonEmptyTokenType"/>
+    </xsd:simpleType>
+    <xsd:group name="EncodingCodeListGroup">
+        <xsd:sequence>
+            <xsd:element name="EncodingCodeListVersion" type="CodeType">
+                <xsd:annotation>
+                    <xsd:documentation>Version de la liste de code d'encodage du fichier.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:group>
+    <xsd:simpleType name="FileFormatType">
+        <xsd:annotation>
+            <xsd:documentation>Identification du format de fichier.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="NonEmptyTokenType"/>
+    </xsd:simpleType>
+    <xsd:group name="FileFormatCodeListGroup">
+        <xsd:sequence>
+            <xsd:element name="FileFormatCodeListVersion" type="CodeType">
+                <xsd:annotation>
+                    <xsd:documentation>Version de la liste de code d'identification du format.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:group>
+    <xsd:simpleType name="CompressionAlgorithmType">
+        <xsd:annotation>
+            <xsd:documentation>Algorithme de compression utilisée.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="NonEmptyTokenType"/>
+    </xsd:simpleType>
+    <xsd:group name="CompressionAlgorithmCodeListGroup">
+        <xsd:sequence>
+            <xsd:element name="CompressionAlgorithmCodeListVersion" type="CodeType">
+                <xsd:annotation>
+                    <xsd:documentation>Version de la liste de code de l'algorithme de compression.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:group>
+    
+    <!-- Identification d'une version pour un même objet intellectuel  -->
+    <xsd:group name="DataObjectVersionCodeListGroup">
+        <xsd:sequence>
+            <xsd:element name="DataObjectVersionCodeListVersion" type="CodeType">
+                <xsd:annotation>
+                    <xsd:documentation>Liste de codes correspondant aux diverses versions d'un objet-données au sein d’un groupe d'objets-données (ex. original papier, conservation, diffusion, vignette, txt).</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:group>
+    <xsd:simpleType name="VersionIdType">
+        <xsd:annotation>
+            <xsd:documentation>Identifiant utilisé pour référencer les versions (conservation, diffusion, thumbnail/vignette, raw/brut, txt, ...).</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="NonEmptyTokenType"/>
+    </xsd:simpleType>
+
+    <!-- Paquet d'Objets-données -->
+    <xsd:group name="DataObjectVersionGroup">
+        <xsd:annotation>
+            <xsd:documentation>Groupe d’objets-données (numériques ou physiques), correspondant aux différentes versions d’un même objet intellectuellement unique. Chaque version peut être par exemple : original papier, version de conservation, version de diffusion, version vignette, version texte ascii…
+                Lorsqu'un objet-donnée fait partie d'un groupe, le référencement dans les ArchiveUnit ne peut se faire que via ce groupe (DataObjectGroupId).</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:choice>
+                <xsd:element name="DataObjectGroupReferenceId" type="GroupRefIdType">
+                    <xsd:annotation>
+                        <xsd:documentation>Référence à un Identifiant du groupe d'objets-données DataObjectVersionGroup.</xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="DataObjectGroupId" type="GroupIdType">
+                    <xsd:annotation>
+                        <xsd:documentation>Identifiant du groupe d'objets-données DataObjectVersionGroup (première et unique définition).</xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>                
+            </xsd:choice>
+            <xsd:element name="DataObjectVersion" type="VersionIdType">
+                <xsd:annotation>
+                    <xsd:documentation>Version d’un objet-données (par exemple : original papier, conservation, diffusion, vignette, txt, …).</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:group>
+    <xsd:complexType name="MinimalDataObjectType" abstract="true">
+        <xsd:sequence>
+            <xsd:element name="Relationship" minOccurs="0" maxOccurs="unbounded"
+                type="RelationshipType">
+                <xsd:annotation>
+                    <xsd:documentation>Permet de spécifier un lien technique entre un objet-données et une signature.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:group ref="DataObjectVersionGroup" minOccurs="0"/>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="DataObjectIdType" use="required">
+            <xsd:annotation>
+                <xsd:documentation>Identifiant de l'objet-données associé.</xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:complexType>
+
+    <!-- Objet de donnees numérique -->
+    <xsd:complexType name="BinaryDataObjectType">
+        <xsd:annotation>
+            <xsd:documentation>Objet-données numérique.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="MinimalDataObjectType">
+                <xsd:annotation>
+                    <xsd:documentation>Métadonnées techniques minimales : URI, Digest, Poids.</xsd:documentation>
+                </xsd:annotation>
+                <xsd:sequence>
+                    <xsd:choice>
+                        <xsd:element name="Attachment" type="BinaryObjectType">
+                            <xsd:annotation>
+                                <xsd:documentation>Objet-données (contenu binaire ou fichier joint).</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="Uri" type="xsd:anyURI">
+                            <xsd:annotation>
+                                <xsd:documentation>L'URI spécifie où se trouve l'objet-données numérique. Peut correspondre à un chemin relatif.</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                    </xsd:choice>
+                    <xsd:element name="MessageDigest" type="MessageDigestBinaryObjectType">
+                        <xsd:annotation>
+                            <xsd:documentation>Empreinte de l'objet-données.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="Size" type="SizeInBytesType">
+                        <xsd:annotation>
+                            <xsd:documentation>Permet de spécifier la taille de l'objet-données en octet.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="Compressed" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>Indique si l’objet-données est compressé et doit être décompressé.</xsd:documentation>
+                        </xsd:annotation>
+                        <xsd:complexType>
+                            <xsd:simpleContent>
+                                <xsd:extension base="xsd:boolean">
+                                    <xsd:attribute name="algorithm" type="CompressionAlgorithmType" use="required"/>
+                                    <xsd:attribute name="uncompressedSize" type="SizeInBytesType"
+                                        use="required"/>
+                                </xsd:extension>
+                            </xsd:simpleContent>
+                        </xsd:complexType>
+                    </xsd:element>
+                    <xsd:group ref="BinaryTechnicalDescriptionGroup">
+                        <xsd:annotation>
+                            <xsd:documentation>Métadonnées techniques pour les objets-données numériques.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:group>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:group name="BinaryTechnicalDescriptionGroup">
+        <xsd:annotation>
+            <xsd:documentation>Métadonnées techniques pour les objets-données numériques.</xsd:documentation>
+            <xsd:documentation>Inspiré du schéma FITS.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="FormatIdentification" type="FormatIdentificationType">
+                <xsd:annotation>
+                    <xsd:documentation>Identification du format de l'objet-données.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="FileInfo" type="FileInfoType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Propriétés techniques génériques du fichier (nom d’origine, logiciel de création, système d’exploitation de création).</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Metadata" type="CoreMetadataType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Propriétés techniques spécifiques du fichier en fonction de sa nature technique (texte, document, image, audio, vidéo, etc.).</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="OtherMetadata" type="DescriptiveTechnicalMetadataType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Autres métadonnées techniques si celles définies précédemment ne suffisent pas.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:group>
+
+    <!-- FormatIdentification elements -->
+    <xsd:complexType name="FormatIdentificationType">
+        <xsd:sequence>
+            <xsd:element name="FormatLitteral" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Forme littérale du nom du format.</xsd:documentation>
+                    <xsd:documentation>Exemple : Microsoft Word Document.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="MimeType" type="MimeTypeType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Type Mime associé, potentiellement stable mais pas assez précis.</xsd:documentation>
+                    <xsd:documentation>Exemple : application/msword</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="FormatId" type="FileFormatType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Type spécifique du format tel que défini dans FormatIdCodeList.</xsd:documentation>
+                    <xsd:documentation>Exemple : (Pronom)fmt/40</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Encoding" type="EncodingType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Encodage du fichier tel que défini dans EncodingIdCodeList.</xsd:documentation>
+                    <xsd:documentation>Exemple : Utf-8</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- File info elements -->
+    <xsd:complexType name="FileInfoType">
+        <xsd:annotation>
+            <xsd:documentation>Informations sur le fichier lui-même (d'un point de vue technique).</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="Filename" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Nom du fichier d'origine.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="CreatingApplicationName" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Nom de l'application utilisée pour créer le fichier.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="CreatingApplicationVersion" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Version de l'application utilisée pour créer le fichier.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="DateCreatedByApplication" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Date de création du fichier.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="CreatingOs" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Système d’exploitation utilisé pour créer le fichier.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="CreatingOsVersion" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Version du système d'exploitation utilisé pour créer le fichier.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="LastModified" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Date de la dernière modification du fichier.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <!-- Objet de donnees physique -->
+    <xsd:group name="PhysicalTechnicalDescriptionGroup">
+        <xsd:annotation>
+            <xsd:documentation>Objet-données physique.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="PhysicalDimensions" type="DimensionsType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Dimensions d'un objet-données physique.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element ref="OtherDimensionsAbstract" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:group>
+    <xsd:complexType name="PhysicalDataObjectType">
+        <xsd:complexContent>
+            <xsd:extension base="MinimalDataObjectType">
+                <xsd:sequence>
+                    <xsd:element name="PhysicalId" type="IdentifierType">
+                        <xsd:annotation>
+                            <xsd:documentation>Identifiant physique d’un objet-données physique, externe à celui-ci (ex. code-barres).</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:group ref="PhysicalTechnicalDescriptionGroup"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <!-- Metadata types: inspired from various Library of Congress schema -->
+    <xsd:complexType name="CoreMetadataType">
+        <xsd:annotation>
+            <xsd:documentation>Métadonnées de base par type d'objet-données.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:choice>
+            <xsd:element name="Text" type="TextTechnicalMetadataType">
+                <xsd:annotation>
+                    <xsd:documentation>Métadonnées pour un objet-données de type textuel.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Document" type="DocumentTechnicalMetadataType">
+                <xsd:annotation>
+                    <xsd:documentation>Métadonnées pour un objet-données de type document.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Image" type="ImageTechnicalMetadataType">
+                <xsd:annotation>
+                    <xsd:documentation>Métadonnées pour un objet-données de type image.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Audio" type="AudioTechnicalMetadataType">
+                <xsd:annotation>
+                    <xsd:documentation>Métadonnées pour un objet-données de type audio.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Video" type="VideoTechnicalMetadataType">
+                <xsd:annotation>
+                    <xsd:documentation>Métadonnées pour un objet-données de type vidéo.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element ref="OtherCoreTechnicalMetadataAbstract">
+                <xsd:annotation>
+                    <xsd:documentation>Métadonnées pour un objet-données d’un autre type (base de données, 3D, programmes, formats propriétaires, etc.).</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:choice>
+    </xsd:complexType>
+
+    <!-- Physical description: inspired from AudioMD of Library of Congress and UNECE_MeasurementUnitCommonCode -->
+    <xsd:complexType name="DimensionsType">
+        <xsd:annotation>
+            <xsd:documentation>Permet d'exprimer les mesures de dimensions basiques.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="BaseDimensionsType">
+                <xsd:sequence>
+                    <xsd:element name="Width" type="MeasurementType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>Métadonnée de dimension physique : largeur.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="Height" type="MeasurementType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>Métadonnée de dimension physique : hauteur.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="Depth" type="MeasurementType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>Métadonnée de dimension physique : profondeur.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="Shape" type="xsd:string" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>Métadonnée de dimension physique : forme.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="Diameter" type="MeasurementType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>Métadonnée de dimension physique : diamètre.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="Length" type="MeasurementType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>Métadonnée de dimension physique : longueur.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="Thickness" type="MeasurementType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>Métadonnée de dimension physique : épaisseur.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="Weight" type="MeasurementWeightType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>Métadonnée de dimension physique : poids.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="NumberOfPage" type="xsd:int" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>Métadonnée de dimension physique : nombre de pages.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:complexType name="BaseDimensionsType" abstract="true"/>
+    <xsd:complexType name="MeasurementType">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:decimal">
+                <xsd:attribute name="unit" type="MeasurementUnitsType" use="required">
+                    <xsd:annotation>
+                        <xsd:documentation>Références : Voir UNECE_MeasurementUnitCommonCode_8.xsd</xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="MeasurementUnitsType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="micrometre"/>
+            <xsd:enumeration value="4H"/>
+            <xsd:enumeration value="millimetre"/>
+            <xsd:enumeration value="MMT"/>
+            <xsd:enumeration value="centimetre"/>
+            <xsd:enumeration value="CMT"/>
+            <xsd:enumeration value="metre"/>
+            <xsd:enumeration value="inch"/>
+            <xsd:enumeration value="INH"/>
+            <xsd:enumeration value="foot"/>
+            <xsd:enumeration value="FOT"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:complexType name="MeasurementWeightType">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:decimal">
+                <xsd:attribute name="unit" type="MeasurementWeightUnitsType" use="required"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+    <xsd:simpleType name="MeasurementWeightUnitsType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="microgram"/>
+            <xsd:enumeration value="MC"/>
+            <xsd:enumeration value="milligram"/>
+            <xsd:enumeration value="MGM"/>
+            <xsd:enumeration value="gram"/>
+            <xsd:enumeration value="GRM"/>
+            <xsd:enumeration value="kilogram"/>
+            <xsd:enumeration value="KGM"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+</xsd:schema>

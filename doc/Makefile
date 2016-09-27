@@ -11,7 +11,10 @@ DOC           =
 MODULE        = .
 SRCDIR        = ./$(LANGUAGE)
 BUILDDIR      = ./target
-RAMLCONTENT	  = $(SRCDIR)/rest/interne
+RAMLCONTENTVIEUXINTERNE  = $(SRCDIR)/rest/interne
+RAMLCONTENTINTERNE  = $(SRCDIR)/rest/interne-1.0
+RAMLCONTENTEXTERNE  = $(SRCDIR)/rest/externe
+RAMLCONTENTCONSOLE   = $(SRCDIR)/rest/console
 RAMLBUILDDIR  = $(BUILDDIR)/raml
 HTMLBUILDDIR  = $(BUILDDIR)/vitam
 PDFBUILDDIR   = $(BUILDDIR)/pdf
@@ -32,7 +35,8 @@ I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 
 LIST_ITEMS	= $(shell find $(SRCDIR) -name "conf.py" -type f | sed 's/\/conf.py//g' | sed 's/.*fr\///g')
 LIST_MODULES	= $(shell find . -name "doc" -type d | sed 's/\/doc//g' | sed 's/.*\///g')
-LIST_RAML = $(shell cat ${RAMLCONTENT}/index)
+LIST_RAMLINTERNE = $(shell cat ${RAMLCONTENTINTERNE}/index)
+LIST_RAMLEXTERNE = $(shell cat ${RAMLCONTENTEXTERNE}/index)
 LISTE_AUTRES = $(shell cat ${RAMLCONTENT}/index)
 
 
@@ -70,12 +74,28 @@ autres:
 .PHONY: raml
 raml:
 	@echo "Création du répertoire de sortie"
-	mkdir -p ${RAMLBUILDDIR}; \
-	cd $(RAMLCONTENT); \
-	for item in $(LIST_RAML); do \
-		raml2html -i $${item}.raml -t template/template.nunjucks -o ../../../${RAMLBUILDDIR}/$${item}.html; \
-	done;
-
+	mkdir -p ${RAMLBUILDDIR}/interne; \
+	echo "Recopie des vieux RAML..."; \
+	cp -r $(RAMLCONTENTVIEUXINTERNE)/*raml ${RAMLBUILDDIR}/interne; \
+	echo "Generation interne"; \
+	cd $(RAMLCONTENTINTERNE); \
+	cp *raml ../../../${RAMLBUILDDIR}/interne/; \
+	for item in $(LIST_RAMLINTERNE); do \
+		raml2html -i $${item}.raml -t template/template.nunjucks -o ../../../${RAMLBUILDDIR}/interne/$${item}.html; \
+	done; \
+	cd ../../..; \
+	mkdir -p ${RAMLBUILDDIR}/externe; \
+	echo "Generation externe"; \
+	cd $(RAMLCONTENTEXTERNE); \
+	cp *raml ../../../${RAMLBUILDDIR}/externe/; \
+	for item in $(LIST_RAMLEXTERNE); do \
+		raml2html -i $${item}.raml -t template/template.nunjucks -o ../../../${RAMLBUILDDIR}/externe/$${item}.html; \
+	done; \
+	cd ../../..; \
+	mkdir -p ${RAMLBUILDDIR}/console; \
+	echo "Recopie console"; \
+	cd $(RAMLCONTENTCONSOLE); \
+	cp -r * ../../../${RAMLBUILDDIR}/console/;
 
 .PHONY: latexpdf
 latexpdf:

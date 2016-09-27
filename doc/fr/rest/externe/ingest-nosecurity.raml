@@ -1,0 +1,74 @@
+#%RAML 1.0
+title: API-Vitam Version Alpha - Ingest
+version: v1
+baseUri: http://int.env.programmevitam.fr/external/{version}
+protocols: [ HTTP ]
+
+uses:
+  StandardTypes: libraries/StandardTypes.raml
+  StandardTraits: libraries/StandardTraits.raml
+  IngestTypes: libraries/IngestTypes.raml
+  IngestTraits: libraries/IngestTraits.raml
+  DslTypes: libraries/DslTypes.raml
+
+securitySchemes:
+  Vitam: !include securitySchemes/SecuritySchemeVitam.raml
+  VitamMock: !include securitySchemes/SecuritySchemeVitamMock.raml
+
+#securedBy: [Vitam, VitamMock]
+
+mediaType: application/json
+
+types:
+  _reserved:
+    type: string
+
+documentation:
+  - title: API Ingest
+    content: !include docs-fr/ingest.md
+
+  - title: Conventions REST Générales
+    content: !include docs-fr/standard.md
+
+  - title: DSL Vitam
+    content: !include docs-fr/dsl.md
+
+/ingests:
+  displayName: Ingests
+  description: |
+    API de versement (Ingest). Ce point d'entrée permet de chercher ou de créer une transaction de versement. Une transaction d'entrée est volatile, c'est à dire qu'elle disparaîtra dès qu'elle sera terminée. Sa terminaison est liée à la production du rapport et sa récupération par le service de transfert ayant effectué l'entrée.
+
+    Crée une transaction d'entrée :
+    - une requête unique, avec un 'body' contenant toutes les informations dans un ZIP ou un TAR :
+      - Métadonnées dans un format SEDA XML ou Json de nom manifest.xml ou manifest.json
+      - Tous les binaires dans le répertoire "/content"
+    - d'autres formes suivront (multipart/form-data) avec de multiples requêtes utilisant les sous-collections futures *Units* et *Objects*
+  get:
+    description: |
+      Request that will return a listing of ingests operations
+    is: [IngestTraits.IngestListingResponse ]
+  post:
+    description: |
+      Two different type of requests can be done in POST :
+
+      - when there is a X-Http-Method-Override: GET header, the behavior is the same as GET /ingests with a body
+        - request body : JSON of query in DSL Vitam
+        - response : JSON of selected Ingest operations / HTTP CODE 200 or 206
+      - when there is no X-Http-Method-Override: GET header
+        - request body : ZIP or TAR of uploaded SIP
+        - response : JSON asynchronous state / HTTP CODE 202
+    is: [IngestTraits.IngestCreationResponse,IngestTraits.IngestListingResponse, StandardTraits.OverrideGet]
+    headers:
+      X-Http-Method-Override:
+        required: false
+
+  /{id_async}:
+    displayName: Ingest
+    description: Accès à une transaction d'entrée ou à son résultat.
+    get:
+      is: [IngestTraits.IngestFinalResponse,IngestTraits.IngestPoolingResponse]
+
+/status:
+  get:
+    is: [ StandardTraits.Status, StandardTraits.StandardHeader200,
+      StandardTraits.StandardHeader404, StandardTraits.StandardHeader503 ]

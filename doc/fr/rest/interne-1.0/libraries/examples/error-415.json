@@ -1,0 +1,8 @@
+{
+  "httpCode": 415,
+  "code" : 123457,
+  "context": "ingest",
+  "state": "Unsupported_Media_Type",
+  "message": "Unsupported media type detected",
+  "description": "File xxx has an unsupported media type yyy"
+}

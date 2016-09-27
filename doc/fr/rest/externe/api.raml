@@ -1,0 +1,25 @@
+#%RAML 1.0
+title: API-Vitam Version Alpha
+version: v0.1
+baseUri: https://api.vitam.gouv.fr/{version}
+protocols: [ HTTPS ]
+
+uses:
+  StandardTypes: libraries/StandardTypes.raml
+  StandardTraits: libraries/StandardTraits.raml
+
+securitySchemes:
+  Vitam: !include securitySchemes/SecuritySchemeVitam.raml
+  VitamAdmin: !include securitySchemes/SecuritySchemeVitamAdmin.raml
+
+securedBy: [Vitam, VitamAdmin]
+
+types:
+  _reserved:
+    type: string
+
+/status:
+  get:
+    securedBy: [Vitam]
+    is: [ StandardTraits.Status, StandardTraits.StandardHeader200,
+      StandardTraits.StandardHeader404, StandardTraits.StandardHeader503 ]

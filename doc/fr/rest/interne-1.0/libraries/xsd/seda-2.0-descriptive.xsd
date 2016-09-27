@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema targetNamespace="fr:gouv:culture:archivesdefrance:seda:v2.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0"
+    elementFormDefault="qualified" attributeFormDefault="unqualified" version="1.0">
+    <xsd:include schemaLocation="seda-2.0-types.xsd"/>
+    <xsd:include schemaLocation="seda-2.0-management.xsd"/>
+    <xsd:include schemaLocation="seda-2.0-ontology.xsd"/>
+    
+    <!-- Hierarchy and recursivity -->
+    <xsd:complexType name="ArchiveUnitType">
+        <xsd:annotation>
+            <xsd:documentation>Unité de base des métadonnées de description contenant la gestion de l'arborescence.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:choice>
+            <xsd:element name="ArchiveUnitRefId" type="ArchiveUnitRefIdType">
+                <xsd:annotation>
+                    <xsd:documentation>Permet de faire une référence à d'autres ArchiveUnit dans la même transaction.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:sequence>
+                <xsd:element name="ArchiveUnitProfile" type="IdentifierType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>Référence à une partie d'un profil d’archivage applicable à un ArchiveUnit en particulier. Permet par exemple de faire référence à une typologie documentaire dans un profil d'archivage.</xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="Management" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>Métadonnées de gestion applicables à l’ArchiveUnit concernée et à ses héritiers.</xsd:documentation>
+                    </xsd:annotation>
+                    <xsd:complexType>
+                        <xsd:group ref="ManagementGroup"/>
+                    </xsd:complexType>
+                </xsd:element>
+                <xsd:element name="Content" type="DescriptiveMetadataContentType" minOccurs="1" maxOccurs="unbounded" >
+                    <xsd:annotation>
+                        <xsd:documentation>Métadonnées de description associées à un ArchiveUnit.</xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <!-- Hierarchy -->
+                <xsd:choice>
+                    <xsd:choice minOccurs="0" maxOccurs="unbounded">
+                        <xsd:element name="ArchiveUnit" type="ArchiveUnitType">
+                            <xsd:annotation>
+                                <xsd:documentation>Gestion de la récursivité. Un &lt;ArchiveUnit&gt; peut être contenu dans un ature &lt;ArchiveUnit&gt;.</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element ref="ArchiveUnitReferenceAbstract">
+                            <xsd:annotation>
+                                <xsd:documentation>Permet de faire référence à une sous unité d'archives, pouvant être déjà présente dans le système d'archivage provenant d'une transaction précédente.</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="DataObjectReference" type="DataObjectRefType">
+                            <xsd:annotation>
+                                <xsd:documentation>Permet de faire référence à un objet-donnée binaire ou physique déjà présent dans les métadonnées du bordereau.</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                    </xsd:choice>
+                </xsd:choice>
+            </xsd:sequence>
+        </xsd:choice>
+        <xsd:attribute name="id" type="ArchiveUnitIdType" use="required">
+            <xsd:annotation>
+                <xsd:documentation>Identifiant de l'unité d'archives utilisé par exemple dans le cas de multiples héritages, pour savoir quel noeud contient une erreur.</xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:complexType>
+
+    <!-- In ArchiveUnitType from seda-2.0-descriptive.xsd: Descriptive Metadata Content -->
+    <xsd:complexType name="DescriptiveMetadataContentType">
+        <xsd:annotation>
+            <xsd:documentation>Permet de définir les métadonnées de description. Peut être étendu.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:group ref="ObjectGroup"/>
+        </xsd:sequence>
+        <xsd:attribute name="restrictionRuleIdRef" type="xsd:IDREF" use="optional">
+            <xsd:annotation>
+                <xsd:documentation>Permet d'indiquer les restrictions à appliquer sur le noeud. Si rien n'est spécifié, aucune restriction ne s'applique.</xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="restrictionValue" type="NonEmptyTokenType" use="optional">
+            <xsd:annotation>
+                <xsd:documentation>Valeur de la restriction.</xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="restrictionEndDate" type="xsd:date" use="optional">
+            <xsd:annotation>
+                <xsd:documentation>Date de la fin de la restriction.</xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attributeGroup ref="OpenTypeAttributeGroup"/>
+    </xsd:complexType>
+    
+</xsd:schema>
