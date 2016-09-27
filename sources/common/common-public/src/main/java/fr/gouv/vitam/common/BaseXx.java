@@ -34,6 +34,7 @@ import com.google.common.io.BaseEncoding;
 public final class BaseXx {
     private static final String ARGUMENT_NULL_NOT_ALLOWED = "argument null not allowed";
     private static final BaseEncoding BASE64 = BaseEncoding.base64Url().omitPadding();
+    private static final BaseEncoding BASE64_PADDING = BaseEncoding.base64Url();
     private static final BaseEncoding BASE32 =
         BaseEncoding.base32().lowerCase().omitPadding();
     private static final BaseEncoding BASE16 =
@@ -65,7 +66,7 @@ public final class BaseXx {
 
     /**
      * @param bytes
-     * @return the Base 64 representation
+     * @return the Base 64 Without Padding representation
      * @throws IllegalArgumentException if argument is not compatible
      */
     public static final String getBase64(byte[] bytes) {
@@ -73,6 +74,15 @@ public final class BaseXx {
         return BASE64.encode(bytes);
     }
 
+    /**
+     * @param bytes
+     * @return the Base 64 With Padding representation 
+     * @throws IllegalArgumentException if argument is not compatible
+     */
+    public static final String getBase64Padding(byte[] bytes) {
+        ParametersChecker.checkParameter(ARGUMENT_NULL_NOT_ALLOWED, bytes);
+        return BASE64_PADDING.encode(bytes);
+    }    
     /**
      * @param base16
      * @return the byte from Base 16
@@ -95,11 +105,21 @@ public final class BaseXx {
 
     /**
      * @param base64
-     * @return the byte from Base 64
+     * @return the byte from Base 64 Without Padding
      * @throws IllegalArgumentException if argument is not compatible
      */
     public static final byte[] getFromBase64(String base64) {
         ParametersChecker.checkParameter(ARGUMENT_NULL_NOT_ALLOWED, base64);
         return BASE64.decode(base64);
+    }
+    
+    /**
+     * @param base64Padding
+     * @return the byte from Base 64 With Padding
+     * @throws IllegalArgumentException if argument is not compatible
+     */
+    public static final byte[] getFromBase64Padding(String base64Padding) {
+        ParametersChecker.checkParameter(ARGUMENT_NULL_NOT_ALLOWED, base64Padding);
+        return BASE64_PADDING.decode(base64Padding);
     }
 }

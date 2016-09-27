@@ -26,10 +26,14 @@
  */
 package fr.gouv.vitam.common;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.junit.Test;
 
@@ -52,6 +56,12 @@ public class BaseXxTest {
         BaseXx.getBase64(null);
         fail(ResourcesPublicUtilTest.EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
     }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testBase64Padding() throws IOException {
+        BaseXx.getBase64Padding(null);
+        fail(ResourcesPublicUtilTest.EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
+    }
 
 
     @Test(expected = IllegalArgumentException.class)
@@ -71,4 +81,47 @@ public class BaseXxTest {
         BaseXx.getFromBase64(null);
         fail(ResourcesPublicUtilTest.EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
     }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testFromBase64Padding() throws IOException {
+        BaseXx.getFromBase64Padding(null);
+        fail(ResourcesPublicUtilTest.EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
+    }
+    
+    @Test
+    public void testBase64PaddingOK() throws IOException {
+        String encoded = BaseXx.getBase64Padding("VitamTest64P".getBytes());
+        assertNotNull(encoded);
+        byte[] bytes = BaseXx.getFromBase64Padding(encoded);
+        assertNotNull(bytes);
+        assertTrue(Arrays.equals(bytes, "VitamTest64P".getBytes()));
+    }
+    
+    @Test
+    public void testBase64OK() throws IOException {
+        String encoded = BaseXx.getBase64("VitamTest64".getBytes());
+        assertNotNull(encoded);
+        byte[] bytes = BaseXx.getFromBase64(encoded);
+        assertNotNull(bytes);
+        assertTrue(Arrays.equals(bytes, "VitamTest64".getBytes()));
+    }
+    
+    @Test
+    public void testBase32OK() throws IOException {
+        String encoded = BaseXx.getBase32("VitamTest32".getBytes());
+        assertNotNull(encoded);
+        byte[] bytes = BaseXx.getFromBase32(encoded);
+        assertNotNull(bytes);
+        assertTrue(Arrays.equals(bytes, "VitamTest32".getBytes()));
+    }
+    
+    @Test
+    public void testBase16OK() throws IOException {
+        String encoded = BaseXx.getBase16("VitamTest16".getBytes());
+        assertNotNull(encoded);
+        byte[] bytes = BaseXx.getFromBase16(encoded);
+        assertNotNull(bytes);
+        assertTrue(Arrays.equals(bytes, "VitamTest16".getBytes()));
+    }
+    
 }
