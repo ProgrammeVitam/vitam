@@ -68,5 +68,5 @@ rm -rf %{buildroot}
 
 
 %changelog
-* Fri Aug 19 2016 Kristopher Waltzer <kristopher.waltzer.ext@agriculture.gouv.fr>
+* Fri Aug 19 2016 Kristopher Waltzer <kristopher.waltzer.ext@culture.gouv.fr>
 - Initial version

@@ -1,0 +1,6 @@
+---
+# handlers file for siegfried
+- name: restart siegfried
+  service:
+    name: vitam-siegfried
+    state: restarted
