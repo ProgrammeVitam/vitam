@@ -63,16 +63,9 @@ public interface AccessResource {
      */
     public Response updateUnitById(String dslQuery, String unit_id);
 
-
-    /**
-     * Returns a response status
-     *
-     * @return an http response with OK status (200)
-     */
-    public Response getStatus();
-
     /**
      * Retrieve an ObjectGroup by its id
+     * 
      * @param idObjectGroup the ObjectGroup id
      * @param query the json query
      * @return an http response containing the objectGroup as json or a json serialized error
@@ -80,8 +73,9 @@ public interface AccessResource {
     Response getObjectGroup(String idObjectGroup, String query);
 
     /**
-     * POST version of getObjectGroup. Implicitly call getObjectGroup(String idObject, String query) if the "GET"
-     * value is found in method override http header. Return an error otherwise.
+     * POST version of getObjectGroup. Implicitly call getObjectGroup(String idObject, String query) if the "GET" value
+     * is found in method override http header. Return an error otherwise.
+     * 
      * @param xHttpOverride value of the associated header
      * @param idObjectGroup the ObjectGroup id
      * @param query the json query
@@ -91,6 +85,7 @@ public interface AccessResource {
 
     /**
      * Retrieve an Object associated to the given ObjectGroup id based on given (via headers) Qualifier and Version
+     * 
      * @param headers http request headers
      * @param idObjectGroup the ObjectGroup id
      * @param query the DSL query as json
@@ -101,6 +96,7 @@ public interface AccessResource {
     /**
      * POST version of getObjectStream. Implicitly call getObjectStream(HttpHeaders headers, String idObjectGroup,
      * String query) if the "GET" value is found in method override http header. Return an error otherwise.
+     * 
      * @param headers http request headers
      * @param idObjectGroup the ObjectGroup id
      * @param query the DSL query as json
