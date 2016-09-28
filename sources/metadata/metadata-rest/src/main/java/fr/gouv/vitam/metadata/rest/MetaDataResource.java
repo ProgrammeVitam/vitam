@@ -41,6 +41,7 @@ import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.api.MetaData;
 import fr.gouv.vitam.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
@@ -72,7 +73,7 @@ public class MetaDataResource extends ApplicationStatusResource {
 
 
 
-    private final MetaDataImpl metaDataImpl;
+    private final MetaData metaDataImpl;
 
     /**
      * MetaDataResource constructor
@@ -83,7 +84,7 @@ public class MetaDataResource extends ApplicationStatusResource {
     // TODO: comment
     public MetaDataResource(MetaDataConfiguration configuration) {
         super(new BasicVitamStatusServiceImpl());
-        metaDataImpl = new MetaDataImpl(configuration, new MongoDbAccessMetadataFactory(), DbRequest::new);
+        metaDataImpl = MetaDataImpl.newMetadata(configuration, new MongoDbAccessMetadataFactory(), DbRequest::new);
         LOGGER.info("init MetaData Resource server");
     }
 

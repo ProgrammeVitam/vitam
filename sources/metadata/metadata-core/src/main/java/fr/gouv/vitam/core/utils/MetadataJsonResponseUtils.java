@@ -26,7 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.core.utils;
 
+import java.util.List;
+import java.util.Map;
+
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -66,8 +70,29 @@ public final class MetadataJsonResponseUtils {
     public static JsonNode populateJSONObjectResponse(Result result, RequestParserMultiple selectRequest)
         throws InvalidParseOperationException {
 
-        ObjectNode jsonListResponse = JsonHandler.createObjectNode();
+        ObjectNode jsonListResponse = populateJsonHintAndContext(result);
 
+        // TODO : review if statement because if result.getFinal().get("Result") == null and selectRequest
+        // is instanceof SelectParserMultiple, we have an IllegalArgumentException during call to
+        // getMetadataJsonObject(). This should not be the case
+        if (result != null && result.getNbResult() > 0 && (selectRequest instanceof SelectParserMultiple ||
+            result.getFinal().get("Result") != null)) {
+            LOGGER.debug("Result document: " + result.getFinal().toJson());
+            jsonListResponse.set("$result", getMetadataJsonObject(result.getFinal().get("Result")));
+        } else {
+            jsonListResponse.set("$result", JsonHandler.createObjectNode());
+        }
+
+        LOGGER.debug("MetaDataImpl / selectUnitsByQuery /Results: " + jsonListResponse.toString());
+        return jsonListResponse;
+    }
+
+    private static JsonNode getMetadataJsonObject(Object unitOrObjectGroup) throws InvalidParseOperationException {
+        return JsonHandler.toJsonNode(unitOrObjectGroup);
+    }
+
+    private static ObjectNode populateJsonHintAndContext(Result result) {
+        ObjectNode jsonListResponse = JsonHandler.createObjectNode();
         if (result != null && result.getFinal() != null) {
             ObjectNode hitsNode = JsonHandler.createObjectNode();
             hitsNode.put("total", result.getNbResult());
@@ -77,24 +102,47 @@ public final class MetadataJsonResponseUtils {
             jsonListResponse.set("$hint", hitsNode);
             ObjectNode contextNode = JsonHandler.createObjectNode();
             jsonListResponse.set("$context", contextNode);
-
-            // TODO : review if statement because if result.getFinal().get("Result") == null and selectRequest
-            // is instanceof SelectParserMultiple, we have an IllegalArgumentException during call to
-            // getMetadataJsonObject(). This should not be the case
-            if (result.getNbResult() > 0 && (selectRequest instanceof SelectParserMultiple ||
-                result.getFinal().get("Result") != null)) {
-                LOGGER.debug("Result document: " + result.getFinal().toJson());
-                jsonListResponse.set("$result", getMetadataJsonObject(result.getFinal().get("Result")));
-            } else {
-                jsonListResponse.set("$result", JsonHandler.createObjectNode());
-            }
         }
-        LOGGER.debug("MetaDataImpl / selectUnitsByQuery /Results: " + jsonListResponse.toString());
         return jsonListResponse;
     }
 
-    private static JsonNode getMetadataJsonObject(Object unitOrObjectGroup) throws InvalidParseOperationException {
-        return JsonHandler.toJsonNode(unitOrObjectGroup);
+    /**
+     * create Json response with diff information
+     *
+     * @param result contains final unit(s)/ObjectGroup(s) list <br>
+     *        can be empty
+     * @param request
+     * @param diff the diff map list with the unit id as key and the diff list as value
+     * @return JsonNode {$hits{},$context{},$result:[{_id:...,_diff:...}},...{}]} <br>
+     *         $context will be added later (Access)</br>
+     *         $result array of units or ObjectGroup (can be empty)
+     * @throws InvalidParseOperationException thrown when json query is not valid
+     */
+    public static JsonNode populateJSONObjectResponse(Result result, RequestParserMultiple request,
+        Map<String,List<String>> diff) throws
+        InvalidParseOperationException {
+        ObjectNode jsonListResponse = populateJsonHintAndContext(result);
+
+        if (result != null && result.getNbResult() > 0 && result.getFinal().get("Result") != null) {
+            LOGGER.debug("Result document: " + result.getFinal().toJson());
+            jsonListResponse.set("$result", getMetadataJsonObject(result.getFinal().get("Result")));
+            jsonListResponse.set("$diff", getJsonDiff(diff));
+        } else {
+            jsonListResponse.set("$result", getJsonDiff(diff));
+        }
+
+        return jsonListResponse;
+    }
+
+    private static JsonNode getJsonDiff(Map<String,List<String>> diff) {
+        ArrayNode diffArrayNode = JsonHandler.createArrayNode();
+        for (String id : diff.keySet()) {
+            ObjectNode diffNode = JsonHandler.createObjectNode();
+            diffNode.put("_id", id);
+            diffNode.put("_diff", String.join("\n", diff.get(id)));
+            diffArrayNode.add(diffNode);
+        }
+        return diffArrayNode;
     }
 
 
