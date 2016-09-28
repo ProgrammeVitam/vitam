@@ -72,6 +72,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     private static final String STORAGE_CONF_FILE_NAME = "default-storage.conf";
 
     private Map<String, DigestType> digestTypeFor;
+    private Map<String, String> objectTypeFor;
 
     private DefaultOfferServiceImpl() {
         StorageConfiguration configuration;
@@ -83,6 +84,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         }
         defaultStorage = new FileSystem(configuration);
         digestTypeFor = new HashMap<>();
+        objectTypeFor = new HashMap<>();
     }
 
     public static DefaultOfferService getInstance() {
@@ -103,23 +105,30 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
     @Override
     public ObjectInit createContainer(String containerName, ObjectInit objectInit, String objectGUID)
-        throws ContentAddressableStorageServerException, ContentAddressableStorageAlreadyExistException {
+        throws ContentAddressableStorageServerException, ContentAddressableStorageAlreadyExistException,
+        ContentAddressableStorageNotFoundException {
         if (!defaultStorage.isExistingContainer(containerName)) {
             defaultStorage.createContainer(containerName);
         }
+        if (!defaultStorage.isExistingFolder(containerName, objectInit.getType().getFolder())) {
+            createFolder(containerName, objectInit.getType().getFolder());
+        }
         objectInit.setId(objectGUID);
+        objectTypeFor.put(objectGUID, objectInit.getType().getFolder());
         if (objectInit.getDigestAlgorithm() != null) {
             digestTypeFor.put(objectGUID, objectInit.getDigestAlgorithm());
         } else {
             digestTypeFor.put(objectGUID, DigestType.SHA256);
         }
+
         return objectInit;
     }
 
     @Override
     public void createFolder(String containerName, String folderName)
         throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException,
-        ContentAddressableStorageAlreadyExistException {
+        ContentAddressableStorageAlreadyExistException,
+        ContentAddressableStorageNotFoundException {
         defaultStorage.createFolder(containerName, folderName);
     }
 
@@ -129,6 +138,10 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         // check container
         if (!defaultStorage.isExistingContainer(containerName)) {
             throw new ContentAddressableStorageException("Container does not exist");
+        }
+        // check the folder
+        if (!defaultStorage.isExistingFolder(containerName, objectTypeFor.get(objectId))) {
+            throw new ContentAddressableStorageException("Container's folder does not exist");
         }
         String path = TMP_DIRECTORY + objectId;
         // FIXME utiliser Digest (common)
@@ -150,15 +163,17 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         }
         // ending remove it
         if (ending) {
-            // FIXME double écriture !!! DigestInputStream est un InputStream, donc le passer directement en paramètre de putObject
+            // FIXME double écriture !!! DigestInputStream est un InputStream, donc le passer directement en paramètre
+            // de putObject
             // ou mieux : faire une écriture par bloc (buffer) et mettre à jour le Digest au fur et à mesure ainsi
             try (InputStream in = new FileInputStream(path)) {
-                defaultStorage.putObject(containerName, objectId, in);
+                defaultStorage.putObject(containerName, objectTypeFor.get(objectId) + "/" + objectId, in);
                 // do we validate the transfer before remove temp file ?
                 Files.deleteIfExists(Paths.get(path));
                 // TODO: to optimize (big file case) !
                 // FIXME pourquoi calculer 2 fois le digest ?
-                String digest = defaultStorage.computeObjectDigest(containerName, objectId, getDigestAlgoFor(objectId));
+                String digest = defaultStorage.computeObjectDigest(containerName,
+                    objectTypeFor.get(objectId) + "/" + objectId, getDigestAlgoFor(objectId));
                 // remove digest algo
                 digestTypeFor.remove(objectId);
                 return digest;
@@ -201,7 +216,8 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         return result;
     }
 
-    // FIXME : si cela avait été un enum spécifique, il n'y aurait pas le risque d'avoir un digest de type inconnu, ce qui rend alors
+    // FIXME : si cela avait été un enum spécifique, il n'y aurait pas le risque d'avoir un digest de type inconnu, ce
+    // qui rend alors
     // le calcul faux sémantiquement ici (aurait dans ce cas dû générer une exception)
     private DigestType getDigestAlgoFor(String id) {
         return digestTypeFor.get(id) != null ? digestTypeFor.get(id) : DigestType.SHA256;

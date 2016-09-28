@@ -117,7 +117,7 @@ public class DefaultOfferResource {
      * @throws IOException when there is an error of get object
      */
     @GET
-    @Path("/objects/{id}")
+    @Path("/objects/{id:.+}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(value = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_OCTET_STREAM})
     public Response getObject(@PathParam("id") String objectId, @Context HttpHeaders headers) throws IOException {
@@ -153,7 +153,7 @@ public class DefaultOfferResource {
      * @return structured response with the object id
      */
     @POST
-    @Path("/objects/{guid}")
+    @Path("/objects/{guid:.+}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response postObject(@PathParam("guid") String objectGUID, @Context HttpHeaders headers,
@@ -168,7 +168,7 @@ public class DefaultOfferResource {
             LOGGER.error("Missing the INIT required command (X-Command header)");
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
-        if (objectInit == null) {
+        if (objectInit == null || objectInit.getType() == null) {
             LOGGER.error("objectInit cannot be null");
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
@@ -195,7 +195,7 @@ public class DefaultOfferResource {
      * @return structured response with the object id (and new digest ?)
      */
     @PUT
-    @Path("/objects/{id}")
+    @Path("/objects/{id:.+}")
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     public Response putObject(@PathParam("id") String objectId, @Context HttpHeaders headers, InputStream input) {
@@ -228,7 +228,7 @@ public class DefaultOfferResource {
      * @return the response with a specific HTTP status
      */
     @DELETE
-    @Path("/objects/{id}")
+    @Path("/objects/{id:.+}")
     public Response deleteObject(@PathParam("id") String idObject) {
         return Response.status(Response.Status.NOT_IMPLEMENTED).build();
     }
@@ -243,7 +243,7 @@ public class DefaultOfferResource {
      * @return the response with a specific HTTP status
      */
     @HEAD
-    @Path("/objects/{id}")
+    @Path("/objects/{id:.+}")
     public Response headObject(@PathParam("id") String idObject,
         @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
         if (Strings.isNullOrEmpty(xTenantId)) {

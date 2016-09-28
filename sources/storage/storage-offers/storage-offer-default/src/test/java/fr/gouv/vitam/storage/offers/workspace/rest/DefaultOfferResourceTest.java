@@ -70,6 +70,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusMessage;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
 
@@ -146,10 +147,16 @@ public class DefaultOfferResourceTest {
         StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
             StorageConfiguration.class);
         File container = new File(conf.getStoragePath() + "/1");
-        File object = new File(container.getAbsolutePath(), "id1");
+        File folder = new File(container.getAbsolutePath(), "/" + DataCategory.OBJECT.getFolder());
+        File object = new File(folder.getAbsolutePath(), "id1");
+        File object2 = new File(container.getAbsolutePath(), "id1");
         Files.deleteIfExists(object.toPath());
+        Files.deleteIfExists(object2.toPath());
+        Files.deleteIfExists(folder.toPath());
         Files.deleteIfExists(container.toPath());
         container = new File(conf.getStoragePath() + "/0");
+        folder = new File(container.getAbsolutePath(), "/" + DataCategory.OBJECT.getFolder());
+        Files.deleteIfExists(folder.toPath());
         Files.deleteIfExists(container.toPath());
     }
 
@@ -162,6 +169,7 @@ public class DefaultOfferResourceTest {
     public void getCapacityTestOk() {
         // create tenant
         ObjectInit objectInit = new ObjectInit();
+        objectInit.setType(DataCategory.OBJECT);
         given().header(GlobalDataRest.X_TENANT_ID, "0").header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_INIT)
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectInit).when().post(OBJECTS_URI + "/" + "id1").then().statusCode(201);
@@ -188,6 +196,7 @@ public class DefaultOfferResourceTest {
     public void getObjectTestOK() throws Exception {
 
         ObjectInit objectInit = new ObjectInit();
+        objectInit.setType(DataCategory.OBJECT);
         with().header(GlobalDataRest.X_TENANT_ID, "1").header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_INIT)
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectInit).when().post(OBJECTS_URI + "/" + "id1");
@@ -229,10 +238,8 @@ public class DefaultOfferResourceTest {
         // found
         given().header(GlobalDataRest.X_TENANT_ID, "1").contentType(MediaType.APPLICATION_JSON).then()
             .statusCode(Status.OK.getStatusCode()).when()
-            .get(OBJECTS_URI + OBJECT_ID_URI, "id1");
+            .get(OBJECTS_URI + OBJECT_ID_URI, DataCategory.OBJECT.getFolder() + "/id1");
     }
-
-
 
     @Test
     public void postObjectsTest() throws Exception {
@@ -256,6 +263,7 @@ public class DefaultOfferResourceTest {
             .contentType(MediaType.APPLICATION_JSON).when().post(OBJECTS_URI + "/" + guid).then().statusCode(400);
 
         ObjectInit objectInit = new ObjectInit();
+        objectInit.setType(DataCategory.OBJECT);
         assertNotNull(objectInit);
 
         given().header(GlobalDataRest.X_TENANT_ID, "1").header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_INIT)
@@ -267,6 +275,9 @@ public class DefaultOfferResourceTest {
         File container = new File(conf.getStoragePath() + "/1");
         assertTrue(container.exists());
         assertTrue(container.isDirectory());
+        File folder = new File(container.getAbsolutePath() + "/" + DataCategory.OBJECT.getFolder());
+        assertTrue(folder.exists());
+        assertTrue(folder.isDirectory());
     }
 
     @Test
@@ -303,6 +314,7 @@ public class DefaultOfferResourceTest {
         }
 
         ObjectInit objectInit = new ObjectInit();
+        objectInit.setType(DataCategory.OBJECT);
         given().header(GlobalDataRest.X_TENANT_ID, "1").header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_INIT)
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectInit).when().post(OBJECTS_URI + "/" + "id1").then().statusCode(201);
@@ -348,7 +360,11 @@ public class DefaultOfferResourceTest {
         assertNotNull(container);
         assertTrue(container.exists());
         assertTrue(container.isDirectory());
-        File object = new File(container.getAbsolutePath(), "id1");
+        File folder = new File(container.getAbsolutePath(), "/" + DataCategory.OBJECT.getFolder());
+        assertNotNull(folder);
+        assertTrue(folder.exists());
+        assertTrue(folder.isDirectory());
+        File object = new File(folder.getAbsolutePath(), "id1");
         assertNotNull(object);
         assertTrue(object.exists());
         assertFalse(object.isDirectory());

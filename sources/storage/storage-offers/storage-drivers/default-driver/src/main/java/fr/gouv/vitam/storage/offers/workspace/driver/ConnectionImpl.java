@@ -68,6 +68,7 @@ import fr.gouv.vitam.storage.driver.model.StorageCapacityRequest;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 
 /**
@@ -95,6 +96,10 @@ public class ConnectionImpl implements Connection {
     private static final String TENANT_IS_A_MANDATORY_PARAMETER = "Tenant is a mandatory parameter";
     private static final String ALGORITHM_IS_A_MANDATORY_PARAMETER = "Algorithm is a mandatory parameter";
     private static final String STREAM_IS_A_MANDATORY_PARAMETER = "Stream is a mandatory parameter";
+    private static final String TYPE_IS_A_MANDATORY_PARAMETER = "Type is a mandatory parameter";
+    private static final String TYPE_IS_NOT_VALID = "Type is not valid";
+    private static final String FOLDER_IS_A_MANDATORY_PARAMETER = "Folder is a mandatory parameter";
+    private static final String FOLDER_IS_NOT_VALID = "Folder is not valid";
     private Client client;
     private String serviceUrl;
     private String driverName;
@@ -141,11 +146,14 @@ public class ConnectionImpl implements Connection {
         ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
         ParametersChecker.checkParameter(GUID_IS_A_MANDATORY_PARAMETER, request.getGuid());
         ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
+        ParametersChecker.checkParameter(FOLDER_IS_A_MANDATORY_PARAMETER, request.getFolder());
+        ParametersChecker.checkParameter(FOLDER_IS_NOT_VALID, DataCategory.getByFolder(request.getFolder()));
         Response response = null;
         InputStream stream;
         try {
             response =
-                getClient().target(getServiceUrl()).path(OBJECTS_PATH + "/" + request.getGuid()).request()
+                getClient().target(getServiceUrl())
+                    .path(OBJECTS_PATH + "/" + request.getFolder() + "/" + request.getGuid()).request()
                     .header(VitamHttpHeader.TENANT_ID.getName(), request.getTenantId())
                     .accept(MediaType.APPLICATION_OCTET_STREAM).method(HttpMethod.GET);
 
@@ -190,12 +198,15 @@ public class ConnectionImpl implements Connection {
             ParametersChecker.checkParameter(GUID_IS_A_MANDATORY_PARAMETER, request.getGuid());
             ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
             ParametersChecker.checkParameter(ALGORITHM_IS_A_MANDATORY_PARAMETER, request.getDigestAlgorithm());
+            ParametersChecker.checkParameter(TYPE_IS_A_MANDATORY_PARAMETER, request.getType());
+            ParametersChecker.checkParameter(TYPE_IS_NOT_VALID, DataCategory.valueOf(request.getType()));
             ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, request.getDataStream());
 
             InputStream stream = request.getDataStream();
             // init
             ObjectInit objectInit = new ObjectInit();
             objectInit.setDigestAlgorithm(DigestType.fromValue(request.getDigestAlgorithm()));
+            objectInit.setType(DataCategory.valueOf(request.getType()));
 
             response =
                 getClient().target(getServiceUrl()).path(OBJECTS_PATH + "/" + request.getGuid())

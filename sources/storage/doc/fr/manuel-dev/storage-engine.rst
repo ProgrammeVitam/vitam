@@ -89,7 +89,7 @@ Ces fonctionnalités sont :
 
 .. code-block:: java
 
-   boolean deleted = deleteContainer("0", "default");   
+   boolean deleted = deleteContainer("0", "default");
 
    - pour les autres objets (object, objectGroup, unit, logbook -- implémenté côté serveur uniquement pour object) :
 

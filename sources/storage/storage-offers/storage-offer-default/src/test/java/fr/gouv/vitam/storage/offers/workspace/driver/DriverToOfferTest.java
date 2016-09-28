@@ -56,8 +56,10 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
+import fr.gouv.vitam.storage.driver.model.GetObjectRequest;
 import fr.gouv.vitam.storage.driver.model.PutObjectRequest;
 import fr.gouv.vitam.storage.driver.model.PutObjectResult;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.offers.workspace.rest.DefaultOfferApplication;
 import fr.gouv.vitam.storage.offers.workspace.rest.DefaultOfferConfiguration;
 import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
@@ -128,8 +130,10 @@ public class DriverToOfferTest {
         StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
             StorageConfiguration.class);
         File container = new File(conf.getStoragePath() + "/1");
-        File object = new File(container.getAbsolutePath(), guid);
+        File folder = new File(container.getAbsolutePath(), DataCategory.UNIT.getFolder());
+        File object = new File(folder.getAbsolutePath(), guid);
         Files.deleteIfExists(object.toPath());
+        Files.deleteIfExists(folder.toPath());
         Files.deleteIfExists(container.toPath());
     }
 
@@ -143,6 +147,7 @@ public class DriverToOfferTest {
         guid = GUIDFactory.newObjectGUID(1).toString();
         request.setGuid(guid);
         request.setDigestAlgorithm(DigestType.SHA256.getName());
+        request.setType(DataCategory.UNIT.name());
         try (FileInputStream fin = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
             MessageDigest messageDigest = MessageDigest.getInstance(DigestType.SHA256.getName());
             try (DigestInputStream digestInputStream = new DigestInputStream(fin, messageDigest)) {
@@ -154,7 +159,7 @@ public class DriverToOfferTest {
                     StorageConfiguration.class);
                 File container = new File(conf.getStoragePath() + "/1");
                 assertNotNull(container);
-                File object = new File(container.getAbsolutePath(), guid);
+                File object = new File(container.getAbsolutePath(), DataCategory.UNIT.getFolder() + "/" + guid);
                 assertNotNull(object);
                 assertTrue(com.google.common.io.Files.equal(PropertiesUtils.findFile(ARCHIVE_FILE_TXT), object));
 
@@ -171,5 +176,11 @@ public class DriverToOfferTest {
         } catch (StorageDriverException exc) {
             // Nothing, missing tenant parameter
         }
+        
+        GetObjectRequest getRequest = new GetObjectRequest();
+        getRequest.setGuid(guid);
+        getRequest.setTenantId("1");
+        getRequest.setFolder(DataCategory.UNIT.getFolder());
+        connection.getObject(getRequest);
     }
 }
