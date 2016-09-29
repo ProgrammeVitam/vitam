@@ -94,7 +94,7 @@ discovery.zen.ping.unicast.hosts: [ "{{ groups['hosts-elasticsearch-data']|join(
 # Require explicit names when deleting indices:
 #
 # action.destructive_requires_name: true
-index.number_of_replicas: 1
+index.number_of_replicas: 2
 index.refresh_interval: 10s
 indices.memory.index_buffer_size: 30%
 index.translog.flush_threshold_ops: 50000

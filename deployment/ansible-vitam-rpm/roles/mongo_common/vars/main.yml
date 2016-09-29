@@ -1,0 +1,4 @@
+---
+
+mongo_config_path:  '{{vitam_folder_root}}/conf/{{mongo_type}}'
+mongo_db_path:      '{{vitam_folder_root}}/data/{{mongo_type}}/db'

@@ -1,6 +1,7 @@
 ---
 ## Variables internes au rôle ; à ne pas surcharger par des variables plus globales
-consul_component: vitam-consul
+consul_component: consul
+consul_service: "vitam-{{consul_component}}"
 
 consul_folder_conf: "{{vitam_folder_root}}/conf/{{consul_component}}"
 consul_folder_log: "{{vitam_folder_root}}/log/{{consul_component}}"

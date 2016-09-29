@@ -61,6 +61,8 @@ Le ``vault.yml`` est également présent sous |repertoire_inventory| ``/group_va
 
 Le déploiement s'effectue depuis la machine "ansible" et va distribuer la solution VITAM selon l'inventaire correctement renseigné.
 
+.. warning:: le playbook ``vitam.yml`` comprend des étapes avec la mention ``no_log`` afin de ne pas afficher en clair des étapes comme les mots de passe des certificats. En cas d'erreur, il est possible de retirer la ligne dans le fichier pour une analyse plus fine d'un éventuel problème sur une de ces étapes.
+
 
 Paramétrage de l'antivirus (ingest-externe)
 -------------------------------------------

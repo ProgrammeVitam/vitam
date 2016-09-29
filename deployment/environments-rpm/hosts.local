@@ -20,6 +20,7 @@ hosts-functional-administration
 hosts-log-server
 hosts-elasticsearch-data
 library
+mongo_common
 
 
 [library]
@@ -27,6 +28,11 @@ localhost
 
 [hosts-mongodb]
 localhost
+
+[mongo_common:children]
+mongos
+mongoc
+mongod
 
 [hosts-mongo-express]
 localhost
@@ -100,3 +106,12 @@ rpm_version=*
 days_to_delete=30
 dns_server=10.100.211.222
 memory_opts="-Xms32m -Xmx256m" 
+
+[mongos]
+localhost
+
+[mongoc]
+localhost
+
+[mongod]
+localhost rs_member_id=0 shard_id=0

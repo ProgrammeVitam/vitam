@@ -1,14 +1,15 @@
 Name:          vitam-consul
-Version:       0.6.4
-Release:       3%{?dist}
+Version:       0.7.0
+Release:       1%{?dist}
 Summary:       Consul is a distributed, highly-available, and multi-datacenter aware tool for service discovery, configuration, and orchestration. This package includes vitam-specific folders configuration.
 Group:         System Environment/Daemons
-License:       Cecill v2.1
+License:       Mozilla Public License, version 2.0
 BuildArch:     x86_64
 URL:           http://www.consul.io
 Source0:       https://releases.hashicorp.com/consul/%{version}/consul_%{version}_linux_amd64.zip
 Source1:       consul.env
 Source2:       vitam-consul.service
+%global vitam_service_name consul
 
 BuildRequires: systemd-units
 Requires:      systemd
@@ -27,42 +28,42 @@ Consul has multiple components, but as a whole, it is a tool for discovering and
 %setup -q -c
 
 %install
-mkdir -p %{buildroot}/vitam/bin/%{name}
-cp consul %{buildroot}/vitam/bin/%{name}
+mkdir -p %{buildroot}/vitam/bin/%{vitam_service_name}
+cp consul %{buildroot}/vitam/bin/%{vitam_service_name}/
 
-mkdir -p %{buildroot}/vitam/conf/%{name}/sysconfig
-cp %{SOURCE1} %{buildroot}/vitam/conf/%{name}/sysconfig/consul
+mkdir -p %{buildroot}/vitam/conf/%{vitam_service_name}/sysconfig
+cp %{SOURCE1} %{buildroot}/vitam/conf/%{vitam_service_name}/sysconfig/consul
 
-mkdir -p %{buildroot}/vitam/data/%{name}
+mkdir -p %{buildroot}/vitam/data/%{vitam_service_name}
 
 mkdir -p %{buildroot}/%{_unitdir}
-cp %{SOURCE2} %{buildroot}/%{_unitdir}/
+cp %{SOURCE2} %{buildroot}/%{_unitdir}
 
 %pre
 
 %post
 %systemd_post %{name}.service
-setcap CAP_NET_BIND_SERVICE=+eip /vitam/bin/%{name}/consul
+setcap CAP_NET_BIND_SERVICE=+eip /vitam/bin/%{vitam_service_name}/consul
 
 %preun
-%systemd_preun %{name}.service
+%systemd_preun  %{name}.service
 
 %postun
-%systemd_postun %{name}.service
+%systemd_postun  %{name}.service
 
 %clean
 rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
-%dir %attr(750, vitam, vitam) /vitam/conf/%{name}
-%dir %attr(750, vitam, vitam) /vitam/conf/%{name}/sysconfig
-%config(noreplace) /vitam/conf/%{name}/sysconfig/consul
-%attr(640, vitam, vitam) /vitam/conf/%{name}/sysconfig/consul
-%dir %attr(750, vitam, vitam) /vitam/data/%{name}
+%dir %attr(750, vitam, vitam) /vitam/conf/%{vitam_service_name}
+%dir %attr(750, vitam, vitam) /vitam/conf/%{vitam_service_name}/sysconfig
+%config(noreplace) /vitam/conf/%{vitam_service_name}/sysconfig/consul
+%attr(640, vitam, vitam) /vitam/conf/%{vitam_service_name}/sysconfig/consul
+%dir %attr(750, vitam, vitam) /vitam/data/%{vitam_service_name}
 %{_unitdir}/%{name}.service
-%dir %attr(750, vitam, vitam) /vitam/bin/%{name}
-%attr(755, vitam, vitam) /vitam/bin/%{name}/consul
+%dir %attr(750, vitam, vitam) /vitam/bin/%{vitam_service_name}
+%attr(755, vitam, vitam) /vitam/bin/%{vitam_service_name}/consul
 
 %doc
 

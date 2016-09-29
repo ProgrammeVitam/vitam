@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# KWA Script : rebuild the entire repository.
+echo "Building maven rpm..."
+mvn clean package rpm:rpm -DskipTests
+echo "Building platform rpm..."
+pushd rpm/vitam-product ; ./build.sh vitam-user-vitam ; popd
+pushd rpm/vitam-product ; ./build.sh vitam-user-vitamdb ; popd
+pushd rpm/vitam-product ; ./build.sh vitam-consul ; popd
+pushd rpm/vitam-external ; ./build_repo.sh ; popd
+
+echo "Creating local rpm repository..."
+createrepo -x '.git/*' .
+yum clean all
+echo "Done ! Available local repositories in local vitam-product repository :"
+yum --disablerepo="*" --enablerepo="local" list available

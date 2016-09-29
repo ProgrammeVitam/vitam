@@ -6,6 +6,7 @@
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>parent</artifactId>
 		<version>0.9.0-SNAPSHOT</version>
+		<relativePath>../sources/pom.xml</relativePath>
 	</parent>
 
 	<groupId>fr.gouv.vitam.doc</groupId>
@@ -26,7 +27,7 @@
 				<executions>
 					<execution>
 						<!-- Run our version calculation script -->
-						<id>Build sphinx</id>
+						<id>Build docs</id>
 						<phase>compile</phase>
 						<goals>
 							<goal>exec</goal>
@@ -34,12 +35,11 @@
 						<configuration>
 							<executable>/usr/bin/make</executable>							
 							<arguments>
-							    <argument>${basedir}/Makefile</argument>
-							    <argument>clean</argument>
-							    <argument>html</argument>
-							    <argument>latexpdf</argument>
-							    <argument>raml</argument>
-							    <argument>autres</argument>
+								<argument>${basedir}/Makefile</argument>
+								<argument>html</argument>
+								<argument>latexpdf</argument> 
+								<argument>raml</argument>
+								<argument>autres</argument>
 							</arguments>
 						</configuration>
 					</execution>			
@@ -63,7 +63,72 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy-landing-resources</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/homepage</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${basedir}/fr/homepage/doc/</directory>
+									<filtering>false</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
 
+					<execution>
+						<id>copy-landing-index</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/homepage</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${basedir}/fr/homepage/index/</directory>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>unpack</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>unpack</goal>
+						</goals>
+						<configuration>
+							<artifactItems>
+								<artifactItem>
+									<groupId>fr.gouv.vitam</groupId>
+									<artifactId>parent</artifactId>
+									<version>${project.version}</version>
+									<classifier>javadoc</classifier>
+									<overWrite>true</overWrite>
+									<outputDirectory>${project.build.directory}/javadoc</outputDirectory>
+									<includes>**</includes>
+								</artifactItem>
+							</artifactItems>
+							<includes>**</includes>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 </project>

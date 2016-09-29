@@ -1,0 +1,14 @@
+
+[Unit]
+Description = Disable transparent huge pages
+
+[Service]
+Type = oneshot
+User = root
+
+ExecStart = /bin/sh -c "echo never > /sys/kernel/mm/transparent_hugepage/enabled"
+ExecStart = /bin/sh -c "echo never > /sys/kernel/mm/transparent_hugepage/defrag"
+ExecStart = /bin/sh -c "echo 0 > /sys/kernel/mm/transparent_hugepage/khugepaged/defrag"
+
+[Install]
+WantedBy = multi-user.target

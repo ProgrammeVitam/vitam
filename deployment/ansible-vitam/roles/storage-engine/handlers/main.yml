@@ -1,4 +1,0 @@
----
-# handlers file for access
-- name: restart container
-  command: docker restart {{vitam_docker_name}}

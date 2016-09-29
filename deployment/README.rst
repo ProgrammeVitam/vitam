@@ -30,7 +30,7 @@ Pour tester le déploiement de VITAM :
 Pour le déployer : 
 
 1. générer les certificats nécessaire en lançant le script :
-``generate-store.sh``
+``generate-security.sh``
 
 2. Lancer le playbook d'ansbible :
 ``ansible-playbook ansible-vitam-rpm/vitam.yml -i environments-rpm/<fichier d'inventaire>  --ask-vault-pass``
@@ -38,4 +38,6 @@ Pour le déployer :
 (et renseigner le mot de passe demandé)
 
 Pour déployer les extra seulement nécessaire pour le projet :
-``ansible-playbook ansible-vitam-rpm-extra/extra.yml -i environments-rpm/<fichier d'inventaire>``
+``ansible-playbook ansible-vitam-rpm-extra/extra.yml -i environments-rpm/<fichier d'inventaire>  --ask-vault-pass``
+
+(et renseigner le mot de passe demandé)
