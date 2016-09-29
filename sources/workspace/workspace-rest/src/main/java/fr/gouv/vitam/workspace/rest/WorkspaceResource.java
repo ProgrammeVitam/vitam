@@ -132,7 +132,7 @@ public class WorkspaceResource {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageAlreadyExistException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             return Response.status(Status.CONFLICT).entity(container.getName()).build();
         }
 
@@ -156,7 +156,7 @@ public class WorkspaceResource {
             workspace.deleteContainer(containerName, true);
 
         } catch (final ContentAddressableStorageNotFoundException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             return Response.status(Status.NOT_FOUND).entity(containerName).build();
         }
 
@@ -203,10 +203,10 @@ public class WorkspaceResource {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageAlreadyExistException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             return Response.status(Status.CONFLICT).entity(containerName + "/" + folder.getName()).build();
         } catch (final ContentAddressableStorageNotFoundException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             return Response.status(Status.NOT_FOUND).entity(containerName + "/" + folder.getName()).build();
         }
 
@@ -230,7 +230,7 @@ public class WorkspaceResource {
         try {
             workspace.deleteFolder(containerName, folderName);
         } catch (final ContentAddressableStorageNotFoundException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             return Response.status(Status.NOT_FOUND).entity(containerName + "/" + folderName).build();
         }
 
@@ -240,8 +240,8 @@ public class WorkspaceResource {
     /**
      * checks if a folder exists in a container
      *
-     * @param containerName, path param for container name
-     * @param folderName, path param for folder name
+     * @param containerName path param for container name
+     * @param folderName path param for folder name
      * @return Response
      */
     @Path("/containers/{containerName}/folders/{folderName}")
@@ -280,10 +280,10 @@ public class WorkspaceResource {
         try {
             workspace.putObject(containerName, objectName, stream);
         } catch (final ContentAddressableStorageNotFoundException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             return Response.status(Status.NOT_FOUND).entity(containerName).build();
         } catch (final ContentAddressableStorageException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
         }
 
@@ -307,7 +307,7 @@ public class WorkspaceResource {
         try {
             workspace.deleteObject(containerName, objectName);
         } catch (final ContentAddressableStorageNotFoundException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             return Response.status(Status.NOT_FOUND).entity(containerName).build();
         }
 
@@ -332,10 +332,10 @@ public class WorkspaceResource {
         try {
             stream = workspace.getObject(containerName, objectName);
         } catch (final ContentAddressableStorageNotFoundException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             return Response.status(Status.NOT_FOUND).entity(containerName).build();
         } catch (final ContentAddressableStorageException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
         }
 
@@ -361,10 +361,10 @@ public class WorkspaceResource {
         try {
             jsonResultNode = workspace.getObjectInformation(containerName, objectName);
         } catch (final ContentAddressableStorageNotFoundException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             return Response.status(Status.NOT_FOUND).entity(containerName).build();
         } catch (final ContentAddressableStorageException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
         }
 
@@ -400,12 +400,12 @@ public class WorkspaceResource {
             try {
                 messageDigest = workspace.computeObjectDigest(containerName, objectName, DigestType.fromValue(algo));
             } catch (final ContentAddressableStorageNotFoundException e) {
-                LOGGER.error(e.getMessage());
+                LOGGER.error(e);
                 return Response.status(Status.NOT_FOUND)
                     .header("X-digest-algorithm", algo)
                     .entity(containerName + "/" + objectName).build();
             } catch (final ContentAddressableStorageException e) {
-                LOGGER.error(e.getMessage());
+                LOGGER.error(e);
                 return Response.status(Status.INTERNAL_SERVER_ERROR)
                     .header("X-digest-algorithm", algo)
                     .entity(containerName + "/" + objectName).build();
@@ -451,13 +451,13 @@ public class WorkspaceResource {
         try {
             workspace.unzipObject(containerName, folderName, stream);
         } catch (final ContentAddressableStorageNotFoundException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             return Response.status(Status.NOT_FOUND).entity(containerName).build();
         } catch (final ContentAddressableStorageAlreadyExistException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             return Response.status(Status.CONFLICT).entity(containerName).build();
         } catch (final ContentAddressableStorageZipException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             Status status = Status.BAD_REQUEST;
             // TODO : For now it is generic code "0000" since vitam error code have not been defined
             return Response.status(status)
@@ -470,7 +470,7 @@ public class WorkspaceResource {
                 .build();
 
         } catch (final ContentAddressableStorageException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
         }
 
@@ -496,10 +496,10 @@ public class WorkspaceResource {
             uriList = workspace.getListUriDigitalObjectFromFolder(containerName, folderName);
 
         } catch (final ContentAddressableStorageNotFoundException eNotFoundException) {
-            LOGGER.error(eNotFoundException.getMessage());
+            LOGGER.error(eNotFoundException);
             return Response.status(Status.NOT_FOUND).entity(containerName).build();
         } catch (final ContentAddressableStorageException eAddressableStorageException) {
-            LOGGER.error(eAddressableStorageException.getMessage());
+            LOGGER.error(eAddressableStorageException);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(Collections.<URI>emptyList()).build();
         }
 
@@ -524,7 +524,7 @@ public class WorkspaceResource {
             ContainerInformation containerInformation = workspace.getContainerInformation(containerName);
             return Response.status(Status.OK).entity(containerInformation).build();
         } catch (ContentAddressableStorageNotFoundException exc) {
-            LOGGER.error(exc.getMessage());
+            LOGGER.error(exc);
             return Response.status(Status.NOT_FOUND).entity(containerName).build();
         }
     }

@@ -99,19 +99,19 @@ public class BasicVitamServer implements VitamServer {
         } catch (FileNotFoundException e) {
             setConfigured(false);
             LOGGER.error("Server configuration file not found.", e);
-            throw new VitamApplicationServerException(e.getMessage(), e);
+            throw new VitamApplicationServerException(e);
         } catch (SAXException e) {
             setConfigured(false);
             LOGGER.error("Server configuration file can't be parsed.", e);
-            throw new VitamApplicationServerException(e.getMessage(), e);
+            throw new VitamApplicationServerException(e);
         } catch (IOException e) {
             setConfigured(false);
             LOGGER.error("Server configuration file can't be read.", e);
-            throw new VitamApplicationServerException(e.getMessage(), e);
+            throw new VitamApplicationServerException(e);
         } catch (Exception e) {
             setConfigured(false);
             LOGGER.error("Server can't be started.", e);
-            throw new VitamApplicationServerException(e.getMessage(), e);
+            throw new VitamApplicationServerException(e);
         }
     }
 
@@ -223,7 +223,7 @@ public class BasicVitamServer implements VitamServer {
             try {
                 server.join();
             } catch (InterruptedException e) {
-                throw new VitamException(e.getMessage(), e);
+                throw new VitamException(e);
             }
         }
     }

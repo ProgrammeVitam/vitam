@@ -130,7 +130,7 @@ public class MetaDataResource {
             queryJson = JsonHandler.getFromString(insertRequest);
             metaDataImpl.insertUnit(queryJson);
         } catch (final InvalidParseOperationException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
             return Response.status(status)
@@ -142,7 +142,7 @@ public class MetaDataResource {
                         .setDescription(status.getReasonPhrase())))
                 .build();
         } catch (final MetaDataNotFoundException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             status = Status.NOT_FOUND;
             return Response.status(status)
                 .entity(new RequestResponseError().setError(
@@ -153,7 +153,7 @@ public class MetaDataResource {
                         .setDescription(status.getReasonPhrase())))
                 .build();
         } catch (final MetaDataAlreadyExistException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             status = Status.CONFLICT;
             return Response.status(status)
                 .entity(new RequestResponseError().setError(
@@ -164,7 +164,7 @@ public class MetaDataResource {
                         .setDescription(status.getReasonPhrase())))
                 .build();
         } catch (final MetaDataExecutionException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
                 .entity(new RequestResponseError().setError(
@@ -175,7 +175,7 @@ public class MetaDataResource {
                         .setDescription(status.getReasonPhrase())))
                 .build();
         } catch (final MetaDataDocumentSizeException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             status = Status.REQUEST_ENTITY_TOO_LARGE;
             return Response.status(status)
                 .entity(new RequestResponseError().setError(
@@ -209,7 +209,7 @@ public class MetaDataResource {
             jsonResultNode = metaDataImpl.selectUnitsByQuery(selectRequest);
 
         } catch (InvalidParseOperationException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             status = Status.BAD_REQUEST;
             return Response.status(status)
                 .entity(new RequestResponseError().setError(
@@ -223,7 +223,7 @@ public class MetaDataResource {
         } catch (final MetaDataExecutionException e) {
             return metadataExecutionExceptionTrace(e);
         } catch (final MetaDataDocumentSizeException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             status = Status.REQUEST_ENTITY_TOO_LARGE;
             return Response.status(status)
                 .entity(new RequestResponseError().setError(
@@ -307,7 +307,7 @@ public class MetaDataResource {
         try {
             jsonResultNode = metaDataImpl.selectUnitsById(selectRequest, unitId);
         } catch (final InvalidParseOperationException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             status = Status.BAD_REQUEST;
             return Response.status(status)
                 .entity(new RequestResponseError().setError(
@@ -320,7 +320,7 @@ public class MetaDataResource {
         } catch (final MetaDataExecutionException e) {
             return metadataExecutionExceptionTrace(e);
         } catch (final MetaDataDocumentSizeException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             status = Status.REQUEST_ENTITY_TOO_LARGE;
             return Response.status(status)
                 .entity(new RequestResponseError().setError(
@@ -343,7 +343,7 @@ public class MetaDataResource {
         try {
             jsonResultNode = metaDataImpl.updateUnitbyId(selectRequest, unitId);
         } catch (final InvalidParseOperationException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             status = Status.BAD_REQUEST;
             return Response.status(status)
                 .entity(new RequestResponseError().setError(
@@ -356,7 +356,7 @@ public class MetaDataResource {
         } catch (final MetaDataExecutionException e) {
             return metadataExecutionExceptionTrace(e);
         } catch (final MetaDataDocumentSizeException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             status = Status.REQUEST_ENTITY_TOO_LARGE;
             return Response.status(status)
                 .entity(new RequestResponseError().setError(
@@ -372,7 +372,7 @@ public class MetaDataResource {
 
     private Response metadataExecutionExceptionTrace(final MetaDataExecutionException e) {
         Status status;
-        LOGGER.error(e.getMessage());
+        LOGGER.error(e);
         status = Status.INTERNAL_SERVER_ERROR;
         return Response.status(status)
             .entity(new RequestResponseError().setError(
@@ -402,7 +402,7 @@ public class MetaDataResource {
             queryJson = JsonHandler.getFromString(insertRequest);
             metaDataImpl.insertObjectGroup(queryJson);
         } catch (final InvalidParseOperationException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             status = Status.BAD_REQUEST;
             return Response.status(status)
                 .entity(new RequestResponseError().setError(
@@ -413,7 +413,7 @@ public class MetaDataResource {
                         .setDescription(status.getReasonPhrase())))
                 .build();
         } catch (final MetaDataNotFoundException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             status = Status.NOT_FOUND;
             return Response.status(status)
                 .entity(new RequestResponseError().setError(
@@ -424,7 +424,7 @@ public class MetaDataResource {
                         .setDescription(status.getReasonPhrase())))
                 .build();
         } catch (final MetaDataAlreadyExistException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             status = Status.CONFLICT;
             return Response.status(status)
                 .entity(new RequestResponseError().setError(
@@ -435,7 +435,7 @@ public class MetaDataResource {
                         .setDescription(status.getReasonPhrase())))
                 .build();
         } catch (final MetaDataExecutionException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
                 .entity(new RequestResponseError().setError(
@@ -446,7 +446,7 @@ public class MetaDataResource {
                         .setDescription(status.getReasonPhrase())))
                 .build();
         } catch (final MetaDataDocumentSizeException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             status = Status.REQUEST_ENTITY_TOO_LARGE;
             return Response.status(status)
                 .entity(new RequestResponseError().setError(

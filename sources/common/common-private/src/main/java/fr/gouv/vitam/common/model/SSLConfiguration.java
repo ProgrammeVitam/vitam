@@ -105,7 +105,7 @@ public class SSLConfiguration {
             sslContext.init(keyManagers, trustManagers, new java.security.SecureRandom());
             return sslContext;
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
-            throw new VitamException(e.getMessage(), e);
+            throw new VitamException(e);
         }
 
 
@@ -140,7 +140,7 @@ public class SSLConfiguration {
         try {
             return new FileInputStream(PropertiesUtils.findFile(filePath));
         } catch (FileNotFoundException e) {
-            throw new VitamException(e.getMessage(), e);
+            throw new VitamException(e);
         }
     }
 
@@ -165,7 +165,7 @@ public class SSLConfiguration {
             return kmf.getKeyManagers();
         } catch (IOException | NoSuchAlgorithmException | CertificateException | UnrecoverableKeyException |
             KeyStoreException e) {
-            throw new VitamException(e.getMessage(), e);
+            throw new VitamException(e);
         }
     }
 
@@ -189,7 +189,7 @@ public class SSLConfiguration {
             tmf.init(keyStore);
             return tmf.getTrustManagers();
         } catch (IOException | KeyStoreException | NoSuchAlgorithmException | CertificateException e) {
-            throw new VitamException(e.getMessage(), e);
+            throw new VitamException(e);
         }
 
     }
