@@ -68,6 +68,7 @@
 
 - hosts: hosts-ingest-external
   roles:
+    - siegfried
     - {role: vitam, vitam_component: ingest-external, java_args: /vitam/conf/ingest-external/ingest-external.conf, port_http: "{{vitam_ingestexternal_port}}", tls_active: true }
     - ingest-external
 
@@ -77,6 +78,7 @@
 
 - hosts: hosts-worker
   roles:
+    - siegfried
     - {role: vitam, vitam_component: worker,java_args: /vitam/conf/worker/worker.conf, port_http: "{{vitam_worker_port}}" } 
 
 - hosts: hosts-access

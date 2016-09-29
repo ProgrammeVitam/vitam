@@ -16,4 +16,3 @@ for SPECFILE in $(ls ${COMPONENT}/rpmbuild/SPECS/*.spec); do
   HOME=${COMPONENT} rpmbuild -bb ${SPECFILE}
 done
 
-
