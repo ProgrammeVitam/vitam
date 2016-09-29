@@ -221,9 +221,6 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
             }
             // FIXME REVIEW should it be a check of emptyness?
             blobStore.deleteDirectory(containerName, folderName);
-
-        } catch (final ContentAddressableStorageNotFoundException e) {
-            throw e;
         } finally {
             context.close();
         }
@@ -437,8 +434,8 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
     /**
      * extract compressed SIP and push the objects on the SIP folder
      *
-     * @param containerName: GUID
-     * @param folderName: folder Name
+     * @param containerName : GUID
+     * @param folderName : folder Name
      * @param inputStreamObject :compressed SIP stream
      * @throws ContentAddressableStorageZipException if the file is not a zip or an empty zip
      * @throws ContentAddressableStorageException if an IOException occure when unzipping the file
@@ -530,7 +527,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
          * @param in
          */
         public EntryImputStream(ZipInputStream in) {
-            this.zipInputStream = (ZipInputStream) in;
+            this.zipInputStream = in;
         }
 
         @Override
