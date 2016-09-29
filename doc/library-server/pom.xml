@@ -3,11 +3,12 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>fr.gouv.vitam</groupId>
-        <artifactId>parent</artifactId>
-        <version>0.9.0-SNAPSHOT</version>
-    </parent>
+	<parent>
+		<groupId>fr.gouv.vitam</groupId>
+		<artifactId>parent</artifactId>
+		<relativePath>../../sources/pom.xml</relativePath>
+		<version>0.9.0-SNAPSHOT</version>
+	</parent>
 
 	<artifactId>library-server</artifactId>
 	<properties>
@@ -15,15 +16,15 @@
 		<unix.user>vitam</unix.user>
 		<unix.group>vitam</unix.group>
 	</properties>
+
 	<build>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
-				<version>2.10</version>
 				<executions>
 					<execution>
-						<id>unpack</id>
+						<id>unpack-technical-doc</id>
 						<phase>validate</phase>
 						<goals>
 							<goal>unpack</goal>
@@ -33,21 +34,13 @@
 								<artifactItem>
 									<groupId>fr.gouv.vitam.doc</groupId>
 									<artifactId>technical-doc</artifactId>
-									<version>0.8.0-SNAPSHOT</version>
+									<version>${project.version}</version>
 									<type>zip</type>
 									<overWrite>true</overWrite>
 									<outputDirectory>${project.build.directory}/app</outputDirectory>
-							</artifactItem>
-							<artifactItem>
-									<groupId>fr.gouv.vitam</groupId>
-									<artifactId>parent</artifactId>
-									<version>0.8.0-SNAPSHOT</version>
-									<!-- <type>jar</type> -->
-									<classifier>javadoc</classifier>
-									<overWrite>true</overWrite>
-									<outputDirectory>${project.build.directory}/app/javadoc</outputDirectory>
-							</artifactItem>
-						</artifactItems>
+									<includes>**</includes>
+								</artifactItem>
+							</artifactItems>
 							<!--
 							<includes>**/*.java</includes>
 							<excludes>**/*.properties</excludes>
@@ -75,40 +68,6 @@
 						<resources>
 							<resource>
 								<directory>${basedir}/src/main/bin</directory>
-								<filtering>true</filtering>
-							</resource>
-						</resources>
-					</configuration>
-				</execution>
-				
-				<execution>
-					<id>copy-landing</id>
-					<phase>validate</phase>
-					<goals>
-						<goal>copy-resources</goal>
-					</goals>
-					<configuration>
-						<outputDirectory>${project.build.directory}/app</outputDirectory>
-						<resources>
-							<resource>
-								<directory>${basedir}/src/main/doc</directory>
-								<filtering>false</filtering>
-							</resource>
-						</resources>
-					</configuration>
-				</execution>
-				
-				<execution>
-					<id>copy-landing-index</id>
-					<phase>validate</phase>
-					<goals>
-						<goal>copy-resources</goal>
-					</goals>
-					<configuration>
-						<outputDirectory>${project.build.directory}/app</outputDirectory>
-						<resources>
-							<resource>
-								<directory>${basedir}/src/main/index</directory>
 								<filtering>true</filtering>
 							</resource>
 						</resources>
@@ -187,7 +146,7 @@
 					</mapping>
 
 					<mapping>
-						<directory>/vitam/bin/${unix.name}</directory>
+						<directory>/vitam/script/${unix.name}</directory>
 						<sources>
 							<source>
 								<location>${project.build.directory}/bin</location>
@@ -216,6 +175,13 @@
 </build>
 
 <dependencies>
+	<!-- Doc dependency - in a multi-module build, ensure that the documentation is built first -->
+	<dependency>
+		<groupId>fr.gouv.vitam.doc</groupId>
+		<artifactId>technical-doc</artifactId>
+		<version>${project.version}</version>
+		<type>zip</type>
+	</dependency>
 	<!-- Server dependencies -->
 	<dependency>
 		<groupId>fr.gouv.vitam</groupId>

@@ -490,7 +490,7 @@
 							</mapping>
 
 							<mapping>
-								<directory>/vitam/bin/${unix.name}</directory>
+								<directory>/vitam/script/${unix.name}</directory>
 								<sources>
 									<source>
 										<location>${project.build.directory}/bin</location>

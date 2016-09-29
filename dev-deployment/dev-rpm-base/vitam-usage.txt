@@ -1,0 +1,7 @@
+
+=================================
+= VITAM development environment =
+=================================
+
+* The mounted repository is in /code (default working directory)
+* The command to build the local repository is : vitam-build-repo

@@ -1,0 +1,12 @@
+
+
+sh.addShard("shard{{shard_id}}/{{groups['mongod']|last}}:{{mongod_port}}")
+
+
+sh.enableSharding("Vitam")
+
+sh.shardCollection("Vitam.Unit"                         ,{ _id: "hashed" })
+sh.shardCollection("Vitam.ObjectGroup"                  ,{ _id: "hashed" })
+sh.shardCollection("Vitam.LogbookOperation"             ,{ _id: "hashed" })
+sh.shardCollection("Vitam.LogbookLifeCycleUnit"         ,{ _id: "hashed" })
+sh.shardCollection("Vitam.LogbookLifeCycleObjectGroup"  ,{ _id: "hashed" })

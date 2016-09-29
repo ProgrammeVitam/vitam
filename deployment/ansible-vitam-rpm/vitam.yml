@@ -1,11 +1,34 @@
 ---
 
 # Vitam solution deployment
-
-# MongoDB installation
-- hosts: hosts-mongodb
+- hosts: hosts
   roles:
-    - mongodb
+    - {role: init_vitam_dir, when: vitam_environment=='local'}
+
+# mongodb commons (yum install, etc...)
+- hosts: mongo_common
+  roles:
+  - role: mongo_common
+
+# Mongoc replicas configuration
+- hosts: mongoc
+  roles:
+    - {role: mongoc, mongo_bin: mongod}
+
+# Mongod replicas configuration
+- hosts: mongod
+  roles:
+    - {role: mongod, mongo_bin: mongod, shard_id: 0}
+
+# Mongos configuration & mongo cluster configuration
+- hosts: mongos
+  roles:
+    - {role: mongos, mongo_bin: mongos}
+
+# # MongoDB installation
+# - hosts: hosts-mongodb
+#   roles:
+#     - mongodb
 
 # ElasticSearch-data installation
 - hosts: hosts-elasticsearch-data

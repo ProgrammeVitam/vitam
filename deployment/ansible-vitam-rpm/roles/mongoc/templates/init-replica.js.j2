@@ -1,0 +1,21 @@
+
+rs.initiate(
+    {
+        _id: "configsvr",
+        configsvr: true,
+        members:
+        [
+            {% set i = 0 %}
+
+            {% for item in groups['mongoc'] %}
+
+            { _id: {{i}} , host: "{{item}}:{{mongoc_port}}" }
+            {% set i = i + 1 %}
+            {% if i < groups['mongoc']|length %},{% endif %}
+
+            {% endfor %}
+        ]
+    }
+)
+
+rs.status()

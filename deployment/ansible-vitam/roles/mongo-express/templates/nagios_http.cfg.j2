@@ -1,6 +1,0 @@
-define service{
-        use                             pnp-service
-        host_name                       {{ ansible_fqdn }}
-        service_description             {{ service_name }}
-        check_command                   check-http-with-port-and-url!{{ service_port }}!{{ service_context }}
-}

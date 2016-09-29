@@ -7,15 +7,32 @@
       {
         "id": "external-status",
         "notes": "Status applicatif externe : /{{ vitam_component }}/v1/status",
+{% if tls_active==true %}
+        "https": "http://localhost:{{ port_http }}",
+{% else %}
         "http": "http://localhost:{{ port_http }}/{{ vitam_component }}/v1/status",
+{% endif %}
+
         "interval": "1s"
       },
-      {
+
+        {
         "id": "external-port",
-        "notes": "Port externe ouvert : {{ port_http }}",
-        "tcp": "localhost:{{ port_http }}",
-        "interval": "1s"
-      }
-    ]
-  }
+          "notes": "Port externe ouvert : {{ port_http }}",
+          "tcp": "localhost:{{ port_http }}",
+          "interval": "1s"
+        }
+      ]
+    }
 }
+//      {
+//        "id": "admin-status",
+//        "notes": "Status applicatif admin : /admin/v1/status",
+//{% if tls_active==true %}
+//        "https": "http://localhost:{{ port_http }}",
+//{% else %}
+//        "http": "http://localhost:{{ port_http }}/admin/v1/status",
+//{% endif %}
+//
+//        "interval": "1s"
+//      },

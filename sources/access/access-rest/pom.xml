@@ -133,7 +133,7 @@
                             <directory>${basedir}/src/main/config</directory>
                         </resource>
                         <resource>
-                            <targetPath>/vitam/bin</targetPath>
+                            <targetPath>/vitam/scripts</targetPath>
                             <directory>${project.build.directory}/bin</directory>
                         </resource>
                         <resource>

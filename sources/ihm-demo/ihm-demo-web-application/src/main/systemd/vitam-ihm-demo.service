@@ -1,0 +1,13 @@
+[Unit]
+Description=VITAM IHM Demo
+After=network.target
+After=syslog.target
+
+[Service]
+Type=simple
+ExecStart=/vitam/script/${unix.name}/wrapper.sh
+User=${unix.user}
+Group=${unix.group}
+
+[Install]
+WantedBy=multi-user.target

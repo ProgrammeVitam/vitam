@@ -68,10 +68,18 @@ elasticsearch_log_tcp_port: "9300"
 elasticsearch_data_http_port: "9201"
 elasticsearch_data_tcp_port: "9301"
 
-vitam_mongodb_host: "{{ groups['hosts-mongodb'][0] }}"
+vitam_mongodb_host: "{{ groups['mongos'][0] }}"
 vitam_mongodb_port: 27017
 
 vitam_logserver_host: "{{ groups['hosts-log-server'][0] }}"
 vitam_logserver_port: 10514
 
 vitam_library_port: 8090
+
+vitam_group: vitam
+
+mongo_base_path: "{{vitam_folder_root}}"
+mongos_port: 27017
+mongoc_port: 27018
+mongod_port: 27019
+mongo_user: "vitamdb"

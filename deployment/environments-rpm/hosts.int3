@@ -29,6 +29,12 @@ hosts-worker
 hosts-log-server
 hosts-consul-server
 hosts-elasticsearch-data
+mongo_common
+
+[mongo_common:children]
+mongos
+mongoc
+mongod
 
 [hosts-mongodb]
 vitam-iaas-mongodb-01.int3
@@ -106,3 +112,12 @@ proxy_port=3128
 rpm_version=0.9.0-SNAPSHOT*
 days_to_delete=30
 dns_server=172.16.1.21
+
+[mongos]
+vitam-iaas-mongodb-01.int3
+
+[mongoc]
+vitam-iaas-mongodb-01.int3
+
+[mongod]
+vitam-iaas-mongodb-01.int3 rs_member_id=0 shard_id=0

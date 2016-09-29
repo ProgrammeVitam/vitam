@@ -1,0 +1,21 @@
+# mongod.conf
+
+# for documentation of all options, see:
+#   http://docs.mongodb.org/manual/reference/configuration-options/
+
+
+# where to write logging data.
+systemLog:
+  destination: syslog
+  syslogFacility: local0
+  logAppend: true
+
+
+# network interfaces
+net:
+  port: {{mongos_port}}
+
+
+# operationProfiling:
+sharding:
+  configDB: configsvr/{% for item in groups['mongoc'] %}{{item}}:{{mongoc_port}}{% if not loop.last %},{% endif %}{% endfor %}
