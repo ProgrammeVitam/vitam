@@ -38,41 +38,36 @@ import static org.junit.Assert.assertEquals;
  * TEst for PutObjectRequestTest
  */
 public class PutObjectRequestTest {
+    private static final ByteArrayInputStream BYTES = new ByteArrayInputStream("dsds".getBytes());
     private static PutObjectRequest putObjectRequest;
 
     @BeforeClass
     public static void init() {
-        putObjectRequest = new PutObjectRequest();
+        putObjectRequest = new PutObjectRequest("ti", "da", "guid", BYTES, "type");
     }
 
     @Test
-    public void testGetSetTenantId() throws Exception {
-        putObjectRequest.setTenantId("ff");
-        assertEquals("ff", putObjectRequest.getTenantId());
+    public void testGetTenantId() throws Exception {
+        assertEquals("ti", putObjectRequest.getTenantId());
     }
 
     @Test
-    public void testGetSetDataStream() throws Exception {
-        ByteArrayInputStream bytes = new ByteArrayInputStream("dsds".getBytes());
-        putObjectRequest.setDataStream(bytes);
-        assertEquals(bytes, putObjectRequest.getDataStream());
+    public void testGetDataStream() throws Exception {
+        assertEquals(BYTES, putObjectRequest.getDataStream());
     }
 
     @Test
-    public void testGetSetGuid() throws Exception {
-        putObjectRequest.setGuid("ff");
-        assertEquals("ff", putObjectRequest.getGuid());
+    public void testGetGuid() throws Exception {
+        assertEquals("guid", putObjectRequest.getGuid());
     }
 
     @Test
-    public void testGetSetDigestAlgorithm() throws Exception {
-        putObjectRequest.setDigestAlgorithm("ff");
-        assertEquals("ff", putObjectRequest.getDigestAlgorithm());
+    public void testGetDigestAlgorithm() throws Exception {
+        assertEquals("da", putObjectRequest.getDigestAlgorithm());
     }
 
     @Test
-    public void testGetSetType() throws Exception {
-        putObjectRequest.setType("object");
-        assertEquals("object", putObjectRequest.getType());
+    public void testGetType() throws Exception {
+        assertEquals("type", putObjectRequest.getType());
     }
 }

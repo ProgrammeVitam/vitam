@@ -34,6 +34,6 @@
  */
 
 /**
- * Common Model package for Storage engine
+ * Common object holding data used to retrieve an Object from the workspace
  */
 package fr.gouv.vitam.storage.engine.common.model.request;

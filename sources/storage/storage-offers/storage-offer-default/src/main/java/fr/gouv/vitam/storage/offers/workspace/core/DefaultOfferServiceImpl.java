@@ -104,7 +104,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
-    public ObjectInit createContainer(String containerName, ObjectInit objectInit, String objectGUID)
+    public ObjectInit initCreateObject(String containerName, ObjectInit objectInit, String objectGUID)
         throws ContentAddressableStorageServerException, ContentAddressableStorageAlreadyExistException,
         ContentAddressableStorageNotFoundException {
         if (!defaultStorage.isExistingContainer(containerName)) {
@@ -213,6 +213,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         result.put("usableSpace", containerInformation.getUsableSpace());
         // FIXME cette implémentation retourne l'espace "total" utilisé et non l'espace utilisé par ce container !
         result.put("usedSpace", containerInformation.getUsedSpace());
+        result.put("tenantId", containerName);
         return result;
     }
 

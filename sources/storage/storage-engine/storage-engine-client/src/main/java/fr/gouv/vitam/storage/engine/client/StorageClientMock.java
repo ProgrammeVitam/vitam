@@ -81,13 +81,6 @@ class StorageClientMock extends StorageClientRest implements StorageClient {
     }
 
     @Override
-    public StoredInfoResult storeJson(String tenantId, String strategyId, StorageCollectionType type, String guid,
-        JsonNode data)
-        throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException {
-        return generateStoredInfoResult(guid);
-    }
-
-    @Override
     public StoredInfoResult storeFileFromWorkspace(String tenantId, String strategyId, StorageCollectionType type,
         String guid,
         CreateObjectDescription description)

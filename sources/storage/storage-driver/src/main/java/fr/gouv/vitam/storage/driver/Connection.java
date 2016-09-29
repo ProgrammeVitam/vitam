@@ -42,10 +42,7 @@ import fr.gouv.vitam.storage.driver.model.PutObjectRequest;
 import fr.gouv.vitam.storage.driver.model.PutObjectResult;
 import fr.gouv.vitam.storage.driver.model.RemoveObjectRequest;
 import fr.gouv.vitam.storage.driver.model.RemoveObjectResult;
-import fr.gouv.vitam.storage.driver.model.StorageCapacityRequest;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
-
-import java.io.File;
 
 /**
  * Represents a connection to the distant storage offer service that is provided by the driver when calling the
@@ -65,11 +62,11 @@ public interface Connection extends AutoCloseable {
      * Retrieve the remaining storage capacity available on the distant offer.
      * Return values MUST in bytes
      *
-     * @param request the request contains information needed to get storage capacity
-     * @return the usable and used space in bytes
+     * @param tenantId the tenant id needed to get storage capacity
+     * @return the usable and used space in bytes and a remind of the given tenantId
      * @throws StorageDriverException if any problem occurs during request
      */
-    StorageCapacityResult getStorageCapacity(StorageCapacityRequest request) throws StorageDriverException;
+    StorageCapacityResult getStorageCapacity(String tenantId) throws StorageDriverException;
 
     /**
      * Retrieve an object from the storage offer based on criterias defined in request argument.
@@ -90,18 +87,6 @@ public interface Connection extends AutoCloseable {
      * @throws StorageDriverException if any problem occurs during request
      */
     PutObjectResult putObject(PutObjectRequest request) throws StorageDriverException;
-
-    /**
-     * Put the object file into the storage offer based on criterias defined in request argument and underlaying
-     * connection parameters.
-     *
-     * @param request the request to send. It may contains informations needed to store the file.
-     * @param object  the file to store as a {@link File} object to be used in replacement of the InpuStream
-     *                contained in the request
-     * @return a result that may contains metadata or statistics about the object put operation.
-     * @throws StorageDriverException if any problem occurs during request
-     */
-    PutObjectResult putObject(PutObjectRequest request, File object) throws StorageDriverException;
 
     /**
      * Delete an object on the distant storage offer.

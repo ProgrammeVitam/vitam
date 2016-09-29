@@ -58,24 +58,6 @@ public interface StorageClient extends BasicClient {
         throws StorageNotFoundClientException, StorageServerClientException;
 
     /**
-     * Store a JSON object by its vitam guid
-     * 
-     * @param tenantId the tenant id
-     * @param strategyId the storage strategy id
-     * @param type the type of object collection
-     * @param guid vitam guid
-     * @param data the data
-     * @return the result status of object creation
-     * @throws StorageAlreadyExistsClientException if the Server got a CONFLICT status result
-     * @throws StorageNotFoundClientException if the Server got a NotFound result
-     * @throws StorageServerClientException if the Server got an internal error
-     */
-    // FIXME pourquoi un JsonNode alors que c'est un fichier dans Workspace donc un InputStream via un chemin d'accès ? Ici cela suppose que le flux est passé pare le client !
-    StoredInfoResult storeJson(String tenantId, String strategyId, StorageCollectionType type, String guid,
-        JsonNode data)
-        throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException;
-
-    /**
      * Store an object available in workspace by its vitam guid
      * 
      * @param tenantId the tenant id
@@ -117,6 +99,7 @@ public interface StorageClient extends BasicClient {
 
     /**
      * Delete a container in the storage offer strategy
+     * A non-empty container CANNOT be deleted !
      * 
      * @param tenantId the tenant id
      * @param strategyId the storage strategy id

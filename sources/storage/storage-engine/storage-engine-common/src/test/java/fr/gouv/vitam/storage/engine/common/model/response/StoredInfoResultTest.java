@@ -27,6 +27,9 @@
 
 package fr.gouv.vitam.storage.engine.common.model.response;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Test;
 
 import fr.gouv.vitam.common.LocalDateUtil;
@@ -34,7 +37,6 @@ import fr.gouv.vitam.common.LocalDateUtil;
 import java.time.LocalDateTime;
 import java.util.Collections;
 
-import static org.junit.Assert.*;
 
 /**
  *

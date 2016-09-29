@@ -90,10 +90,14 @@ public class JsonHandlerTest {
         assertEquals(node.toString(), node2.toString());
         final TestClass tc = JsonHandler.getFromString(node.toString(), TestClass.class);
         assertEquals("val", tc.getA());
+        final TestClass tcBis = JsonHandler.getFromStringLowerCamelCase(node.toString(), TestClass.class);
+        assertEquals("val", tcBis.getA());
         final JsonNode node3 = JsonHandler.getFromBytes(node.toString().getBytes());
         assertEquals(node.toString(), node3.toString());
         final TestClass tc2 = JsonHandler.getFromFile(file, TestClass.class);
         assertEquals("val", tc2.getA());
+        final TestClass tc2Bis = JsonHandler.getFromFileLowerCamelCase(file, TestClass.class);
+        assertEquals("val", tc2Bis.getA());
         final TestClass tc4 = JsonHandler.getFromJsonNode(node, TestClass.class);
         assertEquals("val", tc4.getA());
         final JsonNode node4 = JsonHandler.toJsonNode(tc2);
@@ -134,7 +138,19 @@ public class JsonHandlerTest {
             // Ignore
         }
         try {
+            JsonHandler.getFromStringLowerCamelCase(null, TestClass.class);
+            fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
+        } catch (final InvalidParseOperationException e) {// NOSONAR
+            // Ignore
+        }
+        try {
             JsonHandler.getFromString("{}", null);
+            fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
+        } catch (final InvalidParseOperationException e) {// NOSONAR
+            // Ignore
+        }
+        try {
+            JsonHandler.getFromStringLowerCamelCase("{}", null);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
         } catch (final InvalidParseOperationException e) {// NOSONAR
             // Ignore
@@ -147,6 +163,18 @@ public class JsonHandlerTest {
         }
         try {
             JsonHandler.getFromFile(new File(""), null);
+            fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
+        } catch (final InvalidParseOperationException e) {// NOSONAR
+            // Ignore
+        }
+        try {
+            JsonHandler.getFromFileLowerCamelCase(null, TestClass.class);
+            fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
+        } catch (final InvalidParseOperationException e) {// NOSONAR
+            // Ignore
+        }
+        try {
+            JsonHandler.getFromFileLowerCamelCase(new File(""), null);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
         } catch (final InvalidParseOperationException e) {// NOSONAR
             // Ignore

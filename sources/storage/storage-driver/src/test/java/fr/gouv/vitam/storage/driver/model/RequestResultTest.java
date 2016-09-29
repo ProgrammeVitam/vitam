@@ -35,7 +35,10 @@
 
 package fr.gouv.vitam.storage.driver.model;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import java.io.ByteArrayInputStream;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -44,22 +47,21 @@ import org.junit.Test;
  * TEst for PutObjectRequestTest
  */
 public class RequestResultTest {
+    private static final ByteArrayInputStream BYTES = new ByteArrayInputStream("dsds".getBytes());
     private static GetObjectRequest getObjectRequest;
     private static GetObjectResult getObjectResult;
     private static RemoveObjectRequest removeObjectRequest;
     private static RemoveObjectResult removeObjectResult;
-    private static StorageCapacityRequest storageCapacityRequest;
     private static StorageCapacityResult storageCapacityResult;    
     
 
     @BeforeClass
     public static void init() {
-        getObjectRequest = new GetObjectRequest();
-        getObjectResult = new GetObjectResult();
+        getObjectRequest = new GetObjectRequest("ti", "oi", "object");
+        getObjectResult = new GetObjectResult("ti", BYTES);
         removeObjectRequest = new RemoveObjectRequest();
         removeObjectResult = new RemoveObjectResult();
-        storageCapacityRequest = new StorageCapacityRequest();
-        storageCapacityResult = new StorageCapacityResult();
+        storageCapacityResult = new StorageCapacityResult("ti", 1000, 100);
     }
 
     @Test
@@ -76,13 +78,8 @@ public class RequestResultTest {
     
     @Test
     public void testStorageCapacity() throws Exception {
-        storageCapacityRequest.setTenantId("ff");
-        assertEquals("ff", storageCapacityRequest.getTenantId());
-        storageCapacityResult.setUsableSpace(1000);
-        storageCapacityResult.setUsedSpace(1000);
         assertEquals(1000, storageCapacityResult.getUsableSpace());
-        assertEquals(1000, storageCapacityResult.getUsedSpace());
-        assertNotNull(storageCapacityRequest);
+        assertEquals(100, storageCapacityResult.getUsedSpace());
         assertNotNull(storageCapacityResult);
     }
 

@@ -40,24 +40,21 @@ public class GetObjectRequestTest {
 
     @BeforeClass
     public static void init() {
-        getObjectRequest = new GetObjectRequest();
+        getObjectRequest = new GetObjectRequest("ti", "oi", "object");
     }
 
     @Test
-    public void testGetSetTenantId() throws Exception {
-        getObjectRequest.setTenantId("ff");
-        assertEquals("ff", getObjectRequest.getTenantId());
+    public void testGetTenantId() throws Exception {
+        assertEquals("ti", getObjectRequest.getTenantId());
     }
 
     @Test
-    public void testGetSetObjectId() throws Exception {
-        getObjectRequest.setGuid("ff");
-        assertEquals("ff", getObjectRequest.getGuid());
+    public void testGetObjectId() throws Exception {
+        assertEquals("oi", getObjectRequest.getGuid());
     }
 
     @Test
-    public void testGetSetType() throws Exception {
-        getObjectRequest.setFolder("object");
+    public void testGetFolder() throws Exception {
         assertEquals("object", getObjectRequest.getFolder());
     }
 

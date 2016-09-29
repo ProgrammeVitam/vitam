@@ -43,7 +43,6 @@ import fr.gouv.vitam.storage.driver.model.GetObjectRequest;
 import fr.gouv.vitam.storage.driver.model.GetObjectResult;
 import fr.gouv.vitam.storage.driver.model.PutObjectRequest;
 import fr.gouv.vitam.storage.driver.model.PutObjectResult;
-import fr.gouv.vitam.storage.driver.model.StorageCapacityRequest;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
@@ -159,7 +158,7 @@ public class ConnectionImplTest extends JerseyTest {
 
     @Test(expected = StorageDriverException.class)
     public void putObjectWithEmptyRequestKO() throws Exception {
-        connection.putObject(new PutObjectRequest());
+        connection.putObject(new PutObjectRequest(null, null, null, null, null));
     }
 
     @Test(expected = StorageDriverException.class)
@@ -256,11 +255,6 @@ public class ConnectionImplTest extends JerseyTest {
     }
 
     @Test(expected = UnsupportedOperationException.class)
-    public void putObjectNotImplemented() throws Exception {
-        connection.putObject(null, null);
-    }
-
-    @Test(expected = UnsupportedOperationException.class)
     public void removeObjectNotImplemented() throws Exception {
         connection.removeObject(null);
     }
@@ -274,10 +268,9 @@ public class ConnectionImplTest extends JerseyTest {
     @Test
     public void getStorageCapacityOK() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(getStorageCapacityResult()).build());
-        StorageCapacityRequest request = new StorageCapacityRequest();
-        request.setTenantId("0");
-        StorageCapacityResult result = connection.getStorageCapacity(request);
+        StorageCapacityResult result = connection.getStorageCapacity("0");
         assertNotNull(result);
+        assertEquals("0", result.getTenantId());
         assertNotNull(result.getUsableSpace());
         assertNotNull(result.getUsedSpace());
     }
@@ -285,42 +278,25 @@ public class ConnectionImplTest extends JerseyTest {
     @Test(expected = StorageDriverException.class)
     public void getStorageCapacityException() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        StorageCapacityRequest request = new StorageCapacityRequest();
-        request.setTenantId("0");
-        connection.getStorageCapacity(request);
+        connection.getStorageCapacity("0");
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void getGetObjectGUIDIllegalArgumentException() throws Exception {
-        GetObjectRequest request = new GetObjectRequest();
-        request.setTenantId("0");
-        request.setFolder(DataCategory.OBJECT.getFolder());
-        connection.getObject(request);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void getGetObjectTenantIdIllegalArgumentException() throws Exception {
-        GetObjectRequest request = new GetObjectRequest();
-        request.setGuid("guid");
-        request.setFolder(DataCategory.OBJECT.getFolder());
+        GetObjectRequest request = new GetObjectRequest("0", null, DataCategory.OBJECT.getFolder());
         connection.getObject(request);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void getGetObjectTypeIllegalArgumentException() throws Exception {
-        GetObjectRequest request = new GetObjectRequest();
-        request.setGuid("guid");
-        request.setTenantId("0");
+        GetObjectRequest request = new GetObjectRequest(null, "guid", DataCategory.OBJECT.getFolder());
         connection.getObject(request);
     }
 
     @Test
     public void getObjectNotFound() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        GetObjectRequest request = new GetObjectRequest();
-        request.setTenantId("0");
-        request.setGuid("guid");
-        request.setFolder(DataCategory.OBJECT.getFolder());
+        GetObjectRequest request = new GetObjectRequest("0", "guid", DataCategory.OBJECT.getFolder());
         try {
             connection.getObject(request);
             fail("Expected exception");
@@ -332,10 +308,7 @@ public class ConnectionImplTest extends JerseyTest {
     @Test
     public void getObjectInternalError() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        GetObjectRequest request = new GetObjectRequest();
-        request.setTenantId("0");
-        request.setGuid("guid");
-        request.setFolder(DataCategory.OBJECT.getFolder());
+        GetObjectRequest request = new GetObjectRequest("0", "guid", DataCategory.OBJECT.getFolder());
         try {
             connection.getObject(request);
             fail("Expected exception");
@@ -347,10 +320,7 @@ public class ConnectionImplTest extends JerseyTest {
     @Test
     public void getObjectPreconditionFailed() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        GetObjectRequest request = new GetObjectRequest();
-        request.setTenantId("0");
-        request.setGuid("guid");
-        request.setFolder(DataCategory.OBJECT.getFolder());
+        GetObjectRequest request = new GetObjectRequest("0", "guid", DataCategory.OBJECT.getFolder());
         try {
             connection.getObject(request);
             fail("Expected exception");
@@ -363,36 +333,36 @@ public class ConnectionImplTest extends JerseyTest {
     public void getObjectOK() throws Exception {
         InputStream stream = new ByteArrayInputStream("Test".getBytes());
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(stream).build());
-        GetObjectRequest request = new GetObjectRequest();
-        request.setTenantId("0");
-        request.setGuid("guid");
-        request.setFolder(DataCategory.OBJECT.getFolder());
+        GetObjectRequest request = new GetObjectRequest("0", "guid", DataCategory.OBJECT.getFolder());
         GetObjectResult result = connection.getObject(request);
         assertNotNull(result);
     }
 
-    private PutObjectRequest getPutObjectRequest(boolean dataS, boolean digestA, boolean guid, boolean tenantId,
-        boolean type)
+    private PutObjectRequest getPutObjectRequest(boolean putDataS, boolean putDigestA, boolean putGuid,
+        boolean putTenantId, boolean putType)
         throws Exception {
-        PutObjectRequest request = new PutObjectRequest();
-        if (dataS) {
-            request
-                .setDataStream(new FileInputStream(PropertiesUtils.findFile("digitalObject.pdf")));
-        }
-        if (digestA) {
-            request.setDigestAlgorithm(DigestType.MD5.getName());
-        }
-        if (guid) {
-            request.setGuid("GUID");
-        }
-        if (tenantId) {
-            request.setTenantId("0");
-        }
-        if (type) {
-            request.setType(DataCategory.OBJECT.name());
-        }
+        FileInputStream stream = null;
+        String digest = null;
+        String guid = null;
+        String tenantId = null;
+        String type = null;
 
-        return request;
+        if (putDataS) {
+            stream = new FileInputStream(PropertiesUtils.findFile("digitalObject.pdf"));
+        }
+        if (putDigestA) {
+            digest = DigestType.MD5.getName();
+        }
+        if (putGuid) {
+            guid = "GUID";
+        }
+        if (putTenantId) {
+            tenantId = "0";
+        }
+        if (putType) {
+            type = DataCategory.OBJECT.name();
+        }
+        return new PutObjectRequest(tenantId, digest, guid, stream, type);
     }
 
     private ObjectInit getPostObjectResult(int uniqueId) {
@@ -412,7 +382,7 @@ public class ConnectionImplTest extends JerseyTest {
 
     private JsonNode getStorageCapacityResult() throws IOException {
         ObjectMapper mapper = new ObjectMapper();
-        JsonNode result = mapper.readTree("{\"usableSpace\":\"100000\"," +
+        JsonNode result = mapper.readTree("{\"tenantId\":\"0\",\"usableSpace\":\"100000\"," +
             "\"usedSpace\":\"100000\"}");
         return result;
     }

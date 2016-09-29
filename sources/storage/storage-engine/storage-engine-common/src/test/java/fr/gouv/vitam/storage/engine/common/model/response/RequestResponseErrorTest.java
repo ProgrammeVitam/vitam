@@ -35,9 +35,9 @@
 
 package fr.gouv.vitam.storage.engine.common.model.response;
 
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 import fr.gouv.vitam.common.error.VitamError;
 

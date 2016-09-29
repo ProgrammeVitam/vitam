@@ -326,7 +326,7 @@ public class StorageResource {
                 String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
                 try {
                     StoredInfoResult result = distribution.storeData(tenantId, strategyId, objectId,
-                        createObjectDescription, DataCategory.OBJECT, null);
+                        createObjectDescription, DataCategory.OBJECT);
                     return Response.status(Status.CREATED).entity(result).build();
                 } catch (StorageNotFoundException exc) {
                     LOGGER.error(exc);
@@ -475,30 +475,29 @@ public class StorageResource {
     /**
      * Post a new object
      *
-     * @param logbook the logbook to be created
      * @param headers http header
      * @param logbookId the id of the logbookId
+     * @param createObjectDescription the workspace information about logbook to be created
      * @return Response NOT_IMPLEMENTED
      */
-    // FIXME always sending position from Workspace, not directly data (json)
     @Path("/logbooks/{id_logbook}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createLogbook(JsonNode logbook, @Context HttpHeaders headers,
-        @PathParam("id_logbook") String logbookId) {
+    public Response createLogbook(@Context HttpHeaders headers,
+        @PathParam("id_logbook") String logbookId,
+        CreateObjectDescription createObjectDescription) {
         VitamCode vitamCode;
-        Response responsePost = checkPostHeader(headers);
-        if (responsePost == null) {
+        if (createObjectDescription == null) {
             return getLogbook(headers, logbookId);
-        } else if (responsePost.getStatus() == Status.OK.getStatusCode()) {
+        } else {
             Response response = checkTenantStrategyHeader(headers);
             if (response == null) {
                 String tenantId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.TENANT_ID).get(0);
                 String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
                 try {
                     StoredInfoResult result =
-                        distribution.storeData(tenantId, strategyId, logbookId, null, DataCategory.LOGBOOK, logbook);
+                        distribution.storeData(tenantId, strategyId, logbookId, createObjectDescription, DataCategory.LOGBOOK);
                     return Response.status(Status.CREATED).entity(result).build();
                 } catch (StorageNotFoundException e) {
                     LOGGER.error(e);
@@ -514,8 +513,6 @@ public class StorageResource {
                 return buildErrorResponse(vitamCode);
             }
             return response;
-        } else {
-            return responsePost;
         }
     }
 
@@ -583,34 +580,32 @@ public class StorageResource {
         return Response.status(Status.NOT_IMPLEMENTED).build();
     }
 
-    // FIXME always sending position from Workspace, not directly data (json)
     /**
      * Post a new unit metadata
      *
-     * @param unit the unit to be created
      * @param headers http header
      * @param metadataId the id of the unit metadata
+     * @param createObjectDescription the workspace description of the unit to be created
      * @return Response NOT_IMPLEMENTED
      */
     @Path("/units/{id_md}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createUnitMetadata(JsonNode unit, @Context HttpHeaders headers,
-        @PathParam("id_md") String metadataId) {
+    public Response createUnitMetadata(@Context HttpHeaders headers, @PathParam("id_md") String metadataId,
+        CreateObjectDescription createObjectDescription) {
 
         VitamCode vitamCode;
-        Response responsePost = checkPostHeader(headers);
-        if (responsePost == null) {
+        if (createObjectDescription == null) {
             return getUnit(headers, metadataId);
-        } else if (responsePost.getStatus() == Status.OK.getStatusCode()) {
+        } else {
             Response response = checkTenantStrategyHeader(headers);
             if (response == null) {
                 String tenantId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.TENANT_ID).get(0);
                 String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
                 try {
-                    StoredInfoResult result = distribution.storeData(tenantId, strategyId, metadataId, null,
-                        DataCategory.UNIT, unit);
+                    StoredInfoResult result = distribution.storeData(tenantId, strategyId, metadataId, createObjectDescription,
+                        DataCategory.UNIT);
                     return Response.status(Status.CREATED).entity(result).build();
                 } catch (StorageNotFoundException e) {
                     LOGGER.error(e);
@@ -625,8 +620,6 @@ public class StorageResource {
                 return buildErrorResponse(vitamCode);
             }
             return response;
-        } else {
-            return responsePost;
         }
     }
 
@@ -695,7 +688,6 @@ public class StorageResource {
         return Response.status(Status.NOT_IMPLEMENTED).build();
     }
 
-    // FIXME always sending position from Workspace, not directly data (json)
     /**
      * Get a Object Group
      * <p>
@@ -718,9 +710,9 @@ public class StorageResource {
      *
      * Note : this is NOT to be handled in item #72.
      *
-     * @param object the object to be created
      * @param headers http header
      * @param metadataId the id of the Object Group metadata
+     * @param createObjectDescription  the workspace description of the unit to be created
      * @return Response Created, not found or internal server error
      */
     // TODO : check the existence, in the headers, of the value X-Http-Method-Override, if set
@@ -728,20 +720,19 @@ public class StorageResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createObjectGroup(JsonNode object, @Context HttpHeaders headers,
-        @PathParam("id_md") String metadataId) {
+    public Response createObjectGroup(@Context HttpHeaders headers, @PathParam("id_md") String metadataId,
+        CreateObjectDescription createObjectDescription) {
         VitamCode vitamCode;
-        Response responsePost = checkPostHeader(headers);
-        if (responsePost == null) {
+        if (createObjectDescription == null) {
             return getObjectGroup(headers, metadataId);
-        } else if (responsePost.getStatus() == Status.OK.getStatusCode()) {
+        } else {
             Response response = checkTenantStrategyHeader(headers);
             if (response == null) {
                 String tenantId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.TENANT_ID).get(0);
                 String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
                 try {
-                    StoredInfoResult result = distribution.storeData(tenantId, strategyId, metadataId, null,
-                        DataCategory.OBJECT_GROUP, object);
+                    StoredInfoResult result = distribution.storeData(tenantId, strategyId, metadataId, createObjectDescription,
+                        DataCategory.OBJECT_GROUP);
                     return Response.status(Status.CREATED).entity(result).build();
                 } catch (StorageNotFoundException e) {
                     LOGGER.error(e);
@@ -757,8 +748,6 @@ public class StorageResource {
                 return buildErrorResponse(vitamCode);
             }
             return response;
-        } else {
-            return responsePost;
         }
     }
 
@@ -818,10 +807,10 @@ public class StorageResource {
     private Response buildErrorResponse(VitamCode vitamCode) {
         return Response.status(vitamCode.getStatus()).entity((new RequestResponseError().setError(
             new VitamError(VitamCodeHelper.getCode(vitamCode))
-                .setContext(vitamCode.getService().getName())
-                .setState(vitamCode.getDomain().getName())
-                .setMessage(vitamCode.getMessage())
-                .setDescription(vitamCode.getMessage()))).toString())
+            .setContext(vitamCode.getService().getName())
+            .setState(vitamCode.getDomain().getName())
+            .setMessage(vitamCode.getMessage())
+            .setDescription(vitamCode.getMessage()))).toString())
             .build();
     }
 

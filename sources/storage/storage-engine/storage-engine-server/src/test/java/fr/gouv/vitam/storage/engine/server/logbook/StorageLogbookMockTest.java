@@ -1,6 +1,9 @@
 package fr.gouv.vitam.storage.engine.server.logbook;
 
 
+import java.util.Map;
+import java.util.TreeMap;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -55,27 +58,31 @@ public class StorageLogbookMockTest {
     }
 
     private StorageLogbookParameters getParameters() {
-        StorageLogbookParameters parameters = new StorageLogbookParameters();
-        parameters.putParameterValue(StorageLogbookParameterName.eventDateTime, "2016-07-29T11:56:35.914");
-        parameters.setStatus(StorageLogbookOutcome.OK);
-        parameters.putParameterValue(StorageLogbookParameterName.objectIdentifier,
-            "aeaaaaaaaaaam7mxaaaamakv36y6m3yaaaaq");
-        parameters.putParameterValue(StorageLogbookParameterName.objectGroupIdentifier,
-            "aeaaaaaaaaaam7mxaaaamakv36y6m3yaaaaq");
-        parameters.putParameterValue(StorageLogbookParameterName.digest, "aeaaaaaaaaaam7mxaaaamakv36y6m3yaaaaq");
-        parameters.putParameterValue(StorageLogbookParameterName.digestAlgorithm, "SHA-256");
-        parameters.putParameterValue(StorageLogbookParameterName.size, "1024");
-        parameters.putParameterValue(StorageLogbookParameterName.agentIdentifiers, "agentIdentifiers");
-        parameters.putParameterValue(StorageLogbookParameterName.agentIdentifierRequester, "agentIdentifierRequester");
+        Map<StorageLogbookParameterName, String> initalParameters = new TreeMap<>();
 
-        parameters.putParameterValue(StorageLogbookParameterName.outcomeDetailMessage, "outcomeDetailMessage");
-        parameters.putParameterValue(StorageLogbookParameterName.objectIdentifierIncome, "objectIdentifierIncome");
-        
+        initalParameters.put(StorageLogbookParameterName.eventDateTime, "2016-07-29T11:56:35.914");
+        initalParameters.put(StorageLogbookParameterName.outcome, StorageLogbookOutcome.OK.name());
+        initalParameters.put(StorageLogbookParameterName.objectIdentifier, "aeaaaaaaaaaam7mxaaaamakv36y6m3yaaaaq");
+        initalParameters.put(StorageLogbookParameterName.objectGroupIdentifier, "aeaaaaaaaaaam7mxaaaamakv36y6m3yaaaaq");
+        initalParameters.put(StorageLogbookParameterName.digest, "aeaaaaaaaaaam7mxaaaamakv36y6m3yaaaaq");
+        initalParameters.put(StorageLogbookParameterName.digestAlgorithm, "SHA-256");
+        initalParameters.put(StorageLogbookParameterName.size, "1024");
+        initalParameters.put(StorageLogbookParameterName.agentIdentifiers, "agentIdentifiers");
+        initalParameters.put(StorageLogbookParameterName.agentIdentifierRequester, "agentIdentifierRequester");
+        initalParameters.put(StorageLogbookParameterName.outcomeDetailMessage, "outcomeDetailMessage");
+        initalParameters.put(StorageLogbookParameterName.objectIdentifierIncome, "objectIdentifierIncome");
+
+        StorageLogbookParameters parameters = new StorageLogbookParameters(initalParameters);
+
         return parameters;
     }
 
-    private StorageLogbookParameters getEmptyParameters() {
-        return new StorageLogbookParameters();
+    private StorageLogbookParameters getEmptyParameters() throws StorageException {
+        try {
+            return new StorageLogbookParameters(new TreeMap<>());
+        } catch (IllegalArgumentException exception) {
+            throw new StorageException(exception.getMessage(), exception);
+        }
     }
 
 }

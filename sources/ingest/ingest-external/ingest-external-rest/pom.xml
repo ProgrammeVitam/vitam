@@ -197,7 +197,7 @@
 						<id>process-test-classes</id>
 						<phase>process-test-classes</phase>
 						<configuration>
-							<target>
+							<target unless="maven.test.skip">
 								<chmod file="target/test-classes/scan-clamav.sh" perm="755" />
 							</target>
 						</configuration>

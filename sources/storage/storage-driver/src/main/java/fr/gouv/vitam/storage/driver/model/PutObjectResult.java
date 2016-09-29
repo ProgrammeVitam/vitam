@@ -41,20 +41,30 @@ package fr.gouv.vitam.storage.driver.model;
 public class PutObjectResult {
     private String distantObjectId;
     private String digestHashBase16;
-
+    private String tenantId;
+    
+    /**
+     * Initialize the needed parameters for put result
+     * 
+     * @param distantObjectId The distant object id
+     * @param digestHashBase16 the object digest hash
+     * @param tenantId the request tenantId
+     */
+    public PutObjectResult(String distantObjectId, String digestHashBase16, String tenantId) {
+        this.distantObjectId = distantObjectId;
+        this.digestHashBase16 = digestHashBase16;
+        this.tenantId = tenantId;
+    }
+    
     public String getDistantObjectId() {
         return distantObjectId;
-    }
-
-    public void setDistantObjectId(String distantObjectId) {
-        this.distantObjectId = distantObjectId;
     }
 
     public String getDigestHashBase16() {
         return digestHashBase16;
     }
-
-    public void setDigestHashBase16(String digestHashBase16) {
-        this.digestHashBase16 = digestHashBase16;
+    
+    public String getTenantId() {
+        return tenantId;
     }
 }

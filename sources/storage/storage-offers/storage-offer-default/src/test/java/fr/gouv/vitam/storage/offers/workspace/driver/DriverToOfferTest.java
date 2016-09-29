@@ -139,19 +139,16 @@ public class DriverToOfferTest {
 
     @Test
     public void integrationTest() throws Exception {
-        connection = driver.connect("http://127.0.0.1:" + serverPort, null);
+        connection = driver.connect("http://localhost:" + serverPort, null);
         assertNotNull(connection);
 
-        PutObjectRequest request = new PutObjectRequest();
-        request.setTenantId("1");
+        PutObjectRequest request = null;
         guid = GUIDFactory.newObjectGUID(1).toString();
-        request.setGuid(guid);
-        request.setDigestAlgorithm(DigestType.SHA256.getName());
-        request.setType(DataCategory.UNIT.name());
         try (FileInputStream fin = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
             MessageDigest messageDigest = MessageDigest.getInstance(DigestType.SHA256.getName());
             try (DigestInputStream digestInputStream = new DigestInputStream(fin, messageDigest)) {
-                request.setDataStream(digestInputStream);
+                request = new PutObjectRequest("1", DigestType.SHA256.getName(), guid, digestInputStream,
+                    DataCategory.UNIT.name());
                 PutObjectResult result = connection.putObject(request);
                 assertNotNull(result);
 
@@ -168,19 +165,16 @@ public class DriverToOfferTest {
                 assertEquals(digestToCheck, BaseXx.getBase16(messageDigest.digest()));
             }
         }
-        request.setTenantId(null);
+
         try (FileInputStream fin = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
-            request.setDataStream(fin);
+            request = new PutObjectRequest(null, DigestType.SHA256.getName(), guid, fin, DataCategory.UNIT.name());
             connection.putObject(request);
             fail("Should have an exception !");
         } catch (StorageDriverException exc) {
             // Nothing, missing tenant parameter
         }
-        
-        GetObjectRequest getRequest = new GetObjectRequest();
-        getRequest.setGuid(guid);
-        getRequest.setTenantId("1");
-        getRequest.setFolder(DataCategory.UNIT.getFolder());
+
+        GetObjectRequest getRequest = new GetObjectRequest("1", guid, DataCategory.UNIT.getFolder());
         connection.getObject(getRequest);
     }
 }

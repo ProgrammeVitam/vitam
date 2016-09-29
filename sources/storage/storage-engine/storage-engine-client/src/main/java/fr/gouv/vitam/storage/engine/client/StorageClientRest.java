@@ -73,7 +73,6 @@ class StorageClientRest extends AbstractSSLClient implements StorageClient {
         "Type of storage object must have a valid value";
     private static final String STRATEGY_ID_MUST_HAVE_A_VALID_VALUE = "Strategy id must have a valid value";
     private static final String TENANT_ID_MUST_HAVE_A_VALID_VALUE = "Tenant id must have a valid value";
-    private static final String DATA_MUST_HAVE_A_VALID_VALUE = "Tenant id must have a valid value";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageClientRest.class);
 
     StorageClientRest(SSLClientConfiguration clientConfiguration, String resourcePath,
@@ -101,31 +100,6 @@ class StorageClientRest extends AbstractSSLClient implements StorageClient {
         }
     }
 
-    // TODO refactor with storeFileFromWorkspace
-    @Override
-    public StoredInfoResult storeJson(String tenantId, String strategyId, StorageCollectionType type, String guid,
-        JsonNode data)
-        throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException {
-        ParametersChecker.checkParameter(TENANT_ID_MUST_HAVE_A_VALID_VALUE, tenantId);
-        ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
-        ParametersChecker.checkParameter(TYPE_OF_STORAGE_OBJECT_MUST_HAVE_A_VALID_VALUE, type);
-        ParametersChecker.checkParameter(GUID_MUST_HAVE_A_VALID_VALUE, guid);
-        ParametersChecker.checkParameter(DATA_MUST_HAVE_A_VALID_VALUE, data);
-        if (StorageCollectionType.CONTAINERS.equals(type) || StorageCollectionType.OBJECTS.equals(type)) {
-            throw new IllegalArgumentException("Type of storage object cannot be " + type.getCollectionName());
-        }
-        Response response = null;
-        try {
-            response =
-                performGenericRequest("/" + type.getCollectionName() + "/" + guid, null, MediaType.APPLICATION_JSON,
-                    getDefaultHeaders(tenantId, strategyId), HttpMethod.POST, MediaType.APPLICATION_JSON);
-            return handlePostResponseStatus(response, StoredInfoResult.class);
-        } finally {
-            Optional.ofNullable(response).ifPresent(Response::close);
-        }
-    }
-
-    // TODO refactor with storeJson
     @Override
     public StoredInfoResult storeFileFromWorkspace(String tenantId, String strategyId, StorageCollectionType type,
         String guid,
@@ -141,10 +115,6 @@ class StorageClientRest extends AbstractSSLClient implements StorageClient {
                 description.getWorkspaceContainerGUID());
             ParametersChecker.checkParameter(OBJECT_DESCRIPTION_URI_MUST_HAVE_A_VALID_VALUE,
                 description.getWorkspaceObjectURI());
-        }
-        // FIXME tout enregistrement est un flux donc test à supprimer
-        if (!StorageCollectionType.OBJECTS.equals(type)) {
-            throw new IllegalArgumentException("Type of storage object cannot be " + type.getCollectionName());
         }
         Response response = null;
         try {

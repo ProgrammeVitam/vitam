@@ -73,11 +73,17 @@ public final class JsonHandler {
      * Default ObjectMapperUnprettyPrint
      */
     private static final ObjectMapper OBJECT_MAPPER_UNPRETTY;
+    /**
+     * Default ObjectMapperLowerCamelCase
+     */
+    private static final ObjectMapper OBJECT_MAPPER_LOWER_CAMEL_CASE;
 
     static {
         OBJECT_MAPPER = buildObjectMapper();
         OBJECT_MAPPER_UNPRETTY = buildObjectMapper();
         OBJECT_MAPPER_UNPRETTY.disable(SerializationFeature.INDENT_OUTPUT);
+        OBJECT_MAPPER_LOWER_CAMEL_CASE = buildObjectMapper();
+        OBJECT_MAPPER_LOWER_CAMEL_CASE.setPropertyNamingStrategy(PropertyNamingStrategy.LOWER_CAMEL_CASE);
     }
 
     private JsonHandler() {
@@ -177,6 +183,23 @@ public final class JsonHandler {
     /**
      *
      * @param value
+     * @param clasz
+     * @return the object of type clasz
+     * @throws InvalidParseOperationException
+     */
+    public static final <T> T getFromStringLowerCamelCase(final String value, final Class<T> clasz)
+        throws InvalidParseOperationException {
+        try {
+            ParametersChecker.checkParameter("value or class", value, clasz);
+            return OBJECT_MAPPER_LOWER_CAMEL_CASE.readValue(value, clasz);
+        } catch (final IOException | IllegalArgumentException e) {
+            throw new InvalidParseOperationException(e);
+        }
+    }
+
+    /**
+     *
+     * @param value
      * @return the jsonNode (ObjectNode or ArrayNode)
      * @throws InvalidParseOperationException
      */
@@ -202,6 +225,23 @@ public final class JsonHandler {
         try {
             ParametersChecker.checkParameter("File or class", file, clasz);
             return OBJECT_MAPPER.readValue(file, clasz);
+        } catch (final IOException | IllegalArgumentException e) {
+            throw new InvalidParseOperationException(e);
+        }
+    }
+
+    /**
+     *
+     * @param file
+     * @param clasz
+     * @return the corresponding object
+     * @throws InvalidParseOperationException
+     */
+    public static final <T> T getFromFileLowerCamelCase(File file, Class<T> clasz)
+        throws InvalidParseOperationException {
+        try {
+            ParametersChecker.checkParameter("File or class", file, clasz);
+            return OBJECT_MAPPER_LOWER_CAMEL_CASE.readValue(file, clasz);
         } catch (final IOException | IllegalArgumentException e) {
             throw new InvalidParseOperationException(e);
         }

@@ -35,6 +35,9 @@
 
 package fr.gouv.vitam.storage.engine.common.referential;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
@@ -42,14 +45,13 @@ import fr.gouv.vitam.storage.engine.common.referential.model.HotStrategy;
 import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.File;
 import java.util.List;
-
-import static org.junit.Assert.*;
 
 /**
  *

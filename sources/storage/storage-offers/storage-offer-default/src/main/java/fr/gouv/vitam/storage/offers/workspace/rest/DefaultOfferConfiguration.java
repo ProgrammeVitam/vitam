@@ -115,7 +115,7 @@ public class DefaultOfferConfiguration implements VitamApplicationConfiguration 
      * setter of jetty config
      *
      * @param jettyConfig the jetty config to be set
-     * @return
+     * @return default configuration
      */
     public DefaultOfferConfiguration setJettyConfig(String jettyConfig) {
         this.jettyConfig = jettyConfig;

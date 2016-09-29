@@ -101,7 +101,7 @@ public class DefaultOfferServiceTest {
         DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
         assertNotNull(offerService);
 
-        offerService.createContainer(CONTAINER_PATH, getObjectInit(false), OBJECT_ID);
+        offerService.initCreateObject(CONTAINER_PATH, getObjectInit(false), OBJECT_ID);
 
         // check
         StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
@@ -110,7 +110,7 @@ public class DefaultOfferServiceTest {
         assertTrue(container.exists());
         assertTrue(container.isDirectory());
 
-        offerService.createContainer(CONTAINER_PATH, getObjectInit(false), OBJECT_ID);
+        offerService.initCreateObject(CONTAINER_PATH, getObjectInit(false), OBJECT_ID);
     }
 
     @Test
@@ -119,7 +119,7 @@ public class DefaultOfferServiceTest {
         assertNotNull(offerService);
 
         // container (init)
-        offerService.createContainer(CONTAINER_PATH, getObjectInit(true), GUIDFactory.newObjectGUID(0).getId());
+        offerService.initCreateObject(CONTAINER_PATH, getObjectInit(true), GUIDFactory.newObjectGUID(0).getId());
         // check
         StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
             StorageConfiguration.class);
@@ -142,7 +142,7 @@ public class DefaultOfferServiceTest {
 
         // container
         ObjectInit objectInit = getObjectInit(false);
-        objectInit = offerService.createContainer(CONTAINER_PATH, objectInit, OBJECT_ID);
+        objectInit = offerService.initCreateObject(CONTAINER_PATH, objectInit, OBJECT_ID);
         // check
         assertEquals(OBJECT_ID, objectInit.getId());
         StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
@@ -200,8 +200,9 @@ public class DefaultOfferServiceTest {
     public void getObjectTest() throws Exception {
         DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
         assertNotNull(offerService);
+
         ObjectInit objectInit = getObjectInit(false);
-        offerService.createContainer(CONTAINER_PATH, objectInit, OBJECT_ID_2);
+        offerService.initCreateObject(CONTAINER_PATH, getObjectInit(false), OBJECT_ID_2);
 
         InputStream streamToStore = IOUtils.toInputStream(OBJECT_ID_2_CONTENT);
         offerService.createObject(CONTAINER_PATH, OBJECT_ID_2, streamToStore, true);
@@ -229,7 +230,7 @@ public class DefaultOfferServiceTest {
 
         // container
         ObjectInit objectInit = getObjectInit(false);
-        objectInit = offerService.createContainer(CONTAINER_PATH, objectInit, OBJECT_ID);
+        objectInit = offerService.initCreateObject(CONTAINER_PATH, objectInit, OBJECT_ID);
         // check
         assertEquals(OBJECT_ID, objectInit.getId());
         StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
