@@ -36,32 +36,32 @@
           <div id="boxAdvanced" class="panel-body panel-collapse collapse in">
             <div class="form-group col-md-4">
               <label>Titre</label>
-              <input ng-model="titleCriteria2" type="text" class="form-control input-sm" />
+              <input ng-model="titleCriteria2" type="text" ng-readonly="idCriteria2.length" class="form-control input-sm" />
             </div>
             <div class="form-group col-md-6">
               <label>Description</label>
-              <input ng-model="descriptionCriteria2" type="text" class="form-control input-sm" />
+              <input ng-model="descriptionCriteria2" type="text" ng-readonly="idCriteria2.length" class="form-control input-sm" />
             </div>
             <div class="form-group col-md-2">
               <label>ID</label>
-              <input type="text" class="form-control input-sm" />
+              <input ng-model="idCriteria2" type="text" class="form-control input-sm"/>
             </div>
             <div class="form-group col-md-2">
               <label>Dates Extrêmes</label>
               <div class="input-group">
-                <input ng-model="startDate" id="startDate" type="text" class="form-control input-sm" readonly="true" />
+                <input ng-model="startDate" id="startDate" type="text" ng-readonly="idCriteria2.length" class="form-control input-sm"/>
                 <div class="input-group-addon"><i class="material-icons">date_range</i></div>
               </div>
             </div>
             <div class="form-group col-md-2">
               <label>&nbsp;</label>
               <div class="input-group">
-                <input ng-model="endDate" id="endDate" type="text" class="form-control input-sm" readonly="true"  />
+                <input ng-model="endDate" id="endDate" type="text" ng-readonly="idCriteria2.length" class="form-control input-sm"/>
                 <div class="input-group-addon"><i class="material-icons">date_range</i></div>
               </div>
             </div>
             <div class="clearfix"></div>
-            <button class="btn btn-primary center-block" ng-click="getElasticSearchUnitsResult($event,titleCriteria2,descriptionCriteria2,startDate,endDate)"><i class="material-icons pull-left">search</i><span>Rechercher</span></button>
+            <button class="btn btn-primary center-block" ng-click="getElasticSearchUnitsResult($event,idCriteria2,titleCriteria2,descriptionCriteria2,startDate,endDate)"><i class="material-icons pull-left">search</i><span>Rechercher</span></button>
           </div>
         </div>
       </div>
@@ -180,9 +180,7 @@ Stéphane Raimbault <stephane.raimbault@gmail.com> */
     showMonthAfterYear: false,
     yearSuffix: ''};
     datepicker.setDefaults(datepicker.regional['fr']);
-
     return datepicker.regional['fr'];
-
   }));
 
   $(function(){
@@ -190,4 +188,6 @@ Stéphane Raimbault <stephane.raimbault@gmail.com> */
     $("#endDate").datepicker($.datepicker.regional['fr']);
     $(".datepicker").datepicker();
   });
+
   </script>
+

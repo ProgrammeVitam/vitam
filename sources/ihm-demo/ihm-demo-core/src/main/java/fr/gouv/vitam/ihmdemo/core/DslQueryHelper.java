@@ -279,6 +279,10 @@ public final class DslQueryHelper {
                 booleanQueries.add(match(DESCRIPTION, searchValue));
                 continue;
             }
+            if (searchKeys.equalsIgnoreCase(UiConstants.ID.getResultConstantValue())) {
+                andQuery.add(eq(UiConstants.ID.getConstantValue(), searchValue));
+                continue;
+            }
             if (searchKeys.equalsIgnoreCase(TITLE)) {
                 andQuery.add(match(TITLE, searchValue));
                 continue;
@@ -299,7 +303,6 @@ public final class DslQueryHelper {
                 advancedSearchFlag = searchValue;
                 continue;
             }
-
             // By default add equals query
             booleanQueries.add(match(searchKeys, searchValue));
         }
