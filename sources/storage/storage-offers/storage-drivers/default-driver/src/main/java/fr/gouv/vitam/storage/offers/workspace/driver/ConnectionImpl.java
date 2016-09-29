@@ -235,6 +235,37 @@ public class ConnectionImpl implements Connection {
         throw new UnsupportedOperationException(NOT_YET_IMPLEMENTED);
     }
 
+    @Override
+    public Boolean objectExistsInOffer(GetObjectRequest request) throws StorageDriverException {
+        ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
+        ParametersChecker.checkParameter(GUID_IS_A_MANDATORY_PARAMETER, request.getGuid());
+        ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
+        Response response = null;
+        try {
+            response =
+                getClient().target(getServiceUrl()).path(OBJECTS_PATH + "/" + request.getGuid()).request()
+                    .header(VitamHttpHeader.TENANT_ID.getName(), request.getTenantId())
+                    .accept(MediaType.APPLICATION_OCTET_STREAM).method(HttpMethod.HEAD);
+
+            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case OK: case NO_CONTENT:
+                    return true;
+                case NOT_FOUND:
+                    return false;
+                case BAD_REQUEST:
+                    throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.PRECONDITION_FAILED,
+                        "Bad request");
+                default:
+                    LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
+                    throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
+                        INTERNAL_SERVER_ERROR);
+            }
+        } finally {
+            Optional.ofNullable(response).ifPresent(Response::close);
+        }
+    }
+
     /**
      * Get The status of the service
      * 

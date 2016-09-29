@@ -113,6 +113,15 @@ public interface Connection extends AutoCloseable {
     RemoveObjectResult removeObject(RemoveObjectRequest request) throws StorageDriverException;
 
     /**
+     * Check if an object is present in the offer
+     *
+     * @param request the request to send. It contains informations needed to retrieve a given object.
+     * @return a result that may contains metadatas as well as the binary file
+     * @throws StorageDriverException if any problem occurs during request
+     */
+    Boolean objectExistsInOffer(GetObjectRequest request) throws StorageDriverException;
+    
+    /**
      * Override AutoCloseable implementation to specify the exception
      * @throws StorageDriverException to be thrown in case of any driver exception
      */

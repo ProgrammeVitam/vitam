@@ -3,34 +3,26 @@
  * <p>
  * contact.vitam@culture.gouv.fr
  * <p>
- * This software is a computer program whose purpose is to implement a digital
- * archiving back-office system managing high volumetry securely and efficiently.
+ * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
+ * high volumetry securely and efficiently.
  * <p>
- * This software is governed by the CeCILL 2.1 license under French law and
- * abiding by the rules of distribution of free software.  You can  use,
- * modify and/ or redistribute the software under the terms of the CeCILL 2.1
- * license as circulated by CEA, CNRS and INRIA at the following URL
- * "http://www.cecill.info".
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
+ * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
  * <p>
- * As a counterpart to the access to the source code and  rights to copy,
- * modify and redistribute granted by the license, users are provided only
- * with a limited warranty  and the software's author,  the holder of the
- * economic rights,  and the successive licensors  have only  limited
- * liability.
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
  * <p>
- * In this respect, the user's attention is drawn to the risks associated
- * with loading,  using,  modifying and/or developing or reproducing the
- * software by the user in light of its specific status of free software,
- * that may mean  that it is complicated to manipulate,  and  that  also
- * therefore means  that it is reserved for developers  and  experienced
- * professionals having in-depth computer knowledge. Users are therefore
- * encouraged to load and test the software's suitability as regards their
- * requirements in conditions enabling the security of their systems and/or
- * data to be ensured and,  more generally, to use and operate it in the
- * same conditions as regards security.
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
  * <p>
- * The fact that you are presently reading this means that you have had
- * knowledge of the CeCILL 2.1 license and that you accept its terms.
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
+ * accept its terms.
  */
 
 package fr.gouv.vitam.storage.engine.server.distribution.impl;
@@ -57,6 +49,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.storage.driver.exception.StorageObjectAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
@@ -91,10 +84,11 @@ public class StorageDistributionImplTest {
     }
 
     @Test
-    public void testStoreData_IllegalArguments() throws StorageNotFoundException, StorageTechnicalException {
-        //        storeData(String tenantId, String strategyId, String objectId,
-        //            CreateObjectDescription createObjectDescription, DataCategory category,
-        //            JsonNode jsonData)
+    public void testStoreData_IllegalArguments()
+        throws StorageNotFoundException, StorageTechnicalException, StorageObjectAlreadyExistsException {
+        // storeData(String tenantId, String strategyId, String objectId,
+        // CreateObjectDescription createObjectDescription, DataCategory category,
+        // JsonNode jsonData)
         CreateObjectDescription emptyDescription = new CreateObjectDescription();
         checkInvalidArgumentException(null, null, null, null, null, null);
         checkInvalidArgumentException("tenant_id", null, null, null, null, null);
@@ -103,21 +97,22 @@ public class StorageDistributionImplTest {
         checkInvalidArgumentException("tenant_id", "strategy_id", "object_id", emptyDescription, null, null);
         checkInvalidArgumentException("tenant_id", "strategy_id", "object_id", emptyDescription, DataCategory.OBJECT,
             null);
-        checkInvalidArgumentException("tenant_id", "strategy_id", "object_id", emptyDescription, DataCategory
-            .OBJECT, JsonHandler.createObjectNode());
+        checkInvalidArgumentException("tenant_id", "strategy_id", "object_id", emptyDescription, DataCategory.OBJECT,
+            JsonHandler.createObjectNode());
 
         emptyDescription.setWorkspaceContainerGUID("ddd");
-        checkInvalidArgumentException("tenant_id", "strategy_id", "object_id", emptyDescription, DataCategory
-            .OBJECT, null);
+        checkInvalidArgumentException("tenant_id", "strategy_id", "object_id", emptyDescription, DataCategory.OBJECT,
+            null);
 
         emptyDescription.setWorkspaceContainerGUID(null);
         emptyDescription.setWorkspaceObjectURI("ddd");
-        checkInvalidArgumentException("tenant_id", "strategy_id", "object_id", emptyDescription, DataCategory
-            .OBJECT, null);
+        checkInvalidArgumentException("tenant_id", "strategy_id", "object_id", emptyDescription, DataCategory.OBJECT,
+            null);
 
     }
 
     @Test
+    // FIXME Update Fake driver : Add objectExistsInOffer
     public void testStoreData_OK() throws Exception {
         String objectId = "id1";
         StoredInfoResult storedInfoResult = null;
@@ -170,8 +165,8 @@ public class StorageDistributionImplTest {
         assertTrue(info.contains("Logbook") && info.contains("successfully"));
 
         // Store object group
-        storedInfoResult = customDistribution.storeData(TENANT_ID, STRATEGY_ID, objectId, null, DataCategory
-            .OBJECT_GROUP, fromString);
+        storedInfoResult =
+            customDistribution.storeData(TENANT_ID, STRATEGY_ID, objectId, null, DataCategory.OBJECT_GROUP, fromString);
         assertNotNull(storedInfoResult);
         assertEquals(objectId, storedInfoResult.getId());
         info = storedInfoResult.getInfo();
@@ -197,6 +192,28 @@ public class StorageDistributionImplTest {
         }
     }
 
+    @Test(expected = StorageObjectAlreadyExistsException.class)
+    public void testObjectAlreadyInOffer() throws Exception {
+        String objectId = "already_in_offer";
+        StoredInfoResult storedInfoResult = null;
+        CreateObjectDescription createObjectDescription = new CreateObjectDescription();
+        createObjectDescription.setWorkspaceContainerGUID("container1");
+        createObjectDescription.setWorkspaceObjectURI("SIP/content/test.pdf");
+
+        FileInputStream stream = new FileInputStream(PropertiesUtils.findFile("object.zip"));
+        reset(client);
+        when(client.getObject("container1", "SIP/content/test.pdf")).thenReturn(stream);
+        try {
+            // Store object
+            storedInfoResult = customDistribution
+                .storeData(TENANT_ID, STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, null);
+        } finally {
+            IOUtils.closeQuietly(stream);
+        }
+        reset(client);
+        when(client.getObject("container1", "SIP/content/test.pdf")).thenThrow(IllegalStateException.class);
+    }
+
     @Test
     public void testStoreData_NotFoundAndWorspaceErrorToTechnicalError() throws Exception {
         String objectId = "id1";
@@ -205,8 +222,8 @@ public class StorageDistributionImplTest {
         createObjectDescription.setWorkspaceObjectURI("SIP/content/test.pdf");
 
         reset(client);
-        when(client.getObject("container1", "SIP/content/test.pdf")).thenThrow
-            (ContentAddressableStorageNotFoundException.class);
+        when(client.getObject("container1", "SIP/content/test.pdf"))
+            .thenThrow(ContentAddressableStorageNotFoundException.class);
         try {
             customDistribution
                 .storeData(TENANT_ID, STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, null);
@@ -216,8 +233,8 @@ public class StorageDistributionImplTest {
         }
 
         reset(client);
-        when(client.getObject("container1", "SIP/content/test.pdf")).thenThrow
-            (ContentAddressableStorageServerException.class);
+        when(client.getObject("container1", "SIP/content/test.pdf"))
+            .thenThrow(ContentAddressableStorageServerException.class);
         try {
             customDistribution
                 .storeData(TENANT_ID, STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, null);
@@ -241,7 +258,7 @@ public class StorageDistributionImplTest {
 
     private void checkInvalidArgumentException(String tenantId, String strategyId, String objectId,
         CreateObjectDescription createObjectDescription, DataCategory category, JsonNode jsonData)
-        throws StorageNotFoundException, StorageTechnicalException {
+        throws StorageNotFoundException, StorageTechnicalException, StorageObjectAlreadyExistsException {
         try {
             simpleDistribution.storeData(tenantId, strategyId, objectId, createObjectDescription, category, jsonData);
             fail("Parameter should be considered invalid");
@@ -266,19 +283,19 @@ public class StorageDistributionImplTest {
         try {
             simpleDistribution.getContainerObject(null, null, null);
             fail("Exception excepted");
-        } catch(IllegalArgumentException exc) {
+        } catch (IllegalArgumentException exc) {
             // nothing, exception needed
         }
         try {
             simpleDistribution.getContainerObject(TENANT_ID, null, null);
             fail("Exception excepted");
-        } catch(IllegalArgumentException exc) {
+        } catch (IllegalArgumentException exc) {
             // nothing, exception needed
         }
         try {
             simpleDistribution.getContainerObject(TENANT_ID, STRATEGY_ID, null);
             fail("Exception excepted");
-        } catch(IllegalArgumentException exc) {
+        } catch (IllegalArgumentException exc) {
             // nothing, exception needed
         }
     }

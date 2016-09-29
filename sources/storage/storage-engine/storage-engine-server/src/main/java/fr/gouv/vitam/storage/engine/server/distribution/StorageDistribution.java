@@ -30,6 +30,7 @@ import java.io.InputStream;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.storage.driver.exception.StorageObjectAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
@@ -59,10 +60,11 @@ public interface StorageDistribution {
      * @return a StoredInfoResult containing informations about the created Data
      * @throws StorageNotFoundException  Thrown if the Container does not exist
      * @throws StorageTechnicalException Thrown in case of any technical problem
+     * @throws StorageObjectAlreadyExistsException 
      */
     StoredInfoResult storeData(String tenantId, String strategyId, String objectId,
         CreateObjectDescription createObjectDescription, DataCategory category,
-        JsonNode jsonData) throws StorageTechnicalException, StorageNotFoundException;
+        JsonNode jsonData) throws StorageTechnicalException, StorageNotFoundException, StorageObjectAlreadyExistsException;
 
     /**
      * Get Storage Information (availability and capacity) for the requested tenant + strategy
