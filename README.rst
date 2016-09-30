@@ -74,23 +74,25 @@ Pré-requis
 Procédure
 *********
 
-- Lancer :  /vitam/dev-deployment/run-compose.sh
-- Le script demande "Please enter the location of your vitam git repository" exemple : "/$HOME/git/vitam"
-    => Le script récupère le conteneur docker ``docker.programmevitam.fr/vitam/dev-rpm-base`` et le lance
-- Une fois le shell ouvert dans le conteneur, executer ``vitam-build-repo`` pour construire l'intégralité des rpm requis.
-- A l'issue de l'étape suivante, se positionner dans ``/code/deployment``
-- Suivre les indications du README.rst présent dans ce répertoire. Les composants sont déployés dans le conteneur ; les ports d'écoute des composants sont mappés à l'extérieur du conteneur, sur les mêmes ports. 
+- Lancer le script : ``/vitam/dev-deployment/run.sh`` ;
+- Le script demande "Please enter the location of your vitam git repository" (par exemple : ``/$HOME/git/vitam``) ;
+- Le script construit (si besoin) le conteneur docker ``vitam/dev-rpm-base`` et le lance (détaché), puis ouvre un terminal à l'intérieur ;
+- Une fois le shell ouvert dans le conteneur, executer ``vitam-build-repo`` pour construire l'intégralité des rpm  (dans le dossier ``/code``) ;
+- A l'issue de l'étape suivante, se positionner dans ``/code/deployment`` ;
+- Suivre les indications du ``README.rst`` présent dans ce répertoire, en utilisant l'inventaire ``hosts.local``. Les composants sont déployés dans le conteneur ; les ports d'écoute des composants sont mappés à l'extérieur du conteneur, sur les mêmes ports.
 
 
 Alternative 2 : manuelle (virtualisation)
 -----------------------------------------
 
+.. caution:: L'installation manuelle de VITAM est plus complexe, et n'est conseillée que lorsque la méthode utilisant le conteneur docker ne fonctionne pas.
+
 Pré-requis
 **********
 
-* Virtualbox ou équivalent, avec une machine virtuelle Centos 7 installée et configurée
-* Installer le paquet ``rpm-build`` et ``rpmdevtools`` sur le poste local (normalement présent dans toutes les distributions)
-* Répertoire contenant un clone du dépôt git vitam/vitam
+* Virtualbox ou équivalent, avec une machine virtuelle Centos 7 installée et configurée (SELinux en mode 'disabled')
+* Pouvoir builder VITAM sur le poste local (notamment avec ``rpm-build``)
+* Répertoire contenant un clone du dépôt git ``vitam/vitam``
 
 Configuration initiale de la VM
 *******************************
@@ -103,6 +105,7 @@ Configuration initiale de la VM
 
     - Installer les dépôts epel : ``yum install -y epel-release``
     - Installer ansible : ``yum install -y ansible`` ; valider que la version installée est bien au moins la version 2.1 (``ansible --version``)
+    - Installer les dépendances requises pour la construction des paquets VITAM 'natifs' : ``yum install -y rpmdevtools golang``
     - Installer les dépendances requises pour la construction d'un dépôt : ``yum install -y createrepo initscripts.x86_64``
     - Déclarer un dépôt yum local pointant vers ``/code/target`` ; pour cela, insérer le contenu suivant dans un fichier ``devlocal.repo`` dans le répertoire ``/etc/yum.repos.d`` :
     
@@ -112,6 +115,8 @@ Configuration initiale de la VM
     enabled=1
     gpgcheck=0
     protect=1
+
+    - Ajouter ``nameserver 127.0.0.1`` au début du fichier resolv.conf
 
 Procédure
 *********
@@ -132,6 +137,7 @@ Procédure
 	pushd rpm/vitam-product ; ./build.sh vitam-user-vitam ; popd    # pour construire le paquet vitam-user-vitam
     pushd rpm/vitam-product ; ./build.sh vitam-user-vitamdb ; popd  # pour construire le paquet vitam-user-vitamdb
     pushd rpm/vitam-product ; ./build.sh vitam-consul ; popd        # pour construire le paquet vitam-consul
+    pushd rpm/vitam-product ; ./build.sh vitam-siegfried ; popd        # pour construire le paquet vitam-consul
 
     - Puis rassembler les fichiers rpm produits dans le répertoire ``target/packages``:
     

@@ -6,6 +6,7 @@ echo "Building platform rpm..."
 pushd rpm/vitam-product ; ./build.sh vitam-user-vitam ; popd
 pushd rpm/vitam-product ; ./build.sh vitam-user-vitamdb ; popd
 pushd rpm/vitam-product ; ./build.sh vitam-consul ; popd
+pushd rpm/vitam-product ; ./build.sh vitam-siegfried ; popd
 pushd rpm/vitam-external ; ./build_repo.sh ; popd
 
 echo "Creating local rpm repository..."
