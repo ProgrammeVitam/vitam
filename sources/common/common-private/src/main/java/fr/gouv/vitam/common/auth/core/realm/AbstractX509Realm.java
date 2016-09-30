@@ -36,7 +36,7 @@ import fr.gouv.vitam.common.auth.core.authc.X509AuthenticationInfo;
 import fr.gouv.vitam.common.auth.core.authc.X509AuthenticationToken;
 
 /**
- * 
+ * Based on work: Copyright Paul Merlin 2011 (Apache Licence v2.0)
  */
 public abstract class AbstractX509Realm
     extends AuthenticatingRealm {

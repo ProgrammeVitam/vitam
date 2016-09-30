@@ -38,7 +38,7 @@ import javax.security.auth.x500.X500Principal;
 import org.apache.shiro.authc.SimpleAuthenticationInfo;
 
 /**
- * X509AuthenticationInfo
+ * Based on work: Copyright Paul Merlin 2011 (Apache Licence v2.0)
  */
 public class X509AuthenticationInfo extends SimpleAuthenticationInfo {
 
