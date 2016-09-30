@@ -47,7 +47,6 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import fr.gouv.vitam.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
@@ -81,7 +80,7 @@ public class ExtractObjectNumSedaTest {
 
         when(client.getObject(anyObject(), anyObject())).thenReturn(seda);
         PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(client);
-        utils = new SedaUtilsFactory().create(new MetaDataClientFactory());
+        utils = SedaUtilsFactory.create();
 
         final ExtractUriResponse extractUriResponse = utils.getAllDigitalObjectUriFromManifest(params);
 

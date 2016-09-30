@@ -39,10 +39,10 @@ public class ActionTest {
         Action action = new Action();        
         assertEquals("", actionDefinition.getActionKey());
         actionDefinition.setActionKey(TEST);
-        actionDefinition.setActionType(ActionType.BLOCK);
+        actionDefinition.setBehavior(ProcessBehavior.BLOCKING);
         action.setActionDefinition(actionDefinition);
         assertEquals(TEST, action.getActionDefinition().getActionKey());
-        assertEquals(ActionType.BLOCK, action.getActionDefinition().getActionType());
+        assertEquals(ProcessBehavior.BLOCKING, action.getActionDefinition().getBehavior());
     }
 
 }

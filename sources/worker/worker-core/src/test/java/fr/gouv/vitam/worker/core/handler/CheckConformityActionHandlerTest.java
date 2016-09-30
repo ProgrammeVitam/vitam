@@ -31,15 +31,17 @@ import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.File;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.OutcomeMessage;
 import fr.gouv.vitam.processing.common.model.StatusCode;
@@ -47,96 +49,80 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.worker.core.api.HandlerIO;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore("javax.net.ssl.*")
+@PrepareForTest({WorkspaceClientFactory.class, SedaUtilsFactory.class })
 public class CheckConformityActionHandlerTest {
-    CheckConformityActionHandler handlerVersion;
+    private static final String OBJECT_GROUP_ID_TO_GUID_MAP = "OBJECT_GROUP_ID_TO_GUID_MAP_obj.json";
+    private static final String BDO_TO_OBJECT_GROUP_ID_MAP = "BDO_TO_OBJECT_GROUP_ID_MAP_obj.json";
+    private static final String SRC_TEST_RESOURCE = "src/test/resource";
+    private static final String MESSAGE_DIGEST = "ZGVmYXVsdA==";
+    CheckConformityActionHandler conformityHandler;
     private static final String HANDLER_ID = "CheckConformity";
-    private SedaUtilsFactory factory;
+    private static final String SIP = "sip.xml";
     private SedaUtils sedaUtils;
-    /*private static final WorkParams params =
-        new WorkParams()
-            .setServerConfiguration(new ServerConfiguration().setUrlWorkspace(""))
-            .setGuuid("").setContainerName("Action").setCurrentStep("check conformity");
-     */
+    private HandlerIO action;
+    private WorkspaceClient workspaceClient;
     private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
         ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
         ("containerName");
 
     @Before
-    public void setUp() {
-        factory = mock(SedaUtilsFactory.class);
+    public void setUp() throws Exception {
+        PowerMockito.mockStatic(SedaUtilsFactory.class);
         sedaUtils = mock(SedaUtils.class);
+        PowerMockito.when(SedaUtilsFactory.create()).thenReturn(sedaUtils);
+
+        workspaceClient = mock(WorkspaceClient.class);
+        PowerMockito.mockStatic(WorkspaceClientFactory.class);
+        PowerMockito.when(WorkspaceClientFactory.create(anyObject())).thenReturn(workspaceClient);
+        action = new HandlerIO("containerName");
     }
 
     @Test
     public void givenConformityCheckWhenTrueThenResponseOK()
-        throws ProcessingException, URISyntaxException, ContentAddressableStorageNotFoundException,
-        ContentAddressableStorageServerException, ContentAddressableStorageException {
-        List<String> digestMessageInvalidList = new ArrayList<String>();
-        Mockito.doReturn(digestMessageInvalidList).when(sedaUtils).checkConformityBinaryObject(anyObject());
-        when(factory.create()).thenReturn(sedaUtils);
-        handlerVersion = new CheckConformityActionHandler(factory);
+        throws Exception {
+        when(workspaceClient.computeObjectDigest(anyObject(), anyObject(), anyObject())).thenReturn(MESSAGE_DIGEST);
+
+        action.addInput(PropertiesUtils.getResourcesFile(SIP));
+        action.addInput(PropertiesUtils.getResourcesFile(BDO_TO_OBJECT_GROUP_ID_MAP));
+        action.addInput(PropertiesUtils.getResourcesFile(OBJECT_GROUP_ID_TO_GUID_MAP));
+        conformityHandler = new CheckConformityActionHandler();
         assertEquals(CheckConformityActionHandler.getId(), HANDLER_ID);
-        final EngineResponse response = handlerVersion.execute(params);
+        final EngineResponse response = conformityHandler.execute(params, action);
         assertEquals(response.getStatus(), StatusCode.OK);
         assertEquals(OutcomeMessage.CHECK_CONFORMITY_OK, response.getOutcomeMessages().get("CheckConformity"));
     }
-
+    
     @Test
-    public void givenConformityCheckWhenFalseThenResponseWarning()
-        throws ProcessingException, URISyntaxException, ContentAddressableStorageNotFoundException,
-        ContentAddressableStorageServerException, ContentAddressableStorageException {
-        List<String> digestMessageInvalidList = new ArrayList<String>();
-        digestMessageInvalidList.add("ZGVmYXVsdA==");
-        digestMessageInvalidList.add("ZGVmYXVsdB==");
-        Mockito.doReturn(digestMessageInvalidList).when(sedaUtils).checkConformityBinaryObject(anyObject());
-        when(factory.create()).thenReturn(sedaUtils);
-        handlerVersion = new CheckConformityActionHandler(factory);
+    public void givenConformityCheckWhenWrongDigestThenKO()
+        throws Exception {
+        when(workspaceClient.computeObjectDigest(anyObject(), anyObject(), anyObject())).thenReturn("Wrong digest");
+        action.addInput(PropertiesUtils.getResourcesFile(SIP));
+        action.addInput(PropertiesUtils.getResourcesFile(BDO_TO_OBJECT_GROUP_ID_MAP));
+        action.addInput(PropertiesUtils.getResourcesFile(OBJECT_GROUP_ID_TO_GUID_MAP));
+        conformityHandler = new CheckConformityActionHandler();
         assertEquals(CheckConformityActionHandler.getId(), HANDLER_ID);
-        final EngineResponse response = handlerVersion.execute(params);
+        
+        final EngineResponse response = conformityHandler.execute(params, action);
         assertEquals(response.getStatus(), StatusCode.KO);
         assertEquals(OutcomeMessage.CHECK_CONFORMITY_KO, response.getOutcomeMessages().get("CheckConformity"));
     }
-
+    
     @Test
-    public void givenConformityCheckWhenExceptionThenResponseKO()
-        throws ProcessingException, URISyntaxException, ContentAddressableStorageNotFoundException,
-        ContentAddressableStorageServerException, ContentAddressableStorageException {
-        Mockito.doThrow(new ProcessingException("")).when(sedaUtils).checkConformityBinaryObject(anyObject());
-        when(factory.create()).thenReturn(sedaUtils);
-        handlerVersion = new CheckConformityActionHandler(factory);
+    public void givenConformityCheckWhenWorkspaceErrorThenKO()
+        throws Exception {
+        action.addInput(new File(SRC_TEST_RESOURCE + SIP));
+        action.addInput(new File(SRC_TEST_RESOURCE + "BDO_TO_OBJECT_GROUP_ID_MAP_obj.jsons"));
+        action.addInput(new File(SRC_TEST_RESOURCE + OBJECT_GROUP_ID_TO_GUID_MAP));
+        conformityHandler = new CheckConformityActionHandler();
         assertEquals(CheckConformityActionHandler.getId(), HANDLER_ID);
-        final EngineResponse response = handlerVersion.execute(params);
+        final EngineResponse response = conformityHandler.execute(params, action);
         assertEquals(response.getStatus(), StatusCode.KO);
-        assertEquals(OutcomeMessage.CHECK_CONFORMITY_KO, response.getOutcomeMessages().get("CheckConformity"));
-    }
-
-    @Test
-    public void givenConformityCheckWhenProcessingExceptionThenResponseKO()
-        throws ProcessingException, URISyntaxException, ContentAddressableStorageNotFoundException,
-        ContentAddressableStorageServerException, ContentAddressableStorageException {
-        Mockito.doThrow(new ProcessingException("")).when(sedaUtils).checkConformityBinaryObject(anyObject());
-        when(factory.create()).thenReturn(sedaUtils);
-        handlerVersion = new CheckConformityActionHandler(factory);
-        assertEquals(CheckConformityActionHandler.getId(), HANDLER_ID);
-        final EngineResponse response = handlerVersion.execute(params);
-        assertEquals(response.getStatus(), StatusCode.KO);
-        assertEquals(OutcomeMessage.CHECK_CONFORMITY_KO, response.getOutcomeMessages().get("CheckConformity"));
-    }
-
-    @Test
-    public void givenConformityCheckWhenURISyntaxExceptionThenResponseFATAL()
-        throws ProcessingException, URISyntaxException, ContentAddressableStorageNotFoundException,
-        ContentAddressableStorageServerException, ContentAddressableStorageException {
-        Mockito.doThrow(new URISyntaxException("", "")).when(sedaUtils).checkConformityBinaryObject(anyObject());
-        when(factory.create()).thenReturn(sedaUtils);
-        handlerVersion = new CheckConformityActionHandler(factory);
-        assertEquals(CheckConformityActionHandler.getId(), HANDLER_ID);
-        final EngineResponse response = handlerVersion.execute(params);
-        assertEquals(response.getStatus(), StatusCode.FATAL);
         assertEquals(OutcomeMessage.CHECK_CONFORMITY_KO, response.getOutcomeMessages().get("CheckConformity"));
     }
 }

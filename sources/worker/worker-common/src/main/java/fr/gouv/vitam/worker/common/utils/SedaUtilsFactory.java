@@ -26,25 +26,18 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.common.utils;
 
-import fr.gouv.vitam.client.MetaDataClientFactory;
-
 /**
  * SedaUtils Factory to create SedaUtils
  */
 public class SedaUtilsFactory {
-    // TODO REVIEW static method or dynamic method ?
     /**
      * @return SedaUtils
      */
-    public SedaUtils create() {
+    public static SedaUtils create() {
         return new SedaUtils();
     }
 
-    /**
-     * @param metaDataFactory metaData client Factory
-     * @return SedaUtils
-     */
-    public SedaUtils create(MetaDataClientFactory metaDataFactory) {
-        return new SedaUtils(metaDataFactory);
-    }
+    private SedaUtilsFactory() {
+        // Empty constructor
+      }
 }

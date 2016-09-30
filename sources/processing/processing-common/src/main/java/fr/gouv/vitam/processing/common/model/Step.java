@@ -42,7 +42,7 @@ public class Step {
 
     private String workerGroupId;
     private String stepName;
-    private StepType stepType;
+    private ProcessBehavior behavior;
     private Distribution distribution;
     @JsonProperty("actions")
     private List<Action> actions;
@@ -135,17 +135,17 @@ public class Step {
     /**
      * @return the stepType
      */
-    public StepType getStepType() {
-        return stepType;
+    public ProcessBehavior getBehavior() {
+        return behavior;
     }
 
     /**
      * @param stepType the stepType to set
      * @return the updated Step 
      */
-    public Step setStepType(StepType stepType) {
-        this.stepType = stepType;
+    public Step setBehavior(ProcessBehavior behavior) {
+        this.behavior = behavior;
         return this;
     }
-    
+
 }

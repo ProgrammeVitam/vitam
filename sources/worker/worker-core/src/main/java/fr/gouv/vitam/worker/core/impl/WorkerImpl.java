@@ -26,12 +26,18 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.impl;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
+
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -39,13 +45,15 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.Action;
-import fr.gouv.vitam.processing.common.model.ActionType;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
+import fr.gouv.vitam.processing.common.model.IOParameter;
+import fr.gouv.vitam.processing.common.model.ProcessBehavior;
 import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.utils.ContainerExtractionUtilsFactory;
-import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
+import fr.gouv.vitam.worker.core.WorkerIOManagementHelper;
+import fr.gouv.vitam.worker.core.api.HandlerIO;
 import fr.gouv.vitam.worker.core.api.Worker;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.handler.CheckConformityActionHandler;
@@ -57,6 +65,8 @@ import fr.gouv.vitam.worker.core.handler.ExtractSedaActionHandler;
 import fr.gouv.vitam.worker.core.handler.IndexObjectGroupActionHandler;
 import fr.gouv.vitam.worker.core.handler.IndexUnitActionHandler;
 import fr.gouv.vitam.worker.core.handler.StoreObjectGroupActionHandler;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 
 /**
@@ -71,14 +81,18 @@ public class WorkerImpl implements Worker {
 
     private static final String EMPTY_LIST = "null or Empty Action list";
     private static final String STEP_NULL = "step paramaters is null";
-    private static final String HANDLER_NOT_FOUND = ": handler not found exception";
-    Map<String, ActionHandler> actions = new HashMap<>();
-    String workerId;
+    private static final String HANDLER_INPUT_NOT_FOUND = "Handler input not found exception";
+    private static final String HANDLER_NOT_FOUND = ": handler not found exception: ";
+    private final Map<String, ActionHandler> actions = new HashMap<>();
+    private final Map<String, Object> memoryMap = new HashMap<>();
+    private final String workerId;
 
     /**
      * Empty Object constructor
      **/
     public WorkerImpl() {
+        workerId = GUIDFactory.newGUID().toString();
+
         /**
          * temporary init: will be managed by spring annotation
          */
@@ -100,22 +114,20 @@ public class WorkerImpl implements Worker {
     }
 
     private void init() {
-        workerId = GUIDFactory.newGUID().toString();
-
         /**
          * Pool of action 's object
          */
-        actions.put(ExtractSedaActionHandler.getId(), new ExtractSedaActionHandler(new SedaUtilsFactory()));
-        actions.put(IndexUnitActionHandler.getId(), new IndexUnitActionHandler(new SedaUtilsFactory()));
-        actions.put(IndexObjectGroupActionHandler.getId(), new IndexObjectGroupActionHandler(new SedaUtilsFactory()));
-        actions.put(CheckSedaActionHandler.getId(), new CheckSedaActionHandler(new SedaUtilsFactory()));
+        actions.put(ExtractSedaActionHandler.getId(), new ExtractSedaActionHandler());
+        actions.put(IndexUnitActionHandler.getId(), new IndexUnitActionHandler());
+        actions.put(IndexObjectGroupActionHandler.getId(), new IndexObjectGroupActionHandler());
+        actions.put(CheckSedaActionHandler.getId(), new CheckSedaActionHandler());
         actions.put(CheckObjectsNumberActionHandler.getId(),
-            new CheckObjectsNumberActionHandler(new SedaUtilsFactory(), new ContainerExtractionUtilsFactory()));
-        actions.put(CheckVersionActionHandler.getId(), new CheckVersionActionHandler(new SedaUtilsFactory()));
-        actions.put(CheckConformityActionHandler.getId(), new CheckConformityActionHandler(new SedaUtilsFactory()));
-        actions.put(StoreObjectGroupActionHandler.getId(), new StoreObjectGroupActionHandler(new SedaUtilsFactory()));
+            new CheckObjectsNumberActionHandler(new ContainerExtractionUtilsFactory()));
+        actions.put(CheckVersionActionHandler.getId(), new CheckVersionActionHandler());
+        actions.put(CheckConformityActionHandler.getId(), new CheckConformityActionHandler());
+        actions.put(StoreObjectGroupActionHandler.getId(), new StoreObjectGroupActionHandler());
         actions.put(CheckStorageAvailabilityActionHandler.getId(),
-            new CheckStorageAvailabilityActionHandler(new SedaUtilsFactory()));
+            new CheckStorageAvailabilityActionHandler());
     }
 
     @Override
@@ -124,6 +136,7 @@ public class WorkerImpl implements Worker {
         // mandatory check
         ParameterHelper.checkNullOrEmptyParameters(workParams);
 
+        WorkspaceClient client = WorkspaceClientFactory.create(workParams.getUrlWorkspace());
         if (step == null) {
             throw new IllegalArgumentException(STEP_NULL);
         }
@@ -133,24 +146,36 @@ public class WorkerImpl implements Worker {
         }
 
         final List<EngineResponse> responses = new ArrayList<>();
+        List<HandlerIO> handlerIOParams = new ArrayList<>();
 
         for (final Action action : step.getActions()) {
 
+            HandlerIO handlerIO = getHandlerIOParam(action, client, workParams);
             final ActionHandler actionHandler = getActionHandler(action.getActionDefinition().getActionKey());
             if (actionHandler == null) {
                 throw new HandlerNotFoundException(action.getActionDefinition().getActionKey() + HANDLER_NOT_FOUND);
             }
-            EngineResponse actionResponse = actionHandler.execute(workParams);
+
+            handlerIOParams.add(handlerIO);
+            EngineResponse actionResponse = actionHandler.execute(workParams, handlerIO);
             responses.add(actionResponse);
             // if the action has been defined as Blocking, then, we check the action Status then break the process
             // (actions) if
             // the status is KO            
-            if (ActionType.BLOCK.equals(action.getActionDefinition().getActionType()) &&
+            if (ProcessBehavior.BLOCKING.equals(action.getActionDefinition().getBehavior()) &&
                 (StatusCode.KO.equals(actionResponse.getStatus()) ||
                     StatusCode.FATAL.equals(actionResponse.getStatus()))) {
                 break;
             }
         }
+        //Clear all worker input and output 
+        try {
+            clearWorkerIOParam(workParams.getContainerName() + workerId);
+        } catch (IOException e) {
+            LOGGER.error("Can not clean temporary folder", e);
+            throw new ProcessingException(e);
+        }
+        this.memoryMap.clear();
 
         LOGGER.debug("step name :" + step.getStepName());
         return responses;
@@ -163,6 +188,55 @@ public class WorkerImpl implements Worker {
     @Override
     public String getWorkerId() {
         return workerId;
+    }
+
+    private HandlerIO getHandlerIOParam(Action action, WorkspaceClient client, WorkerParameters workParams) throws HandlerNotFoundException {
+        HandlerIO handlerIO = new HandlerIO(workParams.getContainerName() + "/" + workerId);
+        if (action.getActionDefinition().getIn() != null) {
+            for (IOParameter input: action.getActionDefinition().getIn()) {
+                switch(input.getUri().getPrefix()) {
+                    case WORKSPACE: {
+                        try {
+                            File file = WorkerIOManagementHelper.findFileFromWorkspace(
+                                client, 
+                                workParams.getContainerName() + workerId, 
+                                input.getUri().getPath());
+                            handlerIO.addInput(file);
+                            break;
+                        } catch (FileNotFoundException e) {
+                            throw new IllegalArgumentException(HANDLER_INPUT_NOT_FOUND + input.getUri().getPath());
+                        }
+                    }
+                    case MEMORY: {
+                        handlerIO.addInput(this.memoryMap.get(input.getValue()));
+                        break;
+                    }
+                    case VALUE: {
+                        handlerIO.addInput(input.getUri().getPath());
+                        break;
+                    }
+                    default:
+                        throw new IllegalArgumentException(HANDLER_INPUT_NOT_FOUND + input.getUri().getPath());
+                }
+            }
+        }
+        if (action.getActionDefinition().getOut() != null) {
+            for (IOParameter output: action.getActionDefinition().getOut()) {
+                switch(output.getUri().getPrefix()) {
+                    case WORKSPACE: 
+                        handlerIO.addOutput(output.getUri().getPath());
+                        break;
+                    default:
+                        throw new IllegalArgumentException(HANDLER_INPUT_NOT_FOUND + output.getUri().getPath());
+                }
+            }
+        }
+
+        return handlerIO;
+    }
+
+    private void clearWorkerIOParam(String containerName) throws IOException {
+        FileUtils.deleteDirectory(new File(VitamConfiguration.getVitamTmpFolder() + "/" + containerName));
     }
 
 }

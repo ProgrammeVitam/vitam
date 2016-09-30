@@ -52,7 +52,7 @@ public class ProcessStep extends Step {
         this.setActions(step.getActions());
         this.setDistribution(step.getDistribution());
         this.setStepName(step.getStepName());
-        this.setStepType(step.getStepType());
+        this.setBehavior(step.getBehavior());
         this.setWorkerGroupId(step.getWorkerGroupId());
         this.elementProcessed = elementProcessed;
         this.elementToProcess = elementToProcess;

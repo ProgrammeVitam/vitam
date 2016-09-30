@@ -30,22 +30,11 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import fr.gouv.vitam.client.MetaDataClientFactory;
-import fr.gouv.vitam.worker.common.utils.SedaUtils;
-import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
-
 public class SedaUtilsFactoryTest {
 
     @Test
     public void givenSedaUtilsFactoryWhenCallingCreateWithoutParamsThenReturnClient() {
-        final SedaUtilsFactory factory = new SedaUtilsFactory();
-        assertTrue(factory.create() instanceof SedaUtils);
-    }
-
-    @Test
-    public void givenSedaUtilsFactoryWhenCallingCreateWithParamsThenReturnClient() {
-        final SedaUtilsFactory factory = new SedaUtilsFactory();
-        assertTrue(factory.create(new MetaDataClientFactory()) instanceof SedaUtils);
+        assertTrue(SedaUtilsFactory.create() instanceof SedaUtils);
     }
 
 }

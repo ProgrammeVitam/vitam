@@ -84,8 +84,6 @@ public class AccessModuleImpl implements AccessModule {
 
     private final AccessConfiguration accessConfiguration;
 
-    private MetaDataClientFactory metaDataClientFactory;
-
     private MetaDataClient metaDataClient;
     private static final String DEFAULT_STORAGE_STRATEGY = "default";
 
@@ -108,28 +106,15 @@ public class AccessModuleImpl implements AccessModule {
     }
 
     /**
-     * AccessModuleImpl constructor <br>
-     * with metaDataClientFactory and configuration
-     *
-     * @param metaDataClientFactory {@link MetaDataClientFactory} the metadata client factory
-     * @param configuration {@link AccessConfiguration} access configuration
-     */
-    public AccessModuleImpl(MetaDataClientFactory metaDataClientFactory, AccessConfiguration configuration) {
-        this(configuration);
-        this.metaDataClientFactory = metaDataClientFactory;
-    }
-
-    /**
      * For testing purpose only
      * @param metaDataClientFactory {@link MetaDataClientFactory} the metadata client factory
      * @param configuration {@link AccessConfiguration} access configuration
      * @param storageClient a StorageClient instance
      */
-    AccessModuleImpl(MetaDataClientFactory metaDataClientFactory, AccessConfiguration configuration, StorageClient
+    AccessModuleImpl(AccessConfiguration configuration, StorageClient
         storageClient) {
         ParametersChecker.checkParameter("Configuration cannot be null", configuration);
         this.accessConfiguration = configuration;
-        this.metaDataClientFactory = metaDataClientFactory;
         this.storageClient = storageClient;
     }
 
@@ -142,9 +127,9 @@ public class AccessModuleImpl implements AccessModule {
      * @param pLogbookOperationClient logbook operation client
      * @param pLogbookLifeCycleClient logbook lifecycle client
      */
-    public AccessModuleImpl(MetaDataClientFactory metaDataClientFactory, AccessConfiguration configuration,
+    public AccessModuleImpl(AccessConfiguration configuration,
                             LogbookClient pLogbookOperationClient, LogbookLifeCycleClient pLogbookLifeCycleClient) {
-        this(metaDataClientFactory, configuration);
+        this(configuration);
         logbookOperationClient = pLogbookOperationClient==null ?
                 LogbookClientFactory.getInstance().getLogbookOperationClient() : pLogbookOperationClient;
         logbookLifeCycleClient = pLogbookLifeCycleClient==null ?
@@ -165,10 +150,7 @@ public class AccessModuleImpl implements AccessModule {
         JsonNode jsonNode = null;
 
         try {
-            if (metaDataClientFactory == null) {
-                metaDataClientFactory = new MetaDataClientFactory();
-            }
-            metaDataClient = metaDataClientFactory.create(accessConfiguration.getUrlMetaData());
+            metaDataClient = MetaDataClientFactory.create(accessConfiguration.getUrlMetaData());
 
             jsonNode = metaDataClient.selectUnits(jsonQuery.toString());
 
@@ -210,10 +192,7 @@ public class AccessModuleImpl implements AccessModule {
         }
 
         try {
-            if (metaDataClientFactory == null) {
-                metaDataClientFactory = new MetaDataClientFactory();
-            }
-            metaDataClient = metaDataClientFactory.create(accessConfiguration.getUrlMetaData());
+            metaDataClient = MetaDataClientFactory.create(accessConfiguration.getUrlMetaData());
 
             switch (dataCategory) {
                 case UNIT:
@@ -302,10 +281,7 @@ public class AccessModuleImpl implements AccessModule {
 
         try {
 
-            if (metaDataClientFactory == null) {
-                metaDataClientFactory = new MetaDataClientFactory();
-            }
-            metaDataClient = metaDataClientFactory.create(accessConfiguration.getUrlMetaData());
+            metaDataClient = MetaDataClientFactory.create(accessConfiguration.getUrlMetaData());
 
             logbookOperationClient = logbookOperationClient == null
                 ? LogbookClientFactory.getInstance().getLogbookOperationClient() : logbookOperationClient;

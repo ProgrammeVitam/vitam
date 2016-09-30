@@ -45,6 +45,7 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientExcept
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
+import fr.gouv.vitam.worker.core.api.HandlerIO;
 
 /**
  * CheckStorageAvailability Handler.<br>
@@ -55,7 +56,6 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
 
     private static final String HANDLER_ID = "CheckStorageAvailability";
 
-    private final SedaUtilsFactory sedaUtilsFactory;
     private static final StorageClient STORAGE_CLIENT = StorageClientFactory.getInstance().getStorageClient();
     private static final String DEFAULT_TENANT = "0";
     private static final String DEFAULT_STRATEGY = "default";
@@ -65,8 +65,7 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
      *
      * @param factory the seda utils factory
      */
-    public CheckStorageAvailabilityActionHandler(SedaUtilsFactory factory) {
-        sedaUtilsFactory = factory;
+    public CheckStorageAvailabilityActionHandler() {
     }
 
     /**
@@ -78,17 +77,17 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
 
 
     @Override
-    public EngineResponse execute(WorkerParameters params) {
+    public EngineResponse execute(WorkerParameters params, HandlerIO actionDefinition) {
         checkMandatoryParameters(params);
         LOGGER.debug("CheckStorageAvailabilityActionHandler running ...");
 
         final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK);
 
-        final SedaUtils sedaUtils = sedaUtilsFactory.create();
+        final SedaUtils sedaUtils = SedaUtilsFactory.create();
         long totalSizeToBeStored;
-        String messageId = "";
-        try {            
-            messageId = sedaUtils.getMessageIdentifier(params);
+        try {        
+            checkMandatoryParamerter(actionDefinition);
+            //TODO get size manifest.xml in local
             long objectsSizeInSip = sedaUtils.computeTotalSizeOfObjectsInManifest(params);
             long manifestSize = sedaUtils.getManifestSize(params);
             totalSizeToBeStored = objectsSizeInSip + manifestSize;
@@ -110,7 +109,11 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
             LOGGER.error(e);
             response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID, OutcomeMessage.STORAGE_OFFER_KO_UNAVAILABLE);
         }
-        response.setMessageIdentifier(messageId);
         return response;
+    }
+
+    @Override
+    public void checkMandatoryParamerter(HandlerIO handler) throws ProcessingException {
+      //TODO Add Workspace:SIP/manifest.xml and check it         
     }
 }

@@ -24,19 +24,35 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.worker.core.api;
 
-package fr.gouv.vitam.processing.common.model;
+
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.model.EngineResponse;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 
 /**
- * Step Type
+ *
+ *
+ * Action interface: is a contract for different action Handler event
+ *
+ * action handler class must be implement this interface
+ *
  */
-public enum ActionType {
+public interface WorkerAction {
+
     /**
-     * Blocking type action
+     *
+     * @param params {@link WorkerParameters}
+     * @return Response:response contains a list of functional message and status code
+     * @throws ProcessingException if an error is encountered when executing the action
      */
-    BLOCK,
+    EngineResponse execute(WorkerParameters param, HandlerIO handler) throws ProcessingException;
+    
     /**
-     * No Blocking type action
+     * @param handler input output list
+     * @throws ProcessingException when handler io is not complete
      */
-    NOBLOCK;
+    void checkMandatoryParamerter(HandlerIO handler) throws ProcessingException;
+
 }

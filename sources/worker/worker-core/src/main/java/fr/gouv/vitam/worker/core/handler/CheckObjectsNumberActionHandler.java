@@ -43,6 +43,7 @@ import fr.gouv.vitam.worker.common.utils.ContainerExtractionUtilsFactory;
 import fr.gouv.vitam.worker.common.utils.ExtractUriResponse;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
+import fr.gouv.vitam.worker.core.api.HandlerIO;
 
 /**
  * Handler that checks that the number of digital objects stored in the workspace equals the number of digital objects
@@ -60,7 +61,6 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
      */
     private static final String HANDLER_ID = "CheckObjectsNumber";
 
-    private final SedaUtilsFactory sedaUtilsFactory;
     private final ContainerExtractionUtilsFactory containerExtractionUtilsFactory;
 
 
@@ -68,11 +68,8 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
      * @param sedaUtilsFactory  sedaUtils factory 
      * @param containerExtractionUtilsFactory container Extraction utils factory
      */
-    public CheckObjectsNumberActionHandler(SedaUtilsFactory sedaUtilsFactory,
-        ContainerExtractionUtilsFactory containerExtractionUtilsFactory) {
-        ParametersChecker.checkParameter("sedaUtilsFactory is a mandatory parameter", sedaUtilsFactory);
+    public CheckObjectsNumberActionHandler(ContainerExtractionUtilsFactory containerExtractionUtilsFactory) {
         ParametersChecker.checkParameter("containerExtractionUtilsFactory is a mandatory parameter", containerExtractionUtilsFactory);
-        this.sedaUtilsFactory = sedaUtilsFactory;
         this.containerExtractionUtilsFactory = containerExtractionUtilsFactory;
     }
 
@@ -85,7 +82,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
     }
 
     @Override
-    public EngineResponse execute(WorkerParameters params) {
+    public EngineResponse execute(WorkerParameters params, HandlerIO actionDefinition) {
         checkMandatoryParameters(params);        
         LOGGER.debug("CheckObjectsNumberActionHandler running ...");
 
@@ -93,7 +90,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
         response.setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_OK);
 
         try {
-
+            checkMandatoryParamerter(actionDefinition);
             final ExtractUriResponse extractUriResponse = getUriListFromManifest(params);
 
             if (extractUriResponse != null && !extractUriResponse.isErrorDuplicateUri()) {
@@ -127,7 +124,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
     private ExtractUriResponse getUriListFromManifest(WorkerParameters params)
         throws ProcessingException {
         // get uri list from manifest
-        final SedaUtils sedaUtils = sedaUtilsFactory.create();
+        final SedaUtils sedaUtils = SedaUtilsFactory.create();
         return sedaUtils.getAllDigitalObjectUriFromManifest(params);
     }
 
@@ -214,5 +211,11 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
         }
         
         response.setErrorNumber(countCompare);
+    }
+
+
+    @Override
+    public void checkMandatoryParamerter(HandlerIO handler) throws ProcessingException {
+      //TODO Add Workspace:SIP/manifest.xml and check it 
     }
 }

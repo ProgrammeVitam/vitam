@@ -26,8 +26,23 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.io.CharStreams;
+
+import fr.gouv.vitam.api.exception.MetaDataException;
+import fr.gouv.vitam.client.MetaDataClient;
+import fr.gouv.vitam.client.MetaDataClientFactory;
+import fr.gouv.vitam.common.database.builder.request.multiple.Insert;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
@@ -39,7 +54,11 @@ import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
-import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
+import fr.gouv.vitam.worker.core.api.HandlerIO;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
  * IndexUnit Handler
@@ -47,7 +66,14 @@ import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
 public class IndexObjectGroupActionHandler extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IndexObjectGroupActionHandler.class);
     private static final String HANDLER_ID = "IndexObjectGroup";
-    private final SedaUtilsFactory sedaUtilsFactory;
+
+    public static final String JSON_EXTENSION = ".json";
+    private static final String OBJECT_GROUP = "ObjectGroup";
+    public static final String LIFE_CYCLE_EVENT_TYPE_PROCESS = "INGEST";
+    public static final String UNIT_LIFE_CYCLE_CREATION_EVENT_TYPE =
+        "Check SIP – Units – Lifecycle Logbook Creation – Création du journal du cycle de vie des units";
+    public static final String TXT_EXTENSION = ".txt";
+    public static final String UP_FIELD = "_up";
     private LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters = LogbookParametersFactory
         .newLogbookLifeCycleObjectGroupParameters();
 
@@ -57,8 +83,7 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
      *
      * @param factory the sedautils factory
      */
-    public IndexObjectGroupActionHandler(SedaUtilsFactory factory) {
-        sedaUtilsFactory = factory;
+    public IndexObjectGroupActionHandler() {
     }
 
     /**
@@ -70,15 +95,15 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
 
 
     @Override
-    public EngineResponse execute(WorkerParameters params) {
+    public EngineResponse execute(WorkerParameters params, HandlerIO actionDefinition) {
         checkMandatoryParameters(params);
         LOGGER.debug("IndexObjectGroupActionHandler running ...");
         final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK);
-        final SedaUtils sedaUtils = sedaUtilsFactory.create();
 
         try {
-            sedaUtils.updateLifeCycleByStep(logbookLifecycleObjectGroupParameters, params);
-            sedaUtils.indexObjectGroup(params);
+            checkMandatoryParamerter(actionDefinition);
+            SedaUtils.updateLifeCycleByStep(logbookLifecycleObjectGroupParameters, params);
+            indexObjectGroup(params);
         } catch (ProcessingInternalServerException exc) {
             response.setStatus(StatusCode.FATAL);
             response.setOutcomeMessages(HANDLER_ID, OutcomeMessage.INDEX_OBJECT_GROUP_KO);
@@ -95,7 +120,7 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
                 logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                     OutcomeMessage.INDEX_OBJECT_GROUP_OK.value());
             }
-            sedaUtils.setLifeCycleFinalEventStatusByStep(logbookLifecycleObjectGroupParameters, response.getStatus());
+            SedaUtils.setLifeCycleFinalEventStatusByStep(logbookLifecycleObjectGroupParameters, response.getStatus());
         } catch (ProcessingException e) {
             if (!response.getStatus().equals(StatusCode.FATAL)) {
                 response.setStatus(StatusCode.WARNING);
@@ -105,6 +130,57 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
 
         LOGGER.debug("IndexObjectGroupActionHandler response: " + response.getStatus().name());
         return response;
+    }
+
+
+    /**
+     * The function is used for retrieving ObjectGroup in workspace and use metadata client to index ObjectGroup
+     *
+     * @param params work parameters
+     * @throws ProcessingException when error in execution
+     */
+    public void indexObjectGroup(WorkerParameters params) throws ProcessingException {
+        ParameterHelper.checkNullOrEmptyParameters(params);
+
+        final String containerId = params.getContainerName();
+        final String objectName = params.getObjectName();
+
+        // TODO : whould use worker configuration instead of the processing configuration
+        final WorkspaceClient workspaceClient = WorkspaceClientFactory
+            .create(params.getUrlWorkspace());
+        final MetaDataClient metadataClient = MetaDataClientFactory
+            .create(params.getUrlMetadata());
+        InputStream input = null;
+        try {
+            input = workspaceClient.getObject(containerId, OBJECT_GROUP + "/" + objectName);
+
+            if (input != null) {
+                final String inputStreamString = CharStreams.toString(new InputStreamReader(input, "UTF-8"));
+                final JsonNode json = JsonHandler.getFromString(inputStreamString);
+                final Insert insertRequest = new Insert().addData((ObjectNode) json);
+                metadataClient.insertObjectGroup(insertRequest.getFinalInsert().toString());
+            } else {
+                LOGGER.error("Object group not found");
+                throw new ProcessingException("Object group not found");
+            }
+
+        } catch (MetaDataException e) {
+            LOGGER.debug("Metadata Server Error", e);
+            throw new ProcessingInternalServerException(e);
+        } catch (InvalidParseOperationException | IOException e) {
+            LOGGER.debug("Json wrong format", e);
+            throw new ProcessingException(e);
+        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
+            LOGGER.debug("Workspace Server Error", e);
+            throw new ProcessingException(e);
+        }
+
+    }
+
+    @Override
+    public void checkMandatoryParamerter(HandlerIO handler) throws ProcessingException {
+        // TODO Add objectGroup.json add input and check it
+        
     }
 
 }

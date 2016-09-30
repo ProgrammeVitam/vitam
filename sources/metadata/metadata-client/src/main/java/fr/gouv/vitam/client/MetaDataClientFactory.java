@@ -36,9 +36,8 @@ public class MetaDataClientFactory {
      * @param url server url
      * @return new MetaDataClient
      */
-    // FIXME REVIEW very bad way: you should not ask to the user to pass you the url bu the factory should discover it
-    // (see Logbook client factory)
-    public MetaDataClient create(String url) {
+    // FIXME REVIEW refactor comme logbookClient
+    public static MetaDataClient create(String url) {
         ParametersChecker.checkParameter("Server Url can not be null", url);
         return new MetaDataClient(url);
     }

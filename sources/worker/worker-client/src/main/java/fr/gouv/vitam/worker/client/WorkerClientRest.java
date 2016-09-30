@@ -42,6 +42,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.AbstractClient;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.configuration.ClientConfigurationImpl;
@@ -77,14 +79,18 @@ public class WorkerClientRest extends AbstractClient implements WorkerClient {
         ParametersChecker.checkParameter(DATA_MUST_HAVE_A_VALID_VALUE, step);
         Response response = null;
         try {
+            JsonNode stepJson = JsonHandler.toJsonNode(step);
             response =
-                performGenericRequest("/" + "tasks", step, MediaType.APPLICATION_JSON, getDefaultHeaders(requestId),
+                performGenericRequest("/" + "tasks", stepJson, MediaType.APPLICATION_JSON, getDefaultHeaders(requestId),
                     HttpMethod.POST, MediaType.APPLICATION_JSON);
             JsonNode node = (JsonNode) handleCommonResponseStatus(response, JsonNode.class);
             return getListResponses(node);
         } catch (javax.ws.rs.ProcessingException e) {
             LOGGER.error("Worker Internal Server Error", e);
             throw new WorkerServerClientException("Worker Internal Server Error", e);
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error("Worker Client Error", e);
+            throw new WorkerServerClientException("Step description incorrect", e);
         } finally {
             Optional.ofNullable(response).ifPresent(Response::close);
         }

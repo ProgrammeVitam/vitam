@@ -1,11 +1,28 @@
 {
-	"workerGroupId" :"DefaultWorker",
-    "stepName":"Rangement des units",
-    "stepType":"BLOCK",
-      "distribution" : {
-    	"kind":"LIST",
-    	"element" : "Units"
-    	},
-    "actions":[{"action":{"actionKey": "IndexUnit", "actionType": "BLOCK"} }]
-   
-}
+      "workerGroupId": "DefaultWorker",
+      "stepName": "Rangement des units",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST",
+        "element": "Units"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "IndexUnit",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "mapsUnits.file",
+                "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json"
+              },
+              
+              {
+                "name": "unitsTree.file",
+                "uri": "WORKSPACE:UnitsTree/INGEST_TREE.json"
+              }
+            ]
+          }
+        }
+      ]
+    }

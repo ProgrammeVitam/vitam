@@ -448,7 +448,7 @@ public class WorkerIT {
         String objectName = "";
         try {
             InputStream stream = workspaceClient.getObject(CONTAINER_NAME,
-                "tmp/ARCHIVE_ID_TO_GUID_MAP_" + CONTAINER_NAME + ".json");
+                "Maps/ARCHIVE_ID_TO_GUID_MAP.json");
             Map<String, Object> map = JsonHandler.getMapFromString(IOUtils.toString(stream, "UTF-8"));
             objectName = (String) map.values().iterator().next();
         } catch (Exception e) {
@@ -461,7 +461,7 @@ public class WorkerIT {
         String objectName = "";
         try {
             InputStream stream = workspaceClient.getObject(CONTAINER_NAME,
-                "tmp/OBJECT_GROUP_ID_TO_GUID_MAP_" + CONTAINER_NAME + ".json");
+                "Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json");
             Map<String, Object> map = JsonHandler.getMapFromString(IOUtils.toString(stream, "UTF-8"));
             objectName = (String) map.values().iterator().next();
         } catch (Exception e) {

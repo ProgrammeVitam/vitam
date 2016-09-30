@@ -28,64 +28,116 @@ package fr.gouv.vitam.worker.core.handler;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 import javax.xml.stream.XMLStreamException;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
+import fr.gouv.vitam.api.exception.MetaDataExecutionException;
+import fr.gouv.vitam.client.MetaDataClient;
+import fr.gouv.vitam.client.MetaDataClientFactory;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
-import fr.gouv.vitam.worker.common.utils.SedaUtils;
-import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
+import fr.gouv.vitam.worker.core.api.HandlerIO;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore("javax.net.ssl.*")
+@PrepareForTest({WorkspaceClientFactory.class, MetaDataClientFactory.class})
 public class IndexUnitActionHandlerTest {
-    IndexUnitActionHandler handler;
+    IndexUnitActionHandler handler = new IndexUnitActionHandler();
+    private WorkspaceClient workspaceClient;
+    private MetaDataClient metadataClient;
     private static final String HANDLER_ID = "IndexUnit";
-    private SedaUtilsFactory factory;
-    private SedaUtils sedaUtils;
+    private static final String ARCHIVE_UNIT = "archiveUnit.xml";
+    private static final String INGEST_TREE = "INGEST_TREE.json";
+    private static final String ARCHIVE_ID_TO_GUID_MAP = "ARCHIVE_ID_TO_GUID_MAP.json";
+    private final InputStream archiveUnit = Thread.currentThread().getContextClassLoader()
+        .getResourceAsStream(ARCHIVE_UNIT);
+    private HandlerIO action;
 
     @Before
-    public void setUp() {
-        factory = mock(SedaUtilsFactory.class);
-        sedaUtils = mock(SedaUtils.class);
+    public void setUp() throws Exception  { 
+        PowerMockito.mockStatic(WorkspaceClientFactory.class);
+        PowerMockito.mockStatic(MetaDataClientFactory.class);
+        workspaceClient = mock(WorkspaceClient.class);
+        metadataClient = mock(MetaDataClient.class);
+        action = new HandlerIO("");
+        action.addInput(PropertiesUtils.getResourcesFile(ARCHIVE_ID_TO_GUID_MAP));
+        action.addInput(PropertiesUtils.getResourcesFile(INGEST_TREE));
     }
-
     @Test
     public void givenWorkspaceNotExistWhenExecuteThenReturnResponseFATAL()
         throws XMLStreamException, IOException, ProcessingException {
-        Mockito.doThrow(new ProcessingException("")).when(sedaUtils).indexArchiveUnit(anyObject());
-        when(factory.create()).thenReturn(sedaUtils);
-        handler = new IndexUnitActionHandler(factory);
         assertEquals(IndexUnitActionHandler.getId(), HANDLER_ID);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
         final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
             ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
             ("containerName");
-        final EngineResponse response = handler.execute(params);
+
+        final EngineResponse response = handler.execute(params, action);
         assertEquals(response.getStatus(), StatusCode.FATAL);
     }
 
     @Test
-    public void givenWorkspaceExistWhenExecuteThenReturnResponseOK()
-        throws XMLStreamException, IOException, ProcessingException {
-        Mockito.doNothing().when(sedaUtils).indexArchiveUnit(anyObject());
-        when(factory.create()).thenReturn(sedaUtils);
-        handler = new IndexUnitActionHandler(factory);
-        assertEquals(IndexUnitActionHandler.getId(), HANDLER_ID);
+    public void givenWorkspaceExistWhenExecuteThenReturnResponseOK() throws Exception {
+        when(metadataClient.insertUnit(anyObject())).thenReturn("");
+        when(MetaDataClientFactory.create(anyObject())).thenReturn(metadataClient);
+        when(workspaceClient.getObject(anyObject(), eq("Units/objectName.json"))).thenReturn(archiveUnit);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        
         final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
             ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
             ("containerName");
-        final EngineResponse response = handler.execute(params);
+        final EngineResponse response = handler.execute(params, action);
         assertEquals(response.getStatus(), StatusCode.OK);
     }
-
+    
+    @Test
+    public void testMetadataException() throws Exception {
+        when(metadataClient.insertUnit(anyObject())).thenThrow(new MetaDataExecutionException(""));
+        when(MetaDataClientFactory.create(anyObject())).thenReturn(metadataClient);
+        when(workspaceClient.getObject(anyObject(), eq("Units/objectName.json"))).thenReturn(archiveUnit);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
+            ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
+            ("containerName");
+        final EngineResponse response = handler.execute(params, action);
+        assertEquals(response.getStatus(), StatusCode.FATAL);
+    }
+    
+    @Test
+    public void testWorkspaceException() throws Exception {
+        when(metadataClient.insertUnit(anyObject())).thenReturn("");
+        when(MetaDataClientFactory.create(anyObject())).thenReturn(metadataClient);
+        when(workspaceClient.getObject(anyObject(), eq("Units/objectName.json"))).thenThrow(new ContentAddressableStorageNotFoundException(""));
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
+            ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
+            ("containerName");
+        final EngineResponse response = handler.execute(params, action);
+        assertEquals(response.getStatus(), StatusCode.FATAL);
+    }
 
 }
