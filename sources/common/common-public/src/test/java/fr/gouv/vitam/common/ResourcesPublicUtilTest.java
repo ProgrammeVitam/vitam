@@ -28,6 +28,7 @@ package fr.gouv.vitam.common;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.InputStream;
 
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -42,6 +43,8 @@ public class ResourcesPublicUtilTest {
     public static final String GUID_TEST_PROPERTIES = "GUID-test.properties";
     private static final String JSON_TEST_JSON = "json-test.json";
     private static final String JSON_TEST2_JSON = "json-test2.json";
+    private static final String JSON_TEST3_JSON = "json-test3.json";
+    private static final String JSON_TEST_EMPTY_JSON = "json-test-empty.json";
     public static final String YAML_TEST_CONF = "yaml-test.conf";
 
     public static final String SHOULD_HAVE_AN_EXCEPTION = "Should have an exception";
@@ -89,6 +92,23 @@ public class ResourcesPublicUtilTest {
         return jsonTest2JsonFile;
     }
 
+    /**
+     * 
+     * @return the Json3 Stream
+     */
+    public InputStream getJsonTest3JsonInputStream() {
+        return getTestResourcesInputStream(JSON_TEST3_JSON);
+    }
+
+    /**
+     * 
+     * @return the Json empty Stream
+     */
+    public InputStream getJsonTestEmptyJsonInputStream() {
+        return getTestResourcesInputStream(JSON_TEST_EMPTY_JSON);
+    }
+    
+    
 
     /**
      *
@@ -108,6 +128,21 @@ public class ResourcesPublicUtilTest {
         }
         if (file != null && file.exists()) {
             return file;
+        }
+
+        return null;
+    }
+
+    private InputStream getTestResourcesInputStream(String name) {
+        InputStream stream;
+        try {
+            stream = PropertiesUtils.getResourcesAsStream(name);
+        } catch (final FileNotFoundException e) { // NOSONAR
+            LOGGER.debug("Not able to load: " + name);
+            return null;
+        }
+        if (stream != null) {
+            return stream;
         }
 
         return null;

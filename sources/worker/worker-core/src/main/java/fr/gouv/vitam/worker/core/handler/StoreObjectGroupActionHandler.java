@@ -30,23 +30,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamException;
 
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.io.CharStreams;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -54,7 +44,6 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
@@ -69,15 +58,12 @@ import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
 import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
-import fr.gouv.vitam.worker.common.utils.BinaryObjectInfo;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
-import fr.gouv.vitam.worker.common.utils.SedaUtilInfo;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.core.api.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -95,18 +81,15 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
     private static final String OG_LIFE_CYCLE_STORE_BDO_EVENT_TYPE = "Stockage des groupes d'objets - Stockage d'objet";
     private static final String SIP = "SIP/";
 
-    //TODO should not be a private attribute -> to refactor
+    // TODO should not be a private attribute -> to refactor
     private LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters = LogbookParametersFactory
         .newLogbookLifeCycleObjectGroupParameters();
-    private static final StorageClient STORAGE_CLIENT = StorageClientFactory.getInstance().getStorageClient();
+    private final StorageClientFactory storageClientFactory;
     private static final LogbookLifeCycleClient LOGBOOK_LIFECYCLE_CLIENT = LogbookLifeCyclesClientFactory.getInstance()
         .getLogbookLifeCyclesClient();
 
     private static final String DEFAULT_TENANT = "0";
     private static final String DEFAULT_STRATEGY = "default";
-    public static final String JSON_EXTENSION = ".json";
-    private static final String CANNOT_READ_SEDA = "Can not read SEDA";
-    private static final String MANIFEST_NOT_FOUND = "Manifest.xml Not Found";
 
     private static final String LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG = "LogbookClient Unsupported request";
     private static final String LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG = "Logbook LifeCycle resource not found";
@@ -117,19 +100,20 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
     private static final String LOGBOOK_LF_STORAGE_BDO_MSG = "Stockage de l'objet";
     private static final String LOGBOOK_LF_STORAGE_BDO_KO_MSG = "Stockage de l'objet en erreur";
 
-    private HandlerIO handlerIO;
-
-    private HandlerIO handlerInitialIOList;
-
     /**
-     * Constructor with parameter SedaUtilsFactory
-     *
-     * @param factory the sedautils factory
+     * Constructor
      */
     public StoreObjectGroupActionHandler() {
-        handlerInitialIOList = new HandlerIO("");
-        handlerInitialIOList.addInput(File.class);
-        handlerInitialIOList.addInput(File.class);
+        storageClientFactory = StorageClientFactory.getInstance();
+    }
+
+    /**
+     * Constructor with parameter storageClientFactory, for tests
+     *
+     * @param storageClientFactory the storage client factory
+     */
+    StoreObjectGroupActionHandler(StorageClientFactory storageClientFactory) {
+        this.storageClientFactory = storageClientFactory;
     }
 
     /**
@@ -139,25 +123,27 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
         return HANDLER_ID;
     }
 
-
     @Override
-    public EngineResponse execute(WorkerParameters params, HandlerIO action) {
+    public EngineResponse execute(WorkerParameters params, HandlerIO actionDefinition) {
         checkMandatoryParameters(params);
         LOGGER.info("StoreObjectGroupActionHandler running ...");
-        handlerIO = action;
 
         final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK);
 
         try {
-            checkMandatoryIOParameter(handlerIO);
+            checkMandatoryIOParameter(actionDefinition);
             // Update lifecycle of object group : STARTED
             updateLifeCycleParametersLogbookByStep(params, SedaUtils.LIFE_CYCLE_EVENT_TYPE_PROCESS);
             updateLifeCycle();
 
-            Map<String, BinaryObjectInfo> storageObjectInfos = retrieveStorageInformationForObjectGroup(params);
-            for (Map.Entry<String, BinaryObjectInfo> storageObjectInfo : storageObjectInfos.entrySet()) {
-                storeObject(params, storageObjectInfo.getKey(), storageObjectInfo.getValue());
+            // get list of object group's objects
+            Map<String, String> objectGuids = getMapOfObjectsIdsAndUris(params);
+            // get list of object uris
+            for (Map.Entry<String, String> objectGuid : objectGuids.entrySet()) {
+                // Execute action on the object
+                storeObject(params, objectGuid.getKey(), objectGuid.getValue());
             }
+
         } catch (final ProcessingException e) {
             LOGGER.error(e);
             response.setStatus(StatusCode.KO);
@@ -196,24 +182,23 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
      * 
      * @param params worker parameters
      * @param objectGUID the object guid
-     * @param storageObjectInfo informations on the binary data object needed by the storage engine
+     * @param objectUri the object uri
      * @throws ProcessingException throws when error occurs
      */
-    private void storeObject(WorkerParameters params, String objectGUID, BinaryObjectInfo storageObjectInfo)
-        throws ProcessingException {
+    private void storeObject(WorkerParameters params, String objectGUID, String objectUri) throws ProcessingException {
         LOGGER.debug("Storing object with guid: " + objectGUID);
+        ParametersChecker.checkParameter("objectUri id is a mandatory parameter", objectUri);
         try {
             // update lifecycle of objectGroup with detail of object : STARTED
-            updateLifeCycleParametersLogbookForBdo(params, storageObjectInfo.getId());
+            updateLifeCycleParametersLogbookForBdo(params, objectGUID);
             updateLifeCycle();
 
             // store binary data object
             CreateObjectDescription description = new CreateObjectDescription();
             description.setWorkspaceContainerGUID(params.getContainerName());
-            description.setWorkspaceObjectURI(SIP + storageObjectInfo.getUri().toString());
-            StoredInfoResult result =
-                STORAGE_CLIENT.storeFileFromWorkspace(DEFAULT_TENANT, DEFAULT_STRATEGY, StorageCollectionType.OBJECTS,
-                    objectGUID, description);
+            description.setWorkspaceObjectURI(SIP + objectUri);
+            StoredInfoResult result = storageClientFactory.getStorageClient().storeFileFromWorkspace(DEFAULT_TENANT,
+                DEFAULT_STRATEGY, StorageCollectionType.OBJECTS, objectGUID, description);
 
             // update lifecycle of objectGroup with detail of object : OK
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcome,
@@ -233,6 +218,73 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 LOGBOOK_LF_STORAGE_BDO_KO_MSG);
             updateLifeCycle();
+            throw new ProcessingException(e);
+        }
+    }
+
+    /**
+     * Get the list of objects linked to the current object group
+     * 
+     * @param params worker parameters
+     * @return the list of object guid
+     * @throws ProcessingException throws when error occurs while retrieving the object group file from workspace
+     */
+    private Map<String, String> getMapOfObjectsIdsAndUris(WorkerParameters params) throws ProcessingException {
+        Map<String, String> binaryObjectsToStore = new HashMap<>();
+        final String containerId = params.getContainerName();
+        final String objectName = params.getObjectName();
+        ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
+        ParametersChecker.checkParameter("ObjectName id is a mandatory parameter", objectName);
+        final WorkspaceClient workspaceClient = WorkspaceClientFactory.create(params.getUrlWorkspace());
+        // Get objectGroup objects ids
+        final JsonNode jsonOG = getJsonFromWorkspace(workspaceClient, containerId,
+            IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + objectName);
+
+        // Filter on objectGroup objects ids to retrieve only binary objects
+        // informations linked to the ObjectGroup
+        JsonNode work = jsonOG.get("_work");
+        JsonNode qualifiers = work.get("_qualifiers");
+        if (qualifiers == null) {
+            return binaryObjectsToStore;
+        }
+
+        List<JsonNode> versions = qualifiers.findValues("versions");
+        if (versions == null || versions.isEmpty()) {
+            return binaryObjectsToStore;
+        }
+        for (JsonNode version : versions) {
+            for (JsonNode binaryObject : version) {
+                binaryObjectsToStore.put(binaryObject.get("_id").asText(), binaryObject.get("Uri").asText());
+            }
+        }
+
+        return binaryObjectsToStore;
+    }
+
+    /**
+     * Retrieve a json file as a {@link JsonNode} from the workspace.
+     * 
+     * @param workspaceClient workspace connector
+     * @param containerId container id
+     * @param jsonFilePath path in workspace of the json File
+     * @return JsonNode of the json file
+     * @throws ProcessingException throws when error occurs
+     */
+    public JsonNode getJsonFromWorkspace(WorkspaceClient workspaceClient, String containerId, String jsonFilePath)
+        throws ProcessingException {
+        try (InputStream is = workspaceClient.getObject(containerId, jsonFilePath)) {
+            if (is != null) {
+                return JsonHandler.getFromInputStream(is, JsonNode.class);
+            } else {
+                LOGGER.error("Object group not found");
+                throw new ProcessingException("Object group not found");
+            }
+
+        } catch (InvalidParseOperationException | IOException e) {
+            LOGGER.debug("Json wrong format", e);
+            throw new ProcessingException(e);
+        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
+            LOGGER.debug("Workspace Server Error", e);
             throw new ProcessingException(e);
         }
     }
@@ -273,8 +325,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
             params.getContainerName());
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier,
             GUIDFactory.newGUID().toString());
-        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventTypeProcess,
-            typeProcess);
+        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventTypeProcess, typeProcess);
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventType,
             params.getCurrentStep());
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcome,
@@ -287,7 +338,6 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
 
     /**
      * Update current ObjectGroup lifecycle parameters with binary data object lifecycle parameters. <br>
-     * TODO : for now we use the SEDA BinaryDataObject id, but shoud be the binary data object GUID when it exists
      * 
      * @param params worker parameters
      * @param bdoId binary data object id
@@ -307,158 +357,9 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
             LOGBOOK_LF_STORAGE_BDO_MSG);
     }
 
-
-    /**
-     * Retrieve the binary data object infos linked to the object group. <br>
-     * TODO : should not need to parse the manifest.xml to link a binary data object present in workspace to an object
-     * group. To refactor when Object Group and Binary Data Object link is defined. TODO : during the next refactoring
-     * of Sedautils, it has to be refactored to StoreObjectGroupActionHandler
-     * 
-     * @param params worker parameters
-     * @return tha map of binary data object information with their object GUID as key
-     * @throws ProcessingException throws when error occurs
-     */
-    public Map<String, BinaryObjectInfo> retrieveStorageInformationForObjectGroup(WorkerParameters params)
-        throws ProcessingException {
-        ParameterHelper.checkNullOrEmptyParameters(params);
-        final String containerId = params.getContainerName();
-        final String objectName = params.getObjectName();
-        ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
-        ParametersChecker.checkParameter("ObjectName id is a mandatory parameter", objectName);
-        // TODO : whould use worker configuration instead of the processing configuration
-        final WorkspaceClient workspaceClient =
-            WorkspaceClientFactory.create(params.getUrlWorkspace());
-
-        // retrieve SEDA FILE and get the list of objectsDatas
-        Map<String, BinaryObjectInfo> binaryObjectsToStore = new HashMap<>();
-        // Get binary objects informations of the SIP
-        SedaUtilInfo sedaUtilInfo = getSedaUtilInfo(workspaceClient, containerId);
-        // Get objectGroup objects ids
-        final JsonNode jsonOG = getJsonFromWorkspace(workspaceClient, containerId, (File) handlerIO.getInput().get(1));
-
-        // Filter on objectGroup objects ids to retrieve only binary objects informations linked to the ObjectGroup
-        JsonNode qualifiers = jsonOG.get("_qualifiers");
-        if (qualifiers == null) {
-            return binaryObjectsToStore;
-        }
-
-        List<JsonNode> versions = qualifiers.findValues("versions");
-        if (versions == null || versions.isEmpty()) {
-            return binaryObjectsToStore;
-        }
-
-        String objectIdToGuidStoredContent;
-        try {
-            InputStream objectIdToGuidMapFile = new FileInputStream((File) handlerIO.getInput().get(0));
-            objectIdToGuidStoredContent = IOUtils.toString(objectIdToGuidMapFile, "UTF-8");
-            LOGGER.info(objectIdToGuidStoredContent);
-        } catch (IOException e) {
-            LOGGER.error(e);
-            throw new ProcessingException(e);
-        }
-        Map<String, Object> objectIdToGuidStoredMap = null;
-        try {
-            objectIdToGuidStoredMap = JsonHandler.getMapFromString(objectIdToGuidStoredContent);
-        } catch (InvalidParseOperationException e) {
-            LOGGER.error(e);
-            throw new ProcessingException(e);
-        }
-
-        Map<Object, String> guidToObjectIdMap =
-            objectIdToGuidStoredMap.entrySet().stream()
-            .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
-
-        for (JsonNode version : versions) {
-            for (JsonNode binaryObject : version) {
-                String binaryObjectId = guidToObjectIdMap.get(binaryObject.get("_id").asText());
-                Optional<Entry<String, BinaryObjectInfo>> objectEntry =
-                    sedaUtilInfo.getBinaryObjectMap().entrySet().stream()
-                    .filter(entry -> entry.getKey().equals(binaryObjectId)).findFirst();
-                if (objectEntry.isPresent()) {
-                    binaryObjectsToStore.put(binaryObject.get("_id").asText(), objectEntry.get().getValue());
-                }
-            }
-        }
-
-        return binaryObjectsToStore;
-
-    }
-
-
-    /**
-     * Parse SEDA file manifest.xml to retrieve all its binary data objects informations as a SedaUtilInfo.
-     * 
-     * @param workspaceClient workspace connector
-     * @param containerId container id
-     * @return SedaUtilInfo
-     * @throws ProcessingException throws when error occurs
-     */
-    private SedaUtilInfo getSedaUtilInfo(WorkspaceClient workspaceClient, String containerId)
-        throws ProcessingException {
-        InputStream xmlFile = null;
-        try {
-            xmlFile = workspaceClient.getObject(containerId,
-                IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
-        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
-            LOGGER.error(MANIFEST_NOT_FOUND);
-            IOUtils.closeQuietly(xmlFile);
-            throw new ProcessingException(e);
-        }
-
-        final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
-
-        SedaUtilInfo sedaUtilInfo = null;
-        XMLEventReader reader = null;
-        try {
-            reader = xmlInputFactory.createXMLEventReader(xmlFile);
-            sedaUtilInfo = SedaUtils.getBinaryObjectInfo(reader);
-            return sedaUtilInfo;
-        } catch (final XMLStreamException e) {
-            LOGGER.error(CANNOT_READ_SEDA);
-            throw new ProcessingException(e);
-        } finally {
-            IOUtils.closeQuietly(xmlFile);
-            try {
-                if (reader != null) {
-                    reader.close();
-                }
-            } catch (XMLStreamException e) {
-                // nothing to throw
-                LOGGER.info("Can not close XML reader SEDA", e);
-            }
-        }
-
-    }
-
-
-    /**
-     * Retrieve a json file as a {@link JsonNode} from the workspace.
-     * 
-     * @param workspaceClient workspace connector
-     * @param containerId container id
-     * @param jsonFilePath path in workspace of the json File
-     * @return JsonNode of the json file
-     * @throws ProcessingException throws when error occurs
-     */
-    private JsonNode getJsonFromWorkspace(WorkspaceClient workspaceClient, String containerId, File file)
-        throws ProcessingException {
-        try {
-            final String inputStreamString = CharStreams.toString(new InputStreamReader( new FileInputStream(file), "UTF-8"));
-            return JsonHandler.getFromString(inputStreamString);
-
-        } catch (InvalidParseOperationException | IOException e) {
-            LOGGER.debug("Json wrong format", e);
-            throw new ProcessingException(e);
-        }
-    }
-
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        if (handlerIO.getOutput().size() != handlerInitialIOList.getOutput().size()) {
-            throw new ProcessingException(HandlerIO.NOT_ENOUGH_PARAM);
-        } else if (!HandlerIO.checkHandlerIO(handlerIO, this.handlerInitialIOList)) {
-            throw new ProcessingException(HandlerIO.NOT_CONFORM_PARAM);
-        }
+        // TODO Add objectGroup.json add input and check it
     }
 
 }

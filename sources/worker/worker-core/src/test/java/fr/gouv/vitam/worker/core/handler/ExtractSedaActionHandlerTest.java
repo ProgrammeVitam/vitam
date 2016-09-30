@@ -81,7 +81,7 @@ public class ExtractSedaActionHandlerTest {
     private HandlerIO action;
 
     @Before
-    public void setUp() throws URISyntaxException  { 
+    public void setUp() throws URISyntaxException {
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
         action = new HandlerIO("");
@@ -99,11 +99,11 @@ public class ExtractSedaActionHandlerTest {
         throws XMLStreamException, IOException, ProcessingException {
         assertEquals(ExtractSedaActionHandler.getId(), HANDLER_ID);
         PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
-        
-        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
-            ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
-            ("containerName");
-        
+
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
+
         final EngineResponse response = handler.execute(params, action);
         assertEquals(response.getStatus(), StatusCode.KO);
     }
@@ -111,9 +111,9 @@ public class ExtractSedaActionHandlerTest {
     @Test
     public void givenWorkspaceExistWhenExecuteThenReturnResponseOK() throws Exception {
         assertEquals(ExtractSedaActionHandler.getId(), HANDLER_ID);
-        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
-            ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
-            ("containerName");
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
 
         final InputStream ingestTreeFile = Thread.currentThread().getContextClassLoader()
             .getResourceAsStream(INGEST_TREE);
@@ -124,7 +124,8 @@ public class ExtractSedaActionHandlerTest {
             public Void answer(InvocationOnMock invocation) throws Throwable {
                 File realArchiveTreeTmpFile = PropertiesUtils
                     .fileFromTmpFolder(
-                        IngestWorkflowConstants.ARCHIVE_TREE_TMP_FILE_NAME_PREFIX + OBJ + SedaUtils.JSON_EXTENSION);
+                        IngestWorkflowConstants.ARCHIVE_TREE_TMP_FILE_NAME_PREFIX + OBJ +
+                            ExtractSedaActionHandler.JSON_EXTENSION);
                 File saveArchiveTreeTmpFile = PropertiesUtils
                     .fileFromTmpFolder(
                         "SAVE_" + IngestWorkflowConstants.ARCHIVE_TREE_TMP_FILE_NAME_PREFIX + OBJ +
@@ -138,9 +139,8 @@ public class ExtractSedaActionHandlerTest {
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(seda_arborescence);
         PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
 
-        
         final EngineResponse response = handler.execute(params, action);
-        assertEquals(response.getStatus(), StatusCode.OK);
+        assertEquals(StatusCode.OK, response.getStatus());
     }
 
 }

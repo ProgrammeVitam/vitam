@@ -28,6 +28,7 @@ package fr.gouv.vitam.common.json;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -471,6 +472,48 @@ public final class JsonHandler {
             return info;
         } else {
             return new HashMap<>();
+        }
+    }
+
+    /**
+     *
+     * @param inputStream
+     * @return the corresponding HashMap
+     * @throws InvalidParseOperationException
+     */
+    public static final Map<String, Object> getMapFromInputStream(final InputStream inputStream)
+        throws InvalidParseOperationException {
+        if (inputStream != null) {
+            Map<String, Object> info = null;
+            try {
+                info = OBJECT_MAPPER.readValue(inputStream,
+                    new TypeReference<Map<String, Object>>() {});
+            } catch (final IOException e) {
+                throw new InvalidParseOperationException(e);
+            }
+            if (info == null) {
+                info = new HashMap<>();
+            }
+            return info;
+        } else {
+            return new HashMap<>();
+        }
+    }
+
+    /**
+     *
+     * @param inputStream
+     * @param clasz
+     * @return the corresponding object
+     * @throws InvalidParseOperationException
+     */
+    public static final <T> T getFromInputStream(InputStream inputStream, Class<T> clasz)
+        throws InvalidParseOperationException {
+        try {
+            ParametersChecker.checkParameter("InputStream or class", inputStream, clasz);
+            return OBJECT_MAPPER.readValue(inputStream, clasz);
+        } catch (final IOException | IllegalArgumentException e) {
+            throw new InvalidParseOperationException(e);
         }
     }
 

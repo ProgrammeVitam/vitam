@@ -27,6 +27,7 @@
 package fr.gouv.vitam.processing.management.rest;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import org.junit.*;
 
@@ -83,6 +84,8 @@ public class ProcessManagementApplicationTest {
 
     @Test
     public void givenFileExistsWhenStartupApplicationThenRunServer() throws Exception {
+        SystemPropertyUtil
+            .set(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(port));
         application.startApplication("processing.conf");
         application.stop();
     }
