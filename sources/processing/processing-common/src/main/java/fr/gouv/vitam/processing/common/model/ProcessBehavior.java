@@ -30,15 +30,15 @@ package fr.gouv.vitam.processing.common.model;
 /**
  * Step Type
  */
-public enum StepType {
+public enum ProcessBehavior {
     /**
      * Blocking type step
      */
-    BLOCK,
+    BLOCKING,
     /**
      * No Blocking type step
      */
-    NOBLOCK,
+    NOBLOCKING,
     /**
      * Pausing type step
      */

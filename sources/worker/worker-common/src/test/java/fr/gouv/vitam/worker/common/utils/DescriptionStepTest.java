@@ -39,7 +39,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.processing.common.model.Step;
-import fr.gouv.vitam.processing.common.model.StepType;
+import fr.gouv.vitam.processing.common.model.ProcessBehavior;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.DescriptionStep;
 
@@ -49,13 +49,13 @@ public class DescriptionStepTest {
     public void testDescriptionStep() {
         Step step = new Step();
         step.setStepName("StepName");
-        step.setStepType(StepType.NOBLOCK);
+        step.setBehavior(ProcessBehavior.NOBLOCKING);
         DescriptionStep ds = new DescriptionStep(new Step(), WorkerParametersFactory.newWorkerParameters());
         ds.setStep(step);
         ds.setWorkParams(WorkerParametersFactory.newWorkerParameters());
         assertNotNull(ds.getWorkParams());
         assertNotNull(ds.getStep());
-        assertEquals(StepType.NOBLOCK, ds.getStep().getStepType());
+        assertEquals(ProcessBehavior.NOBLOCKING, ds.getStep().getBehavior());
         assertEquals("StepName", ds.getStep().getStepName());
         try {
             ds = new DescriptionStep(null, WorkerParametersFactory.newWorkerParameters());

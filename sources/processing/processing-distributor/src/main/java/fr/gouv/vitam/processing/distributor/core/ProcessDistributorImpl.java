@@ -93,9 +93,10 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
  * </pre>
  */
 public class ProcessDistributorImpl implements ProcessDistributor {
+    
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessDistributorImpl.class);
     private static final String ELAPSED_TIME_MESSAGE = "Total elapsed time in execution of method distribute is :";
-    private static final String EXEC = "Exec";
+    private static final String UNITS_LEVEL = "UnitsLevel";
     private static final String XML_EXTENSION = ".xml";
     private static final String EXCEPTION_MESSAGE =
         "runtime exceptions thrown by the Process distributor during runnig...";
@@ -159,7 +160,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
 
                     // get the file to retrieve the GUID
                     InputStream levelFile =
-                        workspaceClient.getObject(workParams.getContainerName(), EXEC + "/" + INGEST_LEVEL_STACK);
+                        workspaceClient.getObject(workParams.getContainerName(), UNITS_LEVEL + "/" + INGEST_LEVEL_STACK);
                     final String inputStreamString = CharStreams.toString(new InputStreamReader(levelFile, "UTF-8"));
                     final JsonNode levelFileJson = JsonHandler.getFromString(inputStreamString);
                     Iterator<Entry<String, JsonNode>> iteratorlLevelFile = levelFileJson.fields();

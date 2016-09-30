@@ -63,7 +63,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({WorkspaceClientFactory.class })
+@PrepareForTest({WorkspaceClientFactory.class, SedaUtilsFactory.class })
 public class CheckObjectsNumberActionHandlerTest {
 
     private CheckObjectsNumberActionHandler checkObjectsNumberActionHandler;
@@ -71,7 +71,6 @@ public class CheckObjectsNumberActionHandlerTest {
 
     private WorkerParameters workParams;
 
-    private SedaUtilsFactory sedaFactory;
     private SedaUtils sedaUtils;
 
     private ContainerExtractionUtilsFactory containerExtractionUtilsFactory;
@@ -99,9 +98,9 @@ public class CheckObjectsNumberActionHandlerTest {
         workParams.setWorkerGUID(GUIDFactory.newGUID()).setUrlWorkspace("fakeUrl").setUrlMetadata
             ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
             ("containerName");
-
-        sedaFactory = mock(SedaUtilsFactory.class);
+        PowerMockito.mockStatic(SedaUtilsFactory.class);
         sedaUtils = mock(SedaUtils.class);
+        PowerMockito.when(SedaUtilsFactory.create()).thenReturn(sedaUtils);
 
         containerExtractionUtilsFactory = mock(ContainerExtractionUtilsFactory.class);
         containerExtractionUtils = mock(ContainerExtractionUtils.class);
@@ -144,19 +143,17 @@ public class CheckObjectsNumberActionHandlerTest {
     @Test
     public void givenWorkspaceExistWhenExecuteThenRaiseXMLStreamExceptionAndReturnResponseFATAL()
         throws XMLStreamException, IOException, ProcessingException {
-        when(sedaFactory.create()).thenReturn(sedaUtils);
         Mockito.doThrow(new ProcessingException("")).when(sedaUtils).getAllDigitalObjectUriFromManifest(anyObject());
 
         when(containerExtractionUtilsFactory.create()).thenReturn(containerExtractionUtils);
 
-        // when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(seda);
         PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
         containerExtractionUtils = new ContainerExtractionUtils();
 
         checkObjectsNumberActionHandler =
-            new CheckObjectsNumberActionHandler(sedaFactory, containerExtractionUtilsFactory);
+            new CheckObjectsNumberActionHandler(containerExtractionUtilsFactory);
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
-        final EngineResponse response = checkObjectsNumberActionHandler.execute(workParams);
+        final EngineResponse response = checkObjectsNumberActionHandler.execute(workParams, null);
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(StatusCode.FATAL);
     }
@@ -165,13 +162,12 @@ public class CheckObjectsNumberActionHandlerTest {
     public void givenWorkspaceNotExistWhenExecuteThenRaiseProcessingExceptionReturnResponseFATAL()
         throws XMLStreamException, IOException, ProcessingException {
 
-        when(sedaFactory.create()).thenReturn(sedaUtils);
         Mockito.doThrow(new ProcessingException("")).when(sedaUtils).getAllDigitalObjectUriFromManifest(anyObject());
 
         checkObjectsNumberActionHandler =
-            new CheckObjectsNumberActionHandler(sedaFactory, containerExtractionUtilsFactory);
+            new CheckObjectsNumberActionHandler(containerExtractionUtilsFactory);
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
-        final EngineResponse response = checkObjectsNumberActionHandler.execute(workParams);
+        final EngineResponse response = checkObjectsNumberActionHandler.execute(workParams, null);
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(StatusCode.FATAL);
     }
@@ -180,11 +176,10 @@ public class CheckObjectsNumberActionHandlerTest {
     public void givenWorkpaceExistWhenExecuteThenReturnResponseOK()
         throws XMLStreamException, IOException, ProcessingException {
 
-        when(sedaFactory.create()).thenReturn(sedaUtils);
         when(containerExtractionUtilsFactory.create()).thenReturn(containerExtractionUtils);
 
         checkObjectsNumberActionHandler =
-            new CheckObjectsNumberActionHandler(sedaFactory, containerExtractionUtilsFactory);
+            new CheckObjectsNumberActionHandler(containerExtractionUtilsFactory);
 
         when(sedaUtils.getAllDigitalObjectUriFromManifest(anyObject())).thenReturn(extractUriResponseOK);
         when(containerExtractionUtils.getDigitalObjectUriListFromWorkspace(anyObject())).thenReturn(uriListWorkspaceOK);
@@ -192,7 +187,7 @@ public class CheckObjectsNumberActionHandlerTest {
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
 
 
-        final EngineResponse response = checkObjectsNumberActionHandler.execute(workParams);
+        final EngineResponse response = checkObjectsNumberActionHandler.execute(workParams, null);
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(StatusCode.OK);
         assertThat(response.getOutcomeMessages()).hasSize(1);
@@ -202,18 +197,17 @@ public class CheckObjectsNumberActionHandlerTest {
     public void givenWorkspaceExistWhenExecuteThenReturnResponseKOAndDuplicatedURIManifest()
         throws XMLStreamException, IOException, ProcessingException {
 
-        when(sedaFactory.create()).thenReturn(sedaUtils);
         when(containerExtractionUtilsFactory.create()).thenReturn(containerExtractionUtils);
 
         checkObjectsNumberActionHandler =
-            new CheckObjectsNumberActionHandler(sedaFactory, containerExtractionUtilsFactory);
+            new CheckObjectsNumberActionHandler(containerExtractionUtilsFactory);
 
         when(sedaUtils.getAllDigitalObjectUriFromManifest(anyObject())).thenReturn(extractDuplicatedUriResponseKO);
         when(containerExtractionUtils.getDigitalObjectUriListFromWorkspace(anyObject())).thenReturn(uriListWorkspaceOK);
 
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
 
-        final EngineResponse response = checkObjectsNumberActionHandler.execute(workParams);
+        final EngineResponse response = checkObjectsNumberActionHandler.execute(workParams, null);
         assertThat(response).isNotNull();
         assertThat(response.getErrorNumber()).isEqualTo(1);
         assertThat(response.getStatus()).isEqualTo(StatusCode.KO);
@@ -225,11 +219,10 @@ public class CheckObjectsNumberActionHandlerTest {
     public void givenWorkspaceExistWhenExecuteThenReturnResponseKOAndOutNumberManifest()
         throws XMLStreamException, IOException, ProcessingException {
 
-        when(sedaFactory.create()).thenReturn(sedaUtils);
         when(containerExtractionUtilsFactory.create()).thenReturn(containerExtractionUtils);
 
         checkObjectsNumberActionHandler =
-            new CheckObjectsNumberActionHandler(sedaFactory, containerExtractionUtilsFactory);
+            new CheckObjectsNumberActionHandler(containerExtractionUtilsFactory);
 
         when(sedaUtils.getAllDigitalObjectUriFromManifest(anyObject())).thenReturn(extractOutNumberUriResponseKO);
         when(containerExtractionUtils.getDigitalObjectUriListFromWorkspace(anyObject()))
@@ -237,7 +230,7 @@ public class CheckObjectsNumberActionHandlerTest {
 
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
 
-        final EngineResponse response = checkObjectsNumberActionHandler.execute(workParams);
+        final EngineResponse response = checkObjectsNumberActionHandler.execute(workParams, null);
         assertThat(response).isNotNull();
         assertThat(response.getErrorNumber()).isEqualTo(1);
         assertThat(response.getStatus()).isEqualTo(StatusCode.KO);
@@ -248,11 +241,10 @@ public class CheckObjectsNumberActionHandlerTest {
     public void givenWorkspaceExistWhenExecuteThenReturnResponseKOAndOutNumberWorkspace()
         throws XMLStreamException, IOException, ProcessingException {
 
-        when(sedaFactory.create()).thenReturn(sedaUtils);
         when(containerExtractionUtilsFactory.create()).thenReturn(containerExtractionUtils);
 
         checkObjectsNumberActionHandler =
-            new CheckObjectsNumberActionHandler(sedaFactory, containerExtractionUtilsFactory);
+            new CheckObjectsNumberActionHandler(containerExtractionUtilsFactory);
 
         when(sedaUtils.getAllDigitalObjectUriFromManifest(anyObject())).thenReturn(extractUriResponseOK);
         when(containerExtractionUtils.getDigitalObjectUriListFromWorkspace(anyObject()))
@@ -260,7 +252,7 @@ public class CheckObjectsNumberActionHandlerTest {
 
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
 
-        final EngineResponse response = checkObjectsNumberActionHandler.execute(workParams);
+        final EngineResponse response = checkObjectsNumberActionHandler.execute(workParams, null);
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(StatusCode.KO);
         assertThat(response.getOutcomeMessages()).isNotNull().isNotEmpty();
@@ -270,11 +262,10 @@ public class CheckObjectsNumberActionHandlerTest {
     public void givenWorkspaceExistWhenExecuteThenReturnResponseKAndNotFoundFile()
         throws XMLStreamException, IOException, ProcessingException {
 
-        when(sedaFactory.create()).thenReturn(sedaUtils);
         when(containerExtractionUtilsFactory.create()).thenReturn(containerExtractionUtils);
 
         checkObjectsNumberActionHandler =
-            new CheckObjectsNumberActionHandler(sedaFactory, containerExtractionUtilsFactory);
+            new CheckObjectsNumberActionHandler(containerExtractionUtilsFactory);
 
         when(sedaUtils.getAllDigitalObjectUriFromManifest(anyObject())).thenReturn(extractUriResponseOK);
         when(containerExtractionUtils.getDigitalObjectUriListFromWorkspace(anyObject()))
@@ -282,7 +273,7 @@ public class CheckObjectsNumberActionHandlerTest {
 
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
 
-        final EngineResponse response = checkObjectsNumberActionHandler.execute(workParams);
+        final EngineResponse response = checkObjectsNumberActionHandler.execute(workParams, null);
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(StatusCode.KO);
         assertThat(response.getOutcomeMessages()).isNotNull().isNotEmpty();

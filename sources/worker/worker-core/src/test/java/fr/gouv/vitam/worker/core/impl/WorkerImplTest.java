@@ -40,8 +40,8 @@ import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.Action;
 import fr.gouv.vitam.processing.common.model.ActionDefinition;
-import fr.gouv.vitam.processing.common.model.ActionType;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
+import fr.gouv.vitam.processing.common.model.ProcessBehavior;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.model.Step;
@@ -105,14 +105,14 @@ public class WorkerImplTest {
         final Action action = new Action();
         final ActionDefinition actionDefinition = new ActionDefinition();
         actionDefinition.setActionKey(ExtractSedaActionHandler.getId());
-        actionDefinition.setActionType(ActionType.NOBLOCK);
+        actionDefinition.setBehavior(ProcessBehavior.NOBLOCKING);
         action.setActionDefinition(actionDefinition);
         actions.add(action);
         step.setActions(actions);
 
         final ActionHandler actionHandler = mock(ExtractSedaActionHandler.class);
         final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK);
-        when(actionHandler.execute(anyObject())).thenReturn(response);
+        when(actionHandler.execute(anyObject(), anyObject())).thenReturn(response);
         workerImpl = WorkerImplFactory.create().addActionHandler(ExtractSedaActionHandler.getId(), actionHandler);
         workerImpl.run(WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
             ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
@@ -127,14 +127,14 @@ public class WorkerImplTest {
         final Action action = new Action();
         final ActionDefinition actionDefinition = new ActionDefinition();
         actionDefinition.setActionKey(ExtractSedaActionHandler.getId());
-        actionDefinition.setActionType(ActionType.BLOCK);
+        actionDefinition.setBehavior(ProcessBehavior.BLOCKING);
         action.setActionDefinition(actionDefinition);
         actions.add(action);
         step.setActions(actions);
 
         final ActionHandler actionHandler = mock(ExtractSedaActionHandler.class);
         final EngineResponse response = new ProcessResponse().setStatus(StatusCode.FATAL);
-        when(actionHandler.execute(anyObject())).thenReturn(response);
+        when(actionHandler.execute(anyObject(), anyObject())).thenReturn(response);
         workerImpl = WorkerImplFactory.create().addActionHandler(ExtractSedaActionHandler.getId(), actionHandler);
         workerImpl.run(WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
             ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
@@ -149,14 +149,14 @@ public class WorkerImplTest {
         final Action action = new Action();
         final ActionDefinition actionDefinition = new ActionDefinition();
         actionDefinition.setActionKey(ExtractSedaActionHandler.getId());
-        actionDefinition.setActionType(ActionType.NOBLOCK);
+        actionDefinition.setBehavior(ProcessBehavior.NOBLOCKING);
         action.setActionDefinition(actionDefinition);
         actions.add(action);
         step.setActions(actions);
 
         final ActionHandler actionHandler = mock(ExtractSedaActionHandler.class);
         final EngineResponse response = new ProcessResponse().setStatus(StatusCode.FATAL);
-        when(actionHandler.execute(anyObject())).thenReturn(response);
+        when(actionHandler.execute(anyObject(), anyObject())).thenReturn(response);
         workerImpl = WorkerImplFactory.create().addActionHandler(ExtractSedaActionHandler.getId(), actionHandler);
         workerImpl.run(WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
             ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName

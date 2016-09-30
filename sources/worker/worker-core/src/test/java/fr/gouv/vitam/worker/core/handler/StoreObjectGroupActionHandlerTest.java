@@ -28,10 +28,12 @@ package fr.gouv.vitam.worker.core.handler;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
@@ -41,59 +43,129 @@ import javax.xml.stream.XMLStreamException;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
+import fr.gouv.vitam.client.MetaDataClient;
+import fr.gouv.vitam.client.MetaDataClientFactory;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.utils.BinaryObjectInfo;
-import fr.gouv.vitam.worker.common.utils.SedaUtils;
-import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
+import fr.gouv.vitam.worker.core.api.HandlerIO;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore("javax.net.ssl.*")
+@PrepareForTest({WorkspaceClientFactory.class, MetaDataClientFactory.class})
 public class StoreObjectGroupActionHandlerTest {
 
+    private static final String CONTAINER_NAME = "aeaaaaaaaaaaaaabaa4quakwgip7nuaaaaaq";
     StoreObjectGroupActionHandler handler;
     private static final String HANDLER_ID = "StoreObjectGroup";
-    private SedaUtilsFactory factory;
-    private SedaUtils sedaUtils;
+    private WorkspaceClient workspaceClient;
+    private MetaDataClient metadataClient;
+    private HandlerIO action;
+    private static final String OBJECT_GROUP = "objectGroup.json";
+    private static final String SIP = "sip1.xml";
+    private static final String BINARY_DATA_OBJECT_ID_TO_GUID_MAP = "BINARY_DATA_OBJECT_ID_TO_GUID_MAP_obj.json";
+    private final InputStream bdoToGuidMap = Thread.currentThread().getContextClassLoader()
+        .getResourceAsStream(BINARY_DATA_OBJECT_ID_TO_GUID_MAP);
+    private final InputStream objectGroup = Thread.currentThread().getContextClassLoader()
+        .getResourceAsStream(OBJECT_GROUP);
+    private final InputStream seda = Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP);
+    private static final String OBJ = "obj";
 
     @Before
-    public void setUp() {
-        factory = mock(SedaUtilsFactory.class);
-        sedaUtils = mock(SedaUtils.class);
+    public void setUp() throws Exception  { 
+        PowerMockito.mockStatic(WorkspaceClientFactory.class);
+        PowerMockito.mockStatic(MetaDataClientFactory.class);
+        workspaceClient = mock(WorkspaceClient.class);
+        metadataClient = mock(MetaDataClient.class);
+        action = new HandlerIO("");
+        action.addInput(PropertiesUtils.getResourcesFile(BINARY_DATA_OBJECT_ID_TO_GUID_MAP));
+        action.addInput(PropertiesUtils.getResourcesFile(OBJECT_GROUP));
     }
 
     @Test
     public void givenWorkspaceNotExistWhenExecuteThenReturnResponseKO()
         throws XMLStreamException, IOException, ProcessingException {
-        Mockito.doThrow(new ProcessingException("")).when(sedaUtils)
-            .retrieveStorageInformationForObjectGroup(anyObject());
-        when(factory.create()).thenReturn(sedaUtils);
-        handler = new StoreObjectGroupActionHandler(factory);
+        handler = new StoreObjectGroupActionHandler();
         assertEquals(StoreObjectGroupActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
             ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
             ("containerName");
-        final EngineResponse response = handler.execute(params);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+
+        final EngineResponse response = handler.execute(params, action);
         assertEquals(response.getStatus(), StatusCode.KO);
     }
 
     @Test
     public void givenWorkspaceExistWhenExecuteThenReturnResponseOK()
-        throws XMLStreamException, IOException, ProcessingException, URISyntaxException {
-        Mockito.doReturn(retrieveListOfInfo()).when(sedaUtils).retrieveStorageInformationForObjectGroup(anyObject());
-        when(factory.create()).thenReturn(sedaUtils);
-        handler = new StoreObjectGroupActionHandler(factory);
-        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
-            ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
-            ("containerName");
-        final EngineResponse response = handler.execute(params);
+        throws Exception {
+        handler = new StoreObjectGroupActionHandler();
+
+        WorkerParameters paramsObjectGroups = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
+            .newGUID()).setContainerName(CONTAINER_NAME).setUrlMetadata(OBJ).setUrlWorkspace(OBJ)
+            .setObjectName(CONTAINER_NAME + ".json").setCurrentStep("Store ObjectGroup");
+
+        when(MetaDataClientFactory.create(anyObject())).thenReturn(metadataClient);
+        when(workspaceClient.getObject(CONTAINER_NAME, "SIP/manifest.xml")).thenReturn(seda);
+        when(workspaceClient.getObject(CONTAINER_NAME, "ObjectGroup/aeaaaaaaaaaaaaabaa4quakwgip7nuaaaaaq.json"))
+        .thenReturn(objectGroup);
+        when(workspaceClient.getObject(anyObject(),
+            eq("Maps/BINARY_DATA_OBJECT_ID_TO_GUID_MAP.json")))
+        .thenReturn(bdoToGuidMap);
+
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+
+        final EngineResponse response = handler.execute(paramsObjectGroups, action);
         assertEquals(response.getStatus(), StatusCode.OK);
     }
 
-    public Map<String,BinaryObjectInfo> retrieveListOfInfo() throws URISyntaxException {
+    @Test
+    public void testWorkspaceException()
+        throws Exception {
+        handler = new StoreObjectGroupActionHandler();
+
+        WorkerParameters paramsObjectGroups = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
+            .newGUID()).setContainerName(CONTAINER_NAME).setUrlMetadata(OBJ).setUrlWorkspace(OBJ)
+            .setObjectName(CONTAINER_NAME + ".json").setCurrentStep("Store ObjectGroup");
+
+        when(MetaDataClientFactory.create(anyObject())).thenReturn(metadataClient);
+        when(workspaceClient.getObject(anyObject(),
+            anyObject()))
+        .thenThrow(new ContentAddressableStorageNotFoundException(""));
+
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        
+        final EngineResponse response = handler.execute(paramsObjectGroups, action);
+        assertEquals(response.getStatus(), StatusCode.KO);
+    }
+
+    @Test
+    public void testStoreObject() throws Exception {
+        handler = Mockito.spy(new StoreObjectGroupActionHandler());
+        Mockito.doReturn(retrieveListOfInfo()).when(handler).retrieveStorageInformationForObjectGroup(anyObject());
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
+            ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
+            ("containerName");
+
+        handler.execute(params, action);
+    }
+
+    private Map<String,BinaryObjectInfo> retrieveListOfInfo() throws URISyntaxException {
         Map<String, BinaryObjectInfo> infos = new HashMap<>();
         BinaryObjectInfo info = new BinaryObjectInfo();
         info.setId("bdoId");
@@ -101,5 +173,4 @@ public class StoreObjectGroupActionHandlerTest {
         infos.put("guid1",info);
         return infos;
     }
-
 }

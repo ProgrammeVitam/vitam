@@ -1,10 +1,17 @@
 {
-    "workerGroupId" :"DefaultWorker",
-    "stepName":"Vérification de la disponibilite de l'offre de stockage",
-    "stepType":"BLOCK",
-    "distribution" : {
-    	"kind":"REF",
-    	"element" : "SIP/manifest.xml"
-    	},
-    "actions":[{"action":{"actionKey": "CheckStorageAvailability", "actionType": "BLOCK"} }]
-}
+      "workerGroupId": "DefaultWorker",
+      "stepName": "Vérification de la disponibilite de l'offre de stockage",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF",
+        "element": "SIP/manifest.xml"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "CheckStorageAvailability",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    }

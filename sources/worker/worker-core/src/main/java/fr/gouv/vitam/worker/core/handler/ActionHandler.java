@@ -28,13 +28,13 @@ package fr.gouv.vitam.worker.core.handler;
 
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.worker.core.api.Action;
+import fr.gouv.vitam.worker.core.api.WorkerAction;
 
 
 /**
  * ActionHandler abstract class of interface Action
  */
-public abstract class ActionHandler implements Action {
+public abstract class ActionHandler implements WorkerAction {
 
     /**
      * Check mandatory parameters

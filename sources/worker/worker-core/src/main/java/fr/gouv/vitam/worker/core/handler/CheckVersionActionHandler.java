@@ -38,6 +38,7 @@ import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
+import fr.gouv.vitam.worker.core.api.HandlerIO;
 
 /**
  * CheckVersionActionHandler handler class used to check the versions of BinaryDataObject in manifest
@@ -45,15 +46,13 @@ import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
 public class CheckVersionActionHandler extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckVersionActionHandler.class);
     private static final String HANDLER_ID = "CheckVersion";
-    private final SedaUtilsFactory sedaUtilsFactory;
 
     /**
      * Constructor with parameter SedaUtilsFactory
      *
      * @param factory SedaUtils factory
      */
-    public CheckVersionActionHandler(SedaUtilsFactory factory) {
-        sedaUtilsFactory = factory;
+    public CheckVersionActionHandler() {
     }
     
     /**
@@ -64,16 +63,16 @@ public class CheckVersionActionHandler extends ActionHandler {
     }
 
     @Override
-    public EngineResponse execute(WorkerParameters params){
+    public EngineResponse execute(WorkerParameters params, HandlerIO actionDefinition){
         checkMandatoryParameters(params);
         LOGGER.debug("CheckVersionActionHandler running ...");
         
         final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_VERSION_OK);
-        final SedaUtils sedaUtils = sedaUtilsFactory.create();
+        final SedaUtils sedaUtils = SedaUtilsFactory.create();
 
         try {
-            
-            List<String> versionInvalidList =sedaUtils.checkSupportedBinaryObjectVersion(params);
+            checkMandatoryParamerter(actionDefinition);
+            List<String> versionInvalidList = sedaUtils.checkSupportedBinaryObjectVersion(params);
             if (versionInvalidList.size() != 0){
                 response.setErrorNumber(versionInvalidList.size());
                 response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_VERSION_KO);
@@ -85,6 +84,11 @@ public class CheckVersionActionHandler extends ActionHandler {
 
         LOGGER.debug("CheckVersionActionHandler response: " + response.getStatus().name());
         return response;
+    }
+
+    @Override
+    public void checkMandatoryParamerter(HandlerIO handler) throws ProcessingException {
+      //TODO Add Workspace:SIP/manifest.xml and check it         
     }
 
 }

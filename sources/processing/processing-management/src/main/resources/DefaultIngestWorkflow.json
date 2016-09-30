@@ -1,52 +1,165 @@
 {
-    "id": "DefaultIngestWorkflow",
-    "comment":"Default Ingest Workflow V6",
-    "steps":
-    [
+  "id": "DefaultIngestWorkflow",
+  "comment": "Default Ingest Workflow V6",
+  "steps": [
     {
-    "workerGroupId" :"DefaultWorker",
-        "stepName":"Contrôle global entrée (SIP)",
-        "stepType":"BLOCK",
-        "distribution" : {
-        	"kind":"REF",
-        	"element" : "SIP/manifest.xml"
-        	},
-        "actions":[{"action":{"actionKey": "checkSeda", "actionType": "BLOCK"}},
-        		{"action":{"actionKey": "CheckVersion", "actionType": "BLOCK"}},
-        		{"action":{"actionKey": "CheckObjectsNumber", "actionType": "NOBLOCK"}},
-        		{"action":{"actionKey": "ExtractSeda", "actionType": "BLOCK"}},
-        		{"action":{"actionKey": "CheckConformity", "actionType": "BLOCK"}}]
-    },    
-    {
-    "workerGroupId" :"DefaultWorker",
-        "stepName":"Vérification de la disponibilite de l'offre de stockage",
-        "stepType":"BLOCK",
-        "distribution" : {
-        	"kind":"REF",
-        	"element" : "SIP/manifest.xml"
-        	},
-        "actions":[{"action":{"actionKey": "CheckStorageAvailability", "actionType": "BLOCK"} }]
+      "workerGroupId": "DefaultWorker",
+      "stepName": "Contrôle global entrée (SIP)",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF",
+        "element": "SIP/manifest.xml"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "checkSeda",
+            "behavior": "BLOCKING"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CheckVersion",
+            "behavior": "BLOCKING"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CheckObjectsNumber",
+            "behavior": "NOBLOCKING"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "ExtractSeda",
+            "behavior": "BLOCKING",
+            "out": [
+              {
+                "name": "unitsLevel.file",
+                "uri": "WORKSPACE:UnitsLevel/ingestLevelStack.json"
+              },
+              {
+                "name": "unitsTree.file",
+                "uri": "WORKSPACE:UnitsTree/INGEST_TREE.json"
+              },
+              {
+                "name": "mapsUnits.file",
+                "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "mapsBDOtoOG.file",
+                "uri": "WORKSPACE:Maps/BDO_TO_OBJECT_GROUP_ID_MAP.json"
+              },
+              {
+                "name": "mapsBDO.file",
+                "uri": "WORKSPACE:Maps/BINARY_DATA_OBJECT_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "mapsObjectGroup.file",
+                "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CheckConformity",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "seda.file",
+                "uri": "WORKSPACE:SIP/manifest.xml"
+              },
+              {
+                "name": "mapsBDOtoOG.file",
+                "uri": "WORKSPACE:Maps/BDO_TO_OBJECT_GROUP_ID_MAP.json"
+              },
+              {
+                "name": "mapsObjectGroup.file",
+                "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json"
+              }
+            ]
+          }
+        }
+      ]
     },
     {
-    "workerGroupId" :"DefaultWorker",
-        "stepName":"Rangement des units",
-        "stepType":"BLOCK",
-          "distribution" : {
-        	"kind":"LIST",
-        	"element" : "Units"
-        	},
-        "actions":[{"action":{"actionKey": "IndexUnit", "actionType": "BLOCK"} }]
-       
+      "workerGroupId": "DefaultWorker",
+      "stepName": "Vérification de la disponibilite de l'offre de stockage",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF",
+        "element": "SIP/manifest.xml"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "CheckStorageAvailability",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
     },
     {
-    "workerGroupId" :"DefaultWorker",
-        "stepName":"Rangement des objets",
-        "stepType":"BLOCK",
-        "distribution" : {
-        	"kind":"LIST",
-        	"element" : "ObjectGroup"
-        	},
-        "actions":[{"action":{"actionKey": "StoreObjectGroup", "actionType": "BLOCK"}}, 
-        		{"action":{"actionKey": "IndexObjectGroup", "actionType": "BLOCK"} }]
-    }]
+      "workerGroupId": "DefaultWorker",
+      "stepName": "Rangement des units",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST",
+        "element": "Units"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "IndexUnit",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "mapsUnits.file",
+                "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json"
+              },
+              
+              {
+                "name": "unitsTree.file",
+                "uri": "WORKSPACE:UnitsTree/INGEST_TREE.json"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "Rangement des objets",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST",
+        "element": "ObjectGroup"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "StoreObjectGroup",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "mapsBDO.file",
+                "uri": "WORKSPACE:Maps/BINARY_DATA_OBJECT_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "mapsObjectGroup.file",
+                "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "IndexObjectGroup",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    }
+  ]
 }

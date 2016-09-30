@@ -37,23 +37,21 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtils.CheckSedaValidationStatus;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
+import fr.gouv.vitam.worker.core.api.HandlerIO;
 
 /**
  * Check Seda Handler
  */
 public class CheckSedaActionHandler extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckSedaActionHandler.class);
-    // FIXME REVIEW since getId => private
-    public static final String HANDLER_ID = "checkSeda";
-    private final SedaUtilsFactory sedaUtilsFactory;
+    private static final String HANDLER_ID = "checkSeda";
 
     /**
      * Constructor with parameter SedaUtilsFactory
      *
      * @param factory SedaUtils factory
      */
-    public CheckSedaActionHandler(SedaUtilsFactory factory) {
-        sedaUtilsFactory = factory;
+    public CheckSedaActionHandler() {
     }
 
     /**
@@ -64,12 +62,12 @@ public class CheckSedaActionHandler extends ActionHandler {
     }
 
     @Override
-    public EngineResponse execute(WorkerParameters params) {
+    public EngineResponse execute(WorkerParameters params, HandlerIO actionDefinition) {
         checkMandatoryParameters(params);        
 
         LOGGER.debug("checkSedaActionHandler running ...");
         final EngineResponse response = new ProcessResponse();
-        final SedaUtils sedaUtils = sedaUtilsFactory.create();
+        final SedaUtils sedaUtils = SedaUtilsFactory.create();
 
         CheckSedaValidationStatus status;
         String messageId = "";
@@ -83,6 +81,8 @@ public class CheckSedaActionHandler extends ActionHandler {
             response.setStatus(StatusCode.FATAL).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_MANIFEST_KO);
             return response;
         }
+
+
 
         switch (status) {
             case VALID:
@@ -110,6 +110,11 @@ public class CheckSedaActionHandler extends ActionHandler {
                 return response;
         }
 
+    }
+
+    @Override
+    public void checkMandatoryParamerter(HandlerIO handler) throws ProcessingException {
+        //TODO Add Workspace:SIP/manifest.xml and check it         
     }
 
 }

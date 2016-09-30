@@ -38,6 +38,7 @@ import java.util.Map;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.node.Node;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -114,7 +115,7 @@ public class ProcessingIT {
     private static final String PROCESSING_URL = "http://localhost:" + PORT_SERVICE_PROCESSING;
 
     private static String WORFKLOW_NAME = "DefaultIngestWorkflow";
-    private static String CONTAINER_NAME = GUIDFactory.newGUID().toString();
+    private static String CONTAINER_NAME;
     private static String SIP_FILE_OK_NAME = "integration/SIP.zip";
     private static String SIP_ARBO_COMPLEXE_FILE_OK = "integration/SIP_arbor_OK.zip";
     private static String SIP_WITHOUT_MANIFEST = "integration/SIP_no_manifest.zip";
@@ -187,6 +188,11 @@ public class ProcessingIT {
         } catch (Exception e) {
             LOGGER.error(e);
         }
+    }
+    
+    @Before
+    public void before() {
+        CONTAINER_NAME = GUIDFactory.newGUID().toString();
     }
 
     @Test

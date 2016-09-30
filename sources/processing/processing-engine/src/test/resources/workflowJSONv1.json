@@ -6,11 +6,11 @@
 	{
 	"workerGroupId" :"worker2",
 		"stepName":"Traiter_archives",
-		"stepType":"NOBLOCK",
+		"behavior": "NOBLOCKING",
 		"actions":[
-		{"action":{"actionKey": "extractContentAction", "actionType":"NOBLOCK"}},
-		{"action":{"actionKey": "storeAction", "actionType":"NOBLOCK"}},
-		{"action":{"actionKey": "saveInDataBaseAction", "actionType":"NOBLOCK"}}
+		{"action":{"actionKey": "extractContentAction", "behavior": "NOBLOCKING"}},
+		{"action":{"actionKey": "storeAction", "behavior": "NOBLOCKING"}},
+		{"action":{"actionKey": "saveInDataBaseAction", "behavior": "NOBLOCKING"}}
 		]
 	}
 	]

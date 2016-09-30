@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.common.model;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -42,8 +44,13 @@ public class ActionDefinition {
     @JsonProperty("actionKey")
     private String actionKey;
 
-    @JsonProperty("actionType")
-    private ActionType actionType;
+    @JsonProperty("behavior")
+    private ProcessBehavior behavior;
+    
+    @JsonProperty("in")
+    private List<IOParameter> in;
+    @JsonProperty("out")
+    private List<IOParameter> out;
     
     /**
      *
@@ -69,10 +76,10 @@ public class ActionDefinition {
     
     /**
     *
-    * @return ({ActionType}) Type of action object or bean
+    * @return ({ProcessBehavior}) Type of action object or bean
     */
-   public ActionType getActionType() {
-       return actionType;
+   public ProcessBehavior getBehavior() {
+       return behavior;
    }
 
    /**
@@ -81,9 +88,46 @@ public class ActionDefinition {
     * @param actionType the type of the action
     * @return the updated ActionDefinition object
     */
-   public ActionDefinition setActionType(ActionType actionType) {
-       this.actionType = actionType;
+   public ActionDefinition setBehavior(ProcessBehavior behavior) {
+       this.behavior = behavior;
        return this;
    }
+   
+
+   /**
+    * @return the in
+    */
+   public List<IOParameter> getIn() {
+       return in;
+   }
+
+   /**
+    * @param in the in to set
+    *
+    * @return this Action
+    */
+   public ActionDefinition setIn(List<IOParameter> in) {
+       this.in = in;
+       return this;
+   }
+
+   /**
+    * @return the out
+    */
+   public List<IOParameter> getOut() {
+       return out;
+   }
+
+   /**
+    * @param out the out to set
+    *
+    * @return this Action
+    */
+   public ActionDefinition setOut(List<IOParameter> out) {
+       this.out = out;
+       return this;
+   }
+
+
 
 }

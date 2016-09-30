@@ -29,7 +29,6 @@ package fr.gouv.vitam.worker.core.handler;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -38,7 +37,12 @@ import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
@@ -47,24 +51,25 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
+import fr.gouv.vitam.worker.core.api.HandlerIO;
 
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore("javax.net.ssl.*")
+@PrepareForTest({SedaUtilsFactory.class})
 public class CheckVersionActionHandlerTest {
-    CheckVersionActionHandler handlerVersion;
+    CheckVersionActionHandler handlerVersion = new CheckVersionActionHandler();
     private static final String HANDLER_ID = "CheckVersion";
-    private SedaUtilsFactory factory;
     private SedaUtils sedaUtils;
-    /*private static final WorkParams params =
-        new WorkParams()
-        .setServerConfiguration(new ServerConfiguration().setUrlWorkspace(""))
-        .setGuuid("");*/
     private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
         ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
         ("containerName");
+    private HandlerIO handlerIO = new HandlerIO("");
 
     @Before
-    public void setUp() {
-        factory = mock(SedaUtilsFactory.class);
+    public void setUp() throws Exception {
+        PowerMockito.mockStatic(SedaUtilsFactory.class);
         sedaUtils = mock(SedaUtils.class);
+        PowerMockito.when(SedaUtilsFactory.create()).thenReturn(sedaUtils);
     }
     
     @Test
@@ -72,10 +77,8 @@ public class CheckVersionActionHandlerTest {
         throws ProcessingException, IOException, URISyntaxException{
         List<String> invalidVersionList = new ArrayList<String>();
         Mockito.doReturn(invalidVersionList).when(sedaUtils).checkSupportedBinaryObjectVersion(anyObject());
-        when(factory.create()).thenReturn(sedaUtils);
-        handlerVersion = new CheckVersionActionHandler(factory);
         assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);
-        final EngineResponse response = handlerVersion.execute(params);
+        final EngineResponse response = handlerVersion.execute(params, handlerIO);
         assertEquals(response.getStatus(), StatusCode.OK);
     }
     
@@ -85,10 +88,8 @@ public class CheckVersionActionHandlerTest {
         List<String> invalidVersionList = new ArrayList<String>();
         invalidVersionList.add("PhysicalMaste");
         Mockito.doReturn(invalidVersionList).when(sedaUtils).checkSupportedBinaryObjectVersion(anyObject());
-        when(factory.create()).thenReturn(sedaUtils);
-        handlerVersion = new CheckVersionActionHandler(factory);
         assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);
-        final EngineResponse response = handlerVersion.execute(params);
+        final EngineResponse response = handlerVersion.execute(params, handlerIO);
         assertEquals(response.getStatus(), StatusCode.KO);
     }
     
@@ -96,10 +97,8 @@ public class CheckVersionActionHandlerTest {
     public void givenWorkspaceExistWhenExceptionExistThenReturnResponseFatal() 
         throws ProcessingException, IOException, URISyntaxException{
         Mockito.doThrow(new ProcessingException("")).when(sedaUtils).checkSupportedBinaryObjectVersion(anyObject());
-        when(factory.create()).thenReturn(sedaUtils);
-        handlerVersion = new CheckVersionActionHandler(factory);
         assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);
-        final EngineResponse response = handlerVersion.execute(params);
+        final EngineResponse response = handlerVersion.execute(params, handlerIO);
         assertEquals(response.getStatus(), StatusCode.FATAL);
     }
 }

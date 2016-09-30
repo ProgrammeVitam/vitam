@@ -50,7 +50,7 @@ import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.model.StepType;
+import fr.gouv.vitam.processing.common.model.ProcessBehavior;
 import fr.gouv.vitam.processing.common.model.WorkFlow;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.utils.ProcessPopulator;
@@ -191,7 +191,7 @@ public class ProcessEngineImpl implements ProcessEngine {
 
                     // if the step has been defined as Blocking, then, we check the stepStatus then break the process if
                     // the the status is KO or FATAL
-                    if ((step.getStepType().equals(StepType.BLOCK)) &&
+                    if ((step.getBehavior().equals(ProcessBehavior.BLOCKING)) &&
                         (stepStatus.equals(StatusCode.KO) || stepStatus.equals(StatusCode.FATAL))) {
                         break;
                     }

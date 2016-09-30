@@ -1,11 +1,33 @@
 {
-    "workerGroupId" :"DefaultWorker",
-    "stepName":"Rangement des objets",
-    "stepType":"BLOCK",
-    "distribution" : {
-    	"kind":"LIST",
-    	"element" : "ObjectGroup"
-    	},
-    "actions":[{"action":{"actionKey": "StoreObjectGroup", "actionType": "BLOCK"}}, 
-    		{"action":{"actionKey": "IndexObjectGroup", "actionType": "BLOCK"} }]
-}
+      "workerGroupId": "DefaultWorker",
+      "stepName": "Rangement des objets",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST",
+        "element": "ObjectGroup"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "StoreObjectGroup",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "mapsBDO.file",
+                "uri": "WORKSPACE:Maps/BINARY_DATA_OBJECT_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "mapsObjectGroup.file",
+                "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "IndexObjectGroup",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    }

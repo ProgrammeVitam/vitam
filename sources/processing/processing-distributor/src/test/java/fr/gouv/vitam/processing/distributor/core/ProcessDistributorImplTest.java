@@ -44,15 +44,14 @@ import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
 import fr.gouv.vitam.processing.common.exception.WorkerNotFoundException;
 import fr.gouv.vitam.processing.common.model.Action;
 import fr.gouv.vitam.processing.common.model.ActionDefinition;
-import fr.gouv.vitam.processing.common.model.ActionType;
 import fr.gouv.vitam.processing.common.model.Distribution;
 import fr.gouv.vitam.processing.common.model.DistributionKind;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
+import fr.gouv.vitam.processing.common.model.ProcessBehavior;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.model.Step;
-import fr.gouv.vitam.processing.common.model.StepType;
 import fr.gouv.vitam.processing.common.model.WorkFlow;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 import fr.gouv.vitam.processing.common.model.WorkerRemoteConfiguration;
@@ -85,9 +84,9 @@ public class ProcessDistributorImplTest {
         final List<Action> actions = new ArrayList<>();
         Action action = new Action();
         action.setActionDefinition(
-            new ActionDefinition().setActionKey("ExtractSeda").setActionType(ActionType.NOBLOCK));
+            new ActionDefinition().setActionKey("ExtractSeda").setBehavior(ProcessBehavior.NOBLOCKING));
         actions.add(action);
-        step.setStepType(StepType.NOBLOCK).setActions(actions);
+        step.setBehavior(ProcessBehavior.NOBLOCKING).setActions(actions);
         steps.add(step);
         worfklow = new WorkFlow().setSteps(steps).setId(WORKFLOW_ID);
         // set process_id and step_id (set in the engine)
@@ -103,12 +102,12 @@ public class ProcessDistributorImplTest {
     public void givenProcessDistributorWhendistributeThenCatchTheOtherException() {
         final Step step = new Step();
         step.setStepName("Traiter_archives");
-        step.setStepType(StepType.BLOCK);
+        step.setBehavior(ProcessBehavior.BLOCKING);
         final List<Action> actions = new ArrayList<Action>();
         final Action action = new Action();
         final ActionDefinition actionDefinition = new ActionDefinition();
         actionDefinition.setActionKey("ExtractSeda");
-        actionDefinition.setActionType(ActionType.NOBLOCK);
+        actionDefinition.setBehavior(ProcessBehavior.NOBLOCKING);
         action.setActionDefinition(actionDefinition);
         actions.add(action);
         step.setActions(actions);
@@ -122,7 +121,7 @@ public class ProcessDistributorImplTest {
         final Action a = new Action();
         final ActionDefinition actionDefinition = new ActionDefinition();
         actionDefinition.setActionKey("notExist");
-        actionDefinition.setActionType(ActionType.NOBLOCK);
+        actionDefinition.setBehavior(ProcessBehavior.NOBLOCKING);
         a.setActionDefinition(actionDefinition);
         final List<Action> actions = new ArrayList<>();
         actions.add(a);
@@ -136,7 +135,7 @@ public class ProcessDistributorImplTest {
         final Action a = new Action();
         final ActionDefinition actionDefinition = new ActionDefinition();
         actionDefinition.setActionKey("notExist");
-        actionDefinition.setActionType(ActionType.NOBLOCK);
+        actionDefinition.setBehavior(ProcessBehavior.NOBLOCKING);
         a.setActionDefinition(actionDefinition);
         final List<Action> actions = new ArrayList<>();
         actions.add(a);
@@ -150,7 +149,7 @@ public class ProcessDistributorImplTest {
         final Action a = new Action();
         final ActionDefinition actionDefinition = new ActionDefinition();
         actionDefinition.setActionKey("notExist");
-        actionDefinition.setActionType(ActionType.NOBLOCK);
+        actionDefinition.setBehavior(ProcessBehavior.NOBLOCKING);
         a.setActionDefinition(actionDefinition);
         final List<Action> actions = new ArrayList<>();
         actions.add(a);
