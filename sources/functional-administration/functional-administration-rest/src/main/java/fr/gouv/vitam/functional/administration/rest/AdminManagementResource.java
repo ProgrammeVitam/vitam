@@ -38,7 +38,6 @@ import java.util.List;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -59,6 +58,8 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
+import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
 import fr.gouv.vitam.function.administration.rules.core.RulesManagerFileImpl;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FileRules;
@@ -72,7 +73,7 @@ import fr.gouv.vitam.functional.administration.format.core.ReferentialFormatFile
  * FormatManagementResourceImpl implements AccessResource
  */
 @Path("/adminmanagement/v1")
-public class AdminManagementResource {
+public class AdminManagementResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementResource.class);
     private ReferentialFormatFileImpl formatManagement;
     private RulesManagerFileImpl rulesFileManagement;
@@ -83,21 +84,10 @@ public class AdminManagementResource {
      * @param configuration config for constructing AdminManagement
      */
     public AdminManagementResource(AdminManagementConfiguration configuration) {
+        super(new BasicVitamStatusServiceImpl());
         formatManagement = new ReferentialFormatFileImpl(configuration);
         rulesFileManagement = new RulesManagerFileImpl(configuration);
         LOGGER.debug("init Admin Management Resource server");
-    }
-
-    /**
-     * Check the state of the admin management service API
-     * 
-     * @return an http response with OK status (200)
-     */
-    @Path("status")
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response status() {
-        return Response.status(Status.OK).build();
     }
 
     /**

@@ -62,7 +62,7 @@ import fr.gouv.vitam.common.model.VitamError;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
-import fr.gouv.vitam.common.server.application.InternalVitamResources;
+import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 
@@ -74,7 +74,7 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 @Consumes("application/json")
 @Produces("application/json")
 @javax.ws.rs.ApplicationPath("webresources")
-public class AccessResourceImpl extends InternalVitamResources implements AccessResource {
+public class AccessResourceImpl extends ApplicationStatusResource implements AccessResource {
 
     private static final String ACCESS_MODULE = "ACCESS";
     private static final String CODE_VITAM = "code_vitam";

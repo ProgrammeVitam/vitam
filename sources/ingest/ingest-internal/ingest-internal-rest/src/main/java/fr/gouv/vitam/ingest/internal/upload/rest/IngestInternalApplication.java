@@ -26,13 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.internal.upload.rest;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.common.server.VitamServerFactory;
-import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -41,16 +38,23 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.common.server.VitamServerFactory;
+import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server.application.AdminStatusResource;
+import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
 
 
 
 /**
  * Ingest Internal web server application
  */
-public class IngestInternalApplication extends AbstractVitamApplication<IngestInternalApplication, IngestInternalConfiguration> {
+public class IngestInternalApplication
+    extends AbstractVitamApplication<IngestInternalApplication, IngestInternalConfiguration> {
 
     private static final String INGEST_INTERNAL_APPLICATION_STARTS_ON_DEFAULT_PORT =
         "IngestInternalApplication Starts on default port";
@@ -60,14 +64,14 @@ public class IngestInternalApplication extends AbstractVitamApplication<IngestIn
     private static IngestInternalConfiguration configuration;
 
     /**
-     * Ingest Internal  constructor
+     * Ingest Internal constructor
      */
     protected IngestInternalApplication() {
         super(IngestInternalApplication.class, IngestInternalConfiguration.class);
     }
 
     /**
-     * runs Ingest Internal  server app
+     * runs Ingest Internal server app
      *
      * @param args
      */
@@ -76,7 +80,7 @@ public class IngestInternalApplication extends AbstractVitamApplication<IngestIn
             final VitamServer vitamServer = startApplication(args);
             vitamServer.run();
         } catch (final Exception e) {
-            LOGGER.error("Can not start Ingest External Application server. "+e.getMessage(), e);
+            LOGGER.error("Can not start Ingest External Application server. " + e.getMessage(), e);
             System.exit(1);
         }
     }
@@ -92,7 +96,7 @@ public class IngestInternalApplication extends AbstractVitamApplication<IngestIn
         try {
             VitamServer vitamServer = null;
 
-            if (args!=null && args.length >= 1) {
+            if (args != null && args.length >= 1) {
 
                 try {
                     final File yamlFile = PropertiesUtils.findFile(args[0]);
@@ -103,10 +107,10 @@ public class IngestInternalApplication extends AbstractVitamApplication<IngestIn
                     vitamServer = VitamServerFactory.newVitamServerByJettyConf(jettyConfig);
 
                 } catch (FileNotFoundException e) {
-                    LOGGER.warn(INGEST_INTERNAL_APPLICATION_STARTS_ON_DEFAULT_PORT+", config file not found ", e);
+                    LOGGER.warn(INGEST_INTERNAL_APPLICATION_STARTS_ON_DEFAULT_PORT + ", config file not found ", e);
                     vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
                 } catch (IOException e) {
-                    LOGGER.warn(INGEST_INTERNAL_APPLICATION_STARTS_ON_DEFAULT_PORT+", config file io error ", e);
+                    LOGGER.warn(INGEST_INTERNAL_APPLICATION_STARTS_ON_DEFAULT_PORT + ", config file io error ", e);
                     vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
                 }
             } else {
@@ -116,7 +120,7 @@ public class IngestInternalApplication extends AbstractVitamApplication<IngestIn
 
             final IngestInternalApplication application = new IngestInternalApplication();
             application.configure(application.computeConfigurationPathFromInputArguments(args));
-            if(vitamServer != null) {
+            if (vitamServer != null) {
                 vitamServer.configure(application.getApplicationHandler());
             }
             return vitamServer;
@@ -137,7 +141,7 @@ public class IngestInternalApplication extends AbstractVitamApplication<IngestIn
         resourceConfig.register(JacksonFeature.class);
         resourceConfig.register(MultiPartFeature.class);
         resourceConfig.register(new IngestInternalResource(getConfiguration()));
-
+        resourceConfig.register(new AdminStatusResource(new BasicVitamStatusServiceImpl()));
         final ServletContainer servletContainer = new ServletContainer(resourceConfig);
         final ServletHolder sh = new ServletHolder(servletContainer);
         final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);

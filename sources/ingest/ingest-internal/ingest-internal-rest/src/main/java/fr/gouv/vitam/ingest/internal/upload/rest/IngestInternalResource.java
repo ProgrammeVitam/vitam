@@ -30,7 +30,6 @@ import java.io.InputStream;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -49,6 +48,8 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
+import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
 import fr.gouv.vitam.ingest.internal.api.upload.UploadService;
 import fr.gouv.vitam.ingest.internal.common.util.LogbookOperationParametersList;
 import fr.gouv.vitam.ingest.internal.model.UploadResponseDTO;
@@ -86,7 +87,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
  *
  */
 @Path("/ingest/v1")
-public class IngestInternalResource implements UploadService {
+public class IngestInternalResource extends ApplicationStatusResource implements UploadService {
 
     private static VitamLogger VITAM_LOGGER = VitamLoggerFactory.getInstance(IngestInternalResource.class);
 
@@ -108,6 +109,7 @@ public class IngestInternalResource implements UploadService {
      *
      */
     public IngestInternalResource(IngestInternalConfiguration configuration) {
+        super(new BasicVitamStatusServiceImpl());
         this.configuration = configuration;
         this.workspaceClient = WorkspaceClientFactory.create(configuration.getWorkspaceUrl());
         this.processingClient = ProcessingManagementClientFactory.create(configuration.getProcessingUrl());
@@ -123,25 +125,10 @@ public class IngestInternalResource implements UploadService {
      */
     IngestInternalResource(IngestInternalConfiguration configuration, WorkspaceClient workspaceClient,
         ProcessingManagementClient processingClient) {
+        super(new BasicVitamStatusServiceImpl());
         this.configuration = configuration;
         this.workspaceClient = workspaceClient;
         this.processingClient = processingClient;
-    }
-
-
-    /**
-     *
-     * Get IngestInternalServer Status
-     * 
-     * @return status
-     */
-    @Override
-    @GET
-    @Path("/status")
-    @Consumes("application/json")
-    @Produces("application/json")
-    public Response status() {
-        return Response.status(200).entity("").build();
     }
 
     /**
@@ -312,7 +299,7 @@ public class IngestInternalResource implements UploadService {
 
     private LogbookClient callLogbookUpdate(LogbookClient client, LogbookParameters parameters,
         LogbookOutcome logbookOutcome, String outcomeDetailMessage)
-            throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
+        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
 
         parameters.setStatus(logbookOutcome);
         parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, outcomeDetailMessage);
@@ -331,8 +318,8 @@ public class IngestInternalResource implements UploadService {
      */
     private void pushSipStreamToWorkspace(final String urlWorkspace, final String containerName,
         final InputStream uploadedInputStream, final LogbookParameters parameters)
-            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageAlreadyExistException,
-            ContentAddressableStorageZipException, ContentAddressableStorageServerException {
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageAlreadyExistException,
+        ContentAddressableStorageZipException, ContentAddressableStorageServerException {
 
         parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, "Try to push stream to workspace...");
         VITAM_LOGGER.debug("Try to push stream to workspace...");
@@ -351,8 +338,8 @@ public class IngestInternalResource implements UploadService {
 
     private boolean callProcessingEngine(final LogbookParameters parameters, final LogbookClient client,
         final String containerName) throws InvalidParseOperationException,
-            ProcessingException, LogbookClientNotFoundException, LogbookClientBadRequestException,
-            LogbookClientServerException {
+        ProcessingException, LogbookClientNotFoundException, LogbookClientBadRequestException,
+        LogbookClientServerException {
         parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, "Try to call processing...");
 
         final String workflowId = "DefaultIngestWorkflow";

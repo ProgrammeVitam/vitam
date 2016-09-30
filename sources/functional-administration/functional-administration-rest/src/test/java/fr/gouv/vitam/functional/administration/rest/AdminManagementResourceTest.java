@@ -184,7 +184,7 @@ public class AdminManagementResourceTest {
 
     @Test
     public final void testGetStatus() {
-        get(STATUS_URI).then().statusCode(200);
+        get(STATUS_URI).then().statusCode(Status.NO_CONTENT.getStatusCode());
     }
 
     @Test

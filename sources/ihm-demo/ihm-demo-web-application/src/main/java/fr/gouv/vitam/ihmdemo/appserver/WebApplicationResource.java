@@ -105,26 +105,26 @@ public class WebApplicationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getArchiveSearchResult(String criteria) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, criteria);
-            try {
-                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(criteria));
-                Map<String, String> criteriaMap = JsonHandler.getMapStringFromString(criteria);
-                String preparedQueryDsl = DslQueryHelper.createSelectElasticsearchDSLQuery(criteriaMap);
-                JsonNode searchResult = UserInterfaceTransactionManager.searchUnits(preparedQueryDsl);
-                return Response.status(Status.OK).entity(searchResult).build();
+        try {
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(criteria));
+            Map<String, String> criteriaMap = JsonHandler.getMapStringFromString(criteria);
+            String preparedQueryDsl = DslQueryHelper.createSelectElasticsearchDSLQuery(criteriaMap);
+            JsonNode searchResult = UserInterfaceTransactionManager.searchUnits(preparedQueryDsl);
+            return Response.status(Status.OK).entity(searchResult).build();
 
-            } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
-                LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
-                return Response.status(Status.BAD_REQUEST).build();
-            } catch (final AccessClientServerException e) {
-                LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
-                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-            } catch (final AccessClientNotFoundException e) {
-                LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
-                return Response.status(Status.NOT_FOUND).build();
-            } catch (final Exception e) {
-                LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
-                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-            }
+        } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
+            return Response.status(Status.BAD_REQUEST).build();
+        } catch (final AccessClientServerException e) {
+            LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final AccessClientNotFoundException e) {
+            LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
+            return Response.status(Status.NOT_FOUND).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     /**
@@ -136,29 +136,29 @@ public class WebApplicationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getArchiveUnitDetails(@PathParam("id") String unitId) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitId);
-            try {
-                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(unitId));
-                // Prepare required map
-                Map<String, String> selectUnitIdMap = new HashMap<String, String>();
-                selectUnitIdMap.put(UiConstants.SELECT_BY_ID.toString(), unitId);
-                String preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(selectUnitIdMap);
-                JsonNode archiveDetails =
-                    UserInterfaceTransactionManager.getArchiveUnitDetails(preparedQueryDsl, unitId);
+        try {
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(unitId));
+            // Prepare required map
+            Map<String, String> selectUnitIdMap = new HashMap<String, String>();
+            selectUnitIdMap.put(UiConstants.SELECT_BY_ID.toString(), unitId);
+            String preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(selectUnitIdMap);
+            JsonNode archiveDetails =
+                UserInterfaceTransactionManager.getArchiveUnitDetails(preparedQueryDsl, unitId);
 
-                return Response.status(Status.OK).entity(archiveDetails).build();
-            } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
-                LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
-                return Response.status(Status.BAD_REQUEST).build();
-            } catch (final AccessClientServerException e) {
-                LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
-                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-            } catch (final AccessClientNotFoundException e) {
-                LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
-                return Response.status(Status.NOT_FOUND).build();
-            } catch (final Exception e) {
-                LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
-                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-            }
+            return Response.status(Status.OK).entity(archiveDetails).build();
+        } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
+            return Response.status(Status.BAD_REQUEST).build();
+        } catch (final AccessClientServerException e) {
+            LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final AccessClientNotFoundException e) {
+            LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
+            return Response.status(Status.NOT_FOUND).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     /**
@@ -169,27 +169,27 @@ public class WebApplicationResource {
     @Path("/logbook/operations")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getLogbookResult(String options) {
-            JsonNode result = null;
-            try {
-                ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
-                result = JsonHandler.getFromString("{}");
-                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-                String query = "";
-                Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
-                query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-                LogbookClient logbookClient = LogbookClientFactory.getInstance().getLogbookOperationClient();
-                result = logbookClient.selectOperation(query);
-            } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
-                LOGGER.error("Bad request Exception ", e);
-                return Response.status(Status.BAD_REQUEST).build();
-            } catch (final LogbookClientException e) {
-                LOGGER.error("Logbook Client NOT FOUND Exception ", e);
-                return Response.status(Status.NOT_FOUND).build();
-            } catch (final Exception e) {
-                LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
-                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-            }
-            return Response.status(Status.OK).entity(result).build();
+        JsonNode result = null;
+        try {
+            ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
+            result = JsonHandler.getFromString("{}");
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
+            String query = "";
+            Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
+            query = DslQueryHelper.createSingleQueryDSL(optionsMap);
+            LogbookClient logbookClient = LogbookClientFactory.getInstance().getLogbookOperationClient();
+            result = logbookClient.selectOperation(query);
+        } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
+            LOGGER.error("Bad request Exception ", e);
+            return Response.status(Status.BAD_REQUEST).build();
+        } catch (final LogbookClientException e) {
+            LOGGER.error("Logbook Client NOT FOUND Exception ", e);
+            return Response.status(Status.NOT_FOUND).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+        return Response.status(Status.OK).entity(result).build();
     }
 
     /**
@@ -202,25 +202,25 @@ public class WebApplicationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getLogbookResultById(@PathParam("idOperation") String operationId, String options) {
 
-            JsonNode result = null;
+        JsonNode result = null;
 
-            try {
-                ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
-                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-                result = JsonHandler.getFromString("{}");
-                LogbookClient logbookClient = LogbookClientFactory.getInstance().getLogbookOperationClient();
-                result = logbookClient.selectOperationbyId(operationId);
-            } catch (final IllegalArgumentException | InvalidParseOperationException e) {
-                LOGGER.error(e);
-                return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-            } catch (final LogbookClientException e) {
-                LOGGER.error("Logbook Client NOT FOUND Exception ", e);
-                return Response.status(Status.NOT_FOUND).build();
-            } catch (final Exception e) {
-                LOGGER.error("INTERNAL SERVER ERROR", e);
-                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-            }
-            return Response.status(Status.OK).entity(result).build();
+        try {
+            ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
+            result = JsonHandler.getFromString("{}");
+            LogbookClient logbookClient = LogbookClientFactory.getInstance().getLogbookOperationClient();
+            result = logbookClient.selectOperationbyId(operationId);
+        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        } catch (final LogbookClientException e) {
+            LOGGER.error("Logbook Client NOT FOUND Exception ", e);
+            return Response.status(Status.NOT_FOUND).build();
+        } catch (final Exception e) {
+            LOGGER.error("INTERNAL SERVER ERROR", e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+        return Response.status(Status.OK).entity(result).build();
     }
 
     /**
@@ -247,15 +247,15 @@ public class WebApplicationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response upload(InputStream stream) {
         ParametersChecker.checkParameter("SIP is a mandatory parameter", stream);
-            try {
-                   IngestExternalClientFactory.getInstance().getIngestExternalClient().upload(stream);
-               
-            } catch (final VitamException e) {
-                LOGGER.error("IngestExternalException in Upload sip", e);
-                return Response.status(Status.INTERNAL_SERVER_ERROR)
-                    .build();
-            }
-            return Response.status(Status.OK).build();
+        try {
+            IngestExternalClientFactory.getInstance().getIngestExternalClient().upload(stream);
+
+        } catch (final VitamException e) {
+            LOGGER.error("IngestExternalException in Upload sip", e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .build();
+        }
+        return Response.status(Status.OK).build();
     }
 
     /**
@@ -272,46 +272,46 @@ public class WebApplicationResource {
     public Response updateArchiveUnitDetails(@PathParam("id") String unitId,
         String updateSet) {
 
-            try {
-                ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitId);
-                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(unitId));
-                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(updateSet));
+        try {
+            ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitId);
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(unitId));
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(updateSet));
 
-            } catch (final IllegalArgumentException | InvalidParseOperationException e) {
-                LOGGER.error(e);
-                return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-            }
+        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        }
 
-            try {
-                // Parse updateSet
-                Map<String, String> updateUnitIdMap = new HashMap<String, String>();
-                JsonNode modifiedFields = JsonHandler.getFromString(updateSet);
-                if (modifiedFields != null && modifiedFields.isArray()) {
-                    for (final JsonNode modifiedField : modifiedFields) {
-                        updateUnitIdMap.put(modifiedField.get(FIELD_ID_KEY).textValue(),
-                            modifiedField.get(NEW_FIELD_VALUE_KEY).textValue());
-                    }
+        try {
+            // Parse updateSet
+            Map<String, String> updateUnitIdMap = new HashMap<String, String>();
+            JsonNode modifiedFields = JsonHandler.getFromString(updateSet);
+            if (modifiedFields != null && modifiedFields.isArray()) {
+                for (final JsonNode modifiedField : modifiedFields) {
+                    updateUnitIdMap.put(modifiedField.get(FIELD_ID_KEY).textValue(),
+                        modifiedField.get(NEW_FIELD_VALUE_KEY).textValue());
                 }
-
-                // Add ID to set root part
-                updateUnitIdMap.put(UiConstants.SELECT_BY_ID.toString(), unitId);
-
-                String preparedQueryDsl = DslQueryHelper.createUpdateDSLQuery(updateUnitIdMap);
-                JsonNode archiveDetails = UserInterfaceTransactionManager.updateUnits(preparedQueryDsl, unitId);
-                return Response.status(Status.OK).entity(archiveDetails).build();
-            } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
-                LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
-                return Response.status(Status.BAD_REQUEST).build();
-            } catch (final AccessClientServerException e) {
-                LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
-                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-            } catch (final AccessClientNotFoundException e) {
-                LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
-                return Response.status(Status.NOT_FOUND).build();
-            } catch (final Exception e) {
-                LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
-                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
             }
+
+            // Add ID to set root part
+            updateUnitIdMap.put(UiConstants.SELECT_BY_ID.toString(), unitId);
+
+            String preparedQueryDsl = DslQueryHelper.createUpdateDSLQuery(updateUnitIdMap);
+            JsonNode archiveDetails = UserInterfaceTransactionManager.updateUnits(preparedQueryDsl, unitId);
+            return Response.status(Status.OK).entity(archiveDetails).build();
+        } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
+            return Response.status(Status.BAD_REQUEST).build();
+        } catch (final AccessClientServerException e) {
+            LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final AccessClientNotFoundException e) {
+            LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
+            return Response.status(Status.NOT_FOUND).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     /**
@@ -323,27 +323,27 @@ public class WebApplicationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getFileFormats(String options) {
         ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
-            String query = "";
-            JsonNode result = null;
-            try {
-                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-                result = JsonHandler.createObjectNode();
-                Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
-                query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-                AdminManagementClient adminClient =
-                    AdminManagementClientFactory.getInstance().getAdminManagementClient();
-                result = adminClient.getFormats(JsonHandler.getFromString(query));
-            } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
-                LOGGER.error("Bad request Exception ", e);
-                return Response.status(Status.BAD_REQUEST).build();
-            } catch (final ReferentialException e) {
-                LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
-                return Response.status(Status.NOT_FOUND).build();
-            } catch (final Exception e) {
-                LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
-                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-            }
-            return Response.status(Status.OK).entity(result).build();
+        String query = "";
+        JsonNode result = null;
+        try {
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
+            result = JsonHandler.createObjectNode();
+            Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
+            query = DslQueryHelper.createSingleQueryDSL(optionsMap);
+            AdminManagementClient adminClient =
+                AdminManagementClientFactory.getInstance().getAdminManagementClient();
+            result = adminClient.getFormats(JsonHandler.getFromString(query));
+        } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
+            LOGGER.error("Bad request Exception ", e);
+            return Response.status(Status.BAD_REQUEST).build();
+        } catch (final ReferentialException e) {
+            LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
+            return Response.status(Status.NOT_FOUND).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+        return Response.status(Status.OK).entity(result).build();
     }
 
     /**
@@ -357,28 +357,28 @@ public class WebApplicationResource {
     public Response getFormatById(@PathParam("idFormat") String formatId,
         String options) {
 
-            JsonNode result = null;
+        JsonNode result = null;
 
-            try {
-                ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
-                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-                ParametersChecker.checkParameter("Format Id is mandatory", formatId);
-                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(formatId));
-                result = JsonHandler.getFromString("{}");
-                AdminManagementClient adminClient =
-                    AdminManagementClientFactory.getInstance().getAdminManagementClient();
-                result = adminClient.getFormatByID(formatId);
-            } catch (final InvalidParseOperationException e) {
-                LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
-                return Response.status(Status.BAD_REQUEST).build();
-            } catch (final ReferentialException e) {
-                LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
-                return Response.status(Status.NOT_FOUND).build();
-            } catch (final Exception e) {
-                LOGGER.error("INTERNAL SERVER ERROR", e);
-                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-            }
-            return Response.status(Status.OK).entity(result).build();
+        try {
+            ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
+            ParametersChecker.checkParameter("Format Id is mandatory", formatId);
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(formatId));
+            result = JsonHandler.getFromString("{}");
+            AdminManagementClient adminClient =
+                AdminManagementClientFactory.getInstance().getAdminManagementClient();
+            result = adminClient.getFormatByID(formatId);
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
+            return Response.status(Status.BAD_REQUEST).build();
+        } catch (final ReferentialException e) {
+            LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
+            return Response.status(Status.NOT_FOUND).build();
+        } catch (final Exception e) {
+            LOGGER.error("INTERNAL SERVER ERROR", e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+        return Response.status(Status.OK).entity(result).build();
     }
 
 
@@ -393,13 +393,13 @@ public class WebApplicationResource {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     public Response checkRefFormat(InputStream input) {
-            AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
-            try {
-                client.checkFormat(input);
-            } catch (final ReferentialException e) {
-                return Response.status(Status.FORBIDDEN).build();
-            }
-            return Response.status(Status.OK).build();
+        AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
+        try {
+            client.checkFormat(input);
+        } catch (final ReferentialException e) {
+            return Response.status(Status.FORBIDDEN).build();
+        }
+        return Response.status(Status.OK).build();
     }
 
     /**
@@ -414,15 +414,15 @@ public class WebApplicationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response uploadRefFormat(InputStream input) {
 
-            AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
-            try {
-                client.importFormat(input);
-            } catch (final ReferentialException e) {
-                return Response.status(Status.FORBIDDEN).build();
-            } catch (final DatabaseConflictException e) {
-                return Response.status(Status.FORBIDDEN).build();
-            }
-            return Response.status(Status.OK).build();
+        AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
+        try {
+            client.importFormat(input);
+        } catch (final ReferentialException e) {
+            return Response.status(Status.FORBIDDEN).build();
+        } catch (final DatabaseConflictException e) {
+            return Response.status(Status.FORBIDDEN).build();
+        }
+        return Response.status(Status.OK).build();
     }
 
     /**
@@ -434,13 +434,13 @@ public class WebApplicationResource {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteFormat() {
-            AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
-            try {
-                client.deleteFormat();
-            } catch (final ReferentialException e) {
-                return Response.status(Status.FORBIDDEN).build();
-            }
-            return Response.status(Status.OK).build();
+        AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
+        try {
+            client.deleteFormat();
+        } catch (final ReferentialException e) {
+            return Response.status(Status.FORBIDDEN).build();
+        }
+        return Response.status(Status.OK).build();
     }
 
     /**
@@ -454,30 +454,30 @@ public class WebApplicationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getArchiveObjectGroup(@PathParam("idOG") String objectGroupId) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, objectGroupId);
-            try {
-                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(objectGroupId));
+        try {
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(objectGroupId));
 
-                HashMap<String, String> qualifierProjection = new HashMap<>();
-                qualifierProjection.put("projection_qualifiers", "#qualifiers");
-                String preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(qualifierProjection);
-                JsonNode searchResult =
-                    UserInterfaceTransactionManager.selectObjectbyId(preparedQueryDsl, objectGroupId);
+            HashMap<String, String> qualifierProjection = new HashMap<>();
+            qualifierProjection.put("projection_qualifiers", "#qualifiers");
+            String preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(qualifierProjection);
+            JsonNode searchResult =
+                UserInterfaceTransactionManager.selectObjectbyId(preparedQueryDsl, objectGroupId);
 
-                return Response.status(Status.OK).entity(JsonTransformer.transformResultObjects(searchResult)).build();
+            return Response.status(Status.OK).entity(JsonTransformer.transformResultObjects(searchResult)).build();
 
-            } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
-                LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
-                return Response.status(Status.BAD_REQUEST).build();
-            } catch (final AccessClientServerException e) {
-                LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
-                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-            } catch (final AccessClientNotFoundException e) {
-                LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
-                return Response.status(Status.NOT_FOUND).build();
-            } catch (final Exception e) {
-                LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
-                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-            }
+        } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
+            return Response.status(Status.BAD_REQUEST).build();
+        } catch (final AccessClientServerException e) {
+            LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final AccessClientNotFoundException e) {
+            LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
+            return Response.status(Status.NOT_FOUND).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
 
     }
 
@@ -493,34 +493,34 @@ public class WebApplicationResource {
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response getObjectAsInputStream(@PathParam("idOG") String objectGroupId, String options) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, objectGroupId);
-            try {
-                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(objectGroupId));
-                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-                Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
-                String usage = optionsMap.get("usage");
-                String version = optionsMap.get("version");
-                ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, usage);
-                ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, version);
-                HashMap<String, String> emptyMap = new HashMap<>();
-                String preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(emptyMap);
-                InputStream stream =
-                    UserInterfaceTransactionManager.getObjectAsInputStream(preparedQueryDsl, objectGroupId, usage,
-                        Integer.parseInt(version));
-                return Response.status(Status.OK).entity(stream).build();
+        try {
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(objectGroupId));
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
+            Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
+            String usage = optionsMap.get("usage");
+            String version = optionsMap.get("version");
+            ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, usage);
+            ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, version);
+            HashMap<String, String> emptyMap = new HashMap<>();
+            String preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(emptyMap);
+            InputStream stream =
+                UserInterfaceTransactionManager.getObjectAsInputStream(preparedQueryDsl, objectGroupId, usage,
+                    Integer.parseInt(version));
+            return Response.status(Status.OK).entity(stream).build();
 
-            } catch (final InvalidCreateOperationException | InvalidParseOperationException | NumberFormatException e) {
-                LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
-                return Response.status(Status.BAD_REQUEST).build();
-            } catch (final AccessClientServerException e) {
-                LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
-                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-            } catch (final AccessClientNotFoundException e) {
-                LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
-                return Response.status(Status.NOT_FOUND).build();
-            } catch (final Exception e) {
-                LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
-                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-            }
+        } catch (final InvalidCreateOperationException | InvalidParseOperationException | NumberFormatException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
+            return Response.status(Status.BAD_REQUEST).build();
+        } catch (final AccessClientServerException e) {
+            LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final AccessClientNotFoundException e) {
+            LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
+            return Response.status(Status.NOT_FOUND).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     /***** rules Management ************/
@@ -534,27 +534,27 @@ public class WebApplicationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getFileRules(String options) {
         ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
-            String query = "";
-            JsonNode result = null;
-            try {
-                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-                result = JsonHandler.createObjectNode();
-                Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
-                query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-                AdminManagementClient adminClient =
-                    AdminManagementClientFactory.getInstance().getAdminManagementClient();
-                result = adminClient.getRule(JsonHandler.getFromString(query));
-            } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
-                LOGGER.error("Bad request Exception ", e);
-                return Response.status(Status.BAD_REQUEST).build();
-            } catch (final ReferentialException e) {
-                LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
-                return Response.status(Status.NOT_FOUND).build();
-            } catch (final Exception e) {
-                LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
-                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-            }
-            return Response.status(Status.OK).entity(result).build();
+        String query = "";
+        JsonNode result = null;
+        try {
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
+            result = JsonHandler.createObjectNode();
+            Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
+            query = DslQueryHelper.createSingleQueryDSL(optionsMap);
+            AdminManagementClient adminClient =
+                AdminManagementClientFactory.getInstance().getAdminManagementClient();
+            result = adminClient.getRule(JsonHandler.getFromString(query));
+        } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
+            LOGGER.error("Bad request Exception ", e);
+            return Response.status(Status.BAD_REQUEST).build();
+        } catch (final ReferentialException e) {
+            LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
+            return Response.status(Status.NOT_FOUND).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+        return Response.status(Status.OK).entity(result).build();
     }
 
     /**
@@ -568,28 +568,28 @@ public class WebApplicationResource {
     public Response getRuleById(@PathParam("id_rule") String ruleId,
         String options) {
 
-            JsonNode result = null;
+        JsonNode result = null;
 
-            try {
-                ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
-                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-                ParametersChecker.checkParameter("rule Id is mandatory", ruleId);
-                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(ruleId));
-                result = JsonHandler.createObjectNode();
-                AdminManagementClient adminClient =
-                    AdminManagementClientFactory.getInstance().getAdminManagementClient();
-                result = adminClient.getRuleByID(ruleId);
-            } catch (final InvalidParseOperationException e) {
-                LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
-                return Response.status(Status.BAD_REQUEST).build();
-            } catch (final ReferentialException e) {
-                LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
-                return Response.status(Status.NOT_FOUND).build();
-            } catch (final Exception e) {
-                LOGGER.error("INTERNAL SERVER ERROR", e);
-                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-            }
-            return Response.status(Status.OK).entity(result).build();
+        try {
+            ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
+            ParametersChecker.checkParameter("rule Id is mandatory", ruleId);
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(ruleId));
+            result = JsonHandler.createObjectNode();
+            AdminManagementClient adminClient =
+                AdminManagementClientFactory.getInstance().getAdminManagementClient();
+            result = adminClient.getRuleByID(ruleId);
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
+            return Response.status(Status.BAD_REQUEST).build();
+        } catch (final ReferentialException e) {
+            LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
+            return Response.status(Status.NOT_FOUND).build();
+        } catch (final Exception e) {
+            LOGGER.error("INTERNAL SERVER ERROR", e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+        return Response.status(Status.OK).entity(result).build();
     }
 
 
@@ -604,13 +604,13 @@ public class WebApplicationResource {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     public Response checkRefRule(InputStream input) {
-            AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
-            try {
-                client.checkRulesFile(input);
-            } catch (final ReferentialException e) {
-                return Response.status(Status.FORBIDDEN).build();
-            }
-            return Response.status(Status.OK).build();
+        AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
+        try {
+            client.checkRulesFile(input);
+        } catch (final ReferentialException e) {
+            return Response.status(Status.FORBIDDEN).build();
+        }
+        return Response.status(Status.OK).build();
     }
 
     /**
@@ -625,15 +625,15 @@ public class WebApplicationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response uploadRefRule(InputStream input) {
 
-            AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
-            try {
-                client.importRulesFile(input);
-            } catch (final ReferentialException e) {
-                return Response.status(Status.FORBIDDEN).build();
-            } catch (final DatabaseConflictException e) {
-                return Response.status(Status.FORBIDDEN).build();
-            }
-            return Response.status(Status.OK).build();
+        AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
+        try {
+            client.importRulesFile(input);
+        } catch (final ReferentialException e) {
+            return Response.status(Status.FORBIDDEN).build();
+        } catch (final DatabaseConflictException e) {
+            return Response.status(Status.FORBIDDEN).build();
+        }
+        return Response.status(Status.OK).build();
     }
 
     /**
@@ -645,13 +645,13 @@ public class WebApplicationResource {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteRulesFile() {
-            AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
-            try {
-                client.deleteRulesFile();
-            } catch (final ReferentialException e) {
-                return Response.status(Status.FORBIDDEN).build();
-            }
-            return Response.status(Status.OK).build();
+        AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
+        try {
+            client.deleteRulesFile();
+        } catch (final ReferentialException e) {
+            return Response.status(Status.FORBIDDEN).build();
+        }
+        return Response.status(Status.OK).build();
     }
 
 
@@ -711,7 +711,7 @@ public class WebApplicationResource {
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
-    
+
     /**
      * @param object user credentials
      * @return Response OK if login success
@@ -723,7 +723,7 @@ public class WebApplicationResource {
     public Response login(JsonNode object) {
         Subject subject = ThreadContext.getSubject();
         String username = object.get("token").get("principal").textValue();
-        String password =  object.get("token").get("credentials").textValue();
+        String password = object.get("token").get("credentials").textValue();
 
         if (username == null || password == null) {
             return Response.status(Status.UNAUTHORIZED).build();
@@ -734,12 +734,12 @@ public class WebApplicationResource {
 
         try {
             subject.login(token);
-            //TODO add access log
+            // TODO add access log
             LOGGER.info("Login success: " + username);
         } catch (Exception uae) {
             LOGGER.debug("Login fail: " + username);
             return Response.status(Status.UNAUTHORIZED).build();
-        } 
+        }
 
         return Response.status(Status.OK).build();
     }

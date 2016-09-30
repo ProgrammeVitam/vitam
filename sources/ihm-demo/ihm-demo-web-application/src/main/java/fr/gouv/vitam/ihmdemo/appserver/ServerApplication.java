@@ -116,8 +116,8 @@ public class ServerApplication {
     }
 
     /**
-     * run a server instance with the configuration
-     * the configuration is never null at this time. It is already instantiate before.
+     * run a server instance with the configuration the configuration is never null at this time. It is already
+     * instantiate before.
      *
      * @param configuration as WebApplicationConfig
      * @param configuration as WebApplicationConfig
@@ -148,7 +148,7 @@ public class ServerApplication {
 
             try {
                 shiroFile = PropertiesUtils.findFile(SHIRO_FILE);
-                restResourceContext.setInitParameter("shiroConfigLocations", "file:"+shiroFile.getAbsolutePath());
+                restResourceContext.setInitParameter("shiroConfigLocations", "file:" + shiroFile.getAbsolutePath());
             } catch (FileNotFoundException e) {
                 LOGGER.error(e.getMessage(), e);
                 throw new VitamApplicationServerException(e.getMessage());
@@ -171,7 +171,7 @@ public class ServerApplication {
             .getResource(configuration.getStaticContent());
         staticContentHandler.setResourceBase(webAppDir.toURI().toString());
 
-        //wrap to context handler
+        // wrap to context handler
         ContextHandler staticContext = new ContextHandler("/ihm-demo"); /* the server uri path */
         staticContext.setHandler(staticContentHandler);
 

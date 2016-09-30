@@ -49,14 +49,14 @@ import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.StatusMessage;
+import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
+import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.storage.driver.exception.StorageObjectAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
@@ -73,7 +73,7 @@ import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistribution
  * Storage Resource implementation
  */
 @Path("/storage/v1")
-public class StorageResource {
+public class StorageResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageResource.class);
 
     private final StorageDistribution distribution;
@@ -84,6 +84,7 @@ public class StorageResource {
      * @param configuration the storage configuration to be applied
      */
     public StorageResource(StorageConfiguration configuration) {
+        super(new BasicVitamStatusServiceImpl());
         distribution = new StorageDistributionImpl(configuration);
         LOGGER.info("init Storage Resource server");
     }
@@ -94,23 +95,10 @@ public class StorageResource {
      * @param storageDistribution the storage Distribution to be applied
      */
     StorageResource(StorageDistribution storageDistribution) {
+        super(new BasicVitamStatusServiceImpl());
         distribution = storageDistribution;
     }
 
-
-
-    /**
-     * Return a response status
-     *
-     * @return Response containing the status of the service
-     */
-    @Path("status")
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response status() {
-        return Response.ok(new StatusMessage(ServerIdentity.getInstance()),
-            MediaType.APPLICATION_JSON).build();
-    }
 
     /**
      * @param headers http headers

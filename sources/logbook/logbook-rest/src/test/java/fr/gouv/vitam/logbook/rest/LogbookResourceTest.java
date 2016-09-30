@@ -26,8 +26,22 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.rest;
 
+import static com.jayway.restassured.RestAssured.get;
+import static com.jayway.restassured.RestAssured.given;
+import static com.jayway.restassured.RestAssured.with;
+
+import java.io.File;
+
+import javax.ws.rs.core.Response.Status;
+
+import org.jhades.JHades;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
+
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -47,18 +61,13 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
-import fr.gouv.vitam.logbook.common.parameters.*;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.MongoDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.MongoDbAccessFactory;
-import org.jhades.JHades;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-
-import static com.jayway.restassured.RestAssured.*;
 
 public class LogbookResourceTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookResourceTest.class);
@@ -116,7 +125,7 @@ public class LogbookResourceTest {
                     "vitam-test"));
         serverPort = junitHelper.findAvailablePort();
 
-        //TODO verifier la compatibilité avec les tests parallèles sur jenkins
+        // TODO verifier la compatibilité avec les tests parallèles sur jenkins
         SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
 
         RestAssured.port = serverPort;
@@ -273,7 +282,7 @@ public class LogbookResourceTest {
 
     @Test
     public final void testGetStatus() {
-        get(STATUS_URI).then().statusCode(200);
+        get(STATUS_URI).then().statusCode(Status.NO_CONTENT.getStatusCode());
     }
 
     @Test

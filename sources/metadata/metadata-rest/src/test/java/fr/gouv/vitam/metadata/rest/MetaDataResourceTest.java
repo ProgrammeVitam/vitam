@@ -26,11 +26,34 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.rest;
 
+import static com.jayway.restassured.RestAssured.get;
+import static com.jayway.restassured.RestAssured.given;
+import static com.jayway.restassured.RestAssured.with;
+import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
+import static org.hamcrest.Matchers.equalTo;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.ws.rs.core.Response.Status;
+
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.node.Node;
+import org.jhades.JHades;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
+
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -52,20 +75,6 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.core.database.collections.MetadataCollections;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.node.Node;
-import org.jhades.JHades;
-import org.junit.*;
-import org.junit.rules.TemporaryFolder;
-
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.jayway.restassured.RestAssured.*;
-import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
-import static org.hamcrest.Matchers.equalTo;
 
 public class MetaDataResourceTest {
     private static final String DATA =
@@ -133,7 +142,7 @@ public class MetaDataResourceTest {
         new JHades().overlappingJarsReport();
         junitHelper = new JunitHelper();
 
-        //ES
+        // ES
         TCP_PORT = junitHelper.findAvailablePort();
         HTTP_PORT = junitHelper.findAvailablePort();
 
@@ -206,7 +215,7 @@ public class MetaDataResourceTest {
      */
     @Test
     public void shouldGetStatusOK() throws MetaDataException, InvalidParseOperationException {
-        get("/status").then().statusCode(200);
+        get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
     }
 
     /**

@@ -118,7 +118,7 @@ public class IngestInternalResourceTest {
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
         try {
-            if(vitamServer != null) {
+            if (vitamServer != null) {
                 ((BasicVitamServer) vitamServer).stop();
             }
             junitHelper.releasePort(port);
@@ -187,8 +187,8 @@ public class IngestInternalResourceTest {
     }
 
     @Test
-    public void givenStartedServer_WhenGetStatus_ThenReturnStatusOk() throws Exception {
-        get(STATUS_URI).then().statusCode(Status.OK.getStatusCode());
+    public void givenStartedServer_WhenGetStatus_ThenReturnStatusNoContent() throws Exception {
+        get(STATUS_URI).then().statusCode(Status.NO_CONTENT.getStatusCode());
     }
 
     @Test
@@ -220,7 +220,7 @@ public class IngestInternalResourceTest {
         throws Exception {
         reset(workspaceClient);
         reset(processingClient);
-        
+
         UploadResponseDTO uploadResponseDTOReal = RestAssured.given()
             .multiPart("part", operationList, MediaType.APPLICATION_JSON)
             .then().statusCode(Status.OK.getStatusCode())
@@ -232,7 +232,7 @@ public class IngestInternalResourceTest {
         assertEquals(uploadResponseDTOReal.getMessage(), "file upload finished in error");
 
     }
-    
+
     @Test
     public void givenUnzipNonZipErrorWhenUploadSipAsStreamThenReturnKO()
         throws Exception {

@@ -68,17 +68,17 @@ public class IngestExternalResourceTest {
     private static final String STATUS_URI = "/status";
     private static final String UPLOAD_URI = "/upload";
     private static final String INGEST_EXTERNAL_CONF = "ingest-external-test.conf";
-    
+
     private static VitamServer vitamServer;
     private InputStream stream;
     private static JunitHelper junitHelper;
     private static int serverPort;
-    
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         junitHelper = new JunitHelper();
         serverPort = junitHelper.findAvailablePort();
-        //TODO verifier la compatibilité avec les test parallèle sur jenkins
+        // TODO verifier la compatibilité avec les test parallèle sur jenkins
         SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
         final File conf = PropertiesUtils.findFile(INGEST_EXTERNAL_CONF);
 
@@ -99,7 +99,7 @@ public class IngestExternalResourceTest {
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
         try {
-            if(vitamServer != null) {
+            if (vitamServer != null) {
                 ((BasicVitamServer) vitamServer).stop();
             }
         } catch (final VitamApplicationServerException e) {
@@ -107,56 +107,56 @@ public class IngestExternalResourceTest {
         }
         junitHelper.releasePort(serverPort);
     }
-    
+
     @Test
     public final void testGetStatus() {
         given()
-        .when()
-        .get(STATUS_URI)
-        .then().statusCode(200);
+            .when()
+            .get(STATUS_URI)
+            .then().statusCode(Status.NO_CONTENT.getStatusCode());
     }
-    
+
     @Test
     public void givenAnInputstreamWhenUploadThenReturnOK() {
         stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("no-virus.txt");
-        
+
         given().contentType(ContentType.BINARY).body(stream)
-        .when().post(UPLOAD_URI)
-        .then().statusCode(Status.OK.getStatusCode());
+            .when().post(UPLOAD_URI)
+            .then().statusCode(Status.OK.getStatusCode());
     }
-    
+
     @Test
     public void givenAnInputstreamWhenUploadAndFixVirusThenReturnOK() {
         stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("fixed-virus.txt");
-        
+
         given().contentType(ContentType.BINARY).body(stream)
-        .when().post(UPLOAD_URI)
-        .then().statusCode(Status.OK.getStatusCode());
+            .when().post(UPLOAD_URI)
+            .then().statusCode(Status.OK.getStatusCode());
     }
-    
+
     @Test
     public void givenIngestInternalUploadErrorThenReturnInternalServerError() throws Exception {
         stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("fixed-virus.txt");
-        
+
         PowerMockito.mockStatic(IngestInternalClientFactory.class);
         IngestInternalClient ingestInternalClient = PowerMockito.mock(IngestInternalClient.class);
         IngestInternalClientFactory ingestInternalFactory = PowerMockito.mock(IngestInternalClientFactory.class);
         PowerMockito.when(ingestInternalClient.upload(anyObject(), anyObject())).thenThrow(VitamException.class);
         PowerMockito.when(ingestInternalFactory.getIngestInternalClient()).thenReturn(ingestInternalClient);
         PowerMockito.when(IngestInternalClientFactory.getInstance()).thenReturn(ingestInternalFactory);
-        
+
         given().contentType(ContentType.BINARY)
-        .when().post(UPLOAD_URI)
-        .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            .when().post(UPLOAD_URI)
+            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
-    
+
     @Test
     public void givenAnInputstreamWhenUploadThenReturnErrorCode() {
         stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("unfixed-virus.txt");
-        
+
         given().contentType(ContentType.BINARY).body(stream)
-        .when().post(UPLOAD_URI)
-        .then().statusCode(Status.OK.getStatusCode());
+            .when().post(UPLOAD_URI)
+            .then().statusCode(Status.OK.getStatusCode());
     }
 
 }

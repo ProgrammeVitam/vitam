@@ -51,21 +51,21 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
+import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.common.server.application.configuration.DbConfiguration;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
-import fr.gouv.vitam.logbook.common.client.StatusMessage;
 import fr.gouv.vitam.logbook.common.model.response.RequestResponseError;
 import fr.gouv.vitam.logbook.common.model.response.RequestResponseOK;
 import fr.gouv.vitam.logbook.common.model.response.VitamError;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.server.MongoDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.database.collections.MongoDbAccessFactory;
@@ -82,7 +82,7 @@ import fr.gouv.vitam.logbook.operations.core.LogbookOperationsImpl;
  * Logbook Resource implementation
  */
 @Path("/logbook/v1")
-public class LogbookResource {
+public class LogbookResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookResource.class);
 
     /**
@@ -101,6 +101,7 @@ public class LogbookResource {
      * @param configuration
      */
     public LogbookResource(LogbookConfiguration configuration) {
+        super(new BasicVitamStatusServiceImpl());
         final DbConfiguration logbookConfiguration =
             new DbConfigurationImpl(configuration.getDbHost(), configuration.getDbPort(), configuration.getDbName());
         final MongoDbAccess mongoDbAccess = MongoDbAccessFactory.create(logbookConfiguration);
@@ -245,19 +246,6 @@ public class LogbookResource {
             finalResponse = Response.status(Response.Status.BAD_REQUEST).build();
         }
         return finalResponse;
-    }
-
-    /**
-     * Check the state of the logbook service API
-     *
-     * @return an http response with OK status (200)
-     */
-    @GET
-    @Path("/status")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getStatus() {
-        return Response.ok(new StatusMessage(ServerIdentity.getInstance()),
-            MediaType.APPLICATION_JSON).build();
     }
 
     /**
