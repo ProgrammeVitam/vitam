@@ -34,7 +34,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
- * 
+ * Based on work: Copyright Paul Merlin 2011 (Apache Licence v2.0)
  */
 public class X509CredentialsSha256Matcher extends AbstractX509CredentialsMatcher {
 

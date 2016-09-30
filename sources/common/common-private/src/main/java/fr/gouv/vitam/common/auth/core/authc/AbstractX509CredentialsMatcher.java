@@ -34,7 +34,7 @@ import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authc.credential.CredentialsMatcher;
 
 /**
- * 
+ * Based on work: Copyright Paul Merlin 2011 (Apache Licence v2.0)
  */
 public abstract class AbstractX509CredentialsMatcher
     implements CredentialsMatcher {

@@ -41,7 +41,7 @@ import org.apache.shiro.web.filter.authc.AuthenticatingFilter;
 import fr.gouv.vitam.common.auth.core.authc.X509AuthenticationToken;
 
 /**
- * 
+ * Based on work: Copyright Paul Merlin 2011 (Apache Licence v2.0)
  */
 public class X509AuthenticationFilter extends AuthenticatingFilter {
 
