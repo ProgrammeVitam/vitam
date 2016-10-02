@@ -43,6 +43,8 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server.application.AdminStatusResource;
+import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
 
 /**
  * admin management web application
@@ -82,7 +84,7 @@ public final class AdminManagementApplication
     }
 
     /**
-     * Prepare the application to be run or started.
+     * Prepare the application to be run or started._
      *
      * @param args programme
      * @return the VitamServer
@@ -118,7 +120,7 @@ public final class AdminManagementApplication
         final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(JacksonFeature.class);
         resourceConfig.register(new AdminManagementResource(getConfiguration()));
-
+        resourceConfig.register(new AdminStatusResource(new BasicVitamStatusServiceImpl()));
         final ServletContainer servletContainer = new ServletContainer(resourceConfig);
         final ServletHolder sh = new ServletHolder(servletContainer);
         final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);

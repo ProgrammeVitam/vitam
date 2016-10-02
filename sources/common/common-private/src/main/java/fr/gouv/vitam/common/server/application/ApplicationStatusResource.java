@@ -41,17 +41,17 @@ import javax.ws.rs.core.Response.Status;
  *
  */
 @Path("/")
-public class InternalVitamResources {
+public class ApplicationStatusResource {
 
     private VitamStatusService statusService;
 
     /**
      * 
-     * Constructor AbstractVitamResources
+     * Constructor InternalVitamResources
      * 
      * @param statusService
      */
-    public InternalVitamResources(VitamStatusService statusService) {
+    public ApplicationStatusResource(VitamStatusService statusService) {
         this.statusService = statusService;
     }
 
@@ -66,7 +66,7 @@ public class InternalVitamResources {
     public Response status() {
 
         if (statusService.getResourcesStatus()) {
-            return Response.ok(Status.NO_CONTENT).build();
+            return Response.status(Status.NO_CONTENT).build();
         } else {
             return Response.status(Status.SERVICE_UNAVAILABLE).build();
         }

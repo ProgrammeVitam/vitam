@@ -42,16 +42,16 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseError;
-import fr.gouv.vitam.common.model.StatusMessage;
 import fr.gouv.vitam.common.model.VitamError;
 import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
+import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
@@ -63,18 +63,20 @@ import fr.gouv.vitam.worker.core.impl.WorkerImplFactory;
  * Worker Resource implementation
  */
 @Path("/worker/v1")
-public class WorkerResource {
+public class WorkerResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerResource.class);
 
     private static final String WORKER_MODULE = "WORKER";
     private static final String CODE_VITAM = "code_vitam";
     private Worker worker;
+
     /**
      * Constructor
      *
      * @param configuration the worker configuration to be applied
      */
     public WorkerResource(WorkerConfiguration configuration) {
+        super(new BasicVitamStatusServiceImpl());
         LOGGER.info("init Worker Resource server");
         this.worker = WorkerImplFactory.create();
     }
@@ -87,6 +89,7 @@ public class WorkerResource {
      * @param worker the worker service be applied
      */
     WorkerResource(WorkerConfiguration configuration, Worker worker) {
+        super(new BasicVitamStatusServiceImpl());
         LOGGER.info("init Worker Resource server");
         this.worker = worker;
     }
@@ -165,21 +168,6 @@ public class WorkerResource {
     public Response modifyStep(@PathParam("id_async") String idAsync) {
         return Response.status(Status.NOT_IMPLEMENTED).build();
     }
-
-
-    /**
-     * Return a response status
-     *
-     * @return Response containing the status of the service
-     */
-    @Path("status")
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response status() {
-        return Response.ok(new StatusMessage(ServerIdentity.getInstance()),
-            MediaType.APPLICATION_JSON).build();
-    }
-
 
     private RequestResponseError getErrorEntity(Status status) {
         return new RequestResponseError().setError(new VitamError(status.getStatusCode()).setContext(WORKER_MODULE)

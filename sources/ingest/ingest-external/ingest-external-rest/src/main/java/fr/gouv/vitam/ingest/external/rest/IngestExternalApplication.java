@@ -51,12 +51,15 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server.application.AdminStatusResource;
+import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
 
 /**
  * Ingest External web application
  */
-public final class IngestExternalApplication extends AbstractVitamApplication<IngestExternalApplication, IngestExternalConfiguration> {
+public final class IngestExternalApplication
+    extends AbstractVitamApplication<IngestExternalApplication, IngestExternalConfiguration> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalApplication.class);
     private static final String CONF_FILE_NAME = "ingest-external.conf";
     private static final String SHIRO_FILE = "shiro.ini";
@@ -111,7 +114,7 @@ public final class IngestExternalApplication extends AbstractVitamApplication<In
 
         return vitamServer;
     }
-    
+
     @Override
     protected String getConfigFilename() {
         return CONF_FILE_NAME;
@@ -121,34 +124,34 @@ public final class IngestExternalApplication extends AbstractVitamApplication<In
      * Implement this method to construct your application specific handler
      *
      * @return the generated Handler
-     * @throws VitamApplicationServerException 
+     * @throws VitamApplicationServerException
      */
     @Override
     protected Handler buildApplicationHandler() throws VitamApplicationServerException {
         final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(JacksonFeature.class);
         resourceConfig.register(new IngestExternalResource(getConfiguration()));
-
+        resourceConfig.register(new AdminStatusResource(new BasicVitamStatusServiceImpl()));
         final ServletContainer servletContainer = new ServletContainer(resourceConfig);
         final ServletHolder sh = new ServletHolder(servletContainer);
         final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
-        
-        if(getConfiguration().isAuthentication()) {
-        
-            File shiroFile=null;
+
+        if (getConfiguration().isAuthentication()) {
+
+            File shiroFile = null;
             try {
                 shiroFile = PropertiesUtils.findFile(SHIRO_FILE);
             } catch (FileNotFoundException e) {
                 LOGGER.error(e.getMessage(), e);
                 throw new VitamApplicationServerException(e.getMessage());
             }
-            context.setInitParameter("shiroConfigLocations", "file:"+shiroFile.getAbsolutePath());
+            context.setInitParameter("shiroConfigLocations", "file:" + shiroFile.getAbsolutePath());
             context.addEventListener(new EnvironmentLoaderListener());
             context.addFilter(ShiroFilter.class, "/*", EnumSet.of(
                 DispatcherType.INCLUDE, DispatcherType.REQUEST,
                 DispatcherType.FORWARD, DispatcherType.ERROR));
         }
-        
+
         context.setContextPath("/");
         context.addServlet(sh, "/*");
         return context;

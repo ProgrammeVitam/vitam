@@ -162,10 +162,9 @@ public class WorkerResourceTest {
         newWorkerConf.delete();
     }
 
-
     @Test
     public final void testGetStatus() {
-        get(WORKER_STATUS_URI).then().statusCode(200);
+        get(WORKER_STATUS_URI).then().statusCode(Status.NO_CONTENT.getStatusCode());
     }
 
     @Test

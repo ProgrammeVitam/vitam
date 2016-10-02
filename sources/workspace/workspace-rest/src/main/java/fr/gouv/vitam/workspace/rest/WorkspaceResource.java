@@ -58,6 +58,8 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
+import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
 import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -76,7 +78,7 @@ import fr.gouv.vitam.workspace.core.filesystem.FileSystem;
  * The Workspace Resource.
  */
 @Path("/workspace/v1")
-public class WorkspaceResource {
+public class WorkspaceResource extends ApplicationStatusResource {
 
     private static final VitamLogger LOGGER =
 
@@ -90,23 +92,11 @@ public class WorkspaceResource {
      * @param configuration the storage config
      */
     public WorkspaceResource(StorageConfiguration configuration) {
-        super();
+        super(new BasicVitamStatusServiceImpl());
         // FIXME REVIEW this implements directly the Filesystem implementation while it should not! You should have a
         // Factory/Helper to create the right one, ignoring here what is the chosen implementation.
         workspace = new FileSystem(configuration);
         LOGGER.info("init Workspace Resource server");
-    }
-
-    /**
-     * Return a response status
-     *
-     * @return Response
-     */
-    @Path("status")
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response status() {
-        return Response.status(Status.OK).build();
     }
 
     /**

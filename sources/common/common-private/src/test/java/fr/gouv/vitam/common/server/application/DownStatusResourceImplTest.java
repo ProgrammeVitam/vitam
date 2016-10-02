@@ -113,7 +113,7 @@ public class DownStatusResourceImplTest {
             }
         };
         resourceConfig.register(new AdminStatusResource(service));
-        resourceConfig.register(new InternalVitamResources(service));
+        resourceConfig.register(new ApplicationStatusResource(service));
         final ServletContainer servletContainer = new ServletContainer(resourceConfig);
         final ServletHolder sh = new ServletHolder(servletContainer);
         final ServletContextHandler contextHandler = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);

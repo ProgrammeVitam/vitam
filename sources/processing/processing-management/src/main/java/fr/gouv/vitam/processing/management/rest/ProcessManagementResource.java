@@ -27,7 +27,6 @@
 package fr.gouv.vitam.processing.management.rest;
 
 import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -39,6 +38,8 @@ import fr.gouv.vitam.api.model.RequestResponseError;
 import fr.gouv.vitam.api.model.VitamError;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
+import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
@@ -54,7 +55,7 @@ import fr.gouv.vitam.processing.management.core.ProcessManagementImpl;
  * This class is resource provider of ProcessManagement
  */
 @Path("/processing/v1")
-public class ProcessManagementResource {
+public class ProcessManagementResource extends ApplicationStatusResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessManagementResource.class);
     private final ProcessManagement processManagement;
@@ -66,6 +67,7 @@ public class ProcessManagementResource {
      * @param configuration the server configuration to be applied
      */
     public ProcessManagementResource(ServerConfiguration configuration) {
+        super(new BasicVitamStatusServiceImpl());
         processManagement = new ProcessManagementImpl(configuration);
         config = configuration;
         LOGGER.info("init Process Management Resource server");
@@ -78,21 +80,9 @@ public class ProcessManagementResource {
      * @param configuration the configuration
      */
     ProcessManagementResource(ProcessManagement pManagement, ServerConfiguration configuration) {
+        super(new BasicVitamStatusServiceImpl());
         this.processManagement = pManagement;
-        this.config = configuration;        
-    }
-
-    /**
-     * check the status of server
-     *
-     * @return Response with OK status
-     */
-    @Path("status")
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    // Should returns 200
-    public Response status() {
-        return Response.status(Status.OK).build();
+        this.config = configuration;
     }
 
     /**

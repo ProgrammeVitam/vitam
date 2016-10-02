@@ -55,6 +55,8 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
+import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
 import fr.gouv.vitam.core.MetaDataImpl;
 import fr.gouv.vitam.core.MongoDbAccessMetadataFactory;
 import fr.gouv.vitam.core.database.collections.DbRequest;
@@ -63,7 +65,7 @@ import fr.gouv.vitam.core.database.collections.DbRequest;
  * Units resource REST API
  */
 @Path("/metadata/v1")
-public class MetaDataResource {
+public class MetaDataResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetaDataResource.class);
 
     private static final String X_HTTP_METHOD = "X-Http-Method-Override";
@@ -80,18 +82,9 @@ public class MetaDataResource {
 
     // TODO: comment
     public MetaDataResource(MetaDataConfiguration configuration) {
+        super(new BasicVitamStatusServiceImpl());
         metaDataImpl = new MetaDataImpl(configuration, new MongoDbAccessMetadataFactory(), DbRequest::new);
         LOGGER.info("init MetaData Resource server");
-    }
-
-    /**
-     * Get unit status
-     */
-    @Path("status")
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response status() {
-        return Response.status(Status.OK).build();
     }
 
     /**
@@ -298,8 +291,7 @@ public class MetaDataResource {
     }
 
     /**
-     * Select unit by request and unit id
-     * TODO : maybe produce NOT_FOUND when unit is not found?
+     * Select unit by request and unit id TODO : maybe produce NOT_FOUND when unit is not found?
      */
     private Response selectUnitById(String selectRequest, String unitId) {
         Status status;
@@ -385,7 +377,7 @@ public class MetaDataResource {
     }
 
     // OBJECT GROUP RESOURCE. TODO see to externalize it (one resource for units, one resource for object group) to
-    // avoid so much lines  and complex maintenance
+    // avoid so much lines and complex maintenance
     /**
      * Create unit with json request
      * 
@@ -505,14 +497,14 @@ public class MetaDataResource {
                     .setContext("METADATA")
                     .setState("code_vitam")
                     .setMessage(Status.PRECONDITION_FAILED.getReasonPhrase())
-                    .setDescription(Status.PRECONDITION_FAILED.getReasonPhrase()))).build();
+                    .setDescription(Status.PRECONDITION_FAILED.getReasonPhrase())))
+                .build();
         }
         return selectObjectGroupById(selectRequest, objectGroupId);
     }
 
     /**
-     * Select unit by request and unit id
-     * TODO : maybe produce NOT_FOUND when objectGroup is not found?
+     * Select unit by request and unit id TODO : maybe produce NOT_FOUND when objectGroup is not found?
      */
     private Response selectObjectGroupById(String selectRequest, String objectGroupId) {
         Status status;

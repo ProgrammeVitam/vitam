@@ -26,6 +26,28 @@
  *******************************************************************************/
 package fr.gouv.vitam.workspace.rest;
 
+import static com.jayway.restassured.RestAssured.get;
+import static com.jayway.restassured.RestAssured.given;
+import static com.jayway.restassured.RestAssured.with;
+import static org.junit.Assert.fail;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status;
+
+import org.apache.commons.io.IOUtils;
+import org.hamcrest.Matchers;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,6 +55,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.config.EncoderConfig;
 import com.jayway.restassured.http.ContentType;
+
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
@@ -41,19 +64,6 @@ import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.workspace.common.Entry;
 import fr.gouv.vitam.workspace.common.RequestResponseError;
 import fr.gouv.vitam.workspace.common.VitamError;
-import org.apache.commons.io.IOUtils;
-import org.hamcrest.Matchers;
-import org.junit.*;
-import org.junit.rules.TemporaryFolder;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-
-import static com.jayway.restassured.RestAssured.*;
-import static org.junit.Assert.fail;
 
 /**
  */
@@ -105,7 +115,7 @@ public class WorkspaceResourceTest {
         configuration.setJettyConfig("jetty-config-test.xml");
 
         port = junitHelper.findAvailablePort();
-        //TODO verifier la compatibilité avec les tests parallèles sur jenkins
+        // TODO verifier la compatibilité avec les tests parallèles sur jenkins
         SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(port));
 
         workspaceApplication = new WorkspaceApplication();
@@ -121,8 +131,8 @@ public class WorkspaceResourceTest {
 
     // Status
     @Test
-    public void givenStartedServerWhenGetStatusThenReturnStatusOk() {
-        get("/status").then().statusCode(Status.OK.getStatusCode());
+    public void givenStartedServerWhenGetStatusThenReturnStatusNoContent() {
+        get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
     }
 
     // Container

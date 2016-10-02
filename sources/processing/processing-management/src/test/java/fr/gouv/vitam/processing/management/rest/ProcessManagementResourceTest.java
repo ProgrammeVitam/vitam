@@ -26,10 +26,22 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.rest;
 
+import static com.jayway.restassured.RestAssured.get;
+import static com.jayway.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
+
+import javax.ws.rs.core.Response.Status;
+
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Test;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
+
 import fr.gouv.vitam.api.model.RequestResponseError;
 import fr.gouv.vitam.api.model.VitamError;
 import fr.gouv.vitam.common.SystemPropertyUtil;
@@ -37,16 +49,6 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
-
-import javax.ws.rs.core.Response.Status;
-
-import static com.jayway.restassured.RestAssured.get;
-import static com.jayway.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.equalTo;
 
 public class ProcessManagementResourceTest {
 
@@ -65,7 +67,7 @@ public class ProcessManagementResourceTest {
         junitHelper = new JunitHelper();
         port = junitHelper.findAvailablePort();
 
-        //TODO verifier la compatibilité avec les tests parallèles sur jenkins
+        // TODO verifier la compatibilité avec les tests parallèles sur jenkins
         SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(port));
 
         final ServerConfiguration configuration = new ServerConfiguration();
@@ -91,8 +93,8 @@ public class ProcessManagementResourceTest {
      * Test server status should return 200
      */
     @Test
-    public void shouldGetStatusOK() throws Exception {
-        get("/status").then().statusCode(200);
+    public void shouldGetStatusReturnNoContent() throws Exception {
+        get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
     }
 
     @Test

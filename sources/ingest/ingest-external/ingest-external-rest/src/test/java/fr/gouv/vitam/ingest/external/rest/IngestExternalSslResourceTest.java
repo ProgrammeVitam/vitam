@@ -30,12 +30,13 @@ import static com.jayway.restassured.RestAssured.given;
 
 import java.io.File;
 
+import javax.ws.rs.core.Response.Status;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.config.SSLConfig;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
@@ -59,18 +60,18 @@ public class IngestExternalSslResourceTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        
+
         junitHelper = new JunitHelper();
         serverPort = junitHelper.findAvailablePort();
-        //TODO verifier la compatibilité avec les test parallèle sur jenkins
+        // TODO verifier la compatibilité avec les test parallèle sur jenkins
         SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
         final File conf = PropertiesUtils.findFile(INGEST_EXTERNAL_CONF);
 
         RestAssured.port = serverPort;
         RestAssured.basePath = RESOURCE_URI;
-       
+
         // TODO activate authentication
-       // RestAssured.keystore("src/test/resources/tls/server/granted_certs.jks", "gazerty");
+        // RestAssured.keystore("src/test/resources/tls/server/granted_certs.jks", "gazerty");
         try {
             vitamServer = IngestExternalApplication.startApplication(conf.getAbsolutePath());
             ((BasicVitamServer) vitamServer).start();
@@ -81,7 +82,7 @@ public class IngestExternalSslResourceTest {
         }
 
     }
-    
+
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
@@ -100,9 +101,9 @@ public class IngestExternalSslResourceTest {
         given()
             .relaxedHTTPSValidation("TLS")
             .when()
-            .get("https://localhost:"+serverPort+RESOURCE_URI+STATUS_URI)
+            .get("https://localhost:" + serverPort + RESOURCE_URI + STATUS_URI)
             .then()
-            .statusCode(200);
+            .statusCode(Status.NO_CONTENT.getStatusCode());
     }
 
 }

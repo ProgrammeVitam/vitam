@@ -29,7 +29,6 @@ package fr.gouv.vitam.ingest.external.rest;
 import java.io.InputStream;
 
 import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -39,6 +38,8 @@ import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
+import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
 import fr.gouv.vitam.ingest.external.api.IngestExternalException;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
 import fr.gouv.vitam.ingest.external.common.model.response.IngestExternalError;
@@ -48,7 +49,7 @@ import fr.gouv.vitam.ingest.external.core.IngestExternalImpl;
  * The Ingest External Resource
  */
 @Path("/ingest-ext/v1")
-public class IngestExternalResource {
+public class IngestExternalResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalResource.class);
     private IngestExternalImpl ingestExtern;
 
@@ -58,25 +59,13 @@ public class IngestExternalResource {
      * @param ingestExternalConfiguration
      */
     public IngestExternalResource(IngestExternalConfiguration ingestExternalConfiguration) {
+        super(new BasicVitamStatusServiceImpl());
         ingestExtern = new IngestExternalImpl(ingestExternalConfiguration);
         LOGGER.info("init Ingest External Resource server");
     }
-    
+
     /**
-     * Return a response status
-     *
-     * @return Response
-     */
-    @Path("status")
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response status() {
-        return Response.status(Status.OK).build();
-    }
-    
-    /**
-     * upload the file in local
-     * TODO : add file name
+     * upload the file in local TODO : add file name
      * 
      * @param stream, data input stream
      * @param header, method for entry data
@@ -86,7 +75,7 @@ public class IngestExternalResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response upload(InputStream stream){
+    public Response upload(InputStream stream) {
         try {
             ingestExtern.upload(stream);
         } catch (IngestExternalException e) {
@@ -94,13 +83,14 @@ public class IngestExternalResource {
             Status status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
                 .entity(new IngestExternalError(status.getStatusCode())
-                        .setContext("ingest")
-                        .setState("Error")
-                        .setMessage("The ingest external server error")
-                        .setDescription("The application 'Xxxx' requested an ingest operation and this operation has errors."))
+                    .setContext("ingest")
+                    .setState("Error")
+                    .setMessage("The ingest external server error")
+                    .setDescription(
+                        "The application 'Xxxx' requested an ingest operation and this operation has errors."))
                 .build();
         }
         return Response.status(Status.OK).build();
-    }    
+    }
 
 }
