@@ -5,4 +5,4 @@ IHM demo
    :maxdepth: 2
 
    introduction.rst
-
+   lifecycle.rst

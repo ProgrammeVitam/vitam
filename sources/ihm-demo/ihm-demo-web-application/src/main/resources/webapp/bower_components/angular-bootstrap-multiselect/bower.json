@@ -1,0 +1,37 @@
+{
+  "name": "angular-bootstrap-multiselect",
+  "version": "0.4.0",
+  "authors": [
+    "Sebastian Hammerl, Getslash GmbH",
+    "Amitava Saha"
+  ],
+  "description": "A multiselect dropdown list for AngularJS styled to fit the Twitter Bootstrap standard design",
+  "main": [
+    "angular-bootstrap-multiselect.js"
+  ],
+  "keywords": [
+    "angular",
+    "angularjs",
+    "directive",
+    "ui",
+    "bootstrap",
+    "form",
+    "input",
+    "multiselect",
+    "dropdown",
+    "select"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components"
+  ],
+  "dependencies": {
+    "angular": ">= 1.2.0",
+    "bootstrap": ">= 3.0.0"
+  },
+  "devDependencies": {
+    "angular-scenario": ">= 1.2.0"
+  }
+}

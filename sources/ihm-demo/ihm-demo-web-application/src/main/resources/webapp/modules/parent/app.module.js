@@ -31,6 +31,7 @@
 angular.module('ihm.demo', [
   'ngAnimate',
   'ui.bootstrap',
+  'ui.multiselect',
   'ngRoute',
   'core',
   'archiveSearch',
@@ -39,5 +40,6 @@ angular.module('ihm.demo', [
   'archive.unit',
   'vAccordion',
   'ngCookies',
-  'lifecycle'
+  'lifecycle',
+  'pascalprecht.translate'
 ]);

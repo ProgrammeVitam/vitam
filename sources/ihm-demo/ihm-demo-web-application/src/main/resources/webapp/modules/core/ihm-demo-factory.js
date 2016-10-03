@@ -40,7 +40,7 @@ angular.module('core')
   'ARCHIVE_LIFECYCLE_URL': '/unitlifecycles/',
   'OBJECT_GROUP_LIFECYCLE_URL': '/objectgrouplifecycles/',
   'UNIT_LIFECYCLE_TYPE': 'unit',
-  'OG_LIFECYCLE_TYPE': 'objectgroup',
+  'OG_LIFECYCLE_TYPE': 'objectgroup'
 })
 
 /*ihmDemoCLient create a configured http client*/

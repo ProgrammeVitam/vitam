@@ -26,14 +26,20 @@
  */
 
 angular.module('lifecycle')
-  .constant('DEFAULT_COLUMNS', {
-    'EVTYPE': 'Intitulé de l\'événement',
-    'EVDATETIME': 'Date',
-    'OUTCOME': 'Statut',
-    'OUTMESSG': 'Détail'
-  })
-  .controller('lifeCycleController', function(DEFAULT_COLUMNS, $routeParams, ihmDemoFactory) {
+  .controller('lifeCycleController', function($routeParams, $filter, ihmDemoFactory, loadStaticValues) {
     var self = this;
+
+    function initFields(fields) {
+      var result = [];
+      for (var i = 0, len = fields.length; i<len; i++) {
+        var fieldId = fields[i];
+        result.push({id: fieldId, label: $filter('translate')('lifeCycle.logbook.displaySteps.' + fieldId)});
+      }
+      return result;
+    }
+
+    // selectedObjects
+    self.selectedObjects = [];
 
     // LifeCycle type
     self.lifeCycleType = $routeParams.type;
@@ -44,8 +50,14 @@ angular.module('lifecycle')
     // Archive unit title
     self.title = $routeParams.lifecycleTitle;
 
-    // Columns to display
-    self.columnsToDisplay = DEFAULT_COLUMNS;
+    loadStaticValues.loadFromFile().then(
+      function onSuccess(response) {
+        var config = response.data;
+        self.columnsToDisplay = initFields(config.mandatoryFields);
+        self.customFields = initFields(config.customFields);
+      }, function onError(error) {
+
+      });
 
     // LifeCycle details
     self.lifeCycleDetails = [];
@@ -105,7 +117,7 @@ angular.module('lifecycle')
     self.setItemsPerPage = function(num) {
       self.itemsPerPage = num;
       self.currentPage = 1; // reset to first page
-    }
+    };
     // **************************************************************************** //
 
   });

@@ -31,20 +31,32 @@
         </pagination>
       </nav>
 
+      <dynamic-table custom-fields="$ctrl.customFields" selected-objects="$ctrl.selectedObjects">
+      </dynamic-table>
+
       <div  ng-if = "$ctrl.showResult" class="table-responsive ">
         <table class="table">
           <tr>
-            <th ng-repeat = "(key, value) in $ctrl.columnsToDisplay">
-              {{value}}
+            <th ng-repeat = "column in $ctrl.columnsToDisplay">
+              {{column.label}}
+            </th>
+            <th ng-repeat = "column in $ctrl.selectedObjects">
+              {{column.label}}
             </th>
           </tr>
           <tbody>
             <tr data-toggle="popover" data-trigger="focus" data-placement="top" ng-repeat="result in $ctrl.lifeCycleDetails.slice((($ctrl.currentPage-1)*$ctrl.itemsPerPage), (($ctrl.currentPage)*$ctrl.itemsPerPage))">
-              <td ng-repeat = "(key, value) in $ctrl.columnsToDisplay">
-                <span ng-if = "key.toUpperCase() != 'OUTCOME'">{{ result[key] }}</span>
-                <i ng-if = "key.toUpperCase() == 'OUTCOME' && result[key].toUpperCase() == 'OK'" class="material-icons">check</i>
-                <i ng-if = "key.toUpperCase() == 'OUTCOME' && result[key].toUpperCase() == 'KO'" class="material-icons">close</i>
-                <i ng-if = "key.toUpperCase() == 'OUTCOME' && result[key].toUpperCase() == 'WARNING'" class="material-icons">warning</i>
+              <td ng-repeat = "column in $ctrl.columnsToDisplay">
+                <span ng-if = "column.id.toUpperCase() != 'OUTCOME'">{{ result[column.id] }}</span>
+                <i ng-if = "column.id.toUpperCase() == 'OUTCOME' && result[column.id].toUpperCase() == 'OK'" class="material-icons">check</i>
+                <i ng-if = "column.id.toUpperCase() == 'OUTCOME' && result[column.id].toUpperCase() == 'KO'" class="material-icons">close</i>
+                <i ng-if = "column.id.toUpperCase() == 'OUTCOME' && result[column.id].toUpperCase() == 'WARNING'" class="material-icons">warning</i>
+              </td>
+              <td ng-repeat = "column in $ctrl.selectedObjects">
+                <span ng-if = "column.id.toUpperCase() != 'OUTCOME'">{{ result[column.id] }}</span>
+                <i ng-if = "column.id.toUpperCase() == 'OUTCOME' && result[column.id].toUpperCase() == 'OK'" class="material-icons">check</i>
+                <i ng-if = "column.id.toUpperCase() == 'OUTCOME' && result[column.id].toUpperCase() == 'KO'" class="material-icons">close</i>
+                <i ng-if = "column.id.toUpperCase() == 'OUTCOME' && result[column.id].toUpperCase() == 'WARNING'" class="material-icons">warning</i>
               </td>
             </tr>
           </tbody>
