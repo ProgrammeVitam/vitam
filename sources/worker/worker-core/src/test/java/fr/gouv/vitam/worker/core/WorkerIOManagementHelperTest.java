@@ -36,14 +36,14 @@ public class WorkerIOManagementHelperTest {
     @Test
     public void testGetFileFromHandlerIO() throws Exception {
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(PropertiesUtils.getResourcesAsStream("sip.xml"));
-        File file = WorkerIOManagementHelper.findFileFromWorkspace(workspaceClient, "containerName", "objectName");
+        File file = WorkerIOManagementHelper.findFileFromWorkspace(workspaceClient, "containerName", "objectName", "workerId");
         file.delete();
     }
     
     @Test(expected=FileNotFoundException.class)
     public void testGetFileError() throws Exception {
         when(workspaceClient.getObject(anyObject(), anyObject())).thenThrow(new ContentAddressableStorageNotFoundException(""));
-        WorkerIOManagementHelper.findFileFromWorkspace(workspaceClient, "containerName", "objectName");
+        WorkerIOManagementHelper.findFileFromWorkspace(workspaceClient, "containerName", "objectName","workerId");
     }
 
 }

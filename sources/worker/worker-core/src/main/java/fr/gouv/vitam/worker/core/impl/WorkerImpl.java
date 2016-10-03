@@ -199,8 +199,8 @@ public class WorkerImpl implements Worker {
                         try {
                             File file = WorkerIOManagementHelper.findFileFromWorkspace(
                                 client, 
-                                workParams.getContainerName() + workerId, 
-                                input.getUri().getPath());
+                                workParams.getContainerName(), 
+                                input.getUri().getPath(), workerId);
                             handlerIO.addInput(file);
                             break;
                         } catch (FileNotFoundException e) {
