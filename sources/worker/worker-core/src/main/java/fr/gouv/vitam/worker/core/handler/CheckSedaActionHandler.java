@@ -51,8 +51,7 @@ public class CheckSedaActionHandler extends ActionHandler {
      *
      * @param factory SedaUtils factory
      */
-    public CheckSedaActionHandler() {
-    }
+    public CheckSedaActionHandler() {}
 
     /**
      * @return HANDLER_ID
@@ -63,7 +62,7 @@ public class CheckSedaActionHandler extends ActionHandler {
 
     @Override
     public EngineResponse execute(WorkerParameters params, HandlerIO actionDefinition) {
-        checkMandatoryParameters(params);        
+        checkMandatoryParameters(params);
 
         LOGGER.debug("checkSedaActionHandler running ...");
         final EngineResponse response = new ProcessResponse();

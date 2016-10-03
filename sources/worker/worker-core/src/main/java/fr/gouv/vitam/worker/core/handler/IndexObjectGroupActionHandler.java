@@ -83,8 +83,7 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
      *
      * @param factory the sedautils factory
      */
-    public IndexObjectGroupActionHandler() {
-    }
+    public IndexObjectGroupActionHandler() {}
 
     /**
      * @return HANDLER_ID
@@ -98,7 +97,8 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
     public EngineResponse execute(WorkerParameters params, HandlerIO actionDefinition) {
         checkMandatoryParameters(params);
         LOGGER.debug("IndexObjectGroupActionHandler running ...");
-        final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK);
+        final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID,
+            OutcomeMessage.INDEX_OBJECT_GROUP_OK);
 
         try {
             checkMandatoryIOParameter(actionDefinition);
@@ -107,7 +107,7 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
         } catch (ProcessingInternalServerException exc) {
             response.setStatus(StatusCode.FATAL);
             response.setOutcomeMessages(HANDLER_ID, OutcomeMessage.INDEX_OBJECT_GROUP_KO);
-        }catch (final ProcessingException e) {
+        } catch (final ProcessingException e) {
             response.setStatus(StatusCode.WARNING);
             response.setOutcomeMessages(HANDLER_ID, OutcomeMessage.INDEX_OBJECT_GROUP_KO);
         }
@@ -180,7 +180,7 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         // TODO Add objectGroup.json add input and check it
-        
+
     }
 
 }

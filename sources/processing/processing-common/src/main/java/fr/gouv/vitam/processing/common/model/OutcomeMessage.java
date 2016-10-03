@@ -127,6 +127,12 @@ public enum OutcomeMessage {
      * KO : fail message
      */
     STORAGE_OFFER_SPACE_KO("Disponibilité de l'offre de stockage insuffisante"),
+    
+    /**
+     * OK : success message
+     */
+    STORAGE_OFFER_SPACE_OK("Succès de la vérification de la disponibilité de l’offre de stockage"),
+
 
     /**
      * KO logbook lifecycle
@@ -166,7 +172,17 @@ public enum OutcomeMessage {
     /**
      * Workflow ingest KO/FATAL : fail message
      */
-    WORKFLOW_INGEST_KO("Entrée en échec");
+    WORKFLOW_INGEST_KO("Entrée en échec"),
+    
+    /**
+     * Store object OK : success message
+     */
+    STORE_OBJECT_OK("Succès du rangement des Objets"),
+    
+    /**
+     * Store object KO/FATAL : fail message
+     */
+    STORE_OBJECT_KO("Echec du rangement des Objets");
     
     private String value;
 

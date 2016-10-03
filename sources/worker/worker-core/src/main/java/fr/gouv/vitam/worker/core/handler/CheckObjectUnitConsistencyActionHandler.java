@@ -140,18 +140,11 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
         Map<String, Object> objectGroupToGuidStoredMap = JsonHandler.getMapFromString(objectGroupToGuidStoredContent);      
 
         Iterator<Entry<String,Object>> it = objectGroupToGuidStoredMap.entrySet().iterator();
-        boolean isReferenced = false;
 
         while (it.hasNext()) {
-            isReferenced = false;
             Map.Entry<String,Object> objectGroup = (Map.Entry<String,Object>) it.next();
-
-            if (objectGroupToUnitStoredMap.containsKey(objectGroup.getKey())) { 
-                isReferenced = true;
-                break;
-            }
-            if (!isReferenced) {
-                // Update logbook OG lifecycle
+            if (! objectGroupToUnitStoredMap.containsKey(objectGroup.getKey())) { 
+             // Update logbook OG lifecycle
                 LogbookLifeCycleObjectGroupParameters logbookOGParameter = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
                     GUIDReader.getGUID(params.getContainerName()), 
                     EVENT_TYPE, 
@@ -169,6 +162,7 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
                 }
                 ogList.add(objectGroup.getKey());
             }
+
         }
         return ogList;
     }

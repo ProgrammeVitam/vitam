@@ -35,6 +35,10 @@ package fr.gouv.vitam.processing.common.model;
 public enum StatusCode {
     
     /**
+     * UNKNOWN : indicates that the workflow or the action handler or the process is in unknown status!
+     */
+    UNKNOWN,
+    /**
      * STARTED : indicates that the workflow or the action handler or the process has been started
      */
     STARTED,
@@ -51,11 +55,6 @@ public enum StatusCode {
     WARNING,
     
     /**
-     * PAUSE : indicates that the workflow or the action handler or the process has been paused
-     */
-    PAUSED,
-    
-    /**
      * KO : indicates the failed execution of the action
      */
     KO,
@@ -65,5 +64,20 @@ public enum StatusCode {
      * null pointer exception ...)
      */
     FATAL;
+
+    /**
+     * @return Status Level
+     */
+    public int getStatusLevel(){
+        return ordinal();
+    }
+    
+    /**
+     * 
+     * @return True if the status is greater or equal to OK
+     */
+    public boolean isGreaterOrEqualToKo(){
+        return this.compareTo(KO)  >= 0;
+    }
 
 }

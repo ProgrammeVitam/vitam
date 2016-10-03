@@ -66,11 +66,11 @@ public class WorkerIOManagementHelper {
      */
     public static final File findFileFromWorkspace(WorkspaceClient client, String containerName, String objectName, String workerId) throws FileNotFoundException {
         // First try as full path
-        File file = PropertiesUtils.fileFromTmpFolder(containerName +workerId+  "/" + objectName);
+        File file = PropertiesUtils.fileFromTmpFolder(containerName + "_"+ workerId+  "/" + objectName);
         try {
             if (!file.exists()) {
                 InputStream input = client.getObject(containerName, objectName);
-                file = PropertiesUtils.fileFromTmpFolder(containerName + workerId+ "/" + objectName);
+                file = PropertiesUtils.fileFromTmpFolder(containerName + "_"+ workerId+ "/" + objectName);
                 file.getParentFile().mkdirs(); 
                 IOUtils.copy(input, new FileOutputStream(file));
             }

@@ -55,6 +55,7 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCycleClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
+import fr.gouv.vitam.processing.common.model.OutcomeMessage;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -128,7 +129,8 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
         checkMandatoryParameters(params);
         LOGGER.info("StoreObjectGroupActionHandler running ...");
 
-        final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK);
+        final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID,
+            OutcomeMessage.STORE_OBJECT_OK);
 
         try {
             checkMandatoryIOParameter(actionDefinition);
@@ -146,7 +148,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
 
         } catch (final ProcessingException e) {
             LOGGER.error(e);
-            response.setStatus(StatusCode.KO);
+            response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID,OutcomeMessage.STORE_OBJECT_KO);
         }
 
         // Update lifecycle of object group : OK/KO
@@ -169,7 +171,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
         } catch (ProcessingException e) {
             LOGGER.warn(e);
             if (StatusCode.OK.equals(response.getStatus())) {
-                response.setStatus(StatusCode.WARNING);
+                response.setStatus(StatusCode.WARNING).setOutcomeMessages(HANDLER_ID,OutcomeMessage.STORE_OBJECT_KO);
             }
         }
 

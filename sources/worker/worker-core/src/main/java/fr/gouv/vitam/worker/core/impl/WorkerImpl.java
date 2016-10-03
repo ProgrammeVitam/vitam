@@ -162,18 +162,16 @@ public class WorkerImpl implements Worker {
             handlerIOParams.add(handlerIO);
             EngineResponse actionResponse = actionHandler.execute(workParams, handlerIO);
             responses.add(actionResponse);
-            // if the action has been defined as Blocking, then, we check the action Status then break the process
-            // (actions) if
-            // the status is KO            
+            // if the action has been defined as Blocking and the action status is KO or FATAL
+            // then break the process
             if (ProcessBehavior.BLOCKING.equals(action.getActionDefinition().getBehavior()) &&
-                (StatusCode.KO.equals(actionResponse.getStatus()) ||
-                    StatusCode.FATAL.equals(actionResponse.getStatus()))) {
+                (actionResponse.getStatus().isGreaterOrEqualToKo())) {
                 break;
             }
         }
         //Clear all worker input and output 
         try {
-            clearWorkerIOParam(workParams.getContainerName() + workerId);
+            clearWorkerIOParam(workParams.getContainerName() + "_"+ workerId);
         } catch (IOException e) {
             LOGGER.error("Can not clean temporary folder", e);
             throw new ProcessingException(e);
@@ -194,7 +192,7 @@ public class WorkerImpl implements Worker {
     }
 
     private HandlerIO getHandlerIOParam(Action action, WorkspaceClient client, WorkerParameters workParams) throws HandlerNotFoundException {
-        HandlerIO handlerIO = new HandlerIO(workParams.getContainerName() + "/" + workerId);
+        HandlerIO handlerIO = new HandlerIO(workParams.getContainerName() + "_" + workerId);
         if (action.getActionDefinition().getIn() != null) {
             for (IOParameter input: action.getActionDefinition().getIn()) {
                 switch(input.getUri().getPrefix()) {

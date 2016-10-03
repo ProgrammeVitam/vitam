@@ -65,11 +65,12 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
 
 
     /**
-     * @param sedaUtilsFactory  sedaUtils factory 
+     * @param sedaUtilsFactory sedaUtils factory
      * @param containerExtractionUtilsFactory container Extraction utils factory
      */
     public CheckObjectsNumberActionHandler(ContainerExtractionUtilsFactory containerExtractionUtilsFactory) {
-        ParametersChecker.checkParameter("containerExtractionUtilsFactory is a mandatory parameter", containerExtractionUtilsFactory);
+        ParametersChecker.checkParameter("containerExtractionUtilsFactory is a mandatory parameter",
+            containerExtractionUtilsFactory);
         this.containerExtractionUtilsFactory = containerExtractionUtilsFactory;
     }
 
@@ -83,7 +84,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
 
     @Override
     public EngineResponse execute(WorkerParameters params, HandlerIO actionDefinition) {
-        checkMandatoryParameters(params);        
+        checkMandatoryParameters(params);
         LOGGER.debug("CheckObjectsNumberActionHandler running ...");
 
         EngineResponse response = new ProcessResponse();
@@ -101,8 +102,8 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
 
             } else if (extractUriResponse != null) {
                 response.setStatus(StatusCode.KO)
-                .setErrorNumber(extractUriResponse.getErrorNumber())
-                .setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_KO);
+                    .setErrorNumber(extractUriResponse.getErrorNumber())
+                    .setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_KO);
             }
 
         } catch (ProcessingException e) {
@@ -161,10 +162,10 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
          * compare the size between list uri from manifest and list uri from workspace.
          */
         int countCompare = Math.abs(uriListManifest.size() - uriListWorkspace.size());
-        
+
         if (countCompare > 0) {
             response.setStatus(StatusCode.KO)
-            .setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_KO);
+                .setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_KO);
         } else {
 
             /**
@@ -183,7 +184,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
                 } else {
                     countCompare++;
                     response.setStatus(StatusCode.KO)
-                    .setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_KO);
+                        .setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_KO);
                 }
             }
 
@@ -206,10 +207,10 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
 
             } else {
                 response.setStatus(StatusCode.KO)
-                .setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_KO);
+                    .setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_KO);
             }
         }
-        
+
         response.setErrorNumber(countCompare);
     }
 
