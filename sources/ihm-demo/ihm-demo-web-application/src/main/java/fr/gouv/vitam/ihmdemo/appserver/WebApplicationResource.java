@@ -194,6 +194,7 @@ public class WebApplicationResource {
             // get result from shiro session
             try {
                 result= PaginationHelper.getResult(sessionId, pagination);
+
                 return Response.status(Status.OK).entity(result)
                     .header(GlobalDataRest.X_REQUEST_ID, requestId)
                     .header(IhmDataRest.X_OFFSET, pagination.getOffset())

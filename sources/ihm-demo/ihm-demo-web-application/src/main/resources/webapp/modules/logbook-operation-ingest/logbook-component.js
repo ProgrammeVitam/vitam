@@ -31,6 +31,6 @@
 angular.
   module('ihm.demo').
   component('logbookOperations', {
-    templateUrl: 'modules/logbook/logbook-operations.html',
+    templateUrl: 'modules/logbook-operation-ingest/logbook-operations.html',
     controller: 'logbookController as logctrl'
   });

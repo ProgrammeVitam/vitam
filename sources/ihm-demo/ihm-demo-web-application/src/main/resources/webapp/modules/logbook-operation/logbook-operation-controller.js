@@ -67,7 +67,7 @@ angular.module('ihm.demo')
 		    });
 			
 			
-		}
+		};
 		
 	    ctrl.openDialog = function($event, id) {
 	    	$mdDialog.show({

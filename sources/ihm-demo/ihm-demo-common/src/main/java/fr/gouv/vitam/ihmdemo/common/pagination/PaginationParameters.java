@@ -38,7 +38,7 @@ public class PaginationParameters {
     /**
      * Default limit for loading result
      */
-    public static final int DEFAULT_LIMIT = 25;
+    public static final int DEFAULT_LIMIT = 125;
     /**
      * Default Offset
      */

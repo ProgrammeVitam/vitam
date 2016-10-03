@@ -273,7 +273,7 @@ public class LogbookResource extends ApplicationStatusResource {
             final JsonNode resultAsJson = JsonHandler.getFromString(logbookOperationToJsonString(result));
             return Response.status(Status.OK)
                 .entity(new RequestResponseOK()
-                    .setHits(1, 0, 1)
+                    .setHits(result.size(), 0, 1)
                     .setQuery(JsonHandler.getFromString(query))
                     .setResult(resultAsJson))
                 .build();
