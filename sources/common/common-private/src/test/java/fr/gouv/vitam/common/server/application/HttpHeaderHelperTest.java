@@ -177,4 +177,5 @@ public class HttpHeaderHelperTest {
         HttpHeaderHelper.hasValuesFor(httpHeadersMock, VitamHttpHeader.METHOD_OVERRIDE);
     }
 
+
 }

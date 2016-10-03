@@ -37,6 +37,11 @@
 		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>ihm-demo-common</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>ingest-external-client</artifactId>
 			<version>${project.version}</version>
 		</dependency>

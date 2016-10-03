@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.ihmdemo.core.JsonTransformer;
 
 /**
  * JsonTransformerTest junit test

@@ -51,6 +51,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
 
 /**
  * Tests UserInterfaceTransactionManager class

@@ -25,47 +25,29 @@
  * accept its terms.
  *******************************************************************************/
 
-package fr.gouv.vitam.common;
+package fr.gouv.vitam.ihmdemo.common.api;
 
 /**
  * Global Variables and eventually method used by REST services
  */
-public class GlobalDataRest {
+public class IhmDataRest {
     /**
-     * X_HTTP_METHOD_OVERRIDE : used in case of POST methods overriding GET methods
+     * The X_LIMIT header, pagination limit
      */
-    public static final String X_HTTP_METHOD_OVERRIDE = "X-Http-Method-Override";
+    public static final String X_LIMIT = "X-Limit";
 
     /**
-     * Header Parameter X_REQUEST_ID
+     * The X_OFFSET header, pagination offset
      */
-    public static final String X_REQUEST_ID = "X-REQUEST-ID";
+    public static final String X_OFFSET = "X-Offset";
+    /**
+     * The X_TOTAL_RECORDS header, total results
+     */
 
-    /**
-     * X-Command header used on storage resources
-     */
-    public static final String X_COMMAND = "X-Command";
+    public static final String X_TOTAL = "X-Total";
 
-    /**
-     * X-Tenant-Id header used on REST request to identify the concerned tenant
-     */
-    public static final String X_TENANT_ID = "X-Tenant-Id";
-    /**
-     * X-Qualifier header used on REST request to identify the concerned qualifier
-     */
-    public static final String X_QUALIFIER = "X-Qualifier";
-    /**
-     * X-Version header used on REST request to identify the concerned version
-     */
-    public static final String X_VERSION = "X-Version";
-
-    /**
-     * The X_STRATEGY_ID header, used in requests to use a particular strategy
-     */
-    public static final String X_STRATEGY_ID = "X-Strategy-Id";
-    
-    private GlobalDataRest() {
+    private IhmDataRest() {
         // empty
     }
-    
+
 }

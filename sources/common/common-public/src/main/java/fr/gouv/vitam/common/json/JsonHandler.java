@@ -517,4 +517,25 @@ public final class JsonHandler {
         }
     }
 
+    
+    /**
+     * @param array
+     * @param offset
+     * @param limit
+     * @return Sub ArrayNode
+     */
+    public static ArrayNode getSubArrayNode(ArrayNode array, int offset, int limit){
+
+        ArrayNode subResult=createArrayNode();
+        int i = 0;
+        Iterator<JsonNode> iterator = array.elements();
+        for (; i< offset && iterator.hasNext(); i++){
+            iterator.next();
+        }
+        for (i = offset; i< (offset+limit) && iterator.hasNext(); i++){
+            subResult.add(iterator.next());
+        }
+
+        return subResult;
+    }
 }

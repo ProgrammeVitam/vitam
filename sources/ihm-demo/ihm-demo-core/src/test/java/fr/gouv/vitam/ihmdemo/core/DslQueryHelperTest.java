@@ -50,6 +50,7 @@ import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultipl
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
 
 /**
  * DslQueryHelper junit test

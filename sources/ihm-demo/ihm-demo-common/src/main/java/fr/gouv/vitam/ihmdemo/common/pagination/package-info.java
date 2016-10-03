@@ -1,8 +1,8 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- *
+ * 
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -23,49 +23,8 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-
-package fr.gouv.vitam.common;
-
-/**
- * Global Variables and eventually method used by REST services
  */
-public class GlobalDataRest {
-    /**
-     * X_HTTP_METHOD_OVERRIDE : used in case of POST methods overriding GET methods
-     */
-    public static final String X_HTTP_METHOD_OVERRIDE = "X-Http-Method-Override";
-
-    /**
-     * Header Parameter X_REQUEST_ID
-     */
-    public static final String X_REQUEST_ID = "X-REQUEST-ID";
-
-    /**
-     * X-Command header used on storage resources
-     */
-    public static final String X_COMMAND = "X-Command";
-
-    /**
-     * X-Tenant-Id header used on REST request to identify the concerned tenant
-     */
-    public static final String X_TENANT_ID = "X-Tenant-Id";
-    /**
-     * X-Qualifier header used on REST request to identify the concerned qualifier
-     */
-    public static final String X_QUALIFIER = "X-Qualifier";
-    /**
-     * X-Version header used on REST request to identify the concerned version
-     */
-    public static final String X_VERSION = "X-Version";
-
-    /**
-     * The X_STRATEGY_ID header, used in requests to use a particular strategy
-     */
-    public static final String X_STRATEGY_ID = "X-Strategy-Id";
-    
-    private GlobalDataRest() {
-        // empty
-    }
-    
-}
+/**
+ * Common pagination package
+ */
+package fr.gouv.vitam.ihmdemo.common.pagination;

@@ -25,47 +25,85 @@
  * accept its terms.
  *******************************************************************************/
 
-package fr.gouv.vitam.common;
+package fr.gouv.vitam.ihmdemo.common.api;
+
+import javax.ws.rs.core.HttpHeaders;
+
+import fr.gouv.vitam.common.GlobalDataRest;
 
 /**
- * Global Variables and eventually method used by REST services
+ * Enum use to represent possible HTTP header for Vitam application. Also define a regular expression to check if values
+ * from HTTP headers are right
+ *
  */
-public class GlobalDataRest {
-    /**
-     * X_HTTP_METHOD_OVERRIDE : used in case of POST methods overriding GET methods
-     */
-    public static final String X_HTTP_METHOD_OVERRIDE = "X-Http-Method-Override";
-
-    /**
-     * Header Parameter X_REQUEST_ID
-     */
-    public static final String X_REQUEST_ID = "X-REQUEST-ID";
-
-    /**
-     * X-Command header used on storage resources
-     */
-    public static final String X_COMMAND = "X-Command";
-
-    /**
-     * X-Tenant-Id header used on REST request to identify the concerned tenant
-     */
-    public static final String X_TENANT_ID = "X-Tenant-Id";
-    /**
-     * X-Qualifier header used on REST request to identify the concerned qualifier
-     */
-    public static final String X_QUALIFIER = "X-Qualifier";
-    /**
-     * X-Version header used on REST request to identify the concerned version
-     */
-    public static final String X_VERSION = "X-Version";
-
-    /**
-     * The X_STRATEGY_ID header, used in requests to use a particular strategy
-     */
-    public static final String X_STRATEGY_ID = "X-Strategy-Id";
+public enum IhmWebAppHeader {
     
-    private GlobalDataRest() {
-        // empty
+    /**
+     * The X_LIMIT header, used to get an object
+     */
+    LIMIT(IhmDataRest.X_LIMIT, "[0-9]+"),
+    /**
+     * The X-X_OFFSET header, used to get an object
+     */
+    OFFSET(IhmDataRest.X_OFFSET, "[0-9]+"),
+    /**
+     * The X_TOTAL header, used to get an object
+     */
+    TOTAL(IhmDataRest.X_TOTAL, "[0-9]+"),
+    /**
+     * The X_REQUEST_ID header, used to get an object
+     */
+    REQUEST_ID(GlobalDataRest.X_REQUEST_ID, "[a-z0-9]+"),
+    /**
+     * The COOKIE header, used to get an object
+     */
+    COOKIE(HttpHeaders.COOKIE, "[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}");
+
+    private String name;
+    private String regExp;
+
+    /**
+     * Constructor
+     *
+     * @param name the HTTP header name
+     * @param regExp the regular expression to validate header values
+     */
+    IhmWebAppHeader(String name, String regExp) {
+        this.name = name;
+        this.regExp = regExp;
     }
-    
+
+    /**
+     * Get the header name
+     *
+     * @return the header name
+     */
+    public String getName() {
+        return this.name;
+    }
+
+    /**
+     * Get the regular expression to validate header values
+     *
+     * @return the regular expression
+     */
+    public String getRegExp() {
+        return this.regExp;
+    }
+
+    /**
+     * Get VitamHttpHeader from name
+     *
+     * @param headerName the wanted header name
+     * @return the header if exists, null otherwise
+     */
+    public static IhmWebAppHeader get(String headerName) {
+        for (IhmWebAppHeader v : values()) {
+            if (v.getName().equals(headerName)) {
+                return v;
+            }
+        }
+        return null;
+    }
+
 }

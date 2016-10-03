@@ -45,6 +45,7 @@ import org.apache.commons.io.IOUtils;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
@@ -130,11 +131,6 @@ public class WebApplicationResourceTest {
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
     }
 
-    @Test
-    public void givenEmptyPayloadWhenSearchOperationsThenReturnBadRequest() {
-        given().contentType(ContentType.JSON).body("{}").expect().statusCode(Status.BAD_REQUEST.getStatusCode()).when()
-        .post("/logbook/operations");
-    }
 
     @Test
     public void givenNoArchiveUnitWhenSearchOperationsThenReturnOK() {
@@ -155,26 +151,7 @@ public class WebApplicationResourceTest {
         given().expect().statusCode(Status.OK.getStatusCode()).when().get("status");
     }
 
-    @SuppressWarnings("unchecked")
-    @Test
-    public void testLogbookResultLogbookClientException()
-        throws InvalidParseOperationException, InvalidCreateOperationException, LogbookClientException {
-
-        PowerMockito.mockStatic(LogbookClientFactory.class);
-        LogbookClient logbookClient = PowerMockito.mock(LogbookClient.class);
-        LogbookClientFactory logbookFactory = PowerMockito.mock(LogbookClientFactory.class);
-        PowerMockito.when(LogbookClientFactory.getInstance()).thenReturn(logbookFactory);
-        PowerMockito.when(LogbookClientFactory.getInstance().getLogbookOperationClient()).thenReturn(logbookClient);
-
-        Map<String, String> searchCriteriaMap = JsonHandler.getMapStringFromString(OPTIONS);
-        String preparedDslQuery = "";
-        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(searchCriteriaMap)).thenReturn(preparedDslQuery);
-
-        PowerMockito.when(logbookClient.selectOperation(preparedDslQuery)).thenThrow(LogbookClientException.class);
-        given().contentType(ContentType.JSON).body(OPTIONS).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
-        .post("/logbook/operations");
-    }
-
+    
     @SuppressWarnings("unchecked")
     @Test
     public void testLogbookResultRemainingExceptions()
@@ -193,43 +170,6 @@ public class WebApplicationResourceTest {
         PowerMockito.when(logbookClient.selectOperation(preparedDslQuery)).thenThrow(Exception.class);
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
         .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when().post("/logbook/operations");
-    }
-
-    @Test
-    public void testSuccessGetLogbookResultById() throws InvalidParseOperationException, LogbookClientException {
-        PowerMockito.mockStatic(LogbookClientFactory.class);
-        LogbookClient logbookClient = PowerMockito.mock(LogbookClient.class);
-        LogbookClientFactory logbookFactory = PowerMockito.mock(LogbookClientFactory.class);
-        PowerMockito.when(LogbookClientFactory.getInstance()).thenReturn(logbookFactory);
-        PowerMockito.when(LogbookClientFactory.getInstance().getLogbookOperationClient()).thenReturn(logbookClient);
-
-        JsonNode result = JsonHandler.getFromString("{}");
-
-        PowerMockito.when(logbookClient.selectOperationbyId("1")).thenReturn(result);
-
-        given().param("idOperation", "1").expect().statusCode(Status.OK.getStatusCode()).when()
-        .post("/logbook/operations/1");
-    }
-
-    @Test
-    public void testSuccessGetLogbookResult()
-        throws InvalidParseOperationException, LogbookClientException, InvalidCreateOperationException {
-
-        PowerMockito.mockStatic(LogbookClientFactory.class);
-        LogbookClient logbookClient = PowerMockito.mock(LogbookClient.class);
-        LogbookClientFactory logbookFactory = PowerMockito.mock(LogbookClientFactory.class);
-        PowerMockito.when(LogbookClientFactory.getInstance()).thenReturn(logbookFactory);
-        PowerMockito.when(LogbookClientFactory.getInstance().getLogbookOperationClient()).thenReturn(logbookClient);
-
-        Map<String, String> searchCriteriaMap = JsonHandler.getMapStringFromString(OPTIONS);
-        String preparedDslQuery = "";
-        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(searchCriteriaMap)).thenReturn(preparedDslQuery);
-
-        JsonNode result = JsonHandler.getFromString("{}");
-        PowerMockito.when(logbookClient.selectOperation(preparedDslQuery)).thenReturn(result);
-
-        given().contentType(ContentType.JSON).body(OPTIONS).expect().statusCode(Status.OK.getStatusCode()).when()
-        .post("/logbook/operations");
     }
 
     @SuppressWarnings("unchecked")
