@@ -78,7 +78,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
     // TODO: passed to protected but is it desired ? Better with getter ?
     protected final BlobStoreContext context;
 
-    private static final int MAX_RESULTS = 10000;
+    private static final int MAX_RESULTS = 51000;
 
 
 

@@ -64,13 +64,13 @@ public class WorkerIOManagementHelper {
      * @return the File if found
      * @throws FileNotFoundException if not fount
      */
-    public static final File findFileFromWorkspace(WorkspaceClient client, String containerName, String objectName) throws FileNotFoundException {
+    public static final File findFileFromWorkspace(WorkspaceClient client, String containerName, String objectName, String workerId) throws FileNotFoundException {
         // First try as full path
-        File file = PropertiesUtils.fileFromTmpFolder(containerName + "/" + objectName);
+        File file = PropertiesUtils.fileFromTmpFolder(containerName +workerId+  "/" + objectName);
         try {
             if (!file.exists()) {
                 InputStream input = client.getObject(containerName, objectName);
-                file = PropertiesUtils.fileFromTmpFolder(containerName + "/" + objectName);
+                file = PropertiesUtils.fileFromTmpFolder(containerName + workerId+ "/" + objectName);
                 file.getParentFile().mkdirs(); 
                 IOUtils.copy(input, new FileOutputStream(file));
             }
