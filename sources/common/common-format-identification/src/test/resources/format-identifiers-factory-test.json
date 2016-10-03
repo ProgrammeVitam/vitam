@@ -1,0 +1,28 @@
+{
+	"test1": {
+		"type":"SIEGFRIED",
+		"client":"http",
+		"host":"localhost",
+		"port":55800,
+		"rootPath":"/root/path",
+		"versionPath":"/root/path/version/folder"
+	},
+	"test-siegfried": {
+		"type":"SIEGFRIED",
+		"client":"http",
+		"host":"localhost",
+		"port":55800,
+		"rootPath":"/root/path",
+		"versionPath":"/root/path/version/folder",
+		"createVersionPath":false
+	},
+	"test-siegfried-mock": {
+		"type":"SIEGFRIED",
+		"client":"mock",
+		"rootPath":"/root/path",
+		"versionPath":"/root/path/version/folder"
+	},
+	"test2": {
+		"type":"MOCK"
+	}
+}

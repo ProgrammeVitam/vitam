@@ -17,5 +17,6 @@
 		<module>common-private</module>
 		<module>common-junit</module>
 		<module>common-database-vitam</module>
+		<module>common-format-identification</module>
 	</modules>
 </project>
