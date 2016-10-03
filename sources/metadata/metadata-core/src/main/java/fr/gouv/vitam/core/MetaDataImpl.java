@@ -27,23 +27,32 @@
 package fr.gouv.vitam.core;
 
 
+import static difflib.DiffUtils.generateUnifiedDiff;
+
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.MongoWriteException;
 
+import difflib.DiffUtils;
+import difflib.Patch;
 import fr.gouv.vitam.api.MetaData;
 import fr.gouv.vitam.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
+import fr.gouv.vitam.common.database.builder.request.multiple.Select;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.parser.request.multiple.InsertParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
@@ -60,29 +69,41 @@ import fr.gouv.vitam.core.utils.MetadataJsonResponseUtils;
 /**
  * MetaDataImpl implements a MetaData interface
  */
-public final class MetaDataImpl implements MetaData {
-
-    private final DbRequestFactory dbRequestFactory;
+public class MetaDataImpl implements MetaData {
 
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(MetaDataImpl.class);
-
     private static final String REQUEST_IS_NULL = "Request select is null or is empty";
+    private final DbRequestFactory dbRequestFactory;
 
     /**
      * MetaDataImpl constructor
      *
-     * @param configuration of mongoDB access
+     * @param configuration        of mongoDB access
      * @param mongoDbAccessFactory
      * @param dbRequestFactory
      */
-    // FIXME REVIEW should be private and adding public static final Metadata newMetadata(...) calling this private
-    // constructor
-    public MetaDataImpl(MetaDataConfiguration configuration, MongoDbAccessMetadataFactory mongoDbAccessFactory,
+    private MetaDataImpl(MetaDataConfiguration configuration, MongoDbAccessMetadataFactory mongoDbAccessFactory,
         DbRequestFactory dbRequestFactory) {
         mongoDbAccessFactory.create(configuration);
-        // FIXME REVIEW should check null
         this.dbRequestFactory = dbRequestFactory;
+    }
+
+    /**
+     * Get a new MetaDataImpl instance
+     *
+     * @param configuration of mongoDB access
+     * @param mongoDbAccessFactory
+     * @param dbRequestFactory
+     * @return a new instance of MetaDataImpl
+     * @throws IllegalArgumentException if one of dbRequestFactory and mongoDbAccessFactory is null
+     */
+    public static MetaData newMetadata(MetaDataConfiguration configuration, MongoDbAccessMetadataFactory
+        mongoDbAccessFactory,
+        DbRequestFactory dbRequestFactory) {
+        ParametersChecker.checkParameter("DbRequestFactory and / or mongoDbAccessFactory cannot be null",
+            dbRequestFactory, mongoDbAccessFactory);
+        return new MetaDataImpl(configuration, mongoDbAccessFactory, dbRequestFactory);
     }
 
     @Override
@@ -172,7 +193,7 @@ public final class MetaDataImpl implements MetaData {
     // TODO : maybe do not encapsulate all exception in a MetaDataExecutionException. We may need to know if it is
     // NOT_FOUND for example
     private JsonNode selectMetadataObject(String selectQuery, String unitOrObjectGroupId, List<BuilderToken
-            .FILTERARGS> filters)
+        .FILTERARGS> filters)
         throws MetaDataExecutionException, InvalidParseOperationException,
         MetaDataDocumentSizeException {
         Result result = null;
@@ -212,7 +233,8 @@ public final class MetaDataImpl implements MetaData {
             result = dbRequestFactory.create().execRequest(selectRequest, result);
             jsonNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, selectRequest);
 
-        } catch (final InstantiationException | IllegalAccessException | MetaDataAlreadyExistException | MetaDataNotFoundException e) {
+        } catch (final InstantiationException | IllegalAccessException | MetaDataAlreadyExistException |
+            MetaDataNotFoundException e) {
             LOGGER.error(e);
             throw new MetaDataExecutionException(e);
         }
@@ -223,7 +245,7 @@ public final class MetaDataImpl implements MetaData {
     public JsonNode updateUnitbyId(String updateQuery, String unitId)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataDocumentSizeException {
         Result result = null;
-        JsonNode jsonNodeResponse = null;
+        JsonNode jsonNodeResponse;
         if (StringUtils.isEmpty(updateQuery)) {
             throw new InvalidParseOperationException(REQUEST_IS_NULL);
         }
@@ -245,26 +267,65 @@ public final class MetaDataImpl implements MetaData {
                     request.resetRoots().addRoots(unitId);
                 }
             }
+
+            String unitBeforeUpdate = JsonHandler.prettyPrint(getUnitById(unitId));
+
             // Execute DSL request
             result = dbRequestFactory.create().execRequest(updateRequest, result);
-            jsonNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, updateRequest);
-        } catch (final MetaDataExecutionException e) {
+
+            String unitAfterUpdate = JsonHandler.prettyPrint(getUnitById(unitId));
+
+            Map<String, List<String>> diffs = new HashMap<>();
+            diffs.put(unitId, getConcernedDiffLines(getUnifiedDiff(unitBeforeUpdate, unitAfterUpdate)));
+
+            jsonNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, updateRequest, diffs);
+        } catch (final MetaDataExecutionException | InvalidParseOperationException e) {
             LOGGER.error(e);
             throw e;
-        } catch (final InvalidParseOperationException e) {
-            LOGGER.error(e);
-            throw e;
-        } catch (final InstantiationException e) {
-            LOGGER.error(e);
-            throw new MetaDataExecutionException(e);
-        } catch (final IllegalAccessException e) {
-            LOGGER.error(e);
-            throw new MetaDataExecutionException(e);
-        } catch (MetaDataAlreadyExistException | MetaDataNotFoundException e) {
-            // Should not happen there
+        } catch (final InstantiationException | MetaDataAlreadyExistException | MetaDataNotFoundException |
+            IllegalAccessException e) {
             LOGGER.error(e);
             throw new MetaDataExecutionException(e);
         }
         return jsonNodeResponse;
+    }
+
+    private JsonNode getUnitById(String id)
+        throws MetaDataDocumentSizeException, MetaDataExecutionException, InvalidParseOperationException {
+        Select select = new Select();
+        return selectUnitsById(select.getFinalSelect().toString(), id);
+    }
+
+    /**
+     * Get unified diff
+     *
+     * @param original the original value
+     * @param revised the revisited value
+     * @return unified diff (each list entry is a diff line)
+     */
+    private List<String> getUnifiedDiff(String original, String revised) {
+        List<String> beforeList = Arrays.asList(original.split("\\n"));
+        List<String> revisedList = Arrays.asList(revised.split("\\n"));
+
+        Patch patch = DiffUtils.diff(beforeList, revisedList);
+
+        return generateUnifiedDiff(original, revised, beforeList, patch, 1);
+    }
+
+    /**
+     * Retrieve only + and - line on diff (for logbook lifecycle)
+     * regexp = line started by + or - with at least one space after and any character
+     *
+     * @param diff the unified diff
+     * @return + an - lines for logbook lifecycle
+     */
+    private List<String> getConcernedDiffLines(List<String> diff) {
+        List<String> result = new ArrayList<>();
+        for (String line : diff) {
+            if (line.matches("^(\\+|-){1}\\s{1,}.*")) {
+                result.add(line);
+            }
+        }
+        return result;
     }
 }

@@ -51,6 +51,7 @@ import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultipl
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
@@ -75,6 +76,7 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 /**
  * AccessModuleImpl implements AccessModule
  */
+// TODO: fully externalize logbook part if possible (like helper)
 public class AccessModuleImpl implements AccessModule {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessModuleImpl.class);
@@ -313,6 +315,7 @@ public class AccessModuleImpl implements AccessModule {
             // TODO: interest of this private method ?
             logbookLCParamEnd = getLogbookLifeCycleUpdateUnitParameters(updateOpGuidStart, LogbookOutcome.OK,
                 queryJson.toString(), queryJson.toString(), idUnit);
+            logbookLCParamEnd.putParameterValue(LogbookParameterName.eventDetailData, getDiffMessageFor(jsonNode, idUnit));
             logbookLifeCycleClient.update(logbookLCParamEnd);
 
             // commit logbook lifecycle
@@ -389,5 +392,16 @@ public class AccessModuleImpl implements AccessModule {
                 eventIdentifierRequest);
         parameters.putParameterValue(LogbookParameterName.objectIdentifier, eventIdentifierRequest);
         return parameters;
+    }
+
+    private String getDiffMessageFor(JsonNode diff, String unitId) throws InvalidParseOperationException {
+        JsonNode arrayNode = diff.has("$diff") ? diff.get("$diff") : diff.get("$result");
+        for (JsonNode diffNode : arrayNode) {
+            if (diffNode.get("_id") != null && unitId.equals(diffNode.get("_id").textValue())) {
+                return JsonHandler.writeAsString(diffNode.get("_diff"));
+            }
+        }
+        // TODO : empty string or error because no diff for this id ?
+        return "";
     }
 }
