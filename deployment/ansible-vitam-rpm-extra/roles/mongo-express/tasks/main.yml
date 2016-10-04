@@ -5,6 +5,7 @@
   yum: 
     name: "{{item}}"
     state: latest
+    update_cache: yes
   with_items:
   - docker
   - docker-python

@@ -1,6 +1,35 @@
 <VirtualHost *:8080>
+  DocumentRoot "/var/www/html-{{vitam_reverse_domain}}"
   ProxyPreserveHost Off
   ServerName {{vitam_reverse_domain}}.env.programmevitam.fr
+
+<Directory "/var/www/html-{{vitam_reverse_domain}}">
+    #
+    # Possible values for the Options directive are "None", "All",
+    # or any combination of:
+    #   Indexes Includes FollowSymLinks SymLinksifOwnerMatch ExecCGI MultiViews
+    #
+    # Note that "MultiViews" must be named *explicitly* --- "Options All"
+    # doesn't give it to you.
+    #
+    # The Options directive is both complicated and important.  Please see
+    # http://httpd.apache.org/docs/2.4/mod/core.html#options
+    # for more information.
+    #
+    Options Indexes FollowSymLinks
+
+    #
+    # AllowOverride controls what directives may be placed in .htaccess files.
+    # It can be "All", "None", or any combination of the keywords:
+    #   Options FileInfo AuthConfig Limit
+    #
+    AllowOverride None
+
+    #
+    # Controls who can get stuff from this server.
+    #
+    Require all granted
+</Directory>
 
 # VITAM
   ProxyPass /ihm-demo http://{{vitam_ihm_demo_host}}:{{vitam_ihm_demo_port}}/ihm-demo acquire=5000 connectiontimeout=3500 timeout=50 retry=5
@@ -24,9 +53,11 @@
 #  ProxyPass /access http://vitam-iaas-access-01.int3:8082/access acquire=5000 connectiontimeout=3500 timeout=50 retry=5
 #  ProxyPassReverse  /access http://vitam-iaas-access-01.int3:8082/access
 
-# Default offer visualization
-  ProxyPass /offer-view http://{{vitam_storageofferdefault_host}}/offer-view  acquire=5000 connectiontimeout=3500 timeout=50 retry=5
-  ProxyPassReverse  /offer-view http://{{vitam_storageofferdefault_host}}/offer-view
+# /vitam subdir browser
+{% for item in groups['vitam'] %}
+  ProxyPass /nodes/{{item}}/browse http://{{item}}/browse  acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+  ProxyPassReverse  /nodes/{{item}}/browse http://{{item}}/browse
+{% endfor %}
 
 # Mongo express
   ProxyPass /mongo-express http://{{groups['hosts-mongo-express'][0]}}:8081/mongo-express acquire=5000 connectiontimeout=3500 timeout=50 retry=5
@@ -35,18 +66,18 @@
 
 # Kibana
 
-  ProxyPass /app/kibana http://{{vitam_log_host}}:5601/app/kibana acquire=5000 connectiontimeout=3500 timeout=50 retry=5
-  ProxyPassReverse /app/kibana http://{{vitam_log_host}}:5601/app/kibana
+  ProxyPass /app/kibana http://{{vitam_logserver_host}}:5601/app/kibana acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+  ProxyPassReverse /app/kibana http://{{vitam_logserver_host}}:5601/app/kibana
 
-  ProxyPass /api/status http://{{vitam_log_host}}:5601/api/status acquire=5000 connectiontimeout=3500 timeout=50 retry=5
-  ProxyPassReverse /api/status http://{{vitam_log_host}}:5601/api/status
+  ProxyPass /api/status http://{{vitam_logserver_host}}:5601/api/status acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+  ProxyPassReverse /api/status http://{{vitam_logserver_host}}:5601/api/status
 
-  ProxyPass /bundles http://{{vitam_log_host}}:5601/bundles acquire=5000 connectiontimeout=3500 timeout=50 retry=5
-  ProxyPassReverse /bundles http://{{vitam_log_host}}:5601/bundles
+  ProxyPass /bundles http://{{vitam_logserver_host}}:5601/bundles acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+  ProxyPassReverse /bundles http://{{vitam_logserver_host}}:5601/bundles
 
   # Needed as it conflicts with Elasticsearch reverse proxy
-  ProxyPass /elasticsearch http://{{vitam_log_host}}:5601/elasticsearch
-  ProxyPassReverse /elasticsearch http://{{vitam_log_host}}:5601/elasticsearch
+  ProxyPass /elasticsearch http://{{vitam_logserver_host}}:5601/elasticsearch
+  ProxyPassReverse /elasticsearch http://{{vitam_logserver_host}}:5601/elasticsearch
 
 # Documentation
   ProxyPass /doc http://{{groups['library'][0]}}:{{vitam_library_port}}/doc

@@ -1,5 +1,5 @@
 ######################
-Architecture Technique
+Architecture technique
 ######################
 
 .. toctree::

@@ -1,9 +1,18 @@
 ---
 
 # Vitam solution deployment
-- hosts: hosts
+# TODO : à régler properment
+- hosts: vitam
   roles:
-    - {role: init_vitam_dir, when: vitam_environment=='local'}
+    - init_vitam_dir
+    - rsyslog
+
+# Consul installation
+# KWA : TODO : instalelr les serveurs en serial 1 avant les agents (qui n'en ont pas besoin, du serial 1)
+- hosts: vitam
+  serial: 1
+  roles:
+    - consul
 
 # mongodb commons (yum install, etc...)
 - hosts: mongo_common
@@ -39,13 +48,6 @@
   roles:
     - {role: elasticsearch-cluster, cluster_name: elasticsearch-log , port_http: "{{elasticsearch_log_http_port}}", port_tcp: "{{elasticsearch_log_tcp_port}}", groupe: log, when: vitam_environment != 'local' }
 
-# Consul installation
-- hosts: hosts-consul-server
-  serial: 1
-  roles:
-    - {role: consul, server: true } 
-
-
 
 
 ## VITAM ###################################################################################""
@@ -68,8 +70,7 @@
 
 - hosts: hosts-ingest-external
   roles:
-    - siegfried
-    - {role: vitam, vitam_component: ingest-external, java_args: /vitam/conf/ingest-external/ingest-external.conf, port_http: "{{vitam_ingestexternal_port}}", tls_active: true }
+    - {role: vitam, vitam_component: ingest-external, java_args: /vitam/conf/ingest-external/ingest-external.conf, port_http: "{{vitam_ingestexternal_port}}", port_https: "{{vitam_ingestexternal_port_https}}", tls_active: true }
     - ingest-external
 
 - hosts: hosts-processing
@@ -78,7 +79,6 @@
 
 - hosts: hosts-worker
   roles:
-    - siegfried
     - {role: vitam, vitam_component: worker,java_args: /vitam/conf/worker/worker.conf, port_http: "{{vitam_worker_port}}" } 
 
 - hosts: hosts-access

@@ -4,13 +4,14 @@
 
 .. toctree::
    :numbered:
-   :maxdepth: 3
+   :maxdepth: 5
 
    introduction.rst
    fonctionnelle-archivistes/_toc.rst
    fonctionnelle-exploitation/_toc.rst
    technique/_toc.rst
    securite/_toc.rst
+   include/_toc.rst
 
 .. only:: latex
 

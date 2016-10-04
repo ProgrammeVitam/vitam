@@ -196,7 +196,7 @@
             </Array>
         </Arg>
         <Set name="port">
-            <SystemProperty name="jetty.port" default="{{vitam_ingestexternal_port_https}}"/>
+            <SystemProperty name="jetty.port" default="{{ port_https }}"/>
         </Set>
     </New>
     <Call name="setConnectors">

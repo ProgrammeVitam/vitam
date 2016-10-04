@@ -8,7 +8,6 @@ MAKE	      = make
 PAPER         =
 LANGUAGE      = fr
 DOC           = 
-MODULE        = .
 SRCDIR        = ./$(LANGUAGE)
 BUILDDIR      = ./target
 RAMLCONTENTVIEUXINTERNE  = $(SRCDIR)/rest/interne
@@ -34,16 +33,17 @@ ALLSPHINXOPTS   = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS)
 I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 
 LIST_ITEMS	= $(shell find $(SRCDIR) -name "conf.py" -type f | sed 's/\/conf.py//g' | sed 's/.*fr\///g')
-LIST_MODULES	= $(shell find . -name "doc" -type d | sed 's/\/doc//g' | sed 's/.*\///g')
 LIST_RAMLINTERNE = $(shell cat ${RAMLCONTENTINTERNE}/index)
 LIST_RAMLEXTERNE = $(shell cat ${RAMLCONTENTEXTERNE}/index)
 LISTE_AUTRES = $(shell cat ${RAMLCONTENT}/index)
+LIST_COMPONENTS = $(shell find ../sources -maxdepth 1 -type d | sed 's/.*\///g' | sed 's/sources//g')
 
 
 .PHONY: help
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
-	@echo "  clean      to delete output"
+	@echo "  clean      to delete output and symlinks"
+	@echo "  symlinks   to create the symlinks for the detailed documentation (components)"
 	@echo "  html       to make standalone HTML files"
 	@echo "  latexpdf   to make LaTeX files and run them through pdflatex"
 	@echo "  raml       to make standaloneHTML files from RAML"
@@ -55,6 +55,30 @@ clean:
 	rm -rf $(HTMLBUILDDIR); \
 	rm -rf ${PDFBUILDDIR}; \
 	rm -rf ${AUTREBUILD};
+
+
+
+.PHONY: symlinks
+symlinks:
+	# Clean up, then add symlinks to modules documentation
+	for item in $(LIST_ITEMS); do \
+		for component in $(LIST_COMPONENTS); do \
+			if [[ -e fr/$${item}/include/$${component} ]]; then \
+				rm -f fr/$${item}/include/$${component}; \
+			fi; \
+		done; \
+	done; \
+	for item in $(LIST_ITEMS); do \
+		for component in $(LIST_COMPONENTS); do \
+			if [[ -d ../sources/$${component}/doc/fr/$${item} ]]; then \
+				if [[ -d fr/$${item}/include ]]; then \
+					if [[ ! -e fr/$${item}/include/$${component} ]]; then \
+						ln -s ../../../../sources/$${component}/doc/fr/$${item} fr/$${item}/include/$${component}; \
+					fi; \
+				fi; \
+			fi; \
+		done; \
+	done;
 
 .PHONY: html
 html:
@@ -115,10 +139,4 @@ latexpdf:
 		echo "PDF Build finished; the PDF files are in $(PDFBUILDDIR)."; \
 	done;
 
-
-.PHONY: all
-all:
-	for module in $(LIST_MODULES); do \
-		$(MAKE) clean html latexpdf MODULE=$${module}; \
-	done;
 	

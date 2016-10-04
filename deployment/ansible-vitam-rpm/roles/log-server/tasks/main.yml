@@ -1,5 +1,10 @@
 ---
 # tasks file for log-server
+- name: install vitam user for /vitam browser
+  yum:
+    name=vitam-user-vitam
+    state=latest
+
 - name: install java (prerequisite for other components)
   yum:
     name=java-1.8.0

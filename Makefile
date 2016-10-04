@@ -24,8 +24,9 @@ ALLSPHINXOPTS   = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS)
 # the i18n builder cannot share the environment and doctrees with the others
 I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 
-LIST_ITEMS	= $(shell find $(SRCDIR) -name "conf.py" -type f | sed 's/\/conf.py//g' | sed 's/.*fr\///g')
+LIST_ITEMS		= $(shell find $(SRCDIR) -name "conf.py" -type f | sed 's/\/conf.py//g' | sed 's/.*fr\///g')
 LIST_MODULES	= $(shell find . -name "doc" -type d | sed 's/\/doc//g' | sed 's/.*\///g')
+
 
 .PHONY: help
 help:
@@ -35,10 +36,12 @@ help:
 
 .PHONY: clean
 clean:
+	@echo "Caution : deprecated script ; please use the pom.xml and Makefile in /doc to build the documentation."
 	rm -rf $(BUILDDIR)
 
 .PHONY: html
 html:
+	@echo "Caution : deprecated script ; please use the pom.xml and Makefile in /doc to build the documentation."
 	for item in $(LIST_ITEMS); do \
 		echo "Building \"$${item}\""; \
 		$(SPHINXBUILD) -q -b html -d $(BUILDDIR)/$${item}/doctrees $(ALLSPHINXOPTS) $(SRCDIR)/$${item} $(BUILDDIR)/$${item}/html; \
@@ -47,6 +50,7 @@ html:
 
 .PHONY: latexpdf
 latexpdf:
+	@echo "Caution : deprecated script ; please use the pom.xml and Makefile in /doc to build the documentation."
 	#FIXME sed correspond à un contournement pour Centos 7
 	for item in $(LIST_ITEMS); do \
 		echo "Building \"$${item}\""; \
@@ -61,10 +65,10 @@ latexpdf:
 		echo "PDF Build finished; the PDF files are in \"$${item}/latex\"."; \
 	done;
 
-
 .PHONY: all
 all:
+	@echo "Caution : deprecated script ; please use the pom.xml and Makefile in /doc to build the documentation."
 	for module in $(LIST_MODULES); do \
-		$(MAKE) clean html latexpdf MODULE=$${module} BUILDDIR=${PWD}/target/doc/$${module}; \
+		$(MAKE) clean symlinks html latexpdf MODULE=$${module} BUILDDIR=${PWD}/target/doc/$${module}; \
 	done;
 	
