@@ -33,6 +33,7 @@ import static com.mongodb.client.model.Filters.lt;
 import static com.mongodb.client.model.Updates.addEachToSet;
 import static com.mongodb.client.model.Updates.combine;
 import static com.mongodb.client.model.Updates.set;
+import static com.mongodb.client.model.Filters.eq;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -615,7 +616,7 @@ public class Unit extends MetadataDocument<Unit> {
             LOGGER.debug(this + "->" + unit + "\n" +
                 "\t" + MongoDbHelper.bsonToString(update, false) + "\n\t" + min + ":" + max);
             try {
-                final long nbc = getCollection().updateOne(in(ID, ids),
+                final long nbc = getCollection().updateOne(eq(ID,ids.get(0)),
                     update,
                     new UpdateOptions().upsert(false)).getMatchedCount();
                 nb += nbc;
