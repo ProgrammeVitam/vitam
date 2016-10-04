@@ -90,7 +90,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
         response.setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_OK);
 
         try {
-            checkMandatoryParamerter(actionDefinition);
+            checkMandatoryIOParameter(actionDefinition);
             final ExtractUriResponse extractUriResponse = getUriListFromManifest(params);
 
             if (extractUriResponse != null && !extractUriResponse.isErrorDuplicateUri()) {
@@ -215,7 +215,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
 
 
     @Override
-    public void checkMandatoryParamerter(HandlerIO handler) throws ProcessingException {
+    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
       //TODO Add Workspace:SIP/manifest.xml and check it 
     }
 }

@@ -53,6 +53,6 @@ public interface WorkerAction {
      * @param handler input output list
      * @throws ProcessingException when handler io is not complete
      */
-    void checkMandatoryParamerter(HandlerIO handler) throws ProcessingException;
+    void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException;
 
 }

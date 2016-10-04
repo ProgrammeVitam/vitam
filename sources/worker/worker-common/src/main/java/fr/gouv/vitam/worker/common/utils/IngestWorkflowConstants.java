@@ -50,6 +50,10 @@ public class IngestWorkflowConstants {
      */
     public static final String BDO_TO_OBJECT_GROUP_ID_MAP_FILE_NAME_PREFIX = "BDO_TO_OBJECT_GROUP_ID_MAP_";
     /**
+     * Prefix of file containing mapping between object group's seda ID and archive units' seda ID.
+     */
+    public static final String OBJECT_GROUP_ID_TO_ARCHIVE_UNIT_ID_MAP_FILE_NAME_PREFIX = "OG_TO_ARCHIVE_ID_MAP_";
+    /**
      * Prefix of file the ingest units tree.
      */
     public static final String ARCHIVE_TREE_TMP_FILE_NAME_PREFIX = "INGEST_TREE_";

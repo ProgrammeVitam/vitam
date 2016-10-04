@@ -162,7 +162,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     private Map<String, LogbookParameters> guidToLifeCycleParameters;
     
-    private static final int HANDLER_IO_PARAMETER_NUMLBER = 6;
+    private static final int HANDLER_IO_PARAMETER_NUMBER = 7;
     private HandlerIO handlerInitialIOList;
     /**
      * Constructor with parameter SedaUtilsFactory
@@ -180,7 +180,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         objectGroupIdToUnitId = new HashMap<>();
         guidToLifeCycleParameters = new HashMap<>();
         handlerInitialIOList = new HandlerIO("");
-        for (int i = 0; i < HANDLER_IO_PARAMETER_NUMLBER; i++) {
+        for (int i = 0; i < HANDLER_IO_PARAMETER_NUMBER; i++) {
             handlerInitialIOList.addOutput(String.class);
         }
         
@@ -201,10 +201,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
         final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID, OutcomeMessage.EXTRACT_MANIFEST_OK);
 
         try {
-            checkMandatoryParamerter(handlerIO);
-            checkMandatoryParamerter(ioParam);
+            checkMandatoryIOParameter(handlerIO);
+            checkMandatoryIOParameter(ioParam);
             extractSEDA(params);
         } catch (final ProcessingException e) {
+            LOGGER.debug("ProcessingException", e);
             response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID, OutcomeMessage.EXTRACT_MANIFEST_KO);
         } finally {
             //Empty all maps  
@@ -328,6 +329,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
             // Save binaryDataObjectIdToGuid Map
             saveMap(containerId, binaryDataObjectIdToGuid, (String) handlerIO.getOutput().get(4), client, true);
+            
+         // Save objectGroupIdToUnitId Map
+            saveMap(containerId, objectGroupIdToUnitId, (String) handlerIO.getOutput().get(6), client, true);
 
         } catch (final XMLStreamException e) {
             LOGGER.error(CANNOT_READ_SEDA);
@@ -823,7 +827,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     }
     
 
-    private void saveMap(String containerId, Map<String, String> map, String fileName, WorkspaceClient client,
+    private void saveMap(String containerId, Map<String, ?> map, String fileName, WorkspaceClient client,
         boolean removeTmpFile)
             throws IOException, ProcessingException {
 
@@ -986,7 +990,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     }
 
     @Override
-    public void checkMandatoryParamerter(HandlerIO handler) throws ProcessingException {
+    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         if (handlerIO.getOutput().size() != handlerInitialIOList.getOutput().size()) {
             throw new ProcessingException(HandlerIO.NOT_ENOUGH_PARAM);
         } else if (!HandlerIO.checkHandlerIO(handlerIO, this.handlerInitialIOList)) {

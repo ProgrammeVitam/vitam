@@ -134,7 +134,7 @@ public class IndexUnitActionHandler extends ActionHandler {
         final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK);
 
         try {
-            checkMandatoryParamerter(handlerIO);
+            checkMandatoryIOParameter(handlerIO);
             SedaUtils.updateLifeCycleByStep(logbookLifecycleUnitParameters, params);
             indexArchiveUnit(params);
         } catch (final ProcessingException e) {
@@ -338,7 +338,7 @@ public class IndexUnitActionHandler extends ActionHandler {
     }
 
     @Override
-    public void checkMandatoryParamerter(HandlerIO handler) throws ProcessingException {
+    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         if (handlerIO.getOutput().size() != handlerInitialIOList.getOutput().size()) {
             throw new ProcessingException(HandlerIO.NOT_ENOUGH_PARAM);
         } else if (!HandlerIO.checkHandlerIO(handlerIO, this.handlerInitialIOList)) {

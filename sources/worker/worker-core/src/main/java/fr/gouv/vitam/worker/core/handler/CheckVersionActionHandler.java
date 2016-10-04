@@ -71,7 +71,7 @@ public class CheckVersionActionHandler extends ActionHandler {
         final SedaUtils sedaUtils = SedaUtilsFactory.create();
 
         try {
-            checkMandatoryParamerter(actionDefinition);
+            checkMandatoryIOParameter(actionDefinition);
             List<String> versionInvalidList = sedaUtils.checkSupportedBinaryObjectVersion(params);
             if (versionInvalidList.size() != 0){
                 response.setErrorNumber(versionInvalidList.size());
@@ -87,7 +87,7 @@ public class CheckVersionActionHandler extends ActionHandler {
     }
 
     @Override
-    public void checkMandatoryParamerter(HandlerIO handler) throws ProcessingException {
+    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
       //TODO Add Workspace:SIP/manifest.xml and check it         
     }
 

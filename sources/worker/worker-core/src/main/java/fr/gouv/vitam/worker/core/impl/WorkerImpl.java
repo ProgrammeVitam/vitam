@@ -57,6 +57,7 @@ import fr.gouv.vitam.worker.core.api.HandlerIO;
 import fr.gouv.vitam.worker.core.api.Worker;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.handler.CheckConformityActionHandler;
+import fr.gouv.vitam.worker.core.handler.CheckObjectUnitConsistencyActionHandler;
 import fr.gouv.vitam.worker.core.handler.CheckObjectsNumberActionHandler;
 import fr.gouv.vitam.worker.core.handler.CheckSedaActionHandler;
 import fr.gouv.vitam.worker.core.handler.CheckStorageAvailabilityActionHandler;
@@ -128,6 +129,8 @@ public class WorkerImpl implements Worker {
         actions.put(StoreObjectGroupActionHandler.getId(), new StoreObjectGroupActionHandler());
         actions.put(CheckStorageAvailabilityActionHandler.getId(),
             new CheckStorageAvailabilityActionHandler());
+        actions.put(CheckObjectUnitConsistencyActionHandler.getId(), 
+            new CheckObjectUnitConsistencyActionHandler());
     }
 
     @Override

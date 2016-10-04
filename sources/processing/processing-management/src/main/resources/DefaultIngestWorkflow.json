@@ -57,6 +57,26 @@
               {
                 "name": "mapsObjectGroup.file",
                 "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "mapsObjectGroup.file",
+                "uri": "WORKSPACE:Maps/OG_TO_ARCHIVE_ID_MAP.json"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CheckObjectUnitConsistency",
+            "behavior": "NOBLOCKING",
+            "in": [
+              {
+                "name": "mapsBDOtoOG.file",
+                "uri": "WORKSPACE:Maps/OG_TO_ARCHIVE_ID_MAP.json"
+              },
+              {
+                "name": "mapsBDOtoOG.file",
+                "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json"
               }
             ]
           }
@@ -118,7 +138,6 @@
                 "name": "mapsUnits.file",
                 "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json"
               },
-              
               {
                 "name": "unitsTree.file",
                 "uri": "WORKSPACE:UnitsTree/INGEST_TREE.json"

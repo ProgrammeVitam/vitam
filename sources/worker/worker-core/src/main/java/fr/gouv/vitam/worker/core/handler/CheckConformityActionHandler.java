@@ -124,7 +124,7 @@ public class CheckConformityActionHandler extends ActionHandler {
         handlerIO = handler;
 
         try {
-            checkMandatoryParamerter(handlerIO);
+            checkMandatoryIOParameter(handlerIO);
             List<String> digestMessageInvalidList = checkConformityBinaryObject(params);
             if (!digestMessageInvalidList.isEmpty()) {
                 response.setErrorNumber(digestMessageInvalidList.size());
@@ -305,7 +305,7 @@ public class CheckConformityActionHandler extends ActionHandler {
     }
 
     @Override
-    public void checkMandatoryParamerter(HandlerIO handler) throws ProcessingException {
+    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         //TODO Add Workspace:SIP/manifest.xml and check it 
         
     }

@@ -35,6 +35,8 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.Map;
 
+import javax.ws.rs.core.Response.Status;
+
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.node.Node;
 import org.junit.AfterClass;
@@ -199,19 +201,19 @@ public class ProcessingIT {
     public void testServersStatus() throws Exception {
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
-        get("/status").then().statusCode(200);
+        get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
 
         RestAssured.port = PORT_SERVICE_WORKSPACE;
         RestAssured.basePath = WORKSPACE_PATH;
-        get("/status").then().statusCode(200);
+        get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
 
         RestAssured.port = PORT_SERVICE_METADATA;
         RestAssured.basePath = METADATA_PATH;
-        get("/status").then().statusCode(200);
+        get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
 
         RestAssured.port = PORT_SERVICE_WORKER;
         RestAssured.basePath = WORKER_PATH;
-        get("/status").then().statusCode(200);
+        get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
     }
 
     @Test
