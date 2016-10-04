@@ -86,7 +86,7 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
         final SedaUtils sedaUtils = SedaUtilsFactory.create();
         long totalSizeToBeStored;
         try {        
-            checkMandatoryParamerter(actionDefinition);
+            checkMandatoryIOParameter(actionDefinition);
             //TODO get size manifest.xml in local
             long objectsSizeInSip = sedaUtils.computeTotalSizeOfObjectsInManifest(params);
             long manifestSize = sedaUtils.getManifestSize(params);
@@ -113,7 +113,7 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
     }
 
     @Override
-    public void checkMandatoryParamerter(HandlerIO handler) throws ProcessingException {
+    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
       //TODO Add Workspace:SIP/manifest.xml and check it         
     }
 }

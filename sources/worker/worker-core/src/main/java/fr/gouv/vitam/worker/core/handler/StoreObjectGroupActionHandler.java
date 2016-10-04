@@ -149,7 +149,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
         final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK);
 
         try {
-            checkMandatoryParamerter(handlerIO);
+            checkMandatoryIOParameter(handlerIO);
             // Update lifecycle of object group : STARTED
             updateLifeCycleParametersLogbookByStep(params, SedaUtils.LIFE_CYCLE_EVENT_TYPE_PROCESS);
             updateLifeCycle();
@@ -453,7 +453,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
     }
 
     @Override
-    public void checkMandatoryParamerter(HandlerIO handler) throws ProcessingException {
+    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         if (handlerIO.getOutput().size() != handlerInitialIOList.getOutput().size()) {
             throw new ProcessingException(HandlerIO.NOT_ENOUGH_PARAM);
         } else if (!HandlerIO.checkHandlerIO(handlerIO, this.handlerInitialIOList)) {

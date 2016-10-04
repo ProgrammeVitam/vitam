@@ -101,7 +101,7 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
         final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK);
 
         try {
-            checkMandatoryParamerter(actionDefinition);
+            checkMandatoryIOParameter(actionDefinition);
             SedaUtils.updateLifeCycleByStep(logbookLifecycleObjectGroupParameters, params);
             indexObjectGroup(params);
         } catch (ProcessingInternalServerException exc) {
@@ -178,7 +178,7 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
     }
 
     @Override
-    public void checkMandatoryParamerter(HandlerIO handler) throws ProcessingException {
+    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         // TODO Add objectGroup.json add input and check it
         
     }

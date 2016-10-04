@@ -91,6 +91,7 @@ public class ExtractSedaActionHandlerTest {
         action.addOutput(TMP_TESTS);
         action.addOutput(TMP_TESTS);
         action.addOutput(TMP_TESTS);
+        action.addOutput(TMP_TESTS);
     }
 
     @Test

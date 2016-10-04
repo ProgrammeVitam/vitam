@@ -113,7 +113,7 @@ public class CheckSedaActionHandler extends ActionHandler {
     }
 
     @Override
-    public void checkMandatoryParamerter(HandlerIO handler) throws ProcessingException {
+    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         //TODO Add Workspace:SIP/manifest.xml and check it         
     }
 
