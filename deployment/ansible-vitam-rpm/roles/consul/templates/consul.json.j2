@@ -4,7 +4,7 @@
   "log_level": "INFO",
   "enable_syslog": true,
 
-{% if server %}
+{% if inventory_hostname in groups['hosts-consul-server'] %}
   "bootstrap_expect": {{ groups['hosts-consul-server']|length }},
   "server": true,
   "ui": true,

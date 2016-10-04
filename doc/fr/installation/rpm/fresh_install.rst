@@ -21,15 +21,15 @@ Informations "plate-forme"
 
 Pour configurer le déploiement, il est nécessaire de créer (dans n'importe quel répertoire en dehors du répertoire |repertoire_inventory| un nouveau fichier d'inventaire comportant les informations suivantes :
 
-.. literalinclude:: ../../../../deployment/environments-rpm/hosts.int2
+.. literalinclude:: ../../../../deployment/environments-rpm/hosts.int
    :language: ini
    :linenos:
 
-Pour chaque type de "host" (lignes 19 à 59), indiquer le(s) serveur(s) défini(s) pour chaque fonction. Une colocalisation de composants est possible.
+Pour chaque type de "host" (lignes 12 à 157), indiquer le(s) serveur(s) défini(s) pour chaque fonction. Une colocalisation de composants est possible.
 
 .. warning:: indiquer les contre-indications !
 
-Ensuite, dans la section ``hosts:vars`` (lignes 62 à 71), renseigner les valeurs comme décrit :
+Ensuite, dans la section ``hosts:vars`` (lignes 164 à 179), renseigner les valeurs comme décrit :
 
 .. csv-table:: Définition des variables
    :header: "Clé", "Description","Valeur"
@@ -39,15 +39,18 @@ Ensuite, dans la section ``hosts:vars`` (lignes 62 à 71), renseigner les valeur
    "ansible_become","Propriété interne à ansible pour passer root",""
    "vitam_folder_permission","Droits Unix par défaut des arborescences créées pour VITAM",""
    "vitam_conf_permission","Droits sur les fichiers de configuration déployés pour VITAM",""
-   "pull_strategy","Stratégie lorsdu docker pull",""
-   "local_user","Utilisateur créé sur les hôtes des docker pour le mapping correct entre docker et hôte",""
-   "vitam_docker_tag","Tag des conteeurs au téléchargement ; assimilable à la version",""
-   "vitam_ihm_demo_external_dns","A revoir..",""
-   "https_reverse_proxy","<nom ou IP>:<port>",""
-	"proxy_host","Hôte proxy",""
-	"proxy_port","Port du proxy",""
+   "local_user","En cas de déploiement en local",""
+   "environnement","Suffixe",""
+   "vitam_environnement","Comme environnement ; ATTENTION : le mot local est réservé pour cette directive aux seules installations en local",""
+   "vitam_reverse_domain","Cas de la gestion d'un reverse proxy",""
+   "consul_domain","nom de domaine consul",""
+   "vitam_ihm_demo_external_dns","a vérifier ...",""
+   "https_reverse_proxy","cas d'appel vers un proxy... Deprecated","10.220.23.1:3128"
+   "proxy_host","cas d'appel vers un proxy (adresse IP)... Deprecated","10.220.23.1"
+   "proxy_port","cas d'appel vers un proxy (port) ... Deprecated","3128"
    "rpm_version","Version à installer",""
    "days_to_delete","Période de grâce des données sous Elastricsearch avant destuction (valeur en jours)",""
+   "dns_server","Serveur DNS que Consul peut appeler s'il n'arrive pas à faire de résolution","172.16.1.21"
 
 
 A titre informatif, le positionnement des variables ainsi que des dérivations des déclarations de variables sont effectuées sous |repertoire_inventory| ``/group_vars/all/all``, comme suit :
@@ -88,15 +91,17 @@ Pour tester le déploiement de VITAM, il faut se placer dans le répertoire |rep
 Déploiement
 ===========
 
-Si la commande de test se termine avec succès, le déploiement est à réaliser avec la commande suivante :
+Pré-script
+-------------
+Le script suivant est à jour en premier ; il permet de générer ou recopier (selon le cas) une PKI, ainsi que des certificats pour les échanges https entre composants.
+
+.. note:: ce script est en cours de mise au point.
+
+
+Déploiement
+-------------
+
+Une fois le pré-script passé avec succès, le déploiement est à réaliser avec la commande suivante :
 
 ansible-playbook |repertoire_playbook ansible|/vitam.yml -i |repertoire_inventory|/<ficher d'inventaire> --ask-vault-pass
 
-.. todo:: CPO
- - Pas assez de précision sur l'install
- - Aprés avoir installé ansible,j'ai généré une clé publique et privée sur mon poste ou serveur via ssh et aprés ou je transfert ma clé public?
- - Il manque des informations sur le déploiement des VM sur l'environnement cible 
- - Quels sont les scripts ansible qu'on utilise pour déployer les VM et les composants VITAM?
- - Il serait mieux de faire une doc d'install en séparant le déploiement des VM (instance) et des composants VITAM
- 
- 

@@ -1,2 +1,4 @@
 ---
 # defaults file for elasticsaerch-cluster
+vitam_user: vitam
+vitam_group: vitam

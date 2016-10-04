@@ -57,7 +57,7 @@ filter {
   #---------------------------
   if [program] =~ "vitam-" {
       mutate { replace => { type => "logback" } }
-  } else if [program] =~ "elasticsearch" {
+  } else if [program] =~ "elasticsearch-" {
       mutate { replace => { type => "elastic" } }
   } else if [program] =~ "curator" {
       mutate { replace => { type => "curator" } }
@@ -118,7 +118,7 @@ filter {
   }
   # --------------------------------------------------
   if "_grokparsefailure" not in [tags] {
-     if [type] =~ "logback" or [type] =~ "elastic" or [type] =~ "curator" or [type] =~ "scripts" {
+     if [type] =~ "logback" or [type] =~ "elastic" or [type] =~ "curator" or [type] =~ "script" {
          date {
            locale => fr
            #timezone => "UTC"
@@ -151,7 +151,7 @@ filter {
 output {
   if "_grokparsefailure" not in [tags] {
     if "drop" not in [tags] {
-      if [type] =~ "logback" or [type] =~ "mongo" or [type] =~ "scripts" {
+      if [type] =~ "logback" or [type] =~ "mongo" or [type] =~ "script" or [program] =~ "elasticsearch-data" {
         elasticsearch {
 
           # KWA TODO: Prévoir un peu de tuning de perf ici
@@ -163,31 +163,31 @@ output {
           template => "{{logstash_confextra_dir}}/elasticsearch-template.json"
           index => "logstash-vitam-%{+YYYY.MM.dd}"
           # KWA TODO : use a join on the ansible group of elastisearch nodes (Cf. consul role)
-          hosts => ["{{vitam_logserver_host}}:{{elasticsearch_log_http_port}}"]
+          hosts => ["{{ groups['hosts-elasticsearch-log']|join(':' + elasticsearch_log_http_port + '", "') }}:{{elasticsearch_log_http_port}}"]
         }
       } else {
-        if [type_input] == "import_elastic" or [type_input] == "import_curator" {
+        if [program] =~ "elasticsearch-log" or [type_input] == "import_curator" {
           elasticsearch {
             template => "{{logstash_confextra_dir}}/elasticsearch-template.json"
             index => "logstash-logs-%{+YYYY.MM.dd}"
             # KWA TODO : use a join on the ansible group of elastisearch nodes (Cf. consul role)
-            hosts => ["{{vitam_logserver_host}}:{{elasticsearch_log_http_port}}"]
+            hosts => ["{{ groups['hosts-elasticsearch-log']|join(':' + elasticsearch_log_http_port + '", "') }}:{{elasticsearch_log_http_port}}"]
           }
         } else {
           elasticsearch {
             template => "{{logstash_confextra_dir}}/elasticsearch-template.json"
             index => "logstash-%{type}-%{+YYYY.MM.dd}"
             # KWA TODO : use a join on the ansible group of elastisearch nodes (Cf. consul role)
-            hosts => ["{{vitam_logserver_host}}:{{elasticsearch_log_http_port}}"]
+            hosts => ["{{ groups['hosts-elasticsearch-log']|join(':' + elasticsearch_log_http_port + '", "') }}:{{elasticsearch_log_http_port}}"]
           }
         }
       }
     }
   } else {
-    if [type] =~ "logback" or [type] =~ "elastic" or [type] =~ "mongo" or [type] =~ "scripts" {
+    if [type] =~ "logback" or [type] =~ "elastic" or [type] =~ "mongo" or [type] =~ "script" {
         elasticsearch {
           index => "logstash-failure-%{+YYYY.MM.dd}"
-          hosts => ["{{vitam_logserver_host}}:{{elasticsearch_log_http_port}}"]
+          hosts => ["{{ groups['hosts-elasticsearch-log']|join(':' + elasticsearch_log_http_port + '", "') }}:{{elasticsearch_log_http_port}}"]
         }
      }
   }

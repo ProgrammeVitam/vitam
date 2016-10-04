@@ -75,6 +75,8 @@ COPY profile-prompt-usage.sh /etc/profile.d
 COPY vitam-usage.txt /etc
 COPY wheel-nopwd /etc/sudoers.d
 
+ENV TERM xterm
+
 ##################################  CONTAINER SETTINGS  #################################
 
 VOLUME [ "/sys/fs/cgroup" ]

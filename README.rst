@@ -33,9 +33,20 @@ Pour construire la documentation, il est nécessaire d'avoir les pré-requis sui
 * sphinx-build
 * Pour construire le pdf : latex
 * make
+* raml2html (version minimale : ``raml2html@4.0.0-beta2``)
 
-Build
------
+Build de la documentation
+-------------------------
+
+Dans le répertoire ``/doc``, lancer la commande ``make clean symlinks html latexpdf raml autres``. Le résultat est disponible dans ``/doc/target``.
+
+De manière alternative, il est possible d'exécuter un simple ``mvn clean install`` dans le répertoire ``doc``pour obtenir un site web prêt à être déployé. 
+
+
+Build des documentations des modules (séparées)
+-----------------------------------------------
+
+.. caution:: Cette procédure est dépréciée, et sera supprimée dans une version ultérieure.
 
 Ensuite, la commande à lancer est ``make <format de sortie> MODULE=<nom de la documentation>``, avec ``format de sortie`` :
 

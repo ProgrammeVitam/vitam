@@ -1,5 +1,4 @@
 ---
 # defaults file for vitam-ingest
-server: false
 vitam_user: vitam
 vitam_group: vitam

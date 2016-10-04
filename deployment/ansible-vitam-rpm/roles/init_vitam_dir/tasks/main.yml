@@ -4,27 +4,29 @@
   yum:
     name: vitam-user-vitam
     state: present
+  when: vitam_environment=='local'
 
 - name: install vitam-user-vitamdb
   yum:
     name: vitam-user-vitamdb
     state: present
+  when: vitam_environment=='local'
 
 - name: ensure parent dir is OK ith correct permissions
   file:
     path: "{{vitam_folder_root}}"
     state: directory
     owner: root
-    group: vitam
-    mode: 0755
+    group: root
+    mode: 0555
 
-- name: Check that the directories exists (must be removed when the RPM plugin will be patched)
-  file: 
-    path: "{{vitam_folder_root}}/{{ item }}"
-    state: directory
+- name: ensure {{vitam_folder_root}} sub-directories exist
+  file:
+    path: "{{vitam_folder_root}}/{{item}}"
     owner: root
-    group: vitam
-    mode: 0755
+    group: root
+    state: directory
+    mode: 0555
   with_items:
     - app
     - bin

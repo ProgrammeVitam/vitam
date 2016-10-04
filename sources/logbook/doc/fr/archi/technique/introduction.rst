@@ -1,15 +1,59 @@
 Introduction
-############
+*******************
 
-But de cette documentation
---------------------------
+Présentation
+------------
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec faucibus, lacus a efficitur tempor, nulla felis bibendum dolor, a mollis risus justo eget libero. Pellentesque leo eros, accumsan id fringilla at, aliquet vel odio. Aliquam a turpis a metus iaculis ullamcorper in eget quam. Integer ut volutpat elit, ac suscipit ligula. Praesent non mauris sem. Donec convallis nisl ac odio luctus, sed feugiat odio faucibus. Vivamus bibendum, erat vel euismod feugiat, metus ligula fermentum nunc, sed sagittis velit enim non quam. Donec sit amet nunc porttitor, consectetur sapien id, dictum enim. Phasellus ut dolor eu dui mollis suscipit. Aenean et mauris at arcu tincidunt mattis. Curabitur rutrum sapien erat, id blandit augue luctus in.
+|  *Parent package:* **fr.gouv.vitam**
+|  *Package proposition:* **fr.gouv.vitam.logbook**
 
-Ut quis massa at ante tempor malesuada. Vestibulum in tincidunt mauris. Cras lobortis sit amet lacus sit amet mattis. Curabitur a dui suscipit, tempus ex sed, consectetur mauris. In hac habitasse platea dictumst. Pellentesque dignissim lobortis risus viverra cursus. Suspendisse in turpis odio. Donec elementum risus hendrerit, porta dolor ac, mollis augue. Interdum et malesuada fames ac ante ipsum primis in faucibus. Ut suscipit rhoncus elit, non pulvinar libero pellentesque et. Aenean mattis ipsum ullamcorper dui congue, non tempor velit faucibus. Vivamus at erat elit.
+Itération 3 et Itération 5
+-----------
+4 sous-modules pour le Logbook Engine. Dans logbook (parent).
 
-Integer vel rhoncus tortor, vitae maximus nunc. Nullam tempus varius convallis. Praesent lobortis, nulla vitae eleifend suscipit, mi augue feugiat velit, quis rhoncus magna metus at ante. Morbi scelerisque est nec semper condimentum. Vestibulum vestibulum gravida velit, at scelerisque orci scelerisque sed. Maecenas vitae lorem dictum, egestas magna id, pellentesque metus. Vestibulum quam justo, tincidunt in est sit amet, venenatis blandit quam. Proin pellentesque leo id convallis egestas. Integer eros urna, lobortis in suscipit vitae, pharetra a enim.
+| - vitam-logbook-common :  Classes et exception communes aux différents modules
+| - vitam-logbook-common-client : Classes communes pour les clients
+| - vitam-logbook-operations : module lié aux opérations
+| - vitam-logbook-operations-client : module client pour les opérations
 
-Proin nec est ac lectus imperdiet cursus. Curabitur ac dolor in ipsum rutrum laoreet. Sed tempor erat vitae neque vestibulum dapibus. Etiam magna massa, mattis at erat eu, auctor egestas velit. Nulla ut pretium mi. Etiam nibh mauris, commodo id efficitur sit amet, sagittis eget nisi. Duis a tellus in arcu cursus consectetur nec a orci. Maecenas a hendrerit justo. In ante purus, sagittis id scelerisque venenatis, commodo ut dui. Morbi ac arcu ut nibh egestas convallis. Interdum et malesuada fames ac ante ipsum primis in faucibus. Donec sed molestie turpis. Mauris magna sapien, consequat at massa id, sagittis mollis nulla. Phasellus nec tellus hendrerit, hendrerit quam sit amet, dignissim quam. Vivamus ultricies interdum massa nec porttitor.
+Itérations suivantes / à plus long terme
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+| - vitam-logbook-lifecycles : module des cycles de vie logs
+| - vitam-logbook-lifecycles-client : module client pour les cycles de vie
+| - vitam-logbook-administration : module pour l'administration du moteur de journalisation (sera détaillé plus en détail)
+| - vitam-logbook-administration-client : module client pour l'administration du moteur de journalisation (sera détaillé plus en détail)
 
-Fusce pretium pretium lectus eu laoreet. Integer eget nibh eget purus molestie finibus. Quisque id erat dignissim, suscipit ipsum eget, laoreet eros. Aliquam erat volutpat. Etiam aliquam arcu eget eleifend tincidunt. Morbi vel sodales massa. Curabitur quis consequat lorem. In hac habitasse platea dictumst. Aliquam erat volutpat.
+Modules - packages logbook
+------------------
+
+|  logbook
+|     /logbook-common
+|		 fr.gouv.vitam.logbook.common.client
+|        fr.gouv.vitam.logbook.common.exception
+|        fr.gouv.vitam.logbook.common.model
+|        fr.gouv.vitam.logbook.common.parameters
+
+|     /logbook-common-client
+|        fr.gouv.vitam.logbook.common.client.singlerequest
+
+|	  /logbook-common-server
+|        fr.gouv.vitam.logbook.common.server.database.collections.request
+|        fr.gouv.vitam.logbook.common.server.exception
+
+|     /logbook-operations
+|        fr.gouv.vitam.logbook.operations.api
+|        fr.gouv.vitam.logbook.operations.core|        
+
+|     /logbook-operations-client
+
+|     /logbook-lifecycles
+|        fr.gouv.vitam.logbook.lifecycle.api
+|        fr.gouv.vitam.logbook.lifecycle.core
+
+|     /logbook-lifecycles-client
+
+|     /logbook-administration
+
+|     /logbook-administration-client
+
+|     /logbook-rest

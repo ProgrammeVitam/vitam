@@ -12,31 +12,38 @@
     name: elasticsearch
     state: latest
 
-- name: create elasticsearch home directory
-  file:
-    path: /home/elasticsearch
-    state: directory
-    owner: elasticsearch
-    mode: 0700
+- name: install vitam-user-vitamdb package
+  yum:
+    name=vitam-user-vitamdb
+    state=latest
+
+# OMA : désactivé car on est désormais en vitamdb
+# - name: create elasticsearch home directory
+#   file:
+#     path: /home/elasticsearch
+#     state: directory
+#     owner: elasticsearch
+#     mode: 0700
 
 - name: ensure elasticsearch directories exist
   file:
     path: "/vitam/{{item}}/{{cluster_name}}"
-    owner: elasticsearch
+    owner: vitamdb
+    group: "{{ vitam_group }}"
     state: directory
     mode: 0755
   with_items:
+    - conf
     - data
     - log
-    - conf
     - lib
 
 - name: Configure limits max_open_files for Elasticsearch
   lineinfile:
     dest: /etc/security/limits.conf
-    regexp: '^{{ elasticsearch_user }}     -    nofile    {{ elasticsearch_max_open_files }}'
+    regexp: '^vitamdb     -    nofile    {{ elasticsearch_max_open_files }}'
     insertafter: EOF
-    line: '{{ elasticsearch_user }}     -    nofile    {{ elasticsearch_max_open_files }}'
+    line: 'vitamdb     -    nofile    {{ elasticsearch_max_open_files }}'
   when: elasticsearch_max_open_files is defined
   notify: restart elasticsearch
 
@@ -112,7 +119,8 @@
   template:
     src: "{{item}}.{{groupe}}.yml.j2"
     dest: "{{elasticsearch_conf_dir}}/{{item}}.yml"
-    owner: "{{elasticsearch_user}}"
+    owner: vitamdb
+    group: "{{ vitam_group }}"
     mode: 0750
   with_items:
     - elasticsearch
@@ -139,55 +147,105 @@
     replace: 'index.number_of_replicas: 1'
   when: vitam_environment=='local'
 
+
+- name: apply elasticsearch default 
+  template:
+    src: "elasticsearch.j2"
+    dest: "{{elasticsearch_conf_dir}}/elasticsearch"
+    owner: vitamdb
+    group: "{{ vitam_group }}"
+    mode: 0750
+
+# - name: Define vitamdb user as elasticsearh start in elasticsearch.yml
+#   replace: 
+#       dest: "{{elasticsearch_conf_dir}}/elasticsearch"
+#       regexp: '^#ES_USER=.*$'
+#       replace: 'ES_USER=vitamdb'
+#   register: elasticsearch_updated
+
+# - name: Define vitam group as elasticsearh start in elasticsearch.yml
+#   replace: 
+#       dest: /etc/sysconfig/elasticsearch
+#       regexp: '^#ES_GROUP=.*$'
+#       replace: 'ES_GROUP={{ vitam_group }}'
+#   register: elasticsearch_updated
+
+
 # OMA : inspired from https://hobo.house/2016/04/08/automate-elk-stack-and-clients-with-ansible/
 # TODO : revoir ; 1. templatiser elasticsearch.yml et 2. pointer sous l a directive CONF_DIR {{vitam_root_folder ???}}/conf/{{vitam_component}}
-- name: Define CONF_DIR
-  replace: 
-      dest: /etc/sysconfig/elasticsearch
-      regexp: '^#CONF_DIR=.*$'
-      replace: 'CONF_DIR={{elasticsearch_conf_dir}}'
-  register: elasticsearch_updated
-  notify:
-    - restart elasticsearch
-
-- name: Activate GC logs
-  replace: 
-      dest: /etc/sysconfig/elasticsearch
-      regexp: '^#ES_GC_LOG_FILE=.*$'
-      replace: 'ES_GC_LOG_FILE={{elasticsearch_log_dir}}/gc.log'
-  register: elasticsearch_updated
-  notify:
-    - restart elasticsearch
 
 
-- name: Implement the Vitam GC log standard
-  replace: 
-      dest: /etc/sysconfig/elasticsearch
-      regexp: '^#ES_JAVA_OPTS=.*$'
-      replace: 'ES_JAVA_OPTS="-XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=10M -XX:+PrintGCDetails -XX:+PrintGCApplicationStoppedTime"'
-  register: elasticsearch_updated
-  notify:
-    - restart elasticsearch
+- name: apply elasticsearch-{{groupe}} as a service 
+  template:
+    src: "vitam-elasticsearch-type.service.j2"
+    dest: "/usr/lib/systemd/system/vitam-elasticsearch-{{groupe}}.service"
+    owner: root
+    group: root
+    mode: 0644
+
+
+
+# - name: Define vitamdb user as elasticsearh start in systemd
+#   replace: 
+#       dest: /usr/lib/systemd/system/elasticsearch.service
+#       regexp: '^User=.*$'
+#       replace: 'User=vitamdb'
+#   register: elasticsearch_updated
+
+# - name: Define vitam group as elasticsearh start in systemd
+#   replace: 
+#       dest: /usr/lib/systemd/system/elasticsearch.service
+#       regexp: '^Group=.*$'
+#       replace: 'Group={{ vitam_group }}'
+#   register: elasticsearch_updated
+
+- name: redefine perms on  /var/run/elasticsearch-{{groupe}} as in service definition
+  file:
+    path: /var/run/elasticsearch-{{groupe}}
+    owner: vitamdb
+    group: "{{ vitam_group }}"
+    mode: 0750
+    state: directory
+
+# - name: Define CONF_DIR
+#   replace: 
+#       dest: /etc/sysconfig/elasticsearch
+#       regexp: '^#CONF_DIR=.*$'
+#       replace: 'CONF_DIR={{elasticsearch_conf_dir}}'
+#   register: elasticsearch_updated
+
+
+# - name: Activate GC logs
+#   replace: 
+#       dest: /etc/sysconfig/elasticsearch
+#       regexp: '^#ES_GC_LOG_FILE=.*$'
+#       replace: 'ES_GC_LOG_FILE={{elasticsearch_log_dir}}/gc.log'
+#   register: elasticsearch_updated
+
+
+
+# - name: Implement the Vitam GC log standard
+#   replace: 
+#       dest: /etc/sysconfig/elasticsearch
+#       regexp: '^#ES_JAVA_OPTS=.*$'
+#       replace: 'ES_JAVA_OPTS="-XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=10M -XX:+PrintGCDetails -XX:+PrintGCApplicationStoppedTime"'
+#   register: elasticsearch_updated
 
 - name: Update elasticsearch startup with heap size at half the memory
   replace: 
-      dest: /etc/sysconfig/elasticsearch
+      dest: "{{elasticsearch_conf_dir}}/elasticsearch"
       regexp: '^#ES_HEAP_SIZE=.*$'
       replace: 'ES_HEAP_SIZE={{ (ansible_memory_mb.real.total / 2) | int }}m' 
   when: ansible_memory_mb.real.total|int < 65536
   register: elasticsearch_updated
-  notify:
-    - restart elasticsearch
 
 - name: Apply heapsize tuning ; for systems with greater than 64G memory, don't allocate more than 32 Go RAM
   replace: 
-      dest: /etc/sysconfig/elasticsearch
+      dest: "{{elasticsearch_conf_dir}}/elasticsearch"
       regexp: '^#ES_HEAP_SIZE=.*$'
       replace: 'ES_HEAP_SIZE=32g'
   when: ansible_memory_mb.real.total|int >= 65536
   register: elasticsearch_updated
-  notify:
-    - restart elasticsearch
 
 # - name: add directives in elasticsearch
 #   blockinfile:
@@ -212,14 +270,61 @@
   environment:
     http_proxy: http://{{ https_reverse_proxy }}
     https_proxy: https://{{ https_reverse_proxy }}
-  notify:
-    - restart elasticsearch
+ 
+- name: install unzip
+  yum:
+    name: unzip
+    state: latest
+
+- name: add kopf plugin (zip src)
+  unarchive:
+    src: kopf.zip
+    dest: /usr/share/elasticsearch/plugins/
+    owner: elasticsearch
+    group: elasticsearch
+    mode: 0755
+
+- name: configure kopf
+  replace: 
+      dest: /usr/share/elasticsearch/plugins/kopf/_site/kopf_external_settings.json
+      regexp: '^.*"elasticsearch_root_path":.*$'
+      replace: "    \"elasticsearch_root_path\": \"/elasticsearch-{{groupe}}\","
+  register: kopf_updated
 
 - name: systemctl reload-daemon # see https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-repositories.html
   command: systemctl daemon-reload
 
-- name: add ElasticSearch autostart at boot
+- name: disable standard Easticsearch service
   service:
     name: elasticsearch
+    state: stopped
+    enabled: no
+
+- name: add ElasticSearch-{{groupe}} autostart at boot
+  service:
+    name: "vitam-elasticsearch-{{groupe}}"
     enabled: yes
     state: restarted
+
+# KWA : a fixer ASAP !
+- name: Ensure consul config dir is OK
+  file:
+    path: "{{vitam_folder_root}}/conf/consul"
+    state: directory
+    owner: "{{ vitam_user }}"
+    group: "{{ vitam_group }}"
+
+# KWA : a fixer ASAP !
+- name: Deploy consul agent service declaration
+  template:
+    src: "service-componentid.json.j2"
+    dest: "{{vitam_folder_root}}/conf/consul/service-{{ groupe }}.json"
+    owner: "{{ vitam_user }}"
+    group: "{{ vitam_group }}"
+    mode: "0755"
+
+- name: reload consul agent configuration
+  service:
+    name: vitam-consul
+    state: reloaded
+

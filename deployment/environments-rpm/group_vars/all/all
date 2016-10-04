@@ -61,7 +61,7 @@ vitam_functional_administration_host: "{{ groups['hosts-functional-administratio
 vitam_functional_administration_port: 8004
 vitam_functional_administration_baseurl: "http://{{vitam_functional_administration_host}}:{{vitam_functional_administration_port}}"
 
-vitam_log_host: "{{ groups['hosts-log-server'][0] }}"
+vitam_log_host: "{{ groups['hosts-elasticsearch-log'][0] }}"
 elasticsearch_log_http_port: "9200"
 elasticsearch_log_tcp_port: "9300"
 

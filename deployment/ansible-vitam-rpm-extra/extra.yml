@@ -5,9 +5,9 @@
   roles:
     - topbeat
 
-- hosts: hosts-storage-offer-default
+- hosts: vitam
   roles:
-    - storage-offer-default
+    - vitam_browser
 
 - hosts: hosts-mongo-express
   roles:
@@ -15,7 +15,7 @@
 
 - hosts: library
   roles:
-    - {role: vitam, vitam_component: library,java_args: /vitam/conf/library/library.conf, port_http: "{{vitam_library_port}}" } 
+#    - {role: vitam, vitam_component: library,java_args: /vitam/conf/library/library.conf, port_http: "{{vitam_library_port}}" } 
 
 - hosts: reverse
   roles:

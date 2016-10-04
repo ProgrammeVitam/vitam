@@ -129,9 +129,11 @@
 
 					<mapping>
 						<directory>/vitam/app/${unix.name}</directory>
+						<recurseDirectories>true</recurseDirectories>
 						<sources>
 							<source>
 								<location>${project.build.directory}/app</location>
+
 							</source>
 						</sources>
 					</mapping>

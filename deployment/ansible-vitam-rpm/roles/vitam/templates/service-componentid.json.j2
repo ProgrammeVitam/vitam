@@ -4,35 +4,34 @@
     "port": {{ port_http }},
     "enableTagOverride": false,
     "checks": [
+
       {
-        "id": "external-status",
+        "id": "app-status",
         "notes": "Status applicatif externe : /{{ vitam_component }}/v1/status",
 {% if tls_active==true %}
-        "https": "http://localhost:{{ port_http }}",
+        "https": "https://localhost:{{ port_https }}",
 {% else %}
         "http": "http://localhost:{{ port_http }}/{{ vitam_component }}/v1/status",
 {% endif %}
 
         "interval": "1s"
       },
-
-        {
+      {
         "id": "external-port",
           "notes": "Port externe ouvert : {{ port_http }}",
           "tcp": "localhost:{{ port_http }}",
           "interval": "1s"
-        }
-      ]
-    }
+      }
+    ]
+  }
 }
 //      {
 //        "id": "admin-status",
-//        "notes": "Status applicatif admin : /admin/v1/status",
-//{% if tls_active==true %}
-//        "https": "http://localhost:{{ port_http }}",
-//{% else %}
+        //"notes": "Status applicatif externe : /admin/v1/status",
+// {% if tls_active==true %}
+//        "https": "https://localhost:{{ port_https }}",
+// {% else %}
 //        "http": "http://localhost:{{ port_http }}/admin/v1/status",
-//{% endif %}
-//
+// {% endif %}
 //        "interval": "1s"
 //      },

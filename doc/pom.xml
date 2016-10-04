@@ -36,6 +36,8 @@
 							<executable>/usr/bin/make</executable>							
 							<arguments>
 								<argument>${basedir}/Makefile</argument>
+								<!-- Note : DON'T call the Mllakefile goal 'clean' here -->
+								<argument>symlinks</argument>
 								<argument>html</argument>
 								<argument>latexpdf</argument> 
 								<argument>raml</argument>

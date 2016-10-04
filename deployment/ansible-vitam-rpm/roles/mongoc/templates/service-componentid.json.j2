@@ -1,0 +1,15 @@
+{
+  "service": {
+    "name": "mongoc",
+    "port": {{ mongoc_port }},
+    "enableTagOverride": false,
+    "checks": [
+      {
+        "id": "app-status",
+        "notes": "Status mongoc",
+        "tcp": "localhost:{{ mongoc_port }}",
+        "interval": "1s"
+      }
+    ]
+  }
+}
