@@ -159,17 +159,7 @@
         {
           "action": {
             "actionKey": "StoreObjectGroup",
-            "behavior": "BLOCKING",
-            "in": [
-              {
-                "name": "mapsBDO.file",
-                "uri": "WORKSPACE:Maps/BINARY_DATA_OBJECT_ID_TO_GUID_MAP.json"
-              },
-              {
-                "name": "mapsObjectGroup.file",
-                "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json"
-              }
-            ]
+            "behavior": "BLOCKING"
           }
         },
         {

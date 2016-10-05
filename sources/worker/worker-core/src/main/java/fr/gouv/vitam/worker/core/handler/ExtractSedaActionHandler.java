@@ -121,6 +121,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final String DATA_OBJECT_GROUP_REFERENCEID = "DataObjectGroupReferenceId";
     private static final String TAG_OG = "_og";
     private static final String TAG_ID = "_id";
+    private static final String TAG_URI = "Uri";
     public static final String LIFE_CYCLE_EVENT_TYPE_PROCESS = "INGEST";
     public static final String UNIT_LIFE_CYCLE_CREATION_EVENT_TYPE =
         "Check SIP – Units – Lifecycle Logbook Creation – Création du journal du cycle de vie des units";
@@ -159,6 +160,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private Map<String, List<String>> objectGroupIdToBinaryDataObjectId;
     private Map<String, String> unitIdToGroupId;
     private Map<String, List<String>> objectGroupIdToUnitId;
+    private final Map<String, String> objectGuidToUri;
 
     private Map<String, LogbookParameters> guidToLifeCycleParameters;
     
@@ -179,6 +181,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         unitIdToGroupId = new HashMap<>();
         objectGroupIdToUnitId = new HashMap<>();
         guidToLifeCycleParameters = new HashMap<>();
+        objectGuidToUri = new HashMap<>();
         handlerInitialIOList = new HandlerIO("");
         for (int i = 0; i < HANDLER_IO_PARAMETER_NUMBER; i++) {
             handlerInitialIOList.addOutput(String.class);
@@ -499,8 +502,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         writer.add(eventFactory.createStartElement("", "", DATA_OBJECT_GROUPID));
                         writer.add(eventFactory.createCharacters(groupGuidTmp));
                         writer.add(eventFactory.createEndElement("", "", DATA_OBJECT_GROUPID));
-                    } else if (localPart == "Uri") {
-                        reader.getElementText();
+                    } else if (TAG_URI.equals(localPart)) {
+                        final String uri = reader.getElementText();
+                        objectGuidToUri.put(elementGuid, uri);
                     } else {
                         writer.add(eventFactory.createStartElement("", "", localPart));
                     }
@@ -910,6 +914,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 objectGroup.set("FileInfo", fileInfo);
                 final ObjectNode qualifiersNode = getObjectGroupQualifiers(categoryMap);
                 objectGroup.set("_qualifiers", qualifiersNode);
+                final ObjectNode workNode = getObjectGroupWork(categoryMap);
+                objectGroup.set("_work", workNode);
                 objectGroup.set("_up", unitParent);
                 objectGroup.put("_nb", entry.getValue().size());
                 tmpFileWriter.write(objectGroup.toString());
@@ -977,6 +983,28 @@ public class ExtractSedaActionHandler extends ActionHandler {
         }
         return qualifierObject;
     }
+    
+    private ObjectNode getObjectGroupWork(Map<String, ArrayList<JsonNode>> categoryMap) {
+        final ObjectNode workObject = JsonHandler.createObjectNode();
+        final ObjectNode qualifierObject = JsonHandler.createObjectNode();
+        for (final Entry<String, ArrayList<JsonNode>> entry : categoryMap.entrySet()) {
+            final ObjectNode binaryNode = JsonHandler.createObjectNode();
+            binaryNode.put("nb", entry.getValue().size());
+            final ArrayNode arrayNode = JsonHandler.createArrayNode();
+            for (final JsonNode node : entry.getValue()) {
+                final ObjectNode objectNode = JsonHandler.createObjectNode();
+                String id = node.findValue(TAG_ID).textValue();
+                objectNode.put(TAG_ID, id);
+                objectNode.put(TAG_URI, objectGuidToUri.get(id));
+                arrayNode.add(objectNode);
+            }
+            binaryNode.set("versions", arrayNode);
+            qualifierObject.set(entry.getKey(), binaryNode);
+        }
+        workObject.set("_qualifiers", qualifierObject);
+        return workObject;
+    }
+    
     
     private void completeBinaryObjectToObjectGroupMap() {
         for (final String key : binaryDataObjectIdToObjectGroupId.keySet()) {

@@ -31,8 +31,11 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 import org.junit.Assume;
 import org.junit.Test;
@@ -109,6 +112,20 @@ public class JsonHandlerTest {
         assertEquals("a", JsonHandler.checkLaxUnicity("check", node4).getKey());
         assertEquals(1, JsonHandler.getMapFromString(node4.toString()).size());
         assertEquals(1, JsonHandler.getMapStringFromString(node4.toString()).size());
+        assertEquals(2, JsonHandler
+            .getMapFromInputStream(ResourcesPublicUtilTest.getInstance().getJsonTest3JsonInputStream()).size());
+        assertEquals(0, JsonHandler
+            .getMapFromInputStream(ResourcesPublicUtilTest.getInstance().getJsonTestEmptyJsonInputStream()).size());
+        assertEquals(0, JsonHandler.getMapFromInputStream(null).size());
+        Map<String, Object> map =
+            JsonHandler.getMapFromInputStream(ResourcesPublicUtilTest.getInstance().getJsonTest3JsonInputStream());
+        assertEquals("val1", map.get("a"));
+        assertNotNull(JsonHandler
+            .getFromInputStream(ResourcesPublicUtilTest.getInstance().getJsonTest3JsonInputStream(), JsonNode.class));
+        assertEquals("val2",
+            JsonHandler
+                .getFromInputStream(ResourcesPublicUtilTest.getInstance().getJsonTest3JsonInputStream(), JsonNode.class)
+                .get("b").asText());
     }
 
     @Test
@@ -274,6 +291,21 @@ public class JsonHandlerTest {
         }
         try {
             JsonHandler.getMapStringFromString("{");
+            fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
+        } catch (final InvalidParseOperationException e) {// NOSONAR
+            // Ignore
+        }
+
+
+        try {
+            JsonHandler.getMapFromInputStream(new ByteArrayInputStream("{".getBytes(StandardCharsets.UTF_8)));
+            fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
+        } catch (final InvalidParseOperationException e) {// NOSONAR
+            // Ignore
+        }
+        try {
+            JsonHandler.getFromInputStream(new ByteArrayInputStream("{".getBytes(StandardCharsets.UTF_8)),
+                JsonNode.class);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
         } catch (final InvalidParseOperationException e) {// NOSONAR
             // Ignore
