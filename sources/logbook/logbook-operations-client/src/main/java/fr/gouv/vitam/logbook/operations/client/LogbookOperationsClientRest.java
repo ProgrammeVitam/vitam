@@ -157,6 +157,8 @@ public class LogbookOperationsClientRest implements LogbookClient {
                     message = new StatusMessage();
                 }
                 return message;
+            case NO_CONTENT:
+                return new StatusMessage();
             default:
                 LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
                 throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());

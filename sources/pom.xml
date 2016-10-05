@@ -167,6 +167,8 @@
 		<jackson-dataformat-csv.version>2.5.1</jackson-dataformat-csv.version>
 		<bouncycastle.version>1.54</bouncycastle.version>
 		<diffutils.version>1.2.1</diffutils.version>
+
+		<skipITs>false</skipITs>
 	</properties>
 
 	<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
@@ -234,6 +236,15 @@
 					<!-- Run the Junit integration tests in an isolated classloader. -->
 					<artifactId>maven-failsafe-plugin</artifactId>
 					<version>2.19.1</version>
+					<executions>
+						<execution>
+							<id>integration-test</id>
+							<goals>
+								<goal>integration-test</goal>
+								<goal>verify</goal>
+							</goals>
+						</execution>
+					</executions>
 				</plugin>
 				<plugin>
 					<!-- Install the built artifact into the local repository. -->
@@ -303,7 +314,7 @@
 							</goals>
 							<phase>integration-test</phase>
 							<configuration>
-								<skip>false</skip>
+								<skip>${skipITs}</skip>
 								<excludes>
 									<exclude>none</exclude>
 								</excludes>

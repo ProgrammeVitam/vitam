@@ -18,9 +18,17 @@ Build
 
 ``mvn install``
 
+Pour ignorer tous les tests:
+
+``mvn clean install -DskipTests``
+
 Pour ignorer les tests d'intégration:
 
-``mvn install -DskipITs``
+``mvn clean test`` ou ``mvn clean install -DskipITs``
+
+Pour exécuter uniquement les tests d'intégration:
+
+``mvn clean test-compile failsafe:integration-test``
 
 Build de la documentation
 =========================

@@ -85,7 +85,7 @@ public class IngestExternalIT {
         try {
             IngestExternalClient client = factory.getIngestExternalClient();
             Status status= client.status();
-            assertEquals(200, status.getStatusCode());
+            assertEquals(Status.NO_CONTENT.getStatusCode(), status.getStatusCode());
         } catch (VitamException e) {
             e.printStackTrace();
             fail();

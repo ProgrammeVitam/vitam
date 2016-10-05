@@ -133,7 +133,7 @@ public class WorkerIT {
     private static String SIP_FILE_OK_NAME = "integration/SIP.zip";
     private static String SIP_ARBO_COMPLEXE_FILE_OK = "integration/SIP_arbor_OK.zip";
     private static String SIP_WITHOUT_MANIFEST = "integration/SIP_no_manifest.zip";
-    private static String SIP_NB_OBJ_INCORRECT_IN_MANIFEST = "integration/SIP_Conformity_KO.zip";
+    private static String SIP_CONFORMITY_KO = "integration/SIP_Conformity_KO.zip";
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -216,19 +216,19 @@ public class WorkerIT {
     public void testServersStatus() throws Exception {
         RestAssured.port = PORT_SERVICE_WORKER;
         RestAssured.basePath = WORKER_PATH;
-        get("/status").then().statusCode(200);
+        get("/status").then().statusCode(204);
 
         RestAssured.port = PORT_SERVICE_WORKSPACE;
         RestAssured.basePath = WORKSPACE_PATH;
-        get("/status").then().statusCode(200);
+        get("/status").then().statusCode(204);
 
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
-        get("/status").then().statusCode(200);
+        get("/status").then().statusCode(204);
 
         RestAssured.port = PORT_SERVICE_METADATA;
         RestAssured.basePath = METADATA_PATH;
-        get("/status").then().statusCode(200);
+        get("/status").then().statusCode(204);
     }
 
     @Test
@@ -366,7 +366,7 @@ public class WorkerIT {
     }
 
     @Test
-    public void testWorkflowWithManifestIncorrectObjectNumber() throws Exception {
+    public void testWorkflowWithManifestConformityKO() throws Exception {
         CONTAINER_NAME = GUIDFactory.newManifestGUID(0).getId();
 
         // workspace client dezip SIP in workspace
@@ -374,7 +374,7 @@ public class WorkerIT {
         RestAssured.basePath = WORKSPACE_PATH;
 
         InputStream zipInputStreamSipObject =
-            Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_NB_OBJ_INCORRECT_IN_MANIFEST);
+            Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_CONFORMITY_KO);
         workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
         workspaceClient.createContainer(CONTAINER_NAME);
         workspaceClient.unzipObject(CONTAINER_NAME, SIP_FOLDER, zipInputStreamSipObject);
@@ -387,12 +387,13 @@ public class WorkerIT {
         List<EngineResponse> retStepControl =
             workerClient.submitStep("resquestId", getDescriptionStep("integration/step_control_SIP.json"));
         assertNotNull(retStepControl);
-        assertEquals(5, retStepControl.size());
+        assertEquals(6, retStepControl.size());
         assertEquals(StatusCode.OK, retStepControl.get(0).getStatus());
         assertEquals(StatusCode.OK, retStepControl.get(1).getStatus());
         assertEquals(StatusCode.OK, retStepControl.get(2).getStatus());
         assertEquals(StatusCode.OK, retStepControl.get(3).getStatus());
-        assertEquals(StatusCode.KO, retStepControl.get(4).getStatus());
+        assertEquals(StatusCode.OK, retStepControl.get(4).getStatus());
+        assertEquals(StatusCode.KO, retStepControl.get(5).getStatus());
 
         workspaceClient.deleteContainer(CONTAINER_NAME);
     }
