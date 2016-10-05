@@ -150,6 +150,8 @@ public abstract class AbstractClient implements BasicClient {
                         message = new StatusMessage();
                     }
                     return message;
+                case NO_CONTENT:
+                    return  new StatusMessage();
                 default:
                     LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
                     throw new VitamClientException(INTERNAL_SERVER_ERROR);
