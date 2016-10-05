@@ -16,5 +16,6 @@
 		<module>storage-driver</module>
 		<module>storage-engine</module>
 		<module>storage-offers</module>
+		<module>storage-integration-test</module>
 	</modules>
 </project>

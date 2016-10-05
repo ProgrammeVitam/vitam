@@ -38,7 +38,6 @@ import java.util.regex.Pattern;
 import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -63,6 +62,11 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
 
+/**
+ * !!! WARNING !!! : in case of modification of class fr.gouv.vitam.driver.fake.FakeDriverImpl, you need to recompile
+ * the storage-offer-mock.jar from the storage-offer-mock module and copy it in src/test/resources in place of the
+ * previous one.
+ */
 public class StorageClientIT {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageClientIT.class);
     private static final String SHOULD_NOT_RAIZED_AN_EXCEPTION = "Should not have raized an exception";
@@ -181,8 +185,6 @@ public class StorageClientIT {
     /**
      * TODO test integration to finish (bug on exiting folder)
      */
-    
-    @Ignore
     @Test
     public final void testStorage() throws VitamClientException, FileNotFoundException {
 
@@ -197,6 +199,7 @@ public class StorageClientIT {
             assertNotNull(node);
             // fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         } catch (VitamException svce) {
+            LOGGER.error(svce);
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
         // TODO : when implemented, uncomment this
@@ -208,6 +211,7 @@ public class StorageClientIT {
             storageClient.storeFileFromWorkspace("0", "default", StorageCollectionType.OBJECTS, "objectId",
                 description);
         } catch (StorageServerClientException svce) {
+            LOGGER.error(svce);
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
 
@@ -215,6 +219,7 @@ public class StorageClientIT {
             InputStream stream = storageClient.getContainerObject("0", "default", OBJECT_ID);
             assertNotNull(stream);
         } catch (StorageServerClientException | StorageNotFoundException svce) {
+            LOGGER.error(svce);
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
 
