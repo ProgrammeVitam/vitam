@@ -3,38 +3,50 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
-		<artifactId>storage-engine</artifactId>
+		<artifactId>storage</artifactId>
 		<version>0.9.0-SNAPSHOT</version>
 	</parent>
-	<artifactId>storage-engine-client</artifactId>
-	<name>Storage Engine Client</name>
+	<artifactId>storage-integration-test</artifactId>
+	<name>Storage Integration Test</name>
 	<dependencies>
 
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>common-private</artifactId>
+			<artifactId>storage-engine-common</artifactId>
 			<version>${project.version}</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>storage-engine-common</artifactId>
+			<artifactId>storage-engine-client</artifactId>
 			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>storage-offer-mock</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.glassfish.jersey.media</groupId>
 			<artifactId>jersey-media-json-jackson</artifactId>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-annotations</artifactId>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.glassfish.jersey.core</groupId>
 			<artifactId>jersey-client</artifactId>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.glassfish.jersey.test-framework.providers</groupId>
@@ -72,7 +84,19 @@
 			<artifactId>rest-assured</artifactId>
 			<scope>test</scope>
 		</dependency>
-		
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>storage-engine-server</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>workspace-rest</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+
 	</dependencies>
 
 	<build>
@@ -90,7 +114,7 @@
 						<systemPropertyVariables>
 							<org.owasp.esapi.opsteam>AC001</org.owasp.esapi.opsteam>
 							<org.owasp.esapi.devteam>AC001</org.owasp.esapi.devteam>
-							<org.owasp.esapi.resources>../../../common/common-private/src/main/resources/esapi</org.owasp.esapi.resources>
+							<org.owasp.esapi.resources>../../common/common-private/src/main/resources/esapi</org.owasp.esapi.resources>
 						</systemPropertyVariables>
 					</configuration>
 				</plugin>
