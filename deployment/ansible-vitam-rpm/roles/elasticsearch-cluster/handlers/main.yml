@@ -2,5 +2,8 @@
 # handlers file for elasticsaerch-cluster
 - name: restart elasticsearch
   service:
-    name=elasticsearch
-    state=restarted
+    name: elasticsearch
+    state: restarted
+
+- name: create systemd tmpfiles
+  command: systemd-tmpfiles --create

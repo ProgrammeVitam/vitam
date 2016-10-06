@@ -9,17 +9,17 @@
 CONF_DIR=/vitam/conf/elasticsearch-{{groupe}}
 
 # Elasticsearch data directory
-#DATA_DIR=/var/lib/elasticsearch
+#DATA_DIR=/vitam/data/elasticsearch-{{groupe}}
 
 # Elasticsearch logs directory
-#LOG_DIR=/var/log/elasticsearch
+#LOG_DIR=/vitam/log/elasticsearch-{{groupe}}
 
 # Elasticsearch PID directory
-#PID_DIR=/var/run/elasticsearch
+#PID_DIR=/var/run/elasticsearch-{{groupe}}
 
 # Heap size defaults to 256m min, 1g max
 # Set ES_HEAP_SIZE to 50% of available RAM, but no more than 31g
-#ES_HEAP_SIZE=3992m
+ES_HEAP_SIZE={{elasticsearch_memory}}
 
 # Heap new generation
 #ES_HEAP_NEWSIZE=
@@ -47,6 +47,8 @@ ES_GC_LOG_FILE=/vitam/log/elasticsearch-{{groupe}}/gc.log
 # Note that this setting is only used by the init script. If changed, make sure that
 # the configured user can read and write into the data, work, plugins and log directories.
 # For systemd service, the user is usually configured in file /usr/lib/systemd/system/elasticsearch.service
+
+# Note: useless for VITAM, as the startup is managed by systemd
 ES_USER=vitamdb
 ES_GROUP=vitam
 

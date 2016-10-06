@@ -2,6 +2,7 @@
 # vars file for elasticsaerch-cluster
 elasticsearch_user: "elasticsearch"
 elasticsearch_max_open_files: "65535"
+cluster_name: "elasticsearch-{{groupe}}"
 elasticsearch_log_dir: "{{vitam_folder_root}}/log/{{cluster_name}}"
 elasticsearch_data_dir: "{{vitam_folder_root}}/data/{{cluster_name}}"
 elasticsearch_conf_dir: "{{vitam_folder_root}}/conf/{{cluster_name}}"

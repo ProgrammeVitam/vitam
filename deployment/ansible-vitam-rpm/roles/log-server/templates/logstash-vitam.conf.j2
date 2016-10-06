@@ -11,7 +11,7 @@
 # -----------------------------------------------------------------------
 
 input {
-        # KWA TODO : A étudier lorsqu'on changera la localisation ES
+        # KWA TODO : A etudier lorsqu'on changera la localisation ES
         file {
                 type => "import_curator"
                 path => "{{curator_log_dir}}/curator.log"
@@ -22,7 +22,7 @@ input {
         # --- syslog input etc ...
         syslog {
                 type => syslog_input
-                port => 10514
+                port => {{ vitam_logstash_port }}
         }
 }
 # -----------------------------------------------------
@@ -154,7 +154,7 @@ output {
       if [type] =~ "logback" or [type] =~ "mongo" or [type] =~ "script" or [program] =~ "elasticsearch-data" {
         elasticsearch {
 
-          # KWA TODO: Prévoir un peu de tuning de perf ici
+          # KWA TODO: Prevoir un peu de tuning de perf ici
           #flush_size => 10000
           #idle_flush_time => 1
           #idle_flush_time => 2

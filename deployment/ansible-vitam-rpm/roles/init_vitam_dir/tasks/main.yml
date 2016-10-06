@@ -1,17 +1,4 @@
 ---
-# tasks file for init_vitam_dir
-- name: install vitam-user-vitam
-  yum:
-    name: vitam-user-vitam
-    state: present
-  when: vitam_environment=='local'
-
-- name: install vitam-user-vitamdb
-  yum:
-    name: vitam-user-vitamdb
-    state: present
-  when: vitam_environment=='local'
-
 - name: ensure parent dir is OK ith correct permissions
   file:
     path: "{{vitam_folder_root}}"

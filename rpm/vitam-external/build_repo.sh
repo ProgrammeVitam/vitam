@@ -36,7 +36,7 @@ then
 	while read SRC_URL   
 	do
 		echo "SRC_URL : ${SRC_URL}"
-		if [ $(echo "${SRC_URL}" | grep -E -o '^[^#]') ] # skip is the line is commented
+		if [[ $(echo "${SRC_URL}" | grep -E -o '^[^#]') ]] # skip is the line is commented
 		then
 			FILE=$(echo "${SRC_URL}" | grep -E -o '[^/]+$') # get the name of the rpm file
 			if [ -f "${TARGET_DIR}/${FILE}" ]

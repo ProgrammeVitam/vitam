@@ -15,7 +15,7 @@
 
 - hosts: library
   roles:
-#    - {role: vitam, vitam_component: library,java_args: /vitam/conf/library/library.conf, port_http: "{{vitam_library_port}}" } 
+    - {role: vitam, vitam_component: library,java_args: /vitam/conf/library/library.conf, port_http: "{{vitam_library_port}}" } 
 
 - hosts: reverse
   roles:

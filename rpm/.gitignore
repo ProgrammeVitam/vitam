@@ -4,3 +4,4 @@ BUILDROOT
 RPMS
 SRPMS
 *.zip
+*.tar.gz

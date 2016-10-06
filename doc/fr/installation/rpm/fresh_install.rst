@@ -75,7 +75,7 @@ Paramétrage de l'antivirus (ingest-externe)
 Paramétrage des certificats (\*-externe)
 -----------------------------------------
 
-.. todo:: A expliquer
+Se reporter aux onformations du paragraphe "pré-script".
 
 
 
@@ -95,13 +95,28 @@ Pré-script
 -------------
 Le script suivant est à jour en premier ; il permet de générer ou recopier (selon le cas) une PKI, ainsi que des certificats pour les échanges https entre composants.
 
+* Cas de l'absence de CA
+
+Dans ce cas, lancer le script ``generate-ca-security.sh``
+
 .. note:: ce script est en cours de mise au point.
+
+Puis, lancer le script de génération des certificats / stores nécessaire au bon fonctionnement de VITAM
+
+``generate-security.sh``
+
+Ce fichier se base sur :
+
+- le fait qu'une CA (fichiers ca.crt au minimum) soit présent sous PKI/<to be defined>
+- le fait que le fichier ``vault.yml`` soit paramétré
 
 
 Déploiement
 -------------
 
-Une fois le pré-script passé avec succès, le déploiement est à réaliser avec la commande suivante :
+Une fois l'étape de pré-script passée avec succès, le déploiement est à réaliser avec la commande suivante :
 
 ansible-playbook |repertoire_playbook ansible|/vitam.yml -i |repertoire_inventory|/<ficher d'inventaire> --ask-vault-pass
+
+Il sera alors demandé le mot de passe correspondant au fichier ``vault.yml``.
 

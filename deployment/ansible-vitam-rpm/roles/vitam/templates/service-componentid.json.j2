@@ -1,37 +1,25 @@
 {
   "service": {
     "name": "{{ vitam_component }}",
+{% if tls_active==true %}
+    "port": {{ port_https }},
+{% else %}
     "port": {{ port_http }},
+{% endif %}
     "enableTagOverride": false,
     "checks": [
-
       {
-        "id": "app-status",
-        "notes": "Status applicatif externe : /{{ vitam_component }}/v1/status",
 {% if tls_active==true %}
-        "https": "https://localhost:{{ port_https }}",
+        "id": "https tcp check",
+        "notes": "HTTPS port opened",
+        "tcp": "localhost:{{ port_https }}",
 {% else %}
-        "http": "http://localhost:{{ port_http }}/{{ vitam_component }}/v1/status",
+        "id": "admin status",
+        "notes": "Status admin : /admin/v1/status",
+        "http": "http://localhost:{{ port_http }}/admin/v1/status",
 {% endif %}
-
         "interval": "1s"
-      },
-      {
-        "id": "external-port",
-          "notes": "Port externe ouvert : {{ port_http }}",
-          "tcp": "localhost:{{ port_http }}",
-          "interval": "1s"
       }
     ]
   }
 }
-//      {
-//        "id": "admin-status",
-        //"notes": "Status applicatif externe : /admin/v1/status",
-// {% if tls_active==true %}
-//        "https": "https://localhost:{{ port_https }}",
-// {% else %}
-//        "http": "http://localhost:{{ port_http }}/admin/v1/status",
-// {% endif %}
-//        "interval": "1s"
-//      },

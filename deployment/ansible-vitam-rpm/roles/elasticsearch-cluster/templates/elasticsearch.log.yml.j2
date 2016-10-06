@@ -20,7 +20,7 @@ cluster.name: {{cluster_name}}
 #
 # Use a descriptive name for the node:
 #
-node.name: {{ansible_nodename}}.{{environnement}}
+node.name: {{inventory_hostname}}
 #
 # Add custom attributes to the node:
 #
@@ -51,8 +51,12 @@ path.logs: {{elasticsearch_log_dir}}
 #
 # Set the bind address to a specific IP (IPv4 or IPv6):
 #
-network.host: {{ansible_nodename}}.{{environnement}}
-#
+# Note : if installing to localhost, notably a docker container, we need to bind larger than localhost
+{% if inventory_hostname == "localhost" %}
+network.host: 0.0.0.0
+{% else %}
+network.host: {{ansible_hostname}}
+{% endif %}#
 # Set a custom port for HTTP:
 #
 http.port: {{port_http}}
@@ -94,7 +98,12 @@ discovery.zen.ping.unicast.hosts: [ "{{ groups['hosts-elasticsearch-log']|join('
 # Require explicit names when deleting indices:
 #
 # action.destructive_requires_name: true
+{% if groups['hosts-elasticsearch-log']|length == 1 %}
+index.number_of_replicas: 0
+{% else %}
 index.number_of_replicas: 1
+{% endif %}#
+
 index.refresh_interval: 10s
 indices.memory.index_buffer_size: 30%
 index.translog.flush_threshold_ops: 50000
