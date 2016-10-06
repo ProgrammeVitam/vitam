@@ -26,15 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
@@ -62,8 +56,17 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.core.api.HandlerIO;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
@@ -101,8 +104,9 @@ public class ExtractSedaActionHandlerTest {
         PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
 
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
+                ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
+                ("containerName");
 
         final EngineResponse response = handler.execute(params, action);
         assertEquals(response.getStatus(), StatusCode.KO);
@@ -112,8 +116,9 @@ public class ExtractSedaActionHandlerTest {
     public void givenWorkspaceExistWhenExecuteThenReturnResponseOK() throws Exception {
         assertEquals(ExtractSedaActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
+                ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
+                ("containerName");
 
         final InputStream ingestTreeFile = Thread.currentThread().getContextClassLoader()
             .getResourceAsStream(INGEST_TREE);
@@ -124,8 +129,7 @@ public class ExtractSedaActionHandlerTest {
             public Void answer(InvocationOnMock invocation) throws Throwable {
                 File realArchiveTreeTmpFile = PropertiesUtils
                     .fileFromTmpFolder(
-                        IngestWorkflowConstants.ARCHIVE_TREE_TMP_FILE_NAME_PREFIX + OBJ +
-                            ExtractSedaActionHandler.JSON_EXTENSION);
+                        IngestWorkflowConstants.ARCHIVE_TREE_TMP_FILE_NAME_PREFIX + OBJ + SedaUtils.JSON_EXTENSION);
                 File saveArchiveTreeTmpFile = PropertiesUtils
                     .fileFromTmpFolder(
                         "SAVE_" + IngestWorkflowConstants.ARCHIVE_TREE_TMP_FILE_NAME_PREFIX + OBJ +
@@ -139,8 +143,95 @@ public class ExtractSedaActionHandlerTest {
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(seda_arborescence);
         PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
 
+
+        final EngineResponse response = handler.execute(params, action);
+        assertEquals(response.getStatus(), StatusCode.OK);
+    }
+
+    @Test
+    public void givenSipWithBdoWithoutGoWhenReadSipThenDetectBdoWithoutGo()
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
+        FileNotFoundException {
+
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
+                ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
+                ("containerName");
+
+        final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-bdo-orphan-ok1.xml"));
+
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(sedaLocal);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
         final EngineResponse response = handler.execute(params, action);
         assertEquals(StatusCode.OK, response.getStatus());
+    }
+
+    @Test
+    public void givenSipWithBdoWithGoWithArchiveUnitReferenceGoWhenReadSipThenReadSuccess()
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
+        FileNotFoundException {
+
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
+                ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
+                ("containerName");
+
+        final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-bdo-orphan-ok2.xml"));
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(sedaLocal);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        final EngineResponse response = handler.execute(params, action);
+        assertEquals(StatusCode.OK, response.getStatus());
+    }
+
+    @Test
+    public void givenSipFctTestWithBdoWithGoWithArchiveUnitReferenceBDOWhenReadSipThenThrowException()
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
+        FileNotFoundException {
+
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
+                ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
+                ("containerName");
+
+        final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-bdo-orphan-ok3-listBDO.xml"));
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(sedaLocal);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        final EngineResponse response = handler.execute(params, action);
+        assertEquals(StatusCode.OK, response.getStatus());
+    }
+
+    @Test
+    public void givenSipWithBdoWithGoWithArchiveUnitNotReferenceGoWhenReadSipThenReadSuccess()
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
+        FileNotFoundException {
+
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
+                ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
+                ("containerName");
+
+        final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-bdo-orphan-ok4.xml"));
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(sedaLocal);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        final EngineResponse response = handler.execute(params, action);
+        assertEquals(StatusCode.OK, response.getStatus());
+    }
+
+    @Test
+    public void givenSipWithBdoWithGoWithArchiveUnitReferenceGoWhenReadSipThenThrowException()
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
+        FileNotFoundException {
+
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
+                ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
+                ("containerName");
+
+        final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-bdo-orphan-err2.xml"));
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml"))).thenReturn(sedaLocal);
+        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        final EngineResponse response = handler.execute(params, action);
+        assertEquals(StatusCode.KO, response.getStatus());
     }
 
 }

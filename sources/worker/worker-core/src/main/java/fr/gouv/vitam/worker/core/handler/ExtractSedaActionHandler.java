@@ -52,6 +52,8 @@ import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -119,6 +121,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final String FILE_INFO = "FileInfo";
     private static final String METADATA = "Metadata";
     private static final String DATA_OBJECT_GROUP_REFERENCEID = "DataObjectGroupReferenceId";
+    private static final String DATA_OBJECT_REFERENCEID = "DataObjectReferenceId";
+    private static final String TAG_VERSION = "DataObjectVersion";
     private static final String TAG_OG = "_og";
     private static final String TAG_ID = "_id";
     private static final String TAG_URI = "Uri";
@@ -150,6 +154,13 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final String FILE_COULD_NOT_BE_DELETED_MSG = "File could not be deleted";
     private static final String CANNOT_READ_SEDA = "Can not read SEDA";
     private static final String MANIFEST_NOT_FOUND = "Manifest.xml Not Found";
+    private static final String VERSION = "versions";
+    private static final String TYPE = "_type";
+    private static final String QUALIFIERS = "_qualifiers";
+    private static final String NB = "_nb";
+    private static final String TENANT_ID = "_tenantId";
+
+
 
     private Map<String, String> binaryDataObjectIdToGuid;
     private Map<String, String> objectGroupIdToGuid;
@@ -159,34 +170,36 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private Map<String, String> binaryDataObjectIdToObjectGroupId;
     private Map<String, List<String>> objectGroupIdToBinaryDataObjectId;
     private Map<String, String> unitIdToGroupId;
+    // this map contains binaryDataObject that not have DataObjectGroupId
+    private Map<String, GotObj> binaryDataObjectIdWithoutObjectGroupId;
     private Map<String, List<String>> objectGroupIdToUnitId;
     private final Map<String, String> objectGuidToUri;
 
     private Map<String, LogbookParameters> guidToLifeCycleParameters;
-    
+
     private static final int HANDLER_IO_PARAMETER_NUMBER = 7;
     private HandlerIO handlerInitialIOList;
     /**
      * Constructor with parameter SedaUtilsFactory
      *
-     * @param factory SedaUtils factory
      */
     public ExtractSedaActionHandler() {
-        binaryDataObjectIdToGuid = new HashMap<>();
-        objectGroupIdToGuid = new HashMap<>();
-        objectGroupIdToGuidTmp = new HashMap<>();
-        unitIdToGuid = new HashMap<>();
-        binaryDataObjectIdToObjectGroupId = new HashMap<>();
-        objectGroupIdToBinaryDataObjectId = new HashMap<>();
-        unitIdToGroupId = new HashMap<>();
-        objectGroupIdToUnitId = new HashMap<>();
-        guidToLifeCycleParameters = new HashMap<>();
+        binaryDataObjectIdToGuid = new HashMap<String, String>();
+        binaryDataObjectIdWithoutObjectGroupId = new HashMap<String, GotObj>();
+        objectGroupIdToGuid = new HashMap<String, String>();
+        objectGroupIdToGuidTmp = new HashMap<String, String>();
+        unitIdToGuid = new HashMap<String, String>();
+        binaryDataObjectIdToObjectGroupId = new HashMap<String, String>();
+        objectGroupIdToBinaryDataObjectId = new HashMap<String, List<String>>();
+        unitIdToGroupId = new HashMap<String, String>();
+        objectGroupIdToUnitId = new HashMap<String, List<String>>();
+        guidToLifeCycleParameters = new HashMap<String, LogbookParameters>();
         objectGuidToUri = new HashMap<>();
         handlerInitialIOList = new HandlerIO("");
         for (int i = 0; i < HANDLER_IO_PARAMETER_NUMBER; i++) {
             handlerInitialIOList.addOutput(String.class);
         }
-        
+
     }
 
     /**
@@ -211,22 +224,23 @@ public class ExtractSedaActionHandler extends ActionHandler {
             LOGGER.debug("ProcessingException", e);
             response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID, OutcomeMessage.EXTRACT_MANIFEST_KO);
         } finally {
-            //Empty all maps  
-            binaryDataObjectIdToGuid = new HashMap<>();
-            objectGroupIdToGuid = new HashMap<>();
-            objectGroupIdToGuidTmp = new HashMap<>();
-            unitIdToGuid = new HashMap<>();
-            binaryDataObjectIdToObjectGroupId = new HashMap<>();
-            objectGroupIdToBinaryDataObjectId = new HashMap<>();
-            unitIdToGroupId = new HashMap<>();
-            objectGroupIdToUnitId = new HashMap<>();
-            guidToLifeCycleParameters = new HashMap<>();
+            // Empty all maps
+            binaryDataObjectIdToGuid.clear();
+            objectGroupIdToGuid.clear();
+            objectGroupIdToGuidTmp.clear();
+            unitIdToGuid.clear();
+            binaryDataObjectIdWithoutObjectGroupId.clear();
+            binaryDataObjectIdToObjectGroupId.clear();
+            objectGroupIdToBinaryDataObjectId.clear();
+            unitIdToGroupId.clear();
+            objectGroupIdToUnitId.clear();
+            guidToLifeCycleParameters.clear();
         }
 
         LOGGER.debug("ExtractSedaActionHandler response: " + response.getStatus().name());
         return response;
     }
-    
+
     /**
      * Split Element from InputStream and write it to workspace
      *
@@ -236,11 +250,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
     public void extractSEDA(WorkerParameters params) throws ProcessingException {
         ParameterHelper.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
-        // TODO : whould use worker configuration instead of the processing configuration        
+        // TODO : whould use worker configuration instead of the processing configuration
         final WorkspaceClient client = WorkspaceClientFactory.create(params.getUrlWorkspace());
         extractSEDAWithWorkspaceClient(client, containerId);
     }
-    
+
     private void extractSEDAWithWorkspaceClient(WorkspaceClient client, String containerId) throws ProcessingException {
         ParametersChecker.checkParameter(WORKSPACE_MANDATORY_MSG, client);
         ParametersChecker.checkParameter("ContainerId is a mandatory parameter", containerId);
@@ -332,7 +346,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
             // Save binaryDataObjectIdToGuid Map
             saveMap(containerId, binaryDataObjectIdToGuid, (String) handlerIO.getOutput().get(4), client, true);
-            
+
          // Save objectGroupIdToUnitId Map
             saveMap(containerId, objectGroupIdToUnitId, (String) handlerIO.getOutput().get(6), client, true);
 
@@ -359,7 +373,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             throw new ProcessingException(e);
         }
     }
-    
+
 
     private void writeArchiveUnitToWorkspace(WorkspaceClient client, String containerId, XMLEventReader reader,
         StartElement startElement, ObjectNode archiveUnitTree, String path) throws ProcessingException {
@@ -407,11 +421,20 @@ public class ExtractSedaActionHandler extends ActionHandler {
     }
 
     private void checkArchiveUnitIdReference() throws ProcessingException {
-        for (final Entry<String, String> entry : unitIdToGroupId.entrySet()) {
-            if (objectGroupIdToGuid.get(entry.getValue()) == null) {
-                final String groupId = binaryDataObjectIdToObjectGroupId.get(entry.getValue());
-                if (groupId == null || groupId != "") {
-                    throw new ProcessingException("Archive Unit reference Id is not correct");
+
+        if (unitIdToGroupId != null && !unitIdToGroupId.isEmpty()) {
+            for (final Entry<String, String> entry : unitIdToGroupId.entrySet()) {
+                if (objectGroupIdToGuid.get(entry.getValue()) == null) {
+                    String groupId = binaryDataObjectIdToObjectGroupId.get(entry.getValue()); // the AU reference an BDO
+                    if (StringUtils.isBlank(groupId)) {
+                        throw new ProcessingException("Archive Unit references a BDO Id but is not correct");
+                    } else {
+                        if (!groupId.equals(entry.getValue())) {
+                            throw new ProcessingException(
+                                "The archive unit " + entry.getKey() + " references one BDO Id " + entry.getValue() +
+                                    " while this BDO has a GOT id " + groupId);
+                        }
+                    }
                 }
             }
         }
@@ -420,7 +443,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private String writeBinaryDataObjectInLocal(XMLEventReader reader, StartElement startElement, String containerId)
         throws ProcessingException {
         final String elementGuid = GUIDFactory.newGUID().toString();
-        final File tmpFile = PropertiesUtils.fileFromTmpFolder(elementGuid + ".json");
+        final File tmpFile = PropertiesUtils.fileFromTmpFolder(elementGuid + JSON_EXTENSION);
         final XMLEventFactory eventFactory = XMLEventFactory.newInstance();
         final JsonXMLConfig config = new JsonXMLConfigBuilder().build();
         String groupGuid = null;
@@ -430,16 +453,16 @@ public class ExtractSedaActionHandler extends ActionHandler {
             final XMLEventWriter writer = new JsonXMLOutputFactory(config).createXMLEventWriter(tmpFileWriter);
 
             final Iterator<?> it = startElement.getAttributes();
-            String binaryOjectId = "";
+            String binaryObjectId = "";
             if (it.hasNext()) {
-                binaryOjectId = ((Attribute) it.next()).getValue();
-                binaryDataObjectIdToGuid.put(binaryOjectId, elementGuid);
-                binaryDataObjectIdToObjectGroupId.put(binaryOjectId, "");
+                binaryObjectId = ((Attribute) it.next()).getValue();
+                binaryDataObjectIdToGuid.put(binaryObjectId, elementGuid);
+                binaryDataObjectIdToObjectGroupId.put(binaryObjectId, "");
                 writer.add(eventFactory.createStartDocument());
                 writer.add(eventFactory.createStartElement("", "", startElement.getName().getLocalPart()));
-                writer.add(eventFactory.createStartElement("", "", "_id"));
-                writer.add(eventFactory.createCharacters(binaryOjectId));
-                writer.add(eventFactory.createEndElement("", "", "_id"));
+                writer.add(eventFactory.createStartElement("", "", TAG_ID));
+                writer.add(eventFactory.createCharacters(binaryObjectId));
+                writer.add(eventFactory.createEndElement("", "", TAG_ID));
             }
             while (true) {
                 boolean writable = true;
@@ -464,17 +487,17 @@ public class ExtractSedaActionHandler extends ActionHandler {
                             groupGuid = objectGroupIdToGuidTmp.get(groupId);
                             objectGroupIdToGuidTmp.remove(groupId);
                         }
-                        binaryDataObjectIdToObjectGroupId.put(binaryOjectId, groupId);
+                        binaryDataObjectIdToObjectGroupId.put(binaryObjectId, groupId);
                         objectGroupIdToGuid.put(groupId, groupGuid);
 
                         // Create OG lifeCycle
                         createObjectGroupLifeCycle(groupGuid, containerId);
                         if (objectGroupIdToBinaryDataObjectId.get(groupId) == null) {
                             final List<String> binaryOjectList = new ArrayList<String>();
-                            binaryOjectList.add(binaryOjectId);
+                            binaryOjectList.add(binaryObjectId);
                             objectGroupIdToBinaryDataObjectId.put(groupId, binaryOjectList);
                         } else {
-                            objectGroupIdToBinaryDataObjectId.get(groupId).add(binaryOjectId);
+                            objectGroupIdToBinaryDataObjectId.get(groupId).add(binaryObjectId);
                         }
 
                         // Create new startElement for group with new guid
@@ -484,15 +507,15 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     } else if (localPart == DATA_OBJECT_GROUP_REFERENCEID) {
                         final String groupId = reader.getElementText();
                         String groupGuidTmp = GUIDFactory.newGUID().toString();
-                        binaryDataObjectIdToObjectGroupId.put(binaryOjectId, groupId);
+                        binaryDataObjectIdToObjectGroupId.put(binaryObjectId, groupId);
                         // The DataObjectGroupReferenceID is after DataObjectGroupID in the XML flow
                         if (objectGroupIdToBinaryDataObjectId.get(groupId) != null) {
-                            objectGroupIdToBinaryDataObjectId.get(groupId).add(binaryOjectId);
+                            objectGroupIdToBinaryDataObjectId.get(groupId).add(binaryObjectId);
                             groupGuidTmp = objectGroupIdToGuid.get(groupId);
                         } else {
                             // The DataObjectGroupReferenceID is before DataObjectGroupID in the XML flow
                             final List<String> binaryOjectList = new ArrayList<String>();
-                            binaryOjectList.add(binaryOjectId);
+                            binaryOjectList.add(binaryObjectId);
                             objectGroupIdToBinaryDataObjectId.put(groupId, binaryOjectList);
                             objectGroupIdToGuidTmp.put(groupId, groupGuidTmp);
 
@@ -520,8 +543,19 @@ public class ExtractSedaActionHandler extends ActionHandler {
             writer.close();
             tmpFileWriter.close();
 
+            if (StringUtils.isBlank(binaryDataObjectIdToObjectGroupId.get(binaryObjectId))) {
+                // not have object group, must creat an technical object group
+                LOGGER.debug("BDO " + binaryObjectId + " not have an GDO");
+                binaryDataObjectIdToObjectGroupId.remove(binaryObjectId);
+                postBinaryDataObjectActions(elementGuid + JSON_EXTENSION, binaryObjectId);
+            }
+
+
         } catch (final XMLStreamException e) {
             LOGGER.debug("Can not read input stream");
+            throw new ProcessingException(e);
+        } catch (InvalidParseOperationException e) {
+            LOGGER.debug("Can not parse binary data object json");
             throw new ProcessingException(e);
         } catch (final IOException e) {
             LOGGER.debug("Closing stream error");
@@ -540,7 +574,86 @@ public class ExtractSedaActionHandler extends ActionHandler {
         return groupGuid;
 
     }
-    
+
+    /**
+     * Post actions when reading binary data object in manifest
+     *
+     * @param jsonFileName
+     * @param binaryDataOjectId
+     * @return
+     * @throws InvalidParseOperationException
+     */
+    private JsonNode postBinaryDataObjectActions(final String jsonFileName, final String binaryDataOjectId)
+        throws InvalidParseOperationException {
+        File tmpJsonFile = PropertiesUtils.fileFromTmpFolder(jsonFileName);
+        JsonNode jsonBDO = JsonHandler.getFromFile(tmpJsonFile);
+        JsonNode objectNode = mapNewTechnicalDataObjectGroupToBDO(jsonBDO, binaryDataOjectId);
+        objectNode = addExtraField(objectNode);
+        JsonHandler.writeAsFile(objectNode,
+            PropertiesUtils.fileFromTmpFolder(jsonFileName)); // write the new BinaryDataObject
+        return objectNode;
+    }
+
+    /**
+     * add fields that is missing in manifest
+     *
+     * @param objectNode
+     * @return
+     */
+    private JsonNode addExtraField(JsonNode objectNode) {
+        ObjectNode bdoObjNode = (ObjectNode) objectNode.get(BINARY_DATA_OBJECT);
+        if (bdoObjNode.get(TAG_VERSION) == null ||
+            StringUtils.isBlank(bdoObjNode.get(TAG_VERSION).textValue())) {
+            bdoObjNode.put(TAG_VERSION, BINARY_MASTER);
+        }
+        return ((ObjectNode) JsonHandler.createObjectNode()).set(BINARY_DATA_OBJECT, bdoObjNode);
+    }
+
+    /**
+     * Creation of the technical new object group and update the maps
+     *
+     * @param jsonBDO
+     * @param binaryDataOjectId
+     * @return
+     */
+    private JsonNode mapNewTechnicalDataObjectGroupToBDO(JsonNode jsonBDO, String binaryDataOjectId) {
+        JsonNode bdo = jsonBDO.get(BINARY_DATA_OBJECT);
+        ObjectNode bdoObjNode = (ObjectNode) bdo;
+
+        final String technicalGotGuid = GUIDFactory.newObjectGroupGUID(0).toString();
+        objectGroupIdToGuid.put(technicalGotGuid, technicalGotGuid); // update object group id guid
+        bdoObjNode.put(DATA_OBJECT_GROUPID, technicalGotGuid);
+
+        if (StringUtils.isBlank(binaryDataObjectIdToObjectGroupId.get(binaryDataOjectId))) {
+            binaryDataObjectIdToObjectGroupId.put(binaryDataOjectId, technicalGotGuid);
+        } else {
+            LOGGER.warn("unexpected state - binaryDataObjectIdToObjectGroupId contains the GOT and should not");
+        }
+
+        String gotGuid = binaryDataObjectIdWithoutObjectGroupId.get(binaryDataOjectId) != null
+            ? binaryDataObjectIdWithoutObjectGroupId.get(binaryDataOjectId).getGotGuid() : "";
+        if (StringUtils.isBlank(gotGuid)) {
+            GotObj gotObj = new GotObj(technicalGotGuid, false);
+            binaryDataObjectIdWithoutObjectGroupId.put(binaryDataOjectId, gotObj);
+            binaryDataObjectIdToObjectGroupId
+                .put(binaryDataOjectId, technicalGotGuid); // update the list of bdo in the map
+        } else {
+            LOGGER.warn("unexpected state - binaryDataObjectIdWithoutObjectGroupId contains the GOT and should not");
+        }
+
+        List<String> listBDO = objectGroupIdToBinaryDataObjectId.get(technicalGotGuid);
+        if (listBDO != null && !listBDO.contains(technicalGotGuid)) {
+            listBDO.add(binaryDataOjectId);
+            objectGroupIdToBinaryDataObjectId.put(technicalGotGuid, listBDO);
+        } else {
+            listBDO = new ArrayList<String>();
+            listBDO.add(binaryDataOjectId);
+            objectGroupIdToBinaryDataObjectId.put(technicalGotGuid, listBDO);
+        }
+
+        return jsonBDO;
+    }
+
 
     private void transferFileFromTmpIntoWorkspace(WorkspaceClient client, String tmpFileSubpath,
         String workspaceFilePath,
@@ -561,7 +674,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             throw new ProcessingException(e);
         }
     }
-    
+
 
     private void createObjectGroupLifeCycle(String groupGuid, String containerId)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
@@ -588,7 +701,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         // Update guidToLifeCycleParameters
         guidToLifeCycleParameters.put(groupGuid, logbookLifecycleObjectGroupParameters);
     }
-    
+
     /**
      * create level stack on Json file
      * 
@@ -647,7 +760,43 @@ public class ExtractSedaActionHandler extends ActionHandler {
         LOGGER.info("End createIngestLevelStackFile/containerId:" + containerId);
 
     }
-    
+
+    /**
+     * Get the object group id defined in binary data object or the binary data object without GO. In this map the new
+     * technical object is created
+     *
+     * @param objIdRefByUnit il s'agit du DataObjectGroupReferenceId
+     * @return
+     */
+    private String getNewGdoIdFromGdoByUnit(String objIdRefByUnit) throws ProcessingException {
+
+        String gotGuid = binaryDataObjectIdWithoutObjectGroupId.get(objIdRefByUnit) != null
+            ? binaryDataObjectIdWithoutObjectGroupId.get(objIdRefByUnit).getGotGuid() : null;
+
+        if (StringUtils.isBlank(binaryDataObjectIdToObjectGroupId.get(objIdRefByUnit)) &&
+            !StringUtils.isBlank(gotGuid)) {
+
+            // nominal case of bdo without go
+            LOGGER.debug("The binary data object id " + objIdRefByUnit +
+                ", is defined without the group object id " +
+                binaryDataObjectIdWithoutObjectGroupId.get(objIdRefByUnit) +
+                ". The technical group object guid is " + gotGuid);
+            return gotGuid;
+
+        } else if (!StringUtils.isBlank(binaryDataObjectIdToObjectGroupId.get(objIdRefByUnit))) {
+            LOGGER.debug("The binary data object id " + binaryDataObjectIdWithoutObjectGroupId.get(objIdRefByUnit) +
+                " referenced defined with the group object id " + objIdRefByUnit);
+            // il y a un BDO possédant le GO id
+            return binaryDataObjectIdToObjectGroupId.get(objIdRefByUnit);
+        } else if (binaryDataObjectIdToObjectGroupId.containsValue(objIdRefByUnit)) {
+            // case objIdRefByUnit is an GO
+            return objIdRefByUnit;
+        } else {
+            throw new ProcessingException(
+                "The group id " + objIdRefByUnit + " doesn't reference an bdo or go and it not include in bdo");
+        }
+    }
+
 
     private LogbookParameters initLogbookLifeCycleParameters(String guid, boolean isArchive, boolean isObjectGroup) {
         LogbookParameters logbookLifeCycleParameters = guidToLifeCycleParameters.get(guid);
@@ -660,7 +809,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         }
         return logbookLifeCycleParameters;
     }
-    
+
 
     private void createUnitLifeCycle(String unitGuid, String containerId)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
@@ -687,7 +836,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         guidToLifeCycleParameters.put(unitGuid, logbookLifecycleUnitParameters);
     }
 
-    
+
     private Map<String, File> extractArchiveUnitToLocalFile(XMLEventReader reader, StartElement startElement,
         String archiveUnitId, ObjectNode archiveUnitTree)
             throws ProcessingException {
@@ -757,9 +906,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     final String groupId = reader.getElementText();
                     unitIdToGroupId.put(elementID, groupId);
                     if (objectGroupIdToUnitId.get(groupId) == null) {
-                        final ArrayList<String> archiveUnitList = new ArrayList<>();
+                        final List<String> archiveUnitList = new ArrayList<>();
                         archiveUnitList.add(elementID);
-                        objectGroupIdToUnitId.put(groupId, archiveUnitList);
+                        if (!binaryDataObjectIdWithoutObjectGroupId.containsKey(groupId)) {
+                            objectGroupIdToUnitId.put(groupId, archiveUnitList);
+                        }
                     } else {
                         final List<String> archiveUnitList = objectGroupIdToUnitId.get(groupId);
                         archiveUnitList.add(elementID);
@@ -767,9 +918,38 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     }
                     // Create new startElement for group with new guid
                     groupGuid = objectGroupIdToGuid.get(unitIdToGroupId.get(elementID));
+                    final String newGroupId = getNewGdoIdFromGdoByUnit(unitIdToGroupId.get(elementID));
                     writer.add(eventFactory.createStartElement("", NAMESPACE_URI, DATA_OBJECT_GROUP_REFERENCEID));
-                    writer.add(eventFactory.createCharacters(groupGuid));
+                    writer.add(eventFactory.createCharacters(newGroupId));
                     writer.add(eventFactory.createEndElement("", NAMESPACE_URI, DATA_OBJECT_GROUP_REFERENCEID));
+
+                } else if (event.isStartElement() &&
+                    event.asStartElement().getName().getLocalPart() == DATA_OBJECT_REFERENCEID) {
+
+                    final String objRefId = reader.getElementText();
+                    unitIdToGroupId.put(elementID, objRefId);
+                    if (objectGroupIdToUnitId.get(objRefId) == null) {
+                        final List<String> archiveUnitList = new ArrayList<>();
+                        archiveUnitList.add(elementID);
+                        if (binaryDataObjectIdWithoutObjectGroupId.containsKey(objRefId)) {
+                            GotObj gotObj = binaryDataObjectIdWithoutObjectGroupId.get(objRefId);
+                            String gotGuid = gotObj.getGotGuid().toString();
+                            objectGroupIdToUnitId.put(gotGuid, archiveUnitList);
+                            unitIdToGroupId.put(elementID, gotGuid); // update unitIdToGroupId with new GOT
+                            gotObj.setVisited(true); // update isVisited to true
+                            binaryDataObjectIdWithoutObjectGroupId.put(objRefId, gotObj);
+                        }
+                    } else {
+                        final List<String> archiveUnitList = objectGroupIdToUnitId.get(objRefId);
+                        archiveUnitList.add(elementID);
+                        objectGroupIdToUnitId.put(objRefId, archiveUnitList);
+                    }
+
+                    final String newGroupId = getNewGdoIdFromGdoByUnit(objRefId);
+                    writer.add(eventFactory.createStartElement("", NAMESPACE_URI, DATA_OBJECT_GROUP_REFERENCEID));
+                    writer.add(eventFactory.createCharacters(newGroupId));
+                    writer.add(eventFactory.createEndElement("", NAMESPACE_URI, DATA_OBJECT_GROUP_REFERENCEID));
+
 
                 } else if (event.isStartElement() && event.asStartElement().getName().equals(unitName)) {
 
@@ -829,7 +1009,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         archiveUnitToTmpFileMap.put(elementGuid, tmpFile);
         return archiveUnitToTmpFileMap;
     }
-    
+
 
     private void saveMap(String containerId, Map<String, ?> map, String fileName, WorkspaceClient client,
         boolean removeTmpFile)
@@ -848,7 +1028,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             removeTmpFile);
 
     }
-    
+
 
     private void saveObjectGroupsToWorkspace(WorkspaceClient client, String containerId) throws ProcessingException {
 
@@ -906,8 +1086,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     }
                 }
 
-                for (final String objectGroupId : objectGroupIdToUnitId.get(entry.getKey())) {
-                    unitParent.add(unitIdToGuid.get(objectGroupId));
+                if (objectGroupIdToUnitId != null && objectGroupIdToUnitId.size() != 0) {
+                    for (final String objectGroupId : objectGroupIdToUnitId.get(entry.getKey())) {
+                        unitParent.add(unitIdToGuid.get(objectGroupId));
+                    }
                 }
 
                 objectGroup.put("_type", objectGroupType);
@@ -965,7 +1147,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             }
         }
     }
-    
+
 
     private ObjectNode getObjectGroupQualifiers(Map<String, ArrayList<JsonNode>> categoryMap) {
         final ObjectNode qualifierObject = JsonHandler.createObjectNode();
@@ -983,7 +1165,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         }
         return qualifierObject;
     }
-    
+
     private ObjectNode getObjectGroupWork(Map<String, ArrayList<JsonNode>> categoryMap) {
         final ObjectNode workObject = JsonHandler.createObjectNode();
         final ObjectNode qualifierObject = JsonHandler.createObjectNode();
@@ -1004,8 +1186,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
         workObject.set("_qualifiers", qualifierObject);
         return workObject;
     }
-    
-    
+
+
     private void completeBinaryObjectToObjectGroupMap() {
         for (final String key : binaryDataObjectIdToObjectGroupId.keySet()) {
             if ("".equals(binaryDataObjectIdToObjectGroupId.get(key))) {
@@ -1026,4 +1208,34 @@ public class ExtractSedaActionHandler extends ActionHandler {
         }
     }
 
+    /**
+     * This object content the new technical object group guid and the an boolean. It is created when the BDO not
+     * nontains an GO with isVisited=false. When the list of AU is browsed, if an AU referenced and the BDO not contains
+     * an GO, the boolean of this object change to true
+     */
+    private static class GotObj {
+        private String gotGuid;
+        private boolean isVisited;
+
+        public GotObj(String gotGuid, boolean isVisited) {
+            this.gotGuid = gotGuid;
+            this.isVisited = isVisited;
+        }
+
+        public String getGotGuid() {
+            return gotGuid;
+        }
+
+        public void setGotGuid(String gotGuid) {
+            this.gotGuid = gotGuid;
+        }
+
+        public boolean isVisited() {
+            return isVisited;
+        }
+
+        public void setVisited(boolean visited) {
+            isVisited = visited;
+        }
+    }
 }

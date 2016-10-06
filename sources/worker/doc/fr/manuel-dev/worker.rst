@@ -54,6 +54,39 @@ Dans la partie Core, sont présents les différents Handlers nécessaires pour e
 
 Ainsi que la classe WorkerImpl permettant de lancer ces différents handlers.
 
+Détail du handler : ExtractSedaActionHandler
+''''''''''''''''''''''''''''''''''''''''''''
+Ce handler permet d'extraire le contenu du SEDA. Il y a :
+- extraction des BinaryDataObject
+- extraction des ArchiveUnit
+- création des lifes cycles des units
+- construction de l'arbre des units et sauvegarde sur le workspace
+- sauvegarde de la map des units sur le workspace
+- sauvegarde de la map des objets sur le workspace
+- sauvegarde de la map des objets groupes sur le workspace
+
+Détail des différentes maps utilisées :
+.......................................
+binaryDataObjectIdToObjectGroupId :
+   contenu : cette map contient les id des objets binaires ainsi que l'id du groupe d'objet de la balise DataObjectGroupId ou DataObjectGroupReferenceId
+   création : elle est créé lors de la création du handler
+   mise à jour : elle est populée lors de la lecture des BinaryDataObject
+   lecture : lecture de la map dans mapNewTechnicalDataObjectGroupToBDO, getNewGdoIdFromGdoByUnit, completeBinaryObjectToObjectGroupMap, checkArchiveUnitIdReference et writeBinaryDataObjectInLocal
+   suppression : c'est un clean en fin d'execution du handler
+
+
+binaryDataObjectIdWithoutObjectGroupId :
+   contenu : cette map contient les id des objets binaires ainsi que les groupes d'objets techniques instanciés lors du parcours des objets binaires.
+   création : elle est créé lors de la création du handler
+   mise à jour : elle est populée lors du parcours des objets binaires dans mapNewTechnicalDataObjectGroupToBDO et extractArchiveUnitToLocalFile (dans on découvre un DataObjectReferenceId) 
+   lecture : lecture de la map dans mapNewTechnicalDataObjectGroupToBDO, extractArchiveUnitToLocalFile, getNewGdoIdFromGdoByUnit, 
+   suppression : c'est un clean en fin d'execution du handler
+
+Le groupe d'objet technique GotObj contient un guid et un boolean isVisited, initialisé à false lors de la création. Le set à true est fait lors du parcours des units.
+
+TODO contenu des autres maps
+
+
 Worker-common
 -------------
 
@@ -64,3 +97,5 @@ Worker-client
 -------------
 Le worker client contient le code permettant l'appel vers les API Rest offert par le worker.
 Pour le moment une seule méthode est offerte : submitStep. Pour plus de détail, voir la partie worker-client.
+
+
