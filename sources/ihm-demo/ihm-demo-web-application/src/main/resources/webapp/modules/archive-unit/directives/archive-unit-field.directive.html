@@ -8,7 +8,8 @@
 </div>
 <div ng-class="'col-md-' + fieldSize">
   <label class="label" style="font-size:14px">{{!fieldLabel ? fieldObject.fieldName : fieldLabel}}</label>
-  <input type="text" ng-model="fieldObject.currentFieldValue" ng-init="fieldObject.fieldValue"
-         ng-change="interceptUserChange({fieldSet: fieldObject})" ng-if="editMode && fieldObject.isFieldEdit" />
+  <textarea rows="5" ng-model="fieldObject.currentFieldValue" ng-change="interceptUserChange({fieldSet: fieldObject})"
+            ng-init="fieldObject.fieldValue" ng-if="editMode && fieldObject.isFieldEdit" class="width-100">
+  </textarea>
   <span class="overflow-break-words" ng-if="!editMode || !fieldObject.isFieldEdit" >{{!displayValue ? fieldObject.fieldValue: displayValue}}</span>
 </div>
