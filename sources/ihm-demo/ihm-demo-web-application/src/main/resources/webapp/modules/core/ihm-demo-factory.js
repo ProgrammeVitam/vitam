@@ -36,7 +36,11 @@ angular.module('core')
   'ARCHIVE_DETAILS_PATH': '/archiveunit/',
   'ARCHIVE_OBJECT_GROUP_URL': '/archiveunit/objects/',
   'ARCHIVE_OBJECT_GROUP_DOWNLOAD_URL': '/archiveunit/objects/download/',
-  'ARCHIVE_TREE_URL': '/archiveunit/tree/'
+  'ARCHIVE_TREE_URL': '/archiveunit/tree/',
+  'ARCHIVE_LIFECYCLE_URL': '/unitlifecycles/',
+  'OBJECT_GROUP_LIFECYCLE_URL': '/objectgrouplifecycles/',
+  'UNIT_LIFECYCLE_TYPE': 'unit',
+  'OG_LIFECYCLE_TYPE': 'objectgroup',
 })
 
 /*ihmDemoCLient create a configured http client*/
@@ -74,6 +78,16 @@ angular.module('core')
   dataFactory.getObjectAsInputStream = function(ogId, options){
     return $http.post(IHM_URLS.IHM_BASE_URL + IHM_URLS.ARCHIVE_OBJECT_GROUP_DOWNLOAD_URL + ogId, options , {
         headers: {'X-Http-Method-Override': 'GET', 'Accept': 'application/octet-stream'}, responseType: 'arraybuffer'  });
+  };
+
+
+  // LifeCycle details
+  dataFactory.getLifeCycleDetails = function(lifeCycleType, lifeCycleId) {
+    if (IHM_URLS.UNIT_LIFECYCLE_TYPE == lifeCycleType) {
+      return $http.get(IHM_URLS.IHM_BASE_URL + IHM_URLS.ARCHIVE_LIFECYCLE_URL + lifeCycleId);
+    } else if (IHM_URLS.OG_LIFECYCLE_TYPE == lifeCycleType) {
+      return $http.get(IHM_URLS.IHM_BASE_URL + IHM_URLS.OBJECT_GROUP_LIFECYCLE_URL + lifeCycleId);
+    }
   };
 
   // Archive Tree
