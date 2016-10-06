@@ -89,7 +89,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 public class IndexUnitActionHandler extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IndexUnitActionHandler.class);
     private static final String HANDLER_ID = "IndexUnit";
-    
+
     public static final String JSON_EXTENSION = ".json";
     private static final String ARCHIVE_UNIT = "ArchiveUnit";
     private static final String TAG_CONTENT = "Content";
@@ -101,7 +101,7 @@ public class IndexUnitActionHandler extends ActionHandler {
     public static final String TXT_EXTENSION = ".txt";
     public static final String UP_FIELD = "_up";
     private static final String FILE_COULD_NOT_BE_DELETED_MSG = "File could not be deleted";
-    
+
     private LogbookLifeCycleUnitParameters logbookLifecycleUnitParameters = LogbookParametersFactory
         .newLogbookLifeCycleUnitParameters();
     private HandlerIO handlerIO;
@@ -131,14 +131,15 @@ public class IndexUnitActionHandler extends ActionHandler {
         checkMandatoryParameters(params);
         LOGGER.info("IndexUnitActionHandler running ...");
         handlerIO = param;
-        final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK);
+        final EngineResponse response =
+            new ProcessResponse().setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID, OutcomeMessage.INDEX_UNIT_OK);
 
         try {
             checkMandatoryIOParameter(handlerIO);
             SedaUtils.updateLifeCycleByStep(logbookLifecycleUnitParameters, params);
             indexArchiveUnit(params);
         } catch (final ProcessingException e) {
-            response.setStatus(StatusCode.FATAL);
+            response.setStatus(StatusCode.FATAL).setOutcomeMessages(HANDLER_ID, OutcomeMessage.INDEX_UNIT_KO);
         }
 
         LOGGER.debug("IndexUnitActionHandler response: " + response.getStatus().name());
@@ -159,7 +160,7 @@ public class IndexUnitActionHandler extends ActionHandler {
 
         return response;
     }
-    
+
     /**
      * @param params work parameters
      * @throws ProcessingException when error in execution
@@ -185,7 +186,8 @@ public class IndexUnitActionHandler extends ActionHandler {
                 // Add _up to archive unit json object
                 String extension = FilenameUtils.getExtension(objectName);
                 Insert insertQuery = new Insert();
-                ArrayNode parents = getUnitParents(json, objectName.replace("." + extension, ""), containerId, workspaceClient);
+                ArrayNode parents =
+                    getUnitParents(json, objectName.replace("." + extension, ""), containerId, workspaceClient);
                 if (parents != null) {
                     insertQuery.addRoots(parents);
                 }
@@ -301,12 +303,12 @@ public class IndexUnitActionHandler extends ActionHandler {
         }
         return data;
     }
-    
+
     private ArrayNode getUnitParents(JsonNode archiveUnitJsonObject, String archiveUnitGuid, String containerId,
         WorkspaceClient workspaceClient)
         throws IOException, InvalidParseOperationException, ContentAddressableStorageNotFoundException,
         ContentAddressableStorageServerException {
-        
+
         InputStream unitIdToGuidMapFile = new FileInputStream((File) handlerIO.getInput().get(0));
         String unitIdToGuidStoredContent = IOUtils.toString(unitIdToGuidMapFile, "UTF-8");
 

@@ -65,8 +65,7 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
      *
      * @param factory the seda utils factory
      */
-    public CheckStorageAvailabilityActionHandler() {
-    }
+    public CheckStorageAvailabilityActionHandler() {}
 
     /**
      * @return HANDLER_ID
@@ -81,13 +80,15 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
         checkMandatoryParameters(params);
         LOGGER.debug("CheckStorageAvailabilityActionHandler running ...");
 
-        final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK);
+        final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID,
+            OutcomeMessage.STORAGE_OFFER_SPACE_OK);
 
         final SedaUtils sedaUtils = SedaUtilsFactory.create();
         long totalSizeToBeStored;
         try {        
             checkMandatoryIOParameter(actionDefinition);
             //TODO get size manifest.xml in local
+            //TODO extract this information from first parsing
             long objectsSizeInSip = sedaUtils.computeTotalSizeOfObjectsInManifest(params);
             long manifestSize = sedaUtils.getManifestSize(params);
             totalSizeToBeStored = objectsSizeInSip + manifestSize;
@@ -107,7 +108,8 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
         } catch (ProcessingException | StorageNotFoundClientException | StorageServerClientException |
             InvalidParseOperationException e) {
             LOGGER.error(e);
-            response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID, OutcomeMessage.STORAGE_OFFER_KO_UNAVAILABLE);
+            response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID,
+                OutcomeMessage.STORAGE_OFFER_KO_UNAVAILABLE);
         }
         return response;
     }

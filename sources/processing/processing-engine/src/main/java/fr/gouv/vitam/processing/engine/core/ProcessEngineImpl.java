@@ -189,10 +189,10 @@ public class ProcessEngineImpl implements ProcessEngine {
                         stepStatus);
                     LOGGER.info("End Workflow: " + uniqueId + " Step:" + step.getStepName());
 
-                    // if the step has been defined as Blocking, then, we check the stepStatus then break the process if
-                    // the the status is KO or FATAL
+                    // if the step has been defined as Blocking and then stepStatus is KO or FATAL
+                    // then break the process
                     if ((step.getBehavior().equals(ProcessBehavior.BLOCKING)) &&
-                        (stepStatus.equals(StatusCode.KO) || stepStatus.equals(StatusCode.FATAL))) {
+                        (stepStatus.isGreaterOrEqualToKo())) {
                         break;
                     }
                     // TODO : deal with the pause

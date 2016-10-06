@@ -52,9 +52,8 @@ public class CheckVersionActionHandler extends ActionHandler {
      *
      * @param factory SedaUtils factory
      */
-    public CheckVersionActionHandler() {
-    }
-    
+    public CheckVersionActionHandler() {}
+
     /**
      * @return HANDLER_ID
      */
@@ -63,17 +62,18 @@ public class CheckVersionActionHandler extends ActionHandler {
     }
 
     @Override
-    public EngineResponse execute(WorkerParameters params, HandlerIO actionDefinition){
+    public EngineResponse execute(WorkerParameters params, HandlerIO actionDefinition) {
         checkMandatoryParameters(params);
         LOGGER.debug("CheckVersionActionHandler running ...");
-        
-        final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_VERSION_OK);
+
+        final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID,
+            OutcomeMessage.CHECK_VERSION_OK);
         final SedaUtils sedaUtils = SedaUtilsFactory.create();
 
         try {
             checkMandatoryIOParameter(actionDefinition);
             List<String> versionInvalidList = sedaUtils.checkSupportedBinaryObjectVersion(params);
-            if (versionInvalidList.size() != 0){
+            if (versionInvalidList.size() != 0) {
                 response.setErrorNumber(versionInvalidList.size());
                 response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_VERSION_KO);
             }

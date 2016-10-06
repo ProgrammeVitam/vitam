@@ -179,6 +179,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     private static final int HANDLER_IO_PARAMETER_NUMBER = 7;
     private HandlerIO handlerInitialIOList;
+
     /**
      * Constructor with parameter SedaUtilsFactory
      *
@@ -214,7 +215,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
         checkMandatoryParameters(params);
         handlerIO = ioParam;
         LOGGER.info("ExtractContentActionHandler running ...");
-        final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID, OutcomeMessage.EXTRACT_MANIFEST_OK);
+        final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID,
+            OutcomeMessage.EXTRACT_MANIFEST_OK);
 
         try {
             checkMandatoryIOParameter(handlerIO);
@@ -286,7 +288,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 if (event.isStartElement()) {
                     final StartElement element = event.asStartElement();
                     if (element.getName().equals(unitName)) {
-                        writeArchiveUnitToWorkspace(client, containerId, reader, element, archiveUnitTree, IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER);
+                        writeArchiveUnitToWorkspace(client, containerId, reader, element, archiveUnitTree,
+                            IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER);
                     } else if (element.getName().equals(dataObjectName)) {
                         String objectGroupGuid = writeBinaryDataObjectInLocal(reader, element, containerId);
                         if (guidToLifeCycleParameters.get(objectGroupGuid) != null) {
@@ -339,7 +342,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
             saveMap(containerId, unitIdToGuid, (String) handlerIO.getOutput().get(2), client, true);
 
             // 2- create graph and create level
-            createIngestLevelStackFile(client, containerId, new Graph(archiveUnitTree).getGraphWithLongestPaths(), (String) handlerIO.getOutput().get(0));
+            createIngestLevelStackFile(client, containerId, new Graph(archiveUnitTree).getGraphWithLongestPaths(),
+                (String) handlerIO.getOutput().get(0));
 
             checkArchiveUnitIdReference();
             saveObjectGroupsToWorkspace(client, containerId);
@@ -654,7 +658,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
         return jsonBDO;
     }
 
-
     private void transferFileFromTmpIntoWorkspace(WorkspaceClient client, String tmpFileSubpath,
         String workspaceFilePath,
         String workspaceContainerId, boolean removeTmpFile) throws ProcessingException {
@@ -797,7 +800,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
         }
     }
 
-
     private LogbookParameters initLogbookLifeCycleParameters(String guid, boolean isArchive, boolean isObjectGroup) {
         LogbookParameters logbookLifeCycleParameters = guidToLifeCycleParameters.get(guid);
         if (logbookLifeCycleParameters == null) {
@@ -839,7 +841,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     private Map<String, File> extractArchiveUnitToLocalFile(XMLEventReader reader, StartElement startElement,
         String archiveUnitId, ObjectNode archiveUnitTree)
-            throws ProcessingException {
+        throws ProcessingException {
 
         Map<String, File> archiveUnitToTmpFileMap = new HashMap<>();
         final String elementGuid = GUIDFactory.newGUID().toString();
@@ -1013,7 +1015,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     private void saveMap(String containerId, Map<String, ?> map, String fileName, WorkspaceClient client,
         boolean removeTmpFile)
-            throws IOException, ProcessingException {
+        throws IOException, ProcessingException {
 
         String tmpFilePath = containerId + fileName.split("/")[1];
         final File firstMapTmpFile = PropertiesUtils
@@ -1037,7 +1039,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
         // Save maps
         try {
             // Save binaryDataObjectIdToObjectGroupId
-            saveMap(containerId, binaryDataObjectIdToObjectGroupId, (String) handlerIO.getOutput().get(3), client, true);
+            saveMap(containerId, binaryDataObjectIdToObjectGroupId, (String) handlerIO.getOutput().get(3), client,
+                true);
             // Save objectGroupIdToGuid
             saveMap(containerId, objectGroupIdToGuid, (String) handlerIO.getOutput().get(5), client, true);
         } catch (IOException e1) {
@@ -1103,7 +1106,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 tmpFileWriter.write(objectGroup.toString());
                 tmpFileWriter.close();
 
-                client.putObject(containerId, IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + objectGroupGuid + JSON_EXTENSION,
+                client.putObject(containerId,
+                    IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + objectGroupGuid + JSON_EXTENSION,
                     new FileInputStream(tmpFile));
                 if (!tmpFile.delete()) {
                     LOGGER.warn(FILE_COULD_NOT_BE_DELETED_MSG);
@@ -1186,7 +1190,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
         workObject.set("_qualifiers", qualifierObject);
         return workObject;
     }
-
 
     private void completeBinaryObjectToObjectGroupMap() {
         for (final String key : binaryDataObjectIdToObjectGroupId.keySet()) {

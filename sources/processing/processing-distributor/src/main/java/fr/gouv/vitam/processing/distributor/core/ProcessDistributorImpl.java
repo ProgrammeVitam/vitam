@@ -53,6 +53,7 @@ import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
 import fr.gouv.vitam.processing.common.exception.WorkerNotFoundException;
 import fr.gouv.vitam.processing.common.model.DistributionKind;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
+import fr.gouv.vitam.processing.common.model.ProcessBehavior;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.model.Step;
@@ -93,7 +94,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
  * </pre>
  */
 public class ProcessDistributorImpl implements ProcessDistributor {
-    
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessDistributorImpl.class);
     private static final String ELAPSED_TIME_MESSAGE = "Total elapsed time in execution of method distribute is :";
     private static final String UNITS_LEVEL = "UnitsLevel";
@@ -105,6 +106,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
 
     private static final Map<String, NavigableMap<String, WorkerBean>> WORKERS_LIST = new HashMap<>();
     private final List<String> availableWorkers = new ArrayList<>();
+    private final ProcessResponse processResponse = new ProcessResponse();
 
     /**
      * Constructor with parameter worker
@@ -160,7 +162,8 @@ public class ProcessDistributorImpl implements ProcessDistributor {
 
                     // get the file to retrieve the GUID
                     InputStream levelFile =
-                        workspaceClient.getObject(workParams.getContainerName(), UNITS_LEVEL + "/" + INGEST_LEVEL_STACK);
+                        workspaceClient.getObject(workParams.getContainerName(),
+                            UNITS_LEVEL + "/" + INGEST_LEVEL_STACK);
                     final String inputStreamString = CharStreams.toString(new InputStreamReader(levelFile, "UTF-8"));
                     final JsonNode levelFileJson = JsonHandler.getFromString(inputStreamString);
                     Iterator<Entry<String, JsonNode>> iteratorlLevelFile = levelFileJson.fields();
@@ -198,18 +201,29 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                             loadWorkerClient(WORKERS_LIST.get("defaultFamily").firstEntry().getValue());
                             // run step
                             workParams.setObjectName(objectUri.getPath());
-                            responses.addAll(
+
+                            final List<EngineResponse> actionsResponse =
                                 WorkerClientFactory.getInstance().getWorkerClient().submitStep("requestId",
-                                    new DescriptionStep(step, (DefaultWorkerParameters) workParams)));
+                                    new DescriptionStep(step, (DefaultWorkerParameters) workParams));
+                            responses.addAll(actionsResponse);
                             // update the number of processed element
                             ProcessMonitoringImpl.getInstance().updateStep(processId, uniqueStepId, 0, true);
+
+                            final StatusCode stepStatus = processResponse.getGlobalProcessStatusCode(actionsResponse);
+                            // if the step has been defined as Blocking and then stepStatus is KO or FATAL
+                            // then break the process
+                            if ((step.getBehavior().equals(ProcessBehavior.BLOCKING)) &&
+                                (stepStatus.isGreaterOrEqualToKo())) {
+                                break;
+                            }
+
                         }
                     }
                 }
             } else {
                 // update the number of element to process
                 ProcessMonitoringImpl.getInstance().updateStep(processId, uniqueStepId, 1, false);
-                if (availableWorkers.isEmpty()) {                    
+                if (availableWorkers.isEmpty()) {
                     LOGGER.debug(errorResponse.getStatus().toString());
                     responses.add(errorResponse);
                 } else {
