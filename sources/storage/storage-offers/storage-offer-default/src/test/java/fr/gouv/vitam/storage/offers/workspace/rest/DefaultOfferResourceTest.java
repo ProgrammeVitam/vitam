@@ -32,7 +32,6 @@ import static com.jayway.restassured.RestAssured.with;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -45,7 +44,6 @@ import java.nio.file.Files;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
-import org.hamcrest.Matchers;
 import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -53,21 +51,17 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.http.ContentType;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.StatusMessage;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -397,15 +391,7 @@ public class DefaultOfferResourceTest {
 
     @Test
     public void statusTest() {
-        given().get(STATUS_URI).then().contentType(ContentType.JSON).statusCode(200);
-
-        try {
-            given().get(STATUS_URI).then().contentType(ContentType.JSON).statusCode(200)
-                .body(Matchers
-                    .equalTo(OBJECT_MAPPER.writeValueAsString(new StatusMessage(ServerIdentity.getInstance()))));
-        } catch (JsonProcessingException exc) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        }
+        given().get(STATUS_URI).then().statusCode(Status.NO_CONTENT.getStatusCode());
     }
 
 }

@@ -171,10 +171,11 @@ public class ConnectionImplTest extends JerseyTest {
     }
 
     @Test
-    public void getStatusOK() throws Exception {
-        when(mock.get()).thenReturn(Response.status(Status.OK).build());
+    public void getStatusNoContent() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.NO_CONTENT).build());
         assertNotNull(connection.getServiceUrl());
-        assertEquals(Response.Status.OK.getStatusCode(), connection.getStatus().getStatusInfo().getStatusCode());
+        assertEquals(Response.Status.NO_CONTENT.getStatusCode(),
+            connection.getStatus().getStatusInfo().getStatusCode());
     }
 
     @Test(expected = StorageDriverException.class)
