@@ -138,7 +138,7 @@ angular.module('ihm.demo')
   .controller('logbookEntryController', function($scope, $mdDialog, operationId, ihmDemoCLient, idOperationService) {
     var self = this;
 
-    ihmDemoCLient.getClient('logbook-operation-ingest/operations').all(operationId).post({}).then(function(response) {
+    ihmDemoCLient.getClient('logbook/operations').all(operationId).post({}).then(function(response) {
       self.detail = response.data.result;
       self.detailId = idOperationService.getIdFromResult(self.detail);
     });
