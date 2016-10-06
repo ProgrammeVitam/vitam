@@ -43,6 +43,8 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server.application.AdminStatusResource;
+import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
 
 /**
  * Workspace offer web application
@@ -122,7 +124,7 @@ public final class DefaultOfferApplication
         final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(JacksonFeature.class);
         resourceConfig.register(new DefaultOfferResource(configuration));
-
+        resourceConfig.register(new AdminStatusResource(new BasicVitamStatusServiceImpl()));
         final ServletContainer servletContainer = new ServletContainer(resourceConfig);
         final ServletHolder sh = new ServletHolder(servletContainer);
         final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
@@ -151,7 +153,7 @@ public final class DefaultOfferApplication
         final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(JacksonFeature.class);
         resourceConfig.register(new DefaultOfferResource(getConfiguration()));
-
+        resourceConfig.register(new AdminStatusResource(new BasicVitamStatusServiceImpl()));
         final ServletContainer servletContainer = new ServletContainer(resourceConfig);
         final ServletHolder sh = new ServletHolder(servletContainer);
         final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);

@@ -49,10 +49,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
 
 import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.StatusMessage;
+import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
+import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.storage.offers.workspace.core.DefaultOfferServiceImpl;
@@ -64,7 +64,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
  * Default offer REST Resource
  */
 @Path("/offer/v1")
-public class DefaultOfferResource {
+public class DefaultOfferResource extends ApplicationStatusResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultOfferResource.class);
 
@@ -74,6 +74,7 @@ public class DefaultOfferResource {
      * @param configuration the workspace offer configuration to be applied
      */
     public DefaultOfferResource(DefaultOfferConfiguration configuration) {
+        super(new BasicVitamStatusServiceImpl());
         LOGGER.debug("DefaultOfferResource initialized");
     }
 
@@ -82,7 +83,7 @@ public class DefaultOfferResource {
      *
      * @return information on the offer objects collection
      *
-     * TODO: review path and java method name
+     *         TODO: review path and java method name
      */
     // FIXME il manque le /container/id/
     @GET
@@ -255,18 +256,4 @@ public class DefaultOfferResource {
         }
         return Response.status(Response.Status.NOT_FOUND).build();
     }
-
-    /**
-     * Check the state of the offer service API
-     *
-     * @return an http response with OK status (200)
-     */
-    @GET
-    @Path("/status")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getStatus() {
-        return Response.ok(new StatusMessage(ServerIdentity.getInstance()),
-            MediaType.APPLICATION_JSON).build();
-    }
-
 }

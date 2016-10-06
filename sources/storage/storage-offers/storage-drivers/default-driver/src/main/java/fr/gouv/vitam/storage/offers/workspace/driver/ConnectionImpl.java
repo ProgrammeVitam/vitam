@@ -240,7 +240,8 @@ public class ConnectionImpl implements Connection {
 
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             switch (status) {
-                case OK: case NO_CONTENT:
+                case OK:
+                case NO_CONTENT:
                     return true;
                 case NOT_FOUND:
                     return false;
@@ -267,7 +268,7 @@ public class ConnectionImpl implements Connection {
         Response response = null;
         try {
             response = getClient().target(serviceUrl).path(STATUS_PATH).request().get();
-            if (Response.Status.OK.getStatusCode() == response.getStatus()) {
+            if (Response.Status.NO_CONTENT.getStatusCode() == response.getStatus()) {
                 return response;
             } else {
                 throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,

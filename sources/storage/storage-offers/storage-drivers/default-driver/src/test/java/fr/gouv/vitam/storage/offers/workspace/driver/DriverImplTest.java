@@ -43,7 +43,6 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.glassfish.jersey.test.TestProperties;
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -110,8 +109,8 @@ public class DriverImplTest extends JerseyTest {
     }
 
     @Test
-    public void givenCorrectUrlThenConnectResponseOK() throws Exception {
-        when(mock.get()).thenReturn(Response.status(Status.OK).build());
+    public void givenCorrectUrlThenConnectResponseNoContent() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.NO_CONTENT).build());
         ConnectionImpl connection = driver.connect("http://" + HOSTNAME + ":" + port, null);
         assertNotNull(connection);
     }

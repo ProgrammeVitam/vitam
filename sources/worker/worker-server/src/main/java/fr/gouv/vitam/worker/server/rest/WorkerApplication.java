@@ -114,7 +114,7 @@ public final class WorkerApplication extends AbstractVitamApplication<WorkerAppl
         final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(JacksonFeature.class);
         resourceConfig.register(new WorkerResource(configuration));
-
+        resourceConfig.register(new AdminStatusResource(new BasicVitamStatusServiceImpl()));
         final ServletContainer servletContainer = new ServletContainer(resourceConfig);
         final ServletHolder sh = new ServletHolder(servletContainer);
         final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
