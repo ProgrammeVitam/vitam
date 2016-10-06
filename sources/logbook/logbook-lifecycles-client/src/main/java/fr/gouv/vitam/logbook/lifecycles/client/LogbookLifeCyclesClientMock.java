@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.client.StatusMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -46,7 +47,6 @@ import fr.gouv.vitam.logbook.common.model.response.DatabaseCursor;
 import fr.gouv.vitam.logbook.common.model.response.RequestResponseOK;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
 
 /**
  * LogbookLifeCyclesClient Mock implementation
@@ -190,6 +190,23 @@ class LogbookLifeCyclesClientMock implements LogbookLifeCycleClient {
 
     @Override
     public JsonNode selectLifeCyclesById(String id) throws LogbookClientException, InvalidParseOperationException {
+        LOGGER.debug("Select request with id:" + id);
+        final RequestResponseOK response = new RequestResponseOK().setHits(new DatabaseCursor(1, 0, 10));
+        response.setResult(JsonHandler.getFromString(MOCK_SELECT_RESULT_1));
+        return new ObjectMapper().convertValue(response, JsonNode.class);
+    }
+
+    @Override
+    public JsonNode selectUnitLifeCycleById(String id) throws LogbookClientException, InvalidParseOperationException {
+        LOGGER.debug("Select request with id:" + id);
+        final RequestResponseOK response = new RequestResponseOK().setHits(new DatabaseCursor(1, 0, 10));
+        response.setResult(JsonHandler.getFromString(MOCK_SELECT_RESULT_1));
+        return new ObjectMapper().convertValue(response, JsonNode.class);
+    }
+
+    @Override
+    public JsonNode selectObjectGroupLifeCycleById(String id)
+        throws LogbookClientException, InvalidParseOperationException {
         LOGGER.debug("Select request with id:" + id);
         final RequestResponseOK response = new RequestResponseOK().setHits(new DatabaseCursor(1, 0, 10));
         response.setResult(JsonHandler.getFromString(MOCK_SELECT_RESULT_1));

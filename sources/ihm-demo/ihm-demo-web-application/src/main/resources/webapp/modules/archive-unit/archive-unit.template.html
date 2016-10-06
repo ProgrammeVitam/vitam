@@ -5,11 +5,15 @@
   </ol>
 
   <div class="panel panel-default col-md-12">
-    <!-- <md-content flex layout-padding> -->
-    <a class="panel-header" data-toggle="collapse" data-target="#boxContractsList">
-      <h2>Détail d'une archive </h2>
-    </a>
-    <div id="boxContractsList" class="panel-collapse collapse in">
+    <span class="panel-header no-toggle">
+        <h2>Détail d'une archive</h2>
+        <a ng-href="#!/lifecycle/unit/{{$ctrl.archiveId}}/{{$ctrl.archiveTitle}}" target="_blank" class="btn btn-primary" style="float:right">
+          <i class="material-icons pull-left">camera</i>
+          <span class="pull-left m-l-10">Journal de Cycle de Vie</span>
+        </a>
+    </span>
+
+    <div id="boxContractsList" class="panel-collapse">
       <div class="panel-body">
         <!-- Add Unit Tree -->
         <div ng-repeat="path in $ctrl.fullArchiveTree">
@@ -150,10 +154,15 @@
       *    OBJETS
       *
       -->
-      <a class="panel-header" data-toggle="collapse" data-target="#boxObjectsResults">
-        <h2>Objets</h2>
-      </a>
-      <div id="boxObjectsResults" class="panel-body panel-collapse collapse in">
+      <span class="panel-header no-toggle">
+  			<h2>Groupe d'Objets</h2>
+  			<a ng-href="#!/lifecycle/objectgroup/{{$ctrl.archiveFields._og}}/{{$ctrl.archiveFields._og}}" target="_blank" class="btn btn-default" role="button" style="float:right;margin:0px">
+  				<i class="material-icons pull-left">camera</i>
+  				<span class="pull-left m-l-10">Journal de Cycle de vie du groupe d'objets</span>
+  			</a>
+  		</span>
+
+      <div id="boxObjectsResults" class="panel-body">
         <div ng-repeat="(key, value) in $ctrl.technicalItems">
           <div class="panel-body">
             <a class="panel-header" data-target="{{'#box' + key}}" data-toggle="collapse">

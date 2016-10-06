@@ -67,6 +67,8 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParame
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.server.MongoDbAccess;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.database.collections.MongoDbAccessFactory;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
@@ -84,15 +86,7 @@ import fr.gouv.vitam.logbook.operations.core.LogbookOperationsImpl;
 @Path("/logbook/v1")
 public class LogbookResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookResource.class);
-
-    /**
-     *
-     */
     private final LogbookOperations logbookOperation;
-
-    /**
-     *
-     */
     private final LogbookLifeCycles logbookLifeCycle;
 
     /**
@@ -536,6 +530,45 @@ public class LogbookResource extends ApplicationStatusResource {
         return Response.status(Response.Status.OK).build();
     }
 
+    /**
+     * gets the unit life cycle based on its id
+     * 
+     * @param unitLifeCycleId the unit life cycle id
+     * @return the unit life cycle
+     * @throws InvalidParseOperationException
+     */
+    @GET
+    @Path("/unitlifecycles/{id_lc}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getUnitLifeCycle(@PathParam("id_lc") String unitLifeCycleId) throws InvalidParseOperationException {
+        Status status;
+        try {
+            final LogbookLifeCycleUnit result = logbookLifeCycle.getUnitById(unitLifeCycleId);
+            return Response.status(Status.OK)
+                .entity(new RequestResponseOK()
+                    .setHits(1, 0, 1)
+                    .setResult(JsonHandler.getFromString(result.toJson())))
+                .build();
+        } catch (final LogbookNotFoundException exc) {
+            return Response.status(Status.OK)
+                .entity(new RequestResponseOK()
+                    .setHits(0, 0, 1)
+                    .setResult(JsonHandler.createArrayNode()))
+                .build();
+        } catch (final LogbookException exc) {
+            LOGGER.error(exc);
+            status = Status.PRECONDITION_FAILED;
+            return Response.status(status)
+                .entity(new RequestResponseError().setError(
+                    new VitamError(status.getStatusCode())
+                        .setContext("logbook")
+                        .setState("code_vitam")
+                        .setMessage(status.getReasonPhrase())
+                        .setDescription(status.getReasonPhrase())))
+                .build();
+        }
+    }
+
     /***** LIFE CYCLES UNIT - END *****/
 
     /***** LIFE CYCLES OBJECT GROUP - START *****/
@@ -722,6 +755,46 @@ public class LogbookResource extends ApplicationStatusResource {
         @PathParam("id_lc") String objGrpId) {
         LOGGER.debug("ObjectGroupLifeCycle commited: " + objGrpId);
         return Response.status(Response.Status.OK).build();
+    }
+
+    /**
+     * gets the object group life cycle based on its id
+     * 
+     * @param objectGroupLifeCycleId the object group life cycle id
+     * @return the object group life cycle
+     * @throws InvalidParseOperationException
+     */
+    @GET
+    @Path("/objectgrouplifecycles/{id_lc}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getObjectGroupLifeCycle(@PathParam("id_lc") String objectGroupLifeCycleId)
+        throws InvalidParseOperationException {
+        Status status;
+        try {
+            final LogbookLifeCycleObjectGroup result = logbookLifeCycle.getObjectGroupById(objectGroupLifeCycleId);
+            return Response.status(Status.OK)
+                .entity(new RequestResponseOK()
+                    .setHits(1, 0, 1)
+                    .setResult(JsonHandler.getFromString(result.toJson())))
+                .build();
+        } catch (final LogbookNotFoundException exc) {
+            return Response.status(Status.OK)
+                .entity(new RequestResponseOK()
+                    .setHits(0, 0, 1)
+                    .setResult(JsonHandler.createArrayNode()))
+                .build();
+        } catch (final LogbookException exc) {
+            LOGGER.error(exc);
+            status = Status.PRECONDITION_FAILED;
+            return Response.status(status)
+                .entity(new RequestResponseError().setError(
+                    new VitamError(status.getStatusCode())
+                        .setContext("logbook")
+                        .setState("code_vitam")
+                        .setMessage(status.getReasonPhrase())
+                        .setDescription(status.getReasonPhrase())))
+                .build();
+        }
     }
 
     /***** LIFE CYCLES OBJECT GROUP - END *****/

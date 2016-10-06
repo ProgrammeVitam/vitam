@@ -176,7 +176,7 @@ public interface LogbookLifeCycles {
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      * @throws LogbookNotFoundException if no LifeCycle selected cannot be found
      */
-    LogbookLifeCycleUnit getUnitById(String idObject) throws LogbookDatabaseException, LogbookNotFoundException;
+    LogbookLifeCycleUnit getUnitById(String idUnit) throws LogbookDatabaseException, LogbookNotFoundException;
 
     /**
      * Select logbook life cycle by the lifecycle's ID

@@ -82,6 +82,8 @@ import fr.gouv.vitam.ihmdemo.core.UiConstants;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCycleClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookClientFactory;
 
@@ -100,6 +102,7 @@ public class WebApplicationResource {
     private static final String FIELD_ID_KEY = "fieldId";
     private static final String NEW_FIELD_VALUE_KEY = "newFieldValue";
     private static final String INVALID_ALL_PARENTS_TYPE_ERROR_MSG = "The parameter \"allParents\" is not an array";
+    private static final String LOGBOOK_CLIENT_NOT_FOUND_EXCEPTION_MSG = "Logbook Client NOT FOUND Exception";
 
     private static final int TENANT_ID = 0;
 
@@ -255,7 +258,6 @@ public class WebApplicationResource {
     public Response getLogbookResultById(@PathParam("idOperation") String operationId, String options) {
 
         JsonNode result = null;
-
         try {
             ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
@@ -793,6 +795,67 @@ public class WebApplicationResource {
         }
 
         return Response.status(Status.OK).build();
+    }
+
+    /**
+     * returns the unit life cycle based on its id
+     * 
+     * @param unitLifeCycleId the unit id (== unit life cycle id)
+     * @return the unit life cycle
+     */
+    @GET
+    @Path("/unitlifecycles/{id_lc}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getUnitLifeCycleById(@PathParam("id_lc") String unitLifeCycleId) {
+
+        ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitLifeCycleId);
+        JsonNode result = null;
+        try {
+            LogbookLifeCycleClient logbookLifeCycleClient =
+                LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient();
+            result = logbookLifeCycleClient.selectUnitLifeCycleById(unitLifeCycleId);
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        } catch (final LogbookClientException e) {
+            LOGGER.error(LOGBOOK_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
+            return Response.status(Status.NOT_FOUND).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+        return Response.status(Status.OK).entity(result).build();
+    }
+
+    /**
+     * returns the object group life cycle based on its id
+     * 
+     * @param objectGroupLifeCycleId the object group id (== object group life cycle id)
+     * @return the object group life cycle
+     */
+    @GET
+    @Path("/objectgrouplifecycles/{id_lc}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getObjectGroupLifeCycleById(@PathParam("id_lc") String objectGroupLifeCycleId) {
+
+        ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, objectGroupLifeCycleId);
+        JsonNode result = null;
+
+        try {
+            LogbookLifeCycleClient logbookLifeCycleClient =
+                LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient();
+            result = logbookLifeCycleClient.selectObjectGroupLifeCycleById(objectGroupLifeCycleId);
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        } catch (final LogbookClientException e) {
+            LOGGER.error(LOGBOOK_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
+            return Response.status(Status.NOT_FOUND).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+        return Response.status(Status.OK).entity(result).build();
     }
 
 }

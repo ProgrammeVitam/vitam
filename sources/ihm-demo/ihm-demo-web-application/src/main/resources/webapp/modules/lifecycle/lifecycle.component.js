@@ -27,17 +27,10 @@
 
 'use strict';
 
-// Define the `ihm-demo` module
-angular.module('ihm.demo', [
-  'ngAnimate',
-  'ui.bootstrap',
-  'ngRoute',
-  'core',
-  'archiveSearch',
-  'angularFileUpload',
-  'ngMaterial',
-  'archive.unit',
-  'vAccordion',
-  'ngCookies',
-  'lifecycle'
-]);
+// Register `lifecycle` component, along with its associated controller and template
+angular.
+  module('lifecycle').
+  component('lifecycle', {
+    templateUrl: 'modules/lifecycle/lifecycle.template.html',
+    controller: 'lifeCycleController'
+  });

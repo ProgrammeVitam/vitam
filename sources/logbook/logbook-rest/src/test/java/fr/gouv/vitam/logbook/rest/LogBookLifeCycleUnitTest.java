@@ -27,6 +27,7 @@
 package fr.gouv.vitam.logbook.rest;
 
 import static com.jayway.restassured.RestAssured.given;
+import static org.mockito.Mockito.when;
 
 import javax.ws.rs.core.Response.Status;
 
@@ -34,6 +35,7 @@ import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
@@ -61,6 +63,12 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
+import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
+import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
+import fr.gouv.vitam.logbook.lifecycles.api.LogbookLifeCycles;
+import fr.gouv.vitam.logbook.lifecycles.core.LogbookLifeCyclesImpl;
 
 /**
  *
@@ -82,13 +90,21 @@ public class LogBookLifeCycleUnitTest {
     private static final String COMMIT_OG_ID_URI = "/operations/{id_op}/objectgrouplifecycles/{id_lc}/commit";
     private static final String COMMIT_UNIT_ID_URI = "/operations/{id_op}/unitlifecycles/{id_lc}/commit";
 
+    private static final String FAKE_UNIT_LF_ID = "1";
+    private static final String FAKE_OBG_LF_ID = "1";
+    private static final String SELECT_UNIT_BY_ID_URI = "/unitlifecycles/" + FAKE_UNIT_LF_ID;
+    private static final String SELECT_OBG_BY_ID_URI = "/objectgrouplifecycles/" + FAKE_OBG_LF_ID;
+
+    private static final String LIFECYCLE_SAMPLE =
+        "{'_id': 'aeaaaaaaaaaam7mxabaloakxrzydxbiaaaaq', 'evId': 'aeaaaaaaaaaam7mxabaloakxrzydxbyaaaaq', " +
+            "'evType': ''," + " 'events': []}";
+
     private static int databasePort;
     private static int serverPort;
 
     private static LogbookLifeCycleUnitParameters logbookLifeCyclesUnitParametersStart;
     private static LogbookLifeCycleUnitParameters logbookLifeCyclesUnitParametersBAD;
     private static LogbookLifeCycleUnitParameters logbookLifeCyclesUnitParametersUpdate;
-
 
     private static LogbookLifeCycleObjectGroupParameters LogbookLifeCycleObjectGroupParametersStart;
 
@@ -463,5 +479,43 @@ public class LogBookLifeCycleUnitTest {
             .delete(LIFE_OG_ID_URI, "id", "f12")
             .then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
+    }
+
+    @Test
+    public void testGetUnitLifeCycleByIdOk() throws LogbookDatabaseException, LogbookNotFoundException {
+        LogbookLifeCycles logbookLifeCycles = Mockito.mock(LogbookLifeCyclesImpl.class);
+        LogbookLifeCycleUnit logbookLifecycleUnit = new LogbookLifeCycleUnit(LIFECYCLE_SAMPLE);
+        when(logbookLifeCycles.getUnitById(FAKE_UNIT_LF_ID)).thenReturn(logbookLifecycleUnit);
+        given().param("id_lc", FAKE_UNIT_LF_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+            .get(SELECT_UNIT_BY_ID_URI);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testGetUnitLifeCycleByIdThenOkWhenLogbookNotFoundException()
+        throws LogbookDatabaseException, LogbookNotFoundException {
+        LogbookLifeCycles logbookLifeCycles = Mockito.mock(LogbookLifeCyclesImpl.class);
+        when(logbookLifeCycles.getUnitById(FAKE_UNIT_LF_ID)).thenThrow(LogbookNotFoundException.class);
+        given().param("id_lc", FAKE_UNIT_LF_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+            .get(SELECT_UNIT_BY_ID_URI);
+    }
+
+    @Test
+    public void testGetObjectGroupLifeCycleByIdOk() throws LogbookDatabaseException, LogbookNotFoundException {
+        LogbookLifeCycles logbookLifeCycles = Mockito.mock(LogbookLifeCyclesImpl.class);
+        LogbookLifeCycleObjectGroup logbookLifecycleObjectGroup = new LogbookLifeCycleObjectGroup(LIFECYCLE_SAMPLE);
+        when(logbookLifeCycles.getObjectGroupById(FAKE_OBG_LF_ID)).thenReturn(logbookLifecycleObjectGroup);
+        given().param("id_lc", FAKE_OBG_LF_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+            .get(SELECT_OBG_BY_ID_URI);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testGetObjectGroupLifeCycleByIdThenOkWhenLogbookNotFoundException()
+        throws LogbookDatabaseException, LogbookNotFoundException {
+        LogbookLifeCycles logbookLifeCycles = Mockito.mock(LogbookLifeCyclesImpl.class);
+        when(logbookLifeCycles.getObjectGroupById(FAKE_OBG_LF_ID)).thenThrow(LogbookNotFoundException.class);
+        given().param("id_lc", FAKE_OBG_LF_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+            .get(SELECT_OBG_BY_ID_URI);
     }
 }

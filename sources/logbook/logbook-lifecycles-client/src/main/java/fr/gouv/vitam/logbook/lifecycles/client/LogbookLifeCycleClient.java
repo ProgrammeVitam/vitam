@@ -130,4 +130,24 @@ public interface LogbookLifeCycleClient {
      */
     JsonNode selectLifeCyclesById(String id) throws LogbookClientException, InvalidParseOperationException;
 
+    /**
+     * returns the unit life cycle
+     * 
+     * @param id unit life cycle id
+     * @return the unit life cycle
+     * @throws LogbookClientException
+     * @throws InvalidParseOperationException
+     */
+    JsonNode selectUnitLifeCycleById(String id) throws LogbookClientException, InvalidParseOperationException;
+
+    /**
+     * returns the object group life cycle
+     * 
+     * @param id the object group life cycle id
+     * @return the object group life cycle
+     * @throws LogbookClientException
+     * @throws InvalidParseOperationException
+     */
+    JsonNode selectObjectGroupLifeCycleById(String id) throws LogbookClientException, InvalidParseOperationException;
+
 }
