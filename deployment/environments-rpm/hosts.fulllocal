@@ -14,6 +14,7 @@ hosts-mongo-express
 ########### Extra VITAM applications ###########
 
 [library] # EXTRA : Library server
+localhost
 
 [hosts-mongo-express]
 
@@ -126,9 +127,10 @@ hosts-elasticsearch-log
 localhost
 
 [hosts-log-server]
+localhost
 
 [hosts-elasticsearch-log]
-
+localhost
 
 ########### Global vars ###########
 
@@ -139,8 +141,8 @@ ansible_connection=local
 vitam_folder_permission=0775
 vitam_conf_permission=0775
 local_user={{ansible_user_id}}
-environnement=local
-vitam_reverse_domain=
+environnement=fulllocal
+vitam_logstash_portvitam_reverse_domain=
 
 consul_domain=consul
 vitam_ihm_demo_external_dns=localhost

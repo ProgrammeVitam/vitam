@@ -10,7 +10,7 @@ Environment=CONF_DIR=/vitam/conf/elasticsearch-{{groupe}}
 Environment=DATA_DIR=/vitam/data/elasticsearch-{{groupe}}
 Environment=LOG_DIR=/vitam/log/elasticsearch-{{groupe}}
 Environment=PID_DIR=/var/run/elasticsearch-{{groupe}}
-EnvironmentFile=-/vitam/conf/elasticsearch-{{groupe}}
+EnvironmentFile=-/vitam/conf/elasticsearch-{{groupe}}/sysconfig/elasticsearch
 
 WorkingDirectory=/usr/share/elasticsearch
 
@@ -20,11 +20,11 @@ Group=vitam
 ExecStartPre=/usr/share/elasticsearch/bin/elasticsearch-systemd-pre-exec
 
 ExecStart=/usr/share/elasticsearch/bin/elasticsearch \
-                                                -Des.pidfile=${PID_DIR}/elasticsearch.pid \
-                                                -Des.default.path.home=${ES_HOME} \
-                                                -Des.default.path.logs=${LOG_DIR} \
-                                                -Des.default.path.data=${DATA_DIR} \
-                                                -Des.default.path.conf=${CONF_DIR}
+    -Des.pidfile=${PID_DIR}/elasticsearch.pid \
+    -Des.default.path.home=${ES_HOME} \
+    -Des.default.path.logs=${LOG_DIR} \
+    -Des.default.path.data=${DATA_DIR} \
+    -Des.default.path.conf=${CONF_DIR}
 
 StandardOutput=journal
 StandardError=inherit

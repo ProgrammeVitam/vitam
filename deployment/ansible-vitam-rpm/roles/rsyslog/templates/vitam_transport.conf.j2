@@ -18,7 +18,7 @@ $ActionQueueSaveOnShutdown on
 $ActionResumeRetryCount -1
 $ActionQueueHighWatermark 100000
 $ActionQueueLowWatermark 10000
-:programname, startswith, "vitam" @@{{vitam_logserver_host}}:{{vitam_logserver_port}}
+:programname, startswith, "vitam" @@{{vitam_logstash_host}}:{{vitam_logstash_port}}
 
 $ActionQueueType LinkedList
 $ActionQueueFileName logstash-mongo-queue
@@ -27,7 +27,7 @@ $ActionQueueSaveOnShutdown on
 $ActionResumeRetryCount -1
 $ActionQueueHighWatermark 100000
 $ActionQueueLowWatermark 10000
-:programname, startswith, "mongo" @@{{vitam_logserver_host}}:{{vitam_logserver_port}}
+:programname, startswith, "mongo" @@{{vitam_logstash_host}}:{{vitam_logstash_port}}
 
 $ActionQueueType LinkedList
 $ActionQueueFileName logstash-vitam_accesslog-queue
@@ -36,7 +36,7 @@ $ActionQueueSaveOnShutdown on
 $ActionResumeRetryCount -1
 $ActionQueueHighWatermark 100000
 $ActionQueueLowWatermark 10000
-:programname, startswith, "vitam_accesslog" @@{{vitam_logserver_host}}:{{vitam_logserver_port}}
+:programname, startswith, "vitam_accesslog" @@{{vitam_logstash_host}}:{{vitam_logstash_port}}
 
 $ActionQueueType LinkedList
 $ActionQueueFileName logstash-elasticsearch_log-queue
@@ -45,7 +45,7 @@ $ActionQueueSaveOnShutdown on
 $ActionResumeRetryCount -1
 $ActionQueueHighWatermark 100000
 $ActionQueueLowWatermark 10000
-:programname, startswith, "elasticsearch-log" @@{{vitam_logserver_host}}:{{vitam_logserver_port}}
+:programname, startswith, "elasticsearch-log" @@{{vitam_logstash_host}}:{{vitam_logstash_port}}
 
 $ActionQueueType LinkedList
 $ActionQueueFileName logstash-elasticsearch_data-queue
@@ -54,4 +54,4 @@ $ActionQueueSaveOnShutdown on
 $ActionResumeRetryCount -1
 $ActionQueueHighWatermark 100000
 $ActionQueueLowWatermark 10000
-:programname, startswith, "elasticsearch-data" @@{{vitam_logserver_host}}:{{vitam_logserver_port}}
+:programname, startswith, "elasticsearch-data" @@{{vitam_logstash_host}}:{{vitam_logstash_port}}

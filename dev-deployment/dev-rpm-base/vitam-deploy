@@ -1,0 +1,9 @@
+if [ -z "$1" ]; then
+	VITAM_ENVIRONMENT=local
+else
+	VITAM_ENVIRONMENT=$1
+fi
+
+echo "Deploying VITAM for environment ${VITAM_ENVIRONMENT}..."
+
+ansible-playbook deployment/ansible-vitam-rpm/vitam.yml -i deployment/environments-rpm/hosts.${VITAM_ENVIRONMENT} --vault-password-file deployment/vault_pass.txt -v

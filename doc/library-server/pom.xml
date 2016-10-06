@@ -190,7 +190,7 @@
 		<artifactId>common-private</artifactId>
 		<version>${project.version}</version>
 		<exclusions>
-			<exclusion>
+			<!--<exclusion>
 				<groupId>org.glassfish.jersey.containers</groupId>
 				<artifactId>jersey-container-servlet-core</artifactId>
 			</exclusion>
@@ -201,7 +201,7 @@
 			<exclusion>
 				<groupId>org.glassfish.jersey.media</groupId>
 				<artifactId>jersey-media-json-jackson</artifactId>
-			</exclusion>
+			</exclusion>-->
 			<exclusion>
 				<groupId>org.glassfish.jersey.media</groupId>
 				<artifactId>jersey-media-multipart</artifactId>
@@ -210,7 +210,7 @@
 				<groupId>org.glassfish.jersey.connectors</groupId>
 				<artifactId>jersey-jetty-connector</artifactId>
 			</exclusion>
-			<exclusion>
+			<!--<exclusion>
 				<groupId>com.mikesamuel</groupId>
 				<artifactId>json-sanitizer</artifactId>
 			</exclusion>
@@ -221,7 +221,7 @@
 			<exclusion>
 				<groupId>xerces</groupId>
 				<artifactId>xercesImpl</artifactId>
-			</exclusion>
+			</exclusion>-->
 		</exclusions>
 	</dependency>
 	<dependency>

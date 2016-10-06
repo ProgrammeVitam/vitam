@@ -1,0 +1,15 @@
+{
+  "service": {
+    "name": "logstash",
+    "port": {{ vitam_logstash_port }},
+    "enableTagOverride": false,
+    "checks": [
+      {
+        "id": "syslog tcp check",
+        "notes": "Syslog tcp port opened",
+        "tcp": "localhost:{{ vitam_logstash_port }}",
+        "interval": "1s"
+      }
+    ]
+  }
+}

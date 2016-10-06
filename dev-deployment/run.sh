@@ -52,7 +52,7 @@ if [ -z "$(docker ps -a | grep vitam-rpm-dev)" ]; then
 	echo "Building development container..."
 	docker build -t ${VITAMDEV_IMAGE} --rm --pull --build-arg http_proxy=${HTTP_PROXY} --build-arg https_proxy=${HTTPS_PROXY} dev-rpm-base
 	echo "Launching docker container as daemon (launching systemd init process...)"
-	docker run -d --privileged -v "${VITAMDEV_GIT_REPO}:/code" -v  /sys/fs/cgroup:/sys/fs/cgroup:ro -v "${VITAMDEV_HOME}/.m2:/devhome/.m2" -p 8082:8082 -p 9200:9200 -p 9300:9300 -p 9201:9201 -p 9301:9301 -p 27017:27017 -p 10514:10514 -p 8000-8010:8000-8010 -p 8100-8110:8100-8110 -p 8200-8210:8200-8210 -p 8300-8310:8300-8310  -p 8500:8500 --cap-add=SYS_ADMIN --security-opt seccomp=unconfined --name=${VITAMDEV_CONTAINER} --net=bridge --dns=127.0.0.1 --dns=10.100.211.222 ${VITAMDEV_IMAGE}
+	docker run -d --privileged -v "${VITAMDEV_GIT_REPO}:/code" -v  /sys/fs/cgroup:/sys/fs/cgroup:ro -v "${VITAMDEV_HOME}/.m2:/devhome/.m2" -p 8082:8082 -p 9300-9310:9300-9310 -p 9200-9210:9200-9210 -p 9000-9010:9000-9010 -p 9100-9110:9100-9110 -p 9900-9910:9900-9910 -p 27017:27017 -p 10514:10514 -p 8000-8010:8000-8010 -p 8100-8110:8100-8110 -p 8200-8210:8200-8210 -p 8090:8090 -p 8300-8310:8300-8310 -p 5601:5601 -p 8500:8500 --cap-add=SYS_ADMIN --security-opt seccomp=unconfined --name=${VITAMDEV_CONTAINER} --net=bridge --dns=127.0.0.1 --dns=10.100.211.222 --dns=8.8.8.8 ${VITAMDEV_IMAGE}
 	echo "Registering user ${VITAMDEV_USER} in container..."
 	docker exec ${VITAMDEV_CONTAINER} groupadd -g ${VITAMDEV_USER_GID} vitam-dev
 	docker exec ${VITAMDEV_CONTAINER} useradd -u ${VITAMDEV_USER_UID} -g ${VITAMDEV_USER_GID} -G wheel -d /devhome -s /bin/bash -c "Welcome, mister developer !" ${VITAMDEV_USER}

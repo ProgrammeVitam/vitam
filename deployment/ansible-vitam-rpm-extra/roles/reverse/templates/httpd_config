@@ -66,18 +66,18 @@
 
 # Kibana
 
-  ProxyPass /app/kibana http://{{vitam_logserver_host}}:5601/app/kibana acquire=5000 connectiontimeout=3500 timeout=50 retry=5
-  ProxyPassReverse /app/kibana http://{{vitam_logserver_host}}:5601/app/kibana
+  ProxyPass /app/kibana http://{{vitam_kibana_host}}:{{vitam_kibana_port}}/app/kibana acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+  ProxyPassReverse /app/kibana http://{{vitam_kibana_host}}:{{vitam_kibana_port}}/app/kibana
 
-  ProxyPass /api/status http://{{vitam_logserver_host}}:5601/api/status acquire=5000 connectiontimeout=3500 timeout=50 retry=5
-  ProxyPassReverse /api/status http://{{vitam_logserver_host}}:5601/api/status
+  ProxyPass /api/status http://{{vitam_kibana_host}}:{{vitam_kibana_port}}/api/status acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+  ProxyPassReverse /api/status http://{{vitam_kibana_host}}:{{vitam_kibana_port}}/api/status
 
-  ProxyPass /bundles http://{{vitam_logserver_host}}:5601/bundles acquire=5000 connectiontimeout=3500 timeout=50 retry=5
-  ProxyPassReverse /bundles http://{{vitam_logserver_host}}:5601/bundles
+  ProxyPass /bundles http://{{vitam_kibana_host}}:{{vitam_kibana_port}}/bundles acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+  ProxyPassReverse /bundles http://{{vitam_kibana_host}}:{{vitam_kibana_port}}/bundles
 
   # Needed as it conflicts with Elasticsearch reverse proxy
-  ProxyPass /elasticsearch http://{{vitam_logserver_host}}:5601/elasticsearch
-  ProxyPassReverse /elasticsearch http://{{vitam_logserver_host}}:5601/elasticsearch
+  ProxyPass /elasticsearch http://{{vitam_kibana_host}}:{{vitam_kibana_port}}/elasticsearch
+  ProxyPassReverse /elasticsearch http://{{vitam_kibana_host}}:{{vitam_kibana_port}}/elasticsearch
 
 # Documentation
   ProxyPass /doc http://{{groups['library'][0]}}:{{vitam_library_port}}/doc
@@ -85,23 +85,18 @@
 
 
 # Elasticsearch
-  ProxyPass /_plugin http://{{vitam_log_host}}:{{elasticsearch_log_http_port}}/_plugin
-  ProxyPassReverse _plugin/ http://{{vitam_log_host}}:{{elasticsearch_log_http_port}}/_plugin
+  ProxyPass /_plugin http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/_plugin
+  ProxyPassReverse _plugin/ http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/_plugin
 
-  ProxyPass /elasticsearch-log http://{{vitam_log_host}}:{{elasticsearch_log_http_port}}/
-  ProxyPassReverse /elasticsearch-log http://{{vitam_log_host}}:{{elasticsearch_log_http_port}}/
+  ProxyPass /elasticsearch-log http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/
+  ProxyPassReverse /elasticsearch-log http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/
 
   ProxyPass /elasticsearch-data http://{{groups['hosts-elasticsearch-data'][0]}}:{{elasticsearch_data_http_port}}/
   ProxyPassReverse /elasticsearch-data http://{{groups['hosts-elasticsearch-data'][0]}}:{{elasticsearch_data_http_port}}/
 
-# ProxyPass /_cluster http://vitam-iaas-log-01.int3:9200/_cluster
-# ProxyPassReverse _cluster/ http://vitam-iaas-log-01.int3:9200/_cluster
-
-# ProxyPass /_stats http://vitam-iaas-log-01.int3:9200/_stats
-# ProxyPassReverse _stats/ http://vitam-iaas-log-01.int3:9200/_stats
-
-# ProxyPass /_nodes http://vitam-iaas-log-01.int3:9200/_nodes
-# ProxyPassReverse /_nodes http://vitam-iaas-log-01.int3:9200/_nodes
+# ProxyPass /_cluster 
+# ProxyPass /_stats 
+# ProxyPass /_nodes 
 
 # Consul UI
 

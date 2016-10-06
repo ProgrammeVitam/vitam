@@ -382,7 +382,7 @@
 					<!-- The Javadoc Plugin uses the Javadoc tool to generate javadocs for 
 						the specified project. -->
 					<artifactId>maven-javadoc-plugin</artifactId>
-					<version>2.10.3</version>
+					<version>2.10.4</version>
 					<configuration>
 						<source>${java.version}</source>
 						<additionalparam>-Xdoclint:none</additionalparam>

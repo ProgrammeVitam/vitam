@@ -25,4 +25,11 @@
 # accept its terms.
 #*******************************************************************************
 # Build rpm repository when starting the VM
-createrepo -x '.git/*' /code
+
+if [ -d /code/repodata ]; then
+	echo "Existing repository found in /code... Skipping generation."
+	echo "Hint : you can refresh this repository using the following command : 'createrepo /code'"
+else
+	echo "No existing /code repository found in /code... Building a fresh one..."
+	createrepo -x '.git/*' /code
+fi

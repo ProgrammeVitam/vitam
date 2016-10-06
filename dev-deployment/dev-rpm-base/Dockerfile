@@ -56,7 +56,7 @@ ENV PATH ${M2_HOME}/bin:${JAVA_HOME}/bin:${PATH}
 ################################  Install ansible  ###############################
 
 # for sudo in automatic deployment ; note : ansible needs epel repo
-RUN yum install -y sudo ansible
+RUN yum install -y sudo ansible which
 
 ##################################  Declare local rpm repo  #################################
 
@@ -68,10 +68,12 @@ COPY devlocal.repo /etc/yum.repos.d/devlocal.repo
 ################################## Add dev helpers #################################
 
 COPY vitam-build-repo /usr/bin
-RUN chmod a+x /usr/bin/vitam-build-repo
+COPY vitam-deploy /usr/bin
+RUN chmod a+x /usr/bin/vitam-*
 
 COPY profile-build-repo.sh /etc/profile.d
 COPY profile-prompt-usage.sh /etc/profile.d
+COPY .bashrc /devhome
 COPY vitam-usage.txt /etc
 COPY wheel-nopwd /etc/sudoers.d
 

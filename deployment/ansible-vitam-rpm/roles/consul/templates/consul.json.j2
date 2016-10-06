@@ -4,6 +4,10 @@
   "log_level": "INFO",
   "enable_syslog": true,
 
+{% if inventory_hostname in groups['hosts-mongo-express'] %}
+  "advertise_addr": "{{ ansible_eth0["ipv4"]["address"] }}",
+{% endif %}
+
 {% if inventory_hostname in groups['hosts-consul-server'] %}
   "bootstrap_expect": {{ groups['hosts-consul-server']|length }},
   "server": true,
@@ -13,7 +17,7 @@
     },
 {% endif %}
 
-  "recursors": [ "{{dns_server}}" ],
+  "recursors": [ "{{ dns_servers|join('", "') }}" ],
   "domain": "{{consul_domain}}",
   "datacenter": "{{environnement}}-dc1",
   "retry_join": [ "{{ groups['hosts-consul-server']|join('", "') }}" ],

@@ -12,3 +12,4 @@ Common
    client.rst
    graph.rst
    VitamCode.rst
+   private/_toc.rst

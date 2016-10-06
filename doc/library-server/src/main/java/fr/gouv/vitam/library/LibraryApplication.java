@@ -41,11 +41,16 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server.application.AdminStatusResource;
+import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.library.config.LibraryConfiguration;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlet.DefaultServlet;
+import org.glassfish.jersey.jackson.JacksonFeature;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.servlet.ServletContainer;
 
 /**
  * Library static web server application
@@ -149,12 +154,20 @@ public class LibraryApplication extends AbstractVitamApplication<LibraryApplicat
         staticServlet.setInitParameter("resourceBase", getConfiguration().getDirectoryPath());
         staticServlet.setInitParameter("dirAllowed", "true");
         staticServlet.setInitParameter("pathInfoOnly", "true");
+
+        // Jersey resources servlet : add admin resources
+        final ResourceConfig resourceConfig = new ResourceConfig();
+        resourceConfig.register(JacksonFeature.class);
+        resourceConfig.register(new AdminStatusResource(new BasicVitamStatusServiceImpl()));
+        final ServletHolder jerseyServlet = new ServletHolder(new ServletContainer(resourceConfig));
+
         // Context handler for /
         final ServletContextHandler contextHandler = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
         contextHandler.setResourceBase(getConfiguration().getDirectoryPath());
         contextHandler.setContextPath("/");
-        // Mixing the two
+        // Mixing everything
         contextHandler.addServlet(staticServlet, "/doc/*"); // TODO: externalise constant in config
+        contextHandler.addServlet(jerseyServlet, "/*");
         return contextHandler;
     }
 

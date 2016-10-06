@@ -15,10 +15,10 @@
 
 # OMA Commented curl -XDELETE 'http://{{vitam_log_host}}:{{elasticsearch_log_http_port}}/topbeat-*';
 - name: force use topbeat index
-  command: curl -XPUT 'http://{{vitam_log_host}}:{{elasticsearch_log_http_port}}/_template/topbeat' -d@/etc/topbeat/topbeat.template.json
+  command: curl -XPUT 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/_template/topbeat' -d@/etc/topbeat/topbeat.template.json
   notify:
     - restart kibana
-  delegate_to: "{{vitam_log_host}}"
+  delegate_to: "{{ vitam_kibana_host }}"
   run_once: true
 
 - name: restart topbeat

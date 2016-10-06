@@ -9,8 +9,10 @@ pushd rpm/vitam-product ; ./build.sh vitam-consul ; popd
 pushd rpm/vitam-product ; ./build.sh vitam-siegfried ; popd
 pushd rpm/vitam-external ; ./build_repo.sh ; popd
 
-echo "Creating local rpm repository..."
+echo "Creating local yum repository..."
 createrepo -x '.git/*' .
+echo "Cleaning up yum cache..."
 yum clean all
-echo "Done ! Available local repositories in local vitam-product repository :"
+echo "Done ! Available rpm packages in local vitam-product repository :"
 yum --disablerepo="*" --enablerepo="local" list available
+echo "Build done ! Now you can deploy VITAM: vitam-deploy [local|fulllocal]"

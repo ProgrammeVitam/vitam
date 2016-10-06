@@ -8,4 +8,4 @@ Architecture Technique
    introduction.rst
    GUID.rst
    jetty.rst
-
+   certs-auth.rst

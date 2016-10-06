@@ -80,7 +80,7 @@
     dest: "{{vitam_folder_root}}/conf/consul/service-mongod.json"
     owner: "vitam"
     group: "vitam"
-    mode: "0755"
+    mode: "{{vitam_conf_permission}}"
 
 - name: reload consul agent configuration
   service:

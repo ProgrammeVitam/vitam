@@ -1,5 +1,7 @@
 ---
 # tasks file for engine-external
+
+# Question : move the scan-clamav.sh in /app ?
 - name: change perms on scan-clamav.sh
   file:
     path: /vitam/conf/ingest-external/scan-clamav.sh
