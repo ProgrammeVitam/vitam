@@ -128,11 +128,11 @@
     mode: 0755
 
 # FIXME : won't work when there is no reverse-proxy...
-- name: configure kopf
-  replace: 
-      dest: /usr/share/elasticsearch/plugins/kopf/_site/kopf_external_settings.json
-      regexp: '^.*"elasticsearch_root_path":.*$'
-      replace: "    \"elasticsearch_root_path\": \"/elasticsearch-{{groupe}}\","
+# - name: configure kopf
+#   replace: 
+#       dest: /usr/share/elasticsearch/plugins/kopf/_site/kopf_external_settings.json
+#       regexp: '^.*"elasticsearch_root_path":.*$'
+#       replace: "    \"elasticsearch_root_path\": \"/elasticsearch-{{groupe}}\","
 
 
 #### Elasticsearch systemd service configuration ####

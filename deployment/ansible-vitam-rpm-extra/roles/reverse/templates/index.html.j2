@@ -107,7 +107,8 @@
 						<div class="col-md-3">Elasticsearch</div>
 						<div class="col-md-9">
 							<a href="/_plugin/head" class="btn btn-primary btn-xs" target="_blank">Visualisation HEAD</a>
-							<a href="/_plugin/kopf" class="btn btn-primary btn-xs" target="_blank">Visualisation kopf cluster de logs</a>
+							<a href="/_plugin/kopf/?location=https://{{vitam_reverse_domain}}.env.programmevitam.fr/elasticsearch-log" class="btn btn-primary btn-xs" target="_blank">Kopf elasticsearch-log</a>
+							<a href="/_plugin/kopf/?location=https://{{vitam_reverse_domain}}.env.programmevitam.fr/elasticsearch-data" class="btn btn-primary btn-xs" target="_blank">Kopf elasticsearch-data</a>
 							<a href="/elasticsearch-log" class="btn btn-primary btn-xs" target="_blank">Elasticsearch logs</a>
 							<a href="/elasticsearch-log/_cluster/health?pretty" class="btn btn-primary btn-xs" target="_blank">Santé Elasticsearch logs</a>
 							<a href="/elasticsearch-data" class="btn btn-primary btn-xs" target="_blank">Elasticsearch data</a>
