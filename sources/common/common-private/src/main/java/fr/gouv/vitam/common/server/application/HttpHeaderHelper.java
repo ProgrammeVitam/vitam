@@ -79,7 +79,7 @@ public final class HttpHeaderHelper {
      * @return the list of values for specified header name
      * @throws IllegalArgumentException if headers is null or name is null or empty
      */
-    static List<String> getHeaderValues(HttpHeaders headers, String name) {
+    public static List<String> getHeaderValues(HttpHeaders headers, String name) {
         ParametersChecker.checkParameter("Name cannot be null", name);
         ParametersChecker.checkParameter("Headers cannot be null", headers);
         return headers.getRequestHeader(name);
@@ -122,7 +122,7 @@ public final class HttpHeaderHelper {
      * is case insensitive.
      *
      * @param requestHeaders HTTP headers list to check
-     * @throws IllegalStateException when a header value doesn't match with teh defined regular expression
+     * @throws IllegalStateException when a header value doesn't match with the defined regular expression
      */
     public static void checkVitamHeadersMap(MultivaluedMap<String, String> requestHeaders) {
         if (requestHeaders != null && !requestHeaders.isEmpty()) {

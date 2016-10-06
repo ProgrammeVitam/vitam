@@ -43,6 +43,7 @@ import org.junit.Test;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.common.ResourcesPublicUtilTest;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -126,6 +127,12 @@ public class JsonHandlerTest {
             JsonHandler
                 .getFromInputStream(ResourcesPublicUtilTest.getInstance().getJsonTest3JsonInputStream(), JsonNode.class)
                 .get("b").asText());
+        
+        
+        ArrayNode array= (ArrayNode) JsonHandler.getFromString("['0', '1', '2', '3', '4' , '5']");
+        ArrayNode subArray= JsonHandler.getSubArrayNode(array, 3, 2);
+        assertEquals(2, subArray.size());
+        assertEquals("3", subArray.get(0).asText());
     }
 
     @Test

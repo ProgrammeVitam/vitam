@@ -1,4 +1,4 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,63 +23,31 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
+ *******************************************************************************/
+
+package fr.gouv.vitam.ihmdemo.common.api;
+
+/**
+ * Global Variables and eventually method used by REST services
  */
+public class IhmDataRest {
+    /**
+     * The X_LIMIT header, pagination limit
+     */
+    public static final String X_LIMIT = "X-Limit";
 
-'use strict';
+    /**
+     * The X_OFFSET header, pagination offset
+     */
+    public static final String X_OFFSET = "X-Offset";
+    /**
+     * The X_TOTAL_RECORDS header, total results
+     */
 
-angular.module('ihm.demo')
-	.controller('logbookOperationController', function($scope, $mdDialog, ihmDemoCLient, ITEM_PER_PAGE){
-		var ctrl = this;
-		ctrl.client = ihmDemoCLient.getClient('logbook');
-		ctrl.itemsPerPage = ITEM_PER_PAGE;
-		ctrl.currentPage = 0;
-		ctrl.searchOptions = {};
-		ctrl.operationList = [];
-		
-		function clearResults() {
-			ctrl.operationList = [];
-		}
-				
-		ctrl.getList = function(){
-			clearResults();
-			
-			ctrl.searchOptions.EventType = ctrl.searchType;
-			
-			if(ctrl.searchOptions.EventType == "" || ctrl.searchOptions.EventType == undefined) {
-				ctrl.searchOptions.EventType = "all";
-			}
-			
-			ctrl.searchOptions.EventID = ctrl.searchID;
-			
-			if(ctrl.searchOptions.EventID == "" || ctrl.searchOptions.EventID == undefined) {
-				ctrl.searchOptions.EventID = "all";
-			}
-			
-		    ctrl.searchOptions.orderby = "evDateTime";
-			
-			ctrl.client.all('operations').post(ctrl.searchOptions).then(function(response) {
-		        ctrl.operationList = response.data.result;
-				ctrl.resultPages = Math.ceil(ctrl.operationList.length/10);
-		        ctrl.currentPage = 1;
-			}, function(response) {
-		        ctrl.searchOptions = {};
-		        alert('Request error, code: ' + response.status);
-		    });
-			
-			
-		};
-		
-	    ctrl.openDialog = function($event, id) {
-	    	$mdDialog.show({
-	    		controller: 'logbookEntryController as entryCtrl',
-	    		templateUrl: 'views/logbookEntry.html',
-	    		parent: angular.element(document.body),
-	    		clickOutsideToClose:true,
-	    		targetEvent: $event,
-	    		locals : {
-	    			operationId : id
-	    		}
-	    	})
-	    }
-	});
+    public static final String X_TOTAL = "X-Total";
 
+    private IhmDataRest() {
+        // empty
+    }
+
+}

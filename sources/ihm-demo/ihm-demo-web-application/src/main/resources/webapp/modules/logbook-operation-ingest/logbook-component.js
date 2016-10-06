@@ -27,59 +27,10 @@
 
 'use strict';
 
-angular.module('ihm.demo')
-	.controller('logbookOperationController', function($scope, $mdDialog, ihmDemoCLient, ITEM_PER_PAGE){
-		var ctrl = this;
-		ctrl.client = ihmDemoCLient.getClient('logbook');
-		ctrl.itemsPerPage = ITEM_PER_PAGE;
-		ctrl.currentPage = 0;
-		ctrl.searchOptions = {};
-		ctrl.operationList = [];
-		
-		function clearResults() {
-			ctrl.operationList = [];
-		}
-				
-		ctrl.getList = function(){
-			clearResults();
-			
-			ctrl.searchOptions.EventType = ctrl.searchType;
-			
-			if(ctrl.searchOptions.EventType == "" || ctrl.searchOptions.EventType == undefined) {
-				ctrl.searchOptions.EventType = "all";
-			}
-			
-			ctrl.searchOptions.EventID = ctrl.searchID;
-			
-			if(ctrl.searchOptions.EventID == "" || ctrl.searchOptions.EventID == undefined) {
-				ctrl.searchOptions.EventID = "all";
-			}
-			
-		    ctrl.searchOptions.orderby = "evDateTime";
-			
-			ctrl.client.all('operations').post(ctrl.searchOptions).then(function(response) {
-		        ctrl.operationList = response.data.result;
-				ctrl.resultPages = Math.ceil(ctrl.operationList.length/10);
-		        ctrl.currentPage = 1;
-			}, function(response) {
-		        ctrl.searchOptions = {};
-		        alert('Request error, code: ' + response.status);
-		    });
-			
-			
-		};
-		
-	    ctrl.openDialog = function($event, id) {
-	    	$mdDialog.show({
-	    		controller: 'logbookEntryController as entryCtrl',
-	    		templateUrl: 'views/logbookEntry.html',
-	    		parent: angular.element(document.body),
-	    		clickOutsideToClose:true,
-	    		targetEvent: $event,
-	    		locals : {
-	    			operationId : id
-	    		}
-	    	})
-	    }
-	});
-
+// Register `logbookOperations` component, along with its associated controller and template
+angular.
+  module('ihm.demo').
+  component('logbookOperations', {
+    templateUrl: 'modules/logbook-operation-ingest/logbook-operations.html',
+    controller: 'logbookController as logctrl'
+  });

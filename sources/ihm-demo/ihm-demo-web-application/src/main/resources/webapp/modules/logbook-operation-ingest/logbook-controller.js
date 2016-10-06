@@ -28,35 +28,40 @@
 'use strict';
 
 angular.module('ihm.demo')
-  .constant('ITEM_PER_PAGE', 10)
+  .constant('ITEM_PER_PAGE', 25)
+  .constant('MAX_REQUEST_ITEM_NUMBER', 125)
   .filter('startFrom', function() {
     return function (input, start) {
       start = +start; //parse to int
       return input.slice(start);
     }
   })
-  .controller('logbookController', function($scope, $mdDialog, ihmDemoCLient, ITEM_PER_PAGE) {
+  .controller('logbookController', function($scope, $mdDialog, ihmDemoCLient, ITEM_PER_PAGE, MAX_REQUEST_ITEM_NUMBER) {
     var ctrl = this;
     ctrl.itemsPerPage = ITEM_PER_PAGE;
     ctrl.currentPage = 0;
     ctrl.startDate = new Date();
     ctrl.endDate = new Date();
     ctrl.searchOptions = {};
+    ctrl.resultPages = '';
     ctrl.fileFormatList = [];
+    ctrl.pageActive = [true, false, false, false, false];
     ctrl.client = ihmDemoCLient.getClient('logbook');
+    var header = {'X-Limit': MAX_REQUEST_ITEM_NUMBER};
 
-    ctrl.getFileFormats = function() {
-      ctrl.fileFormatList = [];
+    ctrl.getLogbooks = function() {
       ctrl.searchOptions.INGEST = "all";
       ctrl.searchOptions.orderby = "evDateTime";
-      ctrl.client.all('operations').post(ctrl.searchOptions).then(function(response) {
+      ctrl.client.all('operations').customPOST(ctrl.searchOptions, null, null, header).then(function(response) {
         ctrl.fileFormatList = response.data.result;
         ctrl.fileFormatList.map(function(item) {
           item.obIdIn = ctrl.searchOptions.obIdIn;
         });
-        ctrl.resultPages = Math.ceil(ctrl.fileFormatList.length/10);
-        ctrl.currentPage = 1;
+        ctrl.resultPages = Math.ceil(response.data.hits.total/ITEM_PER_PAGE);
         ctrl.searchOptions = {};
+        ctrl.currentPage = ctrl.currentPage || 1;
+        ctrl.diplayPage = ctrl.diplayPage || ctrl.currentPage;
+        header['X-REQUEST-ID'] = response.headers('X-REQUEST-ID');
       }, function(response) {
         ctrl.searchOptions = {};
         alert('Request error, code: ' + response.status);
@@ -65,6 +70,52 @@ angular.module('ihm.demo')
 
     ctrl.clearSearchOptions = function() {
       ctrl.searchOptions = {};
+    };
+
+    ctrl.diplayFromCurrentPage = function(id) {
+      ctrl.diplayPage = id + 1;
+      changePageDIsplayNumber(id);
+    };
+
+    ctrl.getPreviousResults = function() {
+      if (ctrl.currentPage > 1 ) {
+        ctrl.diplayPage -= 1;
+        if (ctrl.diplayPage == 0 &&  ctrl.currentPage > 5) {
+          ctrl.currentPage -=5;
+          ctrl.diplayPage = 5;
+          if (ctrl.currentPage == 1) {
+            header['X-Offset'] = 0
+          } else {
+            header['X-Offset'] = ctrl.currentPage * ITEM_PER_PAGE;
+          }
+          ctrl.getLogbooks();
+        }
+        changePageDIsplayNumber((ctrl.diplayPage-1)%5);
+      } else if (ctrl.diplayPage > ctrl.currentPage) {
+        ctrl.diplayPage -= 1;
+        changePageDIsplayNumber((ctrl.diplayPage-1)%5);
+      }
+    };
+
+    function changePageDIsplayNumber(id) {
+      ctrl.pageActive = [false, false, false, false, false];
+      ctrl.pageActive[id] = true;
+    }
+
+    ctrl.getNextResults = function() {
+      if (ctrl.currentPage+4 < ctrl.resultPages) {
+        ctrl.diplayPage +=1;
+        if (ctrl.diplayPage > 5) {
+          ctrl.currentPage += 5;
+          ctrl.diplayPage = 1;
+          header['X-Offset'] = ctrl.currentPage * ITEM_PER_PAGE;
+          ctrl.getLogbooks();
+        }
+        changePageDIsplayNumber((ctrl.diplayPage-1)%5);
+      } else if (ctrl.diplayPage < ctrl.resultPages && (ctrl.diplayPage + ctrl.currentPage) < ctrl.resultPages) {
+        ctrl.diplayPage +=1;
+        changePageDIsplayNumber((ctrl.diplayPage-1)%5);
+      }
     };
 
     ctrl.openDialog = function($event, id) {
@@ -79,13 +130,15 @@ angular.module('ihm.demo')
         }
 
       })
-    }
+    };
+
+    ctrl.getLogbooks();
 
   })
   .controller('logbookEntryController', function($scope, $mdDialog, operationId, ihmDemoCLient, idOperationService) {
     var self = this;
 
-    ihmDemoCLient.getClient('logbook/operations').all(operationId).post({}).then(function(response) {
+    ihmDemoCLient.getClient('logbook-operation-ingest/operations').all(operationId).post({}).then(function(response) {
       self.detail = response.data.result;
       self.detailId = idOperationService.getIdFromResult(self.detail);
     });

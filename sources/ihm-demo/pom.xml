@@ -14,5 +14,6 @@
   <modules>
     <module>ihm-demo-web-application</module>
     <module>ihm-demo-core</module>
+    <module>ihm-demo-common</module>
   </modules>
 </project>

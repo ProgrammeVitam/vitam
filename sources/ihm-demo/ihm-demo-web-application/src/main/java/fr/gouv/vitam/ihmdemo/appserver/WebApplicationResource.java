@@ -33,8 +33,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.CookieParam;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -43,6 +43,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -56,18 +57,25 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.access.common.exception.AccessClientNotFoundException;
 import fr.gouv.vitam.access.common.exception.AccessClientServerException;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.ihmdemo.common.api.IhmDataRest;
+import fr.gouv.vitam.ihmdemo.common.api.IhmWebAppHeader;
+import fr.gouv.vitam.ihmdemo.common.pagination.OffsetBasedPagination;
+import fr.gouv.vitam.ihmdemo.common.pagination.PaginationHelper;
 import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
 import fr.gouv.vitam.ihmdemo.core.JsonTransformer;
 import fr.gouv.vitam.ihmdemo.core.UiConstants;
@@ -93,8 +101,7 @@ public class WebApplicationResource {
     private static final String NEW_FIELD_VALUE_KEY = "newFieldValue";
     private static final String INVALID_ALL_PARENTS_TYPE_ERROR_MSG = "The parameter \"allParents\" is not an array";
 
-    @Context
-    private HttpServletRequest request;
+    private static final int TENANT_ID = 0;
 
     /**
      * @param criteria criteria search for units
@@ -168,28 +175,73 @@ public class WebApplicationResource {
     @POST
     @Path("/logbook/operations")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getLogbookResult(String options) {
+    public Response getLogbookResult(@Context HttpHeaders headers, @CookieParam("JSESSIONID") String sessionId, String options) {
+
+        ParametersChecker.checkParameter("cookie is mandatory", sessionId);
+        String requestId =null;
         JsonNode result = null;
+        OffsetBasedPagination pagination= null;
+
         try {
-            ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
-            result = JsonHandler.getFromString("{}");
-            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-            String query = "";
-            Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
-            query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-            LogbookClient logbookClient = LogbookClientFactory.getInstance().getLogbookOperationClient();
-            result = logbookClient.selectOperation(query);
-        } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
+            pagination = new OffsetBasedPagination(headers);
+        } catch (VitamException e) {
             LOGGER.error("Bad request Exception ", e);
             return Response.status(Status.BAD_REQUEST).build();
-        } catch (final LogbookClientException e) {
-            LOGGER.error("Logbook Client NOT FOUND Exception ", e);
-            return Response.status(Status.NOT_FOUND).build();
-        } catch (final Exception e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
-        return Response.status(Status.OK).entity(result).build();
+        List<String> requestIds=  HttpHeaderHelper.getHeaderValues(headers, IhmWebAppHeader.REQUEST_ID.name());
+        if(requestIds!=null){
+            requestId= requestIds.get(0);
+            // get result from shiro session
+            try {
+                result= PaginationHelper.getResult(sessionId, pagination);
+
+                return Response.status(Status.OK).entity(result)
+                    .header(GlobalDataRest.X_REQUEST_ID, requestId)
+                    .header(IhmDataRest.X_OFFSET, pagination.getOffset())
+                    .header(IhmDataRest.X_LIMIT, pagination.getLimit())
+                    .build();
+            } catch (VitamException e) {
+                LOGGER.error("Bad request Exception ", e);
+                return Response.status(Status.BAD_REQUEST).header(GlobalDataRest.X_REQUEST_ID, requestId)
+                    .build();
+            }
+        }else {
+            requestId= GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
+
+            try {
+                ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
+                result = JsonHandler.createObjectNode();
+                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
+                String query = "";
+                Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
+                query = DslQueryHelper.createSingleQueryDSL(optionsMap);
+                LogbookClient logbookClient = LogbookClientFactory.getInstance().getLogbookOperationClient();
+                result = logbookClient.selectOperation(query);
+
+                // save result
+                PaginationHelper.setResult(sessionId, result);
+                // pagination
+                result= PaginationHelper.getResult(result, pagination);
+
+            } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
+                LOGGER.error("Bad request Exception ", e);
+                return Response.status(Status.BAD_REQUEST).header(GlobalDataRest.X_REQUEST_ID, requestId)
+                    .build();
+            } catch (final LogbookClientException e) {
+                LOGGER.error("Logbook Client NOT FOUND Exception ", e);
+                return Response.status(Status.NOT_FOUND).header(GlobalDataRest.X_REQUEST_ID, requestId)
+                    .build();
+            } catch (final Exception e) {
+                LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+                return Response.status(Status.INTERNAL_SERVER_ERROR).header(GlobalDataRest.X_REQUEST_ID, requestId)
+                    .build();
+            }
+            return Response.status(Status.OK).entity(result)
+                .header(GlobalDataRest.X_REQUEST_ID, requestId)
+                .header(IhmDataRest.X_OFFSET, pagination.getOffset())
+                .header(IhmDataRest.X_LIMIT, pagination.getLimit())
+                .build();
+        }
     }
 
     /**
@@ -295,7 +347,6 @@ public class WebApplicationResource {
 
             // Add ID to set root part
             updateUnitIdMap.put(UiConstants.SELECT_BY_ID.toString(), unitId);
-
             String preparedQueryDsl = DslQueryHelper.createUpdateDSLQuery(updateUnitIdMap);
             JsonNode archiveDetails = UserInterfaceTransactionManager.updateUnits(preparedQueryDsl, unitId);
             return Response.status(Status.OK).entity(archiveDetails).build();
@@ -686,7 +737,7 @@ public class WebApplicationResource {
             ArrayNode allParentsArray = (ArrayNode) JsonHandler.getFromString(allParents);
             List<String> allParentsList =
                 StreamSupport.stream(allParentsArray.spliterator(), false).map(p -> new String(p.asText()))
-                    .collect(Collectors.toList());
+                .collect(Collectors.toList());
             String preparedDslQuery = DslQueryHelper.createSelectUnitTreeDSLQuery(unitId, allParentsList);
 
             // 2- Execute Select Query
