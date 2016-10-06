@@ -79,13 +79,15 @@ import fr.gouv.vitam.ingest.external.api.IngestExternalException;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCycleClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookClientFactory;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
 @PrepareForTest({UserInterfaceTransactionManager.class, DslQueryHelper.class, LogbookClientFactory.class,
-    IngestExternalClientFactory.class, AdminManagementClientFactory.class})
+    IngestExternalClientFactory.class, AdminManagementClientFactory.class, LogbookLifeCyclesClientFactory.class})
 
 public class WebApplicationResourceTest {
 
@@ -101,6 +103,8 @@ public class WebApplicationResourceTest {
     private static final String ALL_PARENTS = "[\"P1\", \"P2\", \"P3\"]";
     private static final String FAKE_STRING_RETURN = "Fake String";
     private static final JsonNode FAKE_JSONNODE_RETURN = JsonHandler.createObjectNode();
+    private static final String FAKE_UNIT_LF_ID = "1";
+    private static final String FAKE_OBG_LF_ID = "1";
 
     private static JunitHelper junitHelper;
     private static int port;
@@ -140,7 +144,8 @@ public class WebApplicationResourceTest {
     
     @Test
     public void givenNoSecureServerLoginUnauthorized() {
-        given().contentType(ContentType.JSON).body(CREDENTIALS).expect().statusCode(Status.UNAUTHORIZED.getStatusCode()).when()
+        given().contentType(ContentType.JSON).body(CREDENTIALS).expect().statusCode(Status.UNAUTHORIZED.getStatusCode())
+            .when()
         .post("login");
         given().contentType(ContentType.JSON).body(CREDENTIALS_NO_VALID).expect().statusCode(Status.UNAUTHORIZED.getStatusCode()).when()
         .post("login");
@@ -948,5 +953,154 @@ public class WebApplicationResourceTest {
             .post("/rules/check");
     }
 
+    @Test
+    public void testGetUnitLifeCycleByIdOk() throws InvalidParseOperationException, LogbookClientException {
+        PowerMockito.mockStatic(LogbookLifeCyclesClientFactory.class);
+        LogbookLifeCycleClient logbookLifeCycleClient = PowerMockito.mock(LogbookLifeCycleClient.class);
+        LogbookLifeCyclesClientFactory logbookLifeCycleFactory =
+            PowerMockito.mock(LogbookLifeCyclesClientFactory.class);
+        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(logbookLifeCycleFactory);
+        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient())
+            .thenReturn(logbookLifeCycleClient);
+
+        JsonNode result = FAKE_JSONNODE_RETURN;
+
+        PowerMockito.when(logbookLifeCycleClient.selectUnitLifeCycleById(FAKE_UNIT_LF_ID)).thenReturn(result);
+
+        given().param("id_lc", FAKE_UNIT_LF_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+            .get("/unitlifecycles/" + FAKE_UNIT_LF_ID);
+    }
+
+    @Test
+    public void testGetObjectGroupLifeCycleByIdOk() throws InvalidParseOperationException, LogbookClientException {
+        PowerMockito.mockStatic(LogbookLifeCyclesClientFactory.class);
+        LogbookLifeCycleClient logbookLifeCycleClient = PowerMockito.mock(LogbookLifeCycleClient.class);
+        LogbookLifeCyclesClientFactory logbookLifeCycleFactory =
+            PowerMockito.mock(LogbookLifeCyclesClientFactory.class);
+        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(logbookLifeCycleFactory);
+        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient())
+            .thenReturn(logbookLifeCycleClient);
+
+        JsonNode result = FAKE_JSONNODE_RETURN;
+
+        PowerMockito.when(logbookLifeCycleClient.selectObjectGroupLifeCycleById(FAKE_OBG_LF_ID)).thenReturn(result);
+
+        given().param("id_lc", FAKE_OBG_LF_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+            .get("/objectgrouplifecycles/" + FAKE_OBG_LF_ID);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testGetUnitLifeCycleByIdWithBadRequestWhenInvalidParseOperationException()
+        throws InvalidParseOperationException, InvalidCreateOperationException, LogbookClientException {
+        PowerMockito.mockStatic(LogbookLifeCyclesClientFactory.class);
+        LogbookLifeCycleClient logbookLifeCycleClient = PowerMockito.mock(LogbookLifeCycleClient.class);
+        LogbookLifeCyclesClientFactory logbookLifeCycleFactory =
+            PowerMockito.mock(LogbookLifeCyclesClientFactory.class);
+        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(logbookLifeCycleFactory);
+        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient())
+            .thenReturn(logbookLifeCycleClient);
+
+        PowerMockito.when(logbookLifeCycleClient.selectUnitLifeCycleById(FAKE_UNIT_LF_ID))
+            .thenThrow(InvalidParseOperationException.class);
+
+        given().param("id_lc", FAKE_UNIT_LF_ID).expect().statusCode(Status.BAD_REQUEST.getStatusCode()).when()
+            .get("/unitlifecycles/" + FAKE_UNIT_LF_ID);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testGetUnitLifeCycleByIdWithNotFoundResponseWhenLogbookClientException()
+        throws InvalidParseOperationException, InvalidCreateOperationException, LogbookClientException {
+        PowerMockito.mockStatic(LogbookLifeCyclesClientFactory.class);
+        LogbookLifeCycleClient logbookLifeCycleClient = PowerMockito.mock(LogbookLifeCycleClient.class);
+        LogbookLifeCyclesClientFactory logbookLifeCycleFactory =
+            PowerMockito.mock(LogbookLifeCyclesClientFactory.class);
+        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(logbookLifeCycleFactory);
+        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient())
+            .thenReturn(logbookLifeCycleClient);
+
+        PowerMockito.when(logbookLifeCycleClient.selectUnitLifeCycleById(FAKE_UNIT_LF_ID))
+            .thenThrow(LogbookClientException.class);
+
+        given().param("id_lc", FAKE_UNIT_LF_ID).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
+            .get("/unitlifecycles/" + FAKE_UNIT_LF_ID);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testGetUnitLifeCycleByIdWithInternalServerErrorWhenUnknownException()
+        throws InvalidParseOperationException, InvalidCreateOperationException, LogbookClientException {
+        PowerMockito.mockStatic(LogbookLifeCyclesClientFactory.class);
+        LogbookLifeCycleClient logbookLifeCycleClient = PowerMockito.mock(LogbookLifeCycleClient.class);
+        LogbookLifeCyclesClientFactory logbookLifeCycleFactory =
+            PowerMockito.mock(LogbookLifeCyclesClientFactory.class);
+        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(logbookLifeCycleFactory);
+        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient())
+            .thenReturn(logbookLifeCycleClient);
+
+        PowerMockito.when(logbookLifeCycleClient.selectUnitLifeCycleById(FAKE_UNIT_LF_ID))
+            .thenThrow(NullPointerException.class);
+
+        given().param("id_lc", FAKE_UNIT_LF_ID).expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
+            .get("/unitlifecycles/" + FAKE_UNIT_LF_ID);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testGetObjectGroupLifeCycleByIdWithBadRequestWhenInvalidParseOperationException()
+        throws InvalidParseOperationException, InvalidCreateOperationException, LogbookClientException {
+        PowerMockito.mockStatic(LogbookLifeCyclesClientFactory.class);
+        LogbookLifeCycleClient logbookLifeCycleClient = PowerMockito.mock(LogbookLifeCycleClient.class);
+        LogbookLifeCyclesClientFactory logbookLifeCycleFactory =
+            PowerMockito.mock(LogbookLifeCyclesClientFactory.class);
+        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(logbookLifeCycleFactory);
+        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient())
+            .thenReturn(logbookLifeCycleClient);
+
+        PowerMockito.when(logbookLifeCycleClient.selectObjectGroupLifeCycleById(FAKE_OBG_LF_ID))
+            .thenThrow(InvalidParseOperationException.class);
+
+        given().param("id_lc", FAKE_OBG_LF_ID).expect().statusCode(Status.BAD_REQUEST.getStatusCode()).when()
+            .get("/objectgrouplifecycles/" + FAKE_OBG_LF_ID);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testGetObjectGroupLifeCycleByIdWithNotFoundResponseWhenLogbookClientException()
+        throws InvalidParseOperationException, InvalidCreateOperationException, LogbookClientException {
+        PowerMockito.mockStatic(LogbookLifeCyclesClientFactory.class);
+        LogbookLifeCycleClient logbookLifeCycleClient = PowerMockito.mock(LogbookLifeCycleClient.class);
+        LogbookLifeCyclesClientFactory logbookLifeCycleFactory =
+            PowerMockito.mock(LogbookLifeCyclesClientFactory.class);
+        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(logbookLifeCycleFactory);
+        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient())
+            .thenReturn(logbookLifeCycleClient);
+
+        PowerMockito.when(logbookLifeCycleClient.selectObjectGroupLifeCycleById(FAKE_OBG_LF_ID))
+            .thenThrow(LogbookClientException.class);
+
+        given().param("id_lc", FAKE_OBG_LF_ID).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
+            .get("/objectgrouplifecycles/" + FAKE_OBG_LF_ID);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testGetOjectGroupLifeCycleByIdWithInternalServerErrorWhenUnknownException()
+        throws InvalidParseOperationException, InvalidCreateOperationException, LogbookClientException {
+        PowerMockito.mockStatic(LogbookLifeCyclesClientFactory.class);
+        LogbookLifeCycleClient logbookLifeCycleClient = PowerMockito.mock(LogbookLifeCycleClient.class);
+        LogbookLifeCyclesClientFactory logbookLifeCycleFactory =
+            PowerMockito.mock(LogbookLifeCyclesClientFactory.class);
+        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(logbookLifeCycleFactory);
+        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient())
+            .thenReturn(logbookLifeCycleClient);
+
+        PowerMockito.when(logbookLifeCycleClient.selectObjectGroupLifeCycleById(FAKE_OBG_LF_ID))
+            .thenThrow(NullPointerException.class);
+
+        given().param("id_lc", FAKE_OBG_LF_ID).expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
+            .get("/objectgrouplifecycles/" + FAKE_OBG_LF_ID);
+    }
 
 }
