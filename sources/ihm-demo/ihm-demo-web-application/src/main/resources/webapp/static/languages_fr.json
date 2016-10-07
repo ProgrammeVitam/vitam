@@ -1,0 +1,17 @@
+{
+  "directive.dynamicTable.selectAll": "Tout sélectionner",
+  "directive.dynamicTable.unselectAll": "Tout désélectionner",
+
+  "lifeCycle.logbook.displaySteps.EVTYPE": "Intitulé de l'événement",
+  "lifeCycle.logbook.displaySteps.EVDATETIME":"Date",
+  "lifeCycle.logbook.displaySteps.OUTCOME":"Statut",
+  "lifeCycle.logbook.displaySteps.OUTMESSG":"Détail",
+  "lifeCycle.logbook.displaySteps.EVID":"Identifiant de l'évènement",
+  "lifeCycle.logbook.displaySteps.EVIDPROC":"Identifiant de l'opération",
+  "lifeCycle.logbook.displaySteps.EVTYPEPROC":"Catégorie d'opération",
+  "lifeCycle.logbook.displaySteps.OUTDETAIL":"Code d'erreur technique",
+  "lifeCycle.logbook.displaySteps.EVOUTDETDATA":"Informations complémentaires sur le résultat",
+  "lifeCycle.logbook.displaySteps.AGID":"Identifiant de l'agent",
+  "lifeCycle.logbook.displaySteps.OBID":"Identifiant interne de l'objet",
+  "lifeCycle.logbook.displaySteps.TENANT":"Identifiant du tenant"
+}

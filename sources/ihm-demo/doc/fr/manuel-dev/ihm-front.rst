@@ -1,16 +1,16 @@
 IHM Front
-############
+#########
 
 Cette documentation décrit la partie front/Angular de l'ihm et en particulier sa configuration et ses modules.
 --------------------------
 
 Utils et général / Composition du projet Angular
-**********
+************************************************
 
 TODO
 
 Composition du projet
-=======
+=====================
 
 NPM + Bower
 Grunt + Archi projet (modules, css, ...) => AngularJS
@@ -18,20 +18,58 @@ Tests unitaires (Voir partie Karma)
 TODO: Comment le front est buildé / integré dans la webapp ?
 
 Grunt et déployement à chaud
-=======
+============================
 
 A priori les configurations actuelles ne sont pas suffisantes pour lancer un serveur grunt et faire des déployement à chaud sur les postes de dev.
 De plus certaines dépendances npm/bower sont manquantes.
 TODO A voir par la suite si cela deviens une priorité.
 
 Karma et Tests unitaires
-=======
+========================
 
 A priori les configurations actuelles ne sont pas suffisantes pour lancer les TU du front.
 TODO A voir par la suite si cela deviens une priorité.
 
+Internationalisation
+====================
+
+Cette partie est gérrée par le module angular-translate
+
+Pour ajouter une traduction, ajouter une clé valeur dans le fichier static/languages_<lang>.json
+L'entrée être formatée de la manière suivante "<pageGroup>.<pageDetail>.<bloc>.<key>"="<value>"
+où :
+ - <pageGroup> est le groupe de page ou du module dans l'application (Exemple archiveSearch ou administration)
+ - <pageDetail> est le nom de page dans le groupe (Exemple managementRules ou archiveUnitDetails)
+ - <bloc> est le nom du bloc dans la page (Exemple searchForm ou technicalMetadata)
+ - <key> est le nom de la clé (Exemple 'id' ou 'evDetData')
+ 
+ Si possible essayez de regrouper les clés définies par groupe/detail/bloc/ordre alphabetique pour s'y retrouver.
+ 
+ 
+ Pour utiliser une traduction, utilisez dans une instruction angular de votre HTML le filtre translate:
+.. code-block:: html
+
+	<div>{{'archiveSearch.searchForm.id' | translate}}</div>
+ 
+ Si votre key est dynamique et présente dans une variable, il est possible d'inserer du js en plus de la chaine:
+ .. code-block:: html
+ 
+ 	<div>{{'archive.archiveUnitDetails.technicalMetadata.' + metadata[$index] | translate}}</div>
+ 
+ Enfin il est également possible de faire le traitement de traduction en js en appliquant le filtre:
+ NB: $filter doit avoir été injecté
+ 
+.. code-block:: javascript
+	
+	var translatedLabel = $filter('translate')('archiveSearch.searchForm.id');
+ 
+// TODO : Rendre dynamique la langue choisie pour les traductions (actuellement static FR)
+// TODO : Utiliser la langue de fallback fr (ou autre ?)
+// TODO : Une grosse partie des constantes (js) et des String statiques (html) devraient être mises dans ces fichiers
+// TODO : Récupérer la liste des valeurs du référentiel VITAM (Build / Appel API)
+
 Module archive-unit
-**********
+*******************
 
 Ce module ne comprends pas le module 'archive-unit-search'
 Ce module permet le processing et l'affichage des données liées à une Archive Unit.
@@ -43,7 +81,7 @@ Si la suite du projet le permet, ces directives peuvent être déplacées hors d
 Elles pourront alors être plus générique et si besoin prendre plus de paramètres.
 
 Directive archive-unit-field
-=======
+============================
 
 Cette directive permet d'afficher un champ 'simple' en mode visualisation ou edition.
 Un champ 'simple' est un champ qui à simplement une valeur (Texte/nombre) et pas de sous-élément. 
@@ -76,7 +114,7 @@ Exemple:
       </div>
 
 Directive archive-unit-fieldtree
-=======
+================================
 
 Cette directive permet d'afficher un champ et leurs sous élément si nécessaire de manière récursive.
 - field-object: L'ensemble des propriétés de l'objet. Doit contenir au moins:
@@ -103,7 +141,7 @@ Exemple:
       </div>
 
 Affichage des Libéllés des champs
-=======
+=================================
 
 La fonction self.displayLabel du controller archive-unit permet de récupérer la valeur française des champs à afficher.
 - key: nom technique du champ à afficher 

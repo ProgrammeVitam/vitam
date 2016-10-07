@@ -1,5 +1,5 @@
 angular.module('core')
-.service('archiveDetailsService', ['$http', 'ihmDemoFactory', function($http, ihmDemoFactory){
+.service('archiveDetailsService', ['ihmDemoFactory', function(ihmDemoFactory){
   var self = this;
 
   // Call REST Service to find archive details
@@ -14,6 +14,7 @@ angular.module('core')
 }
 ])
 .service('dateValidator', function(){
+    // FIXME Use an external component or a js native function to do exactly the good stuff ?
     var self = this;
     self.validateDate = function (dateToValidate) {
       var dateParts = dateToValidate.split('/');
@@ -41,4 +42,20 @@ angular.module('core')
       return true;
     };
   }
-);
+)
+.service('loadStaticValues', function($http) {
+  var self = this;
+
+  var filePath = 'static/values.json';
+  var promise = null;
+
+  self.loadFromFile = function() {
+    // File loaded only on the first call (change page or refresh page (F5) will fire another HTTP call
+    if (!promise) {
+      console.log('Load values from file');
+      promise = $http.get(filePath);
+    }
+    return promise;
+  }
+
+});

@@ -38,6 +38,9 @@ angular.module('core')
       } else if ($location.path() == '/login') {
         $location.path(IHM_URLS.IHM_DEFAULT_URL);
       }
+
+      // TODO update ng-translate preferedLanguage (Get the brower language ?) - Default fr
+
     });
 
     $rootScope.$on('$routeChangeStart', function(event, next, current) {

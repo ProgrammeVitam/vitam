@@ -1,0 +1,4 @@
+{
+  "mandatoryFields": ["EVTYPE", "EVDATETIME", "OUTCOME", "OUTMESSG"],
+  "customFields": ["EVID","EVIDPROC","EVTYPEPROC","OUTDETAIL","EVOUTDETDATA","AGID","OBID","TENANT"]
+}
