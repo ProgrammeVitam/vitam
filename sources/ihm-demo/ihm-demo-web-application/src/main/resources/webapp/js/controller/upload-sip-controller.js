@@ -29,7 +29,7 @@
 
 angular.module('ihm.demo')
   .constant("VITAM_URL", "/ihm-demo/v1/api/ingest/upload")
-  .controller('uploadController', function($scope, FileUploader, VITAM_URL,$mdDialog,$route) {
+  .controller('uploadController', function($scope, FileUploader, VITAM_URL, $mdDialog, $route, ihmDemoFactory) {
     var uploader = $scope.uploader = new FileUploader({
       queueLimit: 1,
       url : VITAM_URL,
@@ -48,53 +48,62 @@ angular.module('ihm.demo')
     });
     // *************************************** // modal dialog //************************************* //
     $scope.showAlert = function($event, dialogTitle, message) {
-        $mdDialog.show($mdDialog.alert().parent(angular.element(document.querySelector('#popupContainer')))
-            .clickOutsideToClose(true)
-            .title(dialogTitle)
-            .textContent(message)
-            .ariaLabel('Alert Dialog Demo')
-            .ok('OK')
-            .targetEvent($event)
-        );
-      };
-      // **************************************************************************** //
+      $mdDialog.show($mdDialog.alert().parent(angular.element(document.querySelector('#popupContainer')))
+          .clickOutsideToClose(true)
+          .title(dialogTitle)
+          .textContent(message)
+          .ariaLabel('Alert Dialog Demo')
+          .ok('OK')
+          .targetEvent($event)
+      );
+    };
+    // **************************************************************************** //
 
 
     uploader.getSize = function(bytes, precision) {
-    		if (isNaN(parseFloat(bytes)) || !isFinite(bytes)) return '-';
-    		if (typeof precision === 'undefined') precision = 1;
-    		var units = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'],
-    			number = Math.floor(Math.log(bytes) / Math.log(1024));
-    		return (bytes / Math.pow(1024, Math.floor(number))).toFixed(precision) +  ' ' + units[number];
-      };
-      
-      
-      uploader.checkExtension = function($event,filename) {
-    	  var validFormats = ['zip', 'tar'];
-    	  var ext = filename.substr(filename.lastIndexOf('.')+1);
-    	  var index=validFormats.indexOf(ext);
-          if( index== -1){
-        	  var formats = ['tar.gz','tar.gz2'];
-        	  var spName=filename.split(".");
-        	  var ext1 = spName.pop();
-        	  var ext2 = spName.pop();
-        	  var extn = ext2+'.'+ext1;
-        	  if(formats.indexOf(extn)== -1){
-            	  $scope.showAlert($event, 'Erreur : '+ filename,' Format du SIP incorrect. Sélectionner un fichier au format .zip, .tar, .tar.gz ou .tar.gz2')
-            	  console.info('Format du SIP incorrect. Sélectionner un fichier au format .zip, .tar, .tar.gz ou .tar.gz2');
-            	  $route.reload();
-        	  }
-          }
+      if (isNaN(parseFloat(bytes)) || !isFinite(bytes)) return '-';
+      if (typeof precision === 'undefined') precision = 1;
+      var units = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'],
+        number = Math.floor(Math.log(bytes) / Math.log(1024));
+      return (bytes / Math.pow(1024, Math.floor(number))).toFixed(precision) +  ' ' + units[number];
     };
-    
-    uploader.clear = function() {
-        while(this.queue.length) {
-        	if(!this.queue[0].isUploading)
-        	{
-        		this.queue[0].remove();
-        		this.progress = 0;
-        	}
+
+
+    uploader.checkExtension = function($event,filename) {
+      var validFormats = ['zip', 'tar'];
+      var ext = filename.substr(filename.lastIndexOf('.')+1);
+      var index=validFormats.indexOf(ext);
+      if( index== -1){
+        var formats = ['tar.gz','tar.gz2'];
+        var spName=filename.split(".");
+        var ext1 = spName.pop();
+        var ext2 = spName.pop();
+        var extn = ext2+'.'+ext1;
+        if(formats.indexOf(extn)== -1){
+          $scope.showAlert($event, 'Erreur : '+ filename,' Format du SIP incorrect. Sélectionner un fichier au format .zip, .tar, .tar.gz ou .tar.gz2')
+          console.info('Format du SIP incorrect. Sélectionner un fichier au format .zip, .tar, .tar.gz ou .tar.gz2');
+          $route.reload();
         }
+      }
+    };
+
+    uploader.clear = function() {
+      while(this.queue.length) {
+        if(!this.queue[0].isUploading)
+        {
+          this.queue[0].remove();
+          this.progress = 0;
+        }
+      }
+    };
+
+    function downloadATR(response, headers){
+      var a = document.createElement("a");
+      document.body.appendChild(a);
+      var url = URL.createObjectURL(new Blob([response], { type: 'application/xml' }));
+      a.href = url;
+      a.download = headers['content-disposition'].split('filename=')[1];
+      a.click();
     }
 
     // CALLBACKS
@@ -117,6 +126,7 @@ angular.module('ihm.demo')
       console.info('onProgressAll', progress);
     };
     uploader.onSuccessItem = function(fileItem, response, status, headers) {
+      downloadATR(response, headers);
       console.info('onSuccessItem', fileItem, response, status, headers);
     };
     uploader.onErrorItem = function(fileItem, response, status, headers) {

@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.internal.upload.rest;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
@@ -35,25 +36,26 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import javax.xml.stream.XMLStreamException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
+import fr.gouv.vitam.common.FileUtil;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
-import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
+import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.ingest.internal.api.upload.UploadService;
 import fr.gouv.vitam.ingest.internal.common.util.LogbookOperationParametersList;
-import fr.gouv.vitam.ingest.internal.model.UploadResponseDTO;
-import fr.gouv.vitam.ingest.internal.upload.core.UploadSipHelper;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -74,6 +76,11 @@ import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.processing.common.model.OutcomeMessage;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -95,6 +102,9 @@ public class IngestInternalResource extends ApplicationStatusResource implements
     private static final String INGEST_EXT = "Check Sanitaire SIP";
     private static final String INGEST_INT_UPLOAD = "Upload SIP";
     private static final String INGEST_WORKFLOW = "Process_SIP_unitary";
+    private static final String DEFAULT_TENANT = "0";
+    private static final String DEFAULT_STRATEGY = "default";
+    private static final String XML = ".xml";
 
     private IngestInternalConfiguration configuration;
     private LogbookParameters parameters;
@@ -136,19 +146,19 @@ public class IngestInternalResource extends ApplicationStatusResource implements
      * @param uploadedInputStream
      * @param fileDetail
      * @return
+     * @throws XMLStreamException 
      */
     @Override
     @POST
     @Path("/upload")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response uploadSipAsStream(@FormDataParam("part") List<FormDataBodyPart> partList) {
+    public Response uploadSipAsStream(@FormDataParam("part") List<FormDataBodyPart> partList) throws XMLStreamException {
 
         Response response;
         String fileName = StringUtils.EMPTY;
-
+        GUID guid;
         try {
-            final UploadResponseDTO uploadResponseDTO;
             ParametersChecker.checkParameter("partList is a Mandatory parameter", partList);
 
             LogbookOperationParametersList logbookOperationParametersList =
@@ -158,9 +168,11 @@ public class IngestInternalResource extends ApplicationStatusResource implements
                 logbookOperationParametersList);
             int tenantId = 0; // default tenanId
             // guid for the container in the workspace
-            final GUID containerGUID = GUIDFactory.newGUID();
-            final GUID ingestGuid = GUIDReader.getGUID(logbookOperationParametersList.getLogbookOperationList().get(0)
+            guid = GUIDReader.getGUID(logbookOperationParametersList.getLogbookOperationList().get(0)
                 .getMapParameters().get(LogbookParameterName.eventIdentifier));
+            
+            final GUID containerGUID = guid;
+            final GUID ingestGuid  = guid;
 
             logbookClient = logbookInitialisation(ingestGuid, containerGUID, tenantId);
 
@@ -202,23 +214,22 @@ public class IngestInternalResource extends ApplicationStatusResource implements
                 parameters.putParameterValue(LogbookParameterName.eventType, INGEST_WORKFLOW);
                 boolean processingOk = callProcessingEngine(parameters, logbookClient, containerGUID.getId());
                 if (processingOk) {
-                    uploadResponseDTO =
-                        UploadSipHelper.getUploadResponseDTO("Sip file", 200, "success",
-                            "201", "success", "200", "success");
+                    response = Response.status(Status.OK)
+                        .entity(getAtrFromStorage(containerGUID.getId()))
+                        .header(GlobalDataRest.X_REQUEST_ID, guid)
+                        .build();
                 } else {
-                    uploadResponseDTO =
-                        UploadSipHelper.getUploadResponseDTO("Sip file", 500, "process workflow finished in error",
-                            "500", "processing failed", "500", "Workflow error");
+                    response = Response.status(Status.INTERNAL_SERVER_ERROR)
+                        .header(GlobalDataRest.X_REQUEST_ID, guid)
+                        .build();
                 }
             } else {
                 callLogbookUpdate(logbookClient, parameters, LogbookOutcome.KO,
                     OutcomeMessage.WORKFLOW_INGEST_KO.value());
-                uploadResponseDTO =
-                    UploadSipHelper.getUploadResponseDTO("Sip file", 500, "file upload finished in error",
-                        "500", "upload failed", "500", "No file to upload");
+                response = Response.status(Status.INTERNAL_SERVER_ERROR)
+                    .header(GlobalDataRest.X_REQUEST_ID, guid)
+                    .build();
             }
-
-            response = Response.ok(uploadResponseDTO, "application/json").build();
 
         } catch (final ContentAddressableStorageZipException e) {
 
@@ -235,11 +246,9 @@ public class IngestInternalResource extends ApplicationStatusResource implements
                 }
             }
 
-            VITAM_LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
-            final UploadResponseDTO uploadResponseDTO =
-                UploadSipHelper.getUploadResponseDTO("Sip file", 500, e.getMessage(),
-                    "500", "workspace failed", "500", "Zip error");
-            response = Response.ok(uploadResponseDTO, "application/json").build();
+            VITAM_LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);            
+            response = Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            
         } catch (final ContentAddressableStorageException e) {
 
             if (parameters != null) {
@@ -252,12 +261,10 @@ public class IngestInternalResource extends ApplicationStatusResource implements
             }
 
             VITAM_LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
-            final UploadResponseDTO uploadResponseDTO =
-                UploadSipHelper.getUploadResponseDTO("Sip file", 500, e.getMessage(),
-                    "500", "workspace failed", "500", "error workspace");
-            response = Response.ok(uploadResponseDTO, "application/json").build();
+            response = Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        
         } catch (final InvalidGuidOperationException | InvalidParseOperationException | ProcessingException |
-            LogbookClientException e) {
+            LogbookClientException | StorageClientException | StorageNotFoundException | IOException e) {
 
             if (parameters != null) {
                 try {
@@ -269,12 +276,10 @@ public class IngestInternalResource extends ApplicationStatusResource implements
             }
 
             VITAM_LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
-            final UploadResponseDTO uploadResponseDTO =
-                UploadSipHelper.getUploadResponseDTO("Sip file", 500, e.getMessage(),
-                    "500", "upload failed", "500", "error ingest");
-            response = Response.ok(uploadResponseDTO, "application/json").build();
+            response = Response.status(Status.INTERNAL_SERVER_ERROR).build();
 
         }
+
         return response;
     }
 
@@ -359,4 +364,9 @@ public class IngestInternalResource extends ApplicationStatusResource implements
         return true;
     }
 
+    private String getAtrFromStorage(String guid) throws StorageServerClientException, StorageNotFoundException, XMLStreamException, IOException{
+        InputStream stream = StorageClientFactory.getInstance().getStorageClient()
+            .getContainer(DEFAULT_TENANT, DEFAULT_STRATEGY, guid + XML, StorageCollectionType.REPORTS);
+        return FileUtil.readInputStream(stream);
+    }
 }

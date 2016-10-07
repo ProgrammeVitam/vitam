@@ -30,6 +30,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 
 import org.junit.Assume;
@@ -53,8 +54,10 @@ public class FileUtilTest {
         final String content = FileUtil.readFile(file);
         final String content2 = FileUtil.readFile(file.getAbsolutePath());
         final String content3 = FileUtil.readPartialFile(file, 10000000);
+        final String content4 = FileUtil.readInputStream(new FileInputStream(file));
         assertEquals(content, content2);
         assertEquals(content, content3);
+        assertEquals(content, content4);
         FileUtil.deleteRecursive(new File(file, "test"));
         final File dir = new File(file.getParentFile(), "dir");
         dir.mkdir();

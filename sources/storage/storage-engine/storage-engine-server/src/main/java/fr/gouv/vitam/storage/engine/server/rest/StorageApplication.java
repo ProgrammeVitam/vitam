@@ -55,8 +55,6 @@ import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
  * Storage web application TODO refacto config
  */
 public final class StorageApplication extends AbstractVitamApplication<StorageApplication, StorageConfiguration> {
-    private static final String STORAGE_APPLICATION_STARTS_ON_DEFAULT_PORT =
-        "StorageApplication Starts on default port";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageApplication.class);
     private static final String STORAGE_CONF_FILE_NAME = "storage-engine.conf";
     private static final String MODULE_NAME = "Storage-Engine";

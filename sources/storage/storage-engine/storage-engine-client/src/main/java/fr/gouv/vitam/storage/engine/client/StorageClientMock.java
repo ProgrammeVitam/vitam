@@ -32,7 +32,6 @@ import java.time.LocalDateTime;
 import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
@@ -111,7 +110,7 @@ class StorageClientMock extends StorageClientRest implements StorageClient {
     }
 
     @Override
-    public InputStream getContainerObject(String tenantId, String strategyId, String guid) {
+    public InputStream getContainer(String tenantId, String strategyId, String guid, StorageCollectionType type) {
         return IOUtils.toInputStream(MOCK_GET_FILE_CONTENT);
     }
 

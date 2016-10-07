@@ -26,13 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.workspace.api.exception;
 
-
+import fr.gouv.vitam.common.exception.VitamException;
 
 /**
  * Top level Exception for all Workspace Exceptions
  */
-// FIXME REVIEW VitamException
-public class ContentAddressableStorageException extends Exception {
+//
+public class ContentAddressableStorageException extends VitamException {
 
 
     private static final long serialVersionUID = -4421004141804361330L;

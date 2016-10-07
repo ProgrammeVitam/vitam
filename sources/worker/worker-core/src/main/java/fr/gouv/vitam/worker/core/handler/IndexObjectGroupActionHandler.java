@@ -73,7 +73,6 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
     public static final String UNIT_LIFE_CYCLE_CREATION_EVENT_TYPE =
         "Check SIP – Units – Lifecycle Logbook Creation – Création du journal du cycle de vie des units";
     public static final String TXT_EXTENSION = ".txt";
-    public static final String UP_FIELD = "_up";
     private LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters = LogbookParametersFactory
         .newLogbookLifeCycleObjectGroupParameters();
 
@@ -83,7 +82,9 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
      *
      * @param factory the sedautils factory
      */
-    public IndexObjectGroupActionHandler() {}
+    public IndexObjectGroupActionHandler() {
+        // empty constructor
+    }
 
     /**
      * @return HANDLER_ID
@@ -97,17 +98,17 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
     public EngineResponse execute(WorkerParameters params, HandlerIO actionDefinition) {
         checkMandatoryParameters(params);
         LOGGER.debug("IndexObjectGroupActionHandler running ...");
-        final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID,
-            OutcomeMessage.INDEX_OBJECT_GROUP_OK);
-
+        final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK);
         try {
             checkMandatoryIOParameter(actionDefinition);
             SedaUtils.updateLifeCycleByStep(logbookLifecycleObjectGroupParameters, params);
             indexObjectGroup(params);
         } catch (ProcessingInternalServerException exc) {
+            LOGGER.error(exc);
             response.setStatus(StatusCode.FATAL);
             response.setOutcomeMessages(HANDLER_ID, OutcomeMessage.INDEX_OBJECT_GROUP_KO);
         } catch (final ProcessingException e) {
+            LOGGER.error(e);
             response.setStatus(StatusCode.WARNING);
             response.setOutcomeMessages(HANDLER_ID, OutcomeMessage.INDEX_OBJECT_GROUP_KO);
         }
@@ -122,6 +123,7 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
             }
             SedaUtils.setLifeCycleFinalEventStatusByStep(logbookLifecycleObjectGroupParameters, response.getStatus());
         } catch (ProcessingException e) {
+            LOGGER.error(e);
             if (!response.getStatus().equals(StatusCode.FATAL)) {
                 response.setStatus(StatusCode.WARNING);
             }

@@ -104,8 +104,7 @@ public class FakeDriverImpl implements Driver {
 
         @Override
         public GetObjectResult getObject(GetObjectRequest objectRequest) throws StorageDriverException {
-            GetObjectResult result = new GetObjectResult("0", new ByteArrayInputStream("fakefile".getBytes()));
-            return result;
+            return new GetObjectResult("0", new ByteArrayInputStream("fakefile".getBytes()));
         }
 
         @Override

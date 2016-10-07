@@ -55,6 +55,7 @@ import org.glassfish.jersey.test.JerseyTest;
 import org.glassfish.jersey.test.TestProperties;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -63,6 +64,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.model.GetObjectRequest;
@@ -234,6 +236,66 @@ public class ConnectionImplTest extends JerseyTest {
         assertNotNull(result);
         assertNotNull(result.getDistantObjectId());
         assertNotNull(result.getDigestHashBase16());
+    }
+
+    // chunk size (1024) factor size case
+    @Test
+    public void putBigObjectWithRequestOk() throws Exception {
+        PutObjectRequest request = new PutObjectRequest("0", DigestType.MD5.getName(), "GUID",
+            new FakeInputStream(2097152, true), DataCategory.OBJECT.name());
+        when(mock.post()).thenReturn(Response.status(Status.CREATED).entity(getPostObjectResult(-1)).build());
+        when(mock.put()).thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(0)).build())
+            .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(1)).build())
+            .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(2)).build())
+            .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(3)).build())
+            .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(4)).build())
+            .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(5)).build())
+            .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(6)).build());
+        PutObjectResult result = connection.putObject(request);
+        assertNotNull(result);
+        assertNotNull(result.getDistantObjectId());
+        assertNotNull(result.getDigestHashBase16());
+    }
+
+    // No chunk size (1024) factor case
+    @Test
+    public void putBigObject2WithRequestOk() throws Exception {
+        PutObjectRequest request = new PutObjectRequest("0", DigestType.MD5.getName(), "GUID",
+            new FakeInputStream(2201507, true), DataCategory.OBJECT.name());
+        when(mock.post()).thenReturn(Response.status(Status.CREATED).entity(getPostObjectResult(-1)).build());
+        when(mock.put()).thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(0)).build())
+            .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(1)).build())
+            .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(2)).build())
+            .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(3)).build())
+            .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(4)).build())
+            .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(5)).build())
+            .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(6)).build());
+        PutObjectResult result = connection.putObject(request);
+        assertNotNull(result);
+        assertNotNull(result.getDistantObjectId());
+        assertNotNull(result.getDigestHashBase16());
+    }
+
+    @Ignore // chunk management
+    @Test(expected = StorageDriverException.class)
+    public void putBigObjectWithRequestInternalError() throws Exception {
+        PutObjectRequest request = new PutObjectRequest("0", DigestType.MD5.getName(), "GUID",
+            new FakeInputStream(2097152, true), DataCategory.OBJECT.name());
+        when(mock.post()).thenReturn(Response.status(Status.CREATED).entity(getPostObjectResult(-1)).build());
+        when(mock.put()).thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(0)).build())
+            .thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        connection.putObject(request);
+    }
+
+    @Ignore // chunk management
+    @Test(expected = StorageDriverException.class)
+    public void putBigObjectWithBadRequestDuringTransfert() throws Exception {
+        PutObjectRequest request = new PutObjectRequest("0", DigestType.MD5.getName(), "GUID",
+            new FakeInputStream(2095104, true), DataCategory.OBJECT.name());
+        when(mock.post()).thenReturn(Response.status(Status.CREATED).entity(getPostObjectResult(-1)).build());
+        when(mock.put()).thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(0)).build())
+            .thenReturn(Response.status(Status.BAD_REQUEST).build());
+        connection.putObject(request);
     }
 
     @Test(expected = StorageDriverException.class)

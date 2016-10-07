@@ -26,13 +26,20 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.internal.client;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import javax.xml.stream.XMLStreamException;
+
+import fr.gouv.vitam.common.FileUtil;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.ingest.internal.model.UploadResponseDTO;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 
 /**
@@ -46,23 +53,26 @@ public class IngestInternalClientMock implements IngestInternalClient {
     @Override
     public int status() {
         LOGGER.debug("Get Status");
-        return 200;
+        return Status.OK.getStatusCode();
     }
 
     @Override
-    public UploadResponseDTO upload(List<LogbookParameters> logbookParametersList, InputStream inputStream)
-        throws VitamException {
+    public Response upload(List<LogbookParameters> logbookParametersList, InputStream inputStream)
+        throws VitamException, XMLStreamException {
         LOGGER.debug("Post SIP");
-        final UploadResponseDTO uploadResponseDTO = new UploadResponseDTO();
-        uploadResponseDTO.setFileName("SIP");
-        uploadResponseDTO.setHttpCode(200);
-        uploadResponseDTO.setMessage("success");
-        uploadResponseDTO.setVitamCode("201");
-        uploadResponseDTO.setVitamStatus("success");
-        uploadResponseDTO.setEngineCode("200");
-        uploadResponseDTO.setEngineStatus("success");
-        return uploadResponseDTO;
-
+        InputStream inputstreamATR = null;
+        try {
+            inputstreamATR = PropertiesUtils.getResourcesAsStream("ATR_example.xml");
+        } catch (FileNotFoundException e1) {
+            LOGGER.debug("Get mock result error");
+        }
+        String result = "";
+        try {
+            result = FileUtil.readInputStream(inputstreamATR);
+        } catch (IOException e) {
+            LOGGER.debug("Read mock result error");
+        }
+        return Response.status(Status.OK).entity(result).build();
     }
 
 }

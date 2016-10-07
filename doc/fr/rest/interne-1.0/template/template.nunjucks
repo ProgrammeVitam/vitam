@@ -161,8 +161,7 @@
       .list-group-item:hover {
         background-color: #f5f5f5;
       }
-      @media (min-width: 750px)
-      .modal-lg { width: 700px; }
+
       pre code {
         overflow: auto;
         word-wrap: normal;
@@ -178,6 +177,14 @@
           <div class="page-header">
             <h1>{{ title }} API documentation{% if version %} <small>version {{ version }}</small>{% endif %}</h1>
             <p>{{ baseUri }}</p>
+
+            {% if baseUriParameters %}
+              <ul>
+                {% for item in baseUriParameters %}
+                  {% include "./item.nunjucks" %}
+                {% endfor %}
+              </ul>
+            {% endif %}
 
             {% for chapter in documentation %}
               <h3 id="{{ chapter.uniqueId }}"><a href="#{{ chapter.uniqueId }}">{{ chapter.title }}</a></h3>

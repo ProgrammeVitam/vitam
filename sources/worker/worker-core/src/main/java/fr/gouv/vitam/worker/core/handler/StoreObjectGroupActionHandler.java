@@ -26,8 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -65,6 +63,7 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
 import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
+import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.core.api.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -129,8 +128,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
         checkMandatoryParameters(params);
         LOGGER.info("StoreObjectGroupActionHandler running ...");
 
-        final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID,
-            OutcomeMessage.STORE_OBJECT_OK);
+        final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK);
 
         try {
             checkMandatoryIOParameter(actionDefinition);
@@ -148,7 +146,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
 
         } catch (final ProcessingException e) {
             LOGGER.error(e);
-            response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID,OutcomeMessage.STORE_OBJECT_KO);
+            response.setStatus(StatusCode.KO);
         }
 
         // Update lifecycle of object group : OK/KO
@@ -171,7 +169,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
         } catch (ProcessingException e) {
             LOGGER.warn(e);
             if (StatusCode.OK.equals(response.getStatus())) {
-                response.setStatus(StatusCode.WARNING).setOutcomeMessages(HANDLER_ID,OutcomeMessage.STORE_OBJECT_KO);
+                response.setStatus(StatusCode.WARNING);
             }
         }
 
@@ -244,19 +242,19 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
 
         // Filter on objectGroup objects ids to retrieve only binary objects
         // informations linked to the ObjectGroup
-        JsonNode work = jsonOG.get("_work");
-        JsonNode qualifiers = work.get("_qualifiers");
+        JsonNode work = jsonOG.get(SedaConstants.PREFIX_WORK);
+        JsonNode qualifiers = work.get(SedaConstants.PREFIX_QUALIFIERS);
         if (qualifiers == null) {
             return binaryObjectsToStore;
         }
 
-        List<JsonNode> versions = qualifiers.findValues("versions");
+        List<JsonNode> versions = qualifiers.findValues(SedaConstants.TAG_VERSIONS);
         if (versions == null || versions.isEmpty()) {
             return binaryObjectsToStore;
         }
         for (JsonNode version : versions) {
             for (JsonNode binaryObject : version) {
-                binaryObjectsToStore.put(binaryObject.get("_id").asText(), binaryObject.get("Uri").asText());
+                binaryObjectsToStore.put(binaryObject.get(SedaConstants.PREFIX_ID).asText(), binaryObject.get(SedaConstants.TAG_URI).asText());
             }
         }
 

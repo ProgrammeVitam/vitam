@@ -26,12 +26,18 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.core;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+
+import javax.ws.rs.core.Response;
+import javax.xml.stream.XMLStreamException;
 
 import org.junit.Before;
 import org.junit.Test;
 
+import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.ingest.external.api.IngestExternalException;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
@@ -54,25 +60,27 @@ public class IngestExternalImplTest {
     }
 
     @Test
-    public void givenNoVirusFile() throws IngestExternalException, FileNotFoundException {
+    public void givenNoVirusFile() throws Exception {
         stream = PropertiesUtils.getResourcesAsStream("no-virus.txt");
-        ingestExternalImpl.upload(stream);
+        Response xmlResponse= ingestExternalImpl.upload(stream);
+        InputStream inputstream = PropertiesUtils.getResourcesAsStream("ATR_example.xml");
+        assertEquals(xmlResponse.getEntity(), FileUtil.readInputStream(inputstream));
     }
     
     @Test
-    public void givenFixedVirusFile() throws IngestExternalException, FileNotFoundException {
+    public void givenFixedVirusFile() throws IngestExternalException, FileNotFoundException, XMLStreamException {
         stream = PropertiesUtils.getResourcesAsStream("fixed-virus.txt");
         ingestExternalImpl.upload(stream);
     }
     
     @Test
-    public void givenUnfixedVirusFile() throws IngestExternalException, FileNotFoundException {
+    public void givenUnfixedVirusFile() throws IngestExternalException, FileNotFoundException, XMLStreamException {
         stream = PropertiesUtils.getResourcesAsStream("unfixed-virus.txt");
         ingestExternalImpl.upload(stream);
     }
     
     @Test
-    public void givenUnknownErrorFile() throws IngestExternalException, FileNotFoundException {
+    public void givenUnknownErrorFile() throws IngestExternalException, FileNotFoundException, XMLStreamException {
         stream = PropertiesUtils.getResourcesAsStream("unknown.txt");
         ingestExternalImpl.upload(stream);
     }

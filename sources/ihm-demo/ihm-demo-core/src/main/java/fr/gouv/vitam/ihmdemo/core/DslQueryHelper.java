@@ -58,6 +58,11 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  */
 public final class DslQueryHelper {
 
+    // empty constructor
+    private DslQueryHelper() {
+        // empty constructor
+    }
+
     public static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DslQueryHelper.class);
     // TODO: faire en sorte que LogbookMongoDbName ait une version publique "#qqc" (comme #id) pour permettre de
     // "masquer" l'implémentation.
@@ -128,7 +133,7 @@ public final class DslQueryHelper {
                 case FORMAT:
                     query.add(exists(PUID));
                     break;
-                    
+
                 case RULES:
                     query.add(exists(RULEVALUE));
                     break;
@@ -147,18 +152,18 @@ public final class DslQueryHelper {
                         query.add(eq("RuleType", searchValue));
                     }
                     break;
-                    
+
                 case EVENTID:
-                    if (searchValue.equals("all")){
+                    if ("all".equals(searchValue)) {
                         query.add(exists(EVENT_ID_PROCESS));
                     } else {
                         query.add(eq(EVENT_ID_PROCESS, searchValue));
                     }
                     break;
-                    
+
                 case EVENTTYPE:
                     if (!searchValue.isEmpty()) {
-                        if (searchValue.equals("all")){
+                        if ("all".equals(searchValue)) {
                             query.add(exists(EVENT_TYPE_PROCESS));
                         } else {
                             query.add(eq(EVENT_TYPE_PROCESS, searchValue.toUpperCase()));

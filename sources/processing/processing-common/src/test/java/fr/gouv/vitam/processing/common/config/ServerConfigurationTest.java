@@ -42,4 +42,14 @@ public class ServerConfigurationTest {
         assertEquals(Test, new ServerConfiguration().setUrlWorkspace(Test).getUrlWorkspace());
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void testSetUrlWorkspaceNull() {
+        new ServerConfiguration().setUrlWorkspace(null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testSetUrlMetadataNull() {
+        new ServerConfiguration().setUrlMetada(null);
+    }
+
 }

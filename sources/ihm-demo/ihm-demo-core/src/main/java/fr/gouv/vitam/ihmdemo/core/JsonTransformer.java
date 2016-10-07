@@ -26,14 +26,26 @@
  *******************************************************************************/
 package fr.gouv.vitam.ihmdemo.core;
 
+import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.text.ParseException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.commons.collections.IteratorUtils;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -47,6 +59,21 @@ public final class JsonTransformer {
     private static final String MISSING_UP_ERROR_MSG = "Encountered Missing _up field in the given parents list.";
     private static final String INVALID_UP_FIELD_ERROR_MSG = "Encountered invalid _up field in the given parents list.";
     private static final String MISSING_UNIT_ID_ERROR_MSG = "The unit details is missing.";
+    private static final String EVENT_DATE_TIME_FIELD = "evDateTime";
+    private static final String EVENTS_FIELD = "events";
+    private static final String START_EVENT_DATETIME_HEADER = "startEventDateTime";
+    private static final String END_EVENT_DATETIME_HEADER = "endEventDateTime";
+    private static final String EXECUTION_TIME_HEADER = "executionTime (ms)";
+    private static final char SEMI_COLON_SEPARATOR = ';';
+    private static final char RECORD_SEPARATOR = '\n';
+    private static final String UNEXPECTED_EXCEPTION_DURING_CSV_FILE_GENERATION =
+        "An unexpected error occurred during CSV file generation process";
+
+
+
+    private JsonTransformer() {
+        // empty constructor
+    }
 
     /**
      * This method transforms ResultObjects so thr IHM could display results
@@ -68,7 +95,7 @@ public final class JsonTransformer {
                 ObjectNode objectNode = JsonHandler.createObjectNode();
                 objectNode.put("_id", object.get("_id").asText());
                 String usage = object.get("DataObjectVersion").asText();
-                if (usages.containsKey(usage)){
+                if (usages.containsKey(usage)) {
                     Integer rank = usages.get(usage) + 1;
                     objectNode.put("Rank", rank);
                 } else {
@@ -77,13 +104,13 @@ public final class JsonTransformer {
                 }
                 objectNode.put("DataObjectVersion", usage);
                 objectNode.put("Size", object.get("Size").asText());
-                if (object.get("FileInfo").get("LastModified") != null){
+                if (object.get("FileInfo").get("LastModified") != null) {
                     objectNode.put("LastModified", object.get("FileInfo").get("LastModified").asText());
                 }
-                if (object.get("FormatIdentification").get("FormatLitteral") != null){
+                if (object.get("FormatIdentification").get("FormatLitteral") != null) {
                     objectNode.put("FormatLitteral", object.get("FormatIdentification").get("FormatLitteral").asText());
                 }
-                if (object.get("FileInfo").get("Filename") != null){
+                if (object.get("FileInfo").get("Filename") != null) {
                     objectNode.put("FileName", object.get("FileInfo").get("Filename").asText());
                 }
                 objectNode.set("metadatas", object);
@@ -97,7 +124,7 @@ public final class JsonTransformer {
     }
 
     /**
-     * This method builds an ObjectNode based on list of JsonNode object
+     * This method builds an ObjectNode based on a list of JsonNode object
      * 
      * @param allParents list of JsonNode Objects used to build the referential
      * @return An ObjectNode where the key is the identifier and the value is the parent details (Title, Id, _up)
@@ -135,5 +162,78 @@ public final class JsonTransformer {
         }
 
         return allParentsRef;
+    }
+    
+    /**
+     * Generates execution time by step relative to a logbook operation
+     * 
+     * @param logbookOperation
+     * @return CSV report
+     * @throws VitamException
+     * @throws IOException
+     * @throws Exception
+     */
+    @SuppressWarnings("unchecked")
+    public static ByteArrayOutputStream buildLogbookStatCsvFile(JsonNode logbookOperation, String operationId)
+        throws VitamException, IOException {
+        
+        final ByteArrayOutputStream csvOutputStream = new ByteArrayOutputStream();
+        try (Writer csvWriter = new BufferedWriter(new OutputStreamWriter(csvOutputStream));) {
+
+            // Total execution time
+            String startOperationTimeStr = logbookOperation.get(EVENT_DATE_TIME_FIELD).asText();
+
+            List<JsonNode> events =
+                IteratorUtils.toList(logbookOperation.get(EVENTS_FIELD).iterator());
+
+            // Last event
+            JsonNode lastEvent = events.get(events.size() - 1);
+            String endOperationTimeStr = lastEvent.get(EVENT_DATE_TIME_FIELD).asText();
+
+            // Generate CSV report
+            CSVPrinter csvPrinter = new CSVPrinter(csvWriter,
+                CSVFormat.newFormat(SEMI_COLON_SEPARATOR).withRecordSeparator(RECORD_SEPARATOR));
+
+            List<String> header = IteratorUtils.toList(lastEvent.fieldNames());
+            header.add(START_EVENT_DATETIME_HEADER);
+            header.add(END_EVENT_DATETIME_HEADER);
+            header.add(EXECUTION_TIME_HEADER);
+            csvPrinter.printRecord(header);
+
+            for (int i = 0; i < events.size() - 1; i += 2) {
+                JsonNode startEvent = events.get(i);
+                JsonNode endEvent = events.get(i + 1);
+                List<String> eventReportDetails = IteratorUtils.toList(endEvent.elements());
+                String startEventDateTimeStr = startEvent.get(EVENT_DATE_TIME_FIELD).asText();
+                String endEventDateTimeStr = endEvent.get(EVENT_DATE_TIME_FIELD).asText();
+
+                eventReportDetails.add(startEventDateTimeStr);
+                eventReportDetails.add(endEventDateTimeStr);
+                eventReportDetails.add(calculateExecutionTime(startEventDateTimeStr, endEventDateTimeStr).toString());
+
+                csvPrinter.printRecord(eventReportDetails);
+            }
+
+            // Last Event
+            List<String> lastEventDetails = IteratorUtils.toList(lastEvent.elements());
+            lastEventDetails.add(startOperationTimeStr);
+            lastEventDetails.add(endOperationTimeStr);
+            lastEventDetails.add(calculateExecutionTime(startOperationTimeStr, endOperationTimeStr).toString());
+            csvPrinter.printRecord(lastEventDetails);
+
+            csvPrinter.flush();
+            csvPrinter.close();
+        } catch (Exception e) {
+            csvOutputStream.close();
+            throw new VitamException(UNEXPECTED_EXCEPTION_DURING_CSV_FILE_GENERATION);
+        }
+        
+        return csvOutputStream;
+    }
+
+    private static Long calculateExecutionTime(String startDateTimeStr, String endDateTimeStr) throws ParseException {
+        Date startDateTime = LocalDateUtil.getDate(startDateTimeStr);
+        Date endDateTime = LocalDateUtil.getDate(endDateTimeStr);
+        return endDateTime.getTime() - startDateTime.getTime();
     }
 }

@@ -30,6 +30,9 @@ package fr.gouv.vitam.ingest.internal.client;
 import java.io.InputStream;
 import java.util.List;
 
+import javax.ws.rs.core.Response;
+import javax.xml.stream.XMLStreamException;
+
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.ingest.internal.model.UploadResponseDTO;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
@@ -51,13 +54,13 @@ public interface IngestInternalClient {
 	/**
      * Upload SIP
      *
-     *@param  InputStream SIP
-     *@param fileName SIP name
+     * @param InputStream SIP
+     * @param fileName SIP name
      *
-     * @return http code
+     * @return content of xml in type String
+	 * @throws XMLStreamException 
      */
-    // TODO commentaire incorrect
-	UploadResponseDTO upload(List<LogbookParameters> logbookParametersList, InputStream inputStream) throws VitamException;
+    Response upload(List<LogbookParameters> logbookParametersList, InputStream inputStream) throws VitamException, XMLStreamException;
     
 
 }

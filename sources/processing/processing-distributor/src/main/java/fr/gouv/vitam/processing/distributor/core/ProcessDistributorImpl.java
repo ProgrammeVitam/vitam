@@ -146,6 +146,10 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         final long time = System.currentTimeMillis();
         final EngineResponse errorResponse = new ProcessResponse();
         errorResponse.setStatus(StatusCode.FATAL);
+        
+        final EngineResponse warningResponse = new ProcessResponse();
+        warningResponse.setStatus(StatusCode.WARNING);
+        
         final List<EngineResponse> responses = new ArrayList<>();
         String processId = workParams.getProcessId();
         String uniqueStepId = workParams.getStepUniqId();
@@ -186,7 +190,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
 
                 // Iterate over Objects List
                 if (objectsList == null || objectsList.isEmpty()) {
-                    responses.add(errorResponse);
+                    responses.add(warningResponse);
                 } else {
                     // update the number of element to process
                     ProcessMonitoringImpl.getInstance().updateStep(processId, uniqueStepId, objectsList.size(), false);
@@ -205,6 +209,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                             final List<EngineResponse> actionsResponse =
                                 WorkerClientFactory.getInstance().getWorkerClient().submitStep("requestId",
                                     new DescriptionStep(step, (DefaultWorkerParameters) workParams));
+                            // FIXME : This is inefficient. The aggregation of results must be placed here and not in ProcessResponse
                             responses.addAll(actionsResponse);
                             // update the number of processed element
                             ProcessMonitoringImpl.getInstance().updateStep(processId, uniqueStepId, 0, true);

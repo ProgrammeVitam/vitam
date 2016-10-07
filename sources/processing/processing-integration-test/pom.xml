@@ -8,8 +8,8 @@
 	</parent>
 	<artifactId>processing-integration-test</artifactId>
 	<name>Processing Integration Tests</name>
-	
-    <build>
+
+	<build>
 		<pluginManagement>
 			<plugins>
 				<plugin>
@@ -50,7 +50,7 @@
 			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>
-		 <dependency>
+		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>workspace-rest</artifactId>
 			<version>${project.version}</version>
@@ -65,13 +65,18 @@
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>metadata-rest</artifactId>
 			<version>${project.version}</version>
-		</dependency>		
+		</dependency>
 		<dependency>
- 			<groupId>junit</groupId>
- 			<artifactId>junit</artifactId>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>functional-administration-rest</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
 			<scope>test</scope>
- 		</dependency>
- 		<dependency>
+		</dependency>
+		<dependency>
 			<groupId>com.jayway.restassured</groupId>
 			<artifactId>rest-assured</artifactId>
 			<scope>test</scope>
@@ -128,5 +133,15 @@
 			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>
-	</dependencies>  
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-module-junit4</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-api-mockito</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
 </project>

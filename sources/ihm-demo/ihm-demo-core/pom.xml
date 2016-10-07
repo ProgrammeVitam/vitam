@@ -43,6 +43,11 @@
 			<artifactId>powermock-api-mockito</artifactId>
 			<scope>test</scope>
 		</dependency>
+		
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-csv</artifactId>
+		</dependency>
 
 	</dependencies>
 </project>

@@ -1,13 +1,13 @@
 Worker
 ######
 
-Présentation
-^^^^^^^^^^^^
+1. Présentation
+^^^^^^^^^^^^^^^
 
 |  *Parent package:* **fr.gouv.vitam**
 |  *Package proposition:* **fr.gouv.vitam.worker**
 
-4 modules composent la partie worker : 
+4 modules composent la partie worker :
 - worker-common : incluant la partie common (Utilitaires...), notamment le SedaUtils.
 - worker-core : contenant les différents handlers.
 - worker-client : incluant le client permettant d'appeler le REST.
@@ -16,34 +16,34 @@ Présentation
 Worker-server
 -------------
 
-Rest API
-^^^^^^^^
+2. Rest API
+^^^^^^^^^^^
 
-Pour l'instant les uri suivantes sont déclarées : 
+Pour l'instant les uri suivantes sont déclarées :
 
 | http://server/worker/v1
 | POST /tasks -> **POST Permet de lancer une étape à exécuter**
 
-Registration
-^^^^^^^^^^^^
-Une partie registration permet de gérer la registration du Worker. 
+3. Registration
+^^^^^^^^^^^^^^^
+Une partie registration permet de gérer la registration du Worker.
 
 La gestion de l'abonnement du *worker* auprès du serveur *processing* se fait à l'aide d'un ServletContextListener : *fr.gouv.vitam.worker.server.registration.WorkerRegistrationListener*.
 
 Le WorkerRegistrationListener va lancer l'enregistrement du *worker* au démarrage du serveur worker, dans un autre Thread utilisant l'instance *Runnable* : *fr.gouv.vitam.worker.server.registration.WorkerRegister*.
 
 L'execution du *WorkerRegister* essaie d'enregistrer le *worker* suivant un retry paramétrable dans la configuration du serveur avec :
-- un délai (registerDelay en secondes) 
+- un délai (registerDelay en secondes)
 - un nombre d'essai (registerTry)
 
 Le lancement du serveur est indépendant de l'enregistrement du *worker* auprès du *processing* : le serveur *worker* ne s'arrêtera pas si l'enregistrement n'a pas réussi.
 
-
-Worker-core
------------
+4. Worker-core
+^^^^^^^^^^^^^^
 Dans la partie Core, sont présents les différents Handlers nécessaires pour exécuter les différentes actions.
 - CheckConformityActionHandler
 - CheckObjectsNumberActionHandler
+- CheckObjectUnitConsistencyActionHandler
 - CheckSedaActionHandler
 - CheckStorageAvailabilityActionHandler
 - CheckVersionActionHandler
@@ -51,11 +51,67 @@ Dans la partie Core, sont présents les différents Handlers nécessaires pour e
 - IndexObjectGroupActionHandler
 - IndexUnitActionHandler
 - StoreObjectGroupActionHandler
+- FormatIdentificationActionHandler
 
-Ainsi que la classe WorkerImpl permettant de lancer ces différents handlers.
+La classe WorkerImpl permet de lancer ces différents handlers.
 
-Détail du handler : ExtractSedaActionHandler
-''''''''''''''''''''''''''''''''''''''''''''
+4.1 Détail du handler : CheckConformityActionHandler
+''''''''''''''''''''''''''''''''''''''''''''''''''''
+4.1.1 description
+'''''''''''''''''
+Ce handler permet de comparer le message digest déclaré dans le manifest et celui calculé par le workspace.
+
+4.1.2 exécution
+'''''''''''''''
+TODO
+
+4.1.3 journalisation : logbook operation? logbook life cycle?
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+logbook lifecycle
+
+4.1.4 modules utilisés
+''''''''''''''''''''''
+processing, worker, workspace et logbook
+
+4.1.4 cas d'erreur
+''''''''''''''''''
+XMLStreamException                          : problème de lecture SEDA
+InvalidParseOperationException              : problème de parsing du SEDA
+LogbookClientAlreadyExistsException         : un logbook client existe dans ce workflow
+LogbookClientBadRequestException            : LogbookLifeCycleObjectGroupParameters est mal paramétré et le logbook client génère une mauvaise requete
+LogbookClientException                      : Erreur générique de logbook. LogbookException classe mère des autres exceptions LogbookClient
+LogbookClientNotFoundException              : un logbook client n'existe pas pour ce workflow
+LogbookClientServerException                : logbook server a un internal error
+ProcessingException                         : erreur générique du processing
+ContentAddressableStorageException          : erreur de stockage
+
+
+4.2 Détail du handler : CheckObjectsNumberActionHandler
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''
+4.2.1 description
+'''''''''''''''''
+Ce handler permet de comparer le nombre d'objet stocké sur le workspace et le nombre d'objets déclaré dans le manifest.
+
+4.3 Détail du handler : CheckObjectUnitConsistencyActionHandler
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+TODO
+
+4.4 Détail du handler : CheckSedaActionHandler
+''''''''''''''''''''''''''''''''''''''''''''''
+TODO
+
+4.4 Détail du handler : CheckStorageAvailabilityActionHandler
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+TODO
+
+4.5 Détail du handler : CheckVersionActionHandler
+'''''''''''''''''''''''''''''''''''''''''''''''''
+TODO
+
+4.6 Détail du handler : ExtractSedaActionHandler
+''''''''''''''''''''''''''''''''''''''''''''''''
+4.6.1 description
+'''''''''''''''''
 Ce handler permet d'extraire le contenu du SEDA. Il y a :
 - extraction des BinaryDataObject
 - extraction des ArchiveUnit
@@ -65,27 +121,117 @@ Ce handler permet d'extraire le contenu du SEDA. Il y a :
 - sauvegarde de la map des objets sur le workspace
 - sauvegarde de la map des objets groupes sur le workspace
 
-Détail des différentes maps utilisées :
-.......................................
-binaryDataObjectIdToObjectGroupId :
-   contenu : cette map contient les id des objets binaires ainsi que l'id du groupe d'objet de la balise DataObjectGroupId ou DataObjectGroupReferenceId
-   création : elle est créé lors de la création du handler
-   mise à jour : elle est populée lors de la lecture des BinaryDataObject
-   lecture : lecture de la map dans mapNewTechnicalDataObjectGroupToBDO, getNewGdoIdFromGdoByUnit, completeBinaryObjectToObjectGroupMap, checkArchiveUnitIdReference et writeBinaryDataObjectInLocal
-   suppression : c'est un clean en fin d'execution du handler
 
+4.6.2 Détail des différentes maps utilisées :
+'''''''''''''''''''''''''''''''''''''''''''''
+Map<String, String> binaryDataObjectIdToGuid
+    contenu         : cette map contient l'id du BDO relié à son guid
+    création        : elle est créé lors de la création du handler
+    MAJ, put        : elle est populée lors de la lecture des BinaryDataObject
+    lecture, get    : saveObjectGroupsToWorkspace, getObjectGroupQualifiers,
+    suppression     : c'est un clean en fin d'execution du handler
 
-binaryDataObjectIdWithoutObjectGroupId :
-   contenu : cette map contient les id des objets binaires ainsi que les groupes d'objets techniques instanciés lors du parcours des objets binaires.
-   création : elle est créé lors de la création du handler
-   mise à jour : elle est populée lors du parcours des objets binaires dans mapNewTechnicalDataObjectGroupToBDO et extractArchiveUnitToLocalFile (dans on découvre un DataObjectReferenceId) 
-   lecture : lecture de la map dans mapNewTechnicalDataObjectGroupToBDO, extractArchiveUnitToLocalFile, getNewGdoIdFromGdoByUnit, 
-   suppression : c'est un clean en fin d'execution du handler
+Map<String, String> binaryDataObjectIdToObjectGroupId :
+    contenu         : cette map contient l'id du BDO relié au groupe d'objet de la balise DataObjectGroupId ou DataObjectGroupReferenceId
+    création        : elle est créé lors de la création du handler
+    MAJ, put        : elle est populée lors de la lecture des BinaryDataObject
+    lecture, get    : lecture de la map dans mapNewTechnicalDataObjectGroupToBDO, getNewGdoIdFromGdoByUnit, completeBinaryObjectToObjectGroupMap, checkArchiveUnitIdReference et writeBinaryDataObjectInLocal
+    suppression     : c'est un clean en fin d'execution du handler
+
+Map<String, GotObj> binaryDataObjectIdWithoutObjectGroupId :
+    contenu         : cette map contient l'id du BDO relié à un groupe d'objet technique instanciés lors du parcours des objets binaires.
+    création        : elle est créé lors de la création du handler
+    MAJ, put        : elle est populée lors du parcours des BDO dans mapNewTechnicalDataObjectGroupToBDO et extractArchiveUnitToLocalFile. Dans extractArchiveUnitToLocalFile, quand on découvre un DataObjectReferenceId et que cet Id se trouve dans binaryDataObjectIdWithoutObjectGroupId alors on récupère l'objet et on change le statut isVisited à true.
+    lecture, get    : lecture de la map dans mapNewTechnicalDataObjectGroupToBDO, extractArchiveUnitToLocalFile, getNewGdoIdFromGdoByUnit,
+    suppression     : c'est un clean en fin d'execution du handler
 
 Le groupe d'objet technique GotObj contient un guid et un boolean isVisited, initialisé à false lors de la création. Le set à true est fait lors du parcours des units.
 
-TODO contenu des autres maps
+Map<String, String> objectGroupIdToGuid
+    contenu         : cette map contient l'id du groupe d'objet relié à son guid
+    création        : elle est créé lors de la création du handler
+    MAJ, put        : elle est populée lors du parcours des BDO dans writeBinaryDataObjectInLocal et mapNewTechnicalDataObjectGroupToBDO lors de la création du groupe d'objet technique
+    lecture, get    : lecture de la map dans checkArchiveUnitIdReference, writeBinaryDataObjectInLocal, extractArchiveUnitToLocalFile, saveObjectGroupsToWorkspace
+    suppression     : c'est un clean en fin d'execution du handler
 
+Map<String, String> objectGroupIdToGuidTmp
+    contenu         : c'est la même map que objectGroupIdToGuid
+    création        : elle est créé lors de la création du handler
+    MAJ, put        : elle est populée dans writeBinaryDataObjectInLocal
+    lecture, get    : lecture de la map dans writeBinaryDataObjectInLocal
+    suppression     : c'est un clean en fin d'execution du handler
+
+Map<String, List<String>> objectGroupIdToBinaryDataObjectId
+    contenu         : cette map contient l'id du groupe d'objet relié à son ou ses BDO
+    création        : elle est créé lors de la création du handler
+    MAJ, put        : elle est populée lors du parcours des BDO dans writeBinaryDataObjectInLocal quand il y a une balise DataObjectGroupId ou DataObjectGroupReferenceId et qu'il n'existe pas dans objectGroupIdToBinaryDataObjectId.
+    lecture, get    : lecture de la map dans le parcours des BDO dans writeBinaryDataObjectInLocal.  La lecture est faite pour ajouter des BDO dans la liste.
+    suppression     : c'est un clean en fin d'execution du handler
+
+Map<String, List<String>> objectGroupIdToUnitId
+    contenu         : cette map contient l'id du groupe d'objet relié à ses AU
+    création        : elle est créé lors de la création du handler
+    MAJ, put        : elle est populée lors du parcours des units dans extractArchiveUnitToLocalFile quand il y a une balise DataObjectGroupId ou DataObjectGroupReferenceId et qu'il nexiste pas dans objectGroupIdToUnitId sinon on ajoute dans la liste des units de la liste
+    lecture, get    : lecture de la map dans le parcours des units. La lecture est faite pour ajouter des units dans la liste.
+    suppression     : c'est un clean en fin d'execution du handler
+
+Map<String, String> unitIdToGuid
+    contenu         : cette map contient l'id de l'unit relié à son guid
+    création        : elle est créé lors de la création du handler
+    MAJ, put        : elle est populée lors du parcours des units dans extractArchiveUnitToLocalFile
+    lecture, get    : lecture de la map se fait lors de la création du graph/level des unit dans createIngestLevelStackFile et dans la sauvegarde des object groups vers le workspace
+    suppression     : c'est un clean en fin d'execution du handler
+
+Map<String, String> unitIdToGroupId
+    contenu         : cette map contient l'id de l'unit relié à son group id
+    création        : elle est créé lors de la création du handler
+    MAJ, put        : elle est populée lors du parcours des BDO dans writeBinaryDataObjectInLocal quand il y a une balise DataObjectGroupId ou DataObjectGroupReferenceId
+    lecture, get    : lecture de la map se fait lors de l'extraction des unit dans extractArchiveUnitToLocalFile et permettant de lire dans objectGroupIdToGuid.
+    suppression     : c'est un clean en fin d'execution du handler
+
+Map<String, String> objectGuidToUri
+    contenu         : cette map contient le guid du BDO relié à son uri définis dans le manifest
+    création        : elle est créé lors de la création du handler
+    MAJ, put        : elle est poppulée lors du parcours des BDO dans writeBinaryDataObjectInLocal quand il rencontre la balise uri
+    lecture, get    : lecture de la map se fait lors du save des objects groups dans le workspace
+    suppression     : c'est un clean en fin d'execution du handler
+
+sauvegarde des maps (binaryDataObjectIdToObjectGroupId, objectGroupIdToGuid) dans le workspace
+
+4.7 Détail du handler : IndexObjectGroupActionHandler
+'''''''''''''''''''''''''''''''''''''''''''''''''''''
+4.7.1 description
+Indexation des objets groupes en récupérant les objets groupes du workspace. Il y a utilisation d'un client metadata.
+TODO
+
+4.8 Détail du handler : IndexUnitActionHandler
+''''''''''''''''''''''''''''''''''''''''''''''
+4.8.1 description
+Indexation des units en récupérant les units du workspace. Il y a utilisation d'un client metadata.
+TODO
+
+4.9 Détail du handler : StoreObjectGroupActionHandler
+'''''''''''''''''''''''''''''''''''''''''''''''''''''
+4.9.1 description
+Persistence des objets dans l'offre de stockage depuis le workspace.
+TODO
+
+
+Détail du handler : FormatIdentificationActionHandler
+'''''''''''''''''''''''''''''''''''''''''''''''''''''
+Ce handler permet d'identifier et contrôler automatiquement le format des objets versés.
+Il s'exécute sur les différents ObjectGroups déclarés dans le manifest. Pour chaque objectGroup, voici ce qui est effectué :
+ - récupération du JSON de l'objectGroup présent sur le Workspace
+ - transformation de ce Json en une map d'id d'objets / uri de l'objet associée
+ - boucle sur les objets :
+   - téléchargement de l'objet (File) depuis le Workspace
+   - appel Siegfried en lui passant le path vers l'objet à identifier + récupération de la réponse.
+   - appel de l'AdminManagement pour faire une recherche getFormats par rapport au PUID récupéré.
+   - mise à jour du Json : le format récupéré par Siegfried est mis à jour dans le Json (pour indexation future).
+   - construction d'une réponse.
+ - sauvegarde du JSON de l'objectGroup dans le Workspace.
+ - aggrégation des retours pour générer un message + mise à jour du logbook. 
+  
 
 Worker-common
 -------------

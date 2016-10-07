@@ -41,5 +41,6 @@ angular.module('ihm.demo', [
   'vAccordion',
   'ngCookies',
   'lifecycle',
-  'pascalprecht.translate'
+  'pascalprecht.translate',
+  'upload.sip.perf'
 ]);

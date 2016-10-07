@@ -27,7 +27,6 @@
 package fr.gouv.vitam.processing.management.client;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -53,7 +52,6 @@ import org.junit.Test;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingInternalServerException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnauthorizeException;
 import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;

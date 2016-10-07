@@ -25,9 +25,10 @@
 # The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
 # accept its terms.
 #*******************************************************************************
+WORKING_DIR=$(dirname $0)
 
-SOURCES_FILE=./sources # Contains all the urls where download rpm
-TARGET_DIR=target      # Targer dir where copying rpm dowloaded
+SOURCES_FILE=${WORKING_DIR}/sources # Contains all the urls where download rpm
+TARGET_DIR=${WORKING_DIR}/target      # Targer dir where copying rpm dowloaded
 mkdir -p ${TARGET_DIR}
 
 if [ -f "${SOURCES_FILE}" ]
@@ -44,8 +45,8 @@ then
 			 	echo "${FILE} already exists in ${TARGET_DIR} ! Skipping..." 
 			else # if [ -f "${TARGET_DIR}/${FILE}" ]
 			 	echo "Downloading ${SRC_URL} into ${TARGET_DIR}..."
-			 	curl ${SRC_URL} -o ./${TARGET_DIR}/${FILE}.tmp	  
-			 	mv ./${TARGET_DIR}/${FILE}.tmp ./${TARGET_DIR}/${FILE}
+			 	curl ${SRC_URL} -o ${TARGET_DIR}/${FILE}.tmp	  
+			 	mv ${TARGET_DIR}/${FILE}.tmp ${TARGET_DIR}/${FILE}
 			 	echo "Download done."
 			fi 
 		else #if [echo "${SRC_URL}" | grep -E -o '^[^#]']

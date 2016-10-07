@@ -44,6 +44,7 @@ import javax.ws.rs.core.Response;
 
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 
@@ -117,6 +118,7 @@ public class ConnectionImpl implements Connection {
         // TODO: multipart ?
         config.register(MultiPartFeature.class);
         client = ClientBuilder.newClient(config);
+        client.property(ClientProperties.SUPPRESS_HTTP_COMPLIANCE_VALIDATION, true);
     }
 
     @Override
@@ -214,6 +216,7 @@ public class ConnectionImpl implements Connection {
                 performPutRequests(request.getTenantId(), stream, handleResponseStatus(response, ObjectInit.class));
             return finalResult;
         } catch (IllegalArgumentException exc) {
+            LOGGER.error(exc);
             throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.PRECONDITION_FAILED, exc
                 .getMessage());
         } finally {
@@ -371,47 +374,66 @@ public class ConnectionImpl implements Connection {
     private PutObjectResult performPutRequests(String tenantId, InputStream stream, ObjectInit result)
         throws StorageDriverException {
         PutObjectResult finalResult = null;
-        try (ReadableByteChannel readableByteChannel = Channels.newChannel(stream)) {
-            ByteBuffer bb = ByteBuffer.allocate(CHUNK_SIZE);
-            byte[] bytes;
-            int read = readableByteChannel.read(bb);
-            while (read >= 0) {
-                bb.flip();
-                if (read < CHUNK_SIZE) {
-                    bytes = new byte[read];
-                    bb.get(bytes, 0, read);
-                    Entity<InputStream> entity =
-                        Entity.entity(new ByteArrayInputStream(bytes), MediaType.APPLICATION_OCTET_STREAM);
-                    Response response = null;
-                    try {
-                        // As it's the end of the file, END command is sent
-                        response =
-                            getClient().target(getServiceUrl()).path(OBJECTS_PATH + "/" + result.getId())
-                                .request(MediaType.APPLICATION_OCTET_STREAM)
-                                .headers(getDefaultHeaders(tenantId, StorageConstants.COMMAND_END))
-                                .accept(MediaType.APPLICATION_JSON).method(HttpMethod.PUT, entity);
-                        JsonNode json = handleResponseStatus(response, JsonNode.class);
-                        finalResult = new PutObjectResult(result.getId(), json.get("digest").textValue(), tenantId);
-                    } finally {
-                        Optional.ofNullable(response).ifPresent(Response::close);
-                    }
-                } else {
-                    bytes = bb.array();
-                    Entity<InputStream> entity =
-                        Entity.entity(new ByteArrayInputStream(bytes), MediaType.APPLICATION_OCTET_STREAM);
-                    getClient().target(getServiceUrl()).path(OBJECTS_PATH + "/" + result.getId())
+        Response response = null;
+        try {
+            Entity<InputStream> entity = Entity.entity(stream, MediaType.APPLICATION_OCTET_STREAM);
+            response = getClient().target(getServiceUrl()).path(OBJECTS_PATH + "/" + result.getId())
+                .request(MediaType.APPLICATION_OCTET_STREAM)
+                .headers(getDefaultHeaders(tenantId, StorageConstants.COMMAND_END))
+                .accept(MediaType.APPLICATION_JSON).method(HttpMethod.PUT, entity);
+            JsonNode json = handleResponseStatus(response, JsonNode.class);
+            finalResult = new PutObjectResult(result.getId(), json.get("digest").textValue(), tenantId);
+            LOGGER.error("response: " + response.getStatus());
+            if (Response.Status.CREATED.getStatusCode() != response.getStatus()) {
+                throw new StorageDriverException(driverName, StorageDriverException.ErrorCode
+                    .INTERNAL_SERVER_ERROR, "Error to perfom put object");
+            }
+        } finally {
+            Optional.ofNullable(response).ifPresent(Response::close);
+        }
+        return finalResult;
+
+        /*byte[] bytes = new byte[CHUNK_SIZE];
+        Response response = null;
+        try {
+            int read;
+            while ((read = stream.read(bytes)) >= 0) {
+                if (read == 0) {
+                    continue;
+                }
+                Entity<InputStream> entity =
+                    Entity.entity(new ByteArrayInputStream(bytes), MediaType.APPLICATION_OCTET_STREAM);
+                try {
+                    response = getClient().target(getServiceUrl()).path(OBJECTS_PATH + "/" + result.getId())
                         .request(MediaType.APPLICATION_OCTET_STREAM)
                         .headers(getDefaultHeaders(tenantId, StorageConstants.COMMAND_WRITE))
                         .accept(MediaType.APPLICATION_JSON).method(HttpMethod.PUT, entity);
+                    LOGGER.error("response: " + response.getStatus());
+                    if (Response.Status.CREATED.getStatusCode() != response.getStatus()) {
+                        throw new StorageDriverException(driverName, StorageDriverException.ErrorCode
+                            .INTERNAL_SERVER_ERROR, "Error to perfom put object");
+                    }
+                } finally {
+                    Optional.ofNullable(response).ifPresent(Response::close);
                 }
-                bb.clear();
-                read = readableByteChannel.read(bb);
             }
-
         } catch (IOException e) {
-            LOGGER.error(e);
+            throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR, e);
         }
-        return finalResult;
+        try {
+            // As it's the end of the file, END command is sent
+            response =
+                getClient().target(getServiceUrl()).path(OBJECTS_PATH + "/" + result.getId())
+                    .request(MediaType.APPLICATION_OCTET_STREAM)
+                    .headers(getDefaultHeaders(tenantId, StorageConstants.COMMAND_END))
+                    .accept(MediaType.APPLICATION_JSON).method(HttpMethod.PUT);
+            LOGGER.error("response: " + response.getStatus());
+            JsonNode json = handleResponseStatus(response, JsonNode.class);
+            finalResult = new PutObjectResult(result.getId(), json.get("digest").textValue(), tenantId);
+        } finally {
+            Optional.ofNullable(response).ifPresent(Response::close);
+        }
+        return finalResult;*/
     }
 
 }

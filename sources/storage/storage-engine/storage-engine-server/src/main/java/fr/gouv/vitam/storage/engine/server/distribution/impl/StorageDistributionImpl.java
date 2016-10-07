@@ -28,9 +28,6 @@
 package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
 import java.io.InputStream;
-import java.security.DigestInputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -49,6 +46,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
@@ -117,8 +115,7 @@ public class StorageDistributionImpl implements StorageDistribution {
      */
     public StorageDistributionImpl(StorageConfiguration configuration) {
         ParametersChecker.checkParameter("Storage service configuration is mandatory", configuration);
-        WorkspaceClientFactory factory = new WorkspaceClientFactory();
-        workspaceClient = factory.create(configuration.getUrlWorkspace());
+        workspaceClient = WorkspaceClientFactory.create(configuration.getUrlWorkspace());
         // TODO : a real design discussion is needed : should we force it ? Should we negociate it with the offer ?
         // FIXME Might be negotiated but limited to available digestType from Vitam (MD5, SHA-1, SHA-256, SHA-512, ...)
         // Just to note, I prefer SHA-512 (more CPU but more accurate and already the default for Vitam, notably to
@@ -204,6 +201,9 @@ public class StorageDistributionImpl implements StorageDistribution {
             case OBJECT:
                 description.append("Object ");
                 break;
+            case REPORT:
+                description.append("Report ");
+                break;
             default:
                 throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
         }
@@ -235,15 +235,14 @@ public class StorageDistributionImpl implements StorageDistribution {
         PutObjectResult putObjectResult;
         Status objectStored = Status.INTERNAL_SERVER_ERROR;
         boolean existInOffer = false;
-        // FIXME use Digest from common
-        MessageDigest messageDigest = null;
+        Digest messageDigest = null;
         int i = 0;
         while (i < NB_RETRY && objectStored == Status.INTERNAL_SERVER_ERROR) {
             i++;
             LOGGER.info("[Attempt " + i + "] Trying to store object '" + objectId + "' in offer " + offer.getId());
             try {
-                messageDigest = MessageDigest.getInstance(digestType.getName());
-            } catch (NoSuchAlgorithmException exc) {
+                messageDigest = new Digest(digestType);                
+            } catch (IllegalArgumentException exc) {
                 throw new StorageTechnicalException(exc);
             }
             try (Connection connection = driver.connect(offer.getBaseUrl(), parameters)) {
@@ -328,12 +327,12 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     private PutObjectRequest buildPutObjectRequest(CreateObjectDescription createObjectDescription, String tenantId,
-        String objectId, DataCategory category, MessageDigest messageDigest)
+        String objectId, DataCategory category, Digest messageDigest)
         throws StorageTechnicalException, StorageNotFoundException {
         InputStream dataStream = retrieveDataFromWorkspace(createObjectDescription.getWorkspaceContainerGUID(),
             createObjectDescription.getWorkspaceObjectURI());
         return new PutObjectRequest(tenantId, digestType.getName(), objectId,
-            new DigestInputStream(dataStream, messageDigest), category.name());
+            messageDigest.getDigestInputStream(dataStream), category.name());
     }
 
     private InputStream retrieveDataFromWorkspace(String containerGUID, String objectURI)
@@ -404,7 +403,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         mandatoryParameters.put(StorageLogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
         mandatoryParameters.put(StorageLogbookParameterName.outcome, outcome.name());
         mandatoryParameters.put(StorageLogbookParameterName.objectIdentifier,
-            objectIdentifier != null ? objectIdentifier.toString() : "objId NA");
+            objectIdentifier != null ? objectIdentifier : "objId NA");
         mandatoryParameters.put(StorageLogbookParameterName.objectGroupIdentifier,
             objectGroupIdentifier != null ? objectGroupIdentifier.toString() : "objGId NA");
         mandatoryParameters.put(StorageLogbookParameterName.digest, digest);
@@ -440,7 +439,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     @Override
-    public InputStream getContainerObject(String tenantId, String strategyId, String objectId)
+    public InputStream getContainerByCategory(String tenantId, String strategyId, String objectId, DataCategory category)
         throws StorageNotFoundException, StorageTechnicalException {
         // Check input params
         ParametersChecker.checkParameter("Tenant id is mandatory", tenantId);
@@ -455,7 +454,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             if (offerReferences.isEmpty()) {
                 throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
             }
-            GetObjectResult result = getGetObjectResult(tenantId, objectId, DataCategory.OBJECT, offerReferences);
+            GetObjectResult result = getGetObjectResult(tenantId, objectId, category, offerReferences);
             return result.getObject();
         }
         throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));

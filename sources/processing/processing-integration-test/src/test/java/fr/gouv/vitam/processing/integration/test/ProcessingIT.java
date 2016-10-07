@@ -40,7 +40,6 @@ import javax.ws.rs.core.Response.Status;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.node.Node;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -58,8 +57,10 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.metadata.rest.MetaDataApplication;
@@ -73,6 +74,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
 
+//
 /**
  * Processing integration test
  */
@@ -84,8 +86,10 @@ public class ProcessingIT {
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
+
     private static File elasticsearchHome;
     private final static String CLUSTER_NAME = "vitam-cluster";
+    static JunitHelper junitHelper;
     private static int TCP_PORT = 54321;
     private static int HTTP_PORT = 54320;
     private static Node node;
@@ -105,8 +109,9 @@ public class ProcessingIT {
     private static String CONFIG_WORKSPACE_PATH = "";
     private static String CONFIG_METADATA_PATH = "";
     private static String CONFIG_PROCESSING_PATH = "";
+    private static String CONFIG_SIEGFRIED_PATH = "";
 
-    //private static VitamServer workerApplication;
+    // private static VitamServer workerApplication;
     private static MetaDataApplication medtadataApplication;
 
     private WorkspaceClient workspaceClient;
@@ -121,16 +126,35 @@ public class ProcessingIT {
     private static String SIP_FILE_OK_NAME = "integration/SIP.zip";
     private static String SIP_ARBO_COMPLEXE_FILE_OK = "integration/SIP_arbor_OK.zip";
     private static String SIP_WITHOUT_MANIFEST = "integration/SIP_no_manifest.zip";
+    private static String SIP_NO_FORMAT = "integration/SIP_NO_FORMAT.zip";
+    private static String SIP_NO_FORMAT_NO_TAG = "integration/SIP_NO_FORMAT_TAG.zip";
     private static String SIP_NB_OBJ_INCORRECT_IN_MANIFEST = "integration/SIP_Conformity_KO.zip";
+    private static String SIP_ORPHELINS = "integration/SIP-orphelins.zip";
+    private static String SIP_OBJECT_SANS_GOT = "integration/SIP-objetssansGOT.zip";
+
+    @AfterClass
+    public static void tearDownAfterClass() throws Exception {
+        mongod.stop();
+        mongodExecutable.stop();
+        node.close();
+        try {
+            WorkspaceApplication.stop();
+            WorkerApplication.stop();
+            ProcessManagementApplication.stop();
+            MetaDataApplication.stop();
+        } catch (Exception e) {
+            LOGGER.error(e);
+        }
+    }
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        elasticsearchHome = tempFolder.newFolder();
         CONFIG_METADATA_PATH = PropertiesUtils.getResourcesPath("integration/metadata.conf").toString();
         CONFIG_WORKER_PATH = PropertiesUtils.getResourcesPath("integration/worker.conf").toString();
         CONFIG_WORKSPACE_PATH = PropertiesUtils.getResourcesPath("integration/workspace.conf").toString();
         CONFIG_PROCESSING_PATH = PropertiesUtils.getResourcesPath("integration/processing.conf").toString();
-
-        elasticsearchHome = tempFolder.newFolder();
+        CONFIG_SIEGFRIED_PATH = PropertiesUtils.getResourcesPath("integration/format-identifiers.json").toString();
         Settings settings = Settings.settingsBuilder()
             .put("http.enabled", true)
             .put("discovery.zen.ping.multicast.enabled", false)
@@ -144,7 +168,6 @@ public class ProcessingIT {
             .clusterName(CLUSTER_NAME)
             .node();
         node.start();
-
         final MongodStarter starter = MongodStarter.getDefaultInstance();
 
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
@@ -174,26 +197,10 @@ public class ProcessingIT {
             .set(WorkspaceApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_WORKSPACE));
         WorkspaceApplication.startApplication(CONFIG_WORKSPACE_PATH);
 
-        processMonitoring = ProcessMonitoringImpl.getInstance();
-    }
+        FormatIdentifierFactory.getInstance().changeConfigurationFile(CONFIG_SIEGFRIED_PATH);
 
-    @AfterClass
-    public static void tearDownAfterClass() {
-        mongod.stop();
-        mongodExecutable.stop();
-        node.close();
-        try {
-            WorkspaceApplication.stop();
-            WorkerApplication.stop();
-            ProcessManagementApplication.stop();
-            MetaDataApplication.stop();
-        } catch (Exception e) {
-            LOGGER.error(e);
-        }
-    }
-    
-    @Before
-    public void before() {
+
+        processMonitoring = ProcessMonitoringImpl.getInstance();
         CONTAINER_NAME = GUIDFactory.newGUID().toString();
     }
 
@@ -291,6 +298,59 @@ public class ProcessingIT {
         processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
     }
 
+    @Test
+    public void testWorkflowSipNoFormat() throws Exception {
+        String containerName = GUIDFactory.newManifestGUID(0).getId();
+
+        // workspace client dezip SIP in workspace
+        RestAssured.port = PORT_SERVICE_WORKSPACE;
+        RestAssured.basePath = WORKSPACE_PATH;
+
+        InputStream zipInputStreamSipObject =
+            Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_NO_FORMAT);
+        workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
+        workspaceClient.createContainer(containerName);
+        workspaceClient.unzipObject(containerName, SIP_FOLDER, zipInputStreamSipObject);
+
+        // call processing
+        RestAssured.port = PORT_SERVICE_PROCESSING;
+        RestAssured.basePath = PROCESSING_PATH;
+        processingClient = new ProcessingManagementClient(PROCESSING_URL);
+        String ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+        assertNotNull(ret);
+        JsonNode node = JsonHandler.getFromString(ret);
+        assertNotNull(node);
+        assertEquals("OK", node.get("status").asText());
+
+        // checkMonitoring - meaning something has been added in the monitoring tool
+        Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(node.get("processId").asText());
+        assertNotNull(map);
+    }
+
+
+    @Test(expected = ProcessingBadRequestException.class)
+    public void testWorkflowSipNoFormatNoTag() throws Exception {
+        String containerName = GUIDFactory.newManifestGUID(0).getId();
+
+        // workspace client dezip SIP in workspace
+        RestAssured.port = PORT_SERVICE_WORKSPACE;
+        RestAssured.basePath = WORKSPACE_PATH;
+
+        InputStream zipInputStreamSipObject =
+            Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_NO_FORMAT_NO_TAG);
+        workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
+        workspaceClient.createContainer(containerName);
+        workspaceClient.unzipObject(containerName, SIP_FOLDER, zipInputStreamSipObject);
+
+        // call processing
+        RestAssured.port = PORT_SERVICE_PROCESSING;
+        RestAssured.basePath = PROCESSING_PATH;
+        processingClient = new ProcessingManagementClient(PROCESSING_URL);
+        processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+    }
+
+
+
     @Test(expected = ProcessingBadRequestException.class)
     public void testWorkflowWithManifestIncorrectObjectNumber() throws Exception {
         String containerName = GUIDFactory.newManifestGUID(0).getId();
@@ -311,5 +371,53 @@ public class ProcessingIT {
         processingClient = new ProcessingManagementClient(PROCESSING_URL);
         // An action returns KO => the step is in KO => the workflow is OK
         processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+    }
+
+    @Test(expected = ProcessingBadRequestException.class)
+    public void testWorkflowWithOrphelins() throws Exception {
+        String containerName = GUIDFactory.newManifestGUID(0).getId();
+
+        // workspace client dezip SIP in workspace
+        RestAssured.port = PORT_SERVICE_WORKSPACE;
+        RestAssured.basePath = WORKSPACE_PATH;
+
+        InputStream zipInputStreamSipObject =
+            Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_ORPHELINS);
+        workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
+        workspaceClient.createContainer(containerName);
+        workspaceClient.unzipObject(containerName, SIP_FOLDER, zipInputStreamSipObject);
+
+        // call processing
+        RestAssured.port = PORT_SERVICE_PROCESSING;
+        RestAssured.basePath = PROCESSING_PATH;
+        processingClient = new ProcessingManagementClient(PROCESSING_URL);
+        processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+    }
+
+    
+    @Test
+    public void testWorkflow_withoutObjectGroups() throws Exception {
+        String containerName = GUIDFactory.newManifestGUID(0).getId();
+
+        // workspace client dezip SIP in workspace
+        RestAssured.port = PORT_SERVICE_WORKSPACE;
+        RestAssured.basePath = WORKSPACE_PATH;
+
+        InputStream zipInputStreamSipObject =
+            Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_OBJECT_SANS_GOT);
+        workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
+        workspaceClient.createContainer(containerName);
+        workspaceClient.unzipObject(containerName, SIP_FOLDER, zipInputStreamSipObject);
+
+        // call processing
+        RestAssured.port = PORT_SERVICE_PROCESSING;
+        RestAssured.basePath = PROCESSING_PATH;
+        processingClient = new ProcessingManagementClient(PROCESSING_URL);
+        String ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+        assertNotNull(ret);
+        JsonNode node = JsonHandler.getFromString(ret);
+        assertNotNull(node);
+
+        assertEquals("OK", node.get("status").asText());
     }
 }

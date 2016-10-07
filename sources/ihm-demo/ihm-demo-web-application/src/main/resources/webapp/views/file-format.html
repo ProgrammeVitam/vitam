@@ -1,16 +1,15 @@
-<div class="container" id="formatformular">
-
+<div id="global" class="container-fluid" >
 	<ol class="breadcrumb">
-		<li><a href="#">Home</a></li>  
+		<li><a href="#">Page d'accueil</a></li>
         <li><a href="#">Administration</a></li>
-        <li><a href="#">Référentiel des formats</a></li>  
+        <li><a href="#">Référentiel des formats</a></li>
     </ol>
-	
+
 	<div class="panel panel-default col-md-12">
     	<a class="panel-header" data-toggle="collapse">
       		<h2>Référentiel des formats</h2>
     	</a>
-    	
+
     	<div id="boxEntriesSearchForm" class="panel-body panel-collapse collapse in">
     		<div class="col-md-12">
             	<div class="form-group col-md-4">
@@ -22,34 +21,34 @@
                     <input type="text" name="entrypuid" class="form-control" ng-model="fileCtrl.searchOptions.PUID" />
                 </div>
             </div>
-            
+
             <button type="button submit" class="btn btn-primary center-block" ng-click="fileCtrl.getFileFormats()">
             	<i class="material-icons pull-left">search</i>
             	<span>Rechercher</span>
             </button>
         </div>
-        
+
         <button ng-if="fileCtrl.fileNotFoundError" class="btn btn-danger" type="button" style="margin: 0 0 10px 150px">
         	{{fileCtrl.errorMessage}}
         </button>
     </div>
-    
+
     <div class="clearfix"></div>
-    
+
     <div class="panel panel-default col-md-12">
     	<a class="panel-header" data-target="#boxSearchResults" data-toggle="collapse">
         	<h2>Résultats</h2>
         </a>
-        
+
         <div id="boxSearchResults" class="panel-body panel-collapse collapse in">
         	<div class="table-responsive">
         		<div class="col-md-9" style="float: right">
             		<button class="btn btn-default btn-s" ng-disabled="fileCtrl.currentPage <= 1" ng-click="fileCtrl.currentPage=fileCtrl.currentPage-1">
-                		Previous
+                		Précédent
             		</button>
             		<input ng-model="fileCtrl.currentPage" style="max-width: 40px">/{{fileCtrl.resultPages}}
             		<button class="btn btn-default btn-s" ng-disabled="fileCtrl.currentPage >= fileCtrl.resultPages" ng-click="fileCtrl.currentPage=fileCtrl.currentPage+1">
-                		Next
+                		Suivant
             		</button>
         		</div>
         		<div class="col-md-9" style="padding-top: 40px">
@@ -76,7 +75,7 @@
         		</div>
         	</div>
         </div>
-        
-    </div>	
+
+    </div>
 
 </div>

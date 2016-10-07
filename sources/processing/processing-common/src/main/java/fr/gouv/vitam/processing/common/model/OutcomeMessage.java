@@ -37,72 +37,72 @@ public enum OutcomeMessage {
      * OK : success message
      */
     CHECK_CONFORMITY_OK("Contrôle de conformité des objets réalisé avec succès"),
-    
+
     /**
      * KO : fail message
      */
     CHECK_CONFORMITY_KO("Erreur de contrôle de conformité des objets"),
-    
+
     /**
      * OK : success message
      */
     CHECK_OBJECT_NUMBER_OK("Contrôle du nombre des objets réalisé avec succès"),
-    
+
     /**
      * KO : fail message
      */
     CHECK_OBJECT_NUMBER_KO("Erreur de contrôle du nombre des objets"),
-    
+
     /**
      * OK : success message
      */
     CHECK_VERSION_OK("Contrôle des versions réalisé avec succès"),
-    
+
     /**
      * KO : fail message
      */
     CHECK_VERSION_KO("Erreur de contrôle des versions"),
-    
+
     /**
      * OK : success message
      */
     CHECK_MANIFEST_OK("Contrôle du bordereau réalisé avec succès"),
-    
+
     /**
      * KO : fail message
      */
     CHECK_MANIFEST_KO("Erreur de contrôle du bordereau"),
-    
+
     /**
      * KO : fail message no manifest file in the SIP
      */
     CHECK_MANIFEST_NO_FILE("Absence du bordereau"),
-    
+
     /**
      * KO : fail message, manifest is not an XML file
      */
     CHECK_MANIFEST_NOT_XML_FILE("Bordereau au mauvais format"),
-    
+
     /**
      * KO : fail message, manifest is not a valid SEDA file
      */
     CHECK_MANIFEST_NOT_XSD_VALID("Bordereau non conforme au schéma SEDA 2.0"),
-    
+
     /**
      * OK : success message
      */
     EXTRACT_MANIFEST_OK("Extraction du bordereau réalisé avec succès"),
-    
+
     /**
      * KO : fail message
      */
     EXTRACT_MANIFEST_KO("Erreur de l'extraction du bordereau"),
-    
+
     /**
      * OK : success message
      */
     INDEX_UNIT_OK("Index unit réalisé avec succès"),
-    
+
     /**
      * KO : fail message
      */
@@ -112,22 +112,22 @@ public enum OutcomeMessage {
      * OK : success message
      */
     INDEX_OBJECT_GROUP_OK("Index objectgroup réalisé avec succès"),
-    
+
     /**
      * KO : fail message
      */
-    INDEX_OBJECT_GROUP_KO("Erreur de l'index objectgroup"),   
-    
+    INDEX_OBJECT_GROUP_KO("Erreur de l'index objectgroup"),
+
     /**
      * KO : fail message
      */
     STORAGE_OFFER_KO_UNAVAILABLE("Offre de stockage non disponible"),
-    
+
     /**
      * KO : fail message
      */
     STORAGE_OFFER_SPACE_KO("Disponibilité de l'offre de stockage insuffisante"),
-    
+
     /**
      * OK : success message
      */
@@ -150,14 +150,19 @@ public enum OutcomeMessage {
     CREATE_LOGBOOK_LIFECYCLE_OK("Journal du cycle de vie créé avec succès"),
 
     /**
-     * Check BDO
+     * update logbooklifecycle KO
      */
-    CHECK_BDO("Vérification de l'emprunte de l'objet"),
+    UPDATE_LOGBOOK_LIFECYCLE_KO("Erreur lors de la mise à jour du journal du cycle de vie"),
 
     /**
      * Check BDO
      */
-    CHECK_BDO_OK("Emprunte de l'objet vérifié avec succès"),
+    CHECK_BDO("Vérification de l'empreinte de l'objet"),
+
+    /**
+     * Check BDO
+     */
+    CHECK_BDO_OK("Empreinte de l'objet vérifié avec succès"),
 
     /**
      * Check BDO
@@ -165,25 +170,91 @@ public enum OutcomeMessage {
     CHECK_BDO_KO("Echec de la vérification de l'emprunte de l'objet"),
 
     /**
+     * File Format KO
+     */
+    FILE_FORMAT_KO("Echec de la vérification des formats"),
+
+    /**
+     * File Format OK
+     */
+    FILE_FORMAT_OK("Succès de la vérification des formats"),
+
+    /**
+     * File format not found in tool
+     */
+    FILE_FORMAT_NOT_FOUND("Format de l’objet non identifié"),
+
+    /**
+     * File format PUID not found into internal referential
+     */
+    FILE_FORMAT_PUID_NOT_FOUND("Identification du format de l’objet (PUID) absente dans le référentiel interne"),
+
+    /**
+     * File format data update
+     */
+    FILE_FORMAT_METADATA_UPDATE("Complétion des métadonnées sur les formats"),
+
+    /**
+     * File format not found in Vitam referential
+     */
+    FILE_FORMAT_NOT_FOUND_REFERENTIAL("Le format de fichier n'a pas été trouvé dans le reférentiel Vitam"),
+
+    /**
+     * File format referentiel search error
+     */
+    FILE_FORMAT_REFERENTIAL_ERROR("Une erreur est survenue lors de la recherche du format de fichier dans le " +
+        "réferentiel Vitam"),
+
+    /**
+     * File format object wrong file path
+     */
+    FILE_FORMAT_OBJECT_NOT_FOUND("L'objet à analyser n'a pas été trouvé"),
+
+    /**
+     * File format technical error
+     */
+    FILE_FORMAT_TECHNICAL_ERROR("Un erreur technique est survenue lors de l'analyse du format de fichier"),
+
+    /**
+     * File format tool does not respond
+     */
+    FILE_FORMAT_TOOL_DOES_NOT_ANSWER("L'outil d'analyse des formats de fichier ne répond pas"),
+
+    /**
      * Workflow ingest OK : success message
      */
     WORKFLOW_INGEST_OK("Entrée effectuée avec succès"),
-    
+
     /**
      * Workflow ingest KO/FATAL : fail message
      */
     WORKFLOW_INGEST_KO("Entrée en échec"),
-    
+
     /**
      * Store object OK : success message
      */
     STORE_OBJECT_OK("Succès du rangement des Objets"),
-    
+
     /**
      * Store object KO/FATAL : fail message
      */
-    STORE_OBJECT_KO("Echec du rangement des Objets");
+    STORE_OBJECT_KO("Echec du rangement des Objets"),
+
+    /**
+     * Getting format identifier failed message (FATAL)
+     */
+    GETTING_FORMAT_IDENTIFIER_FATAL("L'outil d'analyse de format de fichier n'a pu être initialisé"),
+
+    /**
+     * ART KO : fail message
+     */
+    ATR_KO("Erreur de Notification ATR"),
     
+    /**
+     * ART OK : succes message
+     */
+    ATR_OK("Notification envoyée");
+        
     private String value;
 
     private OutcomeMessage(String value) {

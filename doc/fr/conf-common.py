@@ -9,7 +9,7 @@ author = u'VITAM'
 #
 # Get version from main pom.xml
 import xml.etree.ElementTree as ET
-version = ET.parse("../../../pom.xml").getroot().find("{http://maven.apache.org/POM/4.0.0}version").text
+version = ET.parse("../../pom.xml").getroot().find("{http://maven.apache.org/POM/4.0.0}parent").find('{http://maven.apache.org/POM/4.0.0}version').text
 
 # The full version, including alpha/beta/rc tags.
 release = version

@@ -48,7 +48,6 @@ import fr.gouv.vitam.processing.common.model.Action;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.IOParameter;
 import fr.gouv.vitam.processing.common.model.ProcessBehavior;
-import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.utils.ContainerExtractionUtilsFactory;
@@ -63,11 +62,14 @@ import fr.gouv.vitam.worker.core.handler.CheckSedaActionHandler;
 import fr.gouv.vitam.worker.core.handler.CheckStorageAvailabilityActionHandler;
 import fr.gouv.vitam.worker.core.handler.CheckVersionActionHandler;
 import fr.gouv.vitam.worker.core.handler.ExtractSedaActionHandler;
+import fr.gouv.vitam.worker.core.handler.FormatIdentificationActionHandler;
 import fr.gouv.vitam.worker.core.handler.IndexObjectGroupActionHandler;
 import fr.gouv.vitam.worker.core.handler.IndexUnitActionHandler;
 import fr.gouv.vitam.worker.core.handler.StoreObjectGroupActionHandler;
+import fr.gouv.vitam.worker.core.handler.TransferNotificationActionHandler;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+
 
 
 /**
@@ -129,8 +131,12 @@ public class WorkerImpl implements Worker {
         actions.put(StoreObjectGroupActionHandler.getId(), new StoreObjectGroupActionHandler());
         actions.put(CheckStorageAvailabilityActionHandler.getId(),
             new CheckStorageAvailabilityActionHandler());
-        actions.put(CheckObjectUnitConsistencyActionHandler.getId(), 
+        actions.put(CheckObjectUnitConsistencyActionHandler.getId(),
             new CheckObjectUnitConsistencyActionHandler());
+        actions.put(FormatIdentificationActionHandler.getId(),
+            new FormatIdentificationActionHandler());
+        actions.put(TransferNotificationActionHandler.getId(),
+            new TransferNotificationActionHandler());
     }
 
     @Override
@@ -169,9 +175,9 @@ public class WorkerImpl implements Worker {
                 break;
             }
         }
-        //Clear all worker input and output 
+        // Clear all worker input and output
         try {
-            clearWorkerIOParam(workParams.getContainerName() + "_"+ workerId);
+            clearWorkerIOParam(workParams.getContainerName() + "_" + workerId);
         } catch (IOException e) {
             LOGGER.error("Can not clean temporary folder", e);
             throw new ProcessingException(e);
@@ -191,20 +197,22 @@ public class WorkerImpl implements Worker {
         return workerId;
     }
 
-    private HandlerIO getHandlerIOParam(Action action, WorkspaceClient client, WorkerParameters workParams) throws HandlerNotFoundException {
+    private HandlerIO getHandlerIOParam(Action action, WorkspaceClient client, WorkerParameters workParams)
+        throws HandlerNotFoundException {
         HandlerIO handlerIO = new HandlerIO(workParams.getContainerName() + "_" + workerId);
         if (action.getActionDefinition().getIn() != null) {
-            for (IOParameter input: action.getActionDefinition().getIn()) {
-                switch(input.getUri().getPrefix()) {
+            for (IOParameter input : action.getActionDefinition().getIn()) {
+                switch (input.getUri().getPrefix()) {
                     case WORKSPACE: {
                         try {
                             File file = WorkerIOManagementHelper.findFileFromWorkspace(
-                                client, 
-                                workParams.getContainerName(), 
+                                client,
+                                workParams.getContainerName(),
                                 input.getUri().getPath(), workerId);
                             handlerIO.addInput(file);
                             break;
                         } catch (FileNotFoundException e) {
+                            LOGGER.error(HANDLER_INPUT_NOT_FOUND, e);
                             throw new IllegalArgumentException(HANDLER_INPUT_NOT_FOUND + input.getUri().getPath());
                         }
                     }
@@ -222,9 +230,9 @@ public class WorkerImpl implements Worker {
             }
         }
         if (action.getActionDefinition().getOut() != null) {
-            for (IOParameter output: action.getActionDefinition().getOut()) {
-                switch(output.getUri().getPrefix()) {
-                    case WORKSPACE: 
+            for (IOParameter output : action.getActionDefinition().getOut()) {
+                switch (output.getUri().getPrefix()) {
+                    case WORKSPACE:
                         handlerIO.addOutput(output.getUri().getPath());
                         break;
                     default:

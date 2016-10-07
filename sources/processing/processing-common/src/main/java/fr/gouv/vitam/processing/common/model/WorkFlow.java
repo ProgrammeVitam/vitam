@@ -32,6 +32,8 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import fr.gouv.vitam.common.SingletonUtils;
+
 /**
  *
  *
@@ -92,8 +94,7 @@ public class WorkFlow {
      */
     public List<Step> getSteps() {
         if (steps == null) {
-            // FIXME REVIEW Use SingletonUtils
-            return new ArrayList<>();
+            return SingletonUtils.singletonList();
         }
         return steps;
     }

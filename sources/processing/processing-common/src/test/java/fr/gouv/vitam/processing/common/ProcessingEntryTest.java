@@ -39,6 +39,14 @@ public class ProcessingEntryTest {
         assertEquals(Test, new ProcessingEntry(Test, Test).getContainer());
         assertEquals(Test, new ProcessingEntry(Test, Test).getWorkflow());
     }
+    @Test(expected = IllegalArgumentException.class)
+    public void testConstructorNullContainer() {
+        new ProcessingEntry(null, Test);
+    }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void testConstructorNullWorkflow() {
+        new ProcessingEntry(Test, null);
+    }
 
 }

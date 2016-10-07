@@ -28,6 +28,9 @@ package fr.gouv.vitam.ingest.external.api;
 
 import java.io.InputStream;
 
+import javax.ws.rs.core.Response;
+import javax.xml.stream.XMLStreamException;
+
 /**
  * IngestExtern interface
  */
@@ -38,7 +41,9 @@ public interface IngestExternal {
      * TODO add the file name as param from a header
      * 
      * @param input the file
+     * @return 
      * @throws IngestExternalException thrown if an error occured in worklofw
+     * @throws XMLStreamException 
      */
-    void upload(InputStream input) throws IngestExternalException;
+    Response upload(InputStream input) throws IngestExternalException, XMLStreamException;
 }

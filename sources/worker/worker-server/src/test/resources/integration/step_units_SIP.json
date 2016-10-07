@@ -10,18 +10,7 @@
         {
           "action": {
             "actionKey": "IndexUnit",
-            "behavior": "BLOCKING",
-            "in": [
-              {
-                "name": "mapsUnits.file",
-                "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json"
-              },
-              
-              {
-                "name": "unitsTree.file",
-                "uri": "WORKSPACE:UnitsTree/INGEST_TREE.json"
-              }
-            ]
+            "behavior": "BLOCKING"
           }
         }
       ]

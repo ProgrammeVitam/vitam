@@ -95,7 +95,7 @@ public class ProcessManagementResourceTest {
     @Test
     public void shouldGetStatusReturnNoContent() throws Exception {
         get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
-    }
+    }    
 
     @Test
     public void shouldReturnErrorNotFoundWhenNotExistWorkFlow() throws Exception {
@@ -105,18 +105,7 @@ public class ProcessManagementResourceTest {
             .post("/operations").then()
             .body(equalTo(generateResponseErrorFromStatus(Status.NOT_FOUND)))
             .statusCode(Status.NOT_FOUND.getStatusCode());
-    }
-
-
-    @Test
-    public void shouldReturnPreconditionFailedWhenEmptyBody() throws Exception {
-        given()
-            .contentType(ContentType.JSON)
-            .body(new ProcessingEntry(CONTAINER_NAME, "")).when()
-            .post("/operations").then()
-            .body(equalTo(generateResponseErrorFromStatus(Status.PRECONDITION_FAILED)))
-            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-    }
+    }    
 
     @Ignore
     @Test

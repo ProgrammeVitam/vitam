@@ -27,6 +27,7 @@
 
 package fr.gouv.vitam.common.junit;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -76,5 +77,13 @@ public class JunitHelperTest {
         assertFalse(junitFindAvailablePort0.isListeningOn(port));
         assertFalse(junitFindAvailablePort0.isListeningOn(null, port));
         junitFindAvailablePort0.releasePort(port);
+    }
+
+    @Test
+    public void testConsume() {
+        assertEquals(0, JunitHelper.consumeInputStream(null));
+        assertEquals(0, JunitHelper.consumeInputStreamPerByte(null));
+        // Just check by running
+        JunitHelper.awaitFullGc();
     }
 }

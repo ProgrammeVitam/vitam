@@ -27,6 +27,7 @@
 package fr.gouv.vitam.processing.common.model;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -185,17 +186,23 @@ public class ProcessResponse implements EngineResponse {
      */
     public static String getGlobalProcessOutcomeMessage(List<EngineResponse> responses) {
         StringBuilder globalOutcomeMessage = new StringBuilder();
+        Map<String,Integer> histogramResponse = new LinkedHashMap<>();
         if (responses != null) {
-            boolean isFirst = true;
+            
             int totalStepError = responses.stream().mapToInt(EngineResponse::getErrorNumber).sum();
             for (final EngineResponse response : responses) {
                 for (final Entry<String, OutcomeMessage> entry : response.getOutcomeMessages().entrySet()) {
-                    if (!isFirst) {
-                        globalOutcomeMessage.append(". ");
+                    String key = new StringBuilder(entry.getKey()).append(" ").append(response.getStatus()).toString();
+                    Integer nb = histogramResponse.get(key);
+                    if (nb == null){
+                        histogramResponse.put(key, 1);
+                    }else{
+                        histogramResponse.put(key, nb+1);
                     }
-                    globalOutcomeMessage.append(entry.getValue().value());
-                    isFirst = false;
                 }
+            }
+            for (final Entry <String,Integer> histogramClass: histogramResponse.entrySet()){
+                globalOutcomeMessage.append(histogramClass.getKey()).append(" : ").append(histogramClass.getValue()).append("\n");
             }
             if (totalStepError > 0) {
                 globalOutcomeMessage.append(". Nombre total d'erreurs : ").append(totalStepError);
@@ -206,6 +213,7 @@ public class ProcessResponse implements EngineResponse {
             globalOutcomeMessage.append("DefaultMessage");
         }
         return globalOutcomeMessage.toString();
+        
     }
 
 

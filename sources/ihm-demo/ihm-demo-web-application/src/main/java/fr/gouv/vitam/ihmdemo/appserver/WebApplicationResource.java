@@ -26,6 +26,12 @@
  */
 package fr.gouv.vitam.ihmdemo.appserver;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FilenameFilter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
@@ -33,6 +39,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.CookieParam;
 import javax.ws.rs.DELETE;
@@ -46,7 +53,9 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
+import javax.xml.stream.XMLStreamException;
 
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
@@ -54,6 +63,7 @@ import org.apache.shiro.util.ThreadContext;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.access.common.exception.AccessClientNotFoundException;
 import fr.gouv.vitam.access.common.exception.AccessClientServerException;
@@ -102,9 +112,17 @@ public class WebApplicationResource {
     private static final String FIELD_ID_KEY = "fieldId";
     private static final String NEW_FIELD_VALUE_KEY = "newFieldValue";
     private static final String INVALID_ALL_PARENTS_TYPE_ERROR_MSG = "The parameter \"allParents\" is not an array";
-    private static final String LOGBOOK_CLIENT_NOT_FOUND_EXCEPTION_MSG = "Logbook Client NOT FOUND Exception";
 
+    private static final String LOGBOOK_CLIENT_NOT_FOUND_EXCEPTION_MSG = "Logbook Client NOT FOUND Exception";
+    private static final WebApplicationConfig webApplicationConfig = ServerApplication.getWebApplicationConfig();
+    private static final String FILE_NAME_KEY = "fileName";
+    private static final String FILE_SIZE_KEY = "fileSize";
+    private static final String ZIP_EXTENSION = ".ZIP";
+    private static final String TAR_GZ_EXTENSION = ".TAR.GZ";
     private static final int TENANT_ID = 0;
+
+    @Context
+    private HttpServletRequest request;
 
     /**
      * @param criteria criteria search for units
@@ -294,28 +312,40 @@ public class WebApplicationResource {
      *
      * @param stream, data input stream
      * @return Response
+     * @throws XMLStreamException 
+     * @throws IOException 
      */
     @Path("ingest/upload")
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response upload(InputStream stream) {
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public Response upload(InputStream stream) throws XMLStreamException, IOException {
+        Response response = null;
+        String responseXml = "";
+        String guid = "guid";
         ParametersChecker.checkParameter("SIP is a mandatory parameter", stream);
         try {
-            IngestExternalClientFactory.getInstance().getIngestExternalClient().upload(stream);
+            response = IngestExternalClientFactory.getInstance().getIngestExternalClient().upload(stream);
+            //TODO: utiliser InputStream avec AsyncResponse pour ne pas charger en mémoire l'XML
+            responseXml = response.readEntity(String.class);
+            guid = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
 
         } catch (final VitamException e) {
             LOGGER.error("IngestExternalException in Upload sip", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .build();
         }
-        return Response.status(Status.OK).build();
+        
+        return Response.status(Status.OK).entity(responseXml)
+            .header("Content-Disposition", "attachment; filename=" + guid + ".xml")
+            .header(GlobalDataRest.X_REQUEST_ID, guid)
+            .build();
     }
 
     /**
      * Update Archive Units
      *
-     * @param updateSet conains updated field
+     * @param updateSet contains updated field
      * @param unitId archive unit id
      * @return archive unit details
      */
@@ -796,7 +826,7 @@ public class WebApplicationResource {
 
         return Response.status(Status.OK).build();
     }
-
+    
     /**
      * returns the unit life cycle based on its id
      * 
@@ -807,7 +837,6 @@ public class WebApplicationResource {
     @Path("/unitlifecycles/{id_lc}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUnitLifeCycleById(@PathParam("id_lc") String unitLifeCycleId) {
-
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitLifeCycleId);
         JsonNode result = null;
         try {
@@ -858,4 +887,136 @@ public class WebApplicationResource {
         return Response.status(Status.OK).entity(result).build();
     }
 
+
+    /**
+     * Generates the logbook operation statistics file (cvs format) relative to the operation parameter
+     * 
+     * @param operationId logbook oeration id
+     * @return the statistics file (csv format)
+     */
+    @GET
+    @Path("/stat/{id_op}")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response getLogbookStatistics(@PathParam("id_op") String operationId) {
+        LogbookClient logbookClient = LogbookClientFactory.getInstance().getLogbookOperationClient();
+        try {
+            JsonNode logbookOperationResult = logbookClient.selectOperationbyId(operationId);
+            if (logbookOperationResult != null && logbookOperationResult.has("result")) {
+                JsonNode logbookOperation = logbookOperationResult.get("result");
+                // Create csv file
+                ByteArrayOutputStream csvOutputStream =
+                    JsonTransformer.buildLogbookStatCsvFile(logbookOperation, operationId);
+                byte[] csvOutArray = csvOutputStream.toByteArray();
+                ResponseBuilder response = Response.ok(csvOutArray);
+                response.header("Content-Disposition", "attachment;filename=rapport.csv");
+                response.header("Content-Length", csvOutArray.length);
+
+                return response.build();
+            }
+
+            return Response.status(Status.NOT_FOUND).build();
+        } catch (LogbookClientException e) {
+            LOGGER.error("Logbook Client NOT FOUND Exception ", e);
+            return Response.status(Status.NOT_FOUND).build();
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error("INTERNAL SERVER ERROR", e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (Exception e) {
+            LOGGER.error("INTERNAL SERVER ERROR", e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Returns the list of available files
+     * 
+     * @return the list of available files
+     */
+    @GET
+    @Path("/upload/fileslist")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getAvailableFilesList() {
+
+        if (webApplicationConfig == null || webApplicationConfig.getSipDirectory() == null) {
+            LOGGER.error("SIP directory not configured");
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity("SIP directory not configured")
+                .build();
+        }
+
+        File fileDirectory = new File(webApplicationConfig.getSipDirectory());
+
+        if (!fileDirectory.isDirectory()) {
+            LOGGER.error("SIP directory <{}> is not a directory.",
+                webApplicationConfig.getSipDirectory());
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(
+                "SIP directory [" + webApplicationConfig.getSipDirectory() + "] is not a directory")
+                .build();
+        }
+        File[] sipFiles = fileDirectory.listFiles(new SipFilenameFilterImpl());
+        ArrayNode filesListDetails = JsonHandler.createArrayNode();
+        
+        if (sipFiles != null) {
+            for (File currentFile : sipFiles) {
+                ObjectNode fileDetails = JsonHandler.createObjectNode();
+                fileDetails.put(FILE_NAME_KEY, currentFile.getName());
+                fileDetails.put(FILE_SIZE_KEY, currentFile.length());
+                filesListDetails.add(fileDetails);
+            }
+        }
+
+        return Response.status(Status.OK).entity(filesListDetails).build();
+    }
+
+    private class SipFilenameFilterImpl implements FilenameFilter {
+        @Override
+        public boolean accept(File dir, String fileName) {
+            return fileName.toUpperCase().endsWith(ZIP_EXTENSION) || fileName.toUpperCase().endsWith(TAR_GZ_EXTENSION);
+        }
+    }
+    
+    /**
+     * Uploads the given file and returns the logbook operation id
+     * 
+     * @param fileName the file name
+     * @return the logbook operation id
+     */
+    @GET
+    @Path("/upload/{file_name}")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response uploadFileFromServer(@PathParam("file_name") String fileName) {
+        ParametersChecker.checkParameter("SIP path is a mandatory parameter", fileName);
+        InputStream sipInputStream = null;
+        try {
+            if (webApplicationConfig == null || webApplicationConfig.getSipDirectory() == null) {
+                LOGGER.error("SIP directory not configured");
+                return Response.status(Status.INTERNAL_SERVER_ERROR).entity("SIP directory not configured")
+                    .build();
+            }
+
+            // Read the selected file into an InputStream
+            sipInputStream = new FileInputStream(webApplicationConfig.getSipDirectory() + "/" + fileName);
+            Response response =
+                IngestExternalClientFactory.getInstance().getIngestExternalClient().upload(sipInputStream);
+            String ingestOperationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+
+            return Response.status(response.getStatus()).entity(ingestOperationId).build();
+        } catch (final VitamException e) {
+            LOGGER.error("IngestExternalException in Upload sip", e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e)
+                .build();
+        } catch (FileNotFoundException | XMLStreamException e) {
+            LOGGER.error("The selected file is not found", e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .build();
+
+        } finally {
+            if (sipInputStream != null) {
+                try {
+                    sipInputStream.close();
+                } catch (IOException e) {
+                    LOGGER.error("Error occured when trying to close the stream", e);
+                }
+            }
+        }
+    }
 }

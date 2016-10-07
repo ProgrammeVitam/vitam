@@ -150,7 +150,7 @@ public class SedaUtilsTest {
         final XMLInputFactory factory = XMLInputFactory.newInstance();
         final XMLEventReader evenReader = factory.createXMLEventReader(
             new FileReader(PropertiesUtils.getResourcesPath("sip.xml").toString()));
-        List<String> versionList = new ArrayList<String>();
+        List<String> versionList;
 
         versionList = utils.manifestVersionList(evenReader);
         assertEquals(5, versionList.size());
@@ -215,8 +215,7 @@ public class SedaUtilsTest {
     }
 
     private JsonNode getSedaTestError() {
-        ObjectNode jsonNodeObjectInformation = JsonHandler.createObjectNode();
-        return jsonNodeObjectInformation;
+        return JsonHandler.createObjectNode();
     }
 
 }

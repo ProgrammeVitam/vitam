@@ -38,6 +38,26 @@ angular.module('lifecycle')
       return result;
     }
 
+    // ************************************Pagination  **************************** //
+    self.viewby = 10;
+    self.currentPage = 1;
+    self.itemsPerPage = self.viewby;
+    self.maxSize = 5;
+
+    self.setPage = function(pageNo) {
+     selfcurrentPage = pageNo;
+    };
+
+    self.pageChanged = function() {
+     console.log('Page changed to: ' + self.currentPage);
+    };
+
+    self.setItemsPerPage = function(num) {
+      self.itemsPerPage = num;
+      self.currentPage = 1; // reset to first page
+    };
+    // **************************************************************************** //
+
     // selectedObjects
     self.selectedObjects = [];
 
@@ -90,6 +110,8 @@ angular.module('lifecycle')
               self.lifeCycleDetails.push(newEvent);
             }
           });
+
+          self.totalItems = self.lifeCycleDetails.length;
         }
       }, function(error) {
         // Display error message
@@ -99,25 +121,4 @@ angular.module('lifecycle')
 
     // Display life cycle
     buildUnitLifeCycle();
-
-    // ************************************Pagination  **************************** //
-    self.viewby = 10;
-    self.currentPage = 1;
-    self.itemsPerPage = self.viewby;
-    self.maxSize = 5;
-
-    self.setPage = function(pageNo) {
-     selfcurrentPage = pageNo;
-    };
-
-    self.pageChanged = function() {
-     console.log('Page changed to: ' + self.currentPage);
-    };
-
-    self.setItemsPerPage = function(num) {
-      self.itemsPerPage = num;
-      self.currentPage = 1; // reset to first page
-    };
-    // **************************************************************************** //
-
   });

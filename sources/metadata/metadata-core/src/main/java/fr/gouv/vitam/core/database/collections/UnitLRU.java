@@ -46,7 +46,7 @@ public class UnitLRU implements Map<String, Unit> {
      * Synchronized LRU cache
      */
     final SynchronizedLruCache<String, Unit> LRU_UNIT_CACHED =
-        new SynchronizedLruCache<String, Unit>(GlobalDatasDb.MAXLRU, GlobalDatasDb.TTLMS);
+        new SynchronizedLruCache<>(GlobalDatasDb.MAXLRU, GlobalDatasDb.TTLMS);
 
     /**
      * Empty constructor

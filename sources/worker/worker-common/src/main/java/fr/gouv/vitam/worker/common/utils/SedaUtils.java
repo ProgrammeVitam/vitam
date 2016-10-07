@@ -91,12 +91,7 @@ public class SedaUtils {
     private static final String NAMESPACE_URI = "fr:gouv:culture:archivesdefrance:seda:v2.0";
     private static final String SEDA_VALIDATION_FILE = "seda-2.0-main.xsd";
     public static final String JSON_EXTENSION = ".json";
-    private static final String BINARY_DATA_OBJECT = "BinaryDataObject";
-    private static final String MESSAGE_IDENTIFIER = "MessageIdentifier";
-    private static final String TAG_URI = "Uri";
-    private static final String TAG_SIZE = "Size";
-    private static final String TAG_DIGEST = "MessageDigest";
-    private static final String TAG_VERSION = "DataObjectVersion";
+
     private static final String MSG_PARSING_BDO = "Parsing Binary Data Object";
     private static final String STAX_PROPERTY_PREFIX_OUTPUT_SIDE = "javax.xml.stream.isRepairingNamespaces";
     public static final String LIFE_CYCLE_EVENT_TYPE_PROCESS = "INGEST";
@@ -106,7 +101,6 @@ public class SedaUtils {
     private static final String LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG = "Logbook LifeCycle resource not found";
     private static final String LOGBOOK_SERVER_INTERNAL_EXCEPTION_MSG = "Logbook Server internal error";
     public static final String TXT_EXTENSION = ".txt";
-    public static final String UP_FIELD = "_up";
     private static final String WORKSPACE_MANDATORY_MSG = "WorkspaceClient is a mandatory parameter";
     private static final String CANNOT_READ_SEDA = "Can not read SEDA";
     private static final String MANIFEST_NOT_FOUND = "Manifest.xml Not Found";
@@ -117,10 +111,9 @@ public class SedaUtils {
     // objectGroup referenced before declaration
     private final Map<String, String> unitIdToGuid;
 
-    private final Map<String, String> binaryDataObjectIdToObjectGroupId;
+    private final Map<String, String> binaryDataObjectIdToObjectGroupId;    
     private final Map<String, List<String>> objectGroupIdToBinaryDataObjectId;
     private final Map<String, String> unitIdToGroupId;
-
 
     protected SedaUtils() {
         binaryDataObjectIdToGuid = new HashMap<>();
@@ -173,8 +166,6 @@ public class SedaUtils {
         return unitIdToGroupId;
     }
 
-
-
     /**
      * get Message Identifier from seda
      * 
@@ -199,7 +190,7 @@ public class SedaUtils {
 
         final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
         XMLEventReader reader = null;
-        final QName messageObjectName = new QName(NAMESPACE_URI, MESSAGE_IDENTIFIER);
+        final QName messageObjectName = new QName(NAMESPACE_URI, SedaConstants.TAG_MESSAGE_IDENTIFIER);
 
         try {
             reader = xmlInputFactory.createXMLEventReader(xmlFile);
@@ -266,10 +257,11 @@ public class SedaUtils {
 
     /**
      * @param logbookLifecycleParameters logbook LC parameters
-     * @param stepStatus the status code 
+     * @param stepStatus the status code
      * @throws ProcessingException
      */
-    public static void setLifeCycleFinalEventStatusByStep(LogbookParameters logbookLifecycleParameters, StatusCode stepStatus)
+    public static void setLifeCycleFinalEventStatusByStep(LogbookParameters logbookLifecycleParameters,
+        StatusCode stepStatus)
         throws ProcessingException {
 
         try {
@@ -291,6 +283,7 @@ public class SedaUtils {
             throw new ProcessingException(e);
         }
     }
+
 
     /**
      * The method is used to validate SEDA by XSD
@@ -348,8 +341,7 @@ public class SedaUtils {
     }
 
     /**
-
-     *
+     * 
      * @param params - parameters of workspace server
      * @return ExtractUriResponse - Object ExtractUriResponse contains listURI, listMessages and value boolean(error).
      * @throws ProcessingException - throw when error in execution.
@@ -359,8 +351,7 @@ public class SedaUtils {
         final String guid = params.getContainerName();
         final WorkspaceClient client = WorkspaceClientFactory.create(params.getUrlWorkspace());
         // TODO : whould use worker configuration instead of the processing configuration
-        final ExtractUriResponse extractUriResponse = parsingUriSEDAWithWorkspaceClient(client, guid);
-        return extractUriResponse;
+        return parsingUriSEDAWithWorkspaceClient(client, guid);
     }
 
     /**
@@ -378,8 +369,8 @@ public class SedaUtils {
             xmlFile =
                 client.getObject(guid, IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e1) {
-            LOGGER.error("Workspace error: Can not get file");
-            throw new ProcessingException(e1.getMessage());
+            LOGGER.error("Workspace error: Can not get file", e1);
+            throw new ProcessingException(e1);
         }
         LOGGER.debug(SedaUtils.MSG_PARSING_BDO);
 
@@ -400,7 +391,7 @@ public class SedaUtils {
 
         xmlOutputFactory.setProperty(SedaUtils.STAX_PROPERTY_PREFIX_OUTPUT_SIDE, Boolean.TRUE);
 
-        final QName binaryDataObject = new QName(SedaUtils.NAMESPACE_URI, SedaUtils.BINARY_DATA_OBJECT);
+        final QName binaryDataObject = new QName(SedaUtils.NAMESPACE_URI, SedaConstants.TAG_BINARY_DATA_OBJECT);
 
         try {
 
@@ -426,7 +417,7 @@ public class SedaUtils {
             evenReader.close();
 
         } catch (XMLStreamException | URISyntaxException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             throw new ProcessingException(e);
         } finally {
             extractUriResponse.setErrorDuplicateUri(!extractUriResponse.getOutcomeMessages().isEmpty());
@@ -444,7 +435,7 @@ public class SedaUtils {
                 final StartElement startElement = event.asStartElement();
 
                 // If we have an Tag Uri element equal Uri into SEDA
-                if (startElement.getName().getLocalPart() == SedaUtils.TAG_URI) {
+                if (startElement.getName().getLocalPart() == SedaConstants.TAG_URI) {
                     event = evenReader.nextEvent();
                     final String uri = event.asCharacters().getData();
                     // Check element is duplicate
@@ -484,8 +475,8 @@ public class SedaUtils {
         ParametersChecker.checkParameter(WORKSPACE_MANDATORY_MSG, client);
         ParametersChecker.checkParameter("ContainerId is a mandatory parameter", containerId);
 
-        InputStream xmlFile = null;
-        List<String> invalidVersionList = new ArrayList<>();
+        InputStream xmlFile;
+        List<String> invalidVersionList;
         try {
             xmlFile = client.getObject(containerId,
                 IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
@@ -495,7 +486,7 @@ public class SedaUtils {
         }
 
         final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
-        XMLEventReader reader = null;
+        XMLEventReader reader;
 
         try {
             reader = xmlInputFactory.createXMLEventReader(xmlFile);
@@ -512,7 +503,7 @@ public class SedaUtils {
 
     /**
      * @param evenReader of seda
-     * @return Seda Info object 
+     * @return Seda Info object
      * @throws ProcessingException
      */
     public static SedaUtilInfo getBinaryObjectInfo(XMLEventReader evenReader)
@@ -527,7 +518,7 @@ public class SedaUtils {
                 if (event.isStartElement()) {
                     StartElement startElement = event.asStartElement();
 
-                    if (startElement.getName().getLocalPart() == BINARY_DATA_OBJECT) {
+                    if (SedaConstants.TAG_BINARY_DATA_OBJECT.equals(startElement.getName().getLocalPart())) {
                         event = evenReader.nextEvent();
                         final String id = ((Attribute) startElement.getAttributes().next()).getValue();
                         binaryObjectInfo.setId(id);
@@ -538,31 +529,31 @@ public class SedaUtils {
                                 startElement = event.asStartElement();
 
                                 final String tag = startElement.getName().getLocalPart();
-                                if (tag == TAG_URI) {
-                                    final String uri = evenReader.getElementText();
-                                    binaryObjectInfo.setUri(new URI(uri));
-                                }
-
-                                if (tag == TAG_VERSION) {
-                                    final String version = evenReader.getElementText();
-                                    binaryObjectInfo.setVersion(version);
-                                }
-
-                                if (tag == TAG_DIGEST) {
-                                    binaryObjectInfo
-                                        .setAlgo(((Attribute) startElement.getAttributes().next()).getValue());
-                                    final String messageDigest = evenReader.getElementText();
-                                    binaryObjectInfo.setMessageDigest(messageDigest);
-                                }
-
-                                if (tag == TAG_SIZE) {
-                                    final long size = Long.parseLong(evenReader.getElementText());
-                                    binaryObjectInfo.setSize(size);
+                                switch (tag) {
+                                    case SedaConstants.TAG_URI:
+                                        final String uri = evenReader.getElementText();
+                                        binaryObjectInfo.setUri(new URI(uri));
+                                        break;
+                                    case SedaConstants.TAG_DO_VERSION:
+                                        final String version = evenReader.getElementText();
+                                        binaryObjectInfo.setVersion(version);
+                                        break;
+                                    case SedaConstants.TAG_DIGEST:
+                                        binaryObjectInfo
+                                            .setAlgo(((Attribute) startElement.getAttributes().next()).getValue());
+                                        final String messageDigest = evenReader.getElementText();
+                                        binaryObjectInfo.setMessageDigest(messageDigest);
+                                        break;
+                                    case SedaConstants.TAG_SIZE:
+                                        final long size = Long.parseLong(evenReader.getElementText());
+                                        binaryObjectInfo.setSize(size);
+                                        break;
                                 }
                             }
 
                             if (event.isEndElement() &&
-                                event.asEndElement().getName().getLocalPart() == BINARY_DATA_OBJECT) {
+                                SedaConstants.TAG_BINARY_DATA_OBJECT
+                                    .equals(event.asEndElement().getName().getLocalPart())) {
                                 sedaUtilInfo.setBinaryObjectMap(binaryObjectInfo);
                                 binaryObjectInfo = new BinaryObjectInfo();
                                 break;
@@ -587,7 +578,7 @@ public class SedaUtils {
 
     public List<String> manifestVersionList(XMLEventReader evenReader)
         throws ProcessingException {
-        final List<String> versionList = new ArrayList<String>();
+        final List<String> versionList = new ArrayList<>();
         final SedaUtilInfo sedaUtilInfo = getBinaryObjectInfo(evenReader);
         final Map<String, BinaryObjectInfo> binaryObjectMap = sedaUtilInfo.getBinaryObjectMap();
 
@@ -604,7 +595,6 @@ public class SedaUtils {
      * compare if the version list of manifest.xml is included in or equal to the version list of version.conf
      *
      * @param eventReader xml event reader
-     * @param fileConf version file
      * @return list of unsupported version
      * @throws ProcessingException when error in execution
      */
@@ -620,7 +610,7 @@ public class SedaUtils {
             throw new ProcessingException(e);
         }
 
-        List<String> fileVersionList = new ArrayList<>();
+        List<String> fileVersionList;
 
         try {
             fileVersionList = SedaVersion.fileVersionList(file);
@@ -630,7 +620,7 @@ public class SedaUtils {
         }
 
         final List<String> manifestVersionList = manifestVersionList(eventReader);
-        final List<String> invalidVersionList = new ArrayList<String>();
+        final List<String> invalidVersionList = new ArrayList<>();
 
         for (final String s : manifestVersionList) {
             if (s != null) {
@@ -644,8 +634,6 @@ public class SedaUtils {
         }
         return invalidVersionList;
     }
-
-
 
     /**
      * Parse SEDA file manifest.xml to retrieve all its binary data objects informations as a SedaUtilInfo.
@@ -669,7 +657,7 @@ public class SedaUtils {
 
         final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
 
-        SedaUtilInfo sedaUtilInfo = null;
+        SedaUtilInfo sedaUtilInfo;
         XMLEventReader reader = null;
         try {
             reader = xmlInputFactory.createXMLEventReader(xmlFile);
@@ -703,7 +691,7 @@ public class SedaUtils {
         throws ProcessingException {
         ParameterHelper.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
-        // TODO : whould use worker configuration instead of the processing configuration        
+        // TODO : whould use worker configuration instead of the processing configuration
         final WorkspaceClient client = WorkspaceClientFactory.create(params.getUrlWorkspace());
         ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
         return computeBinaryObjectsSizeFromManifest(client, containerId);
@@ -773,4 +761,5 @@ public class SedaUtils {
             throw new ProcessingException(e);
         }
     }
+
 }

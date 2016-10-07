@@ -29,6 +29,8 @@ package fr.gouv.vitam.storage.offers.workspace.driver;
 import java.util.Properties;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 
@@ -39,12 +41,15 @@ public class DriverImpl implements Driver {
 
     private static final String DRIVER_NAME = "WorkspaceDriver";
     private static final String URL_IS_A_MANDATORY_PARAMETER = "Url is a mandatory parameter";
+    
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DriverImpl.class);
 
     @Override
     public ConnectionImpl connect(String url, Properties parameters) throws StorageDriverException {
         try {
             ParametersChecker.checkParameter(URL_IS_A_MANDATORY_PARAMETER, url);
         } catch (IllegalArgumentException exc) {
+            LOGGER.error(exc);
             throw new StorageDriverException(DRIVER_NAME, StorageDriverException.ErrorCode.PRECONDITION_FAILED,
                 URL_IS_A_MANDATORY_PARAMETER);
         }
@@ -53,6 +58,7 @@ public class DriverImpl implements Driver {
             connection.getStatus();
             return connection;
         } catch (StorageDriverException exception) {
+            LOGGER.error("Internal Server Error", exception);
             throw new StorageDriverException(DRIVER_NAME, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
                 exception.getMessage());
         }

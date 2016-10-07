@@ -27,11 +27,16 @@
 package fr.gouv.vitam.ingest.internal.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import javax.xml.stream.XMLStreamException;
 
 import org.junit.Test;
 
@@ -39,7 +44,6 @@ import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory.IngestInternalClientType;
-import fr.gouv.vitam.ingest.internal.model.UploadResponseDTO;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
@@ -72,7 +76,7 @@ public class IngestInternalClientMockTest {
 	}
     
 	@Test
-	public void givenMockExistsWhenPostSipThenReturnOK() throws VitamException
+	public void givenMockExistsWhenPostSipThenReturnOK() throws VitamException, XMLStreamException
 	{
 		IngestInternalClientFactory.setConfiguration(IngestInternalClientType.MOCK, null, 0);
 
@@ -104,8 +108,8 @@ public class IngestInternalClientMockTest {
 	        operationList.add(externalOperationParameters2);
 		
 		inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
-		final UploadResponseDTO uploadResponseDTO= client.upload(operationList, inputStream);
-		assertThat(uploadResponseDTO.getVitamStatus()).isEqualTo("success");
+		Response response= client.upload(operationList, inputStream);
+		assertEquals(response.getStatus(), Status.OK.getStatusCode());
 	}
   
 }

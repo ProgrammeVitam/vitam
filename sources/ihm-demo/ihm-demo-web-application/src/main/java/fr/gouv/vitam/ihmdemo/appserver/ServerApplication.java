@@ -66,6 +66,7 @@ public class ServerApplication {
     private static final String CONF_FILE_NAME = "ihm-demo.conf";
     private static final String MODULE_NAME = "ihm-demo";
     private static final String SHIRO_FILE = "shiro.ini";
+    private static WebApplicationConfig configuration = null;
 
 
     /**
@@ -81,7 +82,7 @@ public class ServerApplication {
                 throw new IllegalArgumentException(
                     format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME));
             }
-            new ServerApplication().configure(args[0]);
+            ServerApplication.configure(args[0]);
 
             if (vitamServer != null && vitamServer.isStarted()) {
                 vitamServer.getServer().join();
@@ -92,10 +93,10 @@ public class ServerApplication {
         }
     }
 
-    protected void configure(String configFile) throws Exception {
+    protected static void configure(String configFile) throws Exception {
         try {
 
-            WebApplicationConfig configuration = new WebApplicationConfig();
+            configuration = new WebApplicationConfig();
 
             if (configFile != null) {
                 // Get configuration parameters from Configuration File
@@ -193,5 +194,20 @@ public class ServerApplication {
         if (vitamServer != null && vitamServer.isStarted()) {
             vitamServer.stop();
         }
+    }
+
+    /**
+     * @return the WebApplicationConfig object
+     */
+    public static WebApplicationConfig getWebApplicationConfig() {
+        return configuration;
+    }
+
+    /**
+     * Sets the WebApplicationConfig attribute
+     *
+     */
+    public static void setWebApplicationConfig(WebApplicationConfig webConfiguration) {
+        configuration = webConfiguration;
     }
 }

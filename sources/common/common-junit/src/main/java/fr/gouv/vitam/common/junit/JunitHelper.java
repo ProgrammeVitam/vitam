@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.junit;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashSet;
@@ -34,6 +35,9 @@ import java.util.Set;
 
 import org.junit.rules.ExternalResource;
 
+import com.google.common.testing.GcFinalization;
+
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
@@ -41,6 +45,8 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  * This class allows to get an available port during Junit execution
  */
 public class JunitHelper extends ExternalResource {
+    private static final int WAIT_AFTER_FULL_GC = 100;
+    private static final int BUFFER_SIZE = 65536;
     private static final String COULD_NOT_FIND_A_FREE_TCP_IP_PORT_TO_START_EMBEDDED_SERVER_ON =
         "Could not find a free TCP/IP port to start embedded Server on";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(JunitHelper.class);
@@ -117,6 +123,79 @@ public class JunitHelper extends ExternalResource {
         } catch (final IOException e) {
             LOGGER.warn("The server is not listening on specified port", e);
             return false;
+        }
+    }
+
+    /**
+     * Read and close the inputStream using buffer read (read(buffer))
+     *
+     * @param inputStream
+     * @return the size of the inputStream read
+     */
+    public static final long consumeInputStream(InputStream inputStream) {
+        long read = 0;
+        if (inputStream == null) {
+            return read;
+        }
+        byte[] buffer = new byte[BUFFER_SIZE];
+        try {
+            int len = 0;
+            while ((len = inputStream.read(buffer)) >= 0) {
+                read += len;
+            }
+        } catch (IOException e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+        }
+        try {
+            inputStream.close();
+        } catch (IOException e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+        }
+        return read;
+    }
+
+    /**
+     * Read and close the inputStream one byte at a time (read())
+     *
+     * @param inputStream
+     * @return the size of the inputStream read
+     */
+    public static final long consumeInputStreamPerByte(InputStream inputStream) {
+        long read = 0;
+        if (inputStream == null) {
+            return read;
+        }
+        try {
+            while (inputStream.read() >= 0) {
+                read++;
+            }
+        } catch (IOException e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+        }
+        try {
+            inputStream.close();
+        } catch (IOException e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+        }
+        return read;
+    }
+
+    /**
+     * For benchmark: clean the used memory using a full GC.</br>
+     * </br>
+     * Usage:</br>
+     * JunitHelper.awaitFullGc();</br>
+     * long firstAvailableMemory = Runtime.getRuntime().freeMemory();</br>
+     * ... do some tests consuming memory JunitHelper.awaitFullGc();</br>
+     * long secondAvailableMemory = Runtime.getRuntime().freeMemory();</br>
+     * long usedMemory = firstAvailableMemory - secondAvailableMemory;
+     */
+    public static final void awaitFullGc() {
+        GcFinalization.awaitFullGc();
+        try {
+            Thread.sleep(WAIT_AFTER_FULL_GC);
+        } catch (InterruptedException e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
     }
 }

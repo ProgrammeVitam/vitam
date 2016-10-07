@@ -39,6 +39,7 @@ public class WebApplicationConfig {
     private String staticContent;
     private String jettyConfig;
     private boolean secure;
+    private String sipDirectory;
 
     /**
      * @return port
@@ -140,6 +141,22 @@ public class WebApplicationConfig {
      */
     public WebApplicationConfig setSecure(boolean secure) {
         this.secure = secure;
+        return this;
+    }
+
+    /**
+     * @return the directory path that contains SIPs ready for upload
+     */
+    public String getSipDirectory() {
+        return sipDirectory;
+    }
+
+    /**
+     * @param sipDirectory directory that contains SIPs ready for upload
+     * @return WebApplicationConfig object
+     */
+    public WebApplicationConfig setSipDirectory(String sipDirectory) {
+        this.sipDirectory = sipDirectory;
         return this;
     }
 }

@@ -127,7 +127,7 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
      */
     private List<String> findObjectGroupsNonReferencedByArchiveUnit(WorkerParameters params) 
         throws IOException, InvalidParseOperationException, InvalidGuidOperationException{
-        List<String> ogList = new ArrayList<String>();
+        List<String> ogList = new ArrayList<>();
 
         //TODO: Use MEMORY to stock this map after extract seda
         InputStream objectGroupToUnitMapFile = new FileInputStream((File) handlerIO.getInput().get(0)); 
@@ -153,7 +153,7 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
                     LogbookOutcome.WARNING, 
                     LogbookOutcome.WARNING.toString(), 
                     ERROR_MESSAGE + objectGroup.getKey(), 
-                    GUIDReader.getGUID(objectGroup.getKey()));
+                    GUIDReader.getGUID(objectGroup.getValue().toString()));
                 try {
                     LOGBOOK_LIFECYCLE_CLIENT.update(logbookOGParameter);
                 } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |

@@ -36,7 +36,7 @@ public class FormatIdentifierInfo {
     private String softwareName;
     
     /**
-     * Create a new FormatIdentifierInfo with all parametters
+     * Create a new FormatIdentifierInfo with all parameters
      * 
      * @param version the identifier version
      * @param softwareName the identifier name
@@ -46,10 +46,18 @@ public class FormatIdentifierInfo {
         this.version = version;
     }
 
+    /**
+     * 
+     * @return the identifier version
+     */
     public String getVersion() {
         return version;
     }
 
+    /**
+     *     
+     * @return the identifier name
+     */
     public String getSoftwareName() {
         return softwareName;
     }

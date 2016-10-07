@@ -1,3 +1,4 @@
+#!/bin/bash
 #*******************************************************************************
 # Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
 #
@@ -24,21 +25,70 @@
 # The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
 # accept its terms.
 #*******************************************************************************
+WORKING_FOLDER=$(dirname $0)
+
+pushd ${WORKING_FOLDER}
+
+# Args check
+
 if [ -z "$1" ]; then
-	echo "usage : build.sh <component>"
+	echo "Usage : build.sh <component> [<target_folder>]"
+	popd
 	exit 1
 fi
 
-COMPONENT=$(pwd)/$1
+COMPONENT=$1
+TARGET_FOLDER=$2
 
-if [ ! -d "$COMPONENT" ]; then
-  echo "Folder $COMPONENT doesn't exist ! Aborting..."
-  exit 2
+COMPONENT_FOLDER=$(pwd)/${COMPONENT}
+
+if [ ! -d "${COMPONENT_FOLDER}" ]; then
+	echo "Folder ${COMPONENT_FOLDER} doesn't exist ! Aborting."
+	popd
+	exit 2
 fi
 
-for SPECFILE in $(ls ${COMPONENT}/rpmbuild/SPECS/*.spec); do
-  echo "Building specfile ${SPECFILE}..."
-  HOME=${COMPONENT} spectool -g -R ${SPECFILE}
-  HOME=${COMPONENT} rpmbuild -bb ${SPECFILE}
+# Default target folder definition
+if [ -z "${TARGET_FOLDER}" ]; then
+	TARGET_FOLDER=${COMPONENT_FOLDER}/target
+	mkdir -p ${TARGET_FOLDER}
+fi
+
+if [ ! -d "${TARGET_FOLDER}" ]; then
+	echo "Target folder ${TARGET_FOLDER} doesn't exist ! Aborting."
+	popd
+	exit 2
+fi
+
+
+# Build RPM
+
+for SPECFILE in $(ls ${COMPONENT_FOLDER}/rpmbuild/SPECS/*.spec); do
+	echo "Building specfile ${SPECFILE}..."
+
+	HOME=${COMPONENT_FOLDER} spectool -g -R ${SPECFILE}
+	if [ ! $? -eq 0 ]; then
+		echo "Error preparing the build ! Aborting."
+		popd
+		exit 2
+	fi
+
+	HOME=${COMPONENT_FOLDER} rpmbuild -bb ${SPECFILE}
+	if [ ! $? -eq 0 ]; then
+		echo "Error building the rpm ! Aborting."
+		popd
+		exit 2
+	fi
 done
 
+# Copy result RPM in target folder
+
+RPMS=$(find ${COMPONENT_FOLDER} -name '*.rpm')
+
+mkdir -p ${TARGET_FOLDER}
+
+for RPM in ${RPMS}; do
+ 	mv ${RPM} ${TARGET_FOLDER}
+done
+
+popd

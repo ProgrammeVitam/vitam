@@ -52,7 +52,9 @@ public class CheckVersionActionHandler extends ActionHandler {
      *
      * @param factory SedaUtils factory
      */
-    public CheckVersionActionHandler() {}
+    public CheckVersionActionHandler() {
+        // empty constructor
+    }
 
     /**
      * @return HANDLER_ID
@@ -73,12 +75,12 @@ public class CheckVersionActionHandler extends ActionHandler {
         try {
             checkMandatoryIOParameter(actionDefinition);
             List<String> versionInvalidList = sedaUtils.checkSupportedBinaryObjectVersion(params);
-            if (versionInvalidList.size() != 0) {
+            if (!versionInvalidList.isEmpty()) {
                 response.setErrorNumber(versionInvalidList.size());
                 response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_VERSION_KO);
             }
         } catch (ProcessingException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error(e);
             response.setStatus(StatusCode.FATAL).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_VERSION_KO);
         }
 
@@ -88,7 +90,7 @@ public class CheckVersionActionHandler extends ActionHandler {
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-      //TODO Add Workspace:SIP/manifest.xml and check it         
+        // TODO Add Workspace:SIP/manifest.xml and check it
     }
 
 }

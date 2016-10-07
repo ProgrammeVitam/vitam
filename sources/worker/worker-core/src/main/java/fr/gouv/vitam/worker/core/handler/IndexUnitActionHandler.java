@@ -27,13 +27,12 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.List;
 
 import javax.xml.stream.XMLEventFactory;
 import javax.xml.stream.XMLEventReader;
@@ -41,11 +40,9 @@ import javax.xml.stream.XMLEventWriter;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.Attribute;
+import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
-
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -76,6 +73,7 @@ import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
+import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.core.api.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -94,30 +92,22 @@ public class IndexUnitActionHandler extends ActionHandler {
     private static final String ARCHIVE_UNIT = "ArchiveUnit";
     private static final String TAG_CONTENT = "Content";
     private static final String TAG_MANAGEMENT = "Management";
-    private static final String TAG_OG = "_og";
     public static final String LIFE_CYCLE_EVENT_TYPE_PROCESS = "INGEST";
     public static final String UNIT_LIFE_CYCLE_CREATION_EVENT_TYPE =
         "Check SIP – Units – Lifecycle Logbook Creation – Création du journal du cycle de vie des units";
     public static final String TXT_EXTENSION = ".txt";
-    public static final String UP_FIELD = "_up";
     private static final String FILE_COULD_NOT_BE_DELETED_MSG = "File could not be deleted";
 
     private LogbookLifeCycleUnitParameters logbookLifecycleUnitParameters = LogbookParametersFactory
         .newLogbookLifeCycleUnitParameters();
     private HandlerIO handlerIO;
-    private HandlerIO handlerInitialIOList;
-
 
     /**
      * Constructor with parameter SedaUtilsFactory
      *
      * @param factory the sedautils factory
      */
-    public IndexUnitActionHandler() {
-        handlerInitialIOList = new HandlerIO("");
-        handlerInitialIOList.addInput(File.class);
-        handlerInitialIOList.addInput(File.class);
-    }
+    public IndexUnitActionHandler() {}
 
     /**
      * @return HANDLER_ID
@@ -132,14 +122,15 @@ public class IndexUnitActionHandler extends ActionHandler {
         LOGGER.info("IndexUnitActionHandler running ...");
         handlerIO = param;
         final EngineResponse response =
-            new ProcessResponse().setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID, OutcomeMessage.INDEX_UNIT_OK);
+            new ProcessResponse().setStatus(StatusCode.OK);
 
         try {
             checkMandatoryIOParameter(handlerIO);
             SedaUtils.updateLifeCycleByStep(logbookLifecycleUnitParameters, params);
             indexArchiveUnit(params);
         } catch (final ProcessingException e) {
-            response.setStatus(StatusCode.FATAL).setOutcomeMessages(HANDLER_ID, OutcomeMessage.INDEX_UNIT_KO);
+            LOGGER.error(e);
+            response.setStatus(StatusCode.FATAL);
         }
 
         LOGGER.debug("IndexUnitActionHandler response: " + response.getStatus().name());
@@ -155,6 +146,7 @@ public class IndexUnitActionHandler extends ActionHandler {
             }
             SedaUtils.setLifeCycleFinalEventStatusByStep(logbookLifecycleUnitParameters, response.getStatus());
         } catch (ProcessingException e) {
+            LOGGER.error(e);
             response.setStatus(StatusCode.WARNING);
         }
 
@@ -181,19 +173,18 @@ public class IndexUnitActionHandler extends ActionHandler {
                 workspaceClient.getObject(containerId, IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName);
 
             if (input != null) {
-                final JsonNode json = convertArchiveUnitToJson(input, containerId, objectName).get(ARCHIVE_UNIT);
+                Insert insertQuery = new Insert();
+
+                List<Object> archiveDetailsRequiredTForIndex = convertArchiveUnitToJson(input, containerId, objectName);
+                final JsonNode json = ((JsonNode) archiveDetailsRequiredTForIndex.get(0)).get(ARCHIVE_UNIT);
 
                 // Add _up to archive unit json object
-                String extension = FilenameUtils.getExtension(objectName);
-                Insert insertQuery = new Insert();
-                ArrayNode parents =
-                    getUnitParents(json, objectName.replace("." + extension, ""), containerId, workspaceClient);
-                if (parents != null) {
+                if (archiveDetailsRequiredTForIndex.size() == 2) {
+                    ArrayNode parents = (ArrayNode) archiveDetailsRequiredTForIndex.get(1);
                     insertQuery.addRoots(parents);
                 }
 
                 final String insertRequest = insertQuery.addData((ObjectNode) json).getFinalInsert().toString();
-
                 metadataClient.insertUnit(insertRequest);
             } else {
                 LOGGER.error("Archive unit not found");
@@ -206,14 +197,10 @@ public class IndexUnitActionHandler extends ActionHandler {
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
             LOGGER.debug("Workspace Server Error");
             throw new ProcessingException(e);
-        } catch (IOException e) {
-            LOGGER.debug("Error occured when opening required temporary files");
-            throw new ProcessingException(e);
         }
-
     }
 
-    private JsonNode convertArchiveUnitToJson(InputStream input, String containerId, String objectName)
+    private List<Object> convertArchiveUnitToJson(InputStream input, String containerId, String objectName)
         throws InvalidParseOperationException, ProcessingException {
         ParametersChecker.checkParameter("Input stream is a mandatory parameter", input);
         ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
@@ -222,7 +209,11 @@ public class IndexUnitActionHandler extends ActionHandler {
         FileWriter tmpFileWriter = null;
         final XMLEventFactory eventFactory = XMLEventFactory.newInstance();
         final JsonXMLConfig config = new JsonXMLConfigBuilder().build();
+
         JsonNode data = null;
+        String parentsList = null;
+        List<Object> archiveUnitDetails = new ArrayList<Object>();
+
         try {
             tmpFileWriter = new FileWriter(tmpFile);
             final XMLEventReader reader = XMLInputFactory.newInstance().createXMLEventReader(input);
@@ -251,29 +242,45 @@ public class IndexUnitActionHandler extends ActionHandler {
                         eventWritable = false;
                     }
 
-                    if (tag == TAG_OG) {
+                    if (tag == SedaConstants.PREFIX_OG) {
                         contentWritable = true;
                     }
 
                     if (tag == TAG_MANAGEMENT) {
-                        writer.add(eventFactory.createStartElement("", "", "_mgt"));
+                        writer.add(eventFactory.createStartElement("", "", SedaConstants.PREFIX_MGT));
+                        eventWritable = false;
+                    }
+
+                    if (tag == IngestWorkflowConstants.UP_FIELD) {
+                        XMLEvent upsEvent = reader.nextEvent();
+                        if (!upsEvent.isEndElement() && upsEvent.isCharacters()) {
+                            parentsList = upsEvent.asCharacters().getData();
+                        }
+                    }
+
+                    if (tag == IngestWorkflowConstants.ROOT_TAG || tag == IngestWorkflowConstants.WORK_TAG ||
+                        tag == IngestWorkflowConstants.UP_FIELD) {
                         eventWritable = false;
                     }
                 }
 
                 if (event.isEndElement()) {
+                    final EndElement endElement = event.asEndElement();
+                    final String tag = endElement.getName().getLocalPart();
 
-                    if (event.asEndElement().getName().getLocalPart() == ARCHIVE_UNIT) {
+
+                    if (tag == ARCHIVE_UNIT || tag == IngestWorkflowConstants.ROOT_TAG ||
+                        tag == IngestWorkflowConstants.WORK_TAG || tag == IngestWorkflowConstants.UP_FIELD) {
                         eventWritable = false;
                     }
 
-                    if (event.asEndElement().getName().getLocalPart() == "Content") {
+                    if (tag == "Content") {
                         eventWritable = false;
                         contentWritable = false;
                     }
 
-                    if (event.asEndElement().getName().getLocalPart() == "Management") {
-                        writer.add(eventFactory.createEndElement("", "", "_mgt"));
+                    if (tag == "Management") {
+                        writer.add(eventFactory.createEndElement("", "", SedaConstants.PREFIX_MGT));
                         eventWritable = false;
                     }
                 }
@@ -294,6 +301,20 @@ public class IndexUnitActionHandler extends ActionHandler {
             if (!tmpFile.delete()) {
                 LOGGER.warn(FILE_COULD_NOT_BE_DELETED_MSG);
             }
+
+            // Prepare archive unit details required for index process
+            archiveUnitDetails.add((ObjectNode) data);
+
+            // Add parents GUIDs
+            if (parentsList != null) {
+                String[] parentsGuid = parentsList.split(IngestWorkflowConstants.UPS_SEPARATOR);
+                ArrayNode parentsArray = JsonHandler.createArrayNode();
+                for (String parent : parentsGuid) {
+                    parentsArray.add(parent);
+                }
+                archiveUnitDetails.add(parentsArray);
+            }
+
         } catch (final XMLStreamException e) {
             LOGGER.debug("Can not read input stream");
             throw new ProcessingException(e);
@@ -301,50 +322,12 @@ public class IndexUnitActionHandler extends ActionHandler {
             LOGGER.debug("Closing stream error");
             throw new ProcessingException(e);
         }
-        return data;
-    }
-
-    private ArrayNode getUnitParents(JsonNode archiveUnitJsonObject, String archiveUnitGuid, String containerId,
-        WorkspaceClient workspaceClient)
-        throws IOException, InvalidParseOperationException, ContentAddressableStorageNotFoundException,
-        ContentAddressableStorageServerException {
-
-        InputStream unitIdToGuidMapFile = new FileInputStream((File) handlerIO.getInput().get(0));
-        String unitIdToGuidStoredContent = IOUtils.toString(unitIdToGuidMapFile, "UTF-8");
-
-        InputStream archiveunitTreeTmpFile = new FileInputStream((File) handlerIO.getInput().get(1));
-        JsonNode archiveUnitTree = JsonHandler.getFromBytes(IOUtils.toByteArray(archiveunitTreeTmpFile));
-        Map<String, Object> unitIdToGuidStoredMap = JsonHandler.getMapFromString(unitIdToGuidStoredContent);
-
-        Map<Object, String> guidToUnitIdMap =
-            unitIdToGuidStoredMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
-
-        if (guidToUnitIdMap.containsKey(archiveUnitGuid) && archiveUnitTree.has(guidToUnitIdMap.get(archiveUnitGuid)) &&
-            archiveUnitTree.get(guidToUnitIdMap.get(archiveUnitGuid)).has(UP_FIELD) &&
-            archiveUnitTree.get(guidToUnitIdMap.get(archiveUnitGuid)).get(UP_FIELD).isArray()) {
-
-            ArrayNode parents = (ArrayNode) archiveUnitTree.get(guidToUnitIdMap.get(archiveUnitGuid)).get(UP_FIELD);
-            ArrayNode upNode = JsonHandler.createArrayNode();
-
-            for (JsonNode currentParentNode : parents) {
-                String currentParentId = currentParentNode.asText();
-                if (unitIdToGuidStoredMap.containsKey(currentParentId)) {
-                    upNode.add(unitIdToGuidStoredMap.get(currentParentId).toString());
-                }
-            }
-
-            return upNode;
-        }
-
-        return null;
+        return archiveUnitDetails;
     }
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        if (handlerIO.getOutput().size() != handlerInitialIOList.getOutput().size()) {
-            throw new ProcessingException(HandlerIO.NOT_ENOUGH_PARAM);
-        } else if (!HandlerIO.checkHandlerIO(handlerIO, this.handlerInitialIOList)) {
-            throw new ProcessingException(HandlerIO.NOT_CONFORM_PARAM);
-        }
+        // Handler without parameters input
     }
+
 }

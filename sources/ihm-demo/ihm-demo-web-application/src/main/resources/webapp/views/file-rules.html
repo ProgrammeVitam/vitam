@@ -1,7 +1,6 @@
-<div class="container" id="rulesFileformular">
-
+<div id="global" class="container-fluid" >
 	<ol class="breadcrumb">
-		<li><a href="#">Home</a></li>
+		<li><a href="#">Page d'accueil</a></li>
         <li><a href="#">Administration</a></li>
         <li><a href="#">Référentiel des Règles de gestion</a></li>
     </ol>
@@ -29,8 +28,12 @@
 								</select>
 	                        </div>
 	                    </div>
-  <button class="btn btn-primary center-block"  type="button submit"  ng-click="filerulesCtrl.getFileRules()"><i class="material-icons pull-left">search</i><span>Rechercher</span></button>
-										</div>
+                         <button class="btn btn-primary center-block"  type="button submit"  ng-click="filerulesCtrl.getFileRules()">
+                         <i class="material-icons pull-left">search</i>
+                          <span>Rechercher</span></button>
+						 </div>
+						 <button ng-if="filerulesCtrl.fileNotFoundError" class="btn btn-danger" type="button" style="margin: 0 0 10px 150px">
+        	{{filerulesCtrl.errorMessage}} </button>
 	            </div>
     <div class="panel panel-default col-md-12">
     	<a class="panel-header" data-target="#boxSearchResults" data-toggle="collapse">
@@ -40,11 +43,11 @@
         	<div class="table-responsive">
         		<div class="col-md-9" style="float: right">
             		<button class="btn btn-default btn-s" ng-disabled="filerulesCtrl.currentPage <= 1" ng-click="filerulesCtrl.currentPage=filerulesCtrl.currentPage-1">
-                		Previous
+                		Précédent
             		</button>
             		<input ng-model="filerulesCtrl.currentPage" style="max-width: 40px">/{{fileCtrl.resultPages}}
             		<button class="btn btn-default btn-s" ng-disabled="filerulesCtrl.currentPage >= filerulesCtrl.resultPages" ng-click="filerulesCtrl.currentPage=filerulesCtrl.currentPage+1">
-                		Next
+                		Suivant
             		</button>
         		</div>
         		<div style="padding-top: 40px">

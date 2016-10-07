@@ -197,7 +197,7 @@ public class StorageDistributionImplTest {
         when(client.getObject("container1", "SIP/content/test.pdf")).thenReturn(stream);
         try {
             customDistribution
-                .storeData(TENANT_ID, STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT);
+            .storeData(TENANT_ID, STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT);
         } finally {
             IOUtils.closeQuietly(stream);
         }
@@ -234,10 +234,10 @@ public class StorageDistributionImplTest {
 
         reset(client);
         when(client.getObject("container1", "SIP/content/test.pdf"))
-            .thenThrow(ContentAddressableStorageNotFoundException.class);
+        .thenThrow(ContentAddressableStorageNotFoundException.class);
         try {
             customDistribution
-                .storeData(TENANT_ID, STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT);
+            .storeData(TENANT_ID, STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT);
             fail("Should produce exception");
         } catch (StorageTechnicalException exc) {
             // Expection
@@ -245,10 +245,10 @@ public class StorageDistributionImplTest {
 
         reset(client);
         when(client.getObject("container1", "SIP/content/test.pdf"))
-            .thenThrow(ContentAddressableStorageServerException.class);
+        .thenThrow(ContentAddressableStorageServerException.class);
         try {
             customDistribution
-                .storeData(TENANT_ID, STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT);
+            .storeData(TENANT_ID, STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT);
             fail("Should produce exception");
         } catch (StorageTechnicalException exc) {
             // Expection
@@ -260,7 +260,7 @@ public class StorageDistributionImplTest {
         when(client.getObject("container1", "SIP/content/test.pdf")).thenReturn(stream);
         try {
             customDistribution
-                .storeData(TENANT_ID, STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT);
+            .storeData(TENANT_ID, STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT);
             fail("Should produce exception");
         } catch (StorageTechnicalException exc) {
             // Expection
@@ -269,7 +269,7 @@ public class StorageDistributionImplTest {
 
     private void checkInvalidArgumentException(String tenantId, String strategyId, String objectId,
         CreateObjectDescription createObjectDescription, DataCategory category)
-        throws StorageNotFoundException, StorageTechnicalException, StorageObjectAlreadyExistsException {
+            throws StorageNotFoundException, StorageTechnicalException, StorageObjectAlreadyExistsException {
         try {
             simpleDistribution.storeData(tenantId, strategyId, objectId, createObjectDescription, category);
             fail("Parameter should be considered invalid");
@@ -290,21 +290,21 @@ public class StorageDistributionImplTest {
     }
 
     @Test
-    public void testGetContainerObjectIllegalArgumentException() throws Exception {
+    public void testGetContainerByCategoryIllegalArgumentException() throws Exception {
         try {
-            simpleDistribution.getContainerObject(null, null, null);
+            simpleDistribution.getContainerByCategory(null, null, null, null);
             fail("Exception excepted");
         } catch (IllegalArgumentException exc) {
             // nothing, exception needed
         }
         try {
-            simpleDistribution.getContainerObject(TENANT_ID, null, null);
+            simpleDistribution.getContainerByCategory(TENANT_ID, null, null, null);
             fail("Exception excepted");
         } catch (IllegalArgumentException exc) {
             // nothing, exception needed
         }
         try {
-            simpleDistribution.getContainerObject(TENANT_ID, STRATEGY_ID, null);
+            simpleDistribution.getContainerByCategory(TENANT_ID, STRATEGY_ID, null, null);
             fail("Exception excepted");
         } catch (IllegalArgumentException exc) {
             // nothing, exception needed
@@ -312,8 +312,8 @@ public class StorageDistributionImplTest {
     }
 
     @Test
-    public void testGetContainerObjectNotFoundException() throws Exception {
-        simpleDistribution.getContainerObject(TENANT_ID, STRATEGY_ID, "0");
+    public void testGetContainerByCategoryNotFoundException() throws Exception {
+        simpleDistribution.getContainerByCategory(TENANT_ID, STRATEGY_ID, "0", DataCategory.OBJECT);
     }
 
     @Test(expected = UnsupportedOperationException.class)
@@ -333,12 +333,12 @@ public class StorageDistributionImplTest {
     }
 
     @Test(expected = UnsupportedOperationException.class)
-    public void testGetContainerObjects() throws Exception {
+    public void testGetContainerByCategorys() throws Exception {
         simpleDistribution.getContainerObjects(null, null);
     }
 
     @Test(expected = UnsupportedOperationException.class)
-    public void testGetContainerObjectInformations() throws Exception {
+    public void testGetContainerByCategoryInformations() throws Exception {
         simpleDistribution.getContainerObjectInformations(null, null, null);
     }
 
@@ -379,12 +379,12 @@ public class StorageDistributionImplTest {
     }
 
     @Test(expected = UnsupportedOperationException.class)
-    public void testGetContainerObjectGroups() throws Exception {
+    public void testGetContainerByCategoryGroups() throws Exception {
         simpleDistribution.getContainerObjectGroups(null, null);
     }
 
     @Test(expected = UnsupportedOperationException.class)
-    public void testGetContainerObjectGroup() throws Exception {
+    public void testGetContainerByCategoryGroup() throws Exception {
         simpleDistribution.getContainerObjectGroup(null, null, null);
     }
 

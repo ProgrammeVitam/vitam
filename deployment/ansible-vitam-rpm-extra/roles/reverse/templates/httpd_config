@@ -32,7 +32,7 @@
 </Directory>
 
 # VITAM
-  ProxyPass /ihm-demo http://{{vitam_ihm_demo_host}}:{{vitam_ihm_demo_port}}/ihm-demo acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+  ProxyPass /ihm-demo http://{{vitam_ihm_demo_host}}:{{vitam_ihm_demo_port}}/ihm-demo acquire=5000 connectiontimeout=3500 timeout=600 retry=5
   ProxyPassReverse  /ihm-demo http://{{vitam_ihm_demo_host}}:{{vitam_ihm_demo_port}}/ihm-demo
 
   ProxyPass /logbook http://{{groups['hosts-logbook'][0]}}:{{vitam_logbook_port}}/logbook acquire=5000 connectiontimeout=3500 timeout=50 retry=5

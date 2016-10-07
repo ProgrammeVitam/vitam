@@ -97,7 +97,6 @@ public class CheckConformityActionHandler extends ActionHandler {
     private static final String LOGBOOK_LF_MAPS_PARSING_EXCEPTION_MSG = "Parse Object Groups/BDO Maps error";
     private static final String LOGBOOK_CLIENT_EXCEPTION = "Logbook client exception";
     public static final String TXT_EXTENSION = ".txt";
-    public static final String UP_FIELD = "_up";
     private static final String CANNOT_READ_SEDA = "Can not read SEDA";
     private HandlerIO handlerIO;
 
@@ -105,7 +104,9 @@ public class CheckConformityActionHandler extends ActionHandler {
      * Empty constructor CheckConformityActionHandler 
      * 
      */
-    public CheckConformityActionHandler() {}
+    public CheckConformityActionHandler() {
+        // empty constructor
+    }
 
     /**
      * @return HANDLER_ID
@@ -278,7 +279,7 @@ public class CheckConformityActionHandler extends ActionHandler {
 
         LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters =
             (LogbookLifeCycleObjectGroupParameters) initLogbookLifeCycleParameters(
-                objectGroupGuid, false, true);
+                objectGroupGuid, true);
 
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
             containerId);
@@ -298,7 +299,7 @@ public class CheckConformityActionHandler extends ActionHandler {
         return logbookLifecycleObjectGroupParameters;
     }
     
-    private LogbookParameters initLogbookLifeCycleParameters(String guid, boolean isArchive, boolean isObjectGroup) {
+    private LogbookParameters initLogbookLifeCycleParameters(String guid, boolean isObjectGroup) {
         LogbookParameters logbookLifeCycleParameters = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
         logbookLifeCycleParameters.putParameterValue(LogbookParameterName.objectIdentifier, guid);
         return logbookLifeCycleParameters;

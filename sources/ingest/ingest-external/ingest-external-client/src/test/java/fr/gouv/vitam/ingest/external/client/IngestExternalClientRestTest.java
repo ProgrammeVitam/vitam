@@ -26,9 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.client;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 import javax.ws.rs.Consumes;
@@ -40,6 +42,7 @@ import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import javax.xml.stream.XMLStreamException;
 
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -49,12 +52,15 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import fr.gouv.vitam.common.FileUtil;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.SSLConfiguration;
 import fr.gouv.vitam.ingest.external.api.IngestExternalException;
 
 public class IngestExternalClientRestTest extends JerseyTest{
+    private static final String ATR_EXAMPLE_XML = "ATR_example.xml";
     protected static final String HOSTNAME = "localhost";
     protected static final String PATH = "/ingest-ext/v1";
     protected final IngestExternalClientRest client;
@@ -105,7 +111,7 @@ public class IngestExternalClientRestTest extends JerseyTest{
         @POST
         @Path("upload")
         @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-        @Produces(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_XML)
         public Response upload(InputStream stream) {
             return expectedResponse.post();
         }
@@ -126,16 +132,20 @@ public class IngestExternalClientRestTest extends JerseyTest{
     }
     
     @Test
-    public void givenInputstreamWhenUploadThenReturnOK() throws IngestExternalException{
-        when(mock.post()).thenReturn(Response.status(Status.OK).build());
-        InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("no-virus.txt");
-        client.upload(stream);
+    public void givenInputstreamWhenUploadThenReturnOK() throws IngestExternalException, XMLStreamException, IOException{
+        InputStream inputStreamATR = PropertiesUtils.getResourcesAsStream(ATR_EXAMPLE_XML);
+        final String xmlString = FileUtil.readInputStream(inputStreamATR);
+        when(mock.post()).thenReturn(Response.status(Status.OK).entity(xmlString).build());
+        InputStream stream = PropertiesUtils.getResourcesAsStream("no-virus.txt");
+        inputStreamATR = PropertiesUtils.getResourcesAsStream(ATR_EXAMPLE_XML);
+        Response res = client.upload(stream);
+        assertEquals(xmlString, res.readEntity(String.class));
     }
     
     @Test(expected = IngestExternalException.class)
     public void givenOperationNotYetCreatedWhenUpdateThenReturnNotFoundException() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.ACCEPTED).build());
-        InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("unfixed-virus.txt");
+        InputStream stream = PropertiesUtils.getResourcesAsStream("unfixed-virus.txt");
         client.upload(stream);
     }
     

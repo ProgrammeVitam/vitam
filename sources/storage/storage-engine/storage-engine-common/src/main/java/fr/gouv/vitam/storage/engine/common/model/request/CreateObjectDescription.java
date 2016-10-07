@@ -35,10 +35,10 @@ public class CreateObjectDescription {
     private String workspaceObjectURI;
 
     /**
-     * Constructor.
+     * Empty Constructor.
      */
     public CreateObjectDescription() {
-
+        // Empty
     }
 
     /**

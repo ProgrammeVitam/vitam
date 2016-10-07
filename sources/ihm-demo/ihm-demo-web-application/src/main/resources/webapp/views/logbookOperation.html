@@ -1,6 +1,6 @@
 <div id="global" class="container-fluid">
 	<ol class="breadcrumb">
-		<li><a href="#">Accueil</a></li>  
+		<li><a href="#">Page d'accueil</a></li>
         <li><a href="#">Administration</a></li>  
 		<li><a href="#">Journal des Opérations</a></li>  
     </ol>
@@ -26,29 +26,29 @@
 					<option value="update">Mise a jour</option>
 					<option value="preservation">Préservation</option>
 					<option value="check">Vérification</option>
+					<option value="masterdata">Données de base</option>
 				</select>
             </div>
             <button class="btn btn-primary center-block" ng-click="logctrl.getList()">
             	<i class="material-icons pull-left">search</i>
             	<span>Rechercher</span>
             </button>
+            <button ng-if="logctrl.fileNotFoundError" class="btn btn-danger center-block" type="button" style="margin-top: 20px">
+                {{logctrl.errorMessage}}
+            </button>
         </div>
 	</div>
 	
 	<!-- Pagination -->
-	<div>
+	<div style="text-align: center">
 		<button class="btn btn-default btn-s" ng-disabled="logctrl.currentPage <= 1" ng-click="logctrl.currentPage=logctrl.currentPage-1">
-      		Previous
+            Précédent
     	</button>
     	<input ng-model="logctrl.currentPage" style="max-width: 40px">/{{logctrl.resultPages}}
     	<button class="btn btn-default btn-s" ng-disabled="logctrl.currentPage >= logctrl.resultPages" ng-click="logctrl.currentPage=logctrl.currentPage+1">
-      		Next
+            Suivant
     	</button>		
 	</div>
-	
-	
-	
-	
 	
 	<div class="panel panel-default col-md-12">
   		<a class="panel-header">
@@ -73,10 +73,12 @@
         					<td>{{log.evType}}</td>
         					<td>{{log.evTypeProc}}</td>
         					<td>{{log.evDateTime}}</td>
-        					<td>{{log.events[1].evDateTime}}</td>
-        					<td ng-if = "log.events[1].outcome == 'OK'">Succès</td>
-            				<td ng-if = "log.events[1].outcome == 'KO' || log.events[1].outcome == 'FATAL'">Echec</td>
-            				<td ng-if = "log.events[1].outcome != 'KO' && log.events[1].outcome != 'FATAL' && log.events[1].outcome != 'OK'">{{log.events[1].outcome}}</td>
+        					<td>{{log.events[log.events.length-1].evDateTime}}</td>
+				            <td ng-if = "log.events[log.events.length-1].outcome.toUpperCase() == 'OK'">Succès</td>
+				            <td ng-if = "log.events[log.events.length-1].outcome.toUpperCase() == 'STARTED'">En cours</td>
+            				<td ng-if = "log.events[log.events.length-1].outcome.toUpperCase() == 'KO' || log.events[log.events.length-1].outcome.toUpperCase() == 'FATAL'">Erreur</td>
+            				<td ng-if = "log.events[log.events.length-1].outcome.toUpperCase() != 'KO' && log.events[log.events.length-1].outcome.toUpperCase() != 'FATAL' && log.events[log.events.length-1].outcome.toUpperCase() != 'OK'
+                        && log.events[log.events.length-1].outcome.toUpperCase() != 'STARTED'">{{log.events[log.events.length-1].outcome}}</td>
         				</tr>
         			</tbody>
         		</table>        		

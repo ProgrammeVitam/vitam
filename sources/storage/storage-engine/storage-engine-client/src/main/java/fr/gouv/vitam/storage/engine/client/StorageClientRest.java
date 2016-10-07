@@ -330,7 +330,7 @@ class StorageClientRest extends AbstractSSLClient implements StorageClient {
     }
 
     @Override
-    public InputStream getContainerObject(String tenantId, String strategyId, String guid)
+    public InputStream getContainer(String tenantId, String strategyId, String guid, StorageCollectionType type)
         throws StorageServerClientException, StorageNotFoundException {
         ParametersChecker.checkParameter(TENANT_ID_MUST_HAVE_A_VALID_VALUE, tenantId);
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
@@ -339,7 +339,7 @@ class StorageClientRest extends AbstractSSLClient implements StorageClient {
         InputStream stream = null;
         try {
             response =
-                performGenericRequest("/" + StorageCollectionType.OBJECTS.getCollectionName() + "/" + guid, null,
+                performGenericRequest("/" + type.getCollectionName() + "/" + guid, null,
                     MediaType.APPLICATION_OCTET_STREAM, getDefaultHeaders(tenantId, strategyId), HttpMethod.GET,
                     MediaType.APPLICATION_JSON);
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());

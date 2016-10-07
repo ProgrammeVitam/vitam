@@ -7,7 +7,7 @@
   <div class="panel panel-default col-md-12">
     <span class="panel-header no-toggle">
         <h2>Détail d'une archive</h2>
-        <a ng-href="#!/lifecycle/unit/{{$ctrl.archiveId}}/{{$ctrl.archiveTitle}}" target="_blank" class="btn btn-primary" style="float:right">
+        <a ng-href="#!/lifecycle/unit/{{$ctrl.archiveId}}/{{$ctrl.archiveId}}" target="_blank" class="btn btn-primary" style="float:right">
           <i class="material-icons pull-left">camera</i>
           <span class="pull-left m-l-10">Journal de Cycle de Vie</span>
         </a>
@@ -156,7 +156,7 @@
       -->
       <span class="panel-header no-toggle">
   			<h2>Groupe d'Objets</h2>
-  			<a ng-href="#!/lifecycle/objectgroup/{{$ctrl.archiveFields._og}}/{{$ctrl.archiveFields._og}}" target="_blank" class="btn btn-default" role="button" style="float:right;margin:0px">
+  			<a ng-if = "$ctrl.archiveFields._og != null && $ctrl.archiveFields._og != undefined && $ctrl.archiveFields._og != ''" ng-href="#!/lifecycle/objectgroup/{{$ctrl.archiveFields._og}}/{{$ctrl.archiveFields._og}}" target="_blank" class="btn btn-default" role="button" style="float:right;margin:0px">
   				<i class="material-icons pull-left">camera</i>
   				<span class="pull-left m-l-10">Journal de Cycle de vie du groupe d'objets</span>
   			</a>

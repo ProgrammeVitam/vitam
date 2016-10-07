@@ -35,11 +35,13 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import javax.xml.stream.XMLStreamException;
 
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
+import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.ingest.external.api.IngestExternalException;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
 import fr.gouv.vitam.ingest.external.common.model.response.IngestExternalError;
@@ -70,14 +72,16 @@ public class IngestExternalResource extends ApplicationStatusResource {
      * @param stream, data input stream
      * @param header, method for entry data
      * @return Response
+     * @throws XMLStreamException 
      */
     @Path("upload")
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response upload(InputStream stream) {
+    @Produces(MediaType.APPLICATION_XML)
+    public Response upload(InputStream stream) throws XMLStreamException{
+        Response response;
         try {
-            ingestExtern.upload(stream);
+            response = ingestExtern.upload(stream);
         } catch (IngestExternalException e) {
             LOGGER.error(e.getMessage());
             Status status = Status.INTERNAL_SERVER_ERROR;
@@ -90,7 +94,9 @@ public class IngestExternalResource extends ApplicationStatusResource {
                         "The application 'Xxxx' requested an ingest operation and this operation has errors."))
                 .build();
         }
-        return Response.status(Status.OK).build();
-    }
+        //TODO Fix ByteArray vs Close vs AsyncResponse
+        return Response.status(Status.OK).entity(response.getEntity()) 
+            .header(GlobalDataRest.X_REQUEST_ID, response.getHeaderString(GlobalDataRest.X_REQUEST_ID)).build();
+    }    
 
 }

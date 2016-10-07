@@ -52,6 +52,7 @@ public class ProcessingUri {
      * @param uri
      */
     public ProcessingUri() {
+        // empty constructor
     }
     
     /** Constructor with prefix and path

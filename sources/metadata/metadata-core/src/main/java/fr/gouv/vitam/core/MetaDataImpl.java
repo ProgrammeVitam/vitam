@@ -79,7 +79,7 @@ public class MetaDataImpl implements MetaData {
     /**
      * MetaDataImpl constructor
      *
-     * @param configuration        of mongoDB access
+     * @param configuration of mongoDB access
      * @param mongoDbAccessFactory
      * @param dbRequestFactory
      */
@@ -98,8 +98,8 @@ public class MetaDataImpl implements MetaData {
      * @return a new instance of MetaDataImpl
      * @throws IllegalArgumentException if one of dbRequestFactory and mongoDbAccessFactory is null
      */
-    public static MetaData newMetadata(MetaDataConfiguration configuration, MongoDbAccessMetadataFactory
-        mongoDbAccessFactory,
+    public static MetaData newMetadata(MetaDataConfiguration configuration,
+        MongoDbAccessMetadataFactory mongoDbAccessFactory,
         DbRequestFactory dbRequestFactory) {
         ParametersChecker.checkParameter("DbRequestFactory and / or mongoDbAccessFactory cannot be null",
             dbRequestFactory, mongoDbAccessFactory);
@@ -186,14 +186,14 @@ public class MetaDataImpl implements MetaData {
         throws InvalidParseOperationException, MetaDataDocumentSizeException, MetaDataExecutionException {
         LOGGER.debug("SelectObjectGroupById - objectGroupId : " + objectGroupId);
         LOGGER.debug("SelectObjectGroupById - selectQuery : " + selectQuery);
-        return selectMetadataObject(selectQuery, objectGroupId, Collections.singletonList(BuilderToken.FILTERARGS
-            .OBJECTGROUPS));
+        return selectMetadataObject(selectQuery, objectGroupId,
+            Collections.singletonList(BuilderToken.FILTERARGS.OBJECTGROUPS));
     }
 
     // TODO : maybe do not encapsulate all exception in a MetaDataExecutionException. We may need to know if it is
     // NOT_FOUND for example
-    private JsonNode selectMetadataObject(String selectQuery, String unitOrObjectGroupId, List<BuilderToken
-        .FILTERARGS> filters)
+    private JsonNode selectMetadataObject(String selectQuery, String unitOrObjectGroupId,
+        List<BuilderToken.FILTERARGS> filters)
         throws MetaDataExecutionException, InvalidParseOperationException,
         MetaDataDocumentSizeException {
         Result result = null;
@@ -313,17 +313,18 @@ public class MetaDataImpl implements MetaData {
     }
 
     /**
-     * Retrieve only + and - line on diff (for logbook lifecycle)
-     * regexp = line started by + or - with at least one space after and any character
+     * Retrieve only + and - line on diff (for logbook lifecycle) regexp = line started by + or - with at least one
+     * space after and any character
      *
      * @param diff the unified diff
-     * @return + an - lines for logbook lifecycle
+     * @return + and - lines for logbook lifecycle
      */
     private List<String> getConcernedDiffLines(List<String> diff) {
         List<String> result = new ArrayList<>();
         for (String line : diff) {
             if (line.matches("^(\\+|-){1}\\s{1,}.*")) {
-                result.add(line);
+                //remove the last character which is a ","
+                result.add(line.substring(0, line.length() - 1));
             }
         }
         return result;

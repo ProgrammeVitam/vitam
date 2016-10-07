@@ -51,7 +51,9 @@ public class CheckSedaActionHandler extends ActionHandler {
      *
      * @param factory SedaUtils factory
      */
-    public CheckSedaActionHandler() {}
+    public CheckSedaActionHandler() {
+        // empty constructor
+    }
 
     /**
      * @return HANDLER_ID
@@ -113,7 +115,7 @@ public class CheckSedaActionHandler extends ActionHandler {
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        //TODO Add Workspace:SIP/manifest.xml and check it         
+        // TODO Add Workspace:SIP/manifest.xml and check it
     }
 
 }

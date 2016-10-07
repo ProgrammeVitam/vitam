@@ -34,8 +34,18 @@
  */
 package fr.gouv.vitam.worker.core.api;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
+
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
 
 /**
  * Handler input and output parameter
@@ -90,6 +100,24 @@ public class HandlerIO {
     }
     
     /**
+     * @return the localPathRoot
+     */
+    public String getLocalPathRoot() {
+        return localPathRoot;
+    }
+
+    /**
+     * @param localPathRoot the localPathRoot to set
+     *
+     * @return this HandlerIO
+     */
+    public HandlerIO setLocalPathRoot(String localPathRoot) {
+        this.localPathRoot = localPathRoot;
+        return this;
+    }
+    
+    
+    /**
      * @param source HandlerIO with param
      * @param destination HandlerIO with class element
      * @return
@@ -111,22 +139,35 @@ public class HandlerIO {
         }
         return true;
     }
-
-    /**
-     * @return the localPathRoot
-     */
-    public String getLocalPathRoot() {
-        return localPathRoot;
-    }
-
-    /**
-     * @param localPathRoot the localPathRoot to set
-     *
-     * @return this HandlerIO
-     */
-    public HandlerIO setLocalPathRoot(String localPathRoot) {
-        this.localPathRoot = localPathRoot;
-        return this;
-    }
     
+    /**
+     * @param client workspace
+     * @param tmpFileSubpath tmp file sub path
+     * @param workspaceFilePath workspace file path
+     * @param workspaceContainerId container id
+     * @param removeTmpFile remove file after sending
+     * @throws ProcessingException if workspace error
+     */
+    //TODO call it dynamically
+    public static void transferFileFromTmpIntoWorkspace(WorkspaceClient client, String tmpFileSubpath,
+        String workspaceFilePath,
+        String workspaceContainerId, boolean removeTmpFile) throws ProcessingException {
+        ParametersChecker.checkParameter("Workspace client is a mandatory parameter", client);
+        ParametersChecker.checkParameter("Workspace Container Id is a mandatory parameter", workspaceContainerId);
+        final File firstMapTmpFile = PropertiesUtils.fileFromTmpFolder(tmpFileSubpath);
+        try {
+            client.putObject(workspaceContainerId, workspaceFilePath, new FileInputStream(firstMapTmpFile));
+            if (removeTmpFile && !firstMapTmpFile.delete()) {
+                SysErrLogger.FAKE_LOGGER.syserr("File could not be deleted" + " " +
+                    tmpFileSubpath);
+            }
+        } catch (ContentAddressableStorageServerException e) {
+            SysErrLogger.FAKE_LOGGER.syserr("Can not save in workspace file " + tmpFileSubpath);
+            throw new ProcessingException(e);
+        } catch (FileNotFoundException e) {
+            SysErrLogger.FAKE_LOGGER.syserr("Can not get file " + tmpFileSubpath);
+            throw new ProcessingException(e);
+        }
+    }
+
 }

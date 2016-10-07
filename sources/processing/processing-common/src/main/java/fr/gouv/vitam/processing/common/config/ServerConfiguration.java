@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.common.config;
 
+import fr.gouv.vitam.common.ParametersChecker;
+
 /**
  * ServerConfiguration class contains the different parameter {hostName ,ipAddress, port }to connect a remote server
  * such as workspace or metaData
@@ -51,7 +53,7 @@ public class ServerConfiguration {
      * @return the update ServerConfiguration object
      */
     public ServerConfiguration setUrlMetada(String urlMetada) {
-        // FIXME REVIEW null check
+        ParametersChecker.checkParameter("urlMetada is a mandatory parameter", urlMetada);
         this.urlMetada = urlMetada;
         return this;
     }
@@ -71,7 +73,7 @@ public class ServerConfiguration {
      * @return the update ServerConfiguration object
      */
     public ServerConfiguration setUrlWorkspace(String urlWorkspace) {
-        // FIXME REVIEW null check
+        ParametersChecker.checkParameter("urlWorkspace is a mandatory parameter", urlWorkspace);
         this.urlWorkspace = urlWorkspace;
         return this;
     }

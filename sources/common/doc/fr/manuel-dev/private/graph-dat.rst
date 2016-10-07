@@ -23,7 +23,7 @@ Preorder: Mettre le sommet(vertex) sur une file d'attente avant  les appels réc
 Postorder: Mettre le sommet(vertex)  sur une file d'attente après les appels récursifs.
 Reverse postorder: Mettre le sommet(vertex)  sur une pile après les appels récursifs.
 
-Le Depth-first search est l'algorithme de recherche des composantes fortement connexes . 
+Le Depth-first search est l'algorithme de recherche des composantes fortement connexes.
 L'algorithme consiste à démarrer d'un sommet et à avancer dans le graphe en ne repassant pas deux fois par le même sommet. Lorsque l'on est bloqué,
  on ``revient sur ses pas'' jusqu'à pouvoir repartir vers un sommet non visité. Cette opération de ``retour sur ses pas'' est très élégamment prise en charge 
  par l'écriture d'une procédure récursive.
@@ -38,10 +38,10 @@ ne possède pas  un up alors c'est un racine .
     
     |---Graph Un graphe est composé d'un ensemble de sommets et un ensemble d'arêtes . Chaque arête représente une liaison entre deux sommets. 
     Deux sommets sont voisins s'ils sont reliés par un bord , et le degré d'un sommet est le nombre de ses voisins.
-    Graph data type. Graph-processing algorithms généralement d'abord construit une représentation interne d'un graphe en ajoutant des arêtes (edges), 
-    puis le traiter par itération sur les sommets et sur ​​les sommets adjacents à un sommet donné .
-    
-    L'algorithme de chemin le plus long est utilisé pour trouver la longueur maximale d'un graph donné .
+    Graph data type. Graph-processing algorithms généralement d'abord construit une représentation interne d'un graphe en ajoutant des arêtes (edges),
+    puis le traiter par itération sur les sommets et sur les sommets adjacents à un sommet donné.
+
+    L'algorithme de chemin le plus long est utilisé pour trouver la longueur maximale d'un graph donné 
     La longueur maximale peut être mesuré par le nombre maximal d'arêtes ou de la somme des poids dans un graph pondéré.
      
     L'algorithme de chemin le plus long permet de définir dans notre cas le niveau d'indexation de chaque Unit .

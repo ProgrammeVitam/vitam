@@ -70,6 +70,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 
@@ -253,7 +254,7 @@ public class AccessModuleImpl implements AccessModule {
         }
         String objectId = valuesAsText.get(0);
         try {
-            return storageClient.getContainerObject(tenantId, DEFAULT_STORAGE_STRATEGY, objectId);
+            return storageClient.getContainer(tenantId, DEFAULT_STORAGE_STRATEGY, objectId, StorageCollectionType.OBJECTS);
         } catch (StorageServerClientException e) {
             throw new AccessExecutionException(e);
         }
@@ -270,10 +271,8 @@ public class AccessModuleImpl implements AccessModule {
      */
     @Override
     public JsonNode updateUnitbyId(JsonNode queryJson, String idUnit) throws IllegalArgumentException, InvalidParseOperationException, AccessExecutionException {
-        JsonNode jsonNode = null;
         LogbookOperationParameters logbookOpParamStart, logbookOpParamEnd;
         LogbookLifeCycleUnitParameters logbookLCParamStart, logbookLCParamEnd;
-
         if (StringUtils.isEmpty(idUnit)) {
             throw new IllegalArgumentException(ID_CHECK_FAILED);
         }
@@ -304,7 +303,7 @@ public class AccessModuleImpl implements AccessModule {
             logbookLifeCycleClient.update(logbookLCParamStart);
 
             //call update
-            jsonNode = metaDataClient.updateUnitbyId(queryJson.toString(), idUnit);
+            JsonNode jsonNode = metaDataClient.updateUnitbyId(queryJson.toString(), idUnit);
 
             // TODO: interest of this private method ?
             logbookOpParamEnd = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
@@ -320,6 +319,8 @@ public class AccessModuleImpl implements AccessModule {
 
             // commit logbook lifecycle
             logbookLifeCycleClient.commit(logbookLCParamEnd);
+            
+            return jsonNode;
 
         } catch (final InvalidParseOperationException ipoe) {
             rollBackLogbook(updateOpGuidStart, queryJson, idUnit);
@@ -352,8 +353,7 @@ public class AccessModuleImpl implements AccessModule {
         } catch (LogbookClientAlreadyExistsException e) {
             LOGGER.error("logbook operation already exists", e);
             throw new AccessExecutionException(e);
-        }
-        return jsonNode;
+        }        
     }
 
     private void rollBackLogbook(GUID updateOpGuidStart, JsonNode queryJson, String objectIdentifier) {

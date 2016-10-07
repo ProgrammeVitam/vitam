@@ -26,15 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.core;
 
-import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.id;
 import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.elasticsearch.common.settings.Settings;
@@ -45,10 +42,6 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -56,21 +49,9 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
-import fr.gouv.vitam.api.MetaData;
 import fr.gouv.vitam.api.config.MetaDataConfiguration;
-import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.database.builder.query.action.Action;
-import fr.gouv.vitam.common.database.builder.query.action.SetAction;
-import fr.gouv.vitam.common.database.builder.request.multiple.Insert;
-import fr.gouv.vitam.common.database.builder.request.multiple.Select;
-import fr.gouv.vitam.common.database.builder.request.multiple.Update;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.guid.GUID;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.core.database.collections.DbRequest;
 import fr.gouv.vitam.core.database.collections.MongoDbAccessMetadataImpl;
 
 
@@ -124,7 +105,7 @@ public class MongoDbAccessFactoryTest {
         nodes = new ArrayList<ElasticsearchNode>();
         nodes.add(new ElasticsearchNode(HOST_NAME, TCP_PORT));
 
-        //MongoDB
+        // MongoDB
         port = junitHelper.findAvailablePort();
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
@@ -160,66 +141,4 @@ public class MongoDbAccessFactoryTest {
         assertEquals("vitam-test", mongoDbAccess.getMongoDatabase().getName());
         mongoDbAccess.close();
     }
-    private JsonNode createInsertRequestWithUUID(GUID uuid) {
-        final String MY_INT = "MyInt";
-        final String CREATED_DATE = "CreatedDate";
-        final String DESCRIPTION = "Description";
-        final String TITLE = "Title";
-        final String MY_BOOLEAN = "MyBoolean";
-        final String MY_FLOAT = "MyFloat";
-        final String VALUE_MY_TITLE = "MyTitle";
-        final String ARRAY_VAR = "ArrayVar";
-        final String ARRAY2_VAR = "Array2Var";
-        final String EMPTY_VAR = "EmptyVar";
-        // INSERT
-        final List<String> list = Arrays.asList("val1", "val2");
-        final ObjectNode data = JsonHandler.createObjectNode().put(id(), uuid.toString())
-            .put(TITLE, VALUE_MY_TITLE).put(DESCRIPTION, "Ma description est bien détaillée")
-            .put(CREATED_DATE, "" + LocalDateUtil.now()).put(MY_INT, 20)
-            .put(MY_BOOLEAN, false).putNull(EMPTY_VAR).put(MY_FLOAT, 2.0);
-        try {
-            data.putArray(ARRAY_VAR).addAll((ArrayNode) JsonHandler.toJsonNode(list));
-        } catch (final InvalidParseOperationException e) {
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
-        try {
-            data.putArray(ARRAY2_VAR).addAll((ArrayNode) JsonHandler.toJsonNode(list));
-        } catch (final InvalidParseOperationException e) {
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
-        final Insert insert = new Insert();
-        insert.addData(data);
-        // LOGGER.debug("InsertString: " + insert.getFinalInsert().toString());
-        return insert.getFinalInsert();
-    }
-
-    private JsonNode createUpdateRequest() throws Exception {
-        final Update update = new Update();
-        Action setTitleAction = new SetAction("Title", "Modified title");
-        // Action setDescAction = new SetAction("Description", "Modified description");
-        Action setDescAction = new SetAction("MyBoolean", true);
-        update.addActions(setTitleAction, setDescAction);
-        return update.getFinalUpdate();
-    }
-
-
-    @Test
-    public void test() throws Exception {
-        MetaData metaDataImpl = MetaDataImpl.newMetadata(new MetaDataConfiguration(DATABASE_HOST, port, "vitam-test",
-            CLUSTER_NAME, nodes, JETTY_CONFIG), new MongoDbAccessMetadataFactory(), DbRequest::new);
-        assertNotNull(metaDataImpl);
-
-        GUID guid = GUIDFactory.newUnitGUID(0);
-
-        metaDataImpl.insertUnit(createInsertRequestWithUUID(guid));
-
-        JsonNode node = metaDataImpl.selectUnitsById(new Select().getFinalSelect().toString(), guid.getId());
-        assertNotNull(node);
-
-        metaDataImpl.updateUnitbyId(createUpdateRequest().toString(), guid.getId());
-
-    }
-
 }

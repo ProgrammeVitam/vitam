@@ -65,7 +65,7 @@ angular.module('ihm.demo')
     		$mdDialog.show(confirm).then(uploadAction, cancelAction);
     	} else if (uploader.queue[0].url == serviceURI + uploadRules) {
     		var confirm = $mdDialog.confirm()
-    			.title(' Le Référentiel des Règles de gestion importé')
+    			.title(' Le référentiel des règles de gestion est importé')
     			.ok("Fermer");
     		$mdDialog.show(confirm);
     	}
@@ -76,7 +76,7 @@ angular.module('ihm.demo')
     	console.info('onErrorItem', fileItem, response, status, headers);
     	if (uploader.queue[0].url == serviceURI + checkRules){
     		var confirm = $mdDialog.confirm()
-				.title('Fichier invalide')
+				.title('Fichier invalide ou référentiel des règles de gestion déjà existant')
 				.ok("Fermer");
     		$mdDialog.show(confirm).then(function(){
     			$route.reload();

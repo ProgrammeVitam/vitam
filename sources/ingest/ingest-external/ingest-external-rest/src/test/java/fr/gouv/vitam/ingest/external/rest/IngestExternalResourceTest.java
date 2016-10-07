@@ -27,7 +27,6 @@
 package fr.gouv.vitam.ingest.external.rest;
 
 import static com.jayway.restassured.RestAssured.given;
-import static org.mockito.Matchers.anyObject;
 
 import java.io.File;
 import java.io.InputStream;
@@ -49,7 +48,6 @@ import com.jayway.restassured.http.ContentType;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -141,7 +139,6 @@ public class IngestExternalResourceTest {
         PowerMockito.mockStatic(IngestInternalClientFactory.class);
         IngestInternalClient ingestInternalClient = PowerMockito.mock(IngestInternalClient.class);
         IngestInternalClientFactory ingestInternalFactory = PowerMockito.mock(IngestInternalClientFactory.class);
-        PowerMockito.when(ingestInternalClient.upload(anyObject(), anyObject())).thenThrow(VitamException.class);
         PowerMockito.when(ingestInternalFactory.getIngestInternalClient()).thenReturn(ingestInternalClient);
         PowerMockito.when(IngestInternalClientFactory.getInstance()).thenReturn(ingestInternalFactory);
 

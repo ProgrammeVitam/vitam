@@ -1,6 +1,6 @@
 <div id="global" class="container-fluid">
   <ol class="breadcrumb">
-    <li><a href="#">Home</a></li>
+    <li><a href="#">Page d'accueil</a></li>
     <li><a href="#!/admin/logbookOperations">Suivi des opérations</a></li>
   </ol>
   <div class="panel panel-default col-md-12">
@@ -77,9 +77,11 @@
             <td>{{log.evIdProc}}</td>
             <td>{{log.evDateTime}}</td>
             <td>{{log.events[1].evDateTime}}</td>
-            <td ng-if = "log.events[1].outcome == 'OK'">Succès</td>
-            <td ng-if = "log.events[1].outcome == 'KO' || log.events[1].outcome == 'FATAL'">Erreur</td>
-            <td ng-if = "log.events[1].outcome != 'KO' && log.events[1].outcome != 'FATAL' && log.events[1].outcome != 'OK'">{{log.events[1].outcome}}</td>
+            <td ng-if = "log.events[1].outcome.toUpperCase() == 'OK'">Succès</td>
+            <td ng-if = "log.events[1].outcome.toUpperCase() == 'STARTED'">En cours</td>
+            <td ng-if = "log.events[1].outcome.toUpperCase() == 'KO' || log.events[1].outcome.toUpperCase() == 'FATAL'">Erreur</td>
+            <td ng-if = "log.events[1].outcome.toUpperCase() != 'KO' && log.events[1].outcome.toUpperCase() != 'FATAL' && log.events[1].outcome.toUpperCase() != 'OK'
+                        && log.events[1].outcome.toUpperCase() != 'STARTED'">{{log.events[1].outcome}}</td>
           </tr>
         </tbody>
 

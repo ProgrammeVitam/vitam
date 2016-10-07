@@ -79,6 +79,9 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
     protected final BlobStoreContext context;
 
     private static final int MAX_RESULTS = 51000;
+    // Buffer size for purge the InputStream when uploading a ZipFile
+    // TODO : should be removed when the refactored client and server will be put in place
+    private static final int BUFFER_SIZE = 64 * 1024;
 
 
 
@@ -461,6 +464,12 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
                 // put object in container
                 putObject(containerName, folderName + File.separator + zipEntry.getName(),
                     entryInputStream);
+            }
+	    // Used to purge the InputStream as the ZipInputStream doesn't read the inputFile to the end
+	    // TODO : should be removed when the refactorised server will be put in place 
+            byte[] buff = new byte[BUFFER_SIZE];
+            while (inputStreamObject.read(buff)!=-1){ 
+                // NOSONAR : PURGE THE InputStream
             }
             zInputStream.close();
 

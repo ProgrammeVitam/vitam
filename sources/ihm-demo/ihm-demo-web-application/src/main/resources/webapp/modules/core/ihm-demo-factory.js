@@ -40,7 +40,10 @@ angular.module('core')
   'ARCHIVE_LIFECYCLE_URL': '/unitlifecycles/',
   'OBJECT_GROUP_LIFECYCLE_URL': '/objectgrouplifecycles/',
   'UNIT_LIFECYCLE_TYPE': 'unit',
-  'OG_LIFECYCLE_TYPE': 'objectgroup'
+  'OG_LIFECYCLE_TYPE': 'objectgroup',
+  'SIP_TO_UPLOAD_URL': '/upload/fileslist',
+  'UPLOAD_SELECTED_SIP_URL': '/upload/',
+  'GENERATE_STAT_URL': '/stat/'
 })
 
 /*ihmDemoCLient create a configured http client*/
@@ -69,7 +72,7 @@ angular.module('core')
     return $http.put(IHM_URLS.IHM_BASE_URL + IHM_URLS.SAVE_ARCHIVE_DETAILS_URL + unitId, modifiedFields);
   };
 
-  //Get Object List
+  //Get Object Group
   dataFactory.getArchiveObjectGroup = function(ogId){
     return $http.get(IHM_URLS.IHM_BASE_URL + IHM_URLS.ARCHIVE_OBJECT_GROUP_URL + ogId);
   };
@@ -79,7 +82,6 @@ angular.module('core')
     return $http.post(IHM_URLS.IHM_BASE_URL + IHM_URLS.ARCHIVE_OBJECT_GROUP_DOWNLOAD_URL + ogId, options , {
         headers: {'X-Http-Method-Override': 'GET', 'Accept': 'application/octet-stream'}, responseType: 'arraybuffer'  });
   };
-
 
   // LifeCycle details
   dataFactory.getLifeCycleDetails = function(lifeCycleType, lifeCycleId) {
@@ -93,6 +95,21 @@ angular.module('core')
   // Archive Tree
   dataFactory.getArchiveTree = function(unitId, allParents){
     return $http.post(IHM_URLS.IHM_BASE_URL + IHM_URLS.ARCHIVE_TREE_URL + unitId, allParents);
+  };
+
+  //Get Available SIP on server for upload
+  dataFactory.getAvailableSipForUpload = function(){
+    return $http.get(IHM_URLS.IHM_BASE_URL + IHM_URLS.SIP_TO_UPLOAD_URL);
+  };
+
+  // upload selected SIP
+  dataFactory.uploadSelectedSip = function(selectedFile){
+    return $http.get(IHM_URLS.IHM_BASE_URL + IHM_URLS.UPLOAD_SELECTED_SIP_URL + selectedFile);
+  };
+
+  // Generate INGEST statistics report
+  dataFactory.generateIngestStatReport = function(operationId){
+    return $http.get(IHM_URLS.IHM_BASE_URL + IHM_URLS.GENERATE_STAT_URL + operationId);
   };
 
   return dataFactory;

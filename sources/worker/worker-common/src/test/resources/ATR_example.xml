@@ -5,7 +5,7 @@
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
  xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 file:/home/ldubois/Bureau/Vitam/BA/SEDA/formation/seda-2.0-main.xsd">
     <Comment>Comment0</Comment>
-    <Date>2016-09-06T18:13:51.0</Date>
+    <Date>2016-10-03T18:41:11.019+02:00</Date>
     <MessageIdentifier>MessageIdentifier0</MessageIdentifier>
     <ArchivalAgreement>ArchivalAgreement0</ArchivalAgreement>
     
@@ -56,7 +56,7 @@
     
     <ReplyCode>ReplyCode0</ReplyCode>
     <MessageRequestIdentifier>MessageRequestIdentifier0</MessageRequestIdentifier>
-    <GrantDate>2016-09-06T18:08:51.0</GrantDate>
+    <GrantDate>2016-10-03T18:41:11.019+02:00</GrantDate>
     <ArchivalAgency>
         <Identifier>Identifier2</Identifier>
     </ArchivalAgency>

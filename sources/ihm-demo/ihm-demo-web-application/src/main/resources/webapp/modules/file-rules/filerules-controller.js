@@ -131,7 +131,9 @@ angular.module('ihm.demo')
         "Description": reponse.RuleDescription ? reponse.RuleDescription.toString() : "",
         "Durée":       reponse.RuleDuration    ? reponse.RuleDuration.toString() : "",
         "Type":        reponse.RuleType        ? reponse.RuleType.toString() : "",
-        "Mesure":      reponse.RuleMeasurement ? reponse.RuleMeasurement.toString() : ""
+        "Mesure":      reponse.RuleMeasurement ? reponse.RuleMeasurement.toString() : "",
+        "Date de creation":      reponse.CreationDate ? reponse.CreationDate.toString() : "",
+        "Date de Modification":      reponse.UpdateDate ? reponse.UpdateDate.toString() : ""
       };
     }
 

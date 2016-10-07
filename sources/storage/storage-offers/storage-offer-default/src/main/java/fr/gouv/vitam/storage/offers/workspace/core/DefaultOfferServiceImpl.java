@@ -33,9 +33,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.security.DigestInputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -45,6 +42,7 @@ import com.google.common.io.ByteStreams;
 
 import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -144,18 +142,17 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             throw new ContentAddressableStorageException("Container's folder does not exist");
         }
         String path = TMP_DIRECTORY + objectId;
-        // FIXME utiliser Digest (common)
-        MessageDigest messageDigest;
+        Digest messageDigest;
         try {
-            messageDigest = MessageDigest.getInstance(getDigestAlgoFor(objectId).getName());
-        } catch (NoSuchAlgorithmException exc) {
+            messageDigest = new Digest(getDigestAlgoFor(objectId));
+        } catch (IllegalArgumentException exc) {
             LOGGER.error("Wrong digest algorithm " + getDigestAlgoFor(objectId).getName());
             throw new ContentAddressableStorageException(exc);
         }
-        DigestInputStream digestObjectPArt = new DigestInputStream(objectPart, messageDigest);
+        InputStream digestObjectPart = messageDigest.getDigestInputStream(objectPart);
         try (FileOutputStream fOut = new FileOutputStream(path, true)) {
             // FIXME très très mauvaise pratique (si le fichier fait 2 To => 2 To en mémoire)
-            fOut.write(ByteStreams.toByteArray(digestObjectPArt));
+            fOut.write(ByteStreams.toByteArray(digestObjectPart));
             fOut.flush();
         } catch (IOException exc) {
             LOGGER.error("Error on temporary file to transfert", exc);
@@ -171,9 +168,8 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
                 // do we validate the transfer before remove temp file ?
                 Files.deleteIfExists(Paths.get(path));
                 // TODO: to optimize (big file case) !
-                // FIXME pourquoi calculer 2 fois le digest ?
                 String digest = defaultStorage.computeObjectDigest(containerName,
-                    objectTypeFor.get(objectId) + "/" + objectId, getDigestAlgoFor(objectId));
+                    objectTypeFor.get(objectId) + "/" + objectId, messageDigest.type());
                 // remove digest algo
                 digestTypeFor.remove(objectId);
                 return digest;
@@ -211,7 +207,6 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         ObjectNode result = JsonHandler.createObjectNode();
         ContainerInformation containerInformation = defaultStorage.getContainerInformation(containerName);
         result.put("usableSpace", containerInformation.getUsableSpace());
-        // FIXME cette implémentation retourne l'espace "total" utilisé et non l'espace utilisé par ce container !
         result.put("usedSpace", containerInformation.getUsedSpace());
         result.put("tenantId", containerName);
         return result;

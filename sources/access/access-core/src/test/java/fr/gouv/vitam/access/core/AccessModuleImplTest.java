@@ -479,7 +479,7 @@ public class AccessModuleImplTest {
         StorageClient mockStorageClient = mock(StorageClient.class);
         when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString())).thenReturn(FromStringToJson
             (FAKE_METADATA_RESULT));
-        when(mockStorageClient.getContainerObject(anyString(), anyString(), anyString())).thenThrow(new
+        when(mockStorageClient.getContainer(anyString(), anyString(), anyString(), anyObject())).thenThrow(new
             StorageServerClientException("Test wanted exception"));
         accessModuleImpl = new AccessModuleImpl(conf, mockStorageClient);
         accessModuleImpl.getOneObjectFromObjectGroup(ID, FromStringToJson(QUERY), "BinaryMaster", 0, "0");

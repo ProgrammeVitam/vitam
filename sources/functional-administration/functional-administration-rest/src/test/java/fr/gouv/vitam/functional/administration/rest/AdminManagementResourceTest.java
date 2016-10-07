@@ -42,6 +42,7 @@ import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -316,6 +317,7 @@ public class AdminManagementResourceTest {
 
     /************************** rules Management ***************************************************/
     @Test
+    @Ignore
     public void givenAWellFormedCSVInputstreamCheckThenReturnOK() {
         stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         given().contentType(ContentType.BINARY).body(stream)

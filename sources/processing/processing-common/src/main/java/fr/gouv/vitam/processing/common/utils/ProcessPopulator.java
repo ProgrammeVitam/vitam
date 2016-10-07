@@ -31,6 +31,7 @@ import java.io.InputStream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
@@ -43,8 +44,11 @@ import fr.gouv.vitam.processing.common.model.WorkFlow;
  *
  */
 public class ProcessPopulator {
-    // FIXME REVIEW null check
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessPopulator.class);
+
+    private ProcessPopulator() {
+        // empty constructor
+    }
 
     /**
      * create workflow object : parse JSON file
@@ -54,7 +58,7 @@ public class ProcessPopulator {
      * @throws WorkflowNotFoundException throws when workflow not found
      */
     public static WorkFlow populate(String workflowId) throws WorkflowNotFoundException {
-
+        ParametersChecker.checkParameter("workflowId is a mandatory parameter", workflowId);
         final ObjectMapper objectMapper = new ObjectMapper();
         WorkFlow process = null;
 
@@ -72,5 +76,6 @@ public class ProcessPopulator {
     private static InputStream getFileAsInputStream(String workflowFile) throws IOException {
         return Thread.currentThread().getContextClassLoader().getResourceAsStream(workflowFile);
     }
+
 
 }

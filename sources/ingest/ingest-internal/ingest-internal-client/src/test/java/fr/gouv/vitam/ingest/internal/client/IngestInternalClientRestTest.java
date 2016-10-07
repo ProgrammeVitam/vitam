@@ -27,6 +27,7 @@
 package fr.gouv.vitam.ingest.internal.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -53,6 +54,8 @@ import org.glassfish.jersey.test.JerseyTest;
 import org.glassfish.jersey.test.TestProperties;
 import org.junit.Test;
 
+import fr.gouv.vitam.common.FileUtil;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -133,7 +136,7 @@ public class IngestInternalClientRestTest extends JerseyTest {
     }
 
     @Test
-    public void givenStartedServerWhenUploadSipThenReturnOK() throws VitamException {
+    public void givenStartedServerWhenUploadSipThenReturnOK() throws Exception {
 
         List<LogbookParameters> operationList = new ArrayList<LogbookParameters>();
 
@@ -161,24 +164,17 @@ public class IngestInternalClientRestTest extends JerseyTest {
         operationList.add(externalOperationParameters1);
         operationList.add(externalOperationParameters2);
 
-        uploadResponseDTO = new UploadResponseDTO();
-        uploadResponseDTO.setFileName("fileName");
-        uploadResponseDTO.setHttpCode(200);
-        uploadResponseDTO.setMessage("success");
-        uploadResponseDTO.setVitamCode("201");
-        uploadResponseDTO.setVitamStatus("success");
-        uploadResponseDTO.setEngineCode("200");
-        uploadResponseDTO.setEngineStatus("success");
-
-        when(mock.post()).thenReturn(Response.ok(uploadResponseDTO, "application/json").build());
+        InputStream inputStreamATR = PropertiesUtils.getResourcesAsStream("ATR_example.xml");
+        when(mock.post()).thenReturn(Response.status(Status.OK).entity(FileUtil.readInputStream(inputStreamATR)).build());
         InputStream inputStream =
-            Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
-        UploadResponseDTO response = client.upload(operationList, inputStream);
-        assertThat(response.getVitamStatus()).isEqualTo("success");
+            PropertiesUtils.getResourcesAsStream("SIP_bordereau_avec_objet_OK.zip");
+        Response response = client.upload(operationList, inputStream);
+        inputStreamATR = PropertiesUtils.getResourcesAsStream("ATR_example.xml");
+        assertEquals(response.readEntity(String.class), FileUtil.readInputStream(inputStreamATR));
     }
 
-    @Test
-    public void givenVirusWhenUploadSipThenReturnOK() throws VitamException {
+    @Test(expected = VitamException.class)
+    public void givenVirusWhenUploadSipThenReturnKO() throws Exception {
 
         List<LogbookParameters> operationList = new ArrayList<LogbookParameters>();
 
@@ -205,19 +201,10 @@ public class IngestInternalClientRestTest extends JerseyTest {
                 conatinerGuid);
         operationList.add(externalOperationParameters1);
         operationList.add(externalOperationParameters2);
-
-        uploadResponseDTO = new UploadResponseDTO();
-        uploadResponseDTO.setFileName("fileName");
-        uploadResponseDTO.setHttpCode(200);
-        uploadResponseDTO.setMessage("success");
-        uploadResponseDTO.setVitamCode("201");
-        uploadResponseDTO.setVitamStatus("success");
-        uploadResponseDTO.setEngineCode("200");
-        uploadResponseDTO.setEngineStatus("success");
-
-        when(mock.post()).thenReturn(Response.ok(uploadResponseDTO, "application/json").build());
-        UploadResponseDTO response = client.upload(operationList, null);
-        assertThat(response.getVitamStatus()).isEqualTo("success");
+        
+        InputStream inputStreamATR = PropertiesUtils.getResourcesAsStream("ATR_example.xml");
+        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).entity(FileUtil.readInputStream(inputStreamATR)).build());
+        client.upload(operationList, null);
     }
 
     @Test(expected = VitamException.class)
@@ -249,23 +236,15 @@ public class IngestInternalClientRestTest extends JerseyTest {
         operationList.add(externalOperationParameters1);
         operationList.add(externalOperationParameters2);
 
-        uploadResponseDTO = new UploadResponseDTO();
-        uploadResponseDTO.setFileName("fileName");
-        uploadResponseDTO.setHttpCode(500);
-        uploadResponseDTO.setMessage("error");
-        uploadResponseDTO.setVitamCode("500");
-        uploadResponseDTO.setVitamStatus("error");
-        uploadResponseDTO.setEngineCode("500");
-        uploadResponseDTO.setEngineStatus("error");
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).entity(uploadResponseDTO).build());
 
         InputStream inputStream =
-            Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
+            PropertiesUtils.getResourcesAsStream("SIP_bordereau_avec_objet_OK.zip");
         client.upload(operationList, inputStream);
     }
 
-    @Test
-    public void givenStartedServerWhenUploadSipNonZipThenReturnKO() throws VitamException {
+    @Test(expected = VitamException.class)
+    public void givenStartedServerWhenUploadSipNonZipThenReturnKO() throws Exception {
 
         List<LogbookParameters> operationList = new ArrayList<LogbookParameters>();
 
@@ -292,21 +271,10 @@ public class IngestInternalClientRestTest extends JerseyTest {
                 conatinerGuid);
         operationList.add(externalOperationParameters1);
         operationList.add(externalOperationParameters2);
-
-        uploadResponseDTO = new UploadResponseDTO();
-        uploadResponseDTO.setFileName("Sip file");
-        uploadResponseDTO.setHttpCode(500);
-        uploadResponseDTO.setMessage("Test");
-        uploadResponseDTO.setVitamCode("500");
-        uploadResponseDTO.setVitamStatus("workspace failed");
-        uploadResponseDTO.setEngineCode("500");
-        uploadResponseDTO.setEngineStatus("Zip error");
         
-        when(mock.post()).thenReturn(Response.ok(uploadResponseDTO, "application/json").build());
+        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).entity(uploadResponseDTO).build());
         InputStream inputStream =
-            Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_mauvais_format.pdf");
-        UploadResponseDTO response = client.upload(operationList, inputStream);
-        assertThat(response.getVitamStatus()).isEqualTo("workspace failed");
-        assertThat(response.getEngineStatus()).isEqualTo("Zip error");
+            PropertiesUtils.getResourcesAsStream("SIP_mauvais_format.pdf");
+        client.upload(operationList, inputStream);
     }
 }

@@ -27,8 +27,6 @@
 package fr.gouv.vitam.ingest.internal.upload.rest;
 
 import static com.jayway.restassured.RestAssured.get;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 
@@ -65,7 +63,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.BasicVitamServer;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.VitamServerFactory;
-import fr.gouv.vitam.ingest.internal.model.UploadResponseDTO;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
@@ -205,8 +202,8 @@ public class IngestInternalResourceTest {
 
         InputStream inputStream =
             Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
+        
         RestAssured.given()
-
             .multiPart("part", operationList, MediaType.APPLICATION_JSON)
             .multiPart("part", "SIP_bordereau_avec_objet_OK", inputStream)
             .then().statusCode(Status.OK.getStatusCode())
@@ -220,17 +217,11 @@ public class IngestInternalResourceTest {
         throws Exception {
         reset(workspaceClient);
         reset(processingClient);
-
-        UploadResponseDTO uploadResponseDTOReal = RestAssured.given()
+        
+        RestAssured.given()
             .multiPart("part", operationList, MediaType.APPLICATION_JSON)
-            .then().statusCode(Status.OK.getStatusCode())
-            .when().post(UPLOAD_URI).andReturn().getBody().as(UploadResponseDTO.class);
-
-        assertNotNull(uploadResponseDTOReal);
-        assertEquals(uploadResponseDTOReal.getVitamCode(), "500");
-        assertEquals(uploadResponseDTOReal.getVitamStatus(), "upload failed");
-        assertEquals(uploadResponseDTOReal.getMessage(), "file upload finished in error");
-
+            .when().post(UPLOAD_URI)
+            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
     @Test
@@ -247,16 +238,11 @@ public class IngestInternalResourceTest {
         InputStream inputStreamZip =
             Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_mauvais_format.pdf");
 
-        UploadResponseDTO uploadResponseDTOReal = RestAssured.given()
+        RestAssured.given()
             .multiPart("part", operationList, MediaType.APPLICATION_JSON)
             .multiPart("part", "SIP_mauvais_format", inputStreamZip)
-            .then().statusCode(Status.OK.getStatusCode())
-            .when().post(UPLOAD_URI).andReturn().getBody().as(UploadResponseDTO.class);
-
-        assertNotNull(uploadResponseDTOReal);
-        assertEquals(uploadResponseDTOReal.getVitamCode(), "500");
-        assertEquals(uploadResponseDTOReal.getVitamStatus(), "workspace failed");
-        assertEquals(uploadResponseDTOReal.getMessage(), "Test");
+            .when().post(UPLOAD_URI)
+            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
         inputStreamZip.close();
     }
@@ -271,16 +257,11 @@ public class IngestInternalResourceTest {
         InputStream inputStream =
             Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
 
-        UploadResponseDTO uploadResponseDTOReal = RestAssured.given()
+        RestAssured.given()
             .multiPart("part", operationList, MediaType.APPLICATION_JSON)
             .multiPart("part", "SIP_bordereau_avec_objet_OK", inputStream)
-            .then().statusCode(Status.OK.getStatusCode())
-            .when().post(UPLOAD_URI).andReturn().getBody().as(UploadResponseDTO.class);
-
-        assertNotNull(uploadResponseDTOReal);
-        assertEquals(uploadResponseDTOReal.getVitamCode(), "500");
-        assertEquals(uploadResponseDTOReal.getVitamStatus(), "workspace failed");
-        assertEquals(uploadResponseDTOReal.getMessage(), "Test");
+            .when().post(UPLOAD_URI)
+            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
         inputStream.close();
 
@@ -295,10 +276,11 @@ public class IngestInternalResourceTest {
 
         InputStream inputStream =
             Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
+        
         RestAssured.given()
             .multiPart("part", operationList, MediaType.APPLICATION_JSON)
             .multiPart("part", "SIP_bordereau_avec_objet_OK", inputStream)
-            .then().statusCode(Status.OK.getStatusCode())
+            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
             .when().post(UPLOAD_URI);
 
         inputStream.close();
@@ -316,16 +298,11 @@ public class IngestInternalResourceTest {
         InputStream inputStream =
             Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
 
-        UploadResponseDTO uploadResponseDTOReal = RestAssured.given()
+        RestAssured.given()
             .multiPart("part", operationList, MediaType.APPLICATION_JSON)
             .multiPart("part", "SIP_bordereau_avec_objet_OK", inputStream)
-            .then().statusCode(Status.OK.getStatusCode())
-            .when().post(UPLOAD_URI).andReturn().getBody().as(UploadResponseDTO.class);
-
-        assertNotNull(uploadResponseDTOReal);
-        assertEquals(uploadResponseDTOReal.getVitamCode(), "500");
-        assertEquals(uploadResponseDTOReal.getVitamStatus(), "processing failed");
-        assertEquals(uploadResponseDTOReal.getMessage(), "process workflow finished in error");
+            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
+            .when().post(UPLOAD_URI).andReturn();
     }
 
     @Test
@@ -339,16 +316,11 @@ public class IngestInternalResourceTest {
         InputStream inputStream =
             Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
 
-        UploadResponseDTO uploadResponseDTOReal = RestAssured.given()
+        RestAssured.given()
             .multiPart("part", operationList, MediaType.APPLICATION_JSON)
             .multiPart("part", "SIP_bordereau_avec_objet_OK", inputStream)
-            .then().statusCode(Status.OK.getStatusCode())
-            .when().post(UPLOAD_URI).andReturn().getBody().as(UploadResponseDTO.class);
-
-        assertNotNull(uploadResponseDTOReal);
-        assertEquals(uploadResponseDTOReal.getVitamCode(), "500");
-        assertEquals(uploadResponseDTOReal.getVitamStatus(), "processing failed");
-        assertEquals(uploadResponseDTOReal.getMessage(), "process workflow finished in error");
+            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
+            .when().post(UPLOAD_URI);
     }
 
     @Test
@@ -364,8 +336,8 @@ public class IngestInternalResourceTest {
         RestAssured.given()
             .multiPart("part", operationList, MediaType.APPLICATION_JSON)
             .multiPart("part", "SIP_bordereau_avec_objet_OK", inputStream)
-            .then().statusCode(Status.OK.getStatusCode())
-            .when().post(UPLOAD_URI).andReturn().getBody().asString().contains("upload failed");
+            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
+            .when().post(UPLOAD_URI);
     }
 
 

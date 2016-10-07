@@ -30,6 +30,9 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.core.Response;
+import javax.xml.stream.XMLStreamException;
+
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -43,7 +46,6 @@ import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
 import fr.gouv.vitam.ingest.external.common.util.JavaExecuteScript;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
-import fr.gouv.vitam.ingest.internal.model.UploadResponseDTO;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
@@ -63,6 +65,7 @@ public class IngestExternalImpl implements IngestExternal {
     private static final String INGEST_EXT = "Contrôle sanitaire SIP";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalImpl.class);
     private final IngestExternalConfiguration config;
+    private static final int DEFAULT_TENANT = 0;
 
     /**
      * Constructor IngestExternalImpl with parameter IngestExternalConfiguration
@@ -74,14 +77,18 @@ public class IngestExternalImpl implements IngestExternal {
     }
 
     @Override
-    public void upload(InputStream input) throws IngestExternalException {
+    public Response upload(InputStream input) throws IngestExternalException, XMLStreamException {
         ParametersChecker.checkParameter("input is a mandatory parameter", input);
+        GUID guid = GUIDFactory.newOperationIdGUID(DEFAULT_TENANT);
         // Store in local
-        GUID containerName = GUIDFactory.newGUID();
+        GUID containerName = guid;
         GUID objectName = GUIDFactory.newGUID();
+        GUID ingestGuid = guid;
+
         FileSystem workspaceFileSystem = new FileSystem(new StorageConfiguration().setStoragePath(config.getPath()));
         String antiVirusScriptName = config.getAntiVirusScriptName();
         long timeoutScanDelay = config.getTimeoutScanDelay();
+        Response responseResult = null;
         while (true) {
             boolean hasError = false;
             try {
@@ -103,7 +110,6 @@ public class IngestExternalImpl implements IngestExternal {
                 throw new IngestExternalException(e);
             }
 
-            GUID ingestGuid = GUIDFactory.newGUID();
             List<LogbookParameters> logbookParametersList = new ArrayList<LogbookParameters>();
             LogbookParameters startedParameters = LogbookParametersFactory.newLogbookOperationParameters(
                 ingestGuid,
@@ -116,9 +122,7 @@ public class IngestExternalImpl implements IngestExternal {
 
             // TODO should be the file name from a header
             startedParameters.getMapParameters().put(LogbookParameterName.objectIdentifierIncome, objectName.getId());
-
             logbookParametersList.add(startedParameters);
-
 
             String filePath = config.getPath() + "/" + containerName.getId() + "/" + objectName.getId();
             int antiVirusResult;
@@ -186,16 +190,18 @@ public class IngestExternalImpl implements IngestExternal {
             }
 
             logbookParametersList.add(endParameters);
-
             IngestInternalClient client = IngestInternalClientFactory.getInstance().getIngestInternalClient();
+            
             try {
-                UploadResponseDTO result = client.upload(logbookParametersList, inputStream);
-                if (result.getHttpCode() >= 400) {
+                //TODO Response async
+                responseResult = client.upload(logbookParametersList, inputStream);
+                if ( responseResult.getStatus()>= 400) {
                     throw new IngestExternalException("Ingest Internal Exception");
                 }
             } catch (VitamException e) {
                 throw new IngestExternalException(e.getMessage(), e);
             }
+            
         } finally {
             try {
                 workspaceFileSystem.deleteObject(containerName.getId(), objectName.getId());
@@ -203,5 +209,7 @@ public class IngestExternalImpl implements IngestExternal {
                 LOGGER.warn(e);
             }
         }
+        
+        return responseResult;
     }
 }

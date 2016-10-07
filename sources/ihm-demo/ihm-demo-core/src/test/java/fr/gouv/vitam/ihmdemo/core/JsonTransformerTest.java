@@ -24,9 +24,13 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+
 package fr.gouv.vitam.ihmdemo.core;
 
 import static org.junit.Assert.assertNotNull;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -36,7 +40,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.ihmdemo.core.JsonTransformer;
 
 /**
  * JsonTransformerTest junit test
@@ -80,6 +83,8 @@ public class JsonTransformerTest {
     private static JsonNode invalidParentsWithMissingId;
     private static JsonNode invalidParentsWithMissingUp;
     private static JsonNode invalidParentsWithInvalidUp;
+    private static final String SAMPLE_LOGBOOKOPERATION_FILENAME = "logbookoperation_sample.json";
+    private static JsonNode sampleLogbookOperation;
 
     @BeforeClass
     public static void setup() throws Exception {
@@ -87,6 +92,7 @@ public class JsonTransformerTest {
         invalidParentsWithMissingId = JsonHandler.getFromString(INVALID_ALL_PARENTS_WITH_MISSING_ID);
         invalidParentsWithMissingUp = JsonHandler.getFromString(INVALID_ALL_PARENTS_WITH_MISSING_UP);
         invalidParentsWithInvalidUp = JsonHandler.getFromString(INVALID_ALL_PARENTS_WITH_INVALID_UP);
+        sampleLogbookOperation = JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_LOGBOOKOPERATION_FILENAME));
     }
 
     @Test
@@ -129,5 +135,11 @@ public class JsonTransformerTest {
     @Test(expected = VitamException.class)
     public void testBuildAllParentsRefWithMissingUnitIdThrowsVitamException() throws Exception {
         JsonTransformer.buildAllParentsRef("ID020", validParents);
+    }
+
+    @Test
+    public void testBuildLogbookStatCsvFile() throws VitamException, IOException {
+        ByteArrayOutputStream report = JsonTransformer.buildLogbookStatCsvFile(sampleLogbookOperation, "");
+        // TODO : validate the created report
     }
 }

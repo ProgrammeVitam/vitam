@@ -27,8 +27,6 @@
 package fr.gouv.vitam.storage.engine.server.logbook;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * Storage Logbook Factory
@@ -58,7 +56,6 @@ public final class StorageLogbookFactory {
      * Default storage logbook type
      */
     private static StorageLogbookType defaultStorageLogbookType;
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageLogbookFactory.class);
     private static final StorageLogbookFactory STORAGE_LOGBOOK_FACTORY = new StorageLogbookFactory();
 
     

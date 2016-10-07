@@ -58,8 +58,8 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
+import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.function.administration.rules.core.RulesManagerFileImpl;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FileRules;
@@ -229,12 +229,16 @@ public class AdminManagementResource extends ApplicationStatusResource {
      * @param rulesStream as InputStream
      * @return Response response jersey
      * @throws IOException
+     * @throws InvalidCreateOperationException
+     * @throws InvalidParseOperationException
+     * @throws ReferentialException
      */
     @Path("rules/check")
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response checkRulesFile(InputStream rulesStream) throws IOException {
+    public Response checkRulesFile(InputStream rulesStream)
+        throws IOException, ReferentialException, InvalidParseOperationException, InvalidCreateOperationException {
         ParametersChecker.checkParameter("rulesStream is a mandatory parameter", rulesStream);
 
         try {

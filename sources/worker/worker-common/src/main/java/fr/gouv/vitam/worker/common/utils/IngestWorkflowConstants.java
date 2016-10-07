@@ -48,11 +48,20 @@ public class IngestWorkflowConstants {
     /**
      * Prefix of file containing mapping between BinaryDataObjects' seda ID and object group's seda ID.
      */
-    public static final String BDO_TO_OBJECT_GROUP_ID_MAP_FILE_NAME_PREFIX = "BDO_TO_OBJECT_GROUP_ID_MAP_";
+    public static final String BDO_TO_OBJECT_GROUP_ID_MAP_FILE_NAME_PREFIX = "BDO_TO_OBJECT_GROUP_ID_MAP_";    
+    /**
+     * Prefix of file containing mapping between all object GUID and its URI 
+     */
+    public static final String OBJECT_GUID_TO_URI_MAP_FILE_NAME_PREFIX =
+        "OBJECT_GUID_TO_URI_";
     /**
      * Prefix of file containing mapping between object group's seda ID and archive units' seda ID.
      */
     public static final String OBJECT_GROUP_ID_TO_ARCHIVE_UNIT_ID_MAP_FILE_NAME_PREFIX = "OG_TO_ARCHIVE_ID_MAP_";
+    /**
+     * Prefix of file containing mapping between BinaryDataObjects' seda ID and data object version.
+     */
+    public static final String BDO_TO_DO_VERSION_MAP_FILE_NAME_PREFIX = "BDO_TO_DO_VERSION_MAP_";    
     /**
      * Prefix of file the ingest units tree.
      */
@@ -87,6 +96,16 @@ public class IngestWorkflowConstants {
      */
     public static final String TMP_FOLDER = "tmp";
 
+    // TODO : add doc
+    public static final String ROOT_TAG = "ROOT";
+    public static final String WORK_TAG = "WORK";
+    public static final String UPS_SEPARATOR = "-";
+    public static final String UP_FIELD = "_up";
+
+    /**
+     * Sub folder for work file in Worskpace folder of container : containerId/ATR      */
+    public static final String ATR_FOLDER = "ATR";
+    
     private IngestWorkflowConstants() {}
 
 }

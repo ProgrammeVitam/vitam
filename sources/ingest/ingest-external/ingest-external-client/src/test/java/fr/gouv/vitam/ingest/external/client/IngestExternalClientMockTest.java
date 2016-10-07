@@ -30,7 +30,7 @@ import java.io.InputStream;
 
 import org.junit.Test;
 
-import fr.gouv.vitam.ingest.external.api.IngestExternalException;
+import fr.gouv.vitam.common.PropertiesUtils;
 
 public class IngestExternalClientMockTest {
     IngestExternalClientMock client = new IngestExternalClientMock();
@@ -42,14 +42,14 @@ public class IngestExternalClientMockTest {
     }
     
     @Test
-    public void givenClientMockWhenNoVirusFileThenReturnOK() throws IngestExternalException {
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("no-virus.txt");
+    public void givenClientMockWhenNoVirusFileThenReturnOK() throws Exception {
+        stream = PropertiesUtils.getResourcesAsStream("no-virus.txt");
         client.upload(stream);
     }
     
     @Test
-    public void givenClientMockWhenUnfixedFileThenReturnRetrunAccepted() throws IngestExternalException {
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("unfixed-virus.txt");
+    public void givenClientMockWhenUnfixedFileThenReturnRetrunAccepted() throws Exception {
+        stream = PropertiesUtils.getResourcesAsStream("unfixed-virus.txt");
         client.upload(stream);
     }
 

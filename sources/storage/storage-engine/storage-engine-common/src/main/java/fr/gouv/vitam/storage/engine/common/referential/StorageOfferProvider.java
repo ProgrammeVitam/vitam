@@ -29,7 +29,6 @@ package fr.gouv.vitam.storage.engine.common.referential;
 
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
-import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 
 /**
  * This interface aims at providing a set of method that are common with no concerns of the offer configuration

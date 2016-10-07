@@ -90,4 +90,14 @@ public enum FunctionalAdminCollections {
         return vitamCollection.getClasz();
     }
 
+    /**
+     * 
+     * 
+     * @return the count of associated MongoCollection
+     */
+
+    public long getCount() {
+        return vitamCollection.getCollection().count();
+    }
+
 }

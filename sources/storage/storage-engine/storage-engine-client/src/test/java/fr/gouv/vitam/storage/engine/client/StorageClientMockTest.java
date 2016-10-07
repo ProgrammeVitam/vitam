@@ -105,7 +105,7 @@ public class StorageClientMockTest {
     public void getContainerObjectTest() throws StorageNotFoundException, StorageServerClientException, IOException {
         StorageClientFactory.setConfiguration(StorageClientFactory.StorageClientType.MOCK_STORAGE, null);
         final StorageClient client = StorageClientFactory.getInstance().getStorageClient();
-        InputStream stream = client.getContainerObject("tenantId", "strategyId", "guid");
+        InputStream stream = client.getContainer("tenantId", "strategyId", "guid", StorageCollectionType.OBJECTS);
         InputStream stream2 = IOUtils.toInputStream(StorageClientMock.MOCK_GET_FILE_CONTENT);
         assertNotNull(stream);
         assertTrue(IOUtils.contentEquals(stream, stream2));

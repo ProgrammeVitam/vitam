@@ -56,9 +56,8 @@ public class FormatIdentifierFactory {
     private final Map<String, FormatIdentifierConfiguration> configurationsFormatIdentifiers =
         Collections.synchronizedMap(new HashMap<>());
 
+    // TODO : use a yaml configuration instead of a json.
     private static final String FORMAT_IDENTIFIERS_CONF_FILE = "format-identifiers.json";
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
 
     /**
      * Constructor
@@ -75,8 +74,8 @@ public class FormatIdentifierFactory {
     public final void changeConfigurationFile(String configurationPath) {
         try {
             File configurationFile = PropertiesUtils.findFile(configurationPath);
-            if (configurationFile != null) {
-                Map<String, FormatIdentifierConfiguration> configMap = OBJECT_MAPPER.readValue(configurationFile,
+            if (configurationFile != null) {               
+                Map<String, FormatIdentifierConfiguration> configMap = new ObjectMapper().readValue(configurationFile,
                     new TypeReference<Map<String, FormatIdentifierConfiguration>>() {});
                 for (FormatIdentifierConfiguration configuration : configMap.values()) {
                     checkConfiguration(configuration);

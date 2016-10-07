@@ -26,10 +26,17 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.client;
 
+import java.io.IOException;
 import java.io.InputStream;
 
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import javax.xml.stream.XMLStreamException;
 
+import fr.gouv.vitam.common.FileUtil;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.ingest.external.api.IngestExternalException;
@@ -39,13 +46,21 @@ import fr.gouv.vitam.ingest.external.api.IngestExternalException;
  */
 public class IngestExternalClientMock implements IngestExternalClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalClientMock.class);
+    private static final String FAKE_X_REQUEST_ID = GUIDFactory.newRequestIdGUID(0).getId();
 
     @Override
-    public void upload(InputStream stream) throws IngestExternalException {
+    public Response upload(InputStream stream) throws IngestExternalException, XMLStreamException {
         if (stream == null) {
             throw new IngestExternalException("stream is null");
         }
+        String result = "";
+        try(InputStream inputstreamATR = PropertiesUtils.getResourcesAsStream("ATR_example.xml")) {
+            result = FileUtil.readInputStream(inputstreamATR);
+        } catch (IOException e) {
+            LOGGER.debug("Get Mock result error");
+        }
         LOGGER.debug("Running mock upload");
+        return Response.status(Status.OK).header(GlobalDataRest.X_REQUEST_ID, FAKE_X_REQUEST_ID).entity(result).build();
     }
 
     @Override

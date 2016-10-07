@@ -27,12 +27,10 @@
 
 package fr.gouv.vitam.common.format.identification.siegfried;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.FileAttribute;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -57,6 +55,8 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  * Siegfried implementation of format identifier
  */
 public class FormatIdentifierSiegfried implements FormatIdentifier {
+    public static final String PRONOM_NAMESPACE = "pronom";
+    public static final String UNKNOW_NAMESPACE = "UNKNOW";
     private final SiegfriedClient client;
     private final Path rootPath;
     private final Path versionPath;
@@ -71,7 +71,8 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
      * @throws FormatIdentifierTechnicalException If a technical error occures when the version path is created
      * @throws IllegalArgumentException if mandatory parameter are not given or null
      */
-    public FormatIdentifierSiegfried(Map<String, Object> configurationProperties) throws FormatIdentifierTechnicalException {
+    public FormatIdentifierSiegfried(Map<String, Object> configurationProperties)
+        throws FormatIdentifierTechnicalException {
         ParametersChecker.checkParameter("Client type cannot be null", configurationProperties.get("client"));
         ParametersChecker.checkParameter("Root path cannot be null", configurationProperties.get("rootPath"));
         ParametersChecker.checkParameter("Version pathcannot be null", configurationProperties.get("versionPath"));
@@ -98,7 +99,7 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
             if (BooleanUtils.isNotFalse(createVersionPath)) {
                 try {
                     // Create directory already check for file existance and possibility to create the directory.
-                	Files.createDirectory(versionPath);
+                    Files.createDirectories(versionPath);
                 } catch (IOException e) {
                     throw new FormatIdentifierTechnicalException(e);
                 }
@@ -146,8 +147,7 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("identify format for " + path);
         }
-
-        Path filePath = Paths.get(rootPath.toString() + path.toString());
+        Path filePath = Paths.get(rootPath.toString() + "/" + path.toString());
 
         JsonNode response = client.analysePath(filePath);
 
@@ -196,7 +196,7 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
     }
 
     private boolean formatResolved(String formatId, String nameSpace) {
-        if ("pronom".equals(nameSpace) && "UNKNOW".equals(formatId)) {
+        if (PRONOM_NAMESPACE.equals(nameSpace) && UNKNOW_NAMESPACE.equals(formatId)) {
             return false;
         }
         return true;

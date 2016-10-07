@@ -35,6 +35,7 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -446,16 +447,21 @@ public class WorkerIT {
     }
 
     private String unitName() {
-        String objectName = "";
+        String unitName = "";
         try {
             InputStream stream = workspaceClient.getObject(CONTAINER_NAME,
-                "Maps/ARCHIVE_ID_TO_GUID_MAP.json");
+                "UnitsLevel/ingestLevelStack.json");
             Map<String, Object> map = JsonHandler.getMapFromString(IOUtils.toString(stream, "UTF-8"));
-            objectName = (String) map.values().iterator().next();
+
+            @SuppressWarnings("rawtypes")
+            ArrayList levelUnits = (ArrayList) map.values().iterator().next();
+            if (levelUnits.size() > 0) {
+                unitName = (String) levelUnits.get(0);
+            }
         } catch (Exception e) {
-            LOGGER.error("Exception while retrieving unit", e);
+            LOGGER.error("Exception while retrieving objectGroup", e);
         }
-        return objectName + ".xml";
+        return unitName + ".xml";
     }
 
     private String objectGroupName() {

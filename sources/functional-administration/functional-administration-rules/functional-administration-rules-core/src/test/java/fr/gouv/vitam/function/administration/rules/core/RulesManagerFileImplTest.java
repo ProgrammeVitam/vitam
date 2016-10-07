@@ -51,7 +51,9 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.functional.administration.common.FileRules;
@@ -96,12 +98,14 @@ public class RulesManagerFileImplTest {
     }
 
     @Test
-    public void testRulesFileCSV() throws ReferentialException, IOException {
+    public void testRulesFileCSVOK()
+        throws ReferentialException, IOException, InvalidParseOperationException, InvalidCreateOperationException {
         rulesFileManager.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
     }
 
     @Test(expected = ReferentialException.class)
-    public void testRulesFileCSVKO() throws ReferentialException, IOException {
+    public void testRulesFileCSVKO()
+        throws ReferentialException, IOException, InvalidParseOperationException, InvalidCreateOperationException {
         rulesFileManager.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_KO)));
     }
 

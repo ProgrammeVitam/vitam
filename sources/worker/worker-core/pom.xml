@@ -37,14 +37,25 @@
 		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>common-format-identification</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>metadata-client</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>functional-administration-client</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
-		</dependency>		<dependency>
+		</dependency>
+		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-all</artifactId>
 			<scope>test</scope>
@@ -65,5 +76,29 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.jvnet.jaxb2.maven2</groupId>
+				<artifactId>maven-jaxb2-plugin</artifactId>
+				<configuration>
+					<catalog>src/main/resources/seda-vitam.cat</catalog>
+					<plugins>
+						<plugin>
+							<groupId>org.jvnet.jaxb2_commons</groupId>
+							<artifactId>jaxb2-basics-annotate</artifactId>
+							<version>${jaxb2.version}</version>
+						</plugin>
+					</plugins>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 </project>

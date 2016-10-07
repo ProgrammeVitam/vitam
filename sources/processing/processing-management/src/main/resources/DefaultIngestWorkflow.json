@@ -39,14 +39,6 @@
                 "uri": "WORKSPACE:UnitsLevel/ingestLevelStack.json"
               },
               {
-                "name": "unitsTree.file",
-                "uri": "WORKSPACE:UnitsTree/INGEST_TREE.json"
-              },
-              {
-                "name": "mapsUnits.file",
-                "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json"
-              },
-              {
                 "name": "mapsBDOtoOG.file",
                 "uri": "WORKSPACE:Maps/BDO_TO_OBJECT_GROUP_ID_MAP.json"
               },
@@ -61,8 +53,20 @@
               {
                 "name": "mapsObjectGroup.file",
                 "uri": "WORKSPACE:Maps/OG_TO_ARCHIVE_ID_MAP.json"
+              },
+              {
+                "name": "mapsBDOtoVersionBDO.file",
+                "uri": "WORKSPACE:Maps/BDO_TO_VERSION_BDO_MAP.json"
+              },
+              {
+                "name": "mapsUnits.file",
+                "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "globalSEDAParameters.file",
+                "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
               }
-            ]
+           ]
           }
         },
         {
@@ -105,6 +109,23 @@
     },
     {
       "workerGroupId": "DefaultWorker",
+      "stepName": "Identification des formats",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST",
+        "element": "ObjectGroup"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "FormatIdentification",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
       "stepName": "Vérification de la disponibilite de l'offre de stockage",
       "behavior": "BLOCKING",
       "distribution": {
@@ -132,17 +153,7 @@
         {
           "action": {
             "actionKey": "IndexUnit",
-            "behavior": "BLOCKING",
-            "in": [
-              {
-                "name": "mapsUnits.file",
-                "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json"
-              },
-              {
-                "name": "unitsTree.file",
-                "uri": "WORKSPACE:UnitsTree/INGEST_TREE.json"
-              }
-            ]
+            "behavior": "BLOCKING"
           }
         }
       ]
@@ -166,6 +177,45 @@
           "action": {
             "actionKey": "IndexObjectGroup",
             "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "Finalisation de l'entrée",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF",
+        "element": "SIP/manifest.xml"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "TransferNotification",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "mapsUnits.file",
+                "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "mapsBDO.file",
+                "uri": "WORKSPACE:Maps/BINARY_DATA_OBJECT_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "mapsBDOtoOG.file",
+                "uri": "WORKSPACE:Maps/BDO_TO_OBJECT_GROUP_ID_MAP.json"
+              },
+              {
+                "name": "mapsBDOtoVersionBDO.file",
+                "uri": "WORKSPACE:Maps/BDO_TO_VERSION_BDO_MAP.json"
+              },
+              {
+                "name": "globalSEDAParameters.file",
+                "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
+              }
+            ]
           }
         }
       ]

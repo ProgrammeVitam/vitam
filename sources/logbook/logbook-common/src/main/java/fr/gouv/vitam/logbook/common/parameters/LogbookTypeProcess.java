@@ -58,5 +58,5 @@ public enum LogbookTypeProcess {
     /**
      * Rules Manager process
      */
-    RULESMANAGER
+    MASTERDATA
 }

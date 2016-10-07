@@ -83,6 +83,9 @@ config(['$locationProvider' ,'$routeProvider',
     when('/lifecycle/:type/:lifecycleId/:lifecycleTitle', {
       template: '<lifecycle></lifecycle>',
     }).
+    when('/uploadperf', {
+      template: '<upload-sip-perf></upload-sip-perf>'
+    }).
     otherwise('/uploadSIP');
   }
 ])
@@ -94,5 +97,5 @@ config(['$locationProvider' ,'$routeProvider',
       });
       $translateProvider.preferredLanguage('en');
       $translateProvider.fallbackLanguage('fr');
-    }
+   }
   );

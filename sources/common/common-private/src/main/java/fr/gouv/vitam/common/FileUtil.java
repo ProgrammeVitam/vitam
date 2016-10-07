@@ -30,7 +30,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+
+import javax.xml.stream.XMLStreamException;
 
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -42,7 +45,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 public final class FileUtil {
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(FileUtil.class);
-
+    
     private FileUtil() {
         // Unused
     }
@@ -59,29 +62,22 @@ public final class FileUtil {
 
     /**
      * @param file
-     * @return the content of the file
+     * @return the content of the file  
      * @throws IOException
      */
     public static final String readFile(final File file) throws IOException {
-        final StringBuilder builder = new StringBuilder();
+        String result = "";
 
         if (file != null && file.canRead()) {
             try (final FileInputStream inputStream = new FileInputStream(file)) {
-                try (final InputStreamReader reader = new InputStreamReader(inputStream)) {
-                    try (final BufferedReader buffered = new BufferedReader(reader)) {
-                        String line;
-                        while ((line = buffered.readLine()) != null) {
-                            builder.append(line).append('\n');
-                        }
-                    }
-                }
+                result = readInputStreamLimited(inputStream, Integer.MAX_VALUE);
             } catch (final IOException e) {
                 LOGGER.error(e);
                 throw e;
             }
         }
 
-        return builder.toString();
+        return result;
     }
 
     /**
@@ -92,22 +88,12 @@ public final class FileUtil {
      */
     public static final String readPartialFile(final File file, int limit)
         throws IOException {
-        final StringBuilder builder = new StringBuilder();
+        String result = "";
 
         if (file != null && file.canRead() && limit > 0) {
             try {
                 try (final FileInputStream inputStream = new FileInputStream(file)) {
-                    try (final InputStreamReader reader = new InputStreamReader(inputStream)) {
-                        try (final BufferedReader buffered = new BufferedReader(reader)) {
-                            String line;
-                            while ((line = buffered.readLine()) != null) {
-                                builder.append(line).append('\n');
-                                if (builder.length() >= limit) {
-                                    break;
-                                }
-                            }
-                        }
-                    }
+                    result = readInputStreamLimited(inputStream, limit);
                 }
             } catch (final IOException e) {
                 LOGGER.error(e);
@@ -115,7 +101,7 @@ public final class FileUtil {
             }
         }
 
-        return builder.toString();
+        return result;
     }
 
     private static final void delereRecursiveInternal(File dir) {
@@ -142,5 +128,37 @@ public final class FileUtil {
         if (!file.delete()) {
             LOGGER.warn("File could not be deleted");
         }
+    }
+    
+    /**
+     * @param input to read
+     * @return String
+     * @throws XMLStreamException
+     * @throws IOException
+     */
+    private static final String readInputStreamLimited(InputStream input, int limit) throws IOException{
+        StringBuilder builder = new StringBuilder();
+        try (final InputStreamReader reader = new InputStreamReader(input)) {
+            try (final BufferedReader buffered = new BufferedReader(reader)) {
+                String line;
+                while ((line = buffered.readLine()) != null) {
+                    builder.append(line).append('\n');
+                    if (builder.length() >= limit) {
+                        break;
+                    }
+                }
+            }
+        }
+        return builder.toString();
+    }
+    
+    /**
+     * @param input to read
+     * @return String
+     * @throws XMLStreamException
+     * @throws IOException
+     */
+    public static final String readInputStream(InputStream input) throws IOException{
+        return readInputStreamLimited(input,Integer.MAX_VALUE);
     }
 }

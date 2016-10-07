@@ -33,9 +33,10 @@ package fr.gouv.vitam.storage.driver.exception;
  * Note: it is intended to NOT extends VitamException in order to not have a dependency to common-public in this module
  */
 public class StorageDriverException extends Exception {
-    private static final long serialVersionUID = -5618781604751959001L;
+
     private final String driverInfo;
     private final ErrorCode errorCode;
+    private static final String ERROR_MESSAGE = "An error occured for driver '";    
 
     /**
      * Constructor with a message and additional info about the driver
@@ -45,7 +46,7 @@ public class StorageDriverException extends Exception {
      * @param message a message to add
      */
     public StorageDriverException(String driverInfos, ErrorCode errorCode, String message) {
-        super("An error occured for driver '" + driverInfos + "' with message :" + message);
+        super(ERROR_MESSAGE + driverInfos + "' with message :" + message);
         driverInfo = driverInfos;
         this.errorCode = errorCode;
     }
@@ -59,7 +60,7 @@ public class StorageDriverException extends Exception {
      * @param cause the original exception
      */
     public StorageDriverException(String driverInfos, ErrorCode errorCode, String message, Throwable cause) {
-        super("An error occured for driver '" + driverInfos + "' with message :" + message, cause);
+        super(ERROR_MESSAGE + driverInfos + "' with message :" + message, cause);
         driverInfo = driverInfos;
         this.errorCode = errorCode;
     }
@@ -72,7 +73,7 @@ public class StorageDriverException extends Exception {
      * @param cause the original exception
      */
     public StorageDriverException(String driverInfos, ErrorCode errorCode, Throwable cause) {
-        super("An error occured for driver '" + driverInfos, cause);
+        super(ERROR_MESSAGE + driverInfos, cause);
         driverInfo = driverInfos;
         this.errorCode = errorCode;
     }

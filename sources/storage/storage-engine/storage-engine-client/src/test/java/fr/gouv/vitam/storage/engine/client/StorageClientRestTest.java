@@ -472,19 +472,17 @@ public class StorageClientRestTest extends JerseyTest {
 
     @Test
     public void statusExecutionWithouthBody() throws Exception {
-        when(mock.get()).thenReturn(Response.status(Status.OK).build());
+        when(mock.get()).thenReturn(Response.status(Status.NO_CONTENT).build());
         client.getStatus();
     }
 
     @Test
     public void statusExecutionWithBody() throws Exception {
         when(mock.get()).thenReturn(
-            Response.status(Response.Status.OK).entity("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}")
+            Response.status(Response.Status.NO_CONTENT).entity("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}")
                 .build());
         final StatusMessage message = client.getStatus();
-        assertEquals("name1", message.getName());
-        assertEquals("role1", message.getRole());
-        assertEquals(1, message.getPid());
+        assertEquals(0, message.getPid());
     }
 
     @Test(expected = VitamClientException.class)
@@ -496,25 +494,25 @@ public class StorageClientRestTest extends JerseyTest {
     @Test(expected = StorageServerClientException.class)
     public void failsGetContainerObjectExecutionWhenPreconditionFailed() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.getContainerObject("idTenant", "idStrategy", "guid");
+        client.getContainer("idTenant", "idStrategy", "guid", StorageCollectionType.OBJECTS);
     }
 
     @Test(expected = StorageServerClientException.class)
     public void failsGetContainerObjectExecutionWhenInternalServerError() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        client.getContainerObject("idTenant", "idStrategy", "guid");
+        client.getContainer("idTenant", "idStrategy", "guid", StorageCollectionType.OBJECTS);
     }
 
     @Test(expected = StorageNotFoundException.class)
     public void failsGetContainerObjectExecutionWhenNotFound() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.getContainerObject("idTenant", "idStrategy", "guid");
+        client.getContainer("idTenant", "idStrategy", "guid", StorageCollectionType.OBJECTS);
     }
 
     @Test
     public void successGetContainerObjectExecutionWhenFound() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("Vitam test")).build());
-        InputStream stream = client.getContainerObject("idTenant", "idStrategy", "guid");
+        InputStream stream = client.getContainer("idTenant", "idStrategy", "guid", StorageCollectionType.OBJECTS);
         InputStream stream2 = IOUtils.toInputStream("Vitam test");
         assertNotNull(stream);
         assertTrue(IOUtils.contentEquals(stream, stream2));

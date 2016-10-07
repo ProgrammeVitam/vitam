@@ -374,7 +374,7 @@ public class MetaDataImplTest {
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory, dbRequestFactory);
         JsonNode jsonNode = metaDataImpl.selectObjectGroupById(QUERY, "ogId");
         ArrayNode resultArray = (ArrayNode) jsonNode.get("$result");
-        assertEquals(1,resultArray.size());
+        assertEquals(1, resultArray.size());
         ObjectNode objectGroupDocument = (ObjectNode) resultArray.get(0);
         String resultedObjectGroup = JsonHandler.unprettyPrint(objectGroupDocument);
         String expectedObjectGroup = JsonHandler.unprettyPrint(sampleObjectGroup);
@@ -384,9 +384,9 @@ public class MetaDataImplTest {
     @Test
     public void testDiffResultOnUpdate() throws Exception {
         String wanted = "{\"$hint\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
-            "\"$result\":[{\"_id\":\"unitId\",\"_diff\":\"-    \\\"title\\\" : \\\"title\\\",\\n-    " +
-            "\\\"description\\\" : \\\"description\\\"\\n+    \\\"title\\\" : \\\"MODIFIED title\\\",\\n+    " +
-            "\\\"description\\\" : \\\"MODIFIED description\\\"\"}]}";
+            "\"$result\":[{\"_id\":\"unitId\",\"_diff\":\"-    \\\"title\\\" : \\\"title\\\"" +
+            "\\n-    \\\"description\\\" : \\\"description\\n+    \\\"title\\\" : \\\"MODIFIED title\\\"" +
+            "\\n+    \\\"description\\\" : \\\"MODIFIED description\"}]}";
 
         Result updateResult = new ResultDefault(FILTERARGS.UNITS);
         updateResult.addId("unitId");
@@ -411,11 +411,12 @@ public class MetaDataImplTest {
         secondSelectResult.addFinal(secondUnit);
 
         when(request.execRequest(Matchers.isA(UpdateParserMultiple.class), anyObject())).thenReturn(updateResult);
-        when(request.execRequest(Matchers.isA(SelectParserMultiple.class), anyObject())).thenReturn
-            (firstSelectResult, secondSelectResult);
+        when(request.execRequest(Matchers.isA(SelectParserMultiple.class), anyObject())).thenReturn(firstSelectResult,
+            secondSelectResult);
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory, dbRequestFactory);
         JsonNode ret = metaDataImpl.updateUnitbyId("{\"$roots\":[\"#id\"],\"$query\":[],\"$filter\":{}," +
-            "\"$action\":[{\"$set\":{\"title\":\"MODIFIED TITLE\", \"description\":\"MODIFIED DESCRIPTION\"}}]}","unitId");
+            "\"$action\":[{\"$set\":{\"title\":\"MODIFIED TITLE\", \"description\":\"MODIFIED DESCRIPTION\"}}]}",
+            "unitId");
 
         assertEquals(wanted, ret.toString());
     }

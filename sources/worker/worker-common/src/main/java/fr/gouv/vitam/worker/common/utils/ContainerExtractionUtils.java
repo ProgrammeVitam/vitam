@@ -51,6 +51,7 @@ public class ContainerExtractionUtils {
      *
      */
     public ContainerExtractionUtils() {
+        // empty constructor
     }
 
     /**

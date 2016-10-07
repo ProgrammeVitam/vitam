@@ -33,6 +33,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
@@ -83,7 +84,10 @@ public interface ReferentialFile<E> {
      * @param file as InputStream
      * @throws ReferentialException when there is errors import
      * @throws IOException when there is IO Exception
+     * @throws InvalidCreateOperationException
+     * @throws InvalidParseOperationException
      */
-    void checkFile(InputStream file) throws ReferentialException, IOException;
+    void checkFile(InputStream file)
+        throws ReferentialException, IOException, InvalidParseOperationException, InvalidCreateOperationException;
 
 }

@@ -28,12 +28,15 @@ package fr.gouv.vitam.function.administration.rules.core;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 
@@ -63,7 +66,8 @@ public class RulesManagerParser {
      */
     public static ArrayNode readObjectsFromCsvWriteAsArrayNode(File fileToParse) throws IOException,
         InvalidParseOperationException {
-
+        SimpleDateFormat formater = null;
+        Date aujourdhui = new Date();
         CsvSchema bootstrap = CsvSchema.emptySchema().withHeader();
         CsvMapper csvMapper = new CsvMapper();
         MappingIterator<Map<?, ?>> mappingIterator =
@@ -72,7 +76,11 @@ public class RulesManagerParser {
         List<Map<?, ?>> data = mappingIterator.readAll();
         for (Map<?, ?> c : data) {
             JsonNode node = JsonHandler.toJsonNode(c);
-            arrayNode.add(node);
+            ObjectNode result = (ObjectNode) node;
+            formater = new SimpleDateFormat("yyyy-MM-dd");
+            result.put("CreationDate", formater.format(aujourdhui).toString());
+            result.put("UpdateDate", formater.format(aujourdhui).toString());
+            arrayNode.add(result);
         }
         return arrayNode;
     }

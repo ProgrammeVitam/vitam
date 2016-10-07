@@ -87,5 +87,8 @@ vitam_curator_host: "{{groups['hosts-log-server'][0]}}"
 
 vitam_library_port: 8090
 
+vitam_siegfried_port: 19000
+
 vitam_user: vitam
 vitam_group: vitam
+

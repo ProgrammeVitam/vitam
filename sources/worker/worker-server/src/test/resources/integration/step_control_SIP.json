@@ -35,14 +35,6 @@
                 "uri": "WORKSPACE:UnitsLevel/ingestLevelStack.json"
               },
               {
-                "name": "unitsTree.file",
-                "uri": "WORKSPACE:UnitsTree/INGEST_TREE.json"
-              },
-              {
-                "name": "mapsUnits.file",
-                "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json"
-              },
-              {
                 "name": "mapsBDOtoOG.file",
                 "uri": "WORKSPACE:Maps/BDO_TO_OBJECT_GROUP_ID_MAP.json"
               },
@@ -57,8 +49,20 @@
               {
                 "name": "mapsObjectGroup.file",
                 "uri": "WORKSPACE:Maps/OG_TO_ARCHIVE_ID_MAP.json"
+              },
+              {
+                "name": "mapsBDOtoVersionBDO.file",
+                "uri": "WORKSPACE:Maps/BDO_TO_VERSION_BDO_MAP.json"
+              },
+              {
+                "name": "mapsUnits.file",
+                "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "globalSEDAParameters.file",
+                "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
               }
-            ]
+           ]
           }
         },
         {

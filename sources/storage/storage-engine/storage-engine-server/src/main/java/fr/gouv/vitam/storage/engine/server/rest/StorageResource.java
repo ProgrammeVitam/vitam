@@ -275,7 +275,7 @@ public class StorageResource extends ApplicationStatusResource {
             String tenantId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.TENANT_ID).get(0);
             String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
             try {
-                InputStream result = distribution.getContainerObject(tenantId, strategyId, objectId);
+                InputStream result = distribution.getContainerByCategory(tenantId, strategyId, objectId, DataCategory.OBJECT);
                 return Response.status(Status.OK).entity(result).build();
             } catch (StorageNotFoundException exc) {
                 LOGGER.error(exc);
@@ -307,29 +307,7 @@ public class StorageResource extends ApplicationStatusResource {
         CreateObjectDescription createObjectDescription) {
         // If the POST is a creation request
         if (createObjectDescription != null) {
-            Response response = checkTenantStrategyHeader(headers);
-            if (response == null) {
-                VitamCode vitamCode;
-                String tenantId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.TENANT_ID).get(0);
-                String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
-                try {
-                    StoredInfoResult result = distribution.storeData(tenantId, strategyId, objectId,
-                        createObjectDescription, DataCategory.OBJECT);
-                    return Response.status(Status.CREATED).entity(result).build();
-                } catch (StorageNotFoundException exc) {
-                    LOGGER.error(exc);
-                    vitamCode = VitamCode.STORAGE_NOT_FOUND;
-                } catch (StorageTechnicalException exc) {
-                    LOGGER.error(exc);
-                    vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
-                } catch (StorageObjectAlreadyExistsException exc) {
-                    LOGGER.error(exc);
-                    vitamCode = VitamCode.STORAGE_DRIVER_OBJECT_ALREADY_EXISTS;
-                }
-                // If here, an error occurred
-                return buildErrorResponse(vitamCode);
-            }
-            return response;
+            return createObjectByType(headers, objectId, createObjectDescription, DataCategory.OBJECT);
         } else {
             return getObjectInformationWithPost(headers, objectId);
         }
@@ -475,32 +453,10 @@ public class StorageResource extends ApplicationStatusResource {
     public Response createLogbook(@Context HttpHeaders headers,
         @PathParam("id_logbook") String logbookId,
         CreateObjectDescription createObjectDescription) {
-        VitamCode vitamCode;
         if (createObjectDescription == null) {
             return getLogbook(headers, logbookId);
         } else {
-            Response response = checkTenantStrategyHeader(headers);
-            if (response == null) {
-                String tenantId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.TENANT_ID).get(0);
-                String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
-                try {
-                    StoredInfoResult result =
-                        distribution.storeData(tenantId, strategyId, logbookId, createObjectDescription, DataCategory.LOGBOOK);
-                    return Response.status(Status.CREATED).entity(result).build();
-                } catch (StorageNotFoundException e) {
-                    LOGGER.error(e);
-                    vitamCode = VitamCode.STORAGE_NOT_FOUND;
-                } catch (StorageTechnicalException e) {
-                    LOGGER.error(e);
-                    vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
-                } catch (StorageObjectAlreadyExistsException exc) {
-                    LOGGER.error(exc);
-                    vitamCode = VitamCode.STORAGE_DRIVER_OBJECT_ALREADY_EXISTS;
-                }
-                // If here, an error occurred
-                return buildErrorResponse(vitamCode);
-            }
-            return response;
+            return createObjectByType(headers, logbookId, createObjectDescription, DataCategory.LOGBOOK);
         }
     }
 
@@ -582,32 +538,10 @@ public class StorageResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createUnitMetadata(@Context HttpHeaders headers, @PathParam("id_md") String metadataId,
         CreateObjectDescription createObjectDescription) {
-
-        VitamCode vitamCode;
         if (createObjectDescription == null) {
             return getUnit(headers, metadataId);
         } else {
-            Response response = checkTenantStrategyHeader(headers);
-            if (response == null) {
-                String tenantId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.TENANT_ID).get(0);
-                String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
-                try {
-                    StoredInfoResult result = distribution.storeData(tenantId, strategyId, metadataId, createObjectDescription,
-                        DataCategory.UNIT);
-                    return Response.status(Status.CREATED).entity(result).build();
-                } catch (StorageNotFoundException e) {
-                    LOGGER.error(e);
-                    vitamCode = VitamCode.STORAGE_NOT_FOUND;
-                } catch (StorageTechnicalException e) {
-                    LOGGER.error(e);
-                    vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
-                } catch (StorageObjectAlreadyExistsException exc) {
-                    LOGGER.error(exc);
-                    vitamCode = VitamCode.STORAGE_DRIVER_OBJECT_ALREADY_EXISTS;
-                }
-                return buildErrorResponse(vitamCode);
-            }
-            return response;
+            return createObjectByType(headers, metadataId, createObjectDescription, DataCategory.UNIT);
         }
     }
 
@@ -710,32 +644,10 @@ public class StorageResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createObjectGroup(@Context HttpHeaders headers, @PathParam("id_md") String metadataId,
         CreateObjectDescription createObjectDescription) {
-        VitamCode vitamCode;
         if (createObjectDescription == null) {
             return getObjectGroup(headers, metadataId);
         } else {
-            Response response = checkTenantStrategyHeader(headers);
-            if (response == null) {
-                String tenantId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.TENANT_ID).get(0);
-                String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
-                try {
-                    StoredInfoResult result = distribution.storeData(tenantId, strategyId, metadataId, createObjectDescription,
-                        DataCategory.OBJECT_GROUP);
-                    return Response.status(Status.CREATED).entity(result).build();
-                } catch (StorageNotFoundException e) {
-                    LOGGER.error(e);
-                    vitamCode = VitamCode.STORAGE_NOT_FOUND;
-                } catch (StorageTechnicalException e) {
-                    LOGGER.error(e);
-                    vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
-                } catch (StorageObjectAlreadyExistsException exc) {
-                    LOGGER.error(exc);
-                    vitamCode = VitamCode.STORAGE_DRIVER_OBJECT_ALREADY_EXISTS;
-                }
-                // If here, an error occurred
-                return buildErrorResponse(vitamCode);
-            }
-            return response;
+            return createObjectByType(headers, metadataId, createObjectDescription, DataCategory.OBJECT_GROUP);
         }
     }
 
@@ -806,4 +718,89 @@ public class StorageResource extends ApplicationStatusResource {
         return Response.status(Response.Status.BAD_REQUEST).entity("{\"error\":\"" + message + "\"}").build();
     }
 
+    
+    /**
+     * Post a new object
+     *
+     * @param headers http header
+     * @param reportId the id of the object
+     * @param createObjectDescription the object description
+     * @return Response
+     */
+    @Path("/reports/{id_report}")
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response createReportOrGetInformation(@Context HttpHeaders headers, @PathParam("id_report") String reportId,
+        CreateObjectDescription createObjectDescription) {
+        // If the POST is a creation request
+        if (createObjectDescription != null) {
+            return createObjectByType(headers, reportId, createObjectDescription, DataCategory.REPORT);
+        } else {
+            return getObjectInformationWithPost(headers, reportId);
+        }
+    }
+    
+    /**
+     * Get an report data Note : this is NOT to be handled in item #72.
+     *
+     * @param headers http header
+     * @param objectId the id of the object
+     * @return Response NOT_IMPLEMENTED
+     * @throws IOException throws an IO Exception
+     */
+    @Path("/reports/{id_report}")
+    @GET
+    @Produces({MediaType.APPLICATION_OCTET_STREAM, StorageConstants.APPLICATION_ZIP})
+    public Response getReport(@Context HttpHeaders headers, @PathParam("id_report") String objectId)
+        throws IOException {
+        Response response = checkTenantStrategyHeader(headers);
+        if (response == null) {
+            VitamCode vitamCode;
+            String tenantId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.TENANT_ID).get(0);
+            String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+            try {
+                InputStream result = distribution.getContainerByCategory(tenantId, strategyId, objectId, DataCategory.REPORT);
+                //TODO fix ByteArray vs Close vs AsyncResponse
+                return Response.status(Status.OK).entity(result).build();
+            } catch (StorageNotFoundException exc) {
+                LOGGER.error(exc);
+                vitamCode = VitamCode.STORAGE_NOT_FOUND;
+            } catch (StorageTechnicalException exc) {
+                LOGGER.error(exc);
+                vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
+            }
+            // If here, an error occurred
+            return buildErrorResponse(vitamCode);
+        }
+        return response;
+    }
+    
+    
+    private Response createObjectByType(HttpHeaders headers, String objectId,
+        CreateObjectDescription createObjectDescription, DataCategory category) {
+        Response response = checkTenantStrategyHeader(headers);
+        if (response == null) {
+            VitamCode vitamCode;
+            String tenantId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.TENANT_ID).get(0);
+            String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+            try {
+                StoredInfoResult result = distribution.storeData(tenantId, strategyId, objectId,
+                    createObjectDescription, category);
+                return Response.status(Status.CREATED).entity(result).build();
+            } catch (StorageNotFoundException exc) {
+                LOGGER.error(exc);
+                vitamCode = VitamCode.STORAGE_NOT_FOUND;
+            } catch (StorageTechnicalException exc) {
+                LOGGER.error(exc);
+                vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
+            } catch (StorageObjectAlreadyExistsException exc) {
+                LOGGER.error(exc);
+                vitamCode = VitamCode.STORAGE_DRIVER_OBJECT_ALREADY_EXISTS;
+            }
+            // If here, an error occurred
+            return buildErrorResponse(vitamCode);
+        }
+        return response;
+    }
 }

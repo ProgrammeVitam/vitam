@@ -28,7 +28,9 @@ package fr.gouv.vitam.ingest.external.client;
 
 import java.io.InputStream;
 
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import javax.xml.stream.XMLStreamException;
 
 import fr.gouv.vitam.ingest.external.api.IngestExternalException;
 
@@ -40,8 +42,9 @@ public interface IngestExternalClient {
      * ingest upload file in local
      * TODO : add file name
      * @throws IngestExternalException 
+     * @throws XMLStreamException 
      */
-    void upload(InputStream stream) throws IngestExternalException;
+    Response upload(InputStream stream) throws IngestExternalException, XMLStreamException;
     
     /**
      * Get the status from the service

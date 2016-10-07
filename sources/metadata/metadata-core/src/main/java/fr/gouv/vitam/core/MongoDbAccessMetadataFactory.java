@@ -39,11 +39,12 @@ import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.core.database.collections.ElasticsearchAccessMetadata;
 import fr.gouv.vitam.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.core.database.collections.MongoDbAccessMetadataImpl;
+
 /**
  * Factory to get MongoDbAccess for Metadata
  */
 public class MongoDbAccessMetadataFactory {
-    
+
     /**
      * Creation of one MongoDbAccess
      *
@@ -53,15 +54,15 @@ public class MongoDbAccessMetadataFactory {
      */
     public MongoDbAccessMetadataImpl create(MetaDataConfiguration configuration) {
         ParametersChecker.checkParameter("configuration is a mandatory parameter", configuration);
-        
-        ElasticsearchAccessMetadata esClient=null;
+
+        ElasticsearchAccessMetadata esClient = null;
         try {
             esClient = new ElasticsearchAccessMetadataFactory().create(configuration);
-           
+
         } catch (MetaDataException e1) {
-            // TODO 
+            throw new IllegalArgumentException(e1);
         }
-        
+
         List<Class<?>> classList = new ArrayList<>();
         for (MetadataCollections e : MetadataCollections.class.getEnumConstants()) {
             classList.add(e.getClasz());

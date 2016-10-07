@@ -51,8 +51,6 @@ import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
  */
 public final class DefaultOfferApplication
     extends AbstractVitamApplication<DefaultOfferApplication, DefaultOfferConfiguration> {
-    private static final String WORKSPACE_APPLICATION_STARTS_ON_DEFAULT_PORT =
-        "DefaultOfferApplication Starts on default port";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultOfferApplication.class);
     private static final DefaultOfferApplication APPLICATION = new DefaultOfferApplication();
     private static final String WORKSPACE_CONF_FILE_NAME = "default-offer.conf";

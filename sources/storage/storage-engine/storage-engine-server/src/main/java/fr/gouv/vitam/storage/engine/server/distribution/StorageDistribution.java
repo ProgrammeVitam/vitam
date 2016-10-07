@@ -142,7 +142,7 @@ public interface StorageDistribution {
      * @throws StorageNotFoundException Thrown if the Container or the object does not exist
      * @throws StorageTechnicalException thrown if a technical error happened
      */
-    InputStream getContainerObject(String tenantId, String strategyId, String objectId) throws
+    InputStream getContainerByCategory(String tenantId, String strategyId, String objectId, DataCategory category) throws
         StorageNotFoundException, StorageTechnicalException;
 
     /**

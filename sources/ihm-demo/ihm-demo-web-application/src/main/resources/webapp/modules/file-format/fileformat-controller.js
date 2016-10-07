@@ -51,7 +51,6 @@ angular.module('ihm.demo')
     }
 
     function displayError(message) {
-
       ctrl.fileNotFoundError = true;
       ctrl.errorMessage = message;
       $timeout(function() {

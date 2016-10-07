@@ -45,6 +45,8 @@ public class FileRules extends VitamDocument<FileRules> {
     private static final String RULEDESCRIPTION = "RuleDescription";
     private static final String RULEDURATION = "RuleDuration";
     private static final String RULEMEASUREMENT = "RuleMeasurement";
+    private static final String CREATIONDATE = "CreationDate";
+    private static final String UPDATEDATE = "UpdateDate";
 
     /**
      * Constructor
@@ -128,6 +130,29 @@ public class FileRules extends VitamDocument<FileRules> {
      */
     public FileRules setRuleMeasurement(String ruleMeasurement) {
         this.append(RULEMEASUREMENT, ruleMeasurement);
+        return this;
+    }
+
+    /**
+     * setCreationDate
+     * 
+     * @param creationDate
+     * @return
+     */
+    public FileRules setCreationDate(String creationDate) {
+        this.append(CREATIONDATE, creationDate);
+        return this;
+    }
+
+    /**
+     * setUpdateDate
+     * 
+     * @param updateDate
+     * @return
+     */
+
+    public FileRules setUpdateDate(String updateDate) {
+        this.append(UPDATEDATE, updateDate);
         return this;
     }
 }

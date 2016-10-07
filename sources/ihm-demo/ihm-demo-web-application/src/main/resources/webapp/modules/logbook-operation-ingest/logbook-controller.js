@@ -64,7 +64,6 @@ angular.module('ihm.demo')
         header['X-REQUEST-ID'] = response.headers('X-REQUEST-ID');
       }, function(response) {
         ctrl.searchOptions = {};
-        alert('Request error, code: ' + response.status);
       });
     };
 
@@ -78,16 +77,13 @@ angular.module('ihm.demo')
     };
 
     ctrl.getPreviousResults = function() {
+      ctrl.fileFormatList = [];
       if (ctrl.currentPage > 1 ) {
         ctrl.diplayPage -= 1;
         if (ctrl.diplayPage == 0 &&  ctrl.currentPage > 5) {
           ctrl.currentPage -=5;
           ctrl.diplayPage = 5;
-          if (ctrl.currentPage == 1) {
-            header['X-Offset'] = 0
-          } else {
-            header['X-Offset'] = ctrl.currentPage * ITEM_PER_PAGE;
-          }
+          header['X-Offset'] = (ctrl.currentPage-1) * ITEM_PER_PAGE;
           ctrl.getLogbooks();
         }
         changePageDIsplayNumber((ctrl.diplayPage-1)%5);
@@ -103,12 +99,13 @@ angular.module('ihm.demo')
     }
 
     ctrl.getNextResults = function() {
+      ctrl.fileFormatList = [];
       if (ctrl.currentPage+4 < ctrl.resultPages) {
         ctrl.diplayPage +=1;
         if (ctrl.diplayPage > 5) {
           ctrl.currentPage += 5;
           ctrl.diplayPage = 1;
-          header['X-Offset'] = ctrl.currentPage * ITEM_PER_PAGE;
+          header['X-Offset'] = (ctrl.currentPage-1) * ITEM_PER_PAGE;
           ctrl.getLogbooks();
         }
         changePageDIsplayNumber((ctrl.diplayPage-1)%5);

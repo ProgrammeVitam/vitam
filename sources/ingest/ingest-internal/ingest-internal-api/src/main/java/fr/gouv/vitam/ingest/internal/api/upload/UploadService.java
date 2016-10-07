@@ -29,6 +29,7 @@ package fr.gouv.vitam.ingest.internal.api.upload;
 import java.util.List;
 
 import javax.ws.rs.core.Response;
+import javax.xml.stream.XMLStreamException;
 
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 
@@ -45,10 +46,11 @@ public interface UploadService {
      * @param uploadedInputStream
      * @return Response
      * @throws VitamException, if inputstream is null
+     * @throws XMLStreamException 
      */
     // TODO commentaire incorrect
     public Response uploadSipAsStream(List<FormDataBodyPart> partList)
-        throws VitamException;
+        throws VitamException, XMLStreamException;
 
 
     /**

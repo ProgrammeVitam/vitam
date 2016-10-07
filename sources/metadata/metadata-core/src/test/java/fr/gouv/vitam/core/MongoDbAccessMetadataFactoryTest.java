@@ -141,5 +141,13 @@ public class MongoDbAccessMetadataFactoryTest {
         assertEquals("vitam-test", mongoDbAccess.getMongoDatabase().getName());
         mongoDbAccess.close();
     }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testCreateFnWithError() throws Exception {
+        List<ElasticsearchNode> nodesEmpty = new ArrayList<ElasticsearchNode>();
+        MongoDbAccessMetadataImpl mongoDbAccessError = new MongoDbAccessMetadataFactory()
+            .create(new MetaDataConfiguration(DATABASE_HOST, port, "vitam-test", CLUSTER_NAME, nodesEmpty, JETTY_CONFIG));        
+        mongoDbAccessError.close();
+    }    
 
 }

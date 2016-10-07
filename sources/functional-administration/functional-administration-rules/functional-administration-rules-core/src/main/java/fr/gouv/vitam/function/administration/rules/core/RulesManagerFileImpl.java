@@ -26,6 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.function.administration.rules.core;
 
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
+
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -34,6 +37,7 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import org.apache.commons.csv.CSVFormat;
@@ -46,9 +50,13 @@ import com.mongodb.client.MongoCursor;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.configuration.DbConfiguration;
@@ -83,16 +91,16 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(RulesManagerFileImpl.class);
     private final MongoDbAccessAdminImpl mongoAccess;
     private static final String COLLECTION_NAME = "RulesFile";
-    private static final String MESSAGE_LOGBOOK_IMPORT = "Succès de l'import du Règle de gestion : ";
-    private static final String MESSAGE_LOGBOOK_IMPORT_ERROR = "Erreur de l'import du Règle de gestion ";
-    private static final String MESSAGE_LOGBOOK_DELETE = "Succès de suppression du Règle de gestion";
 
+    private static final String MESSAGE_LOGBOOK_IMPORT = "Référentiel des règles de gestion importé avec succès ";
+    private static final String MESSAGE_LOGBOOK_IMPORT_ERROR = "Echec de l'import du référentiel de règle de gestion";
+    private static final String MESSAGE_LOGBOOK_DELETE = "Succès de suppression du référentiel de règle de gestion";
+    private static final String RULEID = "RuleId";
 
-
-    private static LogbookClient client = LogbookClientFactory.getInstance().getLogbookOperationClient();
-    private static String EVENT_TYPE_CREATE = "CREATE";
-    private static String EVENT_TYPE_DELETE = "DELETE";
-    private static LogbookTypeProcess LOGBOOK_PROCESS_TYPE = LogbookTypeProcess.RULESMANAGER;
+    private LogbookClient client = LogbookClientFactory.getInstance().getLogbookOperationClient();
+    private static String EVENT_TYPE_CREATE = "Import du référentiel des règles de gestion";
+    private static String EVENT_TYPE_DELETE = "Suppression du référentiel de règle de gestion";
+    private static LogbookTypeProcess LOGBOOK_PROCESS_TYPE = LogbookTypeProcess.MASTERDATA;
     private static String INVALIDPARAMETERS = "Invalid Parameters Value";
     private static String MANDATORYRULEPARAMETERISMISSING = "Check Parameters : Mandatory rule Parameters is missing";
 
@@ -133,10 +141,10 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             LogbookOperationParameters logbookParametersStart =
                 LogbookParametersFactory.newLogbookOperationParameters(
                     eip, EVENT_TYPE_CREATE, eip, LOGBOOK_PROCESS_TYPE, LogbookOutcome.STARTED,
-                    "start importing Rules file ", eip);
+                    "Lancement de l’import du référentiel des règles de gestion ", eip);
             createLogBookEntry(logbookParametersStart);
-
-            eip = GUIDFactory.newGUID();
+            
+            GUID eip1 = GUIDFactory.newGUID();
             try {
                 ArrayNode rulesManagerList = RulesManagerParser.readObjectsFromCsvWriteAsArrayNode(csvFile);
                 if (this.mongoAccess.getMongoDatabase().getCollection(COLLECTION_NAME).count() == 0) {
@@ -144,22 +152,22 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
 
                     LogbookOperationParameters logbookParametersEnd =
                         LogbookParametersFactory.newLogbookOperationParameters(
-                            eip, EVENT_TYPE_CREATE, eip, LOGBOOK_PROCESS_TYPE, LogbookOutcome.OK,
+                            eip1, EVENT_TYPE_CREATE, eip, LOGBOOK_PROCESS_TYPE, LogbookOutcome.OK,
                             MESSAGE_LOGBOOK_IMPORT,
-                            eip);
+                            eip1);
                     updateLogBookEntry(logbookParametersEnd);
                 } else {
                     LogbookOperationParameters logbookParametersEnd =
-                        LogbookParametersFactory.newLogbookOperationParameters(eip, EVENT_TYPE_CREATE, eip,
-                            LOGBOOK_PROCESS_TYPE, LogbookOutcome.ERROR, MESSAGE_LOGBOOK_IMPORT_ERROR, eip);
+                        LogbookParametersFactory.newLogbookOperationParameters(eip1, EVENT_TYPE_CREATE, eip,
+                            LOGBOOK_PROCESS_TYPE, LogbookOutcome.ERROR, MESSAGE_LOGBOOK_IMPORT_ERROR, eip1);
                     updateLogBookEntry(logbookParametersEnd);
                     throw new DatabaseConflictException("File rules collection is not empty");
                 }
             } catch (FileRulesException e) {
                 LOGGER.error(e.getMessage());
                 LogbookOperationParameters logbookParametersEnd =
-                    LogbookParametersFactory.newLogbookOperationParameters(eip, EVENT_TYPE_CREATE, eip,
-                        LOGBOOK_PROCESS_TYPE, LogbookOutcome.ERROR, MESSAGE_LOGBOOK_IMPORT_ERROR, eip);
+                    LogbookParametersFactory.newLogbookOperationParameters(eip1, EVENT_TYPE_CREATE, eip,
+                        LOGBOOK_PROCESS_TYPE, LogbookOutcome.ERROR, MESSAGE_LOGBOOK_IMPORT_ERROR, eip1);
                 updateLogBookEntry(logbookParametersEnd);
                 throw new FileRulesException(e);
             }
@@ -199,31 +207,37 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         GUID eip = GUIDFactory.newGUID();
         LogbookOperationParameters logbookParametersStart = LogbookParametersFactory.newLogbookOperationParameters(
             eip, EVENT_TYPE_DELETE, eip, LOGBOOK_PROCESS_TYPE, LogbookOutcome.STARTED,
-            "start deleting rulesManager from database ", eip);
+            "Lancement de suppression du référentiel de règle de gestion ", eip);
+
         createLogBookEntry(logbookParametersStart);
         this.mongoAccess.deleteCollection(FunctionalAdminCollections.RULES);
 
-        eip = GUIDFactory.newGUID();
+        GUID eip1 = GUIDFactory.newGUID();
         LogbookOperationParameters logbookParametersEnd =
             LogbookParametersFactory.newLogbookOperationParameters(
-                eip, EVENT_TYPE_DELETE, eip, LOGBOOK_PROCESS_TYPE, LogbookOutcome.OK, MESSAGE_LOGBOOK_DELETE,
-                eip);
+                eip1, EVENT_TYPE_DELETE, eip, LOGBOOK_PROCESS_TYPE, LogbookOutcome.OK, MESSAGE_LOGBOOK_DELETE,
+                eip1);
 
         updateLogBookEntry(logbookParametersEnd);
 
     }
 
     @Override
-    public void checkFile(InputStream rulesFileStream) throws FileRulesException, IOException {
+    public void checkFile(InputStream rulesFileStream)
+        throws IOException, ReferentialException, InvalidParseOperationException, InvalidCreateOperationException {
         ParametersChecker.checkParameter("rulesFileStream is a mandatory parameter", rulesFileStream);
-        File csvFile = null;
+        if (checkifTheCollectionIsEmptyBeforeImport()) {
+            throw new FileRulesException("The Collection is Not Empty");
+        }
+        File csvFileReader = null;
         try {
-            csvFile = convertInputStreamToFile(rulesFileStream);
-            try (FileReader reader = new FileReader(csvFile)) {
+            csvFileReader = convertInputStreamToFile(rulesFileStream);
+            try (FileReader reader = new FileReader(csvFileReader)) {
                 @SuppressWarnings("resource")
                 CSVParser parser = new CSVParser(
                     reader,
                     CSVFormat.DEFAULT.withHeader());
+                HashSet<String> ruleIdSet = new HashSet<String>();
                 for (CSVRecord record : parser) {
                     try {
                         if (checkRecords(record)) {
@@ -233,25 +247,63 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
                             String ruleDuration = record.get("RuleDuration");
                             String ruleMeasurementValue = record.get("RuleMeasurement");
 
-                            if (checkParametersNotEmpty(ruleId, ruleType, ruleValue, ruleDuration,
-                                ruleMeasurementValue)) {
-                                throw new InvalidParameterException(MANDATORYRULEPARAMETERISMISSING);
-                            }
+                            checkParametersNotEmpty(ruleId, ruleType, ruleValue, ruleDuration,
+                                ruleMeasurementValue);
                             checkRuleDurationIsInteger(ruleDuration);
+                            if (ruleIdSet.contains(ruleId)) {
+                                throw new FileRulesException("File Rule with Rule Id" + ruleId + " Already exists");
+                            }
+                            ruleIdSet.add(ruleId);
                             if (!contains(ruleMeasurementValue)) {
                                 throw new InvalidParameterException(INVALIDPARAMETERS + " : ruleMeasurement");
                             }
                         }
                     } catch (Exception e) {
-                        throw new FileRulesException("Invalid CSV File :" + e);
+                        throw new FileRulesException("Invalid CSV File :" + e.getMessage());
                     }
                 }
             }
         } finally {
-            if (csvFile != null) {
-                csvFile.delete();
+            if (csvFileReader != null) {
+                csvFileReader.delete();
             }
         }
+    }
+
+    /**
+     * checkifTheCollectionIsEmptyBeforeImport : Check if the Collection is empty .
+     * 
+     * @return
+     * 
+     * 
+     * @throws InvalidParseOperationException
+     * @throws InvalidCreateOperationException
+     * @throws ReferentialException
+     */
+    private boolean checkifTheCollectionIsEmptyBeforeImport()
+        throws InvalidParseOperationException, InvalidCreateOperationException, ReferentialException {
+        return (FunctionalAdminCollections.RULES.getCount() > 0);
+    }
+
+    /**
+     * findExistsRuleQueryBuilder:Check if the Collection contains records
+     * 
+     * @param rulesValue
+     * @return
+     * @throws InvalidCreateOperationException
+     * @throws InvalidParseOperationException
+     */
+    public JsonNode findExistsRuleQueryBuilder()
+        throws InvalidCreateOperationException, InvalidParseOperationException {
+        JsonNode result;
+        final Select select =
+            new Select();
+        select.addOrderByDescFilter(RULEID);
+        BooleanQuery query = and();
+        query.add(exists(RULEID));
+        select.setQuery(query);
+        result = JsonHandler.getFromString(select.getFinalSelect().toString());
+        return result;
     }
 
     /**
@@ -274,12 +326,14 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      * @param ruleValue
      * @param ruleDuration
      * @param ruleMeasurementValue
-     * @return
+     * 
      */
-    private boolean checkParametersNotEmpty(String ruleId, String ruleType, String ruleValue, String ruleDuration,
+    private void checkParametersNotEmpty(String ruleId, String ruleType, String ruleValue, String ruleDuration,
         String ruleMeasurementValue) {
-        return ruleId.isEmpty() || ruleType.isEmpty() || ruleValue.isEmpty() || ruleDuration.isEmpty() ||
-            ruleMeasurementValue.isEmpty();
+        if (ruleId.isEmpty() || ruleType.isEmpty() || ruleValue.isEmpty() || ruleDuration.isEmpty() ||
+            ruleMeasurementValue.isEmpty()) {
+            throw new InvalidParameterException(MANDATORYRULEPARAMETERISMISSING);
+        }
     }
 
     /**

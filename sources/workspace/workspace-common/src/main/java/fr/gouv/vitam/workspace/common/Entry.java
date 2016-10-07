@@ -30,6 +30,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import fr.gouv.vitam.common.ParametersChecker;
+
 /**
  * used for the serialisation/unserialisation of the json object It is currently used both for container and folder
  */
@@ -46,9 +48,7 @@ public class Entry {
      */
     @JsonCreator
     public Entry(@JsonProperty("name") String name) {
-        // FIXME REVIEW useful super() ?
-        super();
-        // FIXME REVIEW check null ?
+        ParametersChecker.checkParameter("name is a mandatory parameter", name);
         this.name = name;
     }
 

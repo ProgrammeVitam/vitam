@@ -80,7 +80,7 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat> {
     private String EVENT_TYPE_CREATE = "CREATE";
     private String EVENT_TYPE_DELETE = "DELETE";
     // TODO: should change to REFERENTIAL_FORMAT
-    private LogbookTypeProcess LOGBOOK_PROCESS_TYPE = LogbookTypeProcess.INGEST;
+    private LogbookTypeProcess LOGBOOK_PROCESS_TYPE = LogbookTypeProcess.MASTERDATA;
 
     /**
      * Constructor
@@ -107,7 +107,7 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat> {
             LOGGER.error(e.getMessage());
         }
 
-        eip = GUIDFactory.newGUID();
+        GUID eip1 = GUIDFactory.newGUID();
         try {
             ArrayNode pronomList = PronomParser.getPronom(xmlPronom);
             if (this.mongoAccess.getMongoDatabase().getCollection(COLLECTION_NAME).count() == 0) {
@@ -115,10 +115,10 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat> {
 
                 LogbookOperationParameters logbookParametersEnd =
                     LogbookParametersFactory.newLogbookOperationParameters(
-                        eip, EVENT_TYPE_CREATE, eip, LOGBOOK_PROCESS_TYPE, LogbookOutcome.OK,
+                        eip1, EVENT_TYPE_CREATE, eip, LOGBOOK_PROCESS_TYPE, LogbookOutcome.OK,
                         MESSAGE_LOGBOOK_IMPORT + " version " + pronomList.get(0).get("VersionPronom").textValue() +
                             " du fichier de signature PRONOM (DROID_SignatureFile)",
-                        eip);
+                        eip1);
 
                 try {
                     client.update(logbookParametersEnd);
@@ -128,8 +128,8 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat> {
                 }
             } else {
                 LogbookOperationParameters logbookParametersEnd =
-                    LogbookParametersFactory.newLogbookOperationParameters(eip, EVENT_TYPE_CREATE, eip,
-                        LOGBOOK_PROCESS_TYPE, LogbookOutcome.ERROR, MESSAGE_LOGBOOK_IMPORT_ERROR, eip);
+                    LogbookParametersFactory.newLogbookOperationParameters(eip1, EVENT_TYPE_CREATE, eip,
+                        LOGBOOK_PROCESS_TYPE, LogbookOutcome.ERROR, MESSAGE_LOGBOOK_IMPORT_ERROR, eip1);
                 try {
                     client.update(logbookParametersEnd);
                 } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
@@ -169,11 +169,11 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat> {
 
         this.mongoAccess.deleteCollection(FunctionalAdminCollections.FORMATS);
 
-        eip = GUIDFactory.newGUID();
+        GUID eip1 = GUIDFactory.newGUID();
         LogbookOperationParameters logbookParametersEnd =
             LogbookParametersFactory.newLogbookOperationParameters(
-                eip, EVENT_TYPE_DELETE, eip, LOGBOOK_PROCESS_TYPE, LogbookOutcome.OK, MESSAGE_LOGBOOK_DELETE,
-                eip);
+                eip1, EVENT_TYPE_DELETE, eip, LOGBOOK_PROCESS_TYPE, LogbookOutcome.OK, MESSAGE_LOGBOOK_DELETE,
+                eip1);
 
         try {
             client.update(logbookParametersEnd);

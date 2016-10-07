@@ -22,7 +22,6 @@
   <script src="bower_components/angular-aria/angular-aria.min.js"></script>
   <script src="bower_components/angular-material/angular-material.min.js"></script>
   <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
-  <script src="bower_components/angular-bootstrap-multiselect/angular-bootstrap-multiselect.js"></script>
   <script src="bower_components/angular-file-upload/dist/angular-file-upload.min.js"></script>
   <script src="bower_components/angular-animate/angular-animate.js"></script>
   <script src="bower_components/angular-resource/angular-resource.js"></script>
@@ -39,7 +38,6 @@
 
   <script src="modules/parent/app.module.js"></script>
   <script src="modules/parent/app.config.js"></script>
-
   <script src="js/controller/upload-sip-controller.js"></script>
   <script src="modules/logbook-operation-ingest/logbook-controller.js"></script>
   <script src="modules/logbook-operation-ingest/logbook-component.js"></script>
@@ -77,6 +75,13 @@
   <script src="modules/lifecycle/lifecycle.module.js"></script>
   <script src="modules/lifecycle/lifecycle.controller.js"></script>
   <script src="modules/lifecycle/lifecycle.component.js"></script>
+
+  <script src="modules/upload-sip-perf/upload-sip-perf.module.js"></script>
+  <script src="modules/upload-sip-perf/upload-sip-perf.controller.js"></script>
+  <script src="modules/upload-sip-perf/upload-sip-perf.component.js"></script>
+ 
+  <!-- FIXME Find better way to fix it -->
+  <script src="modules/multiselect/angular-bootstrap-multiselect.js"></script>
 </head>
 
 <body  ng-controller='mainViewController'>
@@ -94,7 +99,6 @@
   <header id="mainHeader" class="navbar navbar-default navbar-fixed-top" ng-if="showMenuBar">
 
     <div class="container-fluid">
-
       <div class="navbar-header">
         <button class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
           <span class="sr-only">Toggle navigation</span>
@@ -114,6 +118,7 @@
             </button>
             <ul class="dropdown-menu" role="menu" aria-labelledby="Entree">
               <li><a tabindex="-1" href="#!/uploadSIP">Transfert</a></li>
+              <li><a href="#!/uploadperf">Transfert (Test de performance)</a></li>
               <li><a href="#!/admin/logbookOperations">Suivi des opérations d'entrée</a></li>
             </ul>
           </li>
@@ -132,7 +137,7 @@
               <li><a href="#!/admin/rules">Référentiel des règles de gestion</a></li>
               <li><a href="#!/admin/formats">Référentiel des formats</a></li>
               <li><a href="#!/admin/journalOperations">Journal des Opérations</a></li>
-              <li><a href="#!/admin/logbookLifecycle">Journal de Cycles de vie</a></li>
+              <!-- <li><a href="#!/admin/logbookLifecycle">Journal de Cycles de vie</a></li> -->
               <li class="divider"></li>
               <li><a href="#!/admin/importFileRules">Import du Référentiel des Règles de gestion</a></li>
               <li><a href="#!/admin/importPronoun">Import du Référentiel des formats</a></li>
@@ -157,7 +162,6 @@
           </li>
         </ul>
       </div>
-
     </div>
 
   </header>

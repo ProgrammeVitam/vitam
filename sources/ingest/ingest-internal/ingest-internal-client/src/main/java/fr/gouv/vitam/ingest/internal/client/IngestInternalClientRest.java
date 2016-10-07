@@ -67,7 +67,7 @@ public class IngestInternalClientRest implements IngestInternalClient{
     private final Client client;
 
     IngestInternalClientRest(String server, int port) {
-    	 ParametersChecker.checkParameter("server and port are a mandatory parameter",server, port);
+        ParametersChecker.checkParameter("server and port are a mandatory parameter",server, port);
         serviceUrl = "http://" + server + ":" + port + RESOURCE_PATH;
         final ClientConfig config = new ClientConfig();
         config.register(JacksonJsonProvider.class);
@@ -76,37 +76,37 @@ public class IngestInternalClientRest implements IngestInternalClient{
         client = ClientBuilder.newClient(config);
     }
 
-    
+
     @Override
     public int status() {
-    	
-    	return client.target(serviceUrl).path(STATUS_URL).request().get().getStatus();
+
+        return client.target(serviceUrl).path(STATUS_URL).request().get().getStatus();
     }
-    
+
     @Override
-    public UploadResponseDTO upload(List<LogbookParameters> logbookParametersList, InputStream inputStream) throws VitamException{
+    public Response upload(List<LogbookParameters> logbookParametersList, InputStream inputStream) throws VitamException{
 
-    	ParametersChecker.checkParameter("check Upload Parameter", logbookParametersList );
-    	final FormDataMultiPart multiPart = new FormDataMultiPart();
-    	
-    	multiPart.field("part", logbookParametersList, MediaType.APPLICATION_JSON_TYPE);
-    	
-    	if(inputStream!=null){
-    	multiPart.bodyPart(
-    			new StreamDataBodyPart("part", inputStream, "SIP", MediaType.APPLICATION_OCTET_STREAM_TYPE));
-    	}
-    	
-    	final Response response = client.target(serviceUrl).path(UPLOAD_URL).request()
-    			.post(Entity.entity(multiPart, MediaType.MULTIPART_FORM_DATA_TYPE));
+        ParametersChecker.checkParameter("check Upload Parameter", logbookParametersList );
+        final FormDataMultiPart multiPart = new FormDataMultiPart();
 
-    	if (Status.OK.getStatusCode() == response.getStatus()) {
-    		LOGGER.info("SIP : " + Response.Status.OK.getReasonPhrase());
-    	} else {
-    		LOGGER.error("SIP Upload Error");
-    		throw new VitamException("SIP Upload");
-    	}
+        multiPart.field("part", logbookParametersList, MediaType.APPLICATION_JSON_TYPE);
 
-    	return response.readEntity(UploadResponseDTO.class);
+        if(inputStream!=null){
+            multiPart.bodyPart(
+                new StreamDataBodyPart("part", inputStream, "SIP", MediaType.APPLICATION_OCTET_STREAM_TYPE));
+        }
+        //TODO Ajouter X-REQUEST-ID dans les headers pour utiliser dans IngestInternalResource
+        final Response response = client.target(serviceUrl).path(UPLOAD_URL).request()
+            .post(Entity.entity(multiPart, MediaType.MULTIPART_FORM_DATA_TYPE));
+
+        if (Status.OK.getStatusCode() == response.getStatus()) {
+            LOGGER.info("SIP : " + Response.Status.OK.getReasonPhrase());
+        } else {
+            LOGGER.error("SIP Upload Error");
+            throw new VitamException("SIP Upload");
+        }
+
+        return response;
     }
 
 }
