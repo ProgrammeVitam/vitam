@@ -117,12 +117,10 @@ public class CheckConformityActionHandler extends ActionHandler {
     @Override
     public EngineResponse execute(WorkerParameters params, HandlerIO handler) throws ProcessingException {
         checkMandatoryParameters(params);
-        LOGGER.debug("CheckConformityActionHandler running ...");
 
         final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID,
             OutcomeMessage.CHECK_CONFORMITY_OK);
         handlerIO = handler;
-
         try {
             checkMandatoryIOParameter(handlerIO);
             final List<String> digestMessageInvalidList = checkConformityBinaryObject(params);
@@ -136,8 +134,6 @@ public class CheckConformityActionHandler extends ActionHandler {
             response.setStatus(StatusCode.KO);
             response.setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_CONFORMITY_KO);
         }
-
-        LOGGER.debug("CheckConformityActionHandler response: ", response.getStatus().name());
         return response;
     }
 
@@ -148,7 +144,6 @@ public class CheckConformityActionHandler extends ActionHandler {
      * @return List of the invalid digest message
      * @throws ProcessingException when error in execution
      * @throws ContentAddressableStorageException
-     * @throws URISyntaxException
      * @throws ContentAddressableStorageServerException
      * @throws ContentAddressableStorageNotFoundException
      */
@@ -215,12 +210,9 @@ public class CheckConformityActionHandler extends ActionHandler {
 
         final InputStream firstMapTmpFile = new FileInputStream((File) handlerIO.getInput().get(1));
         final InputStream secondMapTmpFile = new FileInputStream((File) handlerIO.getInput().get(2));
-        final String firstStoredMap = IOUtils.toString(firstMapTmpFile, "UTF-8");
-        final String secondStoredMap = IOUtils.toString(secondMapTmpFile, "UTF-8");
 
-        final Map<String, Object> binaryDataObjectIdToObjectGroupIdBackupMap =
-            JsonHandler.getMapFromString(firstStoredMap);
-        final Map<String, Object> objectGroupIdToGuidBackupMap = JsonHandler.getMapFromString(secondStoredMap);
+        final Map<String, Object> binaryDataObjectIdToObjectGroupIdBackupMap = JsonHandler.getMapFromInputStream(firstMapTmpFile);
+        final Map<String, Object> objectGroupIdToGuidBackupMap = JsonHandler.getMapFromInputStream(secondMapTmpFile);
 
         for (final String mapKey : binaryObjectMap.keySet()) {
 
@@ -240,7 +232,7 @@ public class CheckConformityActionHandler extends ActionHandler {
             final String digestMessage =
                 client.computeObjectDigest(containerId, IngestWorkflowConstants.SEDA_FOLDER + "/" + uri, algo);
             if (!digestMessage.equals(digestMessageManifest)) {
-                LOGGER.info("Binary object Digest Message Invalid : " + uri);
+                LOGGER.debug("Binary object Digest Message Invalid : " + uri);
                 digestMessageInvalidList.add(digestMessageManifest);
 
                 // Set KO status
@@ -254,7 +246,7 @@ public class CheckConformityActionHandler extends ActionHandler {
                     LOGBOOK_LIFECYCLE_CLIENT.update(logbookLifeCycleObjGrpParam);
                 }
             } else {
-                LOGGER.info("Binary Object Digest Message Valid : " + uri);
+                LOGGER.debug("Binary Object Digest Message Valid : " + uri);
 
                 // Set OK status
                 if (logbookLifeCycleObjGrpParam != null) {

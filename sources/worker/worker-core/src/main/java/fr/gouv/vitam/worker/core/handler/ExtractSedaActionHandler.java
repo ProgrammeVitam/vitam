@@ -101,7 +101,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
  *
- * ExtractContentActionHandler handler class used to extract metaData .Create and put a new file (metadata extracted)
+ * ExtractSedaActionHandler handler class used to extract metaData .Create and put a new file (metadata extracted)
  * json.json into container GUID
  *
  */
@@ -216,7 +216,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
     public EngineResponse execute(WorkerParameters params, HandlerIO ioParam) {
         checkMandatoryParameters(params);
         handlerIO = ioParam;
-        LOGGER.info("ExtractContentActionHandler running ...");
         final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID,
             OutcomeMessage.EXTRACT_MANIFEST_OK);
 
@@ -241,8 +240,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
             objectGuidToUri.clear();
             binaryDataObjectIdToVersionDataObject.clear();
         }
-
-        LOGGER.debug("ExtractSedaActionHandler response: " + response.getStatus().name());
         return response;
     }
 
@@ -693,7 +690,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
             if (StringUtils.isBlank(binaryDataObjectIdToObjectGroupId.get(binaryObjectId))) {
                 // not have object group, must creat an technical object group
-                LOGGER.debug("BDO " + binaryObjectId + " not have an GDO");
+                LOGGER.debug("BDO {} not have an GDO",binaryObjectId);
                 binaryDataObjectIdToObjectGroupId.remove(binaryObjectId);
                 postBinaryDataObjectActions(elementGuid + JSON_EXTENSION, binaryObjectId);
             }
@@ -839,7 +836,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
      */
     private void createIngestLevelStackFile(WorkspaceClient client, String containerId,
         Map<Integer, Set<String>> levelStackMap, String path) throws ProcessingException {
-        LOGGER.info("Begin createIngestLevelStackFile/containerId:" + containerId);
+        LOGGER.debug("Begin createIngestLevelStackFile/containerId: {}",containerId);
         ParametersChecker.checkParameter("levelStackMap is a mandatory parameter", levelStackMap);
         ParametersChecker.checkParameter("unitIdToGuid is a mandatory parameter", unitIdToGuid);
         ParametersChecker.checkParameter(WORKSPACE_MANDATORY_MSG, client);
@@ -864,7 +861,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 }
                 IngestLevelStack.set(LEVEL + entry.getKey(), unitList);
             }
-            LOGGER.debug("IngestLevelStack:" + IngestLevelStack.toString());
+            LOGGER.debug("IngestLevelStack: {}", IngestLevelStack);
             // create json file
             JsonHandler.writeAsFile(IngestLevelStack, tempFile);
             // put file in workspace

@@ -97,10 +97,8 @@ public class TransferNotificationActionHandler extends ActionHandler {
     public static final int HANDLER_IO_PARAMETER_NUMBER = 5;
 
     /**
-     * Constructor TransferNotificationActionHandler with parameter SedaUtilsFactory
-     *
-     * @param factory SedaUtils factory
-     * @throws IOException
+     * Constructor TransferNotificationActionHandler
+     * 
      */
     public TransferNotificationActionHandler() {
         storageClientFactory = StorageClientFactory.getInstance();
@@ -119,7 +117,6 @@ public class TransferNotificationActionHandler extends ActionHandler {
     @Override
     public EngineResponse execute(WorkerParameters params, HandlerIO handler) {
         checkMandatoryParameters(params);
-        LOGGER.debug("TransferNotificationActionHandler running ...");
 
         final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID,
             OutcomeMessage.ATR_OK);
@@ -159,8 +156,6 @@ public class TransferNotificationActionHandler extends ActionHandler {
             // LOGGER.error(e);
             // response.setStatus(StatusCode.FATAL).setOutcomeMessages(HANDLER_ID, OutcomeMessage.ATR_KO);
         }
-
-        LOGGER.debug("TransferNotificationActionHandler response: ", response.getStatus().name());
         return response;
     }
 

@@ -63,7 +63,6 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
     /**
      * Constructor with parameter SedaUtilsFactory
      *
-     * @param factory the seda utils factory
      */
     public CheckStorageAvailabilityActionHandler() {
         // empty constructor
@@ -80,7 +79,6 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
     @Override
     public EngineResponse execute(WorkerParameters params, HandlerIO actionDefinition) {
         checkMandatoryParameters(params);
-        LOGGER.debug("CheckStorageAvailabilityActionHandler running ...");
 
         final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID,
             OutcomeMessage.STORAGE_OFFER_SPACE_OK);
@@ -96,10 +94,8 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
             totalSizeToBeStored = objectsSizeInSip + manifestSize;
 
             final JsonNode storageCapacityNode = STORAGE_CLIENT.getStorageInformation(DEFAULT_TENANT, DEFAULT_STRATEGY);
-            // TODO : add JsonNode to POJO functionality in JsonHandler. For the moment we have to convert to
-            // JsonNode to a string then convert it back to a POJO.
             final StorageInformation information =
-                JsonHandler.getFromString(JsonHandler.writeAsString(storageCapacityNode), StorageInformation.class);
+                JsonHandler.getFromJsonNode(storageCapacityNode, StorageInformation.class);
             final long storageCapacity = information.getUsableSpace();
             if (storageCapacity >= totalSizeToBeStored) {
                 response.setStatus(StatusCode.OK);

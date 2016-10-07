@@ -105,7 +105,6 @@ public class IndexUnitActionHandler extends ActionHandler {
     /**
      * Constructor with parameter SedaUtilsFactory
      *
-     * @param factory the sedautils factory
      */
     public IndexUnitActionHandler() {}
 
@@ -119,7 +118,6 @@ public class IndexUnitActionHandler extends ActionHandler {
     @Override
     public EngineResponse execute(WorkerParameters params, HandlerIO param) {
         checkMandatoryParameters(params);
-        LOGGER.info("IndexUnitActionHandler running ...");
         handlerIO = param;
         final EngineResponse response =
             new ProcessResponse().setStatus(StatusCode.OK);
@@ -132,9 +130,6 @@ public class IndexUnitActionHandler extends ActionHandler {
             LOGGER.error(e);
             response.setStatus(StatusCode.FATAL);
         }
-
-        LOGGER.debug("IndexUnitActionHandler response: " + response.getStatus().name());
-
         // Update lifeCycle
         try {
             if (response.getStatus().equals(StatusCode.FATAL)) {
@@ -157,7 +152,7 @@ public class IndexUnitActionHandler extends ActionHandler {
      * @param params work parameters
      * @throws ProcessingException when error in execution
      */
-    public void indexArchiveUnit(WorkerParameters params) throws ProcessingException {
+    private void indexArchiveUnit(WorkerParameters params) throws ProcessingException {
         ParameterHelper.checkNullOrEmptyParameters(params);
 
         final String containerId = params.getContainerName();
@@ -193,10 +188,10 @@ public class IndexUnitActionHandler extends ActionHandler {
             }
 
         } catch (final MetaDataException | InvalidParseOperationException e) {
-            LOGGER.debug("Internal Server Error", e);
+            LOGGER.error("Internal Server Error", e);
             throw new ProcessingException(e);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
-            LOGGER.debug("Workspace Server Error");
+            LOGGER.error("Workspace Server Error");
             throw new ProcessingException(e);
         }
     }

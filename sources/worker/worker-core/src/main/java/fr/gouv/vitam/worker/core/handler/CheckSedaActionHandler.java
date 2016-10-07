@@ -49,7 +49,6 @@ public class CheckSedaActionHandler extends ActionHandler {
     /**
      * Constructor with parameter SedaUtilsFactory
      *
-     * @param factory SedaUtils factory
      */
     public CheckSedaActionHandler() {
         // empty constructor
@@ -65,8 +64,6 @@ public class CheckSedaActionHandler extends ActionHandler {
     @Override
     public EngineResponse execute(WorkerParameters params, HandlerIO actionDefinition) {
         checkMandatoryParameters(params);
-
-        LOGGER.debug("checkSedaActionHandler running ...");
         final EngineResponse response = new ProcessResponse();
         final SedaUtils sedaUtils = SedaUtilsFactory.create();
 
@@ -88,26 +85,21 @@ public class CheckSedaActionHandler extends ActionHandler {
         switch (status) {
             case VALID:
                 response.setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_MANIFEST_OK);
-                LOGGER.debug("checkSedaActionHandler response: " + response.getStatus().name());
                 response.setMessageIdentifier(messageId);
                 return response;
             case NO_FILE:
                 response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_MANIFEST_NO_FILE);
-                LOGGER.debug("checkSedaActionHandler response: " + response.getStatus().name());
                 return response;
             case NOT_XML_FILE:
                 response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID,
                     OutcomeMessage.CHECK_MANIFEST_NOT_XML_FILE);
-                LOGGER.debug("checkSedaActionHandler response: " + response.getStatus().name());
                 return response;
             case NOT_XSD_VALID:
                 response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID,
                     OutcomeMessage.CHECK_MANIFEST_NOT_XSD_VALID);
-                LOGGER.debug("checkSedaActionHandler response: " + response.getStatus().name());
                 return response;
             default:
                 response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_MANIFEST_KO);
-                LOGGER.debug("checkSedaActionHandler response: " + response.getStatus().name());
                 return response;
         }
 
