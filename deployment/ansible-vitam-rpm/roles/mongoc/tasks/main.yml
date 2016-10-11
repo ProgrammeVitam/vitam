@@ -32,15 +32,9 @@
     owner: "{{mongo_user}}"
     mode: 0700
 
-- name: Create the mongo systemd unit file
-  template: src=mongo.service.j2 dest=/usr/lib/systemd/system/mongoc.service
-
-- name: systemctl reload-daemon
-  command: systemctl daemon-reload
-
 - name: restart mongoc
   service:
-    name: mongoc
+    name: vitam-mongoc
     enabled: true
     state: restarted
 

@@ -1,4 +1,5 @@
 ---
+
 - name: Check that the directories exists (must be removed when the RPM plugin will be patched)
   file: 
     path: "{{vitam_folder_root}}/{{ item }}/mongod"
@@ -31,17 +32,9 @@
     owner: "{{ mongo_user }}"
     mode: 0700
 
-- name: Create the mongo systemd unit file
-  template: 
-    src: mongo.service.j2
-    dest: /usr/lib/systemd/system/mongod.service
-
-- name: systemctl reload-daemon
-  command: systemctl daemon-reload
-
 - name: restart mongod
   service:
-    name: mongod
+    name: vitam-mongod
     enabled: true
     state: restarted
 

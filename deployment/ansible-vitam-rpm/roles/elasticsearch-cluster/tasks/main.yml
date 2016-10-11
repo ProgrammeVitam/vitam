@@ -20,19 +20,10 @@
 #### Elasticsearch installation ####
 
 # tasks file for elasticsearch-cluster
-- name: install java (prerequisite for other components) in case of
-  yum:
-    name: java-1.8.0
-    state: latest
 
-- name: install elasticsearch rpm
+- name: install vitam-elasticsearch rpm
   yum:
-    name: elasticsearch
-    state: latest
-
-- name: install vitam-user-vitamdb package
-  yum:
-    name: vitam-user-vitamdb
+    name: vitam-{{cluster_name}}
     state: latest
 
 # OMA : désactivé car on est désormais en vitamdb
@@ -143,14 +134,6 @@
 
 #### Elasticsearch systemd service configuration ####
 
-- name: apply elasticsearch-{{groupe}} as a service 
-  template:
-    src: "vitam-elasticsearch-type.service.j2"
-    dest: "/usr/lib/systemd/system/vitam-elasticsearch-{{groupe}}.service"
-    owner: root
-    group: root
-    mode: 0644
-
 # Cf. https://serverfault.com/questions/546966/whats-removing-stuff-from-var-run-at-reboots-from-a-fedora-machine
 # Cf. https://www.freedesktop.org/software/systemd/man/tmpfiles.d.html
 - name: add elasticsearch-{{groupe}}.conf in tempfile.d 
@@ -169,9 +152,6 @@
 # /usr/lib/sysctl.d/elasticsearch.conf
 # with content : 
 # vm.max_map_count=262144
-
-- name: systemctl reload-daemon # see https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-repositories.html
-  command: systemctl daemon-reload
 
 - name: disable standard Easticsearch service
   service:
