@@ -1,4 +1,10 @@
 ---
+
+- name: Check that selinux is not set to enforcing
+  fail: msg="selinux is in enforcing mode, please set selinux to permissive or disabled."
+  when: ansible_selinux.mode == "enforcing"
+
+
 - name: ensure parent dir is OK ith correct permissions
   file:
     path: "{{vitam_folder_root}}"

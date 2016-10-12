@@ -4,7 +4,7 @@
 # TODO : à régler properment
 - hosts: vitam
   roles:
-    - init_vitam_dir
+    - normalize-host
     - rsyslog
 
 # Consul installation
