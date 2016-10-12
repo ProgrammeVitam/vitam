@@ -2,7 +2,7 @@ IHM Front
 #########
 
 Cette documentation décrit la partie front/Angular de l'ihm et en particulier sa configuration et ses modules.
---------------------------
+--------------------------------------------------------------------------------------------------------------
 
 Utils et général / Composition du projet Angular
 ************************************************
@@ -160,3 +160,12 @@ Exemple:
       var parent = fieldSet.parent;
       var constants = ARCHIVE_UNIT_MODULE_OG_FIELD_LABEL;
       fieldSet.fieldName = self.displayLabel(key, parent, constants);
+      
+Affichage dynamiqueTable
+========================
+
+Cette directive permet de dynamiser les tableaux de données pour sélectionner les colonnes à afficher.
+- custom-fields: Ce sont les champs dynamiques pour le tableau.
+  Ces objets doivent au moins avoir les champs 'id' (Valeur technique et unique) et 'label' (Valeur affichable à l'utilisateur).
+ selected-objects: Ce sont les objets sélectionnés à afficher. L'objet en etrée peut être un tableau vide et sera nourri par la directive
+ 

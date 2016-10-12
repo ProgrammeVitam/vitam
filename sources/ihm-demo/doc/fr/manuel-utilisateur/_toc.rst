@@ -6,3 +6,4 @@ IHM demo
 
    introduction.rst
    lifecycle.rst
+   logbookoperation.rst

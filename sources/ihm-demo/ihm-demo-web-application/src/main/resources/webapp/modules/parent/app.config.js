@@ -69,19 +69,23 @@ config(['$locationProvider' ,'$routeProvider',
       templateUrl:  "views/in-progress.html"
     }).
     when('/admin/importPronoun', {
-      templateUrl: "views/import-Pronoun.html",
+      templateUrl: "views/import-Pronoun.html"
     }).
     when('/admin/importFileRules', {
-      templateUrl: "views/import-FileRules.html",
+      templateUrl: "views/import-FileRules.html"
     }).
     when('/admin/recette', {
-      templateUrl: "views/recette-features.html",
+      templateUrl: "views/recette-features.html"
     }).
     when('/admin/journalOperations', {
-      template: '<all-logbook-operation></all-logbook-operation>',
+      template: '<all-logbook-operation></all-logbook-operation>'
+    }).
+    when('/admin/detailOperation/:entryId', {
+      templateUrl: 'views/logbookEntryFull.html',
+      controller: 'OperationLogbookEntryController'
     }).
     when('/lifecycle/:type/:lifecycleId/:lifecycleTitle', {
-      template: '<lifecycle></lifecycle>',
+      template: '<lifecycle></lifecycle>'
     }).
     when('/uploadperf', {
       template: '<upload-sip-perf></upload-sip-perf>'

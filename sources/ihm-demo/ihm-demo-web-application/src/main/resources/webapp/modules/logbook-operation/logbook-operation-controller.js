@@ -28,7 +28,8 @@
 'use strict';
 
 angular.module('ihm.demo')
-  .controller('logbookOperationController', function($scope, $mdDialog, ihmDemoCLient, ITEM_PER_PAGE, $timeout){
+  .controller('logbookOperationController', function($scope, $mdDialog, $filter, $window, ihmDemoCLient,
+																										 ITEM_PER_PAGE, $timeout, loadStaticValues){
     var ctrl = this;
     ctrl.client = ihmDemoCLient.getClient('logbook');
     ctrl.itemsPerPage = ITEM_PER_PAGE;
@@ -36,6 +37,25 @@ angular.module('ihm.demo')
     ctrl.searchOptions = {};
     ctrl.operationList = [];
     ctrl.resultPages = 0;
+
+		function initFields(fields) {
+			var result = [];
+			for (var i = 0, len = fields.length; i<len; i++) {
+				var fieldId = fields[i];
+				result.push({id: fieldId, label: $filter('translate')('operation.logbook.displayField.' + fieldId)});
+			}
+			return result;
+		}
+
+		loadStaticValues.loadFromFile().then(
+			function onSuccess(response) {
+				var config = response.data;
+				ctrl.customFields = initFields(config.logbookOperationCustomFields);
+			}, function onError(error) {
+
+			});
+
+		ctrl.selectedObjects = [];
 
     function clearResults() {
       ctrl.operationList = [];
@@ -84,6 +104,10 @@ angular.module('ihm.demo')
       });
     };
 
+		ctrl.goToDetails = function(id) {
+			$window.open('#!/admin/detailOperation/' + id)
+		};
+
     ctrl.openDialog = function($event, id) {
       $mdDialog.show({
         controller: 'logbookEntryController as entryCtrl',
@@ -97,4 +121,5 @@ angular.module('ihm.demo')
       })
     }
   });
+
 

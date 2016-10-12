@@ -13,5 +13,16 @@
   "lifeCycle.logbook.displaySteps.EVDETDATA":"Informations complémentaires sur le résultat",
   "lifeCycle.logbook.displaySteps.AGID":"Identifiant de l'agent",
   "lifeCycle.logbook.displaySteps.OBID":"Identifiant interne de l'objet",
-  "lifeCycle.logbook.displaySteps.TENANT":"Identifiant du tenant"
+  "lifeCycle.logbook.displaySteps.TENANT":"Identifiant du tenant",
+
+  "operation.logbook.displayField.evId": "Identifiant de l'évènement",
+  "operation.logbook.displayField.evIdProc": "Identifiant de l'opération",
+  "operation.logbook.displayField.evTypeProc": "Catégorie d'opération",
+  "operation.logbook.displayField.outDetail": "Code d'erreur technique",
+  "operation.logbook.displayField.agId": "Identifiant de l'agent",
+  "operation.logbook.displayField.obId": "Identifiant interne de l'objet",
+  "operation.logbook.displayField.evIdReq": "Identifiant de la requête",
+  "operation.logbook.displayField.obIdReq": "Identifiant du lot d'objet",
+  "operation.logbook.displayField.obIdIn": "Identifiant externe du lot d'objet",
+  "operation.logbook.displayField._tenant": "Identifiant du tenant"
 }
