@@ -41,24 +41,20 @@ Afin de récupérer l'implémentation configurée une factory a été mise en pl
 Configuration
 *************
 
-Cette factory charge un fichier de configuration "format-identifiers.json". Ce fichier contient les configurations des services d'identificaton de format identifiées par un id :
+Cette factory charge un fichier de configuration "format-identifiers.conf". Ce fichier contient les configurations des services d'identificaton de format identifiées par un id :
 
-.. code-block:: json
+.. code-block:: yaml
 
-	{
-		"siegfried-local": {
-			"type":"SIEGFRIED",
-         "client":"http",
-         "host":"localhost",
-         "port":"55800",
-         "rootPath":"/root/path",
-         "versionPath":"/root/path/version/folder",
-         "createVersionPath":"true"
-		},
-		"mock": {
-			"type":"MOCK"
-		}
-	}
+	siegfried-local:
+		type: SIEGFRIED
+		client: http
+		host: localhost
+		port: 55800
+		rootPath: /root/path
+		versionPath: /root/path/version/folder
+		createVersionPath: false
+	mock:
+		type: MOCK
 
 Le type est obligatoire et doit correspondre à l'enum *fr.gouv.vitam.common.format.identification.model.FormatIdentifierType*.
 
@@ -85,17 +81,16 @@ Pour ajouter une configuration mock :
 
 Pour ajouter une configuration siegfried :
 
-.. code-block:: json
+.. code-block:: yaml
 
-   "siegfried-local": {
-      "type":"SIEGFRIED",
-      "client":"http",
-      "host":"localhost",
-      "port":"55800",
-      "rootPath":"/root/path",
-      "versionPath":"/root/path/version/folder",
-      "createVersionPath":false
-   }
+	siegfried-local:
+		type: SIEGFRIED
+		client: http
+		host: localhost
+		port: 55800
+		rootPath: /root/path
+		versionPath: /root/path/version/folder
+		createVersionPath: false
 
 *client*: *http* correspond au client HTTP à lancer (ce dernier effectue des requêtes HTTP pour analyser les fichiers)
 *host*/*port* correspond au le serveur sur lequel Siegfried est installé.

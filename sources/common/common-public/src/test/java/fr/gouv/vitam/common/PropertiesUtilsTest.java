@@ -37,8 +37,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.util.Map;
 
 import org.junit.Test;
+
+import com.fasterxml.jackson.core.type.TypeReference;
 
 public class PropertiesUtilsTest {
 
@@ -168,6 +171,16 @@ public class PropertiesUtilsTest {
             e1.printStackTrace();
             fail(ResourcesPublicUtilTest.SHOULD_NOT_HAVE_AN_EXCEPTION);
         }
+        try {
+            final Map<String, Object> testMap = PropertiesUtils.readYaml(
+                PropertiesUtils.findFile(ResourcesPublicUtilTest.YAML_TEST_CONF),
+                new TypeReference<Map<String, Object>>() {});
+            assertEquals("test", (String) testMap.get("test"));
+            assertEquals(12346, (int) testMap.get("number"));
+        } catch (final IOException e1) {
+            e1.printStackTrace();
+            fail(ResourcesPublicUtilTest.SHOULD_NOT_HAVE_AN_EXCEPTION);
+        }
         try (InputStream inputStream = new FileInputStream(
             PropertiesUtils.findFile(ResourcesPublicUtilTest.YAML_TEST_CONF))) {
             final ConfigurationTest test = PropertiesUtils.readYaml(
@@ -210,6 +223,13 @@ public class PropertiesUtilsTest {
             final ConfigurationTest test = PropertiesUtils.readYaml(
                 (File) null,
                 ConfigurationTest.class);
+            fail(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
+        } catch (final IOException e1) {
+            // ignore
+        }
+        try {
+            final Map<String, Object> testMap = PropertiesUtils.readYaml(
+                (File) null, new TypeReference<Map<String, Object>>() {});
             fail(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
         } catch (final IOException e1) {
             // ignore

@@ -20,7 +20,7 @@ public class FormatIdentifierFactoryTest {
 
     @Test
     public void testLoad() {
-        FormatIdentifierFactory.getInstance().changeConfigurationFile("format-identifiers-factory-test.json");
+        FormatIdentifierFactory.getInstance().changeConfigurationFile("format-identifiers-factory-test.conf");
         try {
             final FormatIdentifier test1 =
                 FormatIdentifierFactory.getInstance().getFormatIdentifierFor("test-siegfried");

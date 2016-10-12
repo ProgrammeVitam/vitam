@@ -38,6 +38,7 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.Properties;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
@@ -243,6 +244,24 @@ public final class PropertiesUtils {
         try (final FileReader yamlFileReader = new FileReader(yamlFile)) {
             final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
             return clasz.cast(mapper.readValue(yamlFileReader, clasz));
+        }
+    }
+
+    /**
+     * Read the Yaml file and return the object read
+     *
+     * @param yamlFile
+     * @param typeReference the type reference representing the target interface object
+     * @return the object read
+     * @throws IOException
+     */
+    public static final <C> C readYaml(File yamlFile, TypeReference<C> typeReference) throws IOException {
+        if (yamlFile == null || typeReference == null) {
+            throw new FileNotFoundException(ARGUMENTS_MUST_BE_NON_NULL);
+        }
+        try (final FileReader yamlFileReader = new FileReader(yamlFile)) {
+            final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+            return mapper.readValue(yamlFileReader, typeReference);
         }
     }
 
