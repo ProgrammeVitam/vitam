@@ -1,35 +1,60 @@
 [hosts]
 
 [hosts:children]
-local
-
-[local:children]
-hosts-ihm-demo
-hosts-ingest
-hosts-access
-hosts-mongodb
-hosts-mongo-express
-hosts-logbook
-hosts-metadata
-hosts-workspace
-hosts-processing
-hosts-storage-engine
-hosts-storage-offer-default
-hosts-ingest-external
-hosts-functional-administration
-hosts-log-server
-hosts-elasticsearch-data
+vitam
+reverse
 library
+hosts-mongo-express
 
 
-[library]
-localhost
+########### Tests environments specifics ###########
 
-[hosts-mongodb]
-localhost
+[reverse] # EXTRA : Front reverse-proxy (test environments ONLY)
+
+########### Extra VITAM applications ###########
+
+[library] # EXTRA : Library server
 
 [hosts-mongo-express]
+
+########### VITAM services ###########
+
+[vitam:children]
+zone-external
+zone-access
+zone-applicative
+zone-storage
+zone-data
+zone-admin
+
+##### Zone externe
+
+[zone-external:children]
+hosts-ihm-demo
+
+[hosts-ihm-demo]
 localhost
+
+##### Zone access
+
+[zone-access:children]
+hosts-ingest-external
+
+[hosts-ingest-external]
+localhost
+
+##### Zone applicative
+
+[zone-applicative:children]
+hosts-ingest
+hosts-processing
+hosts-worker
+hosts-access
+hosts-metadata
+hosts-functional-administration
+hosts-logbook
+hosts-workspace
+hosts-storage-engine
 
 [hosts-logbook]
 localhost
@@ -40,16 +65,10 @@ localhost
 [hosts-ingest]
 localhost
 
-[hosts-ingest-external]
-localhost
-
 [hosts-access]
 localhost
 
 [hosts-metadata]
-localhost
-
-[hosts-ihm-demo]
 localhost
 
 [hosts-functional-administration]
@@ -58,47 +77,81 @@ localhost
 [hosts-processing]
 localhost
 
+[hosts-storage-engine]
+localhost
+
 [hosts-worker]
 localhost
 
-[hosts-storage-engine]
-localhost
+
+##### Zone storage
+
+[zone-storage:children]
+hosts-storage-offer-default
 
 [hosts-storage-offer-default]
 localhost
 
-[hosts-log-server]
-localhost
+##### Zone data
+
+[zone-data:children]
+hosts-elasticsearch-data
+mongo_common
 
 [hosts-elasticsearch-data]
+localhost elasticsearch_memory=256m
+
+[mongo_common:children]
+mongos
+mongoc
+mongod
+
+[mongos]
 localhost
 
+[mongoc]
+localhost
+
+[mongod]
+localhost rs_member_id=0 shard_id=0
+
+###### Zone admin
+
+[zone-admin:children]
+hosts-consul-server
+hosts-log-server
+hosts-elasticsearch-log
 
 [hosts-consul-server]
-
-[hosts-elasticsearch-log]
 localhost
 
 [hosts-log-server]
-localhost
+
+[hosts-elasticsearch-log]
+
+
+########### Global vars ###########
 
 [hosts:vars]
 ansible_become=true
 ansible_connection=local
-vitam_environment=local
 
-environnement=local
-docker_registry_hostname=docker.programmevitam.fr
 vitam_folder_permission=0775
 vitam_conf_permission=0775
-pull_strategy=missing
 local_user={{ansible_user_id}}
+environnement=local
+vitam_reverse_domain=
 
 consul_domain=consul
 vitam_ihm_demo_external_dns=localhost
 https_reverse_proxy=
 proxy_host=
 proxy_port=
-rpm_version=0.8.0-SNAPSHOT*
+rpm_version=*
 days_to_delete=30
-dns_server=
+dns_servers=["10.100.211.222","8.8.8.8"]
+
+memory_opts="-Xms32m -Xmx256m" 
+
+
+

@@ -1,0 +1,9 @@
+#%RAML 1.0 SecurityScheme
+description: Based on certificate passing a valid identifier of application
+type: Pass Through
+describedBy:
+  headers:
+    X-Identity:
+      description: Contains the application identifier from the Certificate resolution
+      type: string
+      required: true

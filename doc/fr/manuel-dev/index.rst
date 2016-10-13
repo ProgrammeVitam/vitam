@@ -19,7 +19,7 @@ Sommaire
 .. toctree::
    :maxdepth: 2
 
-   logbook.rst
+   include/_toc.rst
 
 
 ####################################################

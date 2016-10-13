@@ -1,0 +1,10 @@
+{
+  "id": "abcdef",
+  "info": "stored description - optional",
+  "objectGroupId": "for Object",
+  "unitIds": [ "for Object and ObjectGroup", "id2" ],
+  "creation_time": "2016-02-28T16:41:41.090Z",
+  "last_access_time": "2016-02-28T16:41:41.090Z",
+  "last_modified_time": "2016-02-28T16:41:41.090Z",
+  "last_checked_time": "2016-02-28T16:41:41.090Z"
+}

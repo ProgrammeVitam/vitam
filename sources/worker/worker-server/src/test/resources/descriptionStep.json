@@ -1,0 +1,24 @@
+{
+	"step":{
+	    "workerGroupId" :"DefaultWorker",
+	        "stepName":"Contrôle global entrée (SIP)",
+	        "behavior": "BLOCKING",
+	        "distribution" : {
+	        	"kind":"REF",
+	        	"element" : "SIP/manifest.xml"
+	        	},
+	        "actions":[{"action":{"actionKey": "checkSeda", "behavior": "BLOCKING"}},
+	        		{"action":{"actionKey": "CheckVersion", "behavior": "BLOCKING"}},
+	        		{"action":{"actionKey": "CheckObjectsNumber", "behavior": "NOBLOCKING"}},
+	        		{"action":{"actionKey": "ExtractSeda", "behavior": "BLOCKING"}},
+	        		{"action":{"actionKey": "CheckConformity", "behavior": "BLOCKING"}}]
+	},
+	"workParams":{
+		"containerName":"obj",
+		"objectName":"obj",
+		"urlWorkspace":"http://localhost:8888",
+		"urlMetadata":"http://localhost:8889",
+		"processId":"processId",
+		"currentStep":"Contrôle global entrée (SIP)"
+	}
+}

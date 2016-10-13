@@ -1,0 +1,31 @@
+# mongod.conf
+
+# for documentation of all options, see:
+#   http://docs.mongodb.org/manual/reference/configuration-options/
+
+
+# where to write logging data.
+systemLog:
+  destination: syslog
+  syslogFacility: local0
+  logAppend: true
+
+
+# Where and how to store data.
+storage:
+  dbPath: {{mongo_db_path}}
+  journal:
+    enabled: true
+
+
+# network interfaces
+net:
+  port: {{mongoc_port}}
+
+
+# operationProfiling:
+replication:
+  replSetName: configsvr # name of the replica set
+
+sharding:
+  clusterRole: configsvr # role du shard

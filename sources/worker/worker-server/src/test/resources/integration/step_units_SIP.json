@@ -1,0 +1,17 @@
+{
+      "workerGroupId": "DefaultWorker",
+      "stepName": "Rangement des units",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST",
+        "element": "Units"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "IndexUnit",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    }

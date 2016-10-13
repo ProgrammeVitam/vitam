@@ -12,6 +12,7 @@ Les principes d'implémentation applicative ont pour but de faciliter, voire d'a
 * Nécessité de pouvoir disposer des composants de générations différentes rendant un même service ;
 * Usage d’API REST pour la communication entre composants internes à VITAM, ainsi qu'en extrême majorité pour les services exposés à l'extérieur ;
 * Exploitabilité de la solution : limiter le coût d’entrée et de maintenance en : 
+
     - Intégrant un outillage favorisant le déploiement et les mises à jour de la plateforme
     - Intégrant les éléments nécessaires pour l’exploiter (supervision, sauvegarde, ordonnancement)
     - Enfin, à terme, la solution doit pouvoir tirer partie d’une infrastructure élastique et disposant d’offres de services de stockage diverses (externes)
@@ -23,18 +24,21 @@ Services
 Le système VITAM est découpé en services autonomes interagissant pour permettre de rendre le service global; ce découpage applicatif suit en grande partie le découpage présenté plus haut dans l'architecture fonctionnelle :
 
 .. figure:: images/vitam-applicative-architecture.*
-  :align: center
+    :align: center
+    :height: 15 cm
 
-	Architecture applicative et flux d'informations entre composants.
 
-	Chaque service possède un nom propre qui l'identifie de manière unique au sein du système VITAM.
+    Architecture applicative et flux d'informations entre composants.
+
+    Chaque service possède un nom propre qui l'identifie de manière unique au sein du système VITAM.
 
 Les services sont organisés en zones logiques :
 
 * Les API externes contiennent les services exposés aux clients (ex: au SIA) ; tout accès externe au système VITAM doit passer par eux. Ils sont responsables notamment de la validation de l'authentification des systèmes externes, de la validation du droit d'accès aux API internes et de l'appel des API internes (principe d'API-Gateway);
-* Les services métiers internent hébergent la logique métier de gestion des archives ; ils se subdivisent en :
+* Les services métiers internes hébergent la logique métier de gestion des archives ; ils se subdivisent en :
 
     - Les services de traitement des archives : ils effectuent tous les traitements concernant les archives (unitaires ou de masse) ;
+    - Les services de recherche et d'accès aux archives : ils permettent de consulter les métadonnées et le contenu des archives ;
     - Les services de gestion des référentiels et des métadonnées d'archives : ils permettent de travailler sur les métadonnées des archives (au sens large, i.e. comprenant les référentiels et les journaux).
 
 * Les offres de stockage (internes - i.e. fournies par VITAM - ou externes - i.e. fournies par un tiers) stockent les données d'archives gérées par VITAM ; la sélection de l'offre de stockage à utiliser pour une archive donnée est réalisée en amont (dans le moteur de stockage).

@@ -1,0 +1,67 @@
+   <div id="global" class="container-fluid" >
+    		<ol class="breadcrumb">
+                <li><a href="#">Page d'accueil</a></li>
+                <li><a href="#">Entrées</a></li>
+                <li><a href="#">Transfert</a></li>
+            </ol>
+
+	 <!-- ////////////////////////////////////////////////////////////////////////////// -->
+
+ 			<div class="panel panel-default col-md-12">
+    			<table class="table upload">
+    				<tbody>
+        				<tr>
+        				  <h3>TELECHARGEMENT DU SIP</h3>
+        				</tr>
+        				<tr>
+          					<h3>Fichier</h3>
+          					<td height="150" width="50%" >
+          			      <input type="file" nv-file-select="" uploader="uploader" ng-click="uploader.clear()"/>
+          		      </td>
+          		      <td height="150">
+          				      <button type="button" class="btn btn-primary" ng-click="uploader.checkExtension($event,uploader.queue[0].file.name);uploader.uploadAll()" ng-disabled="!uploader.getNotUploadedItems().length" >
+          				        <i class="material-icons pull-left">file_download</i>
+          				        <span></span> Importer
+          				      </button>
+          		       </td>
+        	        </tr>
+              </tbody>
+            </table>
+            <br>
+            <br>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th width="50%">Nom du fichier</th>
+                    <th ng-show="uploader.isHTML5">Taille</th>
+                    <th>Statut</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="item in uploader.queue">
+                    <td><strong>{{ item.file.name }}</strong></td>
+                    <td ng-show="uploader.isHTML5" nowrap> {{ uploader.getSize(item.file.size,2)}}</td>
+                    <td>
+                        <span ng-show="item.isSuccess"><i class="glyphicon glyphicon-ok"></i></span>
+                        <span ng-show="item.isCancel"><i class="glyphicon glyphicon-ban-circle"></i></span>
+                        <span ng-show="item.isError"><i class="glyphicon glyphicon-remove"></i></span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+
+			<br>
+			<br>
+			<br>
+			<br>
+            <div align="center">
+                <div>
+                    <div class="progress" style="">
+                        <div class="progress-bar" role="progressbar" ng-style="{ 'width': uploader.progress + '%' }"></div>
+                    </div>
+                </div>
+            </div>
+            <br>
+            <br>           
+        </div>
+    </div>

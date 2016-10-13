@@ -1,0 +1,224 @@
+{
+  "id": "DefaultIngestWorkflow",
+  "comment": "Default Ingest Workflow V6",
+  "steps": [
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "Contrôle global entrée (SIP)",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF",
+        "element": "SIP/manifest.xml"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "checkSeda",
+            "behavior": "BLOCKING"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CheckVersion",
+            "behavior": "BLOCKING"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CheckObjectsNumber",
+            "behavior": "NOBLOCKING"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "ExtractSeda",
+            "behavior": "BLOCKING",
+            "out": [
+              {
+                "name": "unitsLevel.file",
+                "uri": "WORKSPACE:UnitsLevel/ingestLevelStack.json"
+              },
+              {
+                "name": "mapsBDOtoOG.file",
+                "uri": "WORKSPACE:Maps/BDO_TO_OBJECT_GROUP_ID_MAP.json"
+              },
+              {
+                "name": "mapsBDO.file",
+                "uri": "WORKSPACE:Maps/BINARY_DATA_OBJECT_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "mapsObjectGroup.file",
+                "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "mapsObjectGroup.file",
+                "uri": "WORKSPACE:Maps/OG_TO_ARCHIVE_ID_MAP.json"
+              },
+              {
+                "name": "mapsBDOtoVersionBDO.file",
+                "uri": "WORKSPACE:Maps/BDO_TO_VERSION_BDO_MAP.json"
+              },
+              {
+                "name": "mapsUnits.file",
+                "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "globalSEDAParameters.file",
+                "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
+              }
+           ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CheckObjectUnitConsistency",
+            "behavior": "NOBLOCKING",
+            "in": [
+              {
+                "name": "mapsBDOtoOG.file",
+                "uri": "WORKSPACE:Maps/OG_TO_ARCHIVE_ID_MAP.json"
+              },
+              {
+                "name": "mapsBDOtoOG.file",
+                "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CheckConformity",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "seda.file",
+                "uri": "WORKSPACE:SIP/manifest.xml"
+              },
+              {
+                "name": "mapsBDOtoOG.file",
+                "uri": "WORKSPACE:Maps/BDO_TO_OBJECT_GROUP_ID_MAP.json"
+              },
+              {
+                "name": "mapsObjectGroup.file",
+                "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "Identification des formats",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST",
+        "element": "ObjectGroup"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "FormatIdentification",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "Vérification de la disponibilite de l'offre de stockage",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF",
+        "element": "SIP/manifest.xml"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "CheckStorageAvailability",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "Rangement des units",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST",
+        "element": "Units"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "IndexUnit",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "Rangement des objets",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST",
+        "element": "ObjectGroup"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "StoreObjectGroup",
+            "behavior": "BLOCKING"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "IndexObjectGroup",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "Finalisation de l'entrée",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF",
+        "element": "SIP/manifest.xml"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "TransferNotification",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "mapsUnits.file",
+                "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "mapsBDO.file",
+                "uri": "WORKSPACE:Maps/BINARY_DATA_OBJECT_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "mapsBDOtoOG.file",
+                "uri": "WORKSPACE:Maps/BDO_TO_OBJECT_GROUP_ID_MAP.json"
+              },
+              {
+                "name": "mapsBDOtoVersionBDO.file",
+                "uri": "WORKSPACE:Maps/BDO_TO_VERSION_BDO_MAP.json"
+              },
+              {
+                "name": "globalSEDAParameters.file",
+                "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

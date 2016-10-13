@@ -1,23 +1,37 @@
 {
-    "data_dir": "{{ consul_folder_data }}",
-    "log_level": "INFO",
-    "enable_syslog": true,
+  "data_dir": "{{ consul_folder_data }}",
+  "node_name": "{{ansible_hostname}}",
+  "log_level": "INFO",
+  "enable_syslog": true,
 
-{% if server %}
-   "bootstrap_expect": {{ groups['hosts-consul-server']|length }},
-   "server": true,
-   "ui": true,
-   "addresses" : {
-      "http": "0.0.0.0"
-   },
+{% if inventory_hostname in groups['hosts-mongo-express'] %}
+  "advertise_addr": "{{ ansible_eth0["ipv4"]["address"] }}",
 {% endif %}
 
-  "recursors": [ "{{dns_server}}" ],
+{% if inventory_hostname in groups['hosts-consul-server'] %}
+  "bootstrap_expect": {{ groups['hosts-consul-server']|length }},
+  "server": true,
+  "ui": true,
+  "addresses" : {
+    "http": "0.0.0.0"
+    },
+{% endif %}
+
+  "recursors": [ "{{ dns_servers|join('", "') }}" ],
   "domain": "{{consul_domain}}",
   "datacenter": "{{environnement}}-dc1",
   "retry_join": [ "{{ groups['hosts-consul-server']|join('", "') }}" ],
   "retry_interval": "10s",
   "ports": {
-      "dns" : 53
-  }
+    "dns" : 53
+  },
+  "checks" : [
+    {
+        "id": "check-DNS",
+        "name": "Check Consul DNS resolution for node",
+        "script": "/usr/bin/getent hosts {{ansible_hostname}}.node.{{consul_domain}}",
+        "interval": "10s",
+        "timeout": "1s"
+      }
+  ]
 }

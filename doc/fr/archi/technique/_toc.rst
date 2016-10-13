@@ -1,5 +1,5 @@
 ######################
-Architecture Technique
+Architecture technique
 ######################
 
 .. toctree::
@@ -7,5 +7,4 @@ Architecture Technique
    :glob:
 
    *
-   services/_toc
 

@@ -8,7 +8,7 @@ Données gérées :
 	* Données d'archives
 
 Typologie de consommation de resources :
-	* CPU : moyen (principalement dû aux I/O)
-	* Mémoire : fort (principelement pour le cache I/O)
-	* Réseau : fort (entrant)
+	* CPU : moyen
+	* Mémoire : fort (principalement pour le cache I/O)
+	* Réseau : fort
 	* Disque : fort (stockage pérenne des données d'archive)

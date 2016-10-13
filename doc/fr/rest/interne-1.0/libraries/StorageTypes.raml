@@ -1,0 +1,51 @@
+#%RAML 1.0 Library
+usage: |
+  Use to define global types for Access
+
+uses:
+    StandardTypes: StandardTypes.raml
+
+types:
+  ContainerInfo:
+    displayName: Container Information
+    description: Description of one Container
+    type: object
+    properties:
+      id:
+        description: Container Id
+        type: string
+      info:
+        description: Associated free text information
+        type: string
+      creation_time:
+        type: datetime
+      last_access_time:
+        type: datetime
+      last_modified_time:
+        type: datetime
+
+  StoredInfo:
+    displayName: Stored Information
+    description: Description of one Container
+    type: object
+    properties:
+      id:
+        description: Container Id
+        type: string
+      info:
+        description: Associated free text information
+        type: string
+      objectGroupId:
+        description: Id of ObjectGroup for Object only
+        type: string
+      unitIds:
+        description: Ids of Units for ObjectGroup and Object only
+        type: string[]
+      creation_time:
+        type: datetime
+      last_access_time:
+        type: datetime
+      last_modified_time:
+        type: datetime
+      last_checked_time:
+        type: datetime

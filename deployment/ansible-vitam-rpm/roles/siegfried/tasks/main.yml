@@ -1,0 +1,13 @@
+---
+
+- name: install siegfried package
+  yum:
+    name: vitam-siegfried
+    state: latest
+
+- name: Ensure siegfried is started on boot
+  service: 
+    name: vitam-siegfried
+    enabled: true
+  notify:
+    - restart siegfried

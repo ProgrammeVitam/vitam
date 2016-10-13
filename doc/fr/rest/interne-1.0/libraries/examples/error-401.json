@@ -1,0 +1,8 @@
+{
+  "httpCode" : 401,
+  "code" : 123456,
+  "context": "ingest",
+  "state": "unauthorized",
+  "message": "The application is not authorized to use this functionality",
+  "description": "The application 'Xxxx' is not authorized to use the 'administration' service, the role 'ADMIN_ROLE' is mandatory."
+}

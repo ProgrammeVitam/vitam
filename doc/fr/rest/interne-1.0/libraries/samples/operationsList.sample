@@ -1,0 +1,20 @@
+{
+  "todo" : "à compléter...!",
+  "hits": {
+    "total": 10,
+    "size": 3,
+    "offset": 0,
+    "limit": 100,
+    "time_out": false,
+    "next": "async_id_next"
+  },
+  "context": {
+    "query": "operations list"
+  },
+  "results": [
+    {"operationId ": "id",
+    "status" : "STATUS",
+    "details" : "DETAILS"},
+    {}
+    ]
+}

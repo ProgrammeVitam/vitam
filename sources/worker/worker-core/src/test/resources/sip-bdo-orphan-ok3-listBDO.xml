@@ -1,0 +1,432 @@
+<?xml version="1.0" ?>
+<ArchiveTransfer
+        xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 seda-2.0-main.xsd" xml:id="ID1">
+    <Comment>Glossaire du projet Vitam - dossier local</Comment>
+    <Date>2016-09-02T13:31:57</Date>
+    <MessageIdentifier>2016090201</MessageIdentifier>
+    <ArchivalAgreement>ArchivalAgreement1</ArchivalAgreement>
+    <CodeListVersions>
+        <ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
+        <MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0
+        </MessageDigestAlgorithmCodeListVersion>
+        <MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion>
+        <EncodingCodeListVersion>EncodingCodeListVersion0123</EncodingCodeListVersion>
+        <FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
+        <CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion>
+        <DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion>
+        <StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion>
+        <AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion>
+        <AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion>
+        <DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion>
+        <ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion>
+        <ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion>
+        <AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion>
+        <RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion>
+    </CodeListVersions>
+    <DataObjectPackage xml:id="ID2">
+        <BinaryDataObject id="ID5">
+            <Uri>Content/ID5.ods</Uri>
+            <MessageDigest algorithm="SHA-512">
+                56454e891c94863bd5c9408a861c256571111faae87b4d52eb6d2f17f0f49f228b9b9e3fd63fc9d5b5f02c61bea49823abd85ba407cd1acccf96c0f95670db2e
+            </MessageDigest>
+            <Size>28613</Size>
+            <FormatIdentification>
+                <FormatLitteral>OpenDocument Spreadsheet</FormatLitteral>
+                <MimeType>application/vnd.oasis.opendocument.spreadsheet</MimeType>
+                <FormatId>fmt/295</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>20150104_glossaire_envoi3.ods</Filename>
+                <LastModified>2016-01-11T19:12:13.141+01:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID10">
+            <Uri>Content/ID10.ods</Uri>
+            <MessageDigest algorithm="SHA-512">
+                e3dd49a6bdd3046817e10e43829019d61dbeab34822c48f55b37004221848306a8082d2d7fed9ecd020b469e80fa8d72e6f77950886d73294d5ec65588494c2c
+            </MessageDigest>
+            <Size>37131</Size>
+            <FormatIdentification>
+                <FormatLitteral>OpenDocument Spreadsheet</FormatLitteral>
+                <MimeType>application/vnd.oasis.opendocument.spreadsheet</MimeType>
+                <FormatId>fmt/295</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>20150212_glossaire.ods</Filename>
+                <LastModified>2016-02-11T09:45:14.281+01:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID15">
+            <Uri>Content/ID15.ods</Uri>
+            <MessageDigest algorithm="SHA-512">
+                0f74a35706100d5e8b2db867b0c4a893187e73e72502685cfa1a0f7a3fbb22ba2cfe9956f2a83bc921ec44e3de75f0ab292875900bf8241ba982d352055caf6e
+            </MessageDigest>
+            <Size>19941</Size>
+            <FormatIdentification>
+                <FormatLitteral>OpenDocument Spreadsheet</FormatLitteral>
+                <MimeType>application/vnd.oasis.opendocument.spreadsheet</MimeType>
+                <FormatId>fmt/295</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>20151214_glossaire_envoi2.ods</Filename>
+                <LastModified>2016-01-04T17:48:07.812+01:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID20">
+            <Uri>Content/ID20.ods</Uri>
+            <MessageDigest algorithm="SHA-512">
+                7a2a81f744e9c0b4a1ad5c2801e95e6ff1488b6cb9d04841c4662516d802b1b2e9232c292f811a6f4ce5ab9eb384d373c707675b4395eb823cdb5fac80ff16c8
+            </MessageDigest>
+            <Size>22519</Size>
+            <FormatIdentification>
+                <FormatLitteral>OpenDocument Spreadsheet</FormatLitteral>
+                <MimeType>application/vnd.oasis.opendocument.spreadsheet</MimeType>
+                <FormatId>fmt/295</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>20160112_glossaire_envoi4.ods</Filename>
+                <LastModified>2016-01-25T12:08:52.104+01:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID25">
+            <Uri>Content/ID25.ods</Uri>
+            <MessageDigest algorithm="SHA-512">
+                492822ec8b3973dc49f4968c4cec96cc363407526a345bdd258cc545f6f5b4a882668694b23eb4cacc900ef7dc2d60f7da6cca97e737435df066d17c963f96a5
+            </MessageDigest>
+            <Size>25990</Size>
+            <FormatIdentification>
+                <FormatLitteral>OpenDocument Spreadsheet</FormatLitteral>
+                <MimeType>application/vnd.oasis.opendocument.spreadsheet</MimeType>
+                <FormatId>fmt/295</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>20160126_glossaire_envoi5.ods</Filename>
+                <LastModified>2016-01-26T10:27:49.010+01:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID30">
+            <Uri>Content/ID30.ods</Uri>
+            <MessageDigest algorithm="SHA-512">
+                3e058ef22df6ae14785568a30cb2515fbf3eaa16e71320dd9b37dc05ce6987c7723a00756707621d258087aaa99c04113b4578cecf714b23caed65f49b72e96f
+            </MessageDigest>
+            <Size>20660</Size>
+            <FormatIdentification>
+                <FormatLitteral>OpenDocument Spreadsheet</FormatLitteral>
+                <MimeType>application/vnd.oasis.opendocument.spreadsheet</MimeType>
+                <FormatId>fmt/295</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>20160211_glossaire_envoi6.ods</Filename>
+                <LastModified>2016-02-29T15:52:12.102+01:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID35">
+            <Uri>Content/ID35.ods</Uri>
+            <MessageDigest algorithm="SHA-512">
+                b2822a7edded6f56d16f7b3b78cc588ee5510724e2de199b1875ded235a9d5b1da320deaff6dfe64e341c729f7a90bfecc18736230f6f77546a0964dc0e30b90
+            </MessageDigest>
+            <Size>31652</Size>
+            <FormatIdentification>
+                <FormatLitteral>OpenDocument Spreadsheet</FormatLitteral>
+                <MimeType>application/vnd.oasis.opendocument.spreadsheet</MimeType>
+                <FormatId>fmt/295</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>20160314_glossaire_envoi07.ods</Filename>
+                <LastModified>2016-03-14T16:50:48.954+01:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID40">
+            <Uri>Content/ID40.odt</Uri>
+            <MessageDigest algorithm="SHA-512">
+                1681d21d3afc94eacd15e624c119456c8613c49878277df1d780d9135a856f8d408ad87cc7cb0eb148c4efae8443833cf0ed2d6461932b5cb72bb6ac091e53b1
+            </MessageDigest>
+            <Size>46526</Size>
+            <FormatIdentification>
+                <FormatLitteral>OpenDocument Text</FormatLitteral>
+                <MimeType>application/vnd.oasis.opendocument.text</MimeType>
+                <FormatId>fmt/291</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>20160408_glossaire.odt</Filename>
+                <LastModified>2016-04-08T17:47:05.598+02:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID45">
+            <Uri>Content/ID45.odt</Uri>
+            <MessageDigest algorithm="SHA-512">
+                a14e86a7d1c4c0ae24bbc792e85acf0ce9aa720a65bcc56bb3c8952014424fbcbbba576bddfb05b85bd23906a8bc8a0ed08db3ee2b2ea99a7691be24bd476615
+            </MessageDigest>
+            <Size>41101</Size>
+            <FormatIdentification>
+                <FormatLitteral>OpenDocument Text</FormatLitteral>
+                <MimeType>application/vnd.oasis.opendocument.text</MimeType>
+                <FormatId>fmt/291</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>entrees.odt</Filename>
+                <LastModified>2015-11-05T09:31:15.295+01:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID50">
+            <Uri>Content/ID50.odt</Uri>
+            <MessageDigest algorithm="SHA-512">
+                90ca7ce194517e9cf9fe8c396190c6cbf68cdbcbcba0c1a52196dfa63eae9fe0938918a82a5d403367375feb669e6ce46f016a39d57cb7030caf8fe53a9be0d7
+            </MessageDigest>
+            <Size>39850</Size>
+            <FormatIdentification>
+                <FormatLitteral>OpenDocument Text</FormatLitteral>
+                <MimeType>application/vnd.oasis.opendocument.text</MimeType>
+                <FormatId>fmt/291</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>glossaire.odt</Filename>
+                <LastModified>2015-12-09T18:32:27.940+01:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID55">
+            <Uri>Content/ID55.ods</Uri>
+            <MessageDigest algorithm="SHA-512">
+                11263d0fde34743e0d5962733ea4a28b03d721372adc1b11ac9642465e9760a011a48d46fa04b2c6ba4c2fd3027ed535dd541395ce8e446c8090f0583b817cb7
+            </MessageDigest>
+            <Size>34910</Size>
+            <FormatIdentification>
+                <FormatLitteral>OpenDocument Spreadsheet</FormatLitteral>
+                <MimeType>application/vnd.oasis.opendocument.spreadsheet</MimeType>
+                <FormatId>fmt/295</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>glossaire_eva.ods</Filename>
+                <LastModified>2015-11-16T14:19:53.316+01:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID60">
+            <Uri>Content/ID60.ods</Uri>
+            <MessageDigest algorithm="SHA-512">
+                c73f21b06194f665d0f2f112f799bd229763ec29f78fda6548c8eb316dbfa8223bf41df461cd84c3c5ec9d54cb5a00ac1420f4058ce13728c1ab2b99acc3e7a6
+            </MessageDigest>
+            <Size>46741</Size>
+            <FormatIdentification>
+                <FormatLitteral>OpenDocument Spreadsheet</FormatLitteral>
+                <MimeType>application/vnd.oasis.opendocument.spreadsheet</MimeType>
+                <FormatId>fmt/295</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>glossary_fd_mr.ods</Filename>
+                <LastModified>2016-04-12T11:08:36.636+02:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <DescriptiveMetadata>
+            <ArchiveUnit id="ID3">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>glossaire</Title>
+                    <Description>C:\Users\edouard.vasseur\Desktop\glossaire</Description>
+                    <StartDate>2015-11-05T09:31:15</StartDate>
+                    <EndDate>2016-04-12T11:08:36</EndDate>
+                </Content>
+                <ArchiveUnit id="ID7">
+                    <ArchiveUnitRefId>ID6</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID12">
+                    <ArchiveUnitRefId>ID11</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID17">
+                    <ArchiveUnitRefId>ID16</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID22">
+                    <ArchiveUnitRefId>ID21</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID27">
+                    <ArchiveUnitRefId>ID26</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID32">
+                    <ArchiveUnitRefId>ID31</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID37">
+                    <ArchiveUnitRefId>ID36</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID42">
+                    <ArchiveUnitRefId>ID41</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID47">
+                    <ArchiveUnitRefId>ID46</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID52">
+                    <ArchiveUnitRefId>ID51</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID57">
+                    <ArchiveUnitRefId>ID56</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID62">
+                    <ArchiveUnitRefId>ID61</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID6">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>20150104_glossaire_envoi3.ods</Title>
+                    <Description>Pseudo Archive Unit du fichier
+                        :C:\Users\edouard.vasseur\Desktop\glossaire\20150104_glossaire_envoi3.ods
+                    </Description>
+                    <TransactedDate>2016-01-11T19:12:13</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectReferenceId>ID5</DataObjectReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID11">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>20150212_glossaire.ods</Title>
+                    <Description>Pseudo Archive Unit du fichier
+                        :C:\Users\edouard.vasseur\Desktop\glossaire\20150212_glossaire.ods
+                    </Description>
+                    <TransactedDate>2016-02-11T09:45:14</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectReferenceId>ID10</DataObjectReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID16">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>20151214_glossaire_envoi2.ods</Title>
+                    <Description>Pseudo Archive Unit du fichier
+                        :C:\Users\edouard.vasseur\Desktop\glossaire\20151214_glossaire_envoi2.ods
+                    </Description>
+                    <TransactedDate>2016-01-04T17:48:07</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectReferenceId>ID15</DataObjectReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID21">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>20160112_glossaire_envoi4.ods</Title>
+                    <Description>Pseudo Archive Unit du fichier
+                        :C:\Users\edouard.vasseur\Desktop\glossaire\20160112_glossaire_envoi4.ods
+                    </Description>
+                    <TransactedDate>2016-01-25T12:08:52</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectReferenceId>ID20</DataObjectReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID26">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>20160126_glossaire_envoi5.ods</Title>
+                    <Description>Pseudo Archive Unit du fichier
+                        :C:\Users\edouard.vasseur\Desktop\glossaire\20160126_glossaire_envoi5.ods
+                    </Description>
+                    <TransactedDate>2016-01-26T10:27:49</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectReferenceId>ID25</DataObjectReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID31">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>20160211_glossaire_envoi6.ods</Title>
+                    <Description>Pseudo Archive Unit du fichier
+                        :C:\Users\edouard.vasseur\Desktop\glossaire\20160211_glossaire_envoi6.ods
+                    </Description>
+                    <TransactedDate>2016-02-29T15:52:12</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectReferenceId>ID30</DataObjectReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID36">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>20160314_glossaire_envoi07.ods</Title>
+                    <Description>Pseudo Archive Unit du fichier
+                        :C:\Users\edouard.vasseur\Desktop\glossaire\20160314_glossaire_envoi07.ods
+                    </Description>
+                    <TransactedDate>2016-03-14T16:50:48</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectReferenceId>ID35</DataObjectReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID41">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>20160408_glossaire.odt</Title>
+                    <Description>Pseudo Archive Unit du fichier
+                        :C:\Users\edouard.vasseur\Desktop\glossaire\20160408_glossaire.odt
+                    </Description>
+                    <TransactedDate>2016-04-08T17:47:05</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectReferenceId>ID40</DataObjectReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID46">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>entrees.odt</Title>
+                    <Description>Pseudo Archive Unit du fichier
+                        :C:\Users\edouard.vasseur\Desktop\glossaire\entrees.odt
+                    </Description>
+                    <TransactedDate>2015-11-05T09:31:15</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectReferenceId>ID45</DataObjectReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID51">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>glossaire.odt</Title>
+                    <Description>Pseudo Archive Unit du fichier
+                        :C:\Users\edouard.vasseur\Desktop\glossaire\glossaire.odt
+                    </Description>
+                    <TransactedDate>2015-12-09T18:32:27</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectReferenceId>ID50</DataObjectReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID56">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>glossaire_eva.ods</Title>
+                    <Description>Pseudo Archive Unit du fichier
+                        :C:\Users\edouard.vasseur\Desktop\glossaire\glossaire_eva.ods
+                    </Description>
+                    <TransactedDate>2015-11-16T14:19:53</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectReferenceId>ID55</DataObjectReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID61">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>glossary_fd_mr.ods</Title>
+                    <Description>Pseudo Archive Unit du fichier
+                        :C:\Users\edouard.vasseur\Desktop\glossaire\glossary_fd_mr.ods
+                    </Description>
+                    <TransactedDate>2016-04-12T11:08:36</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectReferenceId>ID60</DataObjectReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+        </DescriptiveMetadata>
+        <ManagementMetadata/>
+    </DataObjectPackage>
+    <ArchivalAgency>
+        <Identifier>Identifier4</Identifier>
+    </ArchivalAgency>
+    <TransferringAgency>
+        <Identifier>Identifier52344</Identifier>
+    </TransferringAgency>
+</ArchiveTransfer>

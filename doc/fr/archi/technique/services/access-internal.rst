@@ -10,5 +10,5 @@ Données stockées :
 Typologie de consommation de resources :
 	* CPU : faible
 	* Mémoire : faible
-	* Réseau : généralement faible, sauf dans le cas de sortie massive d'archives (entrant et sortant)
+	* Réseau : généralement faible, sauf dans le cas de sortie massive d'archives (sortant)
 	* Disque : faible (logs)

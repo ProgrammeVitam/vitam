@@ -1,3 +1,0 @@
----
-- name: restart container
-  command: docker restart {{vitam_docker_name}}

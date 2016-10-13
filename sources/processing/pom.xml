@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>fr.gouv.vitam</groupId>
+		<artifactId>parent</artifactId>
+		<version>0.9.0-SNAPSHOT</version>
+	</parent>
+	<artifactId>processing</artifactId>
+	<packaging>pom</packaging>
+	<modules>
+		<module>processing-common</module>
+		<module>processing-management</module>
+		<module>processing-management-client</module>
+		<module>processing-engine</module>
+		<module>processing-engine-client</module>
+		<module>processing-distributor</module>
+		<module>processing-distributor-client</module>
+		<module>processing-monitoring</module>
+		<module>processing-integration-test</module>
+	</modules>
+</project>

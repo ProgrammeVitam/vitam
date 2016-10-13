@@ -1,0 +1,8 @@
+{
+  "httpCode": 412,
+  "code": 123458,
+  "context": "ingest",
+  "state": "Precondition_Failed",
+  "message": "Precondition in error",
+  "description": "Operation on file xxx cannot continue since precondition is in error"
+}

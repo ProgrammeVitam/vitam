@@ -1,0 +1,4 @@
+%vitamdb-admin    ALL=NOPASSWD: /bin/systemctl stop elasticsearch,/bin/systemctl start elasticsearch,/bin/systemctl restart elasticsearch
+%vitamdb-admin    ALL=NOPASSWD: /bin/systemctl stop mongos,/bin/systemctl start mongos,/bin/systemctl restart mongos
+%vitamdb-admin    ALL=NOPASSWD: /bin/systemctl stop mongoc,/bin/systemctl start mongoc,/bin/systemctl restart mongoc
+%vitamdb-admin    ALL=NOPASSWD: /bin/systemctl stop mongod,/bin/systemctl start mongod,/bin/systemctl restart mongod

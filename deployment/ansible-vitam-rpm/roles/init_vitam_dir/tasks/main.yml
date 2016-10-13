@@ -1,0 +1,25 @@
+---
+- name: ensure parent dir is OK ith correct permissions
+  file:
+    path: "{{vitam_folder_root}}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0555
+
+- name: ensure {{vitam_folder_root}} sub-directories exist
+  file:
+    path: "{{vitam_folder_root}}/{{item}}"
+    owner: root
+    group: root
+    state: directory
+    mode: 0555
+  with_items:
+    - app
+    - bin
+    - conf
+    - data
+    - lib
+    - log
+    - script
+    - tmp

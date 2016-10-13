@@ -1,0 +1,6 @@
+{
+  "name": "Front-office Application name.",
+  "email": "Email@application.fr",
+  "ingest_contracts": [ "id1", "id2" ],
+  "access_contracts": [ "id3", "id4" ]
+}

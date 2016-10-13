@@ -1,9 +1,11 @@
 ---
 # tasks file for log-server
-- name: install java (prerequisite for other components)
+- name: install vitam user for /vitam browser
   yum:
-    name=java-1.8.0
+    name=vitam-user-vitam
     state=latest
+
+#### Kibana installation ####
 
 - name: install kibana rpm from repo
   yum:
@@ -19,6 +21,20 @@
     enabled: yes
     state: started
 
+- name: configure Kibana connection to elasticsearch
+  replace:
+    dest: /opt/kibana/config/kibana.yml 
+    regexp: '^# elasticsearch\.url:.*$'
+    replace: "elasticsearch.url: \"http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}\""
+
+
+#### Logstash installation ####
+
+- name: install java (prerequisite for other components)
+  yum:
+    name=java-1.8.0
+    state=latest
+
 - name: install logstash rpm from repo
   yum:
     name: logstash-all-plugins
@@ -29,7 +45,7 @@
     path: "/vitam/{{item}}/logstash"
     owner: logstash
     state: directory
-    mode: 0755
+    mode: "{{vitam_folder_permission}}"
   with_items:
     - data
     - log
@@ -41,15 +57,16 @@
     path: "{{logstash_confextra_dir}}"
     owner: logstash
     state: directory
-    mode: 0755
+    mode: "{{vitam_folder_permission}}"
 
-- name: configure Kibana connection to elasticsearch
-  replace:
-    dest: /opt/kibana/config/kibana.yml 
-    regexp: '^# elasticsearch\.url:.*$'
-    replace: "elasticsearch.url: \"http://{{vitam_log_host}}:{{elasticsearch_log_http_port}}\""
-  notify:
-    - restart kibana
+# - name: configure Kibana connection to elasticsearch
+#   replace:
+#     dest: /opt/kibana/config/kibana.yml 
+#     regexp: '^# elasticsearch\.url:.*$'
+#     replace: "elasticsearch.url: \"http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}\""
+#   notify:
+#     - restart kibana
+
 
 - name: create conf subdir for logstash (useless)
   file:
@@ -86,6 +103,13 @@
       replace: 'LS_GC_LOG_FILE="{{logstash_log_dir}}/gc.log"' 
   register: logstash_updated
 
+- name: Implement the Vitam GC log standard fot logstash
+  replace: 
+      dest: /etc/sysconfig/logstash
+      regexp: '^#LS_JAVA_OPTS=.*$'
+      replace: 'LS_JAVA_OPTS="-XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=10M -XX:+PrintGCDetails -XX:+PrintGCApplicationStoppedTime"'
+  register: logstash_updated
+
 - name: Define config dir for logstash
   replace: 
       dest: /etc/sysconfig/logstash
@@ -93,18 +117,12 @@
       replace: 'LS_CONF_DIR="{{logstash_conf_dir}}"' 
   register: logstash_updated
 
-- name: configure Kibana connection to elasticsearch
-  replace:
-    dest: /opt/kibana/config/kibana.yml 
-    regexp: '^# elasticsearch\.url:.*$'
-    replace: "elasticsearch.url: \"http://{{vitam_log_host}}:{{elasticsearch_log_http_port}}\""
-
-
 - name: configure logstash parser
   template:
     src: "{{item}}.j2"
     dest: "{{logstash_conf_dir}}/{{item}}"
     owner: logstash
+    mode: "{{ vitam_conf_permission }}"
   with_items:
     - "logstash-vitam.conf"
 
@@ -122,6 +140,36 @@
     name: logstash
     state: restarted
 
+
+#### Consul service declaration ####
+
+# TODO: ideally get the consul configuration path in a global configuration variable
+- name: Ensure consul config dir is OK
+  file:
+    path: "{{vitam_folder_root}}/conf/consul"
+    state: directory
+    owner: "{{ vitam_user }}"
+    group: "{{ vitam_group }}"
+
+- name: Deploy consul agent service declaration
+  template:
+    src: "service-{{ item }}.json.j2"
+    dest: "{{vitam_folder_root}}/conf/consul/service-{{ item }}.json"
+    owner: "{{ vitam_user }}"
+    group: "{{ vitam_group }}"
+    mode: "{{vitam_conf_permission}}"
+  with_items:
+    - kibana
+    - logstash
+
+- name: Reload consul agent configuration
+  service:
+    name: vitam-consul
+    state: reloaded
+
+
+
+
 # - name: create symbolic link for parser
 #   file: 
 #     src: /opt/logstash/conf/logstash-vitam.conf
@@ -130,15 +178,21 @@
 #   notify:
 #     - restart logstash
 
+
+#### Curator ####
+# Disabled when docker detected (local deployement)
+
 - name: remove PyYAML.x86_64 as incompatible with Curator
   yum:
     name: PyYAML.x86_64
     state: absent
+  when: ansible_virtualization_type != 'docker'
 
 - name: install Curator package
   yum:
     name: python-elasticsearch-curator
     state: latest
+  when: ansible_virtualization_type != 'docker'
 
 - name: ensure Curator directories exist
   file:
@@ -151,6 +205,7 @@
     - log
     - conf
     - lib
+  when: ansible_virtualization_type != 'docker'
 
 - name: apply configuration files for curator
   template:
@@ -160,6 +215,7 @@
   with_items:
     - "curator.yml"
     - "delete_index.yml"
+  when: ansible_virtualization_type != 'docker'
 
 - name: create root crontab entry for curator
   cron:
@@ -168,3 +224,4 @@
     hour="6"
     user="root"
     job="/usr/bin/curator --config {{curator_conf_dir}}/curator.yml {{curator_conf_dir}}/delete_index.yml"
+  when: ansible_virtualization_type != 'docker'

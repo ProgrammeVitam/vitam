@@ -1,0 +1,17 @@
+{
+	"id": "id",
+	"comment":"traitement en deux macro étapes",
+	"steps":
+	[
+	{
+	"workerGroupId" :"worker2",
+		"stepName":"Traiter_archives",
+		"behavior": "NOBLOCKING",
+		"actions":[
+		{"action":{"actionKey": "extractContentAction", "behavior": "NOBLOCKING"}},
+		{"action":{"actionKey": "storeAction", "behavior": "NOBLOCKING"}},
+		{"action":{"actionKey": "saveInDataBaseAction", "behavior": "NOBLOCKING"}}
+		]
+	}
+	]
+}

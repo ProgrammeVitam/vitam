@@ -22,13 +22,17 @@ Documents internes
 Référentiels externes
 ---------------------
 
-   Référentiel Général d’Interopérabilité [RGI] V1.0 du 12 juin 2009 approuvé par arrêté du Premier ministre du 9 novembre 2009
+   Référentiel Général d’Interopérabilité [RGI]
+      V1.0 du 12 juin 2009 approuvé par arrêté du Premier ministre du 9 novembre 2009
+      
       Règles d’interopérabilité (format, protocoles, encodages, etc.) rentrant dans le champ d’application de l’ordonnance n°2005-1516 du 8 décembre 2005 relative aux échanges électroniques entre les usagers et les autorités administratives et entre les autorités administratives. 
       
       https://references.modernisation.gouv.fr/rgi-interoperabilite
 
 
-   Référentiel Général de Sécurité [RGS] V2.0 du 13 juin 2014 approuvé par arrêté du Premier ministre du 13 juin 2014
+   Référentiel Général de Sécurité [RGS]
+      V2.0 du 13 juin 2014 approuvé par arrêté du Premier ministre du 13 juin 2014
+      
       Le RGS précise les règles de sécurité s’imposant aux autorités administratives dans la sécurisation de leur SI et notamment sur les dispositifs de sécurité relatifs aux mécanismes cryptographiques et à l’utilisation de certificats électroniques et contremarques de temps. Le RGS propose également des bonnes pratiques en matière de SSI.
       Le RGS découle de l’application de l’ordonnance n°2005-1516 du 8 décembre 2005 relative aux échanges électroniques entre les usagers et les autorités administratives et entre les autorités administratives.
       
@@ -39,7 +43,9 @@ Référentiels externes
       Systèmes de transfert desinformations et données spatiales -- Système ouvert d'archivage d'information (SOAI) - Modèle de référence
       
 
-   Standard d’échange de données pour l’archivage (SEDA). Transfert, communication, élimination, restitution, modification – Version 1.0 – Septembre 2012
+   Standard d’échange de données pour l’archivage (SEDA)
+      Transfert, communication, élimination, restitution, modification – Version 1.0 – Septembre 2012
+
       Cadre normatif pour les différents échanges d’informations entre les services d’archives publics et leurs partenaires : entités productrices des archives, entités gestionnaires, entités de contrôle des processus, et enfin entités qui utilisent ces archives. Il concerne également les échanges entre plusieurs services d’archives (services publics d'archives, prestataires d'archivage, archivage intermédiaire, archivage définitif).
       
       http://www.archivesdefrance.culture.gouv.fr/seda/
@@ -78,3 +84,9 @@ Glossaire
 
    JRE
       Java Runtime Environment ; il s'agit de la machine virtuelle Java permettant d'y exécuter les programmes compilés pour.
+
+   JVM
+      Java Virtual Machine ; Cf. :term:`JRE`
+
+   PDMA
+      Perte de Données Maximale Admissible ; il s'agit du pourcentage de données stockées dans le système qu'il est acceptable de perdre lors d'un incident de production.

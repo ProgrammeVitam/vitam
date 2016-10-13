@@ -1,0 +1,15 @@
+{
+  "service": {
+    "name": "kibana",
+    "port": {{ vitam_kibana_port }},
+    "enableTagOverride": false,
+    "checks": [
+      {
+        "id": "kibana home page",
+        "notes": "Kibana home page access",
+        "http": "http://localhost:{{ vitam_kibana_port }}/app/kibana",
+        "interval": "1s"
+      }
+    ]
+  }
+}

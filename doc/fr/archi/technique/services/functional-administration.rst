@@ -5,7 +5,7 @@ Type :
 	Composant VITAM Java
 
 Données stockées :
-	* Aucune
+	* Fichiers temporaires : fichiers de chargement des référentiels
 
 Typologie de consommation de resources :
 	* CPU : moyenne

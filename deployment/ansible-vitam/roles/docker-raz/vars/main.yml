@@ -1,8 +1,0 @@
----
-
-vitam_docker_tag: "latest"
-
-docker_registry_external_hostname: docker.programmevitam.fr
-
-docker_registry_push_hostname: vitam-prod-app-6.internet.agri:8082
-

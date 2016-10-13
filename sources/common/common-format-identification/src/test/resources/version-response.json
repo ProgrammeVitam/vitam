@@ -1,0 +1,13 @@
+{
+   "siegfried": "1.6.4",
+   "scandate": "2016-09-27T10:00:50+02:00",
+   "signature": "default.sig",
+   "created": "2016-09-05T13:51:09+10:00",
+   "identifiers": [
+      {
+         "name": "pronom",
+         "details": "DROID_SignatureFile_V86.xml; container-signature-20160727.xml"
+      }
+   ],
+   "files": []
+}

@@ -1,0 +1,11 @@
+<div ng-controller="DynamicTableController">
+
+  <a class="btn" ng-click="selectUnselectAll()">
+    {{'directive.dynamicTable.' + selectUnselectId | translate}}
+  </a>
+
+  <multiselect ng-model="multiSelectValue" options="c.label for c in customFields" data-multiple="true"
+               data-compare-by="id" scroll-after-rows="10" filter-after-rows="1"
+               max-width="100" tabindex="-1">
+  </multiselect>
+</div>

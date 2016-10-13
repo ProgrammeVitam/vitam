@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>fr.gouv.vitam</groupId>
+        <artifactId>ingest</artifactId>
+        <version>0.9.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>ingest-internal</artifactId>
+    <name>Ingest Internal</name>
+
+    <packaging>pom</packaging>
+
+    <modules>
+      	<module>ingest-internal-common</module>
+      	<module>ingest-internal-model</module>
+        <module>ingest-internal-api</module>
+        <module>ingest-internal-core</module>
+        <module>ingest-internal-rest</module>
+        <module>ingest-internal-client</module>
+    </modules>
+
+</project>

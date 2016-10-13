@@ -1,0 +1,105 @@
+#%RAML 1.0 Library
+usage: |
+  Use to define global types for Access
+
+uses:
+    StandardTypes: StandardTypes.raml
+
+types:
+  AccessQuery:
+      displayName: DSL Query for Access
+      description: External Access Vitam DSL query
+      type: object
+      properties:
+        $roots:
+          description: Contains all root ids
+          type: string[]
+        $query:
+          description: Contains the queries (for all types)
+          type: object[]
+        $filter?:
+          description: Contains filter to apply (for GET only)
+          type: StandardTypes.Filter
+        $projection?:
+          description: Contains projection to apply (for GET only)
+          type: StandardTypes.Projection
+        $facetQuery?:
+          description: Contains facet to apply (for GET only)
+          type: StandardTypes.FacetQuery
+        $action?:
+          description: Contains actions to apply as update (for PUT only)
+          type: object[]
+      example: {
+          "$roots": ["bbb"],
+          "$query": [
+            { "$path": "aaaaa" }
+          ]
+      }
+
+  AccessResponse:
+    type: object
+    displayName: DSL Response for Access
+    description: External Access Vitam DSL response list
+    properties:
+      $hits:
+        description: Contains the hits for the response
+        required: true
+        type: object
+        properties:
+          total:
+            description: Total estimated possible answears
+            type: integer
+          offset:
+            description: Offset on possible answears
+            type: integer
+          limit:
+            description: Limit specified in the request (or implicit) from Offset
+            type: integer
+          size:
+            description: Number of currently returned answears
+            type: integer
+          time_out?:
+            description: True means the request was too long and so only partial result could be retrieved
+            type: boolean
+      $context:
+        required: true
+        description: Contains Request related to this to reply
+        type: AccessQuery
+
+      $results:
+        required: true
+        description: Contains list of items
+        type: object[]
+      $facet?:
+          description: Contains facet if requested
+          type: StandardTypes.FacetResponse
+
+    example: {
+        "$hits": {
+          "total": 10,
+          "size": 3,
+          "offset": 0,
+          "limit": 100,
+          "time_out": false
+        },
+        "$context": {
+          "$roots": ["bbb"],
+          "$query": [
+            { "$path": "aaaaa" }
+          ]
+        },
+        "$results": [ { "#id": "id1"}, {"#id": "id2"}, {"#id": "id3"} ]
+      }
+
+  Qualifiers:
+    description: |
+      Qualifiers for Objects. For the moment, only the number version of each qualifier is returned. (see examples)
+      In the future, it would be possible to get the details of each qualifier, in a new field (#qualifiersMD)
+    type: string
+    enum:
+      - PhysicalMaster
+      - BinaryMaster
+      - Dissemination
+      - Thumbnail
+      - TextContent
+      - All

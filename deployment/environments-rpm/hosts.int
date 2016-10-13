@@ -1,75 +1,178 @@
 [hosts]
 
 [hosts:children]
-hosts-ihm-demo
-hosts-ingest
-hosts-access
-hosts-mongodb
-hosts-logbook
-hosts-metadata
-hosts-workspace
-hosts-processing
-hosts-storageengine
-hosts-storageofferdefault
-hosts-ingest-external
-hosts-functional-administration
-hosts-worker
+vitam
+reverse
+library
+hosts-mongo-express
 
-[hosts-ihm-demo]
-vitam-prod-app-15.internet.agri
 
-[hosts-functional-administration]
-vitam-prod-app-15.internet.agri
+########### Tests environments specifics ###########
 
-[hosts-ingest-web]
-vitam-prod-app-15.internet.agri
+[reverse] # EXTRA : Front reverse-proxy (test environments ONLY)
+vitam-iaas-reverse-01.vitam
+
+
+########### Extra VITAM applications ###########
+
+[library] # EXTRA : Library server
+vitam-iaas-ext-01.int
 
 [hosts-mongo-express]
-vitam-prod-app-15.internet.agri
+vitam-iaas-ext-01.int
+
+
+########### VITAM services ###########
+
+[vitam:children]
+zone-external
+zone-access
+zone-applicative
+zone-storage
+zone-data
+zone-admin
+
+
+##### Zone externe
+
+[zone-external:children]
+hosts-ihm-demo
+
+[hosts-ihm-demo]
+vitam-iaas-ext-01.int
+
+
+##### Zone access
+
+[zone-access:children]
+hosts-ingest-external
 
 [hosts-ingest-external]
-vitam-prod-app-15.internet.agri
+vitam-iaas-app-01.int
 
-[hosts-ingest]
-vitam-prod-app-13.internet.agri
 
-[hosts-access]
-vitam-prod-app-13.internet.agri
+##### Zone applicative
 
-[hosts-processing]
-vitam-prod-app-13.internet.agri
-
-[hosts-metadata]
-vitam-prod-app-13.internet.agri
+[zone-applicative:children]
+hosts-ingest
+hosts-processing
+hosts-worker
+hosts-access
+hosts-metadata
+hosts-functional-administration
+hosts-logbook
+hosts-workspace
+hosts-storage-engine
 
 [hosts-logbook]
-vitam-prod-app-13.internet.agri
+vitam-iaas-app-01.int
+vitam-iaas-app-03.int
 
 [hosts-workspace]
-vitam-prod-app-13.internet.agri
+vitam-iaas-storage-01.int
 
-[hosts-mongodb]
-vitam-prod-app-14.internet.agri
+[hosts-ingest]
+vitam-iaas-app-02.int
 
-[hosts-storageengine]
-vitam-prod-app-13.internet.agri
+[hosts-access]
+vitam-iaas-app-01.int
 
-[hosts-storageofferdefault]
-vitam-prod-app-14.internet.agri
+[hosts-metadata]
+vitam-iaas-app-02.int
 
-[mongo-express]
-vitam-prod-app-15.internet.agri
+[hosts-functional-administration]
+vitam-iaas-app-02.int
+
+[hosts-processing]
+vitam-iaas-app-03.int
+
+[hosts-storage-engine]
+vitam-iaas-storage-01.int
 
 [hosts-worker]
-vitam-prod-app-13.internet.agri
+vitam-iaas-worker-01.int
+
+
+##### Zone storage
+
+[zone-storage:children]
+hosts-storage-offer-default
+
+
+[hosts-storage-offer-default]
+vitam-iaas-defoffer-01.int
+
+
+##### Zone data
+
+[zone-data:children]
+hosts-elasticsearch-data
+mongo_common
+
+
+[hosts-elasticsearch-data]
+vitam-iaas-db-01.int
+vitam-iaas-db-02.int
+vitam-iaas-db-03.int
+
+
+[mongo_common:children]
+mongos
+mongoc
+mongod
+
+[mongos]
+vitam-iaas-mongos-01.int shard_id=0
+vitam-iaas-mongos-02.int shard_id=0
+vitam-iaas-mongos-03.int shard_id=0
+
+[mongoc]
+vitam-iaas-mongos-01.int
+vitam-iaas-mongos-02.int
+vitam-iaas-mongos-03.int
+
+[mongod]
+vitam-iaas-db-01.int rs_member_id=0 shard_id=0
+vitam-iaas-db-02.int rs_member_id=1 shard_id=0
+vitam-iaas-db-03.int rs_member_id=2 shard_id=0
+
+###### Zone admin
+
+[zone-admin:children]
+hosts-consul-server
+hosts-log-server
+hosts-elasticsearch-log
+
+[hosts-consul-server]
+vitam-iaas-dblog-01.int
+vitam-iaas-dblog-02.int
+vitam-iaas-dblog-03.int
+
+[hosts-log-server]
+vitam-iaas-log-01.int
+
+[hosts-elasticsearch-log]
+vitam-iaas-dblog-01.int
+vitam-iaas-dblog-02.int
+vitam-iaas-dblog-03.int
+
+
+########### Global vars ###########
+
 
 [hosts:vars]
-ansible_ssh_user=ansible
+ansible_ssh_user=centos
 ansible_become=true
-vitam_environment=int
-docker_registry_hostname=vitam-prod-app-6.internet.agri:8084
 vitam_folder_permission=0755
-vitam_conf_permission=0500
-pull_strategy=always
+vitam_conf_permission=0640
 local_user=vitam
-
+environnement=int
+vitam_reverse_domain=int
+consul_domain=consul
+vitam_ihm_demo_external_dns=int.env.programmevitam.fr
+https_reverse_proxy=10.220.23.1:3128
+proxy_host=10.220.23.1
+proxy_port=3128
+rpm_version=0.9.0-SNAPSHOT*
+days_to_delete=365
+dns_servers=["172.16.1.21"]

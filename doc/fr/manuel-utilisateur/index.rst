@@ -25,6 +25,7 @@ Sommaire
    ihm_detail_archive_unit.rst
    ihm_journal_operations_entree.rst
    ihm_detail_operation_entree.rst
+   include/_toc.rst
 
 ####################################################
 Index & Tables

@@ -5,9 +5,9 @@
   roles:
     - topbeat
 
-- hosts: hosts-storage-offer-default
+- hosts: vitam
   roles:
-    - storage-offer-default
+    - vitam_browser
 
 - hosts: hosts-mongo-express
   roles:

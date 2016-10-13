@@ -29,6 +29,12 @@ hosts-worker
 hosts-log-server
 hosts-consul-server
 hosts-elasticsearch-data
+mongo_common
+
+[mongo_common:children]
+mongos
+mongoc
+mongod
 
 [hosts-mongodb]
 vitam-iaas-mongodb-01.int3
@@ -96,12 +102,21 @@ vitam_folder_permission=0755
 vitam_conf_permission=0640
 local_user=vitam
 environnement=int3
-vitam_environment=int3
+vitam_reverse_domain=int3
 consul_domain=consul
 vitam_ihm_demo_external_dns=int3.env.programmevitam.fr
 https_reverse_proxy=10.220.23.1:3128
 proxy_host=10.220.23.1
 proxy_port=3128
-rpm_version=0.8.0-SNAPSHOT*
+rpm_version=0.9.0-SNAPSHOT*
 days_to_delete=30
-dns_server=172.16.1.21
+dns_servers=["172.16.1.21"]
+
+[mongos]
+vitam-iaas-mongodb-01.int3
+
+[mongoc]
+vitam-iaas-mongodb-01.int3
+
+[mongod]
+vitam-iaas-mongodb-01.int3 rs_member_id=0 shard_id=0

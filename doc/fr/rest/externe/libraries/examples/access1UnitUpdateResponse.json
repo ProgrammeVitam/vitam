@@ -1,0 +1,22 @@
+{
+  "$hits": {
+    "total": 1,
+    "size": 1,
+    "offset": 0,
+    "limit": 1,
+    "time_out": false
+  },
+  "$context": {
+    "$roots": [ "id3" ],
+    "$query": [
+    ],
+    "$filter": {  },
+    "$action": [{ "$set": { "NewField": "New value" } }]
+  },
+  "$results": [
+    {
+      "#id": "id3", "title": "titre 3", "NewField": "New value",
+      "#type": "DemandeCongés", "#sector": "RessourcesHumaines"
+    }
+  ]
+}

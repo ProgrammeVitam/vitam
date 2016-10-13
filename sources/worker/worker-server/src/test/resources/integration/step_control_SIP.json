@@ -1,0 +1,105 @@
+{
+      "workerGroupId": "DefaultWorker",
+      "stepName": "Contrôle global entrée (SIP)",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF",
+        "element": "SIP/manifest.xml"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "checkSeda",
+            "behavior": "BLOCKING"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CheckVersion",
+            "behavior": "BLOCKING"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CheckObjectsNumber",
+            "behavior": "NOBLOCKING"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "ExtractSeda",
+            "behavior": "BLOCKING",
+            "out": [
+              {
+                "name": "unitsLevel.file",
+                "uri": "WORKSPACE:UnitsLevel/ingestLevelStack.json"
+              },
+              {
+                "name": "mapsBDOtoOG.file",
+                "uri": "WORKSPACE:Maps/BDO_TO_OBJECT_GROUP_ID_MAP.json"
+              },
+              {
+                "name": "mapsBDO.file",
+                "uri": "WORKSPACE:Maps/BINARY_DATA_OBJECT_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "mapsObjectGroup.file",
+                "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "mapsObjectGroup.file",
+                "uri": "WORKSPACE:Maps/OG_TO_ARCHIVE_ID_MAP.json"
+              },
+              {
+                "name": "mapsBDOtoVersionBDO.file",
+                "uri": "WORKSPACE:Maps/BDO_TO_VERSION_BDO_MAP.json"
+              },
+              {
+                "name": "mapsUnits.file",
+                "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "globalSEDAParameters.file",
+                "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
+              }
+           ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CheckObjectUnitConsistency",
+            "behavior": "NOBLOCKING",
+            "in": [
+              {
+                "name": "mapsBDOtoOG.file",
+                "uri": "WORKSPACE:Maps/OG_TO_ARCHIVE_ID_MAP.json"
+              },
+              {
+                "name": "mapsBDOtoOG.file",
+                "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CheckConformity",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "seda.file",
+                "uri": "WORKSPACE:SIP/manifest.xml"
+              },
+              {
+                "name": "mapsBDOtoOG.file",
+                "uri": "WORKSPACE:Maps/BDO_TO_OBJECT_GROUP_ID_MAP.json"
+              },
+              {
+                "name": "mapsObjectGroup.file",
+                "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json"
+              }
+            ]
+          }
+        }
+      ]
+    }

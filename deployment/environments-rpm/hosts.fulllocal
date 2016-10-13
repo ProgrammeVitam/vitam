@@ -1,0 +1,159 @@
+[hosts]
+
+[hosts:children]
+vitam
+reverse
+library
+hosts-mongo-express
+
+
+########### Tests environments specifics ###########
+
+[reverse] # EXTRA : Front reverse-proxy (test environments ONLY)
+
+########### Extra VITAM applications ###########
+
+[library] # EXTRA : Library server
+localhost
+
+[hosts-mongo-express]
+
+########### VITAM services ###########
+
+[vitam:children]
+zone-external
+zone-access
+zone-applicative
+zone-storage
+zone-data
+zone-admin
+
+##### Zone externe
+
+[zone-external:children]
+hosts-ihm-demo
+
+[hosts-ihm-demo]
+localhost
+
+##### Zone access
+
+[zone-access:children]
+hosts-ingest-external
+
+[hosts-ingest-external]
+localhost
+
+##### Zone applicative
+
+[zone-applicative:children]
+hosts-ingest
+hosts-processing
+hosts-worker
+hosts-access
+hosts-metadata
+hosts-functional-administration
+hosts-logbook
+hosts-workspace
+hosts-storage-engine
+
+[hosts-logbook]
+localhost
+
+[hosts-workspace]
+localhost
+
+[hosts-ingest]
+localhost
+
+[hosts-access]
+localhost
+
+[hosts-metadata]
+localhost
+
+[hosts-functional-administration]
+localhost
+
+[hosts-processing]
+localhost
+
+[hosts-storage-engine]
+localhost
+
+[hosts-worker]
+localhost
+
+
+##### Zone storage
+
+[zone-storage:children]
+hosts-storage-offer-default
+
+[hosts-storage-offer-default]
+localhost
+
+##### Zone data
+
+[zone-data:children]
+hosts-elasticsearch-data
+mongo_common
+
+[hosts-elasticsearch-data]
+localhost elasticsearch_memory=256m
+
+[mongo_common:children]
+mongos
+mongoc
+mongod
+
+[mongos]
+localhost
+
+[mongoc]
+localhost
+
+[mongod]
+localhost rs_member_id=0 shard_id=0
+
+###### Zone admin
+
+[zone-admin:children]
+hosts-consul-server
+hosts-log-server
+hosts-elasticsearch-log
+
+[hosts-consul-server]
+localhost
+
+[hosts-log-server]
+localhost
+
+[hosts-elasticsearch-log]
+localhost
+
+########### Global vars ###########
+
+[hosts:vars]
+ansible_become=true
+ansible_connection=local
+
+vitam_folder_permission=0775
+vitam_conf_permission=0775
+local_user={{ansible_user_id}}
+environnement=fulllocal
+vitam_logstash_portvitam_reverse_domain=
+
+consul_domain=consul
+vitam_ihm_demo_external_dns=localhost
+https_reverse_proxy=
+proxy_host=
+proxy_port=
+rpm_version=*
+days_to_delete=30
+dns_servers=["10.100.211.222","8.8.8.8"]
+
+memory_opts="-Xms32m -Xmx256m" 
+
+
+

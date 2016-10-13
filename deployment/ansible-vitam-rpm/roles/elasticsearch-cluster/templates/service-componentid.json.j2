@@ -1,0 +1,21 @@
+{
+  "service": {
+    "name": "elasticsearch-{{ groupe }}",
+    "port": {{ port_http }},
+    "enableTagOverride": false,
+    "checks": [
+      {
+        "id": "check-elasticsearch-http",
+        "notes": "Statut HTTP elasticsearch-{{groupe}}",
+        "http": "http://{{ inventory_hostname }}:{{ port_http }}",
+        "interval": "2s"
+      },
+      {
+        "id": "check-elasticsearch-tcp",
+        "notes": "Statut TCP elasticsearch-{{groupe}}",
+        "tcp": "{{ inventory_hostname }}:{{ port_tcp }}",
+        "interval": "2s"
+      }
+    ]
+  }
+}

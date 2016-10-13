@@ -1,0 +1,19 @@
+
+rs.initiate(
+    {
+        _id: "shard{{shard_id}}",
+        members:
+        [
+        {% set i = 0 %}
+        {% for item in groups['mongod'] %}
+        {% if shard_id == shard_id %}
+        { _id: {{ i }}, host: "{{item}}:{{mongod_port}}" }
+        {% set i = i + 1 %}
+        {% if i < groups['mongod']|length %},{% endif %}
+        {% endif %}
+        {% endfor %}
+        ]
+    }
+)
+
+rs.status()

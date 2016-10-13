@@ -5,6 +5,7 @@
    <format>zip</format>
  </formats>
  <includeBaseDirectory>false</includeBaseDirectory>
+
  <fileSets>
    <!--<fileSet>
       <outputDirectory>/</outputDirectory>
@@ -27,6 +28,14 @@
   <fileSet>
      <directory>target/autres</directory>
      <outputDirectory>autres</outputDirectory>
+   </fileSet>
+   <fileSet>
+     <directory>target/javadoc</directory>
+     <outputDirectory>javadoc</outputDirectory>
+   </fileSet>
+   <fileSet>
+     <directory>target/homepage</directory>
+     <outputDirectory>.</outputDirectory>
    </fileSet>
  </fileSets>
 </assembly>

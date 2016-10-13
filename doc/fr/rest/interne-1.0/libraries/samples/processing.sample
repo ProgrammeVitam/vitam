@@ -1,0 +1,17 @@
+{
+    "id": "id",
+    "type": "class, worker",
+    "start_date": "2014-01-10T03:06:17.396Z",
+    "last_status": {
+      "code": 404,
+      "vitamCode": 123456,
+      "context": "ingest",
+      "state": "File_Not_Found",
+      "message": "File is not found",
+      "description": "Operation on file xxx cannot be done since file is not found",
+      "errors": [
+        { "http_code": 415, "code": "ingest", "state": "Unsupported_Media_Type", "message": "Unsupported media type detected", "description": "File xxx has an unsupported media type yyy" },
+        { "http_code": 412, "code": "ingest", "state": "Precondition_Failed", "message": "Precondition in error", "description": "Operation on file xxx cannot continue since precondition is in error" }
+      ]
+    }
+}

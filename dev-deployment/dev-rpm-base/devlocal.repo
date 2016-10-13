@@ -1,0 +1,6 @@
+[local]
+name=Local repo
+baseurl=file:///code/
+enabled=1
+gpgcheck=0
+protect=1

@@ -20,6 +20,7 @@ Sommaire
    :maxdepth: 2
 
    introduction.rst
+   include/_toc.rst
 
 
 ####################################################

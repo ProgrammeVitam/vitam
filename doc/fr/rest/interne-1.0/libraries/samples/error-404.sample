@@ -1,0 +1,8 @@
+{
+  "code": 404,
+  "vitamCode": 123456,
+  "context": "ingest",
+  "state": "Item_Not_Found",
+  "message": "Item is not found",
+  "description": "Operation on item xxx cannot be done since item is not found in <<resourcePathName>>"
+}
