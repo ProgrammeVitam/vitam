@@ -86,6 +86,9 @@ config(['$locationProvider' ,'$routeProvider',
     when('/uploadperf', {
       template: '<upload-sip-perf></upload-sip-perf>'
     }).
+    when('/fundRegister/search', {
+      template: '<fund-register-search></fund-register-search>'
+    }).
     otherwise('/uploadSIP');
   }
 ])
