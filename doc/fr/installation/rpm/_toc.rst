@@ -13,5 +13,6 @@ Procédures
 .. toctree::
    :maxdepth: 2
 
+   pki
    fresh_install
    update
