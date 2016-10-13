@@ -191,4 +191,19 @@ angular.module('core')
       login: login,
       logout: logout
     };
+  })
+  .factory('redirectInterceptor', function($q, $location, $cookies) {
+    return  {
+      'response':function(response){
+        if (typeof response.data === 'string' && response.data.indexOf("PROGRAMME VITAM")>-1) {
+          $location.path('/login');
+          $cookies.remove('userCredentials');
+          $cookies.remove('role');
+          return $q.reject(response);
+        }else{
+          return response;
+        }
+      }
+    }
+
   });
