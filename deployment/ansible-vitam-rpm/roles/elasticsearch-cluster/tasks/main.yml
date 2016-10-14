@@ -114,18 +114,24 @@
     http_proxy: http://{{ https_reverse_proxy }}
     https_proxy: https://{{ https_reverse_proxy }}
  
-- name: install unzip
-  yum:
-    name: unzip
-    state: latest
+# OMA : deprecated as it is now a rpm package
+# - name: install unzip
+#   yum:
+#     name: unzip
+#     state: latest
 
-- name: add kopf plugin (zip src)
-  unarchive:
-    src: kopf.zip
-    dest: /usr/share/elasticsearch/plugins/
-    owner: elasticsearch
-    group: elasticsearch
-    mode: 0755
+# - name: add kopf plugin (zip src)
+#   unarchive:
+#     src: kopf.zip
+#     dest: /usr/share/elasticsearch/plugins/
+#     owner: elasticsearch
+#     group: elasticsearch
+#     mode: 0755
+
+- name: install vitam-elasticsearch-kopf rpm
+  yum:
+    name: vitam-elasticsearch-kopf
+    state: latest
 
 # FIXME : won't work when there is no reverse-proxy...
 # - name: configure kopf
