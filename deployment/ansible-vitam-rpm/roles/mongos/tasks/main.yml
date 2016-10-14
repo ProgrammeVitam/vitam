@@ -17,19 +17,12 @@
     - script
     - tmp
 
-
 - name: Create the mongod configuration server file
   template: src=mongos.conf.j2 dest={{mongo_config_path}}/mongos.conf
 
-- name: Create the mongo systemd unit file
-  template: src=mongo.service.j2 dest=/usr/lib/systemd/system/mongos.service
-
-- name: systemctl reload-daemon
-  command: systemctl daemon-reload
-
 - name: restart mongos
   service:
-    name: mongos
+    name: vitam-mongos
     enabled: true
     state: restarted
 

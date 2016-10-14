@@ -1,16 +1,16 @@
 [Unit]
-Description=Elasticsearch-{{groupe}}
+Description=Elasticsearch-data
 Documentation=http://www.elastic.co
 Wants=network-online.target
 After=network-online.target
 
 [Service]
 Environment=ES_HOME=/usr/share/elasticsearch
-Environment=CONF_DIR=/vitam/conf/elasticsearch-{{groupe}}
-Environment=DATA_DIR=/vitam/data/elasticsearch-{{groupe}}
-Environment=LOG_DIR=/vitam/log/elasticsearch-{{groupe}}
-Environment=PID_DIR=/var/run/elasticsearch-{{groupe}}
-EnvironmentFile=-/vitam/conf/elasticsearch-{{groupe}}/sysconfig/elasticsearch
+Environment=CONF_DIR=/vitam/conf/elasticsearch-data
+Environment=DATA_DIR=/vitam/data/elasticsearch-data
+Environment=LOG_DIR=/vitam/log/elasticsearch-data
+Environment=PID_DIR=/var/run/elasticsearch-data
+EnvironmentFile=-/vitam/conf/elasticsearch-data/sysconfig/elasticsearch
 
 WorkingDirectory=/usr/share/elasticsearch
 

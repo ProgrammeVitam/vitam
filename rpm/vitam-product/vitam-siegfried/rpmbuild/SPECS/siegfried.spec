@@ -74,6 +74,7 @@ cp %{SOURCE2} %{buildroot}/%{_unitdir}/
 
 %clean
 rm -rf %{buildroot}
+rm -f %{SOURCE0}
 
 %files
 %defattr(-,root,root,-)

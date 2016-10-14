@@ -5,11 +5,11 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/{{mongo_bin}} --config {{mongo_config_path}}/mongos.conf
+ExecStart=/usr/bin/mongos --config /vitam/conf/mongos/mongos.conf
 ExecReload=/bin/kill -HUP $MAINPID
 Restart=always
-User={{mongo_user}}
-Group={{vitam_group}}
+User=vitamdb
+Group=vitam
 StandardOutput=syslog
 StandardError=syslog
 # ulimits
