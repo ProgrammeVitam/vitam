@@ -82,10 +82,10 @@ public class LogbookOperationsImplWithMongoTest {
     private static LogbookOperationParameters logbookParameters2;
     private static LogbookOperationParameters logbookParameters3;
 
-    final static GUID eip = GUIDFactory.newOperationIdGUID(0);
-    final static GUID eip1 = GUIDFactory.newOperationIdGUID(2);
-    final static GUID eip2 = GUIDFactory.newOperationIdGUID(2);
-    final static GUID eip3 = GUIDFactory.newOperationIdGUID(3);
+    final static GUID eip = GUIDFactory.newEventGUID(0);
+    final static GUID eip1 = GUIDFactory.newEventGUID(2);
+    final static GUID eip2 = GUIDFactory.newEventGUID(2);
+    final static GUID eip3 = GUIDFactory.newEventGUID(3);
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -110,7 +110,7 @@ public class LogbookOperationsImplWithMongoTest {
             eip, "eventType", eip, LogbookTypeProcess.INGEST,
             StatusCode.STARTED, "start ingest", eip);
         logbookParametersAppend = LogbookParametersFactory.newLogbookOperationParameters(
-            GUIDFactory.newOperationIdGUID(0),
+            GUIDFactory.newEventGUID(0),
             "eventType", eip, LogbookTypeProcess.INGEST,
             StatusCode.OK, "end ingest", eip);
         logbookParametersWrongStart = LogbookParametersFactory.newLogbookOperationParameters(
@@ -118,8 +118,8 @@ public class LogbookOperationsImplWithMongoTest {
             "eventType", eip.getId(), LogbookTypeProcess.INGEST,
             StatusCode.STARTED, "start ingest", "x-request-id");
         logbookParametersWrongAppend = LogbookParametersFactory.newLogbookOperationParameters(
-            GUIDFactory.newOperationIdGUID(0).getId(),
-            "eventType", GUIDFactory.newOperationIdGUID(0).getId(), LogbookTypeProcess.INGEST,
+            GUIDFactory.newEventGUID(0).getId(),
+            "eventType", GUIDFactory.newEventGUID(0).getId(), LogbookTypeProcess.INGEST,
             StatusCode.OK, "end ingest", "x-request-id");
 
         logbookParameters1 = LogbookParametersFactory.newLogbookOperationParameters(

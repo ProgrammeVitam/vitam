@@ -40,11 +40,6 @@ import java.util.List;
 import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.io.IOUtils;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-import org.glassfish.jersey.jackson.JacksonFeature;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.servlet.ServletContainer;
 import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -55,40 +50,35 @@ import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.client2.BasicClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.BasicVitamServer;
-import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.worker.core.api.Worker;
 import fr.gouv.vitam.worker.core.impl.WorkerImpl;
-import fr.gouv.vitam.worker.server.registration.WorkerRegistrationListener;
 
 public class WorkerResourceTest {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerResourceTest.class);
 
-    private static final String WORKER_RESOURCE_URI = "worker/v1";
-    private static final String WORKER_STATUS_URI = "/status";
+    private static final String WORKER_RESOURCE_URI = "/worker/v1";
+    private static final String WORKER_STATUS_URI = BasicClient.STATUS_URL;
     private static final String WORKER_STEP_URI = "/tasks";
 
 
-    private static VitamServer vitamServer;
     private static JunitHelper junitHelper;
     private static int serverPort;
     private static File newWorkerConf;
-
+    private static WorkerApplication application;
 
     private static Worker worker;
-
+    
     private static final String BODY_TEST_NOT_JSON = "body_test";
 
     private static final String WORKER_CONF = "worker-test.conf";
@@ -105,56 +95,37 @@ public class WorkerResourceTest {
 
         final File workerFile = PropertiesUtils.findFile(WORKER_CONF);
         final WorkerConfiguration realWorker = PropertiesUtils.readYaml(workerFile, WorkerConfiguration.class);
+        // -1 to ignore register
         realWorker.setRegisterServerPort(serverPort).setRegisterServerHost("localhost")
-            .setRegisterDelay(1).setRegisterRetry(1).setProcessingUrl("http://localhost:8888");
+            .setRegisterDelay(1).setRegisterRetry(-1).setProcessingUrl("http://localhost:8888");
 
         newWorkerConf = File.createTempFile("test", WORKER_CONF, workerFile.getParentFile());
         PropertiesUtils.writeYaml(newWorkerConf, realWorker);
 
         // TODO verifier la compatibilité avec les tests parallèles sur jenkins
-        SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
+        JunitHelper.setJettyPortSystemProperty(serverPort);
 
         RestAssured.port = serverPort;
         RestAssured.basePath = WORKER_RESOURCE_URI;
 
 
-        final WorkerConfiguration newWorker = PropertiesUtils.readYaml(newWorkerConf, WorkerConfiguration.class);
         try {
-            vitamServer = buildTestServer(newWorker);
-            ((BasicVitamServer) vitamServer).start();
+            WorkerApplication.mock = worker;
+            application = new WorkerApplication(newWorkerConf.getAbsolutePath());
+            application.start();
+            JunitHelper.unsetJettyPortSystemProperty();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
             throw new IllegalStateException(
                 "Cannot start the Worker Application Server", e);
         }
-
-
-
-    }
-
-    public static VitamServer buildTestServer(WorkerConfiguration configuration)
-        throws VitamApplicationServerException {
-        final ResourceConfig resourceConfig = new ResourceConfig();
-        resourceConfig.register(JacksonFeature.class);
-        resourceConfig.register(new WorkerResource(configuration, worker));
-
-        final ServletContainer servletContainer = new ServletContainer(resourceConfig);
-        final ServletHolder sh = new ServletHolder(servletContainer);
-        final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
-        context.setContextPath("/");
-        context.addServlet(sh, "/*");
-        context.addEventListener(new WorkerRegistrationListener(configuration));
-        final String jettyConfig = configuration.getJettyConfig();
-        vitamServer = VitamServerFactory.newVitamServerByJettyConf(jettyConfig);
-        vitamServer.getServer().setHandler(context);
-        return vitamServer;
     }
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
         try {
-            WorkerApplication.stop();
+            application.stop();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
         }
@@ -212,7 +183,7 @@ public class WorkerResourceTest {
         when(worker.run(anyObject(), anyObject())).thenReturn(responses);
 
         final InputStream stream =
-            Thread.currentThread().getContextClassLoader().getResourceAsStream("descriptionStep.json");
+            PropertiesUtils.getResourceAsStream("descriptionStep.json");
         final String body = IOUtils.toString(stream);
 
         given().contentType(ContentType.JSON).body(body).when().post(WORKER_STEP_URI).then()
@@ -227,7 +198,7 @@ public class WorkerResourceTest {
         when(worker.run(anyObject(), anyObject())).thenThrow(new HandlerNotFoundException(""));
 
         final InputStream stream =
-            Thread.currentThread().getContextClassLoader().getResourceAsStream("descriptionStep_wrong_handler.json");
+            PropertiesUtils.getResourceAsStream("descriptionStep_wrong_handler.json");
         final String body = IOUtils.toString(stream);
 
         given().contentType(ContentType.JSON).body(body).when().post(WORKER_STEP_URI).then()
@@ -242,7 +213,7 @@ public class WorkerResourceTest {
         when(worker.run(anyObject(), anyObject())).thenThrow(new ProcessingException(""));
 
         final InputStream stream =
-            Thread.currentThread().getContextClassLoader().getResourceAsStream("descriptionStep_wrong_handler.json");
+            PropertiesUtils.getResourceAsStream("descriptionStep_wrong_handler.json");
         final String body = IOUtils.toString(stream);
 
         given().contentType(ContentType.JSON).body(body).when().post(WORKER_STEP_URI).then()

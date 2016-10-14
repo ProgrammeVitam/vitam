@@ -27,7 +27,6 @@
 package fr.gouv.vitam.processing.distributor.core;
 
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,7 +38,6 @@ import java.util.NavigableMap;
 import java.util.TreeMap;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.io.CharStreams;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -64,7 +62,6 @@ import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.worker.client.WorkerClientConfiguration;
 import fr.gouv.vitam.worker.client.WorkerClientFactory;
-import fr.gouv.vitam.worker.client.WorkerClientFactory.WorkerClientType;
 import fr.gouv.vitam.worker.common.DescriptionStep;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -90,7 +87,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
  *           break;
  *       }
  *     }
- *   }
+ *  }
  * </pre>
  */
 public class ProcessDistributorImpl implements ProcessDistributor {
@@ -168,8 +165,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                     final InputStream levelFile =
                         workspaceClient.getObject(workParams.getContainerName(),
                             UNITS_LEVEL + "/" + INGEST_LEVEL_STACK);
-                    final String inputStreamString = CharStreams.toString(new InputStreamReader(levelFile, "UTF-8"));
-                    final JsonNode levelFileJson = JsonHandler.getFromString(inputStreamString);
+                    final JsonNode levelFileJson = JsonHandler.getFromInputStream(levelFile);
                     final Iterator<Entry<String, JsonNode>> iteratorlLevelFile = levelFileJson.fields();
                     while (iteratorlLevelFile.hasNext()) {
                         final Entry<String, JsonNode> guidFieldList = iteratorlLevelFile.next();
@@ -207,7 +203,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                             workParams.setObjectName(objectUri.getPath());
 
                             final List<EngineResponse> actionsResponse =
-                                WorkerClientFactory.getInstance().getWorkerClient().submitStep("requestId",
+                                WorkerClientFactory.getInstance().getClient().submitStep("requestId",
                                     new DescriptionStep(step, (DefaultWorkerParameters) workParams));
                             // FIXME : This is inefficient. The aggregation of results must be placed here and not in
                             // ProcessResponse
@@ -237,7 +233,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                     loadWorkerClient(WORKERS_LIST.get("defaultFamily").firstEntry().getValue());
                     workParams.setObjectName(step.getDistribution().getElement());
                     responses.addAll(
-                        WorkerClientFactory.getInstance().getWorkerClient().submitStep("requestId",
+                        WorkerClientFactory.getInstance().getClient().submitStep("requestId",
                             new DescriptionStep(step, (DefaultWorkerParameters) workParams)));
                     // update the number of processed element
                     ProcessMonitoringImpl.getInstance().updateStep(processId, uniqueStepId, 0, true);
@@ -266,7 +262,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         final WorkerClientConfiguration workerClientConfiguration =
             new WorkerClientConfiguration(workerBean.getConfiguration().getServerHost(),
                 workerBean.getConfiguration().getServerPort());
-        WorkerClientFactory.setConfiguration(WorkerClientType.WORKER, workerClientConfiguration);
+        WorkerClientFactory.changeMode(workerClientConfiguration);
     }
 
 

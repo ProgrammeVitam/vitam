@@ -26,7 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.client;
 
-import fr.gouv.vitam.common.server.application.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
 
 /**
  * worker client configuration

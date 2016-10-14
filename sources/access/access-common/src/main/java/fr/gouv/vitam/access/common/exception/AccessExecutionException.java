@@ -61,17 +61,4 @@ public class AccessExecutionException extends AccessException {
     public AccessExecutionException(String message, Throwable cause) {
         super(message, cause);
     }
-
-    /**
-     * constructor with message throwable anableSuppression and writableStackTrace
-     * 
-     * @param message associated message
-     * @param cause associated cause
-     * @param enableSuppression allow suppression or not
-     * @param writableStackTrace allow writable stack trace or not
-     */
-    public AccessExecutionException(String message, Throwable cause, boolean enableSuppression,
-        boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
 }

@@ -43,6 +43,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
@@ -95,6 +96,7 @@ public class AdminManagementClientMock implements AdminManagementClient {
     public Status checkFormat(InputStream stream) throws FileFormatException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
         LOGGER.debug("Check file format request:");
+        StreamUtils.closeSilently(stream);
         return status();
 
     }
@@ -103,6 +105,7 @@ public class AdminManagementClientMock implements AdminManagementClient {
     public void importFormat(InputStream stream) throws FileFormatException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
         LOGGER.debug("import file format request:");
+        StreamUtils.closeSilently(stream);
     }
 
     @Override
@@ -136,6 +139,7 @@ public class AdminManagementClientMock implements AdminManagementClient {
     public Status checkRulesFile(InputStream stream) throws FileRulesException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
         LOGGER.debug("Check file rules  request:");
+        StreamUtils.closeSilently(stream);
         return status();
 
     }
@@ -144,7 +148,7 @@ public class AdminManagementClientMock implements AdminManagementClient {
     public void importRulesFile(InputStream stream) throws FileRulesException, DatabaseConflictException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
         LOGGER.debug("import file Rules request:");
-
+        StreamUtils.closeSilently(stream);
     }
 
     @Override

@@ -141,7 +141,7 @@ public class AccessModuleImpl implements AccessModule {
         LogbookOperationsClient pLogbookOperationClient, LogbookLifeCyclesClient pLogbookLifeCycleClient) {
         this(configuration);
         logbookOperationClient = pLogbookOperationClient == null
-            ? LogbookOperationsClientFactory.getInstance().getLogbookOperationClient() : pLogbookOperationClient;
+            ? LogbookOperationsClientFactory.getInstance().getClient() : pLogbookOperationClient;
         logbookLifeCycleClient = pLogbookLifeCycleClient == null
             ? LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient() : pLogbookLifeCycleClient;
     }
@@ -294,7 +294,7 @@ public class AccessModuleImpl implements AccessModule {
             throw new IllegalArgumentException("Request is not an update operation");
         }
         // eventidentifierprocess for lifecycle
-        final GUID updateOpGuidStart = GUIDFactory.newOperationIdGUID(tenantId);
+        final GUID updateOpGuidStart = GUIDFactory.newEventGUID(tenantId);
         JsonNode newQuery = queryJson;
         try {
             newQuery = ((UpdateParserMultiple) parser).getRequest()
@@ -309,7 +309,7 @@ public class AccessModuleImpl implements AccessModule {
             metaDataClient = MetaDataClientFactory.create(accessConfiguration.getUrlMetaData());
 
             logbookOperationClient = logbookOperationClient == null
-                ? LogbookOperationsClientFactory.getInstance().getLogbookOperationClient() : logbookOperationClient;
+                ? LogbookOperationsClientFactory.getInstance().getClient() : logbookOperationClient;
 
             logbookLifeCycleClient = logbookLifeCycleClient == null
                 ? LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient() : logbookLifeCycleClient;

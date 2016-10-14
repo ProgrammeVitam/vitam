@@ -40,7 +40,7 @@ public class InvalidParseOperationExceptionTest {
         assertNull(invalidParseOperationException0.getMessage());
         invalidParseOperationException0 = new InvalidParseOperationException("");
         InvalidParseOperationException invalidParseOperationException1 =
-            new InvalidParseOperationException("", invalidParseOperationException0, true, false);
+            new InvalidParseOperationException("", invalidParseOperationException0);
         assertFalse(invalidParseOperationException0.equals(invalidParseOperationException1));
         invalidParseOperationException0 = new InvalidParseOperationException("");
         invalidParseOperationException1 =

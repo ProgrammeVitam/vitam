@@ -238,7 +238,7 @@ public class WebApplicationResource {
                 final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
                 query = DslQueryHelper.createSingleQueryDSL(optionsMap);
                 final LogbookOperationsClient logbookOperationsClient =
-                    LogbookOperationsClientFactory.getInstance().getLogbookOperationClient();
+                    LogbookOperationsClientFactory.getInstance().getClient();
                 result = logbookOperationsClient.selectOperation(query);
 
                 // save result
@@ -283,7 +283,7 @@ public class WebApplicationResource {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
             result = JsonHandler.getFromString("{}");
             final LogbookOperationsClient logbookOperationsClient =
-                LogbookOperationsClientFactory.getInstance().getLogbookOperationClient();
+                LogbookOperationsClientFactory.getInstance().getClient();
             result = logbookOperationsClient.selectOperationbyId(operationId);
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
@@ -313,7 +313,7 @@ public class WebApplicationResource {
     /**
      * upload the file TODO : add file name
      *
-     * @param stream, data input stream
+     * @param stream data input stream
      * @return Response
      * @throws XMLStreamException
      * @throws IOException
@@ -902,7 +902,7 @@ public class WebApplicationResource {
     @Produces(MediaType.TEXT_PLAIN)
     public Response getLogbookStatistics(@PathParam("id_op") String operationId) {
         final LogbookOperationsClient logbookOperationsClient =
-            LogbookOperationsClientFactory.getInstance().getLogbookOperationClient();
+            LogbookOperationsClientFactory.getInstance().getClient();
         try {
             final JsonNode logbookOperationResult = logbookOperationsClient.selectOperationbyId(operationId);
             if (logbookOperationResult != null && logbookOperationResult.has("result")) {
@@ -989,16 +989,14 @@ public class WebApplicationResource {
     @Produces(MediaType.TEXT_PLAIN)
     public Response uploadFileFromServer(@PathParam("file_name") String fileName) {
         ParametersChecker.checkParameter("SIP path is a mandatory parameter", fileName);
-        InputStream sipInputStream = null;
-        try {
-            if (webApplicationConfig == null || webApplicationConfig.getSipDirectory() == null) {
-                LOGGER.error("SIP directory not configured");
-                return Response.status(Status.INTERNAL_SERVER_ERROR).entity("SIP directory not configured")
-                    .build();
-            }
+        if (webApplicationConfig == null || webApplicationConfig.getSipDirectory() == null) {
+            LOGGER.error("SIP directory not configured");
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity("SIP directory not configured")
+                .build();
+        }
 
-            // Read the selected file into an InputStream
-            sipInputStream = new FileInputStream(webApplicationConfig.getSipDirectory() + "/" + fileName);
+        // Read the selected file into an InputStream
+        try (InputStream sipInputStream = new FileInputStream(webApplicationConfig.getSipDirectory() + "/" + fileName)) {
             final Response response =
                 IngestExternalClientFactory.getInstance().getIngestExternalClient().upload(sipInputStream);
             final String ingestOperationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
@@ -1012,15 +1010,10 @@ public class WebApplicationResource {
             LOGGER.error("The selected file is not found", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .build();
-
-        } finally {
-            if (sipInputStream != null) {
-                try {
-                    sipInputStream.close();
-                } catch (final IOException e) {
-                    LOGGER.error("Error occured when trying to close the stream", e);
-                }
-            }
+        } catch (IOException e) {
+            LOGGER.error("Error occured when trying to close the stream", e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .build();
         }
     }
 }

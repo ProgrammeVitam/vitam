@@ -38,6 +38,5 @@ public class InvalidFileFormatParseExceptionTest {
         assertEquals("test", new InvalidFileFormatParseException("test").getMessage());
         assertNotNull(new InvalidFileFormatParseException(new Exception()).getCause());
         assertNotNull(new InvalidFileFormatParseException("test", new Exception()).getCause());
-        assertNotNull(new InvalidFileFormatParseException("test", new Exception(), true, true).getCause());
     }
 }

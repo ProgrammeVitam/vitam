@@ -42,6 +42,8 @@ import java.util.Properties;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.server.application.configuration.ServerIdentityConfigurationImpl;
@@ -226,6 +228,7 @@ public final class ServerIdentity implements ServerIdentityInterface {
         preMessageString = preMessage.toString();
     }
 
+    @JsonIgnore
     @Override
     public final String getLoggerMessagePrepend() {
         return preMessageString;
@@ -235,9 +238,9 @@ public final class ServerIdentity implements ServerIdentityInterface {
      *
      * @return the Json representation of the ServerIdentity
      */
+    @JsonIgnore
     public final String getJsonIdentity() {
-        return JsonHandler.createObjectNode().put("name", getName())
-            .put("role", getRole()).put("pid", getPlatformId()).toString();
+        return JsonHandler.unprettyPrint(this);
     }
 
     /**
@@ -274,6 +277,7 @@ public final class ServerIdentity implements ServerIdentityInterface {
      * @return this
      * @throws FileNotFoundException if the property file is not found
      */
+    @JsonIgnore
     public final ServerIdentity setFromPropertyFile(File propertiesFile) throws FileNotFoundException {
         try {
             final Properties properties = PropertiesUtils.readProperties(propertiesFile);
@@ -303,6 +307,7 @@ public final class ServerIdentity implements ServerIdentityInterface {
      * @return this
      * @throws FileNotFoundException if the Yaml file is not found
      */
+    @JsonIgnore
     public final ServerIdentity setFromYamlFile(File yamlFile) throws FileNotFoundException {
         try {
             final ServerIdentityConfigurationImpl serverIdentityConf =
@@ -361,6 +366,7 @@ public final class ServerIdentity implements ServerIdentityInterface {
      * @return this
      * @throws IllegalArgumentException map null
      */
+    @JsonIgnore
     public final ServerIdentity setFromMap(Map<String, Object> map) {
         ParametersChecker.checkParameter("map", map);
         String svalue = getStringFromMap(map, MAP_KEYNAME.NAME.name());

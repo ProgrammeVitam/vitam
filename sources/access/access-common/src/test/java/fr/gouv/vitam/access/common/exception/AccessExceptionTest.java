@@ -42,7 +42,6 @@ public class AccessExceptionTest {
         assertEquals("test", new AccessException("test").getMessage());
         assertNotNull(new AccessException(new Exception()).getCause());
         assertNotNull(new AccessException("test", new Exception()).getCause());
-        assertNotNull(new AccessException("test", new Exception(), true, true).getCause());
     }
 
 }

@@ -87,14 +87,14 @@ public class BasicVitamServer implements VitamServer {
             LOGGER.info("Starting server with configuration file : " + jettyConfigPath);
 
             jcFile = PropertiesUtils.findFile(jettyConfigPath);
-            final FileInputStream fis = new FileInputStream(jcFile);
-            serverConfiguration = new XmlConfiguration(fis);
-            server = new Server();
-            server = (Server) serverConfiguration.configure(server);
-            configured = true;
-
-            LOGGER.info("Server started.");
-
+            try (final FileInputStream fis = new FileInputStream(jcFile)) {
+                serverConfiguration = new XmlConfiguration(fis);
+                server = new Server();
+                server = (Server) serverConfiguration.configure(server);
+                configured = true;
+    
+                LOGGER.info("Server started.");
+            }
         } catch (final FileNotFoundException e) {
             setConfigured(false);
             LOGGER.error("Server configuration file not found.", e);

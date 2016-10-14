@@ -65,7 +65,7 @@ public class IngestInternalApplicationTest {
     public final void givenNegativeNumberWhenStartApplicationThenNotRaiseException() throws FileNotFoundException {
         try {
             ((BasicVitamServer) IngestInternalApplication.startApplication(new String[] {
-                PropertiesUtils.getResourcesFile(INGEST_INTERNAL_CONF).getAbsolutePath(), "-1"
+                PropertiesUtils.getResourceFile(INGEST_INTERNAL_CONF).getAbsolutePath(), "-1"
             })).stop();
         } catch (final IllegalStateException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
@@ -78,7 +78,7 @@ public class IngestInternalApplicationTest {
     public final void givenIncorrectPortNumberWhenStartApplicationThenNotRaiseException() throws FileNotFoundException {
         try {
             ((BasicVitamServer) IngestInternalApplication.startApplication(new String[] {
-                PropertiesUtils.getResourcesFile(INGEST_INTERNAL_CONF).getAbsolutePath(), "-1xx"
+                PropertiesUtils.getResourceFile(INGEST_INTERNAL_CONF).getAbsolutePath(), "-1xx"
             })).stop();
         } catch (final IllegalStateException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
@@ -138,7 +138,7 @@ public class IngestInternalApplicationTest {
     public final void givenCorrectPortNumberWhenStartApplicationThenNotRaiseException() throws FileNotFoundException {
         try {
             ((BasicVitamServer) IngestInternalApplication.startApplication(new String[] {
-                PropertiesUtils.getResourcesFile(INGEST_INTERNAL_CONF).getAbsolutePath(), Integer.toString(serverPort)
+                PropertiesUtils.getResourceFile(INGEST_INTERNAL_CONF).getAbsolutePath(), Integer.toString(serverPort)
             })).stop();
         } catch (final IllegalStateException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);

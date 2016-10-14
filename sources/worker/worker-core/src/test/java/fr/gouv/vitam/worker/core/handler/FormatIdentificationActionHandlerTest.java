@@ -7,6 +7,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +27,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.format.identification.exception.FileFormatNotFoundException;
@@ -59,11 +61,13 @@ public class FormatIdentificationActionHandlerTest {
 
     private static final String OBJECT_GROUP = "storeObjectGroupHandler/aeaaaaaaaaaam7myaaaamakxfgivuryaaaaq.json";
     private static final String OBJECT_GROUP_2 = "storeObjectGroupHandler/afaaaaaaaaaam7myaaaamakxfgivuryaaaaq.json";
-    private final InputStream objectGroup = Thread.currentThread().getContextClassLoader()
-        .getResourceAsStream(OBJECT_GROUP);
-    private final InputStream objectGroup2 = Thread.currentThread().getContextClassLoader()
-        .getResourceAsStream(OBJECT_GROUP_2);
+    private final InputStream objectGroup;
+    private final InputStream objectGroup2;
 
+    public FormatIdentificationActionHandlerTest() throws FileNotFoundException {
+        objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP);
+        objectGroup2 = PropertiesUtils.getResourceAsStream(OBJECT_GROUP_2);
+    }
     @Before
     public void setUp() {
         PowerMockito.mockStatic(FormatIdentifierFactory.class);

@@ -64,7 +64,7 @@ public class PropertiesUtilsTest {
         assertTrue(file.getAbsolutePath().startsWith(VitamConfiguration.getVitamTmpFolder()));
         assertTrue(file.getAbsolutePath().endsWith(fictivePath));
 
-        try (InputStream stream = PropertiesUtils.getResourcesAsStream("json-test.json")) {
+        try (InputStream stream = PropertiesUtils.getResourceAsStream("json-test.json")) {
             assertTrue(stream != null);
         } catch (final IOException e) {
             fail("Should not raized an exception");
@@ -73,13 +73,13 @@ public class PropertiesUtilsTest {
 
     @Test(expected = FileNotFoundException.class)
     public void testReadResourcesPathFileNotFound() throws IOException {
-        PropertiesUtils.getResourcesPath("vesR[l}EQ2v6");
+        PropertiesUtils.getResourcePath("vesR[l}EQ2v6");
         fail(ResourcesPublicUtilTest.EXPECTING_EXCEPTION_FILE_NOT_FOUND_EXCEPTION);
     }
 
     @Test(expected = FileNotFoundException.class)
     public void testGetResourcesFileNotFound() throws FileNotFoundException {
-        PropertiesUtils.getResourcesFile("Y?DFe@=JZEwEbf~c");
+        PropertiesUtils.getResourceFile("Y?DFe@=JZEwEbf~c");
         fail(ResourcesPublicUtilTest.EXPECTING_EXCEPTION_FILE_NOT_FOUND_EXCEPTION);
     }
 
@@ -110,22 +110,22 @@ public class PropertiesUtilsTest {
 
     @Test(expected = FileNotFoundException.class)
     public void testGetResourcesFileNotFoundNull() throws FileNotFoundException {
-        PropertiesUtils.getResourcesFile(null);
+        PropertiesUtils.getResourceFile(null);
         fail(ResourcesPublicUtilTest.EXPECTING_EXCEPTION_FILE_NOT_FOUND_EXCEPTION);
     }
 
     @Test(expected = FileNotFoundException.class)
     public void testGetResourcesStreamNotFoundNull() throws FileNotFoundException {
-        PropertiesUtils.getResourcesAsStream(null);
+        PropertiesUtils.getResourceAsStream(null);
         fail(ResourcesPublicUtilTest.EXPECTING_EXCEPTION_FILE_NOT_FOUND_EXCEPTION);
     }
 
     @Test
     public void testGetResourcesFile() throws FileNotFoundException {
-        final File file = PropertiesUtils.getResourcesFile(
+        final File file = PropertiesUtils.getResourceFile(
             ResourcesPublicUtilTest.GUID_TEST_PROPERTIES);
         assertTrue(file.exists());
-        final Path path = PropertiesUtils.getResourcesPath(ResourcesPublicUtilTest.GUID_TEST_PROPERTIES);
+        final Path path = PropertiesUtils.getResourcePath(ResourcesPublicUtilTest.GUID_TEST_PROPERTIES);
         assertEquals(file.getAbsolutePath(), path.toString());
         try {
             assertFalse(PropertiesUtils.readProperties(path.toFile()).isEmpty());
@@ -193,7 +193,7 @@ public class PropertiesUtilsTest {
         }
         try {
             final ConfigurationTest test = PropertiesUtils.readYaml(
-                PropertiesUtils.getResourcesFile(ResourcesPublicUtilTest.YAML_TEST_CONF),
+                PropertiesUtils.getResourceFile(ResourcesPublicUtilTest.YAML_TEST_CONF),
                 ConfigurationTest.class);
             assertEquals("test", test.getTest());
             assertEquals(12346, test.getNumber());
@@ -203,7 +203,7 @@ public class PropertiesUtilsTest {
         }
         try {
             final ConfigurationTest test = PropertiesUtils.readYaml(
-                PropertiesUtils.getResourcesPath(ResourcesPublicUtilTest.YAML_TEST_CONF),
+                PropertiesUtils.getResourcePath(ResourcesPublicUtilTest.YAML_TEST_CONF),
                 ConfigurationTest.class);
             assertEquals("test", test.getTest());
             assertEquals(12346, test.getNumber());
@@ -252,7 +252,7 @@ public class PropertiesUtilsTest {
         }
         try {
             final ConfigurationTest test = PropertiesUtils.readYaml(
-                PropertiesUtils.getResourcesPath(ResourcesPublicUtilTest.YAML_TEST_CONF),
+                PropertiesUtils.getResourcePath(ResourcesPublicUtilTest.YAML_TEST_CONF),
                 null);
             fail(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
         } catch (final IOException e1) {

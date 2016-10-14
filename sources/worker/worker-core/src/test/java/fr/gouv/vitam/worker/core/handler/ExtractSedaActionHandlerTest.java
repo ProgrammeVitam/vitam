@@ -71,9 +71,13 @@ public class ExtractSedaActionHandlerTest {
     private static final String HANDLER_ID = "ExtractSeda";
     private static final String SIP_ARBORESCENCE = "SIP_Arborescence.xml";
     private WorkspaceClient workspaceClient;
-    private final InputStream seda_arborescence =
-        Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_ARBORESCENCE);
+    private final InputStream seda_arborescence;
     private HandlerIO action;
+
+    public ExtractSedaActionHandlerTest() throws FileNotFoundException {
+        seda_arborescence =
+            PropertiesUtils.getResourceAsStream(SIP_ARBORESCENCE);
+    }
 
     @Before
     public void setUp() throws URISyntaxException {

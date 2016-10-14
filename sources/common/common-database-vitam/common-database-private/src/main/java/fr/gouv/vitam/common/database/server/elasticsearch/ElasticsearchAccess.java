@@ -55,8 +55,7 @@ public class ElasticsearchAccess {
      * Create an ElasticSearch access
      *
      * @param clusterName the name of the Cluster
-     * @param hostName the elasticsearch addresse
-     * @param tcpPort the transport port
+     * @param nodes the elasticsearch nodes
      * @throws VitamException
      */
     public ElasticsearchAccess(final String clusterName, List<ElasticsearchNode> nodes) throws VitamException {

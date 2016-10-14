@@ -61,27 +61,27 @@ public class IngestExternalImplTest {
 
     @Test
     public void givenNoVirusFile() throws Exception {
-        stream = PropertiesUtils.getResourcesAsStream("no-virus.txt");
+        stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
         final Response xmlResponse = ingestExternalImpl.upload(stream);
-        final InputStream inputstream = PropertiesUtils.getResourcesAsStream("ATR_example.xml");
+        final InputStream inputstream = PropertiesUtils.getResourceAsStream("ATR_example.xml");
         assertEquals(xmlResponse.getEntity(), FileUtil.readInputStream(inputstream));
     }
 
     @Test
     public void givenFixedVirusFile() throws IngestExternalException, FileNotFoundException, XMLStreamException {
-        stream = PropertiesUtils.getResourcesAsStream("fixed-virus.txt");
+        stream = PropertiesUtils.getResourceAsStream("fixed-virus.txt");
         ingestExternalImpl.upload(stream);
     }
 
     @Test
     public void givenUnfixedVirusFile() throws IngestExternalException, FileNotFoundException, XMLStreamException {
-        stream = PropertiesUtils.getResourcesAsStream("unfixed-virus.txt");
+        stream = PropertiesUtils.getResourceAsStream("unfixed-virus.txt");
         ingestExternalImpl.upload(stream);
     }
 
     @Test
     public void givenUnknownErrorFile() throws IngestExternalException, FileNotFoundException, XMLStreamException {
-        stream = PropertiesUtils.getResourcesAsStream("unknown.txt");
+        stream = PropertiesUtils.getResourceAsStream("unknown.txt");
         ingestExternalImpl.upload(stream);
     }
 

@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.internal.client;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -36,10 +35,12 @@ import javax.ws.rs.core.Response.Status;
 import javax.xml.stream.XMLStreamException;
 
 import fr.gouv.vitam.common.FileUtil;
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 
 /**
@@ -59,18 +60,15 @@ public class IngestInternalClientMock implements IngestInternalClient {
     @Override
     public Response upload(List<LogbookParameters> logbookParametersList, InputStream inputStream)
         throws VitamException, XMLStreamException {
+        // Do not check inputStream since it can be null
+        ParametersChecker.checkParameter("Params cannot be null", logbookParametersList);
+        StreamUtils.closeSilently(inputStream);
         LOGGER.debug("Post SIP");
-        InputStream inputstreamATR = null;
-        try {
-            inputstreamATR = PropertiesUtils.getResourcesAsStream("ATR_example.xml");
-        } catch (final FileNotFoundException e1) {
-            LOGGER.debug("Get mock result error");
-        }
         String result = "";
-        try {
+        try (InputStream inputstreamATR = PropertiesUtils.getResourceAsStream("ATR_example.xml")) {
             result = FileUtil.readInputStream(inputstreamATR);
         } catch (final IOException e) {
-            LOGGER.debug("Read mock result error");
+            LOGGER.debug("Read mock result error", e);
         }
         return Response.status(Status.OK).entity(result).build();
     }

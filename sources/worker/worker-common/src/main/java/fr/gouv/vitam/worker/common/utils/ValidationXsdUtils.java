@@ -31,7 +31,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 
-import javax.xml.XMLConstants;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -40,15 +39,17 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
+import org.apache.xerces.util.XMLCatalogResolver;
 import org.xml.sax.SAXException;
 
-import com.sun.org.apache.xerces.internal.util.XMLCatalogResolver;
+import fr.gouv.vitam.common.stream.StreamUtils;
 
 /**
  * Class ValidationXsdUtils validate the file XML by XSD Method checkWithXSD return true if XSD validate the file XML,
  * else return false
  */
 public class ValidationXsdUtils {
+    private static final String HTTP_WWW_W3_ORG_XML_XML_SCHEMA_V1_1 = "http://www.w3.org/XML/XMLSchema/v1.1";
     /**
      * Filename of the catalog file ; should be found in the classpath.
      */
@@ -75,11 +76,14 @@ public class ValidationXsdUtils {
             return true;
         } finally {
             xmlStreamReader.close();
+            StreamUtils.closeSilently(xmlFile);
         }
     }
 
     private Schema getSchema(String xsdFile) throws SAXException {
-        final SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+        // Was XMLConstants.W3C_XML_SCHEMA_NS_URI
+        final SchemaFactory factory = 
+            SchemaFactory.newInstance(HTTP_WWW_W3_ORG_XML_XML_SCHEMA_V1_1);
 
         // Load catalog to resolve external schemas even offline.
         final URL catalogUrl = this.getClass().getClassLoader().getResource(CATALOG_FILENAME);

@@ -703,14 +703,11 @@ public class Unit extends MetadataDocument<Unit> {
         final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper
             .select(getMetadataCollections(), condition, MongoDbMetadataHelper.ID_PROJECTION);
         final List<String> ids = new ArrayList<>();
-        final MongoCursor<Unit> iterator = iterable.iterator();
-        try {
+        try (final MongoCursor<Unit> iterator = iterable.iterator()) {
             while (iterator.hasNext()) {
                 final String mid = iterator.next().getId();
                 ids.add(mid);
             }
-        } finally {
-            iterator.close();
         }
         return ids;
     }

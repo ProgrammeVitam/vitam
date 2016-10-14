@@ -56,6 +56,7 @@ import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.config.EncoderConfig;
 import com.jayway.restassured.http.ContentType;
 
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
@@ -258,7 +259,7 @@ public class WorkspaceResourceTest {
     // Object
     @Test
     public void givenContainerNotFoundWhenPutObjectThenReturnNotFound() throws IOException {
-        try (InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("file1.pdf")) {
+        try (InputStream stream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
             given().multiPart("objectName", OBJECT_NAME).multiPart("object", OBJECT_NAME, stream).then()
                 .statusCode(Status.NOT_FOUND.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/objects");
         }
@@ -267,7 +268,7 @@ public class WorkspaceResourceTest {
 
     @Test
     public void givenContainerAlreadyExistsWhenPutObjectThenReturnCreated() throws IOException {
-        try (InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("file1.pdf")) {
+        try (InputStream stream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
 
             with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
                 .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
@@ -280,7 +281,7 @@ public class WorkspaceResourceTest {
 
     @Test
     public void givenObjectAlreadyExistsWhenDeleteObjectThenReturnNotContent() throws IOException {
-        try (InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("file1.pdf")) {
+        try (InputStream stream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
 
             with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
                 .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
@@ -315,7 +316,7 @@ public class WorkspaceResourceTest {
 
     @Test
     public void givenObjectAlreadyExistsWhenCheckObjectThenReturnOk() throws IOException {
-        try (InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("file1.pdf")) {
+        try (InputStream stream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
 
             with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
                 .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
@@ -330,7 +331,7 @@ public class WorkspaceResourceTest {
 
     @Test
     public void givenObjectAlreadyExistsWhenComputeDigestThenReturnOk() throws IOException {
-        try (InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("file1.pdf")) {
+        try (InputStream stream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
 
             with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
                 .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
@@ -338,7 +339,7 @@ public class WorkspaceResourceTest {
             with().multiPart("objectName", OBJECT_NAME).multiPart("object", OBJECT_NAME, stream).then()
                 .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/objects");
         }
-        try (InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("file1.pdf")) {
+        try (InputStream stream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
             final Digest digest = new Digest(DigestType.fromValue(ALGO));
             digest.update(stream);
 
@@ -360,7 +361,7 @@ public class WorkspaceResourceTest {
 
     @Test
     public void givenObjectAlreadyExistsWhenGetObjectThenReturnOk() throws IOException {
-        try (InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("file1.pdf")) {
+        try (InputStream stream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
 
             with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
                 .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
@@ -386,7 +387,7 @@ public class WorkspaceResourceTest {
 
     @Test
     public void givenObjectAlreadyExistsWhenGetObjectInformationThenReturnOk() throws IOException {
-        try (InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("file1.pdf")) {
+        try (InputStream stream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
             with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
                 .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
 
@@ -401,7 +402,7 @@ public class WorkspaceResourceTest {
     // unzip
     @Test
     public void givenZipImputWhenUnzipThenReturnOK() throws IOException {
-        try (InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("sip.zip")) {
+        try (InputStream stream = PropertiesUtils.getResourceAsStream("sip.zip")) {
             with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
                 .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
             given().contentType(ContentType.BINARY).body(stream)
@@ -412,7 +413,7 @@ public class WorkspaceResourceTest {
 
     @Test
     public void givenContainerNotFoundWhenUnzippingObjectThenReturnNotFound() throws IOException {
-        try (InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("sip.zip")) {
+        try (InputStream stream = PropertiesUtils.getResourceAsStream("sip.zip")) {
 
             final byte[] bytes = IOUtils.toByteArray(stream); // need for the test !
             given()
@@ -427,7 +428,7 @@ public class WorkspaceResourceTest {
 
     @Test
     public void givenFolderAlreadyExistsWhenUnzippingObjectThenReturnConflict() throws IOException {
-        try (InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("sip.zip")) {
+        try (InputStream stream = PropertiesUtils.getResourceAsStream("sip.zip")) {
             with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
                 .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
 
@@ -448,7 +449,7 @@ public class WorkspaceResourceTest {
     @Test
     public void givenNonZipWhenUnzipThenReturnKO() throws IOException {
         try (InputStream stream =
-            Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_mauvais_format.pdf")) {
+            PropertiesUtils.getResourceAsStream("SIP_mauvais_format.pdf")) {
 
             with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
                 .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
@@ -483,7 +484,7 @@ public class WorkspaceResourceTest {
 
     @Test
     public void givenNotEmptyFolderWhenfindingThenReturnOk() throws IOException {
-        try (InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("file1.pdf")) {
+        try (InputStream stream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
 
             with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
                 .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");

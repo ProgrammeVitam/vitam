@@ -135,11 +135,11 @@ public class IngestExternalClientRestTest extends JerseyTest {
     @Test
     public void givenInputstreamWhenUploadThenReturnOK()
         throws IngestExternalException, XMLStreamException, IOException {
-        InputStream inputStreamATR = PropertiesUtils.getResourcesAsStream(ATR_EXAMPLE_XML);
+        InputStream inputStreamATR = PropertiesUtils.getResourceAsStream(ATR_EXAMPLE_XML);
         final String xmlString = FileUtil.readInputStream(inputStreamATR);
         when(mock.post()).thenReturn(Response.status(Status.OK).entity(xmlString).build());
-        final InputStream stream = PropertiesUtils.getResourcesAsStream("no-virus.txt");
-        inputStreamATR = PropertiesUtils.getResourcesAsStream(ATR_EXAMPLE_XML);
+        final InputStream stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
+        inputStreamATR = PropertiesUtils.getResourceAsStream(ATR_EXAMPLE_XML);
         final Response res = client.upload(stream);
         assertEquals(xmlString, res.readEntity(String.class));
     }
@@ -147,7 +147,7 @@ public class IngestExternalClientRestTest extends JerseyTest {
     @Test(expected = IngestExternalException.class)
     public void givenOperationNotYetCreatedWhenUpdateThenReturnNotFoundException() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.ACCEPTED).build());
-        final InputStream stream = PropertiesUtils.getResourcesAsStream("unfixed-virus.txt");
+        final InputStream stream = PropertiesUtils.getResourceAsStream("unfixed-virus.txt");
         client.upload(stream);
     }
 

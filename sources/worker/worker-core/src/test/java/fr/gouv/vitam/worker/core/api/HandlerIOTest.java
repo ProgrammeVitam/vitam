@@ -15,7 +15,7 @@ public class HandlerIOTest {
     @Test
     public void testHandlerIO() throws Exception {
         final HandlerIO io = new HandlerIO("");
-        final File file = PropertiesUtils.getResourcesFile("sip.xml");
+        final File file = PropertiesUtils.getResourceFile("sip.xml");
         io.addInput(file);
         io.addOutput(file);
         final HandlerIO ioClass = new HandlerIO("");

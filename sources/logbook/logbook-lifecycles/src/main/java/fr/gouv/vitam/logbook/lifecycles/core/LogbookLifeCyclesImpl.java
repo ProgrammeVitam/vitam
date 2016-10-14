@@ -111,29 +111,31 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     @Override
     public List<LogbookLifeCycleUnit> selectUnit(JsonNode select)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
-        final MongoCursor<LogbookLifeCycleUnit> logbook = mongoDbAccess.getLogbookLifeCycleUnits(select);
-        final List<LogbookLifeCycleUnit> result = new ArrayList<>();
-        if (!logbook.hasNext()) {
-            throw new LogbookNotFoundException("Logbook entry not found");
+        try (final MongoCursor<LogbookLifeCycleUnit> logbook = mongoDbAccess.getLogbookLifeCycleUnits(select)) {
+            final List<LogbookLifeCycleUnit> result = new ArrayList<>();
+            if (!logbook.hasNext()) {
+                throw new LogbookNotFoundException("Logbook entry not found");
+            }
+            while (logbook.hasNext()) {
+                result.add(logbook.next());
+            }
+            return result;
         }
-        while (logbook.hasNext()) {
-            result.add(logbook.next());
-        }
-        return result;
     }
 
     @Override
     public List<LogbookLifeCycleObjectGroup> selectObjectGroup(JsonNode select)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
-        final MongoCursor<LogbookLifeCycleObjectGroup> logbook = mongoDbAccess.getLogbookLifeCycleObjectGroups(select);
-        final List<LogbookLifeCycleObjectGroup> result = new ArrayList<>();
-        if (!logbook.hasNext()) {
-            throw new LogbookNotFoundException("Logbook entry not found");
+        try (final MongoCursor<LogbookLifeCycleObjectGroup> logbook = mongoDbAccess.getLogbookLifeCycleObjectGroups(select)) {
+            final List<LogbookLifeCycleObjectGroup> result = new ArrayList<>();
+            if (!logbook.hasNext()) {
+                throw new LogbookNotFoundException("Logbook entry not found");
+            }
+            while (logbook.hasNext()) {
+                result.add(logbook.next());
+            }
+            return result;
         }
-        while (logbook.hasNext()) {
-            result.add(logbook.next());
-        }
-        return result;
     }
 
     @Override

@@ -65,7 +65,7 @@ public final class PropertiesUtils {
      * @return the associated File
      * @throws FileNotFoundException
      */
-    public static final InputStream getResourcesAsStream(String resourcesFile) throws FileNotFoundException {
+    public static final InputStream getResourceAsStream(String resourcesFile) throws FileNotFoundException {
         if (resourcesFile == null) {
             throw new FileNotFoundException(FILE_NOT_FOUND_IN_RESOURCES + resourcesFile);
         }
@@ -97,7 +97,7 @@ public final class PropertiesUtils {
      * @return the associated File
      * @throws FileNotFoundException
      */
-    public static final File getResourcesFile(String resourcesFile) throws FileNotFoundException {
+    public static final File getResourceFile(String resourcesFile) throws FileNotFoundException {
         if (resourcesFile == null) {
             throw new FileNotFoundException(FILE_NOT_FOUND_IN_RESOURCES + resourcesFile);
         }
@@ -135,8 +135,8 @@ public final class PropertiesUtils {
      * @return the associated Path
      * @throws FileNotFoundException
      */
-    public static final Path getResourcesPath(String resourcesFile) throws FileNotFoundException {
-        return getResourcesFile(resourcesFile).toPath();
+    public static final Path getResourcePath(String resourcesFile) throws FileNotFoundException {
+        return getResourceFile(resourcesFile).toPath();
     }
 
     /**
@@ -156,7 +156,7 @@ public final class PropertiesUtils {
                 file = fileFromConfigFolder(filename);
                 if (!file.exists()) {
                     // Third try using Resources
-                    file = getResourcesFile(filename);
+                    file = getResourceFile(filename);
                 }
 
             }

@@ -57,6 +57,7 @@ public interface AccessModule {
      *
      * @param queryJson as String { $query : query}
      * @param idUnit as String
+     * @return the corresponding JsonNode
      *
      * @throws InvalidParseOperationException Throw if json format is not correct
      * @throws AccessExecutionException Throw if error occurs when send Unit to database

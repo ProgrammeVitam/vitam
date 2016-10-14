@@ -149,8 +149,8 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             LOGGER.error("Wrong digest algorithm " + getDigestAlgoFor(objectId).getName());
             throw new ContentAddressableStorageException(exc);
         }
-        final InputStream digestObjectPart = messageDigest.getDigestInputStream(objectPart);
-        try (FileOutputStream fOut = new FileOutputStream(path, true)) {
+        try (final InputStream digestObjectPart = messageDigest.getDigestInputStream(objectPart);
+            FileOutputStream fOut = new FileOutputStream(path, true)) {
             // FIXME très très mauvaise pratique (si le fichier fait 2 To => 2 To en mémoire)
             fOut.write(ByteStreams.toByteArray(digestObjectPart));
             fOut.flush();

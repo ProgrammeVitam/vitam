@@ -44,6 +44,7 @@ import org.junit.rules.TemporaryFolder;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
@@ -370,7 +371,7 @@ public class FileSystemTest {
     }
 
     private InputStream getInputStream(String file) throws IOException {
-        return Thread.currentThread().getContextClassLoader().getResourceAsStream(file);
+        return PropertiesUtils.getResourceAsStream(file);
     }
 
     // Uri List of Digital Object from Content folder

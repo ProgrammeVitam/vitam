@@ -39,7 +39,7 @@ public class InvalidGuidOperationExceptionTest {
         assertEquals("", invalidGuidOperationException0.getMessage());
         invalidGuidOperationException0 = new InvalidGuidOperationException("");
         InvalidGuidOperationException invalidGuidOperationException1 =
-            new InvalidGuidOperationException("XQI03Y6V^", invalidGuidOperationException0, true, true);
+            new InvalidGuidOperationException("XQI03Y6V^", invalidGuidOperationException0);
         assertEquals("fr.gouv.vitam.common.exception.InvalidGuidOperationException: XQI03Y6V^",
             invalidGuidOperationException1.toString());
         invalidGuidOperationException0 = new InvalidGuidOperationException("");

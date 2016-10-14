@@ -39,6 +39,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
@@ -55,6 +57,7 @@ import com.google.json.JsonSanitizer;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 
 /**
  * Checker for Sanity of XML and Json <br>
@@ -190,9 +193,45 @@ public class SanityChecker {
      */
     public static void checkParameter(String... params) throws InvalidParseOperationException {
         for (final String param : params) {
-            checkSanityTags(param, getLimitParamSize());
-            checkHtmlPattern(param);
+            checkParam(param);
         }
+    }
+
+    /**
+     * checkHeaders : Check sanity of Headers: no javascript/xml tag, neither html tag
+     *
+     * @param headers
+     * @throws InvalidParseOperationException
+     */
+    public static void checkHeaders(final HttpHeaders headers) throws InvalidParseOperationException {
+        if (headers == null) {
+            return;
+        }
+        final MultivaluedMap<String, String> requestHeaders = headers.getRequestHeaders();
+        if (requestHeaders != null && !requestHeaders.isEmpty()) {
+            for (final VitamHttpHeader vitamHttpHeader : VitamHttpHeader.values()) {
+                final List<String> values = requestHeaders.get(vitamHttpHeader.getName());
+                if (values != null && values.stream().anyMatch(value -> isIssueOnParam(value))) {
+                    throw new InvalidParseOperationException(String.format("%s header has wrong value", vitamHttpHeader
+                        .getName()));
+                }
+            }
+        }
+    }
+    
+    private static boolean isIssueOnParam(String param) {
+        try {
+            checkParam(param);
+            return false;
+        } catch (InvalidParseOperationException e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            return true;
+        }
+    }
+
+    private static void checkParam(String param) throws InvalidParseOperationException {
+        checkSanityTags(param, getLimitParamSize());
+        checkHtmlPattern(param);
     }
 
     /**

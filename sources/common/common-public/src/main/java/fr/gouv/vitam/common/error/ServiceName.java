@@ -35,7 +35,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 public enum ServiceName {
 
     /**
-     * Used if the service does not exist Used in test
+     * Used if the service does not exist. Also used in test.
      */
     VITAM("00", "Vitam"),
 
@@ -102,10 +102,16 @@ public enum ServiceName {
         this.name = name;
     }
 
+    /**
+     * @return code
+     */
     public String getCode() {
         return code;
     }
 
+    /**
+     * @return name
+     */
     public String getName() {
         return name;
     }

@@ -180,9 +180,22 @@ public final class GUIDFactory {
      * @return a new GUID
      * @throws IllegalArgumentException if any of the argument are out of range
      */
-    public static final GUID newOperationIdGUID(final int tenantId) {
-        final int type = GUIDObjectType.OPERATIONID_TYPE;
+    public static final GUID newEventGUID(final int tenantId) {
+        final int type = GUIDObjectType.EVENT_TYPE;
         return new GUIDImplPrivate(type, tenantId, serverIdentity.getPlatformId(),
+            GUIDObjectType.getDefaultWorm(type));
+    }
+
+    /**
+     * Create an Event GUID (within Operation or Lifecycle Logbooks)
+     *
+     * @param logbookGUID GUID of corresponding Logbook
+     * @return a new GUID
+     * @throws IllegalArgumentException if any of the argument are out of range
+     */
+    public static final GUID newEventGUID(final GUID logbookGUID) {
+        final int type = GUIDObjectType.EVENT_TYPE;
+        return new GUIDImplPrivate(type, logbookGUID.getTenantId(), serverIdentity.getPlatformId(),
             GUIDObjectType.getDefaultWorm(type));
     }
 

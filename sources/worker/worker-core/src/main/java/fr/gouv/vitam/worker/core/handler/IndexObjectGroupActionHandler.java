@@ -148,13 +148,10 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
             .create(params.getUrlWorkspace());
         final MetaDataClient metadataClient = MetaDataClientFactory
             .create(params.getUrlMetadata());
-        InputStream input = null;
-        try {
-            input = workspaceClient.getObject(containerId, OBJECT_GROUP + "/" + objectName);
+        try (final InputStream input = workspaceClient.getObject(containerId, OBJECT_GROUP + "/" + objectName)) {
 
             if (input != null) {
-                final String inputStreamString = CharStreams.toString(new InputStreamReader(input, "UTF-8"));
-                final JsonNode json = JsonHandler.getFromString(inputStreamString);
+                final JsonNode json = JsonHandler.getFromInputStream(input);
                 final Insert insertRequest = new Insert().addData((ObjectNode) json);
                 metadataClient.insertObjectGroup(insertRequest.getFinalInsert().toString());
             } else {

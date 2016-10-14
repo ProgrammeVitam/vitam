@@ -42,7 +42,6 @@ public class AccessExecutionExceptionTest {
         assertEquals("test", new AccessExecutionException("test").getMessage());
         assertNotNull(new AccessExecutionException(new Exception()).getCause());
         assertNotNull(new AccessExecutionException("test", new Exception()).getCause());
-        assertNotNull(new AccessExecutionException("test", new Exception(), true, true).getCause());
     }
 
 }

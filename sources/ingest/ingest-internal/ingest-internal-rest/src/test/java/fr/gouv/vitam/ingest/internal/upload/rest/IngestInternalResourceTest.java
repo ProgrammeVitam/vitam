@@ -54,6 +54,7 @@ import org.mockito.Mockito;
 
 import com.jayway.restassured.RestAssured;
 
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -201,7 +202,7 @@ public class IngestInternalResourceTest {
             Matchers.anyObject());
 
         final InputStream inputStream =
-            Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
+            PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
 
         RestAssured.given()
             .multiPart("part", operationList, MediaType.APPLICATION_JSON)
@@ -236,7 +237,7 @@ public class IngestInternalResourceTest {
             Matchers.anyObject());
 
         final InputStream inputStreamZip =
-            Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_mauvais_format.pdf");
+            PropertiesUtils.getResourceAsStream("SIP_mauvais_format.pdf");
 
         RestAssured.given()
             .multiPart("part", operationList, MediaType.APPLICATION_JSON)
@@ -255,7 +256,7 @@ public class IngestInternalResourceTest {
             .unzipObject(Matchers.anyObject(), Matchers.anyObject(), Matchers.anyObject());
 
         final InputStream inputStream =
-            Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
+            PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
 
         RestAssured.given()
             .multiPart("part", operationList, MediaType.APPLICATION_JSON)
@@ -275,7 +276,7 @@ public class IngestInternalResourceTest {
         Mockito.doReturn(true).when(workspaceClient).isExistingContainer(Matchers.anyObject());
 
         final InputStream inputStream =
-            Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
+            PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
 
         RestAssured.given()
             .multiPart("part", operationList, MediaType.APPLICATION_JSON)
@@ -296,7 +297,7 @@ public class IngestInternalResourceTest {
             Matchers.anyObject(),
             Matchers.anyObject());
         final InputStream inputStream =
-            Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
+            PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
 
         RestAssured.given()
             .multiPart("part", operationList, MediaType.APPLICATION_JSON)
@@ -314,7 +315,7 @@ public class IngestInternalResourceTest {
             Matchers.anyObject(),
             Matchers.anyObject());
         final InputStream inputStream =
-            Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
+            PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
 
         RestAssured.given()
             .multiPart("part", operationList, MediaType.APPLICATION_JSON)
@@ -331,7 +332,7 @@ public class IngestInternalResourceTest {
         Mockito.doThrow(new ProcessingException("")).when(processingClient).executeVitamProcess(Matchers.anyObject(),
             Matchers.anyObject());
         final InputStream inputStream =
-            Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
+            PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
 
         RestAssured.given()
             .multiPart("part", operationList, MediaType.APPLICATION_JSON)
@@ -354,7 +355,7 @@ public class IngestInternalResourceTest {
             Matchers.anyObject());
 
         final InputStream inputStream =
-            Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
+            PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
         RestAssured.given()
             .multiPart("part", operationList, MediaType.APPLICATION_JSON)
             .multiPart("part", "SIP_bordereau_avec_objet_OK", inputStream)

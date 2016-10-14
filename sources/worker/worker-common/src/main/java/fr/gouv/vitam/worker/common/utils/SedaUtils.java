@@ -55,10 +55,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
@@ -177,21 +179,21 @@ public class SedaUtils {
         final String containerId = params.getContainerName();
         String messageId = "";
         final WorkspaceClient client = WorkspaceClientFactory.create(params.getUrlWorkspace());
-        // TODO : whould use worker configuration instead of the processing configuration
+        XMLEventReader reader = null;
         InputStream xmlFile = null;
         try {
-            xmlFile = client.getObject(containerId,
-                IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
-        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
-            LOGGER.error(MANIFEST_NOT_FOUND);
-            throw new ProcessingException(e);
-        }
+            // TODO : whould use worker configuration instead of the processing configuration
+            try {
+                xmlFile = client.getObject(containerId,
+                    IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
+            } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
+                LOGGER.error(MANIFEST_NOT_FOUND);
+                throw new ProcessingException(e);
+            }
 
-        final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
-        XMLEventReader reader = null;
-        final QName messageObjectName = new QName(NAMESPACE_URI, SedaConstants.TAG_MESSAGE_IDENTIFIER);
+            final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+            final QName messageObjectName = new QName(NAMESPACE_URI, SedaConstants.TAG_MESSAGE_IDENTIFIER);
 
-        try {
             reader = xmlInputFactory.createXMLEventReader(xmlFile);
             while (true) {
                 final XMLEvent event = reader.nextEvent();
@@ -206,10 +208,18 @@ public class SedaUtils {
                     break;
                 }
             }
-            reader.close();
         } catch (final XMLStreamException e) {
             LOGGER.error(CANNOT_READ_SEDA, e);
             throw new ProcessingException(e);
+        } finally {
+            try {
+                if (reader != null) {
+                    reader.close();
+                }
+            } catch (XMLStreamException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
+            StreamUtils.closeSilently(xmlFile);
         }
 
         return messageId;
@@ -364,13 +374,6 @@ public class SedaUtils {
     private ExtractUriResponse parsingUriSEDAWithWorkspaceClient(WorkspaceClient client, String guid)
         throws ProcessingException {
         InputStream xmlFile = null;
-        try {
-            xmlFile =
-                client.getObject(guid, IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
-        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e1) {
-            LOGGER.error("Workspace error: Can not get file", e1);
-            throw new ProcessingException(e1);
-        }
         LOGGER.debug(SedaUtils.MSG_PARSING_BDO);
 
         final ExtractUriResponse extractUriResponse = new ExtractUriResponse();
@@ -391,20 +394,27 @@ public class SedaUtils {
         xmlOutputFactory.setProperty(SedaUtils.STAX_PROPERTY_PREFIX_OUTPUT_SIDE, Boolean.TRUE);
 
         final QName binaryDataObject = new QName(SedaUtils.NAMESPACE_URI, SedaConstants.TAG_BINARY_DATA_OBJECT);
-
+        XMLEventReader eventReader = null;
         try {
+            try {
+                xmlFile =
+                    client.getObject(guid, IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
+            } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e1) {
+                LOGGER.error("Workspace error: Can not get file", e1);
+                throw new ProcessingException(e1);
+            }
 
             // Create event reader
-            final XMLEventReader evenReader = xmlInputFactory.createXMLEventReader(xmlFile);
+            eventReader = xmlInputFactory.createXMLEventReader(xmlFile);
 
             while (true) {
-                final XMLEvent event = evenReader.nextEvent();
+                final XMLEvent event = eventReader.nextEvent();
                 // reach the start of an BinaryDataObject
                 if (event.isStartElement()) {
                     final StartElement element = event.asStartElement();
 
                     if (element.getName().equals(binaryDataObject)) {
-                        getUri(extractUriResponse, evenReader);
+                        getUri(extractUriResponse, eventReader);
                     }
                 }
                 if (event.isEndDocument()) {
@@ -413,13 +423,20 @@ public class SedaUtils {
                 }
             }
             LOGGER.debug("End of extracting  Uri from manifest");
-            evenReader.close();
 
         } catch (XMLStreamException | URISyntaxException e) {
             LOGGER.error(e);
             throw new ProcessingException(e);
         } finally {
             extractUriResponse.setErrorDuplicateUri(!extractUriResponse.getOutcomeMessages().isEmpty());
+            try {
+                if (eventReader != null) {
+                    eventReader.close();
+                }
+            } catch (XMLStreamException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
+            StreamUtils.closeSilently(xmlFile);
         }
         return extractUriResponse;
     }
@@ -474,26 +491,34 @@ public class SedaUtils {
         ParametersChecker.checkParameter(WORKSPACE_MANDATORY_MSG, client);
         ParametersChecker.checkParameter("ContainerId is a mandatory parameter", containerId);
 
-        InputStream xmlFile;
+        InputStream xmlFile = null;
         List<String> invalidVersionList;
-        try {
-            xmlFile = client.getObject(containerId,
-                IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
-        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
-            LOGGER.error(MANIFEST_NOT_FOUND);
-            throw new ProcessingException(e);
-        }
-
-        final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
-        XMLEventReader reader;
+        XMLEventReader reader = null;
 
         try {
+            try {
+                xmlFile = client.getObject(containerId,
+                    IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
+            } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
+                LOGGER.error(MANIFEST_NOT_FOUND);
+                throw new ProcessingException(e);
+            }
+
+            final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
             reader = xmlInputFactory.createXMLEventReader(xmlFile);
             invalidVersionList = compareVersionList(reader);
-            reader.close();
         } catch (final XMLStreamException e) {
             LOGGER.error(CANNOT_READ_SEDA);
             throw new ProcessingException(e);
+        } finally {
+            try {
+                if (reader != null) {
+                    reader.close();
+                }
+            } catch (XMLStreamException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
+            StreamUtils.closeSilently(xmlFile);
         }
 
         return invalidVersionList;
@@ -645,20 +670,20 @@ public class SedaUtils {
     private SedaUtilInfo getSedaUtilInfo(WorkspaceClient workspaceClient, String containerId)
         throws ProcessingException {
         InputStream xmlFile = null;
-        try {
-            xmlFile = workspaceClient.getObject(containerId,
-                IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
-        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
-            LOGGER.error(MANIFEST_NOT_FOUND);
-            IOUtils.closeQuietly(xmlFile);
-            throw new ProcessingException(e);
-        }
-
-        final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
 
         SedaUtilInfo sedaUtilInfo;
         XMLEventReader reader = null;
         try {
+            try {
+                xmlFile = workspaceClient.getObject(containerId,
+                    IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
+            } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
+                LOGGER.error(MANIFEST_NOT_FOUND);
+                IOUtils.closeQuietly(xmlFile);
+                throw new ProcessingException(e);
+            }
+
+            final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
             reader = xmlInputFactory.createXMLEventReader(xmlFile);
             sedaUtilInfo = getBinaryObjectInfo(reader);
             return sedaUtilInfo;

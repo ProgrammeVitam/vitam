@@ -45,6 +45,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.configuration.DbConfiguration;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.ReferentialFile;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
@@ -77,7 +78,7 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat> {
     private final String MESSAGE_LOGBOOK_DELETE = "Succès de suppression du Référentiel de format";
 
     private static LogbookOperationsClient client =
-        LogbookOperationsClientFactory.getInstance().getLogbookOperationClient();
+        LogbookOperationsClientFactory.getInstance().getClient();
     private final String EVENT_TYPE_CREATE = "CREATE";
     private final String EVENT_TYPE_DELETE = "DELETE";
     // TODO: should change to REFERENTIAL_FORMAT
@@ -192,8 +193,13 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat> {
         try {
             final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
             final XMLEventReader eventReader = xmlInputFactory.createXMLEventReader(xmlPronom);
-            while (eventReader.hasNext()) {
-                eventReader.nextEvent();
+            try {
+                while (eventReader.hasNext()) {
+                    eventReader.nextEvent();
+                }
+            } finally {
+                eventReader.close();
+                StreamUtils.closeSilently(xmlPronom);
             }
         } catch (final XMLStreamException e) {
             LOGGER.error(e);
@@ -213,10 +219,9 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat> {
 
     @Override
     public List<FileFormat> findDocuments(JsonNode select) throws ReferentialException {
-        try {
-            @SuppressWarnings("unchecked")
-            final MongoCursor<FileFormat> formats =
-                (MongoCursor<FileFormat>) mongoAccess.select(select, FunctionalAdminCollections.FORMATS);
+        try (@SuppressWarnings("unchecked")
+        final MongoCursor<FileFormat> formats =
+            (MongoCursor<FileFormat>) mongoAccess.select(select, FunctionalAdminCollections.FORMATS)) {
             final List<FileFormat> result = new ArrayList<>();
             if (formats == null || !formats.hasNext()) {
                 throw new FileFormatNotFoundException("Format not found");

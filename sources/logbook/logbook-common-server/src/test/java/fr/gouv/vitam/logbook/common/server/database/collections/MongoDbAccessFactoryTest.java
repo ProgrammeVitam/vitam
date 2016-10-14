@@ -127,7 +127,7 @@ public class MongoDbAccessFactoryTest {
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters();
         for (final LogbookParameterName name : LogbookParameterName.values()) {
             parameters.putParameterValue(name,
-                GUIDFactory.newOperationIdGUID(0).getId());
+                GUIDFactory.newEventGUID(0).getId());
         }
         parameters.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
@@ -225,14 +225,14 @@ public class MongoDbAccessFactoryTest {
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters();
         for (final LogbookParameterName name : LogbookParameterName.values()) {
             parameters.putParameterValue(name,
-                GUIDFactory.newOperationIdGUID(0).getId());
+                GUIDFactory.newEventGUID(0).getId());
         }
         parameters.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
         final LogbookOperationParameters parameters2 = LogbookParametersFactory.newLogbookOperationParameters();
         for (final LogbookParameterName name : LogbookParameterName.values()) {
             parameters2.putParameterValue(name,
-                GUIDFactory.newOperationIdGUID(0).getId());
+                GUIDFactory.newEventGUID(0).getId());
         }
         parameters2.putParameterValue(LogbookParameterName.eventIdentifierProcess,
             parameters.getMapParameters().get(LogbookParameterName.eventIdentifierProcess));
@@ -242,7 +242,7 @@ public class MongoDbAccessFactoryTest {
         final LogbookOperationParameters parametersWrong = LogbookParametersFactory.newLogbookOperationParameters();
         for (final LogbookParameterName name : LogbookParameterName.values()) {
             parametersWrong.putParameterValue(name,
-                GUIDFactory.newOperationIdGUID(0).getId());
+                GUIDFactory.newEventGUID(0).getId());
         }
         parametersWrong.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
@@ -291,11 +291,11 @@ public class MongoDbAccessFactoryTest {
         } catch (final VitamException e) {}
 
         parameters.putParameterValue(LogbookParameterName.eventIdentifier,
-            GUIDFactory.newOperationIdGUID(0).getId());
+            GUIDFactory.newEventGUID(0).getId());
         parameters.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
         parameters2.putParameterValue(LogbookParameterName.eventIdentifier,
-            GUIDFactory.newOperationIdGUID(0).getId());
+            GUIDFactory.newEventGUID(0).getId());
         parameters2.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
         mongoDbAccess.updateBulkLogbookOperation(parameters, parameters2);
@@ -339,13 +339,13 @@ public class MongoDbAccessFactoryTest {
         } catch (final VitamException e) {}
 
         parameters.putParameterValue(LogbookParameterName.eventIdentifier,
-            GUIDFactory.newOperationIdGUID(0).getId());
+            GUIDFactory.newEventGUID(0).getId());
         parameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
-            GUIDFactory.newOperationIdGUID(0).getId());
+            GUIDFactory.newEventGUID(0).getId());
         parameters.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
         parameters2.putParameterValue(LogbookParameterName.eventIdentifier,
-            GUIDFactory.newOperationIdGUID(0).getId());
+            GUIDFactory.newEventGUID(0).getId());
         parameters2.putParameterValue(LogbookParameterName.eventIdentifierProcess,
             parameters.getMapParameters().get(LogbookParameterName.eventIdentifierProcess));
         parameters2.putParameterValue(LogbookParameterName.eventDateTime,
@@ -400,14 +400,14 @@ public class MongoDbAccessFactoryTest {
         final LogbookLifeCycleUnitParameters parameters = LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
         for (final LogbookParameterName name : LogbookParameterName.values()) {
             parameters.putParameterValue(name,
-                GUIDFactory.newOperationIdGUID(0).getId());
+                GUIDFactory.newEventGUID(0).getId());
         }
         parameters.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
         final LogbookLifeCycleUnitParameters parameters2 = LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
         for (final LogbookParameterName name : LogbookParameterName.values()) {
             parameters2.putParameterValue(name,
-                GUIDFactory.newOperationIdGUID(0).getId());
+                GUIDFactory.newEventGUID(0).getId());
         }
         parameters2.putParameterValue(LogbookParameterName.objectIdentifier,
             parameters.getMapParameters().get(LogbookParameterName.objectIdentifier));
@@ -418,7 +418,7 @@ public class MongoDbAccessFactoryTest {
             LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
         for (final LogbookParameterName name : LogbookParameterName.values()) {
             parametersWrong.putParameterValue(name,
-                GUIDFactory.newOperationIdGUID(0).getId());
+                GUIDFactory.newEventGUID(0).getId());
         }
         parametersWrong.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
@@ -454,11 +454,11 @@ public class MongoDbAccessFactoryTest {
 
 
         parameters.putParameterValue(LogbookParameterName.eventIdentifier,
-            GUIDFactory.newOperationIdGUID(0).getId());
+            GUIDFactory.newEventGUID(0).getId());
         parameters.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
         parameters2.putParameterValue(LogbookParameterName.eventIdentifier,
-            GUIDFactory.newOperationIdGUID(0).getId());
+            GUIDFactory.newEventGUID(0).getId());
         parameters2.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
         parameters.putParameterValue(LogbookParameterName.objectIdentifier, oi);
@@ -505,15 +505,15 @@ public class MongoDbAccessFactoryTest {
 
 
         parameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
-            GUIDFactory.newOperationIdGUID(0).getId());
+            GUIDFactory.newEventGUID(0).getId());
         parameters.putParameterValue(LogbookParameterName.eventIdentifier,
-            GUIDFactory.newOperationIdGUID(0).getId());
+            GUIDFactory.newEventGUID(0).getId());
         parameters.putParameterValue(LogbookParameterName.objectIdentifier,
-            GUIDFactory.newOperationIdGUID(0).getId());
+            GUIDFactory.newEventGUID(0).getId());
         parameters.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
         parameters2.putParameterValue(LogbookParameterName.eventIdentifier,
-            GUIDFactory.newOperationIdGUID(0).getId());
+            GUIDFactory.newEventGUID(0).getId());
         parameters2.putParameterValue(LogbookParameterName.eventIdentifierProcess,
             parameters.getMapParameters().get(LogbookParameterName.eventIdentifierProcess));
         parameters2.putParameterValue(LogbookParameterName.objectIdentifier,
@@ -603,7 +603,7 @@ public class MongoDbAccessFactoryTest {
             LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
         for (final LogbookParameterName name : LogbookParameterName.values()) {
             parameters.putParameterValue(name,
-                GUIDFactory.newOperationIdGUID(0).getId());
+                GUIDFactory.newEventGUID(0).getId());
         }
         parameters.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
@@ -611,7 +611,7 @@ public class MongoDbAccessFactoryTest {
             LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
         for (final LogbookParameterName name : LogbookParameterName.values()) {
             parameters2.putParameterValue(name,
-                GUIDFactory.newOperationIdGUID(0).getId());
+                GUIDFactory.newEventGUID(0).getId());
         }
         parameters2.putParameterValue(LogbookParameterName.objectIdentifier,
             parameters.getMapParameters().get(LogbookParameterName.objectIdentifier));
@@ -622,7 +622,7 @@ public class MongoDbAccessFactoryTest {
             LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
         for (final LogbookParameterName name : LogbookParameterName.values()) {
             parametersWrong.putParameterValue(name,
-                GUIDFactory.newOperationIdGUID(0).getId());
+                GUIDFactory.newEventGUID(0).getId());
         }
         parametersWrong.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
@@ -658,11 +658,11 @@ public class MongoDbAccessFactoryTest {
 
 
         parameters.putParameterValue(LogbookParameterName.eventIdentifier,
-            GUIDFactory.newOperationIdGUID(0).getId());
+            GUIDFactory.newEventGUID(0).getId());
         parameters.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
         parameters2.putParameterValue(LogbookParameterName.eventIdentifier,
-            GUIDFactory.newOperationIdGUID(0).getId());
+            GUIDFactory.newEventGUID(0).getId());
         parameters2.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
         parameters.putParameterValue(LogbookParameterName.objectIdentifier, oi);
@@ -706,15 +706,15 @@ public class MongoDbAccessFactoryTest {
 
 
         parameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
-            GUIDFactory.newOperationIdGUID(0).getId());
+            GUIDFactory.newEventGUID(0).getId());
         parameters.putParameterValue(LogbookParameterName.eventIdentifier,
-            GUIDFactory.newOperationIdGUID(0).getId());
+            GUIDFactory.newEventGUID(0).getId());
         parameters.putParameterValue(LogbookParameterName.objectIdentifier,
-            GUIDFactory.newOperationIdGUID(0).getId());
+            GUIDFactory.newEventGUID(0).getId());
         parameters.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
         parameters2.putParameterValue(LogbookParameterName.eventIdentifier,
-            GUIDFactory.newOperationIdGUID(0).getId());
+            GUIDFactory.newEventGUID(0).getId());
         parameters2.putParameterValue(LogbookParameterName.eventIdentifierProcess,
             parameters.getMapParameters().get(LogbookParameterName.eventIdentifierProcess));
         parameters2.putParameterValue(LogbookParameterName.objectIdentifier,

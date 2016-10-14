@@ -233,15 +233,16 @@ public class VitamCodeHelper {
 
     /**
      * Get the vitam code
+     * 
+     * @param vitamCode
      *
      * @return the vitam code in String
      */
     public static String getCode(VitamCode vitamCode) {
-        final StringBuilder sb = new StringBuilder();
-        sb.append(vitamCode.getService().getCode());
-        sb.append(vitamCode.getDomain().getCode());
-        sb.append(vitamCode.getItem());
-        return sb.toString();
+        return new StringBuilder()
+            .append(vitamCode.getService().getCode())
+            .append(vitamCode.getDomain().getCode())
+            .append(vitamCode.getItem()).toString();
     }
 
     /**

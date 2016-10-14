@@ -36,7 +36,7 @@ public class WorkerIOManagementHelperTest {
     @Test
     public void testGetFileFromHandlerIO() throws Exception {
         when(workspaceClient.getObject(anyObject(), anyObject()))
-            .thenReturn(PropertiesUtils.getResourcesAsStream("sip.xml"));
+            .thenReturn(PropertiesUtils.getResourceAsStream("sip.xml"));
         final File file =
             WorkerIOManagementHelper.findFileFromWorkspace(workspaceClient, "containerName", "objectName", "workerId");
         file.delete();

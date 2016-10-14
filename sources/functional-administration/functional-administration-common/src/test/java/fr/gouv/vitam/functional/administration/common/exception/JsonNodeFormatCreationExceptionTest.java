@@ -38,7 +38,6 @@ public class JsonNodeFormatCreationExceptionTest {
         assertEquals("test", new JsonNodeFormatCreationException("test").getMessage());
         assertNotNull(new JsonNodeFormatCreationException(new Exception()).getCause());
         assertNotNull(new JsonNodeFormatCreationException("test", new Exception()).getCause());
-        assertNotNull(new JsonNodeFormatCreationException("test", new Exception(), true, true).getCause());
     }
 
 }

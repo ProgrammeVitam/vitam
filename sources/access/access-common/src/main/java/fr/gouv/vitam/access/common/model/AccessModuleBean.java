@@ -68,8 +68,8 @@ public class AccessModuleBean {
      * Setter RequestDsl
      *
      * @param requestDsl - return type String
+     * @return this
      */
-    // TODO @return missing
     public AccessModuleBean setRequestDsl(String requestDsl) {
         this.requestDsl = requestDsl;
         return this;
@@ -90,6 +90,7 @@ public class AccessModuleBean {
      * setter XrequestId
      * 
      * @param xRequestId -return GUID
+     * @return this
      */
     public AccessModuleBean setxRequestId(GUID xRequestId) {
         requestId = xRequestId;

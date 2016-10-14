@@ -46,7 +46,6 @@ public class LogbookExceptionTest {
         assertNotNull(new LogbookAlreadyExistsException(MESSAGE));
         assertNotNull(new LogbookAlreadyExistsException(exception));
         assertNotNull(new LogbookAlreadyExistsException(MESSAGE, exception));
-        assertNotNull(new LogbookAlreadyExistsException(MESSAGE, exception, true, true));
     }
 
     @Test
@@ -55,7 +54,6 @@ public class LogbookExceptionTest {
         assertNotNull(new LogbookDatabaseException(MESSAGE));
         assertNotNull(new LogbookDatabaseException(exception));
         assertNotNull(new LogbookDatabaseException(MESSAGE, exception));
-        assertNotNull(new LogbookDatabaseException(MESSAGE, exception, true, true));
     }
 
     @Test
@@ -64,7 +62,6 @@ public class LogbookExceptionTest {
         assertNotNull(new LogbookException(MESSAGE));
         assertNotNull(new LogbookException(exception));
         assertNotNull(new LogbookException(MESSAGE, exception));
-        assertNotNull(new LogbookException(MESSAGE, exception, true, true));
     }
 
     @Test
@@ -73,7 +70,6 @@ public class LogbookExceptionTest {
         assertNotNull(new LogbookNotFoundException(MESSAGE));
         assertNotNull(new LogbookNotFoundException(exception));
         assertNotNull(new LogbookNotFoundException(MESSAGE, exception));
-        assertNotNull(new LogbookNotFoundException(MESSAGE, exception, true, true));
     }
 
 }

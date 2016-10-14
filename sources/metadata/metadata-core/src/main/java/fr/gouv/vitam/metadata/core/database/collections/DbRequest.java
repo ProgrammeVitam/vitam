@@ -218,15 +218,12 @@ public class DbRequest {
                     @SuppressWarnings("unchecked")
                     final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper
                         .select(MetadataCollections.C_UNIT, finalQuery, Unit.UNIT_ES_PROJECTION);
-                    final MongoCursor<Unit> cursor = iterable.iterator();
-                    try {
+                    try (final MongoCursor<Unit> cursor = iterable.iterator()) {
                         while (cursor.hasNext()) {
                             final Unit unit = cursor.next();
                             // TODO use Bulk
                             MetadataCollections.C_UNIT.getEsClient().addEntryIndex(unit);
                         }
-                    } finally {
-                        cursor.close();
                     }
                 }
                 // TODO index ObjectGroup
@@ -318,15 +315,12 @@ public class DbRequest {
             (FindIterable<ObjectGroup>) MongoDbMetadataHelper.select(MetadataCollections.C_OBJECTGROUP,
                 MongoDbMetadataHelper.queryForAncestorsOrSame(roots, defaultStartSet.getCurrentIds()),
                 ObjectGroup.OBJECTGROUP_VITAM_PROJECTION);
-        final MongoCursor<ObjectGroup> cursor = iterable.iterator();
         final Set<String> newRoots = new HashSet<String>();
-        try {
+        try (final MongoCursor<ObjectGroup> cursor = iterable.iterator()) {
             while (cursor.hasNext()) {
                 final ObjectGroup og = cursor.next();
                 newRoots.add(og.getId());
             }
-        } finally {
-            cursor.close();
         }
         if (newRoots.isEmpty()) {
             return MongoDbMetadataHelper.createOneResult(FILTERARGS.OBJECTGROUPS);
@@ -358,15 +352,12 @@ public class DbRequest {
             (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.C_UNIT,
                 MongoDbMetadataHelper.queryForAncestorsOrSame(current, defaultStartSet.getCurrentIds()),
                 MongoDbMetadataHelper.ID_PROJECTION);
-        final MongoCursor<Unit> cursor = iterable.iterator();
         final Set<String> newRoots = new HashSet<String>();
-        try {
+        try (final MongoCursor<Unit> cursor = iterable.iterator()) {
             while (cursor.hasNext()) {
                 final Unit unit = cursor.next();
                 newRoots.add(unit.getId());
             }
-        } finally {
-            cursor.close();
         }
         return newRoots;
     }
@@ -462,16 +453,13 @@ public class DbRequest {
         @SuppressWarnings("unchecked")
         final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper.select(
             MetadataCollections.C_UNIT, finalQuery, Unit.UNIT_VITAM_PROJECTION);
-        final MongoCursor<Unit> cursor = iterable.iterator();
-        try {
+        try (final MongoCursor<Unit> cursor = iterable.iterator()) {
             while (cursor.hasNext()) {
                 final Unit unit = cursor.next();
                 final String id = unit.getId();
                 MongoDbMetadataHelper.LRU.put(id, unit);
                 result.addId(id);
             }
-        } finally {
-            cursor.close();
         }
         result.setNbResult(result.getCurrentIds().size());
         if (GlobalDatasDb.PRINT_REQUEST) {
@@ -570,8 +558,7 @@ public class DbRequest {
             final FindIterable<Unit> iterable =
                 (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.C_UNIT, query,
                     Unit.UNIT_VITAM_PROJECTION);
-            final MongoCursor<Unit> cursor = iterable.iterator();
-            try {
+            try (final MongoCursor<Unit> cursor = iterable.iterator()) {
                 while (cursor.hasNext()) {
                     final Unit unit = cursor.next();
                     if (tocheck) {
@@ -596,7 +583,6 @@ public class DbRequest {
                 }
             } finally {
                 previous.clear();
-                cursor.close();
             }
             result.setNbResult(result.getCurrentIds().size());
             if (GlobalDatasDb.PRINT_REQUEST) {
@@ -692,16 +678,13 @@ public class DbRequest {
             @SuppressWarnings("unchecked")
             final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper
                 .select(MetadataCollections.C_UNIT, finalQuery, Unit.UNIT_VITAM_PROJECTION);
-            final MongoCursor<Unit> cursor = iterable.iterator();
-            try {
+            try (final MongoCursor<Unit> cursor = iterable.iterator()) {
                 while (cursor.hasNext()) {
                     final Unit unit = cursor.next();
                     final String id = unit.getId();
                     MongoDbMetadataHelper.LRU.put(id, unit);
                     result.addId(id);
                 }
-            } finally {
-                cursor.close();
             }
             result.setNbResult(result.getCurrentIds().size());
             if (GlobalDatasDb.PRINT_REQUEST) {
@@ -735,13 +718,10 @@ public class DbRequest {
         final FindIterable<ObjectGroup> iterable = (FindIterable<ObjectGroup>) MongoDbMetadataHelper.select(
             MetadataCollections.C_OBJECTGROUP, finalQuery,
             ObjectGroup.OBJECTGROUP_VITAM_PROJECTION);
-        final MongoCursor<ObjectGroup> cursor = iterable.iterator();
-        try {
+        try (final MongoCursor<ObjectGroup> cursor = iterable.iterator()) {
             while (cursor.hasNext()) {
                 result.addId(cursor.next().getId());
             }
-        } finally {
-            cursor.close();
         }
         result.setNbResult(result.getCurrentIds().size());
         return result;
@@ -772,15 +752,12 @@ public class DbRequest {
             final FindIterable<Unit> iterable =
                 (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.C_UNIT,
                     roots, projection, orderBy, offset, limit);
-            final MongoCursor<Unit> cursor = iterable.iterator();
-            try {
+            try (final MongoCursor<Unit> cursor = iterable.iterator()) {
                 while (cursor.hasNext()) {
                     final Unit unit = cursor.next();
                     last.addId(unit.getId());
                     last.addFinal(unit);
                 }
-            } finally {
-                cursor.close();
             }
             last.setNbResult(last.getCurrentIds().size());
             return last;
@@ -791,15 +768,12 @@ public class DbRequest {
             (FindIterable<ObjectGroup>) MongoDbMetadataHelper.select(
                 MetadataCollections.C_OBJECTGROUP,
                 roots, projection, orderBy, offset, limit);
-        final MongoCursor<ObjectGroup> cursor = iterable.iterator();
-        try {
+        try (final MongoCursor<ObjectGroup> cursor = iterable.iterator()) {
             while (cursor.hasNext()) {
                 final ObjectGroup og = cursor.next();
                 last.addId(og.getId());
                 last.addFinal(og);
             }
-        } finally {
-            cursor.close();
         }
         last.setNbResult(last.getCurrentIds().size());
         return last;

@@ -55,7 +55,13 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  * Siegfried implementation of format identifier
  */
 public class FormatIdentifierSiegfried implements FormatIdentifier {
+    /**
+     * Pronom namespace
+     */
     public static final String PRONOM_NAMESPACE = "pronom";
+    /**
+     * Unknown namespace
+     */
     public static final String UNKNOW_NAMESPACE = "UNKNOW";
     private final SiegfriedClient client;
     private final Path rootPath;

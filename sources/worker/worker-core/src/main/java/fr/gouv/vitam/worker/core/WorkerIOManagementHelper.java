@@ -65,7 +65,9 @@ public class WorkerIOManagementHelper {
                 final InputStream input = client.getObject(containerName, objectName);
                 file = PropertiesUtils.fileFromTmpFolder(containerName + "_" + workerId + "/" + objectName);
                 file.getParentFile().mkdirs();
-                IOUtils.copy(input, new FileOutputStream(file));
+                try (final FileOutputStream outputStream = new FileOutputStream(file)) {
+                    IOUtils.copy(input, outputStream);
+                }
             }
         } catch (final ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
             IOException e) {

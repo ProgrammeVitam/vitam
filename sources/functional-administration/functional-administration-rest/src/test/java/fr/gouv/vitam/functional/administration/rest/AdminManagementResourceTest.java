@@ -32,6 +32,7 @@ import static com.jayway.restassured.RestAssured.with;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -189,29 +190,29 @@ public class AdminManagementResourceTest {
     }
 
     @Test
-    public void givenAWellFormedXMLInputstreamCheckThenReturnOK() {
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
+    public void givenAWellFormedXMLInputstreamCheckThenReturnOK() throws FileNotFoundException {
+        stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
         given().contentType(ContentType.BINARY).body(stream)
             .when().post(CHECK_FORMAT_URI)
             .then().statusCode(Status.OK.getStatusCode());
     }
 
     @Test
-    public void givenANotWellFormedXMLInputstreamCheckThenReturnKO() {
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam-format-KO.xml");
+    public void givenANotWellFormedXMLInputstreamCheckThenReturnKO() throws FileNotFoundException {
+        stream = PropertiesUtils.getResourceAsStream("FF-vitam-format-KO.xml");
         given().contentType(ContentType.BINARY).body(stream)
             .when().post(CHECK_FORMAT_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
-    public void insertAPronomFile() {
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
+    public void insertAPronomFile() throws FileNotFoundException {
+        stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
         given().contentType(ContentType.BINARY).body(stream)
             .when().post(IMPORT_FORMAT_URI)
             .then().statusCode(Status.OK.getStatusCode());
 
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam-format-KO.xml");
+        stream = PropertiesUtils.getResourceAsStream("FF-vitam-format-KO.xml");
         given().contentType(ContentType.BINARY).body(stream)
             .when().post(IMPORT_FORMAT_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
@@ -225,8 +226,8 @@ public class AdminManagementResourceTest {
     }
 
     @Test
-    public void getFileFormatByID() throws InvalidCreateOperationException, InvalidParseOperationException {
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
+    public void getFileFormatByID() throws InvalidCreateOperationException, InvalidParseOperationException, FileNotFoundException {
+        stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
         final Select select = new Select();
         select.setQuery(eq("PUID", "x-fmt/2"));
         with()
@@ -252,8 +253,8 @@ public class AdminManagementResourceTest {
 
     @Test
     public void givenFileFormatByIDWhenNotFoundThenThrowReferentialException()
-        throws InvalidCreateOperationException, InvalidParseOperationException {
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
+        throws InvalidCreateOperationException, InvalidParseOperationException, FileNotFoundException {
+        stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
         final Select select = new Select();
         select.setQuery(eq("PUID", "x-fmt/2"));
         with()
@@ -278,8 +279,8 @@ public class AdminManagementResourceTest {
 
 
     @Test
-    public void getDocument() throws InvalidCreateOperationException {
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
+    public void getDocument() throws InvalidCreateOperationException, FileNotFoundException {
+        stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
         final Select select = new Select();
         select.setQuery(eq("PUID", "x-fmt/2"));
         with()
@@ -299,7 +300,7 @@ public class AdminManagementResourceTest {
     public void givenFindDocumentWhenNotFoundThenThrowReferentialException()
         throws IOException, InvalidParseOperationException, InvalidCreateOperationException {
 
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
+        stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
         final Select select = new Select();
         select.setQuery(eq("fakeName", "fakeValue"));
 
@@ -315,33 +316,33 @@ public class AdminManagementResourceTest {
             .then().statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
-    /************************** rules Management ***************************************************/
+    /************************** rules Management 
+     * @throws FileNotFoundException ***************************************************/
     @Test
     @Ignore
-    public void givenAWellFormedCSVInputstreamCheckThenReturnOK() {
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
+    public void givenAWellFormedCSVInputstreamCheckThenReturnOK() throws FileNotFoundException {
+        stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         given().contentType(ContentType.BINARY).body(stream)
             .when().post(CHECK_RULES_URI)
             .then().statusCode(Status.OK.getStatusCode());
     }
 
     @Test
-    public void givenANotWellFormedCSVInputstreamCheckThenReturnKO() {
-        stream = Thread.currentThread().getContextClassLoader()
-            .getResourceAsStream("jeu_donnees_KO_regles_CSV_Parameters.csv");
+    public void givenANotWellFormedCSVInputstreamCheckThenReturnKO() throws FileNotFoundException {
+        stream = PropertiesUtils.getResourceAsStream("jeu_donnees_KO_regles_CSV_Parameters.csv");
         given().contentType(ContentType.BINARY).body(stream)
             .when().post(CHECK_RULES_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
-    public void insertRulesFile() {
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
+    public void insertRulesFile() throws FileNotFoundException {
+        stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         given().contentType(ContentType.BINARY).body(stream)
             .when().post(IMPORT_RULES_URI)
             .then().statusCode(Status.OK.getStatusCode());
 
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
+        stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         given().contentType(ContentType.BINARY).body(stream)
             .when().post(IMPORT_RULES_URI)
             .then().statusCode(Status.OK.getStatusCode());
@@ -355,8 +356,8 @@ public class AdminManagementResourceTest {
     }
 
     @Test
-    public void getRuleByID() throws InvalidCreateOperationException, InvalidParseOperationException {
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
+    public void getRuleByID() throws InvalidCreateOperationException, InvalidParseOperationException, FileNotFoundException {
+        stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         final Select select = new Select();
         select.setQuery(eq("RuleId", "APP-00001"));
         with()
@@ -382,8 +383,8 @@ public class AdminManagementResourceTest {
 
     @Test
     public void givenFakeRuleByIDTheReturnNotFound()
-        throws InvalidCreateOperationException, InvalidParseOperationException {
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
+        throws InvalidCreateOperationException, InvalidParseOperationException, FileNotFoundException {
+        stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         final Select select = new Select();
         select.setQuery(eq("RuleId", "APP-00001"));
         with()
@@ -408,9 +409,8 @@ public class AdminManagementResourceTest {
 
 
     @Test
-    public void getDocumentRulesFile() throws InvalidCreateOperationException {
-        stream = Thread.currentThread().getContextClassLoader()
-            .getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
+    public void getDocumentRulesFile() throws InvalidCreateOperationException, FileNotFoundException {
+        stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         final Select select = new Select();
         select.setQuery(eq("RuleId", "APP-00001"));
         with()
@@ -430,7 +430,7 @@ public class AdminManagementResourceTest {
     public void givenFindDocumentRulesFileWhenNotFoundThenReturnNotFound()
         throws IOException, InvalidParseOperationException, InvalidCreateOperationException {
 
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
+        stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         final Select select = new Select();
         select.setQuery(eq("fakeName", "fakeValue"));
 

@@ -49,9 +49,8 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.VitamError;
 import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
-import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
-import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
+import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.server2.application.HttpHeaderHelper;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
@@ -76,7 +75,6 @@ public class WorkerResource extends ApplicationStatusResource {
      * @param configuration the worker configuration to be applied
      */
     public WorkerResource(WorkerConfiguration configuration) {
-        super(new BasicVitamStatusServiceImpl());
         LOGGER.info("init Worker Resource server");
         worker = WorkerImplFactory.create();
     }
@@ -89,7 +87,6 @@ public class WorkerResource extends ApplicationStatusResource {
      * @param worker the worker service be applied
      */
     WorkerResource(WorkerConfiguration configuration, Worker worker) {
-        super(new BasicVitamStatusServiceImpl());
         LOGGER.info("init Worker Resource server");
         this.worker = worker;
     }

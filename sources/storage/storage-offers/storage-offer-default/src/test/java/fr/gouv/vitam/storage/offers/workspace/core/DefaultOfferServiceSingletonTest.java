@@ -40,7 +40,7 @@ public class DefaultOfferServiceSingletonTest {
     @Test(expected = ExceptionInInitializerError.class)
     public void initKOTest() throws Exception {
         try {
-            file = PropertiesUtils.getResourcesFile("default-storage.conf");
+            file = PropertiesUtils.getResourceFile("default-storage.conf");
             file.setReadable(false);
             DefaultOfferServiceImpl.getInstance();
         } finally {

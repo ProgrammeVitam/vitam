@@ -44,8 +44,7 @@ public class VitamErrorTest {
     private static VitamError vitamError = new VitamError("1");
 
     private static final String ERROR_JSON = "{\"code\":\"0\",\"context\":\"context\",\"state\":\"state\"," +
-        "\"message\":\"message\",\"description\":\"description\",\"errors\":[{\"code\":\"1\",\"context\":\"\"," +
-        "\"state\":\"\",\"message\":\"\",\"description\":\"\",\"errors\":[]}]}";
+        "\"message\":\"message\",\"description\":\"description\",\"errors\":[{\"code\":\"1\"}]}";
 
     @Test
     public void testSetGetCode() throws Exception {

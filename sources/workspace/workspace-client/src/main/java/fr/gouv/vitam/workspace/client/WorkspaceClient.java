@@ -280,8 +280,7 @@ public class WorkspaceClient implements ContentAddressableStorage {
             if (Response.Status.OK.getStatusCode() == response.getStatus()) {
                 // TODO : this is ugly but necessarily in order to close the response and avoid concurrent issues
                 // to be improved
-                final InputStream streamClosedAutomatically = response.readEntity(InputStream.class);
-                try {
+                try (final InputStream streamClosedAutomatically = response.readEntity(InputStream.class)) {
                     stream = new ByteArrayInputStream(IOUtils.toByteArray(streamClosedAutomatically));
                 } catch (final IOException e) {
                     LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());

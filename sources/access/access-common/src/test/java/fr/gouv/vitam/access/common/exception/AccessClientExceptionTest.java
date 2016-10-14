@@ -42,7 +42,6 @@ public class AccessClientExceptionTest {
         assertEquals("test", new AccessClientException("test").getMessage());
         assertNotNull(new AccessClientException(new Exception("")).getCause());
         assertNotNull(new AccessClientException("test", new Exception()).getCause());
-        assertNotNull(new AccessClientException("test", new Exception(), true, true).getCause());
     }
 
 
@@ -52,7 +51,6 @@ public class AccessClientExceptionTest {
         assertEquals("test", new AccessClientServerException("test").getMessage());
         assertNotNull(new AccessClientServerException(new Exception()).getCause());
         assertNotNull(new AccessClientServerException("test", new Exception()).getCause());
-        assertNotNull(new AccessClientServerException("test", new Exception(), true, true).getCause());
     }
 
     @Test
@@ -61,7 +59,6 @@ public class AccessClientExceptionTest {
         assertEquals("test", new AccessClientNotFoundException("test").getMessage());
         assertNotNull(new AccessClientNotFoundException(new Exception()).getCause());
         assertNotNull(new AccessClientNotFoundException("test", new Exception()).getCause());
-        assertNotNull(new AccessClientNotFoundException("test", new Exception(), true, true).getCause());
     }
 
 

@@ -145,11 +145,11 @@ public class X509KeystoreFileRealm extends AbstractX509Realm {
         throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
         try {
             final File f = PropertiesUtils.findFile(filename);
-            final FileInputStream fis = new FileInputStream(f);
-            final KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
-            ks.load(fis, passphrase.toCharArray());
-            fis.close();
-            return ks;
+            try (final FileInputStream fis = new FileInputStream(f)) {
+                final KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
+                ks.load(fis, passphrase.toCharArray());
+                return ks;
+            }
         } catch (final FileNotFoundException e) {
             LOGGER.error("Keystore Not found : " + filename, e);
         }

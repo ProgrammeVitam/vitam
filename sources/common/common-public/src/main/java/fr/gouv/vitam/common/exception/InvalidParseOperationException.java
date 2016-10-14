@@ -54,16 +54,4 @@ public class InvalidParseOperationException extends VitamException {
     public InvalidParseOperationException(final String arg0, final Throwable arg1) {
         super(arg0, arg1);
     }
-
-    /**
-     * @param arg0
-     * @param arg1
-     * @param arg2
-     * @param arg3
-     */
-    public InvalidParseOperationException(final String arg0, final Throwable arg1,
-        final boolean arg2, final boolean arg3) {
-        super(arg0, arg1, arg2, arg3);
-    }
-
 }

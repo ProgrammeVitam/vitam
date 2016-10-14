@@ -39,6 +39,5 @@ public class FileFormatNotFoundExceptionTest {
         assertEquals("test", new FileFormatNotFoundException("test").getMessage());
         assertNotNull(new FileFormatNotFoundException(new Exception()).getCause());
         assertNotNull(new FileFormatNotFoundException("test", new Exception()).getCause());
-        assertNotNull(new FileFormatNotFoundException("test", new Exception(), true, true).getCause());
     }
 }

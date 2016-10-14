@@ -40,6 +40,5 @@ public class ProcessingInternalServerExceptionTest {
         assertEquals("test", new ProcessingInternalServerException("test").getMessage());
         assertNotNull(new ProcessingInternalServerException(new Exception()).getCause());
         assertNotNull(new ProcessingInternalServerException("test", new Exception()).getCause());
-        assertNotNull(new ProcessingInternalServerException("test", new Exception(), true, true).getCause());
     }
 }

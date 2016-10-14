@@ -297,7 +297,7 @@ public class IngestInternalResource extends ApplicationStatusResource implements
             ingestGuid);
 
         VITAM_LOGGER.debug("call journal...");
-        final LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getLogbookOperationClient();
+        final LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient();
         client.create(parameters);
 
         return client;

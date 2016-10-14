@@ -84,7 +84,7 @@ public class ResourcesPrivateUtilTest {
     private File getTestResourcesFile(String name) {
         File file;
         try {
-            file = PropertiesUtils.getResourcesFile(name);
+            file = PropertiesUtils.getResourceFile(name);
         } catch (final FileNotFoundException e) { // NOSONAR
             LOGGER.debug("Not able to load: " + name);
             return null;

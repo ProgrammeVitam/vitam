@@ -165,7 +165,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:any namespace="##other" processContents="lax" minOccurs="0" />
+			<xsd:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
 			<!-- <xsd:element ref="OtherManagementAbstract" minOccurs="0" maxOccurs="unbounded"> 
 				<xsd:annotation> <xsd:documentation>Autres métadonnées de gestion.</xsd:documentation> 
 				</xsd:annotation> </xsd:element> -->

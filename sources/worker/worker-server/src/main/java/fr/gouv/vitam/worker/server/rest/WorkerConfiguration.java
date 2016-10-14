@@ -27,12 +27,13 @@
 
 package fr.gouv.vitam.worker.server.rest;
 
+import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
+
 /**
  * Worker configuration class mapping
  */
-public final class WorkerConfiguration {
+public final class WorkerConfiguration extends DefaultVitamApplicationConfiguration {
 
-    private String jettyConfig;
     private String processingUrl;
     private String urlMetada;
     private String urlWorkspace;
@@ -46,26 +47,6 @@ public final class WorkerConfiguration {
      */
     public WorkerConfiguration() {
         // Empty constructor
-    }
-
-    /**
-     * getter jettyConfig
-     *
-     * @return the jettyConfig
-     */
-    public String getJettyConfig() {
-        return jettyConfig;
-    }
-
-    /**
-     * The jettyConfig setter
-     *
-     * @param jettyConfig the jetty config
-     * @return the updated WorkerConfiguration object
-     */
-    public WorkerConfiguration setJettyConfig(String jettyConfig) {
-        this.jettyConfig = jettyConfig;
-        return this;
     }
 
     /**

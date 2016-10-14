@@ -38,33 +38,30 @@ public interface AccessResource {
     /**
      * gets archive units with Json query
      *
-     * @param dslQuery, null not allowed
+     * @param dslQuery null not allowed
      * @param headerParam X-Http-Method-Override header
      * @return a archive unit result list
      */
-    // TODO fixer les commentaires: pas de ','
     public Response getUnits(String dslQuery, String headerParam);
 
     /**
      * gets archive units by Id with Json query
      *
-     * @param dslQuery DSK, null not allowed
+     * @param dslQuery DSL, null not allowed
      * @param headerParam X-Http-Method-Override header
-     * @param unit_id units identifier
+     * @param unitId units identifier
      * @return a archive unit result list
      */
-    // TODO fixer les commentaires (DSK ?)
-    // TODO respecter la casse Java lowerCamelCase (pas de '_')
-    public Response getUnitById(String dslQuery, String headerParam, String unit_id);
+    public Response getUnitById(String dslQuery, String headerParam, String unitId);
 
     /**
      * update archive units by Id with Json query
      *
      * @param dslQuery DSK, null not allowed
-     * @param unit_id units identifier
+     * @param unitId units identifier
      * @return a archive unit result list
      */
-    public Response updateUnitById(String dslQuery, String unit_id);
+    public Response updateUnitById(String dslQuery, String unitId);
 
     /**
      * Retrieve an ObjectGroup by its id

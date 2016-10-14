@@ -71,10 +71,12 @@ import fr.gouv.vitam.common.graph.DirectedGraph;
 import fr.gouv.vitam.common.graph.Graph;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -266,13 +268,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
          * Retrieves SEDA
          **/
         InputStream xmlFile = null;
-        try {
-            xmlFile = client.getObject(containerId,
-                IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
-        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
-            LOGGER.error(MANIFEST_NOT_FOUND);
-            throw new ProcessingException(e);
-        }
 
         final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
         XMLEventReader reader = null;
@@ -283,6 +278,13 @@ public class ExtractSedaActionHandler extends ActionHandler {
         final ObjectNode archiveUnitTree = JsonHandler.createObjectNode();
 
         try {
+            try {
+                xmlFile = client.getObject(containerId,
+                    IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
+            } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
+                LOGGER.error(MANIFEST_NOT_FOUND);
+                throw new ProcessingException(e);
+            }
             reader = xmlInputFactory.createXMLEventReader(xmlFile);
             final JsonXMLConfig config = new JsonXMLConfigBuilder().build();
             // This file will be a JSON representation of the SEDA manifest with an empty DataObjectPackage structure
@@ -339,7 +341,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
             writer.add(eventFactory.createEndElement("", "", "ArchiveTransfer"));
             writer.add(eventFactory.createEndDocument());
             writer.close();
-            reader.close();
             // 1-detect cycle : if graph has a cycle throw CycleFoundException
             final DirectedCycle directedCycle = new DirectedCycle(new DirectedGraph(archiveUnitTree));
             if (directedCycle.isCyclic()) {
@@ -400,6 +401,15 @@ public class ExtractSedaActionHandler extends ActionHandler {
         } catch (final IOException e) {
             LOGGER.error(SAVE_ARCHIVE_ID_TO_GUID_IOEXCEPTION_MSG, e);
             throw new ProcessingException(e);
+        } finally {
+            StreamUtils.closeSilently(xmlFile);
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (XMLStreamException e) {
+                    SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                }
+            }
         }
     }
 

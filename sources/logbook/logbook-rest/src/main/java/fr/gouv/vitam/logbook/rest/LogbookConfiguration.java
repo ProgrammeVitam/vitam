@@ -27,32 +27,11 @@
 
 package fr.gouv.vitam.logbook.rest;
 
-import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
 
 /**
  * Logbook configuration class mapping
  */
 public final class LogbookConfiguration extends DbConfigurationImpl {
-
-    private String jettyConfig;
-
-    /**
-     * getter of jetty config
-     *
-     * @return the jetty config
-     */
-    public String getJettyConfig() {
-        return jettyConfig;
-    }
-
-    /**
-     * setter of jetty config
-     *
-     * @param jettyConfig the jetty config to be set
-     * @return
-     */
-    public LogbookConfiguration setJettyConfig(String jettyConfig) {
-        this.jettyConfig = jettyConfig;
-        return this;
-    }
+    // Empty
 }

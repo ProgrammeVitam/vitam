@@ -82,10 +82,16 @@ public enum DomainName {
         this.name = name;
     }
 
+    /**
+     * @return code
+     */
     public String getCode() {
         return code;
     }
 
+    /**
+     * @return name
+     */
     public String getName() {
         return name;
     }

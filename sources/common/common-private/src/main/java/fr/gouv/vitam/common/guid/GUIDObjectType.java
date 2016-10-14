@@ -63,9 +63,9 @@ public final class GUIDObjectType {
          */
         MANIFEST(MANIFEST_TYPE),
         /**
-         * Operation Id type (as for Ingest when receiving SIP)
+         * Event type (for a task or step in a workflow)
          */
-        OPERATIONID(OPERATIONID_TYPE),
+        EVENT(EVENT_TYPE),
         /**
          * Request Id type (as for Access when receiving a request)
          */
@@ -120,9 +120,9 @@ public final class GUIDObjectType {
      */
     public static final int MANIFEST_TYPE = 6;
     /**
-     * Operation Id
+     * Event within a Logbook (Operation or Lifecycle Logbook)
      */
-    public static final int OPERATIONID_TYPE = 7;
+    public static final int EVENT_TYPE = 7;
     /**
      * Access Request (not associated with an operation)
      */
@@ -158,8 +158,8 @@ public final class GUIDObjectType {
                 return GUIDObjectEnumType.WRITE_LOGBOOK;
             case MANIFEST_TYPE:
                 return GUIDObjectEnumType.MANIFEST;
-            case OPERATIONID_TYPE:
-                return GUIDObjectEnumType.OPERATIONID;
+            case EVENT_TYPE:
+                return GUIDObjectEnumType.EVENT;
             case REQUESTID_TYPE:
                 return GUIDObjectEnumType.REQUESTID;
             case STORAGE_OPERATION_TYPE:
@@ -182,7 +182,7 @@ public final class GUIDObjectType {
             case OPERATION_LOGBOOK_TYPE:
             case WRITE_LOGBOOK_TYPE:
             case MANIFEST_TYPE:
-            case OPERATIONID_TYPE:
+            case EVENT_TYPE:
             case REQUESTID_TYPE:
             case STORAGE_OPERATION_TYPE:
             default:
@@ -204,7 +204,7 @@ public final class GUIDObjectType {
             case OPERATION_LOGBOOK_TYPE:
             case WRITE_LOGBOOK_TYPE:
             case MANIFEST_TYPE:
-            case OPERATIONID_TYPE:
+            case EVENT_TYPE:
             case REQUESTID_TYPE:
                 return true;
             default:

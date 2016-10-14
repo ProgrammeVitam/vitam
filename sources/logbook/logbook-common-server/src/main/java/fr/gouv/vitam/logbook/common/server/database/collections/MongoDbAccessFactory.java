@@ -58,4 +58,21 @@ public final class MongoDbAccessFactory {
                 MongoDbAccessImpl.getMongoClientOptions()),
             configuration.getDbName(), true);
     }
+
+    /**
+     * Creation of one MongoDbAccess
+     *
+     * @param configuration
+     * @return the MongoDbAccess
+     * @throws IllegalArgumentException if argument is null
+     */
+    public static final MongoDbAccess create(fr.gouv.vitam.common.server2.application.configuration.DbConfiguration configuration) {
+        ParametersChecker.checkParameter("configuration", configuration);
+        return new MongoDbAccessImpl(
+            new MongoClient(new ServerAddress(
+                configuration.getDbHost(),
+                configuration.getDbPort()),
+                MongoDbAccessImpl.getMongoClientOptions()),
+            configuration.getDbName(), true);
+    }
 }

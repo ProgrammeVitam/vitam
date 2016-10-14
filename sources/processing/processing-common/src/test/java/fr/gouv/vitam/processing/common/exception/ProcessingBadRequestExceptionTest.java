@@ -40,6 +40,5 @@ public class ProcessingBadRequestExceptionTest {
         assertEquals("test", new ProcessingBadRequestException("test").getMessage());
         assertNotNull(new ProcessingBadRequestException(new Exception()).getCause());
         assertNotNull(new ProcessingBadRequestException("test", new Exception()).getCause());
-        assertNotNull(new ProcessingBadRequestException("test", new Exception(), true, true).getCause());
     }
 }

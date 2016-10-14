@@ -60,16 +60,5 @@ public class FormatIdentifierTechnicalException extends VitamException {
     public FormatIdentifierTechnicalException(String messsage, Throwable cause) {
         super(messsage, cause);
     }
-
-    /**
-     * @param message associated message
-     * @param cause associated cause
-     * @param enableSuppression allow suppression or not
-     * @param writableStackTrace allow writable stack trace or not
-     */
-    public FormatIdentifierTechnicalException(String message, Throwable cause, boolean enableSuppression,
-        boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
 }
 

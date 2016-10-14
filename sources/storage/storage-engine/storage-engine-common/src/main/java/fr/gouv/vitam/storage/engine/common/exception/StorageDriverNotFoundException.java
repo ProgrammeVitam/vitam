@@ -58,15 +58,4 @@ public class StorageDriverNotFoundException extends StorageException {
     public StorageDriverNotFoundException(String messsage, Throwable cause) {
         super(messsage, cause);
     }
-
-    /**
-     * @param message associated message
-     * @param cause associated cause
-     * @param enableSuppression allow suppression or not
-     * @param writableStackTrace allow writable stack trace or not
-     */
-    public StorageDriverNotFoundException(String message, Throwable cause, boolean enableSuppression,
-        boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
 }

@@ -29,6 +29,7 @@ package fr.gouv.vitam.ingest.external.rest;
 import static com.jayway.restassured.RestAssured.given;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 
 import javax.ws.rs.core.Response.Status;
@@ -115,8 +116,8 @@ public class IngestExternalResourceTest {
     }
 
     @Test
-    public void givenAnInputstreamWhenUploadThenReturnOK() {
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("no-virus.txt");
+    public void givenAnInputstreamWhenUploadThenReturnOK() throws FileNotFoundException {
+        stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
 
         given().contentType(ContentType.BINARY).body(stream)
             .when().post(UPLOAD_URI)
@@ -124,8 +125,8 @@ public class IngestExternalResourceTest {
     }
 
     @Test
-    public void givenAnInputstreamWhenUploadAndFixVirusThenReturnOK() {
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("fixed-virus.txt");
+    public void givenAnInputstreamWhenUploadAndFixVirusThenReturnOK() throws FileNotFoundException {
+        stream = PropertiesUtils.getResourceAsStream("fixed-virus.txt");
 
         given().contentType(ContentType.BINARY).body(stream)
             .when().post(UPLOAD_URI)
@@ -134,7 +135,7 @@ public class IngestExternalResourceTest {
 
     @Test
     public void givenIngestInternalUploadErrorThenReturnInternalServerError() throws Exception {
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("fixed-virus.txt");
+        stream = PropertiesUtils.getResourceAsStream("fixed-virus.txt");
 
         PowerMockito.mockStatic(IngestInternalClientFactory.class);
         final IngestInternalClient ingestInternalClient = PowerMockito.mock(IngestInternalClient.class);
@@ -148,8 +149,8 @@ public class IngestExternalResourceTest {
     }
 
     @Test
-    public void givenAnInputstreamWhenUploadThenReturnErrorCode() {
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("unfixed-virus.txt");
+    public void givenAnInputstreamWhenUploadThenReturnErrorCode() throws FileNotFoundException {
+        stream = PropertiesUtils.getResourceAsStream("unfixed-virus.txt");
 
         given().contentType(ContentType.BINARY).body(stream)
             .when().post(UPLOAD_URI)

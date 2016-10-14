@@ -73,8 +73,7 @@ public class ProcessPopulator {
                 // Ignore and continue
             }
         }
-        try {
-            final InputStream inputJSON = getFileAsInputStream(workflowId + ".json");
+        try (final InputStream inputJSON = getFileAsInputStream(workflowId + ".json")) {
             process = objectMapper.readValue(inputJSON, WorkFlow.class);
 
         } catch (final IOException e) {
@@ -85,7 +84,7 @@ public class ProcessPopulator {
     }
 
     private static InputStream getFileAsInputStream(String workflowFile) throws IOException {
-        return Thread.currentThread().getContextClassLoader().getResourceAsStream(workflowFile);
+        return PropertiesUtils.getResourceAsStream(workflowFile);
     }
 
 

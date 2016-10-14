@@ -255,7 +255,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
 
     /**
-     * @param rulesManager as InputStream
+     * @param rulesStream as InputStream
      * @return Response jersey response
      * @throws IOException when error json occurs
      * @throws InvalidParseOperationException when error json occurs
@@ -301,7 +301,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     /**
      * findRuleByID
      *
-     * @param rulesId path param as String
+     * @param ruleId path param as String
      * @return Response jersey response
      * @throws InvalidParseOperationException
      * @throws IOException when error json occurs

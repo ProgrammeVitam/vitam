@@ -41,7 +41,6 @@ public class WorkerClientExceptionTest {
         assertNotNull(new WorkerServerClientException(MESSAGE));
         assertNotNull(new WorkerServerClientException(exception));
         assertNotNull(new WorkerServerClientException(MESSAGE, exception));
-        assertNotNull(new WorkerServerClientException(MESSAGE, exception, true, true));
     }
 
     @Test
@@ -50,7 +49,6 @@ public class WorkerClientExceptionTest {
         assertNotNull(new WorkerClientException(MESSAGE));
         assertNotNull(new WorkerClientException(exception));
         assertNotNull(new WorkerClientException(MESSAGE, exception));
-        assertNotNull(new WorkerClientException(MESSAGE, exception, true, true));
     }
 
     @Test
@@ -59,7 +57,6 @@ public class WorkerClientExceptionTest {
         assertNotNull(new WorkerNotFoundClientException(MESSAGE));
         assertNotNull(new WorkerNotFoundClientException(exception));
         assertNotNull(new WorkerNotFoundClientException(MESSAGE, exception));
-        assertNotNull(new WorkerNotFoundClientException(MESSAGE, exception, true, true));
     }
 
 }

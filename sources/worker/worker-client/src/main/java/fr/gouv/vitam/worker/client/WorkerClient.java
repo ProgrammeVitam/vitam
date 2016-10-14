@@ -28,7 +28,7 @@ package fr.gouv.vitam.worker.client;
 
 import java.util.List;
 
-import fr.gouv.vitam.common.client.BasicClient;
+import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;
 import fr.gouv.vitam.worker.client.exception.WorkerServerClientException;
@@ -37,9 +37,7 @@ import fr.gouv.vitam.worker.common.DescriptionStep;
 /**
  * Worker Client interface
  */
-public interface WorkerClient extends BasicClient {
-
-    String RESOURCE_PATH = "/worker/v1";
+public interface WorkerClient extends MockOrRestClient {
 
     /**
      * add a step to the worker

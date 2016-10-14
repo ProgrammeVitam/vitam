@@ -30,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +41,7 @@ import javax.xml.stream.XMLStreamException;
 
 import org.junit.Test;
 
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -75,7 +77,7 @@ public class IngestInternalClientMockTest {
     }
 
     @Test
-    public void givenMockExistsWhenPostSipThenReturnOK() throws VitamException, XMLStreamException {
+    public void givenMockExistsWhenPostSipThenReturnOK() throws VitamException, XMLStreamException, FileNotFoundException {
         IngestInternalClientFactory.setConfiguration(IngestInternalClientType.MOCK, null, 0);
 
         final IngestInternalClient client =
@@ -108,7 +110,7 @@ public class IngestInternalClientMockTest {
         operationList.add(externalOperationParameters2);
 
         inputStream =
-            Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
+            PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
         final Response response = client.upload(operationList, inputStream);
         assertEquals(response.getStatus(), Status.OK.getStatusCode());
     }
