@@ -39,141 +39,133 @@ import fr.gouv.vitam.common.server.application.configuration.ClientConfiguration
 /**
  * Access client factory<br>
  *
- * Used to create access client : if configuration file does not exist
- * 'access-client.conf',<br>
+ * Used to create access client : if configuration file does not exist 'access-client.conf',<br>
  * mock access client will be returned
  *
  */
 public class AccessClientFactory {
-	/**
-	 * Default client operation type
-	 */
-	private static AccessClientType defaultOperationsClientType;
-	private static final String CONFIGURATION_FILENAME = "access-client.conf";
-	private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessClientFactory.class);
-	private static final AccessClientFactory ACCESS_CLIENT_FACTORY = new AccessClientFactory();
+    /**
+     * Default client operation type
+     */
+    private static AccessClientType defaultOperationsClientType;
+    private static final String CONFIGURATION_FILENAME = "access-client.conf";
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessClientFactory.class);
+    private static final AccessClientFactory ACCESS_CLIENT_FACTORY = new AccessClientFactory();
 
-	private String server = "localhost";
-	private int port = VitamServerFactory.getDefaultPort();
+    private String server = "localhost";
+    private int port = VitamServerFactory.getDefaultPort();
 
-	private AccessClientFactory() {
-		changeConfigurationFile(CONFIGURATION_FILENAME);
-	}
+    private AccessClientFactory() {
+        changeConfigurationFile(CONFIGURATION_FILENAME);
+    }
 
-	/**
-	 * Set the AccessClientFactory configuration
-	 *
-	 * @param type
-	 * @param server
-	 *            hostname
-	 * @param port
-	 *            port to use
-	 * @throws IllegalArgumentException
-	 *             if type null or if type is OPERATIONS and server is null or
-	 *             empty or port <= 0
-	 */
-	static final void setConfiguration(AccessClientType type, String server, int port) {
+    /**
+     * Set the AccessClientFactory configuration
+     *
+     * @param type
+     * @param server hostname
+     * @param port port to use
+     * @throws IllegalArgumentException if type null or if type is OPERATIONS and server is null or empty or port <= 0
+     */
+    static final void setConfiguration(AccessClientType type, String server, int port) {
 
-		changeDefaultClientType(type);
-		if (type == AccessClientType.PRODUCTION) {
-			ParametersChecker.checkParameter("Server cannot be null or empty with OPERATIONS", server);
-			ParametersChecker.checkValue("port", port, 1);
-		}
-		ACCESS_CLIENT_FACTORY.server = server;
-		ACCESS_CLIENT_FACTORY.port = port;
-	}
+        changeDefaultClientType(type);
+        if (type == AccessClientType.PRODUCTION) {
+            ParametersChecker.checkParameter("Server cannot be null or empty with OPERATIONS", server);
+            ParametersChecker.checkValue("port", port, 1);
+        }
+        ACCESS_CLIENT_FACTORY.server = server;
+        ACCESS_CLIENT_FACTORY.port = port;
+    }
 
-	/**
-	 * Get the AccessClientFactory instance
-	 *
-	 * @return the instance
-	 */
-	public static final AccessClientFactory getInstance() {
-		return ACCESS_CLIENT_FACTORY;
-	}
+    /**
+     * Get the AccessClientFactory instance
+     *
+     * @return the instance
+     */
+    public static final AccessClientFactory getInstance() {
+        return ACCESS_CLIENT_FACTORY;
+    }
 
-	/**
-	 * Get the default type access client
-	 *
-	 * @return the default access client
-	 */
-	public AccessClient getAccessOperationClient() {
-		AccessClient client;
-		switch (defaultOperationsClientType) {
-		case MOCK:
-			client = new AccessClientMock();
-			break;
-		case PRODUCTION:
-			client = new AccessClientRest(server, port);
-			break;
-		default:
-			throw new IllegalArgumentException("Log type unknown");
-		}
-		return client;
-	}
+    /**
+     * Get the default type access client
+     *
+     * @return the default access client
+     */
+    public AccessClient getAccessOperationClient() {
+        AccessClient client;
+        switch (defaultOperationsClientType) {
+            case MOCK:
+                client = new AccessClientMock();
+                break;
+            case PRODUCTION:
+                client = new AccessClientRest(server, port);
+                break;
+            default:
+                throw new IllegalArgumentException("Log type unknown");
+        }
+        return client;
+    }
 
-	/**
-	 * Modify the default access client type
-	 *
-	 * @param type
-	 *            the client type to set
-	 * @throws IllegalArgumentException
-	 *             if type null
-	 */
-	static void changeDefaultClientType(AccessClientType type) {
-		if (type == null) {
-			throw new IllegalArgumentException();
-		}
-		defaultOperationsClientType = type;
-	}
+    /**
+     * Modify the default access client type
+     *
+     * @param type the client type to set
+     * @throws IllegalArgumentException if type null
+     */
+    static void changeDefaultClientType(AccessClientType type) {
+        if (type == null) {
+            throw new IllegalArgumentException();
+        }
+        defaultOperationsClientType = type;
+    }
 
-	/**
-	 * Get the default access client type
-	 *
-	 * @return the default access client type
-	 */
-	public static AccessClientType getDefaultAccessClientType() {
-		return defaultOperationsClientType;
-	}
+    /**
+     * Get the default access client type
+     *
+     * @return the default access client type
+     */
+    public static AccessClientType getDefaultAccessClientType() {
+        return defaultOperationsClientType;
+    }
 
-	/**
-	 * Change client configuration from a Yaml files
-	 *
-	 * @param configurationPath
-	 *            the path to the configuration file
-	 */
-	public final void changeConfigurationFile(String configurationPath) {
-		changeDefaultClientType(AccessClientType.MOCK);
-		ClientConfiguration configuration = null;
-		try {
-			configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
-					ClientConfigurationImpl.class);
-		} catch (final IOException fnf) {
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("Error when retrieving configuration file {}, using mock",
-						CONFIGURATION_FILENAME, fnf);
-			}
-		}
-		if (configuration == null) {
-			LOGGER.debug("Error when retrieving configuration file {}, using mock", CONFIGURATION_FILENAME);
-		} else {
-			server = configuration.getServerHost();
-			port = configuration.getServerPort();
-			changeDefaultClientType(AccessClientType.PRODUCTION);
-		}
-	}
+    /**
+     * Change client configuration from a Yaml files
+     *
+     * @param configurationPath the path to the configuration file
+     */
+    public final void changeConfigurationFile(String configurationPath) {
+        changeDefaultClientType(AccessClientType.MOCK);
+        ClientConfiguration configuration = null;
+        try {
+            configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
+                ClientConfigurationImpl.class);
+        } catch (final IOException fnf) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Error when retrieving configuration file {}, using mock",
+                    CONFIGURATION_FILENAME, fnf);
+            }
+        }
+        if (configuration == null) {
+            LOGGER.debug("Error when retrieving configuration file {}, using mock", CONFIGURATION_FILENAME);
+        } else {
+            server = configuration.getServerHost();
+            port = configuration.getServerPort();
+            changeDefaultClientType(AccessClientType.PRODUCTION);
+        }
+    }
 
-	/**
-	 * enum to define client type
-	 */
-	public enum AccessClientType {
-		/**
-		 * To use only in MOCK ACCESS
-		 */
-		MOCK,
-		/**
-		 * Use real service (need server to be set)
-		 */
-		PRODUCTION
-	}
+    /**
+     * enum to define client type
+     */
+    public enum AccessClientType {
+        /**
+         * To use only in MOCK ACCESS
+         */
+        MOCK,
+        /**
+         * Use real service (need server to be set)
+         */
+        PRODUCTION
+    }
 }

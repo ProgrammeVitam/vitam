@@ -40,12 +40,13 @@ class FormatIdentifierMock implements FormatIdentifier {
 
     @Override
     public List<FormatIdentifierResponse> analysePath(Path pathToFile) {
-        List<FormatIdentifierResponse> responses = new ArrayList<>();
-        String formatLitteral = "Plain Text File";
-        String mimeType = "text/plain";
-        String formatId = "x-fmt/111";
-        String ns = "pronom";
-        FormatIdentifierResponse formatResponse = new FormatIdentifierResponse(formatLitteral, mimeType, formatId, ns);
+        final List<FormatIdentifierResponse> responses = new ArrayList<>();
+        final String formatLitteral = "Plain Text File";
+        final String mimeType = "text/plain";
+        final String formatId = "x-fmt/111";
+        final String ns = "pronom";
+        final FormatIdentifierResponse formatResponse =
+            new FormatIdentifierResponse(formatLitteral, mimeType, formatId, ns);
         responses.add(formatResponse);
         return responses;
     }

@@ -328,8 +328,8 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
         ParametersChecker.checkParameter(ErrorMessage.ALGO_IS_A_MANDATORY_PARAMETER.getMessage(),
             algo);
         try {
-            InputStream stream = getObject(containerName, objectName);
-            Digest digest = new Digest(algo);
+            final InputStream stream = getObject(containerName, objectName);
+            final Digest digest = new Digest(algo);
             digest.update(stream);
             return digest.toString();
         } catch (final IOException e) {
@@ -465,10 +465,10 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
                 putObject(containerName, folderName + File.separator + zipEntry.getName(),
                     entryInputStream);
             }
-	    // Used to purge the InputStream as the ZipInputStream doesn't read the inputFile to the end
-	    // TODO : should be removed when the refactorised server will be put in place 
-            byte[] buff = new byte[BUFFER_SIZE];
-            while (inputStreamObject.read(buff)!=-1){ 
+            // Used to purge the InputStream as the ZipInputStream doesn't read the inputFile to the end
+            // TODO : should be removed when the refactorised server will be put in place
+            final byte[] buff = new byte[BUFFER_SIZE];
+            while (inputStreamObject.read(buff) != -1) {
                 // NOSONAR : PURGE THE InputStream
             }
             zInputStream.close();
@@ -503,7 +503,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
             }
             final Blob blob = blobStore.getBlob(containerName, objectName);
             if (null != blob && null != blob.getMetadata()) {
-                Long size = blob.getMetadata().getSize();
+                final Long size = blob.getMetadata().getSize();
                 jsonNodeObjectInformation = JsonHandler.createObjectNode();
                 jsonNodeObjectInformation.put("size", size);
                 jsonNodeObjectInformation.put("object_name", objectName);
@@ -536,7 +536,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
          * @param in
          */
         public EntryImputStream(ZipInputStream in) {
-            this.zipInputStream = in;
+            zipInputStream = in;
         }
 
         @Override

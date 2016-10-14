@@ -42,9 +42,9 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.OutcomeMessage;
-import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
@@ -55,7 +55,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({WorkspaceClientFactory.class, SedaUtilsFactory.class })
+@PrepareForTest({WorkspaceClientFactory.class, SedaUtilsFactory.class})
 public class CheckConformityActionHandlerTest {
     private static final String OBJECT_GROUP_ID_TO_GUID_MAP = "OBJECT_GROUP_ID_TO_GUID_MAP_obj.json";
     private static final String BDO_TO_OBJECT_GROUP_ID_MAP = "BDO_TO_OBJECT_GROUP_ID_MAP_obj.json";
@@ -67,9 +67,9 @@ public class CheckConformityActionHandlerTest {
     private SedaUtils sedaUtils;
     private HandlerIO action;
     private WorkspaceClient workspaceClient;
-    private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
-        ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
-        ("containerName");
+    private final WorkerParameters params =
+        WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+            .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
 
     @Before
     public void setUp() throws Exception {
@@ -97,7 +97,7 @@ public class CheckConformityActionHandlerTest {
         assertEquals(response.getStatus(), StatusCode.OK);
         assertEquals(OutcomeMessage.CHECK_CONFORMITY_OK, response.getOutcomeMessages().get("CheckConformity"));
     }
-    
+
     @Test
     public void givenConformityCheckWhenWrongDigestThenKO()
         throws Exception {
@@ -107,12 +107,12 @@ public class CheckConformityActionHandlerTest {
         action.addInput(PropertiesUtils.getResourcesFile(OBJECT_GROUP_ID_TO_GUID_MAP));
         conformityHandler = new CheckConformityActionHandler();
         assertEquals(CheckConformityActionHandler.getId(), HANDLER_ID);
-        
+
         final EngineResponse response = conformityHandler.execute(params, action);
         assertEquals(response.getStatus(), StatusCode.KO);
         assertEquals(OutcomeMessage.CHECK_CONFORMITY_KO, response.getOutcomeMessages().get("CheckConformity"));
     }
-    
+
     @Test
     public void givenConformityCheckWhenWorkspaceErrorThenKO()
         throws Exception {

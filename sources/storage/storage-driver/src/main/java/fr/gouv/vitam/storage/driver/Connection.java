@@ -37,8 +37,8 @@ import fr.gouv.vitam.storage.driver.model.RemoveObjectResult;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 
 /**
- * Represents a connection to the distant storage offer service that is provided by the driver when calling the
- * connect method:
+ * Represents a connection to the distant storage offer service that is provided by the driver when calling the connect
+ * method:
  * <p>
  * {@code myDriver.connect(serviceUrl, parameters);}
  * </p>
@@ -46,13 +46,12 @@ import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
  * able to contact the distant offer service without the need to give additional connection related parameters on
  * further request done with this connection. In some cases it may be considered as a "session".
  *
- * Note: Connection extends {@link AutoCloseable} so the connection implementation MUST provide a close() method
- * which responsibility is to cleanly close and remove.
+ * Note: Connection extends {@link AutoCloseable} so the connection implementation MUST provide a close() method which
+ * responsibility is to cleanly close and remove.
  */
 public interface Connection extends AutoCloseable {
     /**
-     * Retrieve the remaining storage capacity available on the distant offer.
-     * Return values MUST in bytes
+     * Retrieve the remaining storage capacity available on the distant offer. Return values MUST in bytes
      *
      * @param tenantId the tenant id needed to get storage capacity
      * @return the usable and used space in bytes and a remind of the given tenantId
@@ -97,9 +96,10 @@ public interface Connection extends AutoCloseable {
      * @throws StorageDriverException if any problem occurs during request
      */
     Boolean objectExistsInOffer(GetObjectRequest request) throws StorageDriverException;
-    
+
     /**
      * Override AutoCloseable implementation to specify the exception
+     * 
      * @throws StorageDriverException to be thrown in case of any driver exception
      */
     @Override

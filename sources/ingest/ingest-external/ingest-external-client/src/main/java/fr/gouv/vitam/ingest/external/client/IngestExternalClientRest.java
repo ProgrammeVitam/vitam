@@ -60,7 +60,7 @@ public class IngestExternalClientRest implements IngestExternalClient {
 
     /**
      * Constructor IngestExternalClientRest
-     * 
+     *
      * @param server
      * @param port
      * @throws VitamException
@@ -72,7 +72,7 @@ public class IngestExternalClientRest implements IngestExternalClient {
 
     /**
      * Constructor IngestExternalClientRest
-     * 
+     *
      * @param server
      * @param port
      * @throws VitamException
@@ -86,7 +86,7 @@ public class IngestExternalClientRest implements IngestExternalClient {
         }
         serviceUrl += "://" + server + ":" + port + RESOURCE_PATH;
 
-        VitamRestClientBuilder restClientBuilder = new VitamRestClientBuilder();
+        final VitamRestClientBuilder restClientBuilder = new VitamRestClientBuilder();
         client = restClientBuilder
             .setSslConfiguration(sslConfiguration)
             .setHostnameVerification(hostnameVerification)
@@ -115,7 +115,7 @@ public class IngestExternalClientRest implements IngestExternalClient {
                 default:
                     throw new IngestExternalException("Unknown error");
             }
-        } catch (ProcessingException e) {
+        } catch (final ProcessingException e) {
             if (e.getCause().getClass().equals(SocketException.class)) {
                 throw new IngestExternalException("Exception can linked to SSL", e);
             } else {
@@ -131,7 +131,7 @@ public class IngestExternalClientRest implements IngestExternalClient {
             final Response response = client.target(serviceUrl).path(STATUS).request().get();
             return Status.fromStatusCode(response.getStatus());
 
-        } catch (ProcessingException e) {
+        } catch (final ProcessingException e) {
             if (e.getCause().getClass().equals(SocketException.class)) {
                 throw new IngestExternalException("Exception can linked to SSL", e);
             } else {

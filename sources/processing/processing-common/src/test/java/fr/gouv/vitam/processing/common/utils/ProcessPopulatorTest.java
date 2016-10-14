@@ -41,10 +41,10 @@ public class ProcessPopulatorTest {
     public void testPopulatorNotFound() throws WorkflowNotFoundException {
         ProcessPopulator.populate("not_found");
     }
-    
+
     @Test(expected = IllegalArgumentException.class)
     public void testPopulatorWithNull() throws WorkflowNotFoundException {
         ProcessPopulator.populate(null);
-    }    
+    }
 
 }

@@ -70,11 +70,11 @@ public class LogbookLifeCyclesClientFactoryTest {
         LogbookLifeCyclesClientFactory
             .setConfiguration(LogbookLifeCyclesClientFactory.LogbookClientType.MOCK_LIFECYCLES, null, -1);
 
-        final LogbookLifeCycleClient client =
+        final LogbookLifeCyclesClient client =
             LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient();
         assertNotNull(client);
 
-        final LogbookLifeCycleClient client2 =
+        final LogbookLifeCyclesClient client2 =
             LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient();
         assertNotNull(client2);
 
@@ -83,7 +83,7 @@ public class LogbookLifeCyclesClientFactoryTest {
 
     @Test
     public void changeDefaultClientTypeTest() {
-        final LogbookLifeCycleClient client =
+        final LogbookLifeCyclesClient client =
             LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient();
         assertTrue(client instanceof LogbookLifeCyclesClientRest);
         final LogbookLifeCyclesClientFactory.LogbookClientType type =
@@ -93,7 +93,7 @@ public class LogbookLifeCyclesClientFactoryTest {
 
         LogbookLifeCyclesClientFactory
             .setConfiguration(LogbookLifeCyclesClientFactory.LogbookClientType.MOCK_LIFECYCLES, "", 0);
-        final LogbookLifeCycleClient client2 =
+        final LogbookLifeCyclesClient client2 =
             LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient();
         assertTrue(client2 instanceof LogbookLifeCyclesClientMock);
         final LogbookLifeCyclesClientFactory.LogbookClientType type2 =
@@ -103,7 +103,7 @@ public class LogbookLifeCyclesClientFactoryTest {
 
         LogbookLifeCyclesClientFactory.setConfiguration(LogbookLifeCyclesClientFactory.LogbookClientType.LIFECYCLES,
             "server", 1025);
-        final LogbookLifeCycleClient client3 =
+        final LogbookLifeCyclesClient client3 =
             LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient();
         assertTrue(client3 instanceof LogbookLifeCyclesClientRest);
         final LogbookLifeCyclesClientFactory.LogbookClientType type3 =
@@ -116,7 +116,8 @@ public class LogbookLifeCyclesClientFactoryTest {
     public void testInitWithoutConfigurationFile() {
         // assume that a fake file is like no file
         LogbookLifeCyclesClientFactory.getInstance().changeConfigurationFile("tmp");
-        final LogbookLifeCycleClient client = LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient();
+        final LogbookLifeCyclesClient client =
+            LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient();
         assertTrue(client instanceof LogbookLifeCyclesClientMock);
         final LogbookLifeCyclesClientFactory.LogbookClientType type =
             LogbookLifeCyclesClientFactory.getDefaultLogbookClientType();
@@ -126,7 +127,7 @@ public class LogbookLifeCyclesClientFactoryTest {
 
     @Test
     public void testInitWithConfigurationFile() {
-        final LogbookLifeCycleClient client =
+        final LogbookLifeCyclesClient client =
             LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient();
         assertTrue(client instanceof LogbookLifeCyclesClientRest);
         final LogbookLifeCyclesClientFactory.LogbookClientType type =

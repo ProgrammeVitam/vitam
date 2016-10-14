@@ -90,7 +90,7 @@ public class AdminManagementClientRestTest extends JerseyTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
     }
 
@@ -212,14 +212,14 @@ public class AdminManagementClientRestTest extends JerseyTest {
     @Test
     public void givenInputstreamOKWhenCheckThenReturnOK() throws ReferentialException {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
-        InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
+        final InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
         assertEquals(Status.OK, client.checkFormat(stream));
     }
 
     @Test(expected = ReferentialException.class)
     public void givenInputstreamKOWhenCheckThenReturnKO() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        InputStream stream =
+        final InputStream stream =
             Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam-format-KO.xml");
         assertEquals(Status.PRECONDITION_FAILED, client.checkFormat(stream));
     }
@@ -228,7 +228,7 @@ public class AdminManagementClientRestTest extends JerseyTest {
     @Test
     public void givenInputstreamOKWhenImportThenReturnOK() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
-        InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
+        final InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
         client.importFormat(stream);
     }
 
@@ -243,19 +243,19 @@ public class AdminManagementClientRestTest extends JerseyTest {
     @Test(expected = InvalidParseOperationException.class)
     public void givenAnInvalidQueryThenReturnKO() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
-        Select select = new Select();
-        InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
+        final Select select = new Select();
+        final InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
         client.importFormat(stream);
-        JsonNode jsonDocument = client.getFormats(select.getFinalSelect());
-        JsonNode result = client.getFormatByID("HDE");
+        final JsonNode jsonDocument = client.getFormats(select.getFinalSelect());
+        final JsonNode result = client.getFormatByID("HDE");
     }
 
     @Test(expected = ReferentialException.class)
     public void givenAnInvalidIDThenReturnNOTFOUND() throws Exception {
-        InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
+        final InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
         client.importFormat(stream);
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        JsonNode result = client.getFormatByID("HDE");
+        final JsonNode result = client.getFormatByID("HDE");
     }
 
     /***********************************************************************************
@@ -265,7 +265,7 @@ public class AdminManagementClientRestTest extends JerseyTest {
     @Test
     public void givenInputstreamRulesFileOKWhenCheckThenReturnOK() throws ReferentialException {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
-        InputStream stream =
+        final InputStream stream =
             Thread.currentThread().getContextClassLoader().getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         assertEquals(Status.OK, client.checkRulesFile(stream));
     }
@@ -274,7 +274,7 @@ public class AdminManagementClientRestTest extends JerseyTest {
     @Test(expected = ReferentialException.class)
     public void givenInputstreamKORulesFileWhenCheckThenReturnKO() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        InputStream stream =
+        final InputStream stream =
             Thread.currentThread().getContextClassLoader()
                 .getResourceAsStream("jeu_donnees_KO_regles_CSV_StringToNumber.csv");
         assertEquals(Status.PRECONDITION_FAILED, client.checkRulesFile(stream));
@@ -285,7 +285,7 @@ public class AdminManagementClientRestTest extends JerseyTest {
     @Test
     public void givenInputstreamOKRulesFileWhenImportThenReturnOK() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
-        InputStream stream =
+        final InputStream stream =
             Thread.currentThread().getContextClassLoader()
                 .getResourceAsStream("jeu_donnees_KO_regles_CSV_StringToNumber.csv");
         client.importRulesFile(stream);
@@ -302,8 +302,8 @@ public class AdminManagementClientRestTest extends JerseyTest {
     @Test(expected = FileRulesException.class)
     public void givenAnInvalidFileThenKO() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        Select select = new Select();
-        InputStream stream =
+        final Select select = new Select();
+        final InputStream stream =
             Thread.currentThread().getContextClassLoader()
                 .getResourceAsStream("jeu_donnees_KO_regles_CSV_Parameters.csv");
         client.importRulesFile(stream);
@@ -320,10 +320,10 @@ public class AdminManagementClientRestTest extends JerseyTest {
     public void givenIllegalArgumentThenthrowFilesRuleException()
         throws FileRulesException, InvalidParseOperationException, DatabaseConflictException {
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        InputStream stream =
+        final InputStream stream =
             Thread.currentThread().getContextClassLoader().getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         client.importRulesFile(stream);
-        JsonNode result = client.getRuleByID("APP-00001");
+        final JsonNode result = client.getRuleByID("APP-00001");
 
     }
 
@@ -337,10 +337,10 @@ public class AdminManagementClientRestTest extends JerseyTest {
     public void givenInvalidQuerythenReturnko()
         throws FileRulesException, InvalidParseOperationException, DatabaseConflictException {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
-        Select select = new Select();
-        InputStream stream =
+        final Select select = new Select();
+        final InputStream stream =
             Thread.currentThread().getContextClassLoader().getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         client.importRulesFile(stream);
-        JsonNode result = client.getRule(select.getFinalSelect());
+        final JsonNode result = client.getRule(select.getFinalSelect());
     }
 }

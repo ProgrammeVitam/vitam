@@ -33,7 +33,7 @@ import java.util.NoSuchElementException;
 
 /**
  * NodeIterable class
- * 
+ *
  * @param <Item>
  */
 // FIXME use standard class from Java (25 years of experience)
@@ -41,7 +41,7 @@ public class NodeIterable<Item> implements Iterable<Item> {
     private Node<Item> first;
     // number of elements
     private int n;
-    
+
     // FIXME missing a "clear" (memory pressure) or a default clear while getting next (help the GC)
 
     // helper linked list class
@@ -82,7 +82,7 @@ public class NodeIterable<Item> implements Iterable<Item> {
      * @param item the item to add to this bag
      */
     public void add(Item item) {
-        Node<Item> oldfirst = first;
+        final Node<Item> oldfirst = first;
         first = new Node<Item>();
         first.item = item;
         first.next = oldfirst;
@@ -95,6 +95,7 @@ public class NodeIterable<Item> implements Iterable<Item> {
      *
      * @return an iterator that iterates over the items in this bag in arbitrary order
      */
+    @Override
     public Iterator<Item> iterator() {
         return new ListIterator<Item>(first);
     }
@@ -104,7 +105,7 @@ public class NodeIterable<Item> implements Iterable<Item> {
         private Node<E> current;
 
         /**
-         * 
+         *
          * @param first
          */
         public ListIterator(Node<E> first) {
@@ -114,15 +115,17 @@ public class NodeIterable<Item> implements Iterable<Item> {
         /**
          * check if has next
          */
+        @Override
         public boolean hasNext() {
             return current != null;
         }
 
         /**
          * unsupported methods remove
-         * 
+         *
          * @throws UnsupportedOperationException
          */
+        @Override
         public void remove() {
             throw new UnsupportedOperationException();
         }
@@ -130,11 +133,12 @@ public class NodeIterable<Item> implements Iterable<Item> {
         /**
          * iterate if has next
          */
+        @Override
         public E next() {
             if (!hasNext()) {
                 throw new NoSuchElementException();
             }
-            E item = current.item;
+            final E item = current.item;
             current = current.next;
             return item;
         }

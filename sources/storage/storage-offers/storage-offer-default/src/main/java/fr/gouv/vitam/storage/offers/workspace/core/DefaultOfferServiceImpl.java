@@ -40,23 +40,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.io.ByteStreams;
 
-import fr.gouv.vitam.common.BaseXx;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.digest.Digest;
-import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
-import fr.gouv.vitam.workspace.api.ContentAddressableStorage;
-import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.workspace.api.model.ContainerInformation;
-import fr.gouv.vitam.workspace.core.filesystem.FileSystem;
-
 /**
  * Default offer service implementation
  */
@@ -69,15 +52,15 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     private final ContentAddressableStorage defaultStorage;
     private static final String STORAGE_CONF_FILE_NAME = "default-storage.conf";
 
-    private Map<String, DigestType> digestTypeFor;
-    private Map<String, String> objectTypeFor;
+    private final Map<String, DigestType> digestTypeFor;
+    private final Map<String, String> objectTypeFor;
 
     private DefaultOfferServiceImpl() {
         StorageConfiguration configuration;
         try {
             configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(STORAGE_CONF_FILE_NAME),
                 StorageConfiguration.class);
-        } catch (IOException exc) {
+        } catch (final IOException exc) {
             throw new ExceptionInInitializerError(exc);
         }
         defaultStorage = new FileSystem(configuration);
@@ -141,20 +124,20 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         if (!defaultStorage.isExistingFolder(containerName, objectTypeFor.get(objectId))) {
             throw new ContentAddressableStorageException("Container's folder does not exist");
         }
-        String path = TMP_DIRECTORY + objectId;
+        final String path = TMP_DIRECTORY + objectId;
         Digest messageDigest;
         try {
             messageDigest = new Digest(getDigestAlgoFor(objectId));
-        } catch (IllegalArgumentException exc) {
+        } catch (final IllegalArgumentException exc) {
             LOGGER.error("Wrong digest algorithm " + getDigestAlgoFor(objectId).getName());
             throw new ContentAddressableStorageException(exc);
         }
-        InputStream digestObjectPart = messageDigest.getDigestInputStream(objectPart);
+        final InputStream digestObjectPart = messageDigest.getDigestInputStream(objectPart);
         try (FileOutputStream fOut = new FileOutputStream(path, true)) {
             // FIXME très très mauvaise pratique (si le fichier fait 2 To => 2 To en mémoire)
             fOut.write(ByteStreams.toByteArray(digestObjectPart));
             fOut.flush();
-        } catch (IOException exc) {
+        } catch (final IOException exc) {
             LOGGER.error("Error on temporary file to transfert", exc);
             throw exc;
         }
@@ -168,15 +151,15 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
                 // do we validate the transfer before remove temp file ?
                 Files.deleteIfExists(Paths.get(path));
                 // TODO: to optimize (big file case) !
-                String digest = defaultStorage.computeObjectDigest(containerName,
+                final String digest = defaultStorage.computeObjectDigest(containerName,
                     objectTypeFor.get(objectId) + "/" + objectId, messageDigest.type());
                 // remove digest algo
                 digestTypeFor.remove(objectId);
                 return digest;
-            } catch (IOException exc) {
+            } catch (final IOException exc) {
                 LOGGER.error("Error on temporary file to transfert", exc);
                 throw exc;
-            } catch (ContentAddressableStorageException exc) {
+            } catch (final ContentAddressableStorageException exc) {
                 LOGGER.error("Error with storage service", exc);
                 throw exc;
             }
@@ -199,13 +182,13 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             // Devrait donc retourner une valeur du type NOT_EXIST
             try {
                 defaultStorage.createContainer(containerName);
-            } catch (ContentAddressableStorageAlreadyExistException e) {
+            } catch (final ContentAddressableStorageAlreadyExistException e) {
                 // Log it but it's not a problem
                 LOGGER.debug(e);
             }
         }
-        ObjectNode result = JsonHandler.createObjectNode();
-        ContainerInformation containerInformation = defaultStorage.getContainerInformation(containerName);
+        final ObjectNode result = JsonHandler.createObjectNode();
+        final ContainerInformation containerInformation = defaultStorage.getContainerInformation(containerName);
         result.put("usableSpace", containerInformation.getUsableSpace());
         result.put("usedSpace", containerInformation.getUsedSpace());
         result.put("tenantId", containerName);

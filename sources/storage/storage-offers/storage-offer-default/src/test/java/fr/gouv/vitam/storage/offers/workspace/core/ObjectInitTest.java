@@ -32,10 +32,6 @@ import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 
-import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
-
 /**
  * Object init test implementation
  */
@@ -43,7 +39,7 @@ public class ObjectInitTest {
 
     @Test
     public void objectInitTest() {
-        ObjectInit objectInit = new ObjectInit();
+        final ObjectInit objectInit = new ObjectInit();
         objectInit.setId("id");
         objectInit.setSize(1024);
         objectInit.setType(DataCategory.UNIT);

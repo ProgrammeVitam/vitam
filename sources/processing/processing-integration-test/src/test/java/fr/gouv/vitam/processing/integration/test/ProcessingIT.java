@@ -142,7 +142,7 @@ public class ProcessingIT {
             WorkerApplication.stop();
             ProcessManagementApplication.stop();
             MetaDataApplication.stop();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error(e);
         }
     }
@@ -155,7 +155,7 @@ public class ProcessingIT {
         CONFIG_WORKSPACE_PATH = PropertiesUtils.getResourcesPath("integration/workspace.conf").toString();
         CONFIG_PROCESSING_PATH = PropertiesUtils.getResourcesPath("integration/processing.conf").toString();
         CONFIG_SIEGFRIED_PATH = PropertiesUtils.getResourcesPath("integration/format-identifiers.json").toString();
-        Settings settings = Settings.settingsBuilder()
+        final Settings settings = Settings.settingsBuilder()
             .put("http.enabled", true)
             .put("discovery.zen.ping.multicast.enabled", false)
             .put("transport.tcp.port", TCP_PORT)
@@ -230,7 +230,7 @@ public class ProcessingIT {
         RestAssured.port = PORT_SERVICE_WORKSPACE;
         RestAssured.basePath = WORKSPACE_PATH;
 
-        InputStream zipInputStreamSipObject =
+        final InputStream zipInputStreamSipObject =
             Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_FILE_OK_NAME);
         workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
         workspaceClient.createContainer(CONTAINER_NAME);
@@ -240,26 +240,26 @@ public class ProcessingIT {
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
         processingClient = new ProcessingManagementClient(PROCESSING_URL);
-        String ret = processingClient.executeVitamProcess(CONTAINER_NAME, WORFKLOW_NAME);
+        final String ret = processingClient.executeVitamProcess(CONTAINER_NAME, WORFKLOW_NAME);
         assertNotNull(ret);
-        JsonNode node = JsonHandler.getFromString(ret);
+        final JsonNode node = JsonHandler.getFromString(ret);
         assertNotNull(node);
         assertEquals("OK", node.get("status").asText());
 
         // checkMonitoring - meaning something has been added in the monitoring tool
-        Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(node.get("processId").asText());
+        final Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(node.get("processId").asText());
         assertNotNull(map);
     }
 
     @Test
     public void testWorkflow_with_complexe_unit_seda() throws Exception {
-        String containerName = GUIDFactory.newManifestGUID(0).getId();
+        final String containerName = GUIDFactory.newManifestGUID(0).getId();
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
         RestAssured.basePath = WORKSPACE_PATH;
 
-        InputStream zipInputStreamSipObject =
+        final InputStream zipInputStreamSipObject =
             Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_ARBO_COMPLEXE_FILE_OK);
         workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
         workspaceClient.createContainer(containerName);
@@ -269,9 +269,9 @@ public class ProcessingIT {
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
         processingClient = new ProcessingManagementClient(PROCESSING_URL);
-        String ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+        final String ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
         assertNotNull(ret);
-        JsonNode node = JsonHandler.getFromString(ret);
+        final JsonNode node = JsonHandler.getFromString(ret);
         assertNotNull(node);
 
         assertEquals("OK", node.get("status").asText());
@@ -279,13 +279,13 @@ public class ProcessingIT {
 
     @Test(expected = ProcessingBadRequestException.class)
     public void testWorkflowWithSipNoManifest() throws Exception {
-        String containerName = GUIDFactory.newManifestGUID(0).getId();
+        final String containerName = GUIDFactory.newManifestGUID(0).getId();
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
         RestAssured.basePath = WORKSPACE_PATH;
 
-        InputStream zipInputStreamSipObject =
+        final InputStream zipInputStreamSipObject =
             Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_WITHOUT_MANIFEST);
         workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
         workspaceClient.createContainer(containerName);
@@ -300,13 +300,13 @@ public class ProcessingIT {
 
     @Test
     public void testWorkflowSipNoFormat() throws Exception {
-        String containerName = GUIDFactory.newManifestGUID(0).getId();
+        final String containerName = GUIDFactory.newManifestGUID(0).getId();
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
         RestAssured.basePath = WORKSPACE_PATH;
 
-        InputStream zipInputStreamSipObject =
+        final InputStream zipInputStreamSipObject =
             Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_NO_FORMAT);
         workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
         workspaceClient.createContainer(containerName);
@@ -316,27 +316,27 @@ public class ProcessingIT {
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
         processingClient = new ProcessingManagementClient(PROCESSING_URL);
-        String ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+        final String ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
         assertNotNull(ret);
-        JsonNode node = JsonHandler.getFromString(ret);
+        final JsonNode node = JsonHandler.getFromString(ret);
         assertNotNull(node);
         assertEquals("OK", node.get("status").asText());
 
         // checkMonitoring - meaning something has been added in the monitoring tool
-        Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(node.get("processId").asText());
+        final Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(node.get("processId").asText());
         assertNotNull(map);
     }
 
 
     @Test(expected = ProcessingBadRequestException.class)
     public void testWorkflowSipNoFormatNoTag() throws Exception {
-        String containerName = GUIDFactory.newManifestGUID(0).getId();
+        final String containerName = GUIDFactory.newManifestGUID(0).getId();
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
         RestAssured.basePath = WORKSPACE_PATH;
 
-        InputStream zipInputStreamSipObject =
+        final InputStream zipInputStreamSipObject =
             Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_NO_FORMAT_NO_TAG);
         workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
         workspaceClient.createContainer(containerName);
@@ -353,13 +353,13 @@ public class ProcessingIT {
 
     @Test(expected = ProcessingBadRequestException.class)
     public void testWorkflowWithManifestIncorrectObjectNumber() throws Exception {
-        String containerName = GUIDFactory.newManifestGUID(0).getId();
+        final String containerName = GUIDFactory.newManifestGUID(0).getId();
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
         RestAssured.basePath = WORKSPACE_PATH;
 
-        InputStream zipInputStreamSipObject =
+        final InputStream zipInputStreamSipObject =
             Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_NB_OBJ_INCORRECT_IN_MANIFEST);
         workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
         workspaceClient.createContainer(containerName);
@@ -375,13 +375,13 @@ public class ProcessingIT {
 
     @Test(expected = ProcessingBadRequestException.class)
     public void testWorkflowWithOrphelins() throws Exception {
-        String containerName = GUIDFactory.newManifestGUID(0).getId();
+        final String containerName = GUIDFactory.newManifestGUID(0).getId();
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
         RestAssured.basePath = WORKSPACE_PATH;
 
-        InputStream zipInputStreamSipObject =
+        final InputStream zipInputStreamSipObject =
             Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_ORPHELINS);
         workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
         workspaceClient.createContainer(containerName);
@@ -394,16 +394,16 @@ public class ProcessingIT {
         processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
     }
 
-    
+
     @Test
     public void testWorkflow_withoutObjectGroups() throws Exception {
-        String containerName = GUIDFactory.newManifestGUID(0).getId();
+        final String containerName = GUIDFactory.newManifestGUID(0).getId();
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
         RestAssured.basePath = WORKSPACE_PATH;
 
-        InputStream zipInputStreamSipObject =
+        final InputStream zipInputStreamSipObject =
             Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_OBJECT_SANS_GOT);
         workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
         workspaceClient.createContainer(containerName);
@@ -413,9 +413,9 @@ public class ProcessingIT {
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
         processingClient = new ProcessingManagementClient(PROCESSING_URL);
-        String ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+        final String ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
         assertNotNull(ret);
-        JsonNode node = JsonHandler.getFromString(ret);
+        final JsonNode node = JsonHandler.getFromString(ret);
         assertNotNull(node);
 
         assertEquals("OK", node.get("status").asText());

@@ -36,6 +36,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SingletonUtils;
+import fr.gouv.vitam.common.model.StatusCode;
 
 /**
  *
@@ -123,7 +124,7 @@ public class ProcessResponse implements EngineResponse {
         if (outcomeMessages == null) {
             outcomeMessages = new HashMap<String, OutcomeMessage>();
         }
-        this.outcomeMessages.put(handlerId, message);
+        outcomeMessages.put(handlerId, message);
         return this;
     }
 
@@ -185,24 +186,26 @@ public class ProcessResponse implements EngineResponse {
      * @return the global message
      */
     public static String getGlobalProcessOutcomeMessage(List<EngineResponse> responses) {
-        StringBuilder globalOutcomeMessage = new StringBuilder();
-        Map<String,Integer> histogramResponse = new LinkedHashMap<>();
+        final StringBuilder globalOutcomeMessage = new StringBuilder();
+        final Map<String, Integer> histogramResponse = new LinkedHashMap<>();
         if (responses != null) {
-            
-            int totalStepError = responses.stream().mapToInt(EngineResponse::getErrorNumber).sum();
+
+            final int totalStepError = responses.stream().mapToInt(EngineResponse::getErrorNumber).sum();
             for (final EngineResponse response : responses) {
                 for (final Entry<String, OutcomeMessage> entry : response.getOutcomeMessages().entrySet()) {
-                    String key = new StringBuilder(entry.getKey()).append(" ").append(response.getStatus()).toString();
-                    Integer nb = histogramResponse.get(key);
-                    if (nb == null){
+                    final String key =
+                        new StringBuilder(entry.getKey()).append(" ").append(response.getStatus()).toString();
+                    final Integer nb = histogramResponse.get(key);
+                    if (nb == null) {
                         histogramResponse.put(key, 1);
-                    }else{
-                        histogramResponse.put(key, nb+1);
+                    } else {
+                        histogramResponse.put(key, nb + 1);
                     }
                 }
             }
-            for (final Entry <String,Integer> histogramClass: histogramResponse.entrySet()){
-                globalOutcomeMessage.append(histogramClass.getKey()).append(" : ").append(histogramClass.getValue()).append("\n");
+            for (final Entry<String, Integer> histogramClass : histogramResponse.entrySet()) {
+                globalOutcomeMessage.append(histogramClass.getKey()).append(" : ").append(histogramClass.getValue())
+                    .append("\n");
             }
             if (totalStepError > 0) {
                 globalOutcomeMessage.append(". Nombre total d'erreurs : ").append(totalStepError);
@@ -213,14 +216,14 @@ public class ProcessResponse implements EngineResponse {
             globalOutcomeMessage.append("DefaultMessage");
         }
         return globalOutcomeMessage.toString();
-        
+
     }
 
 
 
     /**
      * getMessageFromResponse return message id from list of response
-     * 
+     *
      * @param responses list of step response
      * @return message id
      */

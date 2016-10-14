@@ -45,8 +45,8 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 /**
  * Class helper to manage specifics Vitam headers
  *
- * TODO: This is a copy of the api-design module header management. In another item we should refactor both to make
- * this http header management common vitam.
+ * TODO: This is a copy of the api-design module header management. In another item we should refactor both to make this
+ * http header management common vitam.
  */
 public final class HttpHeaderHelper {
 
@@ -96,7 +96,7 @@ public final class HttpHeaderHelper {
     public static boolean hasValuesFor(HttpHeaders headers, VitamHttpHeader vitamHeader) {
         ParametersChecker.checkParameter("Header name cannot be null", vitamHeader);
         ParametersChecker.checkParameter("Headers cannot be null", headers);
-        List<String> values = headers.getRequestHeader(vitamHeader.getName());
+        final List<String> values = headers.getRequestHeader(vitamHeader.getName());
         return values != null && !values.isEmpty();
     }
 
@@ -111,7 +111,7 @@ public final class HttpHeaderHelper {
      */
     public static void checkVitamHeaders(HttpHeaders headers) {
         ParametersChecker.checkParameter("Headers cannot be null", headers);
-        MultivaluedMap<String, String> requestHeaders = headers.getRequestHeaders();
+        final MultivaluedMap<String, String> requestHeaders = headers.getRequestHeaders();
         checkVitamHeadersMap(requestHeaders);
     }
 
@@ -126,8 +126,8 @@ public final class HttpHeaderHelper {
      */
     public static void checkVitamHeadersMap(MultivaluedMap<String, String> requestHeaders) {
         if (requestHeaders != null && !requestHeaders.isEmpty()) {
-            for (VitamHttpHeader vitamHttpHeader : VitamHttpHeader.values()) {
-                List<String> values = requestHeaders.get(vitamHttpHeader.getName());
+            for (final VitamHttpHeader vitamHttpHeader : VitamHttpHeader.values()) {
+                final List<String> values = requestHeaders.get(vitamHttpHeader.getName());
                 if (values != null && !values.stream()
                     .anyMatch(value -> value.matches(CASE_INSENSITIVE + vitamHttpHeader.getRegExp()))) {
                     throw new IllegalStateException(String.format("%s header has wrong value", vitamHttpHeader
@@ -155,14 +155,14 @@ public final class HttpHeaderHelper {
     public static void validateHeaderValue(HttpHeaders headers, MultivaluedHashMap<String, String> wantedHeaders) {
         ParametersChecker.checkParameter("Headers cannot be null", headers);
 
-        List<String> errorDetails = new ArrayList<>();
+        final List<String> errorDetails = new ArrayList<>();
 
-        for (String wantedHeaderName : wantedHeaders.keySet()) {
-            List<String> wantedValues = toLowerCaseList(wantedHeaders.get(wantedHeaderName));
-            VitamHttpHeader vitamHeader = VitamHttpHeader.get(wantedHeaderName);
-            List<String> headersValues = toLowerCaseList(headers.getRequestHeader(wantedHeaderName));
+        for (final String wantedHeaderName : wantedHeaders.keySet()) {
+            final List<String> wantedValues = toLowerCaseList(wantedHeaders.get(wantedHeaderName));
+            final VitamHttpHeader vitamHeader = VitamHttpHeader.get(wantedHeaderName);
+            final List<String> headersValues = toLowerCaseList(headers.getRequestHeader(wantedHeaderName));
             List<String> tmpHeadersValues;
-            List<String> tmpWantedValues = toLowerCaseList(wantedValues);
+            final List<String> tmpWantedValues = toLowerCaseList(wantedValues);
 
             if (headersValues.isEmpty()) {
                 errorDetails.add(String.format("Header %s values are null", wantedHeaderName));
@@ -197,6 +197,7 @@ public final class HttpHeaderHelper {
 
     /**
      * Transform string in input list to their lowercase value
+     * 
      * @param list a list of strings to be lowercase
      * @return a list of string containing all elements of the input list but each elements is in lowercase
      */
@@ -209,7 +210,7 @@ public final class HttpHeaderHelper {
 
     private static List<String> collectNonMatchingItems(VitamHttpHeader vitamHeader, List<String> valuesTocheck,
         String wantedHeaderName, String messageTemplate) {
-        List<String> result = new ArrayList<>();
+        final List<String> result = new ArrayList<>();
         if (vitamHeader != null && valuesTocheck != null) {
             result.addAll(valuesTocheck.stream()
                 .filter(headerValue -> !headerValue.matches(CASE_INSENSITIVE + vitamHeader.getRegExp()))

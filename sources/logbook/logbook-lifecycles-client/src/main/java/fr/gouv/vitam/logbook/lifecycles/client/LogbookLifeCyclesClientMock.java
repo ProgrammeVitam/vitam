@@ -51,7 +51,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 /**
  * LogbookLifeCyclesClient Mock implementation
  */
-class LogbookLifeCyclesClientMock implements LogbookLifeCycleClient {
+class LogbookLifeCyclesClientMock implements LogbookLifeCyclesClient {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookLifeCyclesClientMock.class);
     private static final ServerIdentity SERVER_IDENTITY = ServerIdentity.getInstance();

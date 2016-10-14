@@ -41,7 +41,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
+import org.mockito.Matchers;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -55,7 +55,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({WorkspaceClientFactory.class })
+@PrepareForTest({WorkspaceClientFactory.class})
 public class ExtractObjectNumSedaTest {
 
     @Rule
@@ -79,7 +79,7 @@ public class ExtractObjectNumSedaTest {
         throws FileNotFoundException, XMLStreamException, ProcessingException, Exception, Exception {
 
         when(client.getObject(anyObject(), anyObject())).thenReturn(seda);
-        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(client);
+        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(client);
         utils = SedaUtilsFactory.create();
 
         final ExtractUriResponse extractUriResponse = utils.getAllDigitalObjectUriFromManifest(params);

@@ -51,6 +51,16 @@ final class LogbackLogger extends AbstractVitamLogger {
     }
 
     @Override
+    public void setLevel(VitamLogLevel level) {
+        LogbackLoggerFactory.loggerSetLevel(logger, level);
+    }
+
+    @Override
+    public VitamLogLevel getLevel() {
+        return LogbackLoggerFactory.loggerGetLevel(logger);
+    }
+
+    @Override
     public void timeInfo(String msg) {
         if (logger.isInfoEnabled()) {
             logger.info(TIME_TRACE_PREFIX + getMessagePrepend() + msg);

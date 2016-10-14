@@ -66,9 +66,9 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
  * LogbookLifeCyclesClient REST implementation
  */
 /**
- * 
+ *
  */
-class LogbookLifeCyclesClientRest implements LogbookLifeCycleClient {
+class LogbookLifeCyclesClientRest implements LogbookLifeCyclesClient {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookLifeCyclesClientRest.class);
     private static final String RESOURCE_PATH = "/logbook/v1";
@@ -247,7 +247,7 @@ class LogbookLifeCyclesClientRest implements LogbookLifeCycleClient {
 
     /**
      * get status from response
-     * 
+     *
      * @param response
      * @return statusMessage
      */

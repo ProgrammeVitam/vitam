@@ -39,11 +39,11 @@ public interface IngestExternal {
     /**
      * upload the file -- store in local and then scan the virus <br>
      * TODO add the file name as param from a header
-     * 
+     *
      * @param input the file
-     * @return 
+     * @return
      * @throws IngestExternalException thrown if an error occured in worklofw
-     * @throws XMLStreamException 
+     * @throws XMLStreamException
      */
     Response upload(InputStream input) throws IngestExternalException, XMLStreamException;
 }

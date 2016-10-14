@@ -22,127 +22,129 @@ public class FormatIdentifierFactoryTest {
     public void testLoad() {
         FormatIdentifierFactory.getInstance().changeConfigurationFile("format-identifiers-factory-test.json");
         try {
-            FormatIdentifier test1 = FormatIdentifierFactory.getInstance().getFormatIdentifierFor("test-siegfried");
+            final FormatIdentifier test1 =
+                FormatIdentifierFactory.getInstance().getFormatIdentifierFor("test-siegfried");
             assertNotNull(test1);
             assertTrue(test1 instanceof FormatIdentifierSiegfried);
-        } catch (VitamException e3) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        }
-        
-        try {
-            FormatIdentifierFactory.getInstance().getFormatIdentifierFor("test1");
-            fail(SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (FormatIdentifierTechnicalException e) {
-            // Nothing
-        } catch (VitamException e3) {
+        } catch (final VitamException e3) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
 
         try {
-            FormatIdentifier testSiegfriedMock = FormatIdentifierFactory.getInstance().getFormatIdentifierFor("test-siegfried-mock");
-            assertNotNull(testSiegfriedMock);
-            assertTrue(testSiegfriedMock instanceof FormatIdentifierSiegfried);
-        } catch (VitamException e3) {
+            FormatIdentifierFactory.getInstance().getFormatIdentifierFor("test1");
+            fail(SHOULD_RAIZED_AN_EXCEPTION);
+        } catch (final FormatIdentifierTechnicalException e) {
+            // Nothing
+        } catch (final VitamException e3) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
-        
+
         try {
-            FormatIdentifier test2 = FormatIdentifierFactory.getInstance().getFormatIdentifierFor("test2");
+            final FormatIdentifier testSiegfriedMock =
+                FormatIdentifierFactory.getInstance().getFormatIdentifierFor("test-siegfried-mock");
+            assertNotNull(testSiegfriedMock);
+            assertTrue(testSiegfriedMock instanceof FormatIdentifierSiegfried);
+        } catch (final VitamException e3) {
+            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
+        }
+
+        try {
+            final FormatIdentifier test2 = FormatIdentifierFactory.getInstance().getFormatIdentifierFor("test2");
             assertNotNull(test2);
             assertTrue(test2 instanceof FormatIdentifierMock);
-        } catch (VitamException e2) {
+        } catch (final VitamException e2) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
         try {
             FormatIdentifierFactory.getInstance().addFormatIdentifier("test3", new FormatIdentifierConfiguration());
             fail(SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (IllegalArgumentException e1) {
+        } catch (final IllegalArgumentException e1) {
             // nothing
         }
 
-        FormatIdentifierConfiguration test3 = new FormatIdentifierConfiguration();
+        final FormatIdentifierConfiguration test3 = new FormatIdentifierConfiguration();
         test3.setType(FormatIdentifierType.MOCK);
         FormatIdentifierFactory.getInstance().addFormatIdentifier("test3", test3);
         try {
             FormatIdentifierFactory.getInstance().getFormatIdentifierFor("test3");
-        } catch (VitamException e) {
+        } catch (final VitamException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
 
         try {
             FormatIdentifierFactory.getInstance().addFormatIdentifier(null, null);
             fail(SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (IllegalArgumentException e1) {
+        } catch (final IllegalArgumentException e1) {
             // nothing
         }
 
         try {
             FormatIdentifierFactory.getInstance().removeFormatIdentifier(null);
             fail(SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (IllegalArgumentException e1) {
+        } catch (final IllegalArgumentException e1) {
             // nothing
-        } catch (FormatIdentifierNotFoundException e) {
+        } catch (final FormatIdentifierNotFoundException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
     }
 
     @Test
     public void testAddRemoveConfiguration() {
-        FormatIdentifierConfiguration test3 = new FormatIdentifierConfiguration();
+        final FormatIdentifierConfiguration test3 = new FormatIdentifierConfiguration();
         test3.setType(FormatIdentifierType.MOCK);
         FormatIdentifierFactory.getInstance().addFormatIdentifier("test3", test3);
         try {
             FormatIdentifierFactory.getInstance().getFormatIdentifierFor("test3");
-        } catch (VitamException e) {
+        } catch (final VitamException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
 
         try {
             FormatIdentifierFactory.getInstance().getFormatIdentifierFor(null);
             fail(SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (VitamException e) {
+        } catch (final VitamException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        } catch (IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             // nothing
         }
 
         try {
             FormatIdentifierFactory.getInstance().getFormatIdentifierFor("test4");
             fail(SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (FormatIdentifierFactoryException e) {
+        } catch (final FormatIdentifierFactoryException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        } catch (FormatIdentifierNotFoundException e) {
+        } catch (final FormatIdentifierNotFoundException e) {
             // nothing
-        } catch (FormatIdentifierTechnicalException e) {
+        } catch (final FormatIdentifierTechnicalException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
 
         try {
             FormatIdentifierFactory.getInstance().addFormatIdentifier(null, null);
             fail(SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (IllegalArgumentException e1) {
+        } catch (final IllegalArgumentException e1) {
             // nothing
         }
 
         try {
             FormatIdentifierFactory.getInstance().removeFormatIdentifier(null);
             fail(SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (FormatIdentifierNotFoundException e) {
+        } catch (final FormatIdentifierNotFoundException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        } catch (IllegalArgumentException e1) {
+        } catch (final IllegalArgumentException e1) {
             // nothing
         }
-        
+
         try {
             FormatIdentifierFactory.getInstance().removeFormatIdentifier("test3");
-        } catch (FormatIdentifierNotFoundException e) {
+        } catch (final FormatIdentifierNotFoundException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
-        
+
         try {
             FormatIdentifierFactory.getInstance().removeFormatIdentifier("test4");
             fail(SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (FormatIdentifierNotFoundException e) {
+        } catch (final FormatIdentifierNotFoundException e) {
             // Nothing
         }
     }

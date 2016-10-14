@@ -52,7 +52,7 @@ public class PutObjectResultTest {
     public void testGetDigestHashBase16() {
         assertEquals("dhb16", putObjectResult.getDigestHashBase16());
     }
-    
+
     @Test
     public void testGetTenantId() {
         assertEquals("ti", putObjectResult.getTenantId());

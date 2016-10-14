@@ -73,7 +73,7 @@ public class WorkerFamilyProcessingManagementClientTest extends JerseyTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
         url = "http://localhost:" + port;
         client = new ProcessingManagementClient(url);
@@ -157,7 +157,7 @@ public class WorkerFamilyProcessingManagementClientTest extends JerseyTest {
     }
 
     private WorkerBean getDefaultWorkerBean() throws Exception {
-        String json_worker =
+        final String json_worker =
             "{ \"name\" : \"workername\", \"family\" : \"familyname\", \"capacity\" : 10, \"storage\" : 100," +
                 "\"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"89102\" } }";
         return JsonHandler.getFromString(json_worker, WorkerBean.class);

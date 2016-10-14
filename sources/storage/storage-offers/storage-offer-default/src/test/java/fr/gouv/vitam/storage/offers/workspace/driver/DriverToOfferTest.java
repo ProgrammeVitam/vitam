@@ -45,24 +45,8 @@ import org.junit.Test;
 
 import com.jayway.restassured.RestAssured;
 
-import fr.gouv.vitam.common.BaseXx;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.storage.driver.Connection;
-import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
-import fr.gouv.vitam.storage.driver.model.GetObjectRequest;
-import fr.gouv.vitam.storage.driver.model.PutObjectRequest;
-import fr.gouv.vitam.storage.driver.model.PutObjectResult;
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.offers.workspace.rest.DefaultOfferApplication;
 import fr.gouv.vitam.storage.offers.workspace.rest.DefaultOfferConfiguration;
-import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
 
 /**
  * Integration driver offer tests
@@ -93,7 +77,7 @@ public class DriverToOfferTest {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
 
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         serverPort = 8784;
 
         RestAssured.port = serverPort;
@@ -108,7 +92,7 @@ public class DriverToOfferTest {
         try {
             DefaultOfferApplication.startApplication(new String[] {
                 workspaceOffer.getAbsolutePath()});
-        } catch (VitamApplicationServerException e) {
+        } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
             throw new IllegalStateException(
                 "Cannot start the Default Offer Application Server", e);
@@ -127,11 +111,11 @@ public class DriverToOfferTest {
 
         DefaultOfferApplication.stop();
         // delete files
-        StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
             StorageConfiguration.class);
-        File container = new File(conf.getStoragePath() + "/1");
-        File folder = new File(container.getAbsolutePath(), DataCategory.UNIT.getFolder());
-        File object = new File(folder.getAbsolutePath(), guid);
+        final File container = new File(conf.getStoragePath() + "/1");
+        final File folder = new File(container.getAbsolutePath(), DataCategory.UNIT.getFolder());
+        final File object = new File(folder.getAbsolutePath(), guid);
         Files.deleteIfExists(object.toPath());
         Files.deleteIfExists(folder.toPath());
         Files.deleteIfExists(container.toPath());
@@ -145,22 +129,23 @@ public class DriverToOfferTest {
         PutObjectRequest request = null;
         guid = GUIDFactory.newObjectGUID(1).toString();
         try (FileInputStream fin = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
-            MessageDigest messageDigest = MessageDigest.getInstance(DigestType.SHA256.getName());
+            final MessageDigest messageDigest = MessageDigest.getInstance(DigestType.SHA256.getName());
             try (DigestInputStream digestInputStream = new DigestInputStream(fin, messageDigest)) {
                 request = new PutObjectRequest("1", DigestType.SHA256.getName(), guid, digestInputStream,
                     DataCategory.UNIT.name());
-                PutObjectResult result = connection.putObject(request);
+                final PutObjectResult result = connection.putObject(request);
                 assertNotNull(result);
 
-                StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-                    StorageConfiguration.class);
-                File container = new File(conf.getStoragePath() + "/1");
+                final StorageConfiguration conf =
+                    PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+                        StorageConfiguration.class);
+                final File container = new File(conf.getStoragePath() + "/1");
                 assertNotNull(container);
-                File object = new File(container.getAbsolutePath(), DataCategory.UNIT.getFolder() + "/" + guid);
+                final File object = new File(container.getAbsolutePath(), DataCategory.UNIT.getFolder() + "/" + guid);
                 assertNotNull(object);
                 assertTrue(com.google.common.io.Files.equal(PropertiesUtils.findFile(ARCHIVE_FILE_TXT), object));
 
-                String digestToCheck = result.getDigestHashBase16();
+                final String digestToCheck = result.getDigestHashBase16();
                 assertNotNull(digestToCheck);
                 assertEquals(digestToCheck, BaseXx.getBase16(messageDigest.digest()));
             }
@@ -170,11 +155,11 @@ public class DriverToOfferTest {
             request = new PutObjectRequest(null, DigestType.SHA256.getName(), guid, fin, DataCategory.UNIT.name());
             connection.putObject(request);
             fail("Should have an exception !");
-        } catch (StorageDriverException exc) {
+        } catch (final StorageDriverException exc) {
             // Nothing, missing tenant parameter
         }
 
-        GetObjectRequest getRequest = new GetObjectRequest("1", guid, DataCategory.UNIT.getFolder());
+        final GetObjectRequest getRequest = new GetObjectRequest("1", guid, DataCategory.UNIT.getFolder());
         connection.getObject(getRequest);
     }
 }

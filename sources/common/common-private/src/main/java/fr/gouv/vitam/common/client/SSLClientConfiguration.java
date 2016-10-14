@@ -44,7 +44,7 @@ public class SSLClientConfiguration extends ClientConfigurationImpl {
 
     /**
      * Construct a configuration with all parameters at once
-     * 
+     *
      * @param serverHost the server hostname
      * @param serverPort the server port
      * @param useSSL whether to use https or not
@@ -58,7 +58,7 @@ public class SSLClientConfiguration extends ClientConfigurationImpl {
 
     /**
      * Get the useSSL property
-     * 
+     *
      * @return the value of the useSSL property
      */
     public boolean getUseSSL() {
@@ -67,7 +67,7 @@ public class SSLClientConfiguration extends ClientConfigurationImpl {
 
     /**
      * Set the useSSL property
-     * 
+     *
      * @param useSSL the new value
      */
     public void setUseSSL(boolean useSSL) {
@@ -76,7 +76,7 @@ public class SSLClientConfiguration extends ClientConfigurationImpl {
 
     /**
      * Get the serverContextPath property
-     * 
+     *
      * @return the value of the serverContextPath property
      */
     public String getServerContextPath() {
@@ -85,7 +85,7 @@ public class SSLClientConfiguration extends ClientConfigurationImpl {
 
     /**
      * Set the serverContextPath property
-     * 
+     *
      * @param serverContextPath the new value
      */
     public void setServerContextPath(String serverContextPath) {

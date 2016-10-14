@@ -26,12 +26,15 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.common.utils;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
@@ -61,7 +64,15 @@ public class ProcessPopulator {
         ParametersChecker.checkParameter("workflowId is a mandatory parameter", workflowId);
         final ObjectMapper objectMapper = new ObjectMapper();
         WorkFlow process = null;
-
+        final File file = PropertiesUtils.fileFromConfigFolder(workflowId + ".json");
+        if (file.canRead()) {
+            try (final InputStream inputJSON = new FileInputStream(file)) {
+                return objectMapper.readValue(inputJSON, WorkFlow.class);
+            } catch (final IOException e) {
+                LOGGER.error("IOException thrown by populator", e);
+                // Ignore and continue
+            }
+        }
         try {
             final InputStream inputJSON = getFileAsInputStream(workflowId + ".json");
             process = objectMapper.readValue(inputJSON, WorkFlow.class);

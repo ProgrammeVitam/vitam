@@ -63,9 +63,9 @@ public class GlobalDataRest {
      * The X_STRATEGY_ID header, used in requests to use a particular strategy
      */
     public static final String X_STRATEGY_ID = "X-Strategy-Id";
-    
+
     private GlobalDataRest() {
         // empty
     }
-    
+
 }

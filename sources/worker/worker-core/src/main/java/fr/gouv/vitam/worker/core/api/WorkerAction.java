@@ -48,7 +48,7 @@ public interface WorkerAction {
      * @throws ProcessingException if an error is encountered when executing the action
      */
     EngineResponse execute(WorkerParameters param, HandlerIO handler) throws ProcessingException;
-    
+
     /**
      * @param handler input output list
      * @throws ProcessingException when handler io is not complete

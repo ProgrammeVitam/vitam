@@ -39,5 +39,5 @@ public class SedaUtilsFactory {
 
     private SedaUtilsFactory() {
         // Empty constructor
-      }
+    }
 }

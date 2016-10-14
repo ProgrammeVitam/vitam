@@ -50,7 +50,7 @@ public final class WorkerConfiguration {
 
     /**
      * getter jettyConfig
-     * 
+     *
      * @return the jettyConfig
      */
     public String getJettyConfig() {
@@ -59,7 +59,7 @@ public final class WorkerConfiguration {
 
     /**
      * The jettyConfig setter
-     * 
+     *
      * @param jettyConfig the jetty config
      * @return the updated WorkerConfiguration object
      */
@@ -70,7 +70,7 @@ public final class WorkerConfiguration {
 
     /**
      * Get the processingUrl
-     * 
+     *
      * @return processingUrl
      */
     public String getProcessingUrl() {
@@ -79,7 +79,7 @@ public final class WorkerConfiguration {
 
     /**
      * The processingUrl setter
-     * 
+     *
      * @param processingUrl the processingUrl
      * @return the updated WorkerConfiguration object
      */
@@ -90,7 +90,7 @@ public final class WorkerConfiguration {
 
     /**
      * Get the urlMetada
-     * 
+     *
      * @return urlMetada
      */
     public String getUrlMetada() {
@@ -99,7 +99,7 @@ public final class WorkerConfiguration {
 
     /**
      * The urlMetada setter
-     * 
+     *
      * @param urlMetada the urlMetada
      * @return the updated WorkerConfiguration object
      */
@@ -110,7 +110,7 @@ public final class WorkerConfiguration {
 
     /**
      * Get the urlWorkspace
-     * 
+     *
      * @return urlWorkspace
      */
     public String getUrlWorkspace() {
@@ -119,7 +119,7 @@ public final class WorkerConfiguration {
 
     /**
      * The urlWorkspace setter
-     * 
+     *
      * @param urlWorkspace the urlWorkspace
      * @return the updated WorkerConfiguration object
      */
@@ -130,7 +130,7 @@ public final class WorkerConfiguration {
 
     /**
      * Get the registerServerHost
-     * 
+     *
      * @return registerServerHost
      */
     public String getRegisterServerHost() {
@@ -139,7 +139,7 @@ public final class WorkerConfiguration {
 
     /**
      * The registerServerHost setter
-     * 
+     *
      * @param registerServerHost the registerServerHost
      * @return the updated WorkerConfiguration object
      */
@@ -150,7 +150,7 @@ public final class WorkerConfiguration {
 
     /**
      * Get the registerServerPort
-     * 
+     *
      * @return registerServerPort
      */
     public int getRegisterServerPort() {
@@ -159,7 +159,7 @@ public final class WorkerConfiguration {
 
     /**
      * The registerServerPort setter
-     * 
+     *
      * @param registerServerPort the registerServerPort
      * @return the updated WorkerConfiguration object
      */
@@ -170,7 +170,7 @@ public final class WorkerConfiguration {
 
     /**
      * Get the registerDelay
-     * 
+     *
      * @return registerDelay
      */
     public long getRegisterDelay() {
@@ -179,7 +179,7 @@ public final class WorkerConfiguration {
 
     /**
      * The registerDelay setter
-     * 
+     *
      * @param registerDelay the registerDelay
      * @return the updated WorkerConfiguration object
      */
@@ -190,7 +190,7 @@ public final class WorkerConfiguration {
 
     /**
      * Get the registerRetry
-     * 
+     *
      * @return registerRetry
      */
     public int getRegisterRetry() {
@@ -199,7 +199,7 @@ public final class WorkerConfiguration {
 
     /**
      * The registerRetry setter
-     * 
+     *
      * @param registerRetry the registerRetry
      * @return the updated WorkerConfiguration object
      */

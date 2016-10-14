@@ -249,12 +249,12 @@ public enum OutcomeMessage {
      * ART KO : fail message
      */
     ATR_KO("Erreur de Notification ATR"),
-    
+
     /**
      * ART OK : succes message
      */
     ATR_OK("Notification envoyée");
-        
+
     private String value;
 
     private OutcomeMessage(String value) {

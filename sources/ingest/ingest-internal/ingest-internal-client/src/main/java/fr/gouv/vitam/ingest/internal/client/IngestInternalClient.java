@@ -34,7 +34,6 @@ import javax.ws.rs.core.Response;
 import javax.xml.stream.XMLStreamException;
 
 import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.ingest.internal.model.UploadResponseDTO;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 
 /**
@@ -42,25 +41,26 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
  */
 
 public interface IngestInternalClient {
-	
-	
-	/**
+
+
+    /**
      * Get the status from the service
      *
      * @return http code
      */
     int status();
 
-	/**
+    /**
      * Upload SIP
      *
      * @param InputStream SIP
      * @param fileName SIP name
      *
      * @return content of xml in type String
-	 * @throws XMLStreamException 
+     * @throws XMLStreamException
      */
-    Response upload(List<LogbookParameters> logbookParametersList, InputStream inputStream) throws VitamException, XMLStreamException;
-    
+    Response upload(List<LogbookParameters> logbookParametersList, InputStream inputStream)
+        throws VitamException, XMLStreamException;
+
 
 }

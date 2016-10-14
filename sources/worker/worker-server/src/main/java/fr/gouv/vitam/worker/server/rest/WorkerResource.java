@@ -49,9 +49,9 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.VitamError;
 import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
 import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
-import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
@@ -68,7 +68,7 @@ public class WorkerResource extends ApplicationStatusResource {
 
     private static final String WORKER_MODULE = "WORKER";
     private static final String CODE_VITAM = "code_vitam";
-    private Worker worker;
+    private final Worker worker;
 
     /**
      * Constructor
@@ -78,7 +78,7 @@ public class WorkerResource extends ApplicationStatusResource {
     public WorkerResource(WorkerConfiguration configuration) {
         super(new BasicVitamStatusServiceImpl());
         LOGGER.info("init Worker Resource server");
-        this.worker = WorkerImplFactory.create();
+        worker = WorkerImplFactory.create();
     }
 
 
@@ -123,19 +123,20 @@ public class WorkerResource extends ApplicationStatusResource {
         try {
             ParametersChecker.checkParameter("Must have a step description", descriptionStep);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(descriptionStep));
-            List<EngineResponse> responses = worker.run(descriptionStep.getWorkParams(), descriptionStep.getStep());
+            final List<EngineResponse> responses =
+                worker.run(descriptionStep.getWorkParams(), descriptionStep.getStep());
             return Response.status(Status.OK).entity(responses).build();
-        } catch (InvalidParseOperationException exc) {
+        } catch (final InvalidParseOperationException exc) {
             LOGGER.error(exc);
             return Response.status(Status.PRECONDITION_FAILED).entity(getErrorEntity(Status.PRECONDITION_FAILED))
                 .build();
-        } catch (IllegalArgumentException exc) {
+        } catch (final IllegalArgumentException exc) {
             LOGGER.error(exc);
             return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST)).build();
-        } catch (HandlerNotFoundException exc) {
+        } catch (final HandlerNotFoundException exc) {
             LOGGER.error(exc);
             return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST)).build();
-        } catch (ProcessingException exc) {
+        } catch (final ProcessingException exc) {
             LOGGER.error(exc);
             return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST)).build();
         }
@@ -157,7 +158,7 @@ public class WorkerResource extends ApplicationStatusResource {
 
     /**
      * Modifying a step (pausing, resuming, prioritizing)
-     * 
+     *
      * @param idAsync the id of the Async
      * @return Response containing the status of the step
      */

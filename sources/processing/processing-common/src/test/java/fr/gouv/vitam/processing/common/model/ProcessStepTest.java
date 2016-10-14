@@ -30,21 +30,23 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
+import fr.gouv.vitam.common.model.StatusCode;
+
 public class ProcessStepTest {
     @Test
     public void testConstructor() {
-        assertEquals(0, new ProcessStep().getElementProcessed());        
+        assertEquals(0, new ProcessStep().getElementProcessed());
         assertEquals(0, new ProcessStep().getElementToProcess());
         assertEquals(10, new ProcessStep().setElementToProcess(10).getElementToProcess());
         assertEquals(1, new ProcessStep().setElementProcessed(1).getElementProcessed());
         assertEquals(StatusCode.OK, new ProcessStep().setStepStatusCode(StatusCode.OK).getStepStatusCode());
-        Step step = new Step();
+        final Step step = new Step();
         assertEquals(1, new ProcessStep(step, 1, 0).getElementToProcess());
-        assertEquals(1, new ProcessStep(step, 1, 1).getElementProcessed());        
+        assertEquals(1, new ProcessStep(step, 1, 1).getElementProcessed());
     }
-    
+
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorException() {
-        new ProcessStep(null, 1, 0);               
+        new ProcessStep(null, 1, 0);
     }
 }

@@ -41,14 +41,14 @@ import org.junit.Test;
  * Test class for StorageLogbookParameters
  */
 public class StorageLogbookParametersTest {
-    private static final StorageLogbookOutcome OK_STATUS = StorageLogbookOutcome.OK;
-    private static final StorageLogbookOutcome KO_STATUS = StorageLogbookOutcome.KO;
+    private static final StorageLogbookOutcome OK_STATUS = StorageStatusCode.OK;
+    private static final StorageLogbookOutcome KO_STATUS = StorageStatusCode.KO;
     private static final String DATE = "2016-07-29T11:56:35.914";
 
     @Test
     public void getParametersTest() {
-        StorageLogbookParameters parameters = getParameters();
-        Map<StorageLogbookParameterName, String> mapParameters = parameters.getMapParameters();
+        final StorageLogbookParameters parameters = getParameters();
+        final Map<StorageLogbookParameterName, String> mapParameters = parameters.getMapParameters();
         assertNull(mapParameters.get(StorageLogbookParameterName.outcomeDetailMessage));
         assertNull(mapParameters.get(StorageLogbookParameterName.objectIdentifierIncome));
 
@@ -61,16 +61,16 @@ public class StorageLogbookParametersTest {
         assertEquals(mapParameters.get(StorageLogbookParameterName.objectIdentifierIncome), "objectIdentifierIncome");
         assertEquals(parameters.checkMandatoryParameters(), true);
 
-        LocalDateTime eventDate = parameters.getEventDateTime();
+        final LocalDateTime eventDate = parameters.getEventDateTime();
         assertEquals(LocalDateTime.parse(DATE), eventDate);
 
-        StorageLogbookOutcome statusOutcom = parameters.getStatus();
+        final StorageLogbookOutcome statusOutcom = parameters.getStatus();
         assertEquals(OK_STATUS, statusOutcom);
     }
 
     @Test
     public void updateStatusTest() {
-        StorageLogbookParameters parameters = getParameters();
+        final StorageLogbookParameters parameters = getParameters();
 
         StorageLogbookOutcome statusOutcom = parameters.getStatus();
         assertEquals(OK_STATUS, statusOutcom);
@@ -82,7 +82,7 @@ public class StorageLogbookParametersTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void getEmptyParametersTest() {
-        StorageLogbookParameters parameters = getEmptyParameters();
+        final StorageLogbookParameters parameters = getEmptyParameters();
         parameters.checkMandatoryParameters();
     }
 
@@ -92,7 +92,7 @@ public class StorageLogbookParametersTest {
     }
 
     private StorageLogbookParameters getParameters() {
-        Map<StorageLogbookParameterName, String> parameters = new TreeMap<>();
+        final Map<StorageLogbookParameterName, String> parameters = new TreeMap<>();
 
         parameters.put(StorageLogbookParameterName.objectIdentifier, "aeaaaaaaaaaam7mxaaaamakv36y6m3yaaaaq");
         parameters.put(StorageLogbookParameterName.objectGroupIdentifier, "aeaaaaaaaaaam7mxaaaamakv36y6m3yaaaaq");

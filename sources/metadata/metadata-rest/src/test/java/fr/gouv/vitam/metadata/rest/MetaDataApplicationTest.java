@@ -26,17 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.rest;
 
-import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodProcess;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
-import de.flapdoodle.embed.mongo.config.Net;
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.process.runtime.Network;
-import fr.gouv.vitam.api.config.MetaDataConfiguration;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.junit.JunitHelper;
+import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
+
+import java.io.File;
+
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.node.Node;
 import org.junit.AfterClass;
@@ -45,9 +38,17 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.io.File;
-
-import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
+import de.flapdoodle.embed.mongo.MongodExecutable;
+import de.flapdoodle.embed.mongo.MongodProcess;
+import de.flapdoodle.embed.mongo.MongodStarter;
+import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
+import de.flapdoodle.embed.mongo.config.Net;
+import de.flapdoodle.embed.mongo.distribution.Version;
+import de.flapdoodle.embed.process.runtime.Network;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 
 public class MetaDataApplicationTest {
     private static final String METADATA_CONF = "metadata.conf";
@@ -68,14 +69,14 @@ public class MetaDataApplicationTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
 
         // ES
         TCP_PORT = junitHelper.findAvailablePort();
         HTTP_PORT = junitHelper.findAvailablePort();
 
         elasticsearchHome = tempFolder.newFolder();
-        Settings settings = Settings.settingsBuilder()
+        final Settings settings = Settings.settingsBuilder()
             .put("http.enabled", true)
             .put("discovery.zen.ping.multicast.enabled", false)
             .put("transport.tcp.port", TCP_PORT)
@@ -127,42 +128,42 @@ public class MetaDataApplicationTest {
 
     @Test
     public void givenFileExistsWhenConfigureApplicationThenRunServer() throws Exception {
-        File conf = PropertiesUtils.findFile(METADATA_CONF);
-        MetaDataConfiguration config = PropertiesUtils.readYaml(conf, MetaDataConfiguration.class);
+        final File conf = PropertiesUtils.findFile(METADATA_CONF);
+        final MetaDataConfiguration config = PropertiesUtils.readYaml(conf, MetaDataConfiguration.class);
         config.setPort(port);
         config.getElasticsearchNodes().get(0).setTcpPort(TCP_PORT);
-        File newConf = File.createTempFile("test", METADATA_CONF, conf.getParentFile());
+        final File newConf = File.createTempFile("test", METADATA_CONF, conf.getParentFile());
         PropertiesUtils.writeYaml(newConf, config);
-        int serverPort = junitHelper.findAvailablePort();
+        final int serverPort = junitHelper.findAvailablePort();
         application.configure(newConf.getAbsolutePath());
         newConf.delete();
         junitHelper.releasePort(serverPort);
-        application.stop();
+        MetaDataApplication.stop();
     }
 
     @Test
     public void givenConfigFileWhenConfigureApplicationThenRunServer() throws Exception {
-        File conf = PropertiesUtils.findFile(METADATA_CONF);
-        MetaDataConfiguration config = PropertiesUtils.readYaml(conf, MetaDataConfiguration.class);
+        final File conf = PropertiesUtils.findFile(METADATA_CONF);
+        final MetaDataConfiguration config = PropertiesUtils.readYaml(conf, MetaDataConfiguration.class);
         config.setPort(port);
         config.getElasticsearchNodes().get(0).setTcpPort(TCP_PORT);
-        File newConf = File.createTempFile("test", METADATA_CONF, conf.getParentFile());
+        final File newConf = File.createTempFile("test", METADATA_CONF, conf.getParentFile());
         PropertiesUtils.writeYaml(newConf, config);
         application.configure(newConf.getAbsolutePath());
         newConf.delete();
-        application.stop();
+        MetaDataApplication.stop();
     }
 
     @Test
     public void givenPortNegativeWhenConfigureApplicationThenUseDefaultPortToRunServer() throws Exception {
-        File conf = PropertiesUtils.findFile(METADATA_CONF);
-        MetaDataConfiguration config = PropertiesUtils.readYaml(conf, MetaDataConfiguration.class);
+        final File conf = PropertiesUtils.findFile(METADATA_CONF);
+        final MetaDataConfiguration config = PropertiesUtils.readYaml(conf, MetaDataConfiguration.class);
         config.setPort(port);
         config.getElasticsearchNodes().get(0).setTcpPort(TCP_PORT);
-        File newConf = File.createTempFile("test", METADATA_CONF, conf.getParentFile());
+        final File newConf = File.createTempFile("test", METADATA_CONF, conf.getParentFile());
         PropertiesUtils.writeYaml(newConf, config);
         application.configure(newConf.getAbsolutePath());
         newConf.delete();
-        application.stop();
+        MetaDataApplication.stop();
     }
 }

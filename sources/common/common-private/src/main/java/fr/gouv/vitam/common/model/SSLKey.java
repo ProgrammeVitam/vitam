@@ -29,14 +29,14 @@ package fr.gouv.vitam.common.model;
 import fr.gouv.vitam.common.ParametersChecker;
 
 /**
- *  SSL Key
+ * SSL Key
  */
 public class SSLKey {
-    
+
     private static final String PARAMETERS = "SSLKey parameters";
     private String keyPath;
     private String keyPassword;
-    
+
     /**
      * Empty constructor
      */
@@ -51,7 +51,7 @@ public class SSLKey {
      */
     public SSLKey(String keyPath, String keyPassword) {
         ParametersChecker.checkParameter(PARAMETERS, keyPath, keyPassword);
-        
+
         this.keyPath = keyPath;
         this.keyPassword = keyPassword;
     }
@@ -92,7 +92,6 @@ public class SSLKey {
         return this;
     }
 
-    
-    
-    
+
+
 }

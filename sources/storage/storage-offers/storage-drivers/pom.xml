@@ -12,6 +12,6 @@
 
 	<packaging>pom</packaging>
 	<modules>
-		<module>default-driver</module>
+		<module>storage-default-driver</module>
 	</modules>
 </project>

@@ -36,7 +36,7 @@ public class StorageExceptionTest {
 
     private static final String MESSAGE = "message";
     private static final Exception exception = new Exception();
-    
+
     @Test
     public final void testStorageExceptionThrowable() {
         assertNotNull(new StorageException((String) null));
@@ -45,7 +45,7 @@ public class StorageExceptionTest {
         assertNotNull(new StorageException(MESSAGE, exception));
         assertNotNull(new StorageException(MESSAGE, exception, true, true));
     }
-    
+
     @Test
     public final void testStorageAlreadyExistsExceptionThrowable() {
         assertNotNull(new StorageAlreadyExistsException((String) null));
@@ -54,7 +54,7 @@ public class StorageExceptionTest {
         assertNotNull(new StorageAlreadyExistsException(MESSAGE, exception));
         assertNotNull(new StorageAlreadyExistsException(MESSAGE, exception, true, true));
     }
-    
+
     @Test
     public final void testStorageNotFoundExceptionThrowable() {
         assertNotNull(new StorageNotFoundException((String) null));

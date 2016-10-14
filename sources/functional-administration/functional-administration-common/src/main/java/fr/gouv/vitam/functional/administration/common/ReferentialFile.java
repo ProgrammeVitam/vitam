@@ -41,14 +41,14 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 
 /**
  * ReferentialFile<E>
- * 
+ *
  */
 public interface ReferentialFile<E> {
 
 
     /**
      * importFile : import reference file to database
-     * 
+     *
      * @param file as InputStream
      * @throws ReferentialException when there is error of import
      * @throws DatabaseConflictException when there is a database conflict
@@ -80,7 +80,7 @@ public interface ReferentialFile<E> {
 
     /**
      * checkFile : check if file is OK
-     * 
+     *
      * @param file as InputStream
      * @throws ReferentialException when there is errors import
      * @throws IOException when there is IO Exception

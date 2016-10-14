@@ -77,7 +77,7 @@ public final class JsonTransformer {
 
     /**
      * This method transforms ResultObjects so thr IHM could display results
-     * 
+     *
      * @param searchResult the Json to be transformed
      * @return the transformed JsonNode
      */
@@ -85,18 +85,18 @@ public final class JsonTransformer {
         ParametersChecker.checkParameter("Result cannot be empty", searchResult);
         final ObjectNode resultNode = JsonHandler.createObjectNode();
         long nbObjects = 0;
-        JsonNode result = searchResult.get("$result").get(0);
-        JsonNode qualifiers = result.get("_qualifiers");
-        List<JsonNode> versions = qualifiers.findValues("versions");
-        Map<String, Integer> usages = new HashMap<>();
+        final JsonNode result = searchResult.get("$result").get(0);
+        final JsonNode qualifiers = result.get("_qualifiers");
+        final List<JsonNode> versions = qualifiers.findValues("versions");
+        final Map<String, Integer> usages = new HashMap<>();
         final ArrayNode arrayNode = JsonHandler.createArrayNode();
-        for (JsonNode version : versions) {
-            for (JsonNode object : version) {
-                ObjectNode objectNode = JsonHandler.createObjectNode();
+        for (final JsonNode version : versions) {
+            for (final JsonNode object : version) {
+                final ObjectNode objectNode = JsonHandler.createObjectNode();
                 objectNode.put("_id", object.get("_id").asText());
-                String usage = object.get("DataObjectVersion").asText();
+                final String usage = object.get("DataObjectVersion").asText();
                 if (usages.containsKey(usage)) {
-                    Integer rank = usages.get(usage) + 1;
+                    final Integer rank = usages.get(usage) + 1;
                     objectNode.put("Rank", rank);
                 } else {
                     usages.put(usage, 0);
@@ -125,7 +125,7 @@ public final class JsonTransformer {
 
     /**
      * This method builds an ObjectNode based on a list of JsonNode object
-     * 
+     *
      * @param allParents list of JsonNode Objects used to build the referential
      * @return An ObjectNode where the key is the identifier and the value is the parent details (Title, Id, _up)
      * @throws VitamException
@@ -135,8 +135,8 @@ public final class JsonTransformer {
 
         boolean hasUnitId = false;
 
-        ObjectNode allParentsRef = JsonHandler.createObjectNode();
-        for (JsonNode currentParentNode : allParents) {
+        final ObjectNode allParentsRef = JsonHandler.createObjectNode();
+        for (final JsonNode currentParentNode : allParents) {
             if (!currentParentNode.has(UiConstants.ID.getResultConstantValue())) {
                 throw new VitamException(MISSING_ID_ERROR_MSG);
             }
@@ -149,7 +149,7 @@ public final class JsonTransformer {
                 throw new VitamException(INVALID_UP_FIELD_ERROR_MSG);
             }
 
-            String currentParentId = currentParentNode.get(UiConstants.ID.getResultConstantValue()).asText();
+            final String currentParentId = currentParentNode.get(UiConstants.ID.getResultConstantValue()).asText();
             allParentsRef.set(currentParentId, currentParentNode);
 
             if (unitId.equalsIgnoreCase(currentParentId)) {
@@ -163,10 +163,10 @@ public final class JsonTransformer {
 
         return allParentsRef;
     }
-    
+
     /**
      * Generates execution time by step relative to a logbook operation
-     * 
+     *
      * @param logbookOperation
      * @return CSV report
      * @throws VitamException
@@ -176,36 +176,36 @@ public final class JsonTransformer {
     @SuppressWarnings("unchecked")
     public static ByteArrayOutputStream buildLogbookStatCsvFile(JsonNode logbookOperation, String operationId)
         throws VitamException, IOException {
-        
+
         final ByteArrayOutputStream csvOutputStream = new ByteArrayOutputStream();
         try (Writer csvWriter = new BufferedWriter(new OutputStreamWriter(csvOutputStream));) {
 
             // Total execution time
-            String startOperationTimeStr = logbookOperation.get(EVENT_DATE_TIME_FIELD).asText();
+            final String startOperationTimeStr = logbookOperation.get(EVENT_DATE_TIME_FIELD).asText();
 
-            List<JsonNode> events =
+            final List<JsonNode> events =
                 IteratorUtils.toList(logbookOperation.get(EVENTS_FIELD).iterator());
 
             // Last event
-            JsonNode lastEvent = events.get(events.size() - 1);
-            String endOperationTimeStr = lastEvent.get(EVENT_DATE_TIME_FIELD).asText();
+            final JsonNode lastEvent = events.get(events.size() - 1);
+            final String endOperationTimeStr = lastEvent.get(EVENT_DATE_TIME_FIELD).asText();
 
             // Generate CSV report
-            CSVPrinter csvPrinter = new CSVPrinter(csvWriter,
+            final CSVPrinter csvPrinter = new CSVPrinter(csvWriter,
                 CSVFormat.newFormat(SEMI_COLON_SEPARATOR).withRecordSeparator(RECORD_SEPARATOR));
 
-            List<String> header = IteratorUtils.toList(lastEvent.fieldNames());
+            final List<String> header = IteratorUtils.toList(lastEvent.fieldNames());
             header.add(START_EVENT_DATETIME_HEADER);
             header.add(END_EVENT_DATETIME_HEADER);
             header.add(EXECUTION_TIME_HEADER);
             csvPrinter.printRecord(header);
 
             for (int i = 0; i < events.size() - 1; i += 2) {
-                JsonNode startEvent = events.get(i);
-                JsonNode endEvent = events.get(i + 1);
-                List<String> eventReportDetails = IteratorUtils.toList(endEvent.elements());
-                String startEventDateTimeStr = startEvent.get(EVENT_DATE_TIME_FIELD).asText();
-                String endEventDateTimeStr = endEvent.get(EVENT_DATE_TIME_FIELD).asText();
+                final JsonNode startEvent = events.get(i);
+                final JsonNode endEvent = events.get(i + 1);
+                final List<String> eventReportDetails = IteratorUtils.toList(endEvent.elements());
+                final String startEventDateTimeStr = startEvent.get(EVENT_DATE_TIME_FIELD).asText();
+                final String endEventDateTimeStr = endEvent.get(EVENT_DATE_TIME_FIELD).asText();
 
                 eventReportDetails.add(startEventDateTimeStr);
                 eventReportDetails.add(endEventDateTimeStr);
@@ -215,7 +215,7 @@ public final class JsonTransformer {
             }
 
             // Last Event
-            List<String> lastEventDetails = IteratorUtils.toList(lastEvent.elements());
+            final List<String> lastEventDetails = IteratorUtils.toList(lastEvent.elements());
             lastEventDetails.add(startOperationTimeStr);
             lastEventDetails.add(endOperationTimeStr);
             lastEventDetails.add(calculateExecutionTime(startOperationTimeStr, endOperationTimeStr).toString());
@@ -223,17 +223,17 @@ public final class JsonTransformer {
 
             csvPrinter.flush();
             csvPrinter.close();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             csvOutputStream.close();
             throw new VitamException(UNEXPECTED_EXCEPTION_DURING_CSV_FILE_GENERATION);
         }
-        
+
         return csvOutputStream;
     }
 
     private static Long calculateExecutionTime(String startDateTimeStr, String endDateTimeStr) throws ParseException {
-        Date startDateTime = LocalDateUtil.getDate(startDateTimeStr);
-        Date endDateTime = LocalDateUtil.getDate(endDateTimeStr);
+        final Date startDateTime = LocalDateUtil.getDate(startDateTimeStr);
+        final Date endDateTime = LocalDateUtil.getDate(endDateTimeStr);
         return endDateTime.getTime() - startDateTime.getTime();
     }
 }

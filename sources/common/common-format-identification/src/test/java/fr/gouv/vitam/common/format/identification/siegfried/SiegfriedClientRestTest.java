@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -29,11 +29,10 @@ package fr.gouv.vitam.common.format.identification.siegfried;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.nio.file.Paths;
-
-import static org.mockito.Mockito.mock;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -64,21 +63,21 @@ public class SiegfriedClientRestTest extends JerseyTest {
     private static int port;
     private static JunitHelper junitHelper;
     private final SiegfriedClientRest client;
-    
+
     private static final String SAMPLE_VERSION_RESPONSE = "version-response.json";
     private static final String SAMPLE_OK_RESPONSE = "ok-response.json";
-    
+
     private static final JsonNode JSON_NODE_VERSION = getJsonNode(SAMPLE_VERSION_RESPONSE);
     private static final JsonNode JSON_NODE_RESPONSE_OK = getJsonNode(SAMPLE_OK_RESPONSE);
-    
+
     private static JsonNode getJsonNode(String file) {
         try {
             return JsonHandler.getFromFile(PropertiesUtils.findFile(file));
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new IllegalArgumentException(e);
         }
     }
-    
+
     protected ExpectedResults mock;
 
     interface ExpectedResults {
@@ -87,7 +86,7 @@ public class SiegfriedClientRestTest extends JerseyTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
     }
 
@@ -129,11 +128,11 @@ public class SiegfriedClientRestTest extends JerseyTest {
     @Test
     public void statusExecutionWithResponse() throws Exception {
         when(mock.get())
-        .thenReturn(Response.status(Response.Status.OK).entity(JSON_NODE_VERSION).build());
+            .thenReturn(Response.status(Response.Status.OK).entity(JSON_NODE_VERSION).build());
         final JsonNode response = client.status(Paths.get("Path"));
         assertEquals("1.6.4", response.get("siegfried").asText());
     }
-    
+
     @Test(expected = FormatIdentifierNotFoundException.class)
     public void statusExecutionNotFound() throws Exception {
         when(mock.get()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
@@ -145,15 +144,15 @@ public class SiegfriedClientRestTest extends JerseyTest {
         when(mock.get()).thenReturn(Response.status(Response.Status.INTERNAL_SERVER_ERROR).build());
         client.status(Paths.get("Path"));
     }
-    
+
     @Test
     public void analysePathExecutionWithResponse() throws Exception {
         when(mock.get())
-        .thenReturn(Response.status(Response.Status.OK).entity(JSON_NODE_RESPONSE_OK).build());
+            .thenReturn(Response.status(Response.Status.OK).entity(JSON_NODE_RESPONSE_OK).build());
         final JsonNode response = client.analysePath(Paths.get("Path"));
         assertNotNull(response.get("files"));
     }
-    
+
     @Test(expected = FormatIdentifierNotFoundException.class)
     public void analysePathExecutionNotFound() throws Exception {
         when(mock.get()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());

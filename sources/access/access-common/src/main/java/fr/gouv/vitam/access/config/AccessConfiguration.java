@@ -75,6 +75,7 @@ public class AccessConfiguration {
 
     /**
      * getter jettyConfig
+     * 
      * @return
      */
     public String getJettyConfig() {
@@ -83,6 +84,7 @@ public class AccessConfiguration {
 
     /**
      * setter jettyConfig
+     * 
      * @param jettyConfig the jetty config
      * @return
      */

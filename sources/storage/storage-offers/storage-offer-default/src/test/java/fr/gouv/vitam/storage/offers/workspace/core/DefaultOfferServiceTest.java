@@ -47,15 +47,6 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.digest.Digest;
-import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
-import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
-
 /**
  * Default offer service test implementation
  */
@@ -73,7 +64,7 @@ public class DefaultOfferServiceTest {
 
     @After
     public void deleteFiles() throws Exception {
-        StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
             StorageConfiguration.class);
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_TYPE.getFolder(), OBJECT_ID));
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_TYPE.getFolder(), OBJECT_ID_2));
@@ -86,27 +77,27 @@ public class DefaultOfferServiceTest {
 
     @Test
     public void initOKTest() {
-        DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
+        final DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
         assertNotNull(offerService);
     }
 
     @Test(expected = ContentAddressableStorageException.class)
     public void createObjectTestKO() throws Exception {
-        DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
+        final DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
         offerService.createObject("fakeContainer", OBJECT_ID, null, true);
     }
 
     @Test
     public void createContainerTest() throws Exception {
-        DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
+        final DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
         assertNotNull(offerService);
 
         offerService.initCreateObject(CONTAINER_PATH, getObjectInit(false), OBJECT_ID);
 
         // check
-        StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
             StorageConfiguration.class);
-        File container = new File(conf.getStoragePath() + CONTAINER_PATH);
+        final File container = new File(conf.getStoragePath() + CONTAINER_PATH);
         assertTrue(container.exists());
         assertTrue(container.isDirectory());
 
@@ -115,29 +106,29 @@ public class DefaultOfferServiceTest {
 
     @Test
     public void createFolderTest() throws Exception {
-        DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
+        final DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
         assertNotNull(offerService);
 
         // container (init)
         offerService.initCreateObject(CONTAINER_PATH, getObjectInit(true), GUIDFactory.newObjectGUID(0).getId());
         // check
-        StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
             StorageConfiguration.class);
-        File container = new File(conf.getStoragePath() + CONTAINER_PATH);
+        final File container = new File(conf.getStoragePath() + CONTAINER_PATH);
         assertTrue(container.exists());
         assertTrue(container.isDirectory());
 
         // folder
         offerService.createFolder(CONTAINER_PATH, FOLDER_PATH);
         // check
-        File folder = new File(container.getAbsolutePath() + "/" + FOLDER_PATH);
+        final File folder = new File(container.getAbsolutePath() + "/" + FOLDER_PATH);
         assertTrue(folder.exists());
         assertTrue(folder.isDirectory());
     }
 
     @Test
     public void createObjectTest() throws Exception {
-        DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
+        final DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
         assertNotNull(offerService);
 
         // container
@@ -145,9 +136,9 @@ public class DefaultOfferServiceTest {
         objectInit = offerService.initCreateObject(CONTAINER_PATH, objectInit, OBJECT_ID);
         // check
         assertEquals(OBJECT_ID, objectInit.getId());
-        StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
             StorageConfiguration.class);
-        File container = new File(conf.getStoragePath() + CONTAINER_PATH);
+        final File container = new File(conf.getStoragePath() + CONTAINER_PATH);
         assertTrue(container.exists());
         assertTrue(container.isDirectory());
 
@@ -157,8 +148,8 @@ public class DefaultOfferServiceTest {
         try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
             assertNotNull(in);
 
-            FileChannel fc = in.getChannel();
-            ByteBuffer bb = ByteBuffer.allocate(1024);
+            final FileChannel fc = in.getChannel();
+            final ByteBuffer bb = ByteBuffer.allocate(1024);
 
             byte[] bytes;
             int read = fc.read(bb);
@@ -182,11 +173,11 @@ public class DefaultOfferServiceTest {
             }
         }
         // check
-        File testFile = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
-        File offerFile = new File(CONTAINER_PATH + "/" + objectInit.getType().getFolder() + "/" + OBJECT_ID);
+        final File testFile = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
+        final File offerFile = new File(CONTAINER_PATH + "/" + objectInit.getType().getFolder() + "/" + OBJECT_ID);
         assertTrue(com.google.common.io.Files.equal(testFile, offerFile));
 
-        Digest digest = Digest.digest(testFile, DigestType.SHA256);
+        final Digest digest = Digest.digest(testFile, DigestType.SHA256);
         assertEquals(computedDigest, digest.toString());
         assertEquals(
             offerService.getObjectDigest(CONTAINER_PATH, objectInit.getType().getFolder() + "/" + OBJECT_ID,
@@ -198,23 +189,23 @@ public class DefaultOfferServiceTest {
 
     @Test
     public void getObjectTest() throws Exception {
-        DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
+        final DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
         assertNotNull(offerService);
 
-        ObjectInit objectInit = getObjectInit(false);
+        final ObjectInit objectInit = getObjectInit(false);
         offerService.initCreateObject(CONTAINER_PATH, getObjectInit(false), OBJECT_ID_2);
 
-        InputStream streamToStore = IOUtils.toInputStream(OBJECT_ID_2_CONTENT);
+        final InputStream streamToStore = IOUtils.toInputStream(OBJECT_ID_2_CONTENT);
         offerService.createObject(CONTAINER_PATH, OBJECT_ID_2, streamToStore, true);
-        InputStream streamGet =
+        final InputStream streamGet =
             offerService.getObject(CONTAINER_PATH, objectInit.getType().getFolder() + "/" + OBJECT_ID_2);
         assertNotNull(streamGet);
         assertTrue(OBJECT_ID_2_CONTENT.equals(IOUtils.toString(streamGet, "UTF-8")));
     }
 
     private ObjectInit getObjectInit(boolean algo) throws IOException {
-        File file = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
-        ObjectInit objectInit = new ObjectInit();
+        final File file = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
+        final ObjectInit objectInit = new ObjectInit();
         if (algo) {
             objectInit.setDigestAlgorithm(DigestType.SHA256);
         }
@@ -225,7 +216,7 @@ public class DefaultOfferServiceTest {
 
     @Test
     public void getCapacityOk() throws Exception {
-        DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
+        final DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
         assertNotNull(offerService);
 
         // container
@@ -233,13 +224,13 @@ public class DefaultOfferServiceTest {
         objectInit = offerService.initCreateObject(CONTAINER_PATH, objectInit, OBJECT_ID);
         // check
         assertEquals(OBJECT_ID, objectInit.getId());
-        StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
             StorageConfiguration.class);
-        File container = new File(conf.getStoragePath() + CONTAINER_PATH);
+        final File container = new File(conf.getStoragePath() + CONTAINER_PATH);
         assertTrue(container.exists());
         assertTrue(container.isDirectory());
 
-        JsonNode jsonNode = offerService.getCapacity(CONTAINER_PATH);
+        final JsonNode jsonNode = offerService.getCapacity(CONTAINER_PATH);
         assertNotNull(jsonNode);
         assertNotNull(jsonNode.get("usableSpace"));
         assertNotNull(jsonNode.get("usedSpace"));

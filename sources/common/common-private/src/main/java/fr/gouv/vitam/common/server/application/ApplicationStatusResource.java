@@ -37,18 +37,18 @@ import javax.ws.rs.core.Response.Status;
 
 /**
  * implementation of VitamResources which handle common tasks for all sub-implementation
- * 
+ *
  *
  */
 @Path("/")
 public class ApplicationStatusResource {
 
-    private VitamStatusService statusService;
+    private final VitamStatusService statusService;
 
     /**
-     * 
+     *
      * Constructor InternalVitamResources
-     * 
+     *
      * @param statusService
      */
     public ApplicationStatusResource(VitamStatusService statusService) {

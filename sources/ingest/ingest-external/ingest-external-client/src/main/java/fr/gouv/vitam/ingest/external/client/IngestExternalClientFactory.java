@@ -96,7 +96,7 @@ public class IngestExternalClientFactory {
                 client = new IngestExternalClientMock();
                 break;
             case REST_CLIENT:
-                client = new IngestExternalClientRest(server, port,secure,sslConfiguration, hostnameVerification);
+                client = new IngestExternalClientRest(server, port, secure, sslConfiguration, hostnameVerification);
                 break;
             default:
                 throw new IllegalArgumentException("Ingest type unknown");
@@ -139,9 +139,9 @@ public class IngestExternalClientFactory {
         } else {
             server = configuration.getServerHost();
             port = configuration.getServerPort();
-            secure=configuration.isSecure();
-            sslConfiguration=configuration.getSslConfiguration();
-            hostnameVerification=configuration.isHostnameVerification();
+            secure = configuration.isSecure();
+            sslConfiguration = configuration.getSslConfiguration();
+            hostnameVerification = configuration.isHostnameVerification();
             changeDefaultClientType(IngestExternalClientType.REST_CLIENT);
         }
     }
@@ -158,7 +158,7 @@ public class IngestExternalClientFactory {
          * Use real service (need server to be set)
          */
         REST_CLIENT,
-       
+
     }
 
 }

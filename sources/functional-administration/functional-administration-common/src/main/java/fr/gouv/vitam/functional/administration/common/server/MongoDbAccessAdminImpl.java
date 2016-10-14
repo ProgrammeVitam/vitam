@@ -68,7 +68,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess
      */
     protected MongoDbAccessAdminImpl(MongoClient mongoClient, String dbname, boolean recreate) {
         super(mongoClient, dbname, recreate);
-        for (FunctionalAdminCollections collection : FunctionalAdminCollections.values()) {
+        for (final FunctionalAdminCollections collection : FunctionalAdminCollections.values()) {
             collection.initialize(super.getMongoDatabase(), recreate);
         }
     }
@@ -76,20 +76,21 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess
     /**
      * insertDocuments implement
      */
+    @Override
     @SuppressWarnings({"rawtypes", "unchecked"})
     public void insertDocuments(ArrayNode arrayNode, FunctionalAdminCollections collection)
         throws ReferentialException {
-        List<VitamDocument> vitamDocumentList = new ArrayList<>();
+        final List<VitamDocument> vitamDocumentList = new ArrayList<>();
         try {
             for (final JsonNode objNode : arrayNode) {
-                ObjectMapper mapper = new ObjectMapper();
+                final ObjectMapper mapper = new ObjectMapper();
                 VitamDocument obj;
 
                 obj = (VitamDocument) mapper.readValue(objNode.toString(), collection.getClasz());
 
                 vitamDocumentList.add(obj);
             }
-        } catch (IOException e) {
+        } catch (final IOException e) {
             LOGGER.error("Insert Documents Exception", e);
             throw new ReferentialException(e);
         }
@@ -101,6 +102,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess
      */
     // FIXME delete the collection without any check on legal to do so (does any object using this referential ?) ?
     // Fonctionnalité demandé par les POs pour la démo
+    @Override
     public void deleteCollection(FunctionalAdminCollections collection) {
         collection.getCollection().drop();
     }

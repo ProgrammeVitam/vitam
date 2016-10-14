@@ -35,7 +35,6 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 
-import fr.gouv.vitam.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -45,6 +44,7 @@ import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.AdminStatusResource;
 import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
+import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 
 /**
  * MetaData web server application
@@ -98,10 +98,10 @@ public class MetaDataApplication extends AbstractVitamApplication<MetaDataApplic
      */
     public void configure(String configFile) throws VitamException {
         try {
-            MetaDataApplication application = new MetaDataApplication();
+            final MetaDataApplication application = new MetaDataApplication();
             application.configure(application.computeConfigurationPathFromInputArguments(configFile));
             run(application.getConfiguration());
-        } catch (VitamApplicationServerException e) {
+        } catch (final VitamApplicationServerException e) {
             LOGGER.error(format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
             throw new VitamApplicationServerException(
                 format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
@@ -126,13 +126,13 @@ public class MetaDataApplication extends AbstractVitamApplication<MetaDataApplic
         final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
         context.addServlet(sh, "/*");
-        String jettyConfig = configuration.getJettyConfig();
+        final String jettyConfig = configuration.getJettyConfig();
         vitamServer = VitamServerFactory.newVitamServerByJettyConf(jettyConfig);
         vitamServer.getServer().setHandler(context);
 
         try {
             vitamServer.getServer().start();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error(format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
             throw new VitamApplicationServerException(
                 format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);

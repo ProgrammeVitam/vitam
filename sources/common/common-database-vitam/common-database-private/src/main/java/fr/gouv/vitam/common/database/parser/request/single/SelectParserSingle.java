@@ -110,7 +110,8 @@ public class SelectParserSingle extends RequestParserSingle {
      * $fields : {name1 : 0/1, name2 : 0/1, ...}, $usage : contractId
      *
      * @param rootNode JsonNode
-     * @throws InvalidParseOperationException if rootNode could not parse to projection or check sanity to rootNode is in error
+     * @throws InvalidParseOperationException if rootNode could not parse to projection or check sanity to rootNode is
+     *         in error
      */
     public void projectionParse(final JsonNode rootNode)
         throws InvalidParseOperationException {

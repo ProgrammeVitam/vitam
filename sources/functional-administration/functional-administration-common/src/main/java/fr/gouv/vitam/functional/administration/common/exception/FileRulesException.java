@@ -28,7 +28,7 @@ package fr.gouv.vitam.functional.administration.common.exception;
 
 /**
  * FileRulesException manage File Rules Exception
- * 
+ *
  */
 public class FileRulesException extends ReferentialException {
 

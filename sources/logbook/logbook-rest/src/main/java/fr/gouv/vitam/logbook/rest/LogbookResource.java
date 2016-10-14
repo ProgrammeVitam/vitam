@@ -317,7 +317,7 @@ public class LogbookResource extends ApplicationStatusResource {
         throws InvalidParseOperationException, LogbookNotFoundException, LogbookException, JsonGenerationException,
         JsonMappingException, IOException {
         Status status;
-        if (xhttpOverride != null && ("GET").equals(xhttpOverride)) {
+        if (xhttpOverride != null && "GET".equals(xhttpOverride)) {
             return selectOperation(query);
 
         } else {
@@ -348,7 +348,7 @@ public class LogbookResource extends ApplicationStatusResource {
 
     /**
      * Create Unit Life Cycle
-     * 
+     *
      * @param operationId the operation id
      * @param unitLcId the life cycle id
      * @param parameters the json serialized as a LogbookLifeCycleUnitParameters.
@@ -515,7 +515,7 @@ public class LogbookResource extends ApplicationStatusResource {
 
     /**
      * Commit Unit Life Cycle
-     * 
+     *
      * @param operationId the operation id
      * @param unitLcId the life cycle id
      * @return the response with a specific HTTP status
@@ -532,7 +532,7 @@ public class LogbookResource extends ApplicationStatusResource {
 
     /**
      * gets the unit life cycle based on its id
-     * 
+     *
      * @param unitLifeCycleId the unit life cycle id
      * @return the unit life cycle
      * @throws InvalidParseOperationException
@@ -637,7 +637,7 @@ public class LogbookResource extends ApplicationStatusResource {
 
     /**
      * Update object Group Life Cycle
-     * 
+     *
      * @param operationId the operation id
      * @param objGrpId the life cycle id
      * @param parameters the json serialized as a LogbookLifeCycleObjectGroupParameters.
@@ -697,7 +697,7 @@ public class LogbookResource extends ApplicationStatusResource {
 
     /**
      * Delete object Group Life Cycle
-     * 
+     *
      * @param operationId the operation id
      * @param objGrpId the life cycle id
      * @return the response with a specific HTTP status
@@ -741,7 +741,7 @@ public class LogbookResource extends ApplicationStatusResource {
 
     /**
      * Commit object Group Life Cycle
-     * 
+     *
      * @param operationId the operation id
      * @param objGrpId the life cycle id
      * @param parameters the json serialized as a LogbookLifeCycleObjectGroupParameters.
@@ -759,7 +759,7 @@ public class LogbookResource extends ApplicationStatusResource {
 
     /**
      * gets the object group life cycle based on its id
-     * 
+     *
      * @param objectGroupLifeCycleId the object group life cycle id
      * @return the object group life cycle
      * @throws InvalidParseOperationException

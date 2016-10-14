@@ -33,20 +33,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.NumericNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import org.bson.conversions.Bson;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.NumericNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.Sorts;
 
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
 import fr.gouv.vitam.common.database.parser.request.AbstractParser;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
  * Select to MongoDb
@@ -122,7 +122,7 @@ public class SelectToMongodb extends RequestToMongodb {
         final Iterator<Entry<String, JsonNode>> iterator = node.fields();
         while (iterator.hasNext()) {
             final Entry<String, JsonNode> entry = iterator.next();
-            JsonNode value = entry.getValue();
+            final JsonNode value = entry.getValue();
             if (value instanceof NumericNode) {
                 if (value.asInt() > 0) {
                     incl.add(entry.getKey());
@@ -146,7 +146,7 @@ public class SelectToMongodb extends RequestToMongodb {
 
     private Bson computeBsonProjection(List<String> incl, List<String> excl, Map<String, ObjectNode> sliceProjections)
         throws InvalidParseOperationException {
-        List<Bson> projections = new ArrayList<>();
+        final List<Bson> projections = new ArrayList<>();
         if (!incl.isEmpty()) {
             projections.add(Projections.include(incl));
             incl.clear();
@@ -156,14 +156,14 @@ public class SelectToMongodb extends RequestToMongodb {
             excl.clear();
         }
         if (!sliceProjections.isEmpty()) {
-            for (Entry<String, ObjectNode> sliceEntry : sliceProjections.entrySet()) {
-                String fieldName = sliceEntry.getKey();
-                ObjectNode sliceNode = sliceEntry.getValue();
+            for (final Entry<String, ObjectNode> sliceEntry : sliceProjections.entrySet()) {
+                final String fieldName = sliceEntry.getKey();
+                final ObjectNode sliceNode = sliceEntry.getValue();
                 checkSliceValue(sliceNode);
-                JsonNode sliceValueNode = sliceNode.get(SLICE_KEYWORD);
+                final JsonNode sliceValueNode = sliceNode.get(SLICE_KEYWORD);
                 if (sliceValueNode instanceof ArrayNode) {
-                    projections.add(Projections.slice(fieldName, sliceValueNode.get(0).asInt(), sliceValueNode.get
-                        (1).asInt()));
+                    projections.add(
+                        Projections.slice(fieldName, sliceValueNode.get(0).asInt(), sliceValueNode.get(1).asInt()));
                 } else {
                     projections.add(Projections.slice(fieldName, sliceValueNode.asInt()));
                 }
@@ -174,9 +174,9 @@ public class SelectToMongodb extends RequestToMongodb {
     }
 
     private void checkSliceValue(ObjectNode sliceNode) throws InvalidParseOperationException {
-        JsonNode sliceValueNode = sliceNode.get(SLICE_KEYWORD);
+        final JsonNode sliceValueNode = sliceNode.get(SLICE_KEYWORD);
         if (sliceValueNode instanceof ArrayNode) {
-            ArrayNode sliceValueArray = (ArrayNode) sliceValueNode;
+            final ArrayNode sliceValueArray = (ArrayNode) sliceValueNode;
             if (!isLegalSliceArray(sliceValueArray)) {
                 throw new InvalidParseOperationException(String.format(UNSUPPORTED_PROJECTION, JsonHandler
                     .writeAsString(sliceNode)));
@@ -191,7 +191,7 @@ public class SelectToMongodb extends RequestToMongodb {
         if (sliceValueArray == null || sliceValueArray.size() != REQUIRED_SLICE_ARRAY_SIZE) {
             return false;
         }
-        for (JsonNode jsonNode : sliceValueArray) {
+        for (final JsonNode jsonNode : sliceValueArray) {
             if (!(jsonNode instanceof NumericNode)) {
                 return false;
             }

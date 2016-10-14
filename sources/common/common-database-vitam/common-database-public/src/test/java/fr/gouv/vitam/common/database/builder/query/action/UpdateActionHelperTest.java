@@ -26,7 +26,16 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.builder.query.action;
 
-import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.*;
+import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.add;
+import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.inc;
+import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.max;
+import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.min;
+import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.pop;
+import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.pull;
+import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.push;
+import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.rename;
+import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.set;
+import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.unset;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -39,12 +48,6 @@ import org.junit.Test;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.builder.query.Query;
-import fr.gouv.vitam.common.database.builder.query.action.Action;
-import fr.gouv.vitam.common.database.builder.query.action.AddAction;
-import fr.gouv.vitam.common.database.builder.query.action.PullAction;
-import fr.gouv.vitam.common.database.builder.query.action.PushAction;
-import fr.gouv.vitam.common.database.builder.query.action.SetAction;
-import fr.gouv.vitam.common.database.builder.query.action.UnsetAction;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 

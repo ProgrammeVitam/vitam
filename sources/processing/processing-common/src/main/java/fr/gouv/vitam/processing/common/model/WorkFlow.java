@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.common.model;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;

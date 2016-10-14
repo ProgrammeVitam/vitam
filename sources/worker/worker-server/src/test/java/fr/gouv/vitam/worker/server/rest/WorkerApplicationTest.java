@@ -50,7 +50,7 @@ import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.VitamServerFactory;
 
 /**
- * 
+ *
  */
 public class WorkerApplicationTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerApplicationTest.class);
@@ -68,7 +68,7 @@ public class WorkerApplicationTest {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
 
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         worker = PropertiesUtils.findFile(WORKER_CONF);
         final WorkerConfiguration realWorker = PropertiesUtils.readYaml(worker, WorkerConfiguration.class);
         realWorker.setRegisterServerPort(serverPort).setRegisterServerHost("localhost")
@@ -102,7 +102,7 @@ public class WorkerApplicationTest {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         } catch (final VitamApplicationServerException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        } catch (VitamException e) {
+        } catch (final VitamException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
     }

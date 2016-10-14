@@ -55,7 +55,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
  *
  *     // Use setters
  *     parameters.setParameterValue(LogbookParameterName.eventTypeProcess, LogbookParameterName.eventTypeProcess
- *         .name()).setParameterValue(LogbookParameterName.outcome, LogbookOutcome.STARTED.name());
+ *         .name()).setParameterValue(LogbookParameterName.outcome, StatusCode.STARTED.name());
  *
  *     client.create(parameters);
  * }
@@ -78,7 +78,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
  *
  *     // Event type
  *     parameters.setParameterValue(LogbookParameterName.eventType, "UNZIP");
- *     parameters.setParameterValue(LogbookParameterName.outcome, LogbookOutcome.STARTED.name());
+ *     parameters.setParameterValue(LogbookParameterName.outcome, StatusCode.STARTED.name());
  *
  *     client.update(parameters);
  * }
@@ -134,8 +134,8 @@ public class LogbookLifeCyclesClientFactory {
      *
      * @return the default logbook client
      */
-    public LogbookLifeCycleClient getLogbookLifeCyclesClient() {
-        LogbookLifeCycleClient client;
+    public LogbookLifeCyclesClient getLogbookLifeCyclesClient() {
+        LogbookLifeCyclesClient client;
         switch (defaultLifeCyclesClientType) {
             case MOCK_LIFECYCLES:
                 client = new LogbookLifeCyclesClientMock();

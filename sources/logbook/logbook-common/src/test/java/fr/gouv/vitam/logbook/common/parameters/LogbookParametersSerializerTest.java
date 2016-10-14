@@ -53,10 +53,10 @@ public class LogbookParametersSerializerTest {
         for (final LogbookParameterName value : LogbookParameterName.values()) {
             params.putParameterValue(value, value.name());
         }
-        
-        StringWriter stringJson = new StringWriter();
-        JsonGenerator generator = new JsonFactory().createGenerator(stringJson);
-        SerializerProvider serializerProvider = new ObjectMapper().getSerializerProvider();
+
+        final StringWriter stringJson = new StringWriter();
+        final JsonGenerator generator = new JsonFactory().createGenerator(stringJson);
+        final SerializerProvider serializerProvider = new ObjectMapper().getSerializerProvider();
         logbookParametersSerializer.serialize(params, generator, serializerProvider);
         generator.flush();
         assertThat(stringJson.toString(),

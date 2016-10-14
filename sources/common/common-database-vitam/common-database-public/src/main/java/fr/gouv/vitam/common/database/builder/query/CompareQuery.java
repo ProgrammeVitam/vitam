@@ -78,7 +78,7 @@ public class CompareQuery extends Query {
      *
      * @param compareQuery lt, gt, lte, gte, eq, ne
      * @param variableName of query
-     * @param value of variable 
+     * @param value of variable
      * @throws InvalidCreateOperationException when not a compare query
      */
     public CompareQuery(final QUERY compareQuery, final String variableName,

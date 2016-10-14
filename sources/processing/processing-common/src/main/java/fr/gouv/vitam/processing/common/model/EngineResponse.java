@@ -28,6 +28,8 @@ package fr.gouv.vitam.processing.common.model;
 
 import java.util.Map;
 
+import fr.gouv.vitam.common.model.StatusCode;
+
 
 /**
  * Model of Response from worker <br>

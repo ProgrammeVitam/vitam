@@ -49,20 +49,20 @@ import fr.gouv.vitam.common.server.VitamServer;
 public class AccessApplicationTest {
 
     private final AccessApplication application = new AccessApplication();
-    private final JunitHelper junitHelper = new JunitHelper();
+    private final JunitHelper junitHelper = JunitHelper.getInstance();
     private int portAvailable;
 
     @Before
     public void setUpBeforeMethod() throws Exception {
         portAvailable = junitHelper.findAvailablePort();
-        //TODO verifier la compatibilité avec les tests parallèles sur jenkins
+        // TODO verifier la compatibilité avec les tests parallèles sur jenkins
         SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(portAvailable));
     }
 
     @After
     public void tearDown() throws Exception {
-        if (application != null && AccessApplication.getVitamServer() != null
-            && AccessApplication.getVitamServer().getServer() != null) {
+        if (application != null && AccessApplication.getVitamServer() != null &&
+            AccessApplication.getVitamServer().getServer() != null) {
 
             AccessApplication.getVitamServer().getServer().stop();
         }
@@ -101,94 +101,72 @@ public class AccessApplicationTest {
     }
 
     /*
-    @Ignore
-    @Test
-    public void shouldExecuteStatusServiceRest() throws URISyntaxException {
-        webTarget = client.target(new URI(getBaseUri() + "accessMock/status"));
-        final Invocation.Builder builder = webTarget.request();
-        final Response response = builder.get();
-        final String status = response.readEntity(String.class);
-        assertNotNull(response);
-        assertEquals(200, response.getStatus());
-    }
-
-    @Ignore
-    @Test
-    public void shouldExecuteGetUnitsServiceRest() throws URISyntaxException {
-        webTarget = client.target(new URI(getBaseUri() + "accessMock/units"));
-        final Invocation.Builder builder = webTarget.request();
-
-        final UnitRequestDTO statusRequestDTO = new UnitRequestDTO("queryDsl");
-        final Entity<UnitRequestDTO> entity = Entity.json(statusRequestDTO);
-        final Response response = builder.post(entity);
-
-        final String status = response.readEntity(String.class);
-        assertNotNull(response);
-        assertEquals(200, response.getStatus());
-    }
-
-    @Ignore
-    @Test
-    public void shouldExecuteGetUnitByIdServiceRest() throws URISyntaxException {
-        webTarget = client.target(new URI(getBaseUri() + "accessMock/units/xyz"));
-        Invocation.Builder builder = webTarget.request();
-
-        UnitRequestDTO statusRequestDTO = new UnitRequestDTO("queryDsl");
-        Entity<UnitRequestDTO> entity = Entity.json(statusRequestDTO);
-        Response response = builder.post(entity);
-
-        String status = response.readEntity(String.class);
-        assertNotNull(response);
-        assertEquals(200, response.getStatus());
-    }*/
+     * @Ignore
+     * @Test public void shouldExecuteStatusServiceRest() throws URISyntaxException { webTarget = client.target(new
+     * URI(getBaseUri() + "accessMock/status")); final Invocation.Builder builder = webTarget.request(); final Response
+     * response = builder.get(); final String status = response.readEntity(String.class); assertNotNull(response);
+     * assertEquals(200, response.getStatus()); }
+     * @Ignore
+     * @Test public void shouldExecuteGetUnitsServiceRest() throws URISyntaxException { webTarget = client.target(new
+     * URI(getBaseUri() + "accessMock/units")); final Invocation.Builder builder = webTarget.request(); final
+     * UnitRequestDTO statusRequestDTO = new UnitRequestDTO("queryDsl"); final Entity<UnitRequestDTO> entity =
+     * Entity.json(statusRequestDTO); final Response response = builder.post(entity); final String status =
+     * response.readEntity(String.class); assertNotNull(response); assertEquals(200, response.getStatus()); }
+     * @Ignore
+     * @Test public void shouldExecuteGetUnitByIdServiceRest() throws URISyntaxException { webTarget = client.target(new
+     * URI(getBaseUri() + "accessMock/units/xyz")); Invocation.Builder builder = webTarget.request(); UnitRequestDTO
+     * statusRequestDTO = new UnitRequestDTO("queryDsl"); Entity<UnitRequestDTO> entity = Entity.json(statusRequestDTO);
+     * Response response = builder.post(entity); String status = response.readEntity(String.class);
+     * assertNotNull(response); assertEquals(200, response.getStatus()); }
+     */
 
 
     @Test(expected = Exception.class)
     public void shouldRaiseAnException_WhenExecuteMainWithEmptyArgs() throws VitamException {
         AccessApplication.startApplication(null);
     }
-    
+
     @Test
     public void shouldHeaderStripXSSWhenFilterThenReturnReturnNotAcceptable() throws VitamException {
         AccessApplication.startApplication("src/test/resources/access-test.conf");
 
         RestAssured.port = portAvailable;
         RestAssured.basePath = "access/v1";
-        
+
         given()
-        .contentType(ContentType.JSON)
-        .header("test", "<script>(.*?)</script>")
-        .body("{\"name\":\"123\"}")
-        .when()
-        .put("/units/1")
-        .then()
-        .statusCode(Status.NOT_ACCEPTABLE.getStatusCode());   
-        
-        
-        //TODO: update metadata client to return mock response
+            .contentType(ContentType.JSON)
+            .header("test", "<script>(.*?)</script>")
+            .body("{\"name\":\"123\"}")
+            .when()
+            .put("/units/1")
+            .then()
+            .statusCode(Status.NOT_ACCEPTABLE.getStatusCode());
+
+
+        // TODO: update metadata client to return mock response
         given()
-        .contentType(ContentType.JSON)
-        .body("{\"name\":\"123\"}")
-        .when()
-        .put("/units/1")
-        .then()
-        .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()); 
+            .contentType(ContentType.JSON)
+            .body("{\"name\":\"123\"}")
+            .when()
+            .put("/units/1")
+            .then()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
-    
+
     @Test
     public void shouldParamStripXSSWhenFilterThenReturnReturnNotAcceptable() throws VitamException {
         AccessApplication.startApplication("src/test/resources/access-test.conf");
 
         RestAssured.port = portAvailable;
         RestAssured.basePath = "access/v1";
-        
+
         given()
-        .contentType(ContentType.JSON)
-        .param("test", "<?php echo\" Hello \" ?>")
-        .body("{\"name\":\"123\"}")
-        .when()
-        .put("/units/1")
-        .then()
-        .statusCode(Status.NOT_ACCEPTABLE.getStatusCode());       
+            .contentType(ContentType.JSON)
+            .param("test", "<?php echo\" Hello \" ?>")
+            .body("{\"name\":\"123\"}")
+            .when()
+            .put("/units/1")
+            .then()
+            .statusCode(Status.NOT_ACCEPTABLE.getStatusCode());
     }
 }

@@ -50,8 +50,8 @@ public final class MongoDbAccessAdminFactory {
      */
     public static final MongoDbAccessAdminImpl create(DbConfiguration configuration) {
         ParametersChecker.checkParameter("configuration is a mandatory parameter", configuration);
-        List<Class<?>> classList = new ArrayList<>();
-        for (FunctionalAdminCollections e : FunctionalAdminCollections.class.getEnumConstants()) {
+        final List<Class<?>> classList = new ArrayList<>();
+        for (final FunctionalAdminCollections e : FunctionalAdminCollections.class.getEnumConstants()) {
             classList.add(e.getClasz());
         }
         FunctionalAdminCollections.class.getEnumConstants();

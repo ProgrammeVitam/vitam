@@ -61,7 +61,6 @@ import com.jayway.restassured.http.ContentType;
 
 import fr.gouv.vitam.access.api.AccessModule;
 import fr.gouv.vitam.access.common.exception.AccessExecutionException;
-import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -72,6 +71,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.BasicVitamServer;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.VitamServerFactory;
+import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 
 // TODO: there is big changes to do in this junit class! Almost all SelectByUnitId tests are wrong (should be a
@@ -121,7 +121,7 @@ public class AccessResourceImplTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
         try {
             vitamServer = buildTestServer();
@@ -131,7 +131,7 @@ public class AccessResourceImplTest {
             RestAssured.basePath = ACCESS_RESOURCE_URI;
 
             LOGGER.debug("Beginning tests");
-        } catch (VitamApplicationServerException e) {
+        } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
             throw new IllegalStateException(
                 "Cannot start the Access Application Server", e);
@@ -139,7 +139,7 @@ public class AccessResourceImplTest {
     }
 
     private static VitamServer buildTestServer() throws VitamApplicationServerException {
-        VitamServer vitamServer = VitamServerFactory.newVitamServer(port);
+        final VitamServer vitamServer = VitamServerFactory.newVitamServer(port);
 
 
         final ResourceConfig resourceConfig = new ResourceConfig();
@@ -153,7 +153,7 @@ public class AccessResourceImplTest {
         contextHandler.setContextPath("/");
         contextHandler.addServlet(sh, "/*");
 
-        HandlerList handlers = new HandlerList();
+        final HandlerList handlers = new HandlerList();
         handlers.setHandlers(new Handler[] {contextHandler});
         vitamServer.configure(contextHandler);
         return vitamServer;
@@ -228,7 +228,7 @@ public class AccessResourceImplTest {
     }
 
     /**
-     * 
+     *
      * @param data
      * @return query DSL with Options
      */
@@ -237,7 +237,7 @@ public class AccessResourceImplTest {
     }
 
     /**
-     * 
+     *
      * @param data
      * @return query DSL with id as Roots
      */
@@ -248,7 +248,7 @@ public class AccessResourceImplTest {
 
     /**
      * Checks if the send parameter doesn't have Json format
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -262,7 +262,7 @@ public class AccessResourceImplTest {
 
     /**
      * Checks if the send parameter is a bad request
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -409,7 +409,7 @@ public class AccessResourceImplTest {
     @Ignore
     @Test
     public void shouldReturnInternalServerError() throws Exception {
-        int limitRequest = GlobalDatasParser.limitRequest;
+        final int limitRequest = GlobalDatasParser.limitRequest;
         GlobalDatasParser.limitRequest = 99;
         given()
             .contentType(ContentType.JSON)
@@ -592,7 +592,7 @@ public class AccessResourceImplTest {
     }
 
     private Map<String, Object> getStreamHeaders() {
-        Map<String, Object> headers = new HashMap<>();
+        final Map<String, Object> headers = new HashMap<>();
         headers.put(GlobalDataRest.X_TENANT_ID, "0");
         headers.put(GlobalDataRest.X_QUALIFIER, "qualif");
         headers.put(GlobalDataRest.X_VERSION, 1);

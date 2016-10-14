@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -29,10 +29,10 @@ package fr.gouv.vitam.worker.common.utils;
 /**
  * Constants for the Seda used in Json files
  */
-public class SedaConstants {    
+public class SedaConstants {
 
     public static final String NAMESPACE_URI = "fr:gouv:culture:archivesdefrance:seda:v2.0";
-    
+
     /**
      * versions element
      */
@@ -81,33 +81,33 @@ public class SedaConstants {
     /**
      * Tag of FormatIdentification
      */
-    public static final String TAG_FORMAT_IDENTIFICATION = "FormatIdentification";    
-    
+    public static final String TAG_FORMAT_IDENTIFICATION = "FormatIdentification";
+
     /**
      * Tag of FormatId
      */
     public static final String TAG_FORMAT_ID = "FormatId";
-    
+
     /**
      * Tag of FormatLitteral
      */
     public static final String TAG_FORMAT_LITTERAL = "FormatLitteral";
-    
+
     /**
      * Tag of Mimetype
      */
     public static final String TAG_MIME_TYPE = "MimeType";
-    
+
     /**
      * Tag of DataObjectGroupReferenceId
      */
     public static final String TAG_DATA_OBJECT_GROUP_REFERENCEID = "DataObjectGroupReferenceId";
-    
+
     /**
      * Tag of DataObjectReferenceId
      */
     public static final String TAG_DATA_OBJECT_REFERENCEID = "DataObjectReferenceId";
-    
+
     /**
      * Prefix of id element
      */
@@ -152,8 +152,8 @@ public class SedaConstants {
      * Prefix of management
      */
     public static final String PREFIX_MGT = "_mgt";
-    
-    //XML Tags used in SEDA 
+
+    // XML Tags used in SEDA
     public static final String TAG_ARCHIVE_TRANSFER_REPLY = "ArchiveTransferReply";
     public static final String TAG_DATE = "Date";
     public static final String TAG_ARCHIVAL_AGREEMENT = "ArchivalAgreement";
@@ -174,9 +174,9 @@ public class SedaConstants {
     public static final String TAG_FILE_FORMAT_CODE_LIST_VERSION = "FileFormatCodeListVersion";
     public static final String TAG_ARCHIVE_TRANSFER = "ArchiveTransfer";
     public static final String TAG_GRANT_DATE = "GrantDate";
-    
+
     private SedaConstants() {
         // Empty constructor
     }
-    
+
 }

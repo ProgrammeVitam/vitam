@@ -63,6 +63,7 @@ public abstract class RequestSingle extends AbstractRequest {
     /**
      * @return this Request
      */
+    @Override
     public RequestSingle reset() {
         resetFilter();
         resetQuery();
@@ -75,6 +76,7 @@ public abstract class RequestSingle extends AbstractRequest {
      * @return this Request
      * @throws InvalidCreateOperationException whern query is invalid
      */
+    @Override
     public final RequestSingle setQuery(final Query query)
         throws InvalidCreateOperationException {
         ParametersChecker.checkParameter("Query is a mandatory parameter", query);
@@ -92,6 +94,7 @@ public abstract class RequestSingle extends AbstractRequest {
 
     /**
      * Get the json final of request
+     * 
      * @return the Final json containing all 2 parts: query and filter
      */
     protected final ObjectNode getFinal() {
@@ -115,23 +118,25 @@ public abstract class RequestSingle extends AbstractRequest {
     public final Query getQuery() {
         return query;
     }
-    
+
     /**
      * @return the number of queries
      */
+    @Override
     public final int getNbQueries() {
         return 1;
     }
-    
+
     /**
      * default implements of getQueries
      */
+    @Override
     public List<Query> getQueries() {
-        List<Query> queries = new ArrayList<Query>();
+        final List<Query> queries = new ArrayList<Query>();
         queries.add(query);
         return queries;
     }
-    
+
 
     @Override
     public Set<String> getRoots() {
@@ -142,10 +147,11 @@ public abstract class RequestSingle extends AbstractRequest {
     public JsonNode getData() {
         return JsonHandler.createObjectNode();
     }
-    
+
     /**
      * default implements of getActions
      */
+    @Override
     public List<Action> getActions() {
         return SingletonUtils.singletonList();
     }

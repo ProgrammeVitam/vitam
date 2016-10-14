@@ -56,7 +56,7 @@ abstract class AbstractWorkerParameters implements WorkerParameters {
     private final Map<WorkerParameterName, String> mapParameters = new TreeMap<>();
 
     @JsonIgnore
-    private Set<WorkerParameterName> mandatoryParameters;
+    private final Set<WorkerParameterName> mandatoryParameters;
 
     AbstractWorkerParameters(final Set<WorkerParameterName> mandatory) {
         mandatoryParameters = mandatory;
@@ -99,7 +99,7 @@ abstract class AbstractWorkerParameters implements WorkerParameters {
     @Override
     public WorkerParameters setMap(Map<String, String> map) {
         ParametersChecker.checkParameter(String.format(ERROR_MESSAGE, "map"), map);
-        for (String key : map.keySet()) {
+        for (final String key : map.keySet()) {
             mapParameters.put(WorkerParameterName.valueOf(key), map.get(key));
         }
         return this;

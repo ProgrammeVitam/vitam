@@ -32,6 +32,11 @@ package fr.gouv.vitam.storage.engine.client.exception;
 public class StorageAlreadyExistsClientException extends StorageClientException {
 
     /**
+     *
+     */
+    private static final long serialVersionUID = 6574240025512780668L;
+
+    /**
      * @param message associated message
      */
     public StorageAlreadyExistsClientException(String message) {

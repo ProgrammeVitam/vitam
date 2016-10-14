@@ -38,142 +38,135 @@ import fr.gouv.vitam.common.server.application.configuration.ClientConfiguration
 
 /**
  * IngestInternal client factory<br>
- * 
- * Used to create IngestInternal client : if configuration file does not exist
- * {@value 'ingest-internal-client.conf'}},<br>
+ *
+ * Used to create IngestInternal client : if configuration file does not exist {@value 'ingest-internal-client.conf'}},
+ * <br>
  * mock IngestInternal client will be returned
- * 
+ *
  */
 public class IngestInternalClientFactory {
-	/**
-	 * Default client operation type
-	 */
-	private static IngestInternalClientType defaultIngestInternalClientType;
-	private static final String CONFIGURATION_FILENAME = "ingest-internal-client.conf";
-	private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestInternalClientFactory.class);
-	private static final IngestInternalClientFactory INGEST_INTERNAL_CLIENT_FACTORY = new IngestInternalClientFactory();
+    /**
+     * Default client operation type
+     */
+    private static IngestInternalClientType defaultIngestInternalClientType;
+    private static final String CONFIGURATION_FILENAME = "ingest-internal-client.conf";
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestInternalClientFactory.class);
+    private static final IngestInternalClientFactory INGEST_INTERNAL_CLIENT_FACTORY = new IngestInternalClientFactory();
 
-	private String server = "localhost";
-	private int port = VitamServerFactory.getDefaultPort();
+    private String server = "localhost";
+    private int port = VitamServerFactory.getDefaultPort();
 
-	private IngestInternalClientFactory() {
-		changeConfigurationFile(CONFIGURATION_FILENAME);
-	}
+    private IngestInternalClientFactory() {
+        changeConfigurationFile(CONFIGURATION_FILENAME);
+    }
 
-	/**
-	 * Set the IngestInternalClientFactory configuration
-	 *
-	 * @param type
-	 * @param server
-	 *            hostname
-	 * @param port
-	 *            port to use
-	 * @throws IllegalArgumentException
-	 *             if type null or if type is OPERATIONS and server is null or
-	 *             empty or port <= 0
-	 */
-	static final void setConfiguration(IngestInternalClientType type, String server, int port) {
+    /**
+     * Set the IngestInternalClientFactory configuration
+     *
+     * @param type
+     * @param server hostname
+     * @param port port to use
+     * @throws IllegalArgumentException if type null or if type is OPERATIONS and server is null or empty or port <= 0
+     */
+    static final void setConfiguration(IngestInternalClientType type, String server, int port) {
 
-		changeDefaultClientType(type);
-		if (type == IngestInternalClientType.PRODUCTION) {
-			ParametersChecker.checkParameter("Server cannot be null or empty with OPERATIONS", server);
-			ParametersChecker.checkValue("port", port, 1);
-		}
-		INGEST_INTERNAL_CLIENT_FACTORY.server = server;
-		INGEST_INTERNAL_CLIENT_FACTORY.port = port;
-	}
+        changeDefaultClientType(type);
+        if (type == IngestInternalClientType.PRODUCTION) {
+            ParametersChecker.checkParameter("Server cannot be null or empty with OPERATIONS", server);
+            ParametersChecker.checkValue("port", port, 1);
+        }
+        INGEST_INTERNAL_CLIENT_FACTORY.server = server;
+        INGEST_INTERNAL_CLIENT_FACTORY.port = port;
+    }
 
-	/**
-	 * Get the IngestInternalClientFactory instance
-	 *
-	 * @return the instance
-	 */
-	public static final IngestInternalClientFactory getInstance() {
-		return INGEST_INTERNAL_CLIENT_FACTORY;
-	}
+    /**
+     * Get the IngestInternalClientFactory instance
+     *
+     * @return the instance
+     */
+    public static final IngestInternalClientFactory getInstance() {
+        return INGEST_INTERNAL_CLIENT_FACTORY;
+    }
 
-	/**
-	 * Get the default type ingest internal client
-	 *
-	 * @return the default ingest internal client
-	 */
-	public IngestInternalClient getIngestInternalClient() {
-		IngestInternalClient client;
-		switch (defaultIngestInternalClientType) {
-		case MOCK:
-			client = new IngestInternalClientMock();
-			break;
-		case PRODUCTION:
-			client = new IngestInternalClientRest(server, port);
-			break;
-		default:
-			throw new IllegalArgumentException("Ingest Internal type unknown");
-		}
-		return client;
-	}
+    /**
+     * Get the default type ingest internal client
+     *
+     * @return the default ingest internal client
+     */
+    public IngestInternalClient getIngestInternalClient() {
+        IngestInternalClient client;
+        switch (defaultIngestInternalClientType) {
+            case MOCK:
+                client = new IngestInternalClientMock();
+                break;
+            case PRODUCTION:
+                client = new IngestInternalClientRest(server, port);
+                break;
+            default:
+                throw new IllegalArgumentException("Ingest Internal type unknown");
+        }
+        return client;
+    }
 
-	/**
-	 * Modify the default Ingest Internal client type
-	 *
-	 * @param type
-	 *            the client type to set
-	 * @throws IllegalArgumentException
-	 *             if type null
-	 */
-	static void changeDefaultClientType(IngestInternalClientType type) {
-		if (type == null) {
-			throw new IllegalArgumentException();
-		}
-		defaultIngestInternalClientType = type;
-	}
+    /**
+     * Modify the default Ingest Internal client type
+     *
+     * @param type the client type to set
+     * @throws IllegalArgumentException if type null
+     */
+    static void changeDefaultClientType(IngestInternalClientType type) {
+        if (type == null) {
+            throw new IllegalArgumentException();
+        }
+        defaultIngestInternalClientType = type;
+    }
 
-	/**
-	 * Get the default ingest Internal client type
-	 *
-	 * @return the default ingest Internal client type
-	 */
-	public static IngestInternalClientType getDefaultIngestInternalClientType() {
-		return defaultIngestInternalClientType;
-	}
+    /**
+     * Get the default ingest Internal client type
+     *
+     * @return the default ingest Internal client type
+     */
+    public static IngestInternalClientType getDefaultIngestInternalClientType() {
+        return defaultIngestInternalClientType;
+    }
 
-	/**
-	 * Change client configuration from a Yaml files
-	 *
-	 * @param configurationPath
-	 *            the path to the configuration file
-	 */
-	public final void changeConfigurationFile(String configurationPath) {
-		changeDefaultClientType(IngestInternalClientType.MOCK);
-		ClientConfiguration configuration = null;
-		try {
-			configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
-					ClientConfigurationImpl.class);
-		} catch (final IOException fnf) {
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("Error when retrieving configuration file {}, using mock",
-						CONFIGURATION_FILENAME, fnf);
-			}
-		}
-		if (configuration == null) {
-			LOGGER.debug("Error when retrieving configuration file {}, using mock", CONFIGURATION_FILENAME);
-		} else {
-			server = configuration.getServerHost();
-			port = configuration.getServerPort();
-			changeDefaultClientType(IngestInternalClientType.PRODUCTION);
-		}
-	}
+    /**
+     * Change client configuration from a Yaml files
+     *
+     * @param configurationPath the path to the configuration file
+     */
+    public final void changeConfigurationFile(String configurationPath) {
+        changeDefaultClientType(IngestInternalClientType.MOCK);
+        ClientConfiguration configuration = null;
+        try {
+            configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
+                ClientConfigurationImpl.class);
+        } catch (final IOException fnf) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Error when retrieving configuration file {}, using mock",
+                    CONFIGURATION_FILENAME, fnf);
+            }
+        }
+        if (configuration == null) {
+            LOGGER.debug("Error when retrieving configuration file {}, using mock", CONFIGURATION_FILENAME);
+        } else {
+            server = configuration.getServerHost();
+            port = configuration.getServerPort();
+            changeDefaultClientType(IngestInternalClientType.PRODUCTION);
+        }
+    }
 
-	/**
-	 * enum to define client type
-	 */
-	public enum IngestInternalClientType {
-		/**
-		 * To use only in MOCK ACCESS
-		 */
-		MOCK,
-		/**
-		 * Use real service (need server to be set)
-		 */
-		PRODUCTION
-	}
+    /**
+     * enum to define client type
+     */
+    public enum IngestInternalClientType {
+        /**
+         * To use only in MOCK ACCESS
+         */
+        MOCK,
+        /**
+         * Use real service (need server to be set)
+         */
+        PRODUCTION
+    }
 }

@@ -41,8 +41,6 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.exception.VitamException;
-
 public class FileDriverMapperTest {
 
     private static final String DRIVER1 = "driver1";
@@ -56,10 +54,10 @@ public class FileDriverMapperTest {
 
     @Test
     public void configurationOkTest() {
-        FileDriverMapper fileDriverMapper= null;
+        FileDriverMapper fileDriverMapper = null;
         try {
             fileDriverMapper = FileDriverMapper.getInstance();
-        } catch (VitamException exc) {
+        } catch (final VitamException exc) {
             System.out.println(exc.getCause());
             fail("should not raise an exception !");
         }
@@ -68,7 +66,7 @@ public class FileDriverMapperTest {
 
     @Test
     public void addGetRemoveTest() throws VitamException {
-        FileDriverMapper fileDriverMapper = FileDriverMapper.getInstance();
+        final FileDriverMapper fileDriverMapper = FileDriverMapper.getInstance();
         assertNotNull(fileDriverMapper);
 
         fileDriverMapper.addOfferTo("offer1", DRIVER1);
@@ -107,10 +105,10 @@ public class FileDriverMapperTest {
 
     @Test
     public void addGetRemoveListTest() throws VitamException {
-        FileDriverMapper fileDriverMapper = FileDriverMapper.getInstance();
+        final FileDriverMapper fileDriverMapper = FileDriverMapper.getInstance();
         assertNotNull(fileDriverMapper);
 
-        List<String> offers = new ArrayList<>();
+        final List<String> offers = new ArrayList<>();
         offers.add("offer1");
         offers.add("offer2");
         offers.add("offer3");

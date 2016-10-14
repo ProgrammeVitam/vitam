@@ -34,7 +34,7 @@ import org.junit.Test;
 public class DefaultOfferConfigurationTest {
     @Test
     public void constructorTest() {
-        DefaultOfferConfiguration conf = new DefaultOfferConfiguration("storage", "context");
+        final DefaultOfferConfiguration conf = new DefaultOfferConfiguration("storage", "context");
         assertNotNull(conf);
         assertEquals("storage", conf.getStoragePath());
         assertEquals("context", conf.getContextPath());

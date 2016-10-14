@@ -41,8 +41,8 @@ public class DemoStory70 {
                 .setUrlWorkspace("http://localhost:8084")
                 .setUrlMetada("http://localhost:8086"));
 
-            final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setContainerName
-                ("aeaaaaaaabdtuu5tableiakvbrgnxoiaaaaq");
+            final WorkerParameters params =
+                WorkerParametersFactory.newWorkerParameters().setContainerName("aeaaaaaaabdtuu5tableiakvbrgnxoiaaaaq");
             processManagement.submitWorkflow(params, "DefaultIngestWorkflow");
         } catch (final Exception e) {
             e.printStackTrace();

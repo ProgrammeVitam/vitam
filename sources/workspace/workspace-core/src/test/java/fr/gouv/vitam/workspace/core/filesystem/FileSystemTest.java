@@ -247,7 +247,7 @@ public class FileSystemTest {
         throws IOException, ContentAddressableStorageException {
         workspace.createContainer(CONTAINER_NAME);
         workspace.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"));
-        JsonNode jsonNode = workspace.getObjectInformation(CONTAINER_NAME, OBJECT_NAME);
+        final JsonNode jsonNode = workspace.getObjectInformation(CONTAINER_NAME, OBJECT_NAME);
         assertNotNull(jsonNode);
         assertNotNull(jsonNode.get("size"));
         assertNotNull(jsonNode.get("object_name"));
@@ -341,8 +341,8 @@ public class FileSystemTest {
         workspace.createContainer(CONTAINER_NAME);
         workspace.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"));
 
-        String messageDigest = workspace.computeObjectDigest(CONTAINER_NAME, OBJECT_NAME, ALGO);
-        Digest digest = new Digest(ALGO);
+        final String messageDigest = workspace.computeObjectDigest(CONTAINER_NAME, OBJECT_NAME, ALGO);
+        final Digest digest = new Digest(ALGO);
         digest.update(getInputStream("file1.pdf"));
 
         assertTrue(messageDigest.equals(digest.toString()));
@@ -470,13 +470,13 @@ public class FileSystemTest {
     @Test
     public void getContainerInformationOK() throws Exception {
         workspace.createContainer(CONTAINER_NAME);
-        ContainerInformation containerInformation = workspace.getContainerInformation(CONTAINER_NAME);
+        final ContainerInformation containerInformation = workspace.getContainerInformation(CONTAINER_NAME);
         assertNotNull(containerInformation);
     }
 
     @Test
     public void getContainerInformationContainerNameNull() throws Exception {
-        ContainerInformation containerInformation = workspace.getContainerInformation(null);
+        final ContainerInformation containerInformation = workspace.getContainerInformation(null);
         assertNotNull(containerInformation);
     }
 

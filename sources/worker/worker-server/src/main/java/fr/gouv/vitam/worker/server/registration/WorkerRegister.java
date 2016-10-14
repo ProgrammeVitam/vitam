@@ -47,11 +47,11 @@ public class WorkerRegister implements Runnable {
     /**
      * Worker configuration used to retrieve the register configuration
      */
-    private WorkerConfiguration configuration;
+    private final WorkerConfiguration configuration;
 
     /**
      * Constructor.
-     * 
+     *
      * @param configuration configuration
      */
     public WorkerRegister(WorkerConfiguration configuration) {
@@ -63,8 +63,8 @@ public class WorkerRegister implements Runnable {
         LOGGER.debug("WorkerRegister run : begin");
 
         int nbRegisterCall = 0;
-        long delay = configuration.getRegisterDelay() * 1000;
-        ProcessingManagementClient processingClient =
+        final long delay = configuration.getRegisterDelay() * 1000;
+        final ProcessingManagementClient processingClient =
             ProcessingManagementClientFactory.create(configuration.getProcessingUrl());
         boolean registerOk = false;
         while (!registerOk && configuration.getRegisterRetry() >= nbRegisterCall) {
@@ -75,7 +75,7 @@ public class WorkerRegister implements Runnable {
                 LOGGER.debug("WorkerRegister run : try register failed");
                 try {
                     this.wait(delay);
-                } catch (InterruptedException e) {
+                } catch (final InterruptedException e) {
                     LOGGER.error("WorkerRegister run : wait failed", e);
                 }
             }
@@ -84,16 +84,17 @@ public class WorkerRegister implements Runnable {
     }
 
     private boolean register(ProcessingManagementClient processingClient) {
-        WorkerRemoteConfiguration remoteConfiguration = new WorkerRemoteConfiguration(
-            this.configuration.getRegisterServerHost(), this.configuration.getRegisterServerPort());
+        final WorkerRemoteConfiguration remoteConfiguration = new WorkerRemoteConfiguration(
+            configuration.getRegisterServerHost(), configuration.getRegisterServerPort());
 
-        WorkerBean workerBean = new WorkerBean(ServerIdentity.getInstance().getName(), DEFAULT_FAMILY, 1L, 1L, "active",
-            remoteConfiguration);
+        final WorkerBean workerBean =
+            new WorkerBean(ServerIdentity.getInstance().getName(), DEFAULT_FAMILY, 1L, 1L, "active",
+                remoteConfiguration);
         try {
             processingClient.registerWorker(DEFAULT_FAMILY,
                 String.valueOf(ServerIdentity.getInstance().getPlatformId()), workerBean);
             return true;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error("WorkerRegister run : register call failed", e);
             return false;
         }

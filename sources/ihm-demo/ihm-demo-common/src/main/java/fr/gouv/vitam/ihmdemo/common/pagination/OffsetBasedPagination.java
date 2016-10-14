@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -75,7 +75,7 @@ public class OffsetBasedPagination {
      * @param limit
      */
     public OffsetBasedPagination(int offset, int limit) {
-        this(offset,limit, 0);
+        this(offset, limit, 0);
     }
 
     /**
@@ -84,7 +84,7 @@ public class OffsetBasedPagination {
      * @param total
      */
     public OffsetBasedPagination(int offset, int limit, int total) {
-        ParametersChecker.checkParameter(PARAMETERS, offset, limit,total); 
+        ParametersChecker.checkParameter(PARAMETERS, offset, limit, total);
         setLimit(limit).setOffset(offset).setTotal(total);
     }
 
@@ -103,7 +103,7 @@ public class OffsetBasedPagination {
      * @return this
      */
     public OffsetBasedPagination setOffset(int offset) {
-        ParametersChecker.checkParameter(PARAMETERS, offset); 
+        ParametersChecker.checkParameter(PARAMETERS, offset);
         this.offset = offset;
         return this;
     }
@@ -121,7 +121,7 @@ public class OffsetBasedPagination {
      * @return this
      */
     public OffsetBasedPagination setLimit(int limit) {
-        ParametersChecker.checkParameter(PARAMETERS, limit); 
+        ParametersChecker.checkParameter(PARAMETERS, limit);
         this.limit = limit;
         return this;
     }
@@ -139,21 +139,21 @@ public class OffsetBasedPagination {
      * @return this
      */
     public OffsetBasedPagination setTotal(int total) {
-        ParametersChecker.checkParameter(PARAMETERS,total); 
+        ParametersChecker.checkParameter(PARAMETERS, total);
         this.total = total;
         return this;
     }
 
     /**
      * parse From Headers
-     * 
+     *
      * @param headers
      * @throws VitamException
      */
     private OffsetBasedPagination parseHttpHeaders(final HttpHeaders headers) throws VitamException {
-        ParametersChecker.checkParameter(PARAMETERS, headers); 
-        List<String> offsetValues = headers.getRequestHeader(IhmWebAppHeader.OFFSET.getName());
-        if(offsetValues!=null){
+        ParametersChecker.checkParameter(PARAMETERS, headers);
+        final List<String> offsetValues = headers.getRequestHeader(IhmWebAppHeader.OFFSET.getName());
+        if (offsetValues != null) {
             if (offsetValues.size() == 1) {
                 try {
                     offset = Integer.parseInt(offsetValues.get(0));
@@ -169,8 +169,8 @@ public class OffsetBasedPagination {
                 }
             }
         }
-        List<String> limitValues = HttpHeaderHelper.getHeaderValues(headers, IhmWebAppHeader.LIMIT.getName());
-        if(limitValues!=null){
+        final List<String> limitValues = HttpHeaderHelper.getHeaderValues(headers, IhmWebAppHeader.LIMIT.getName());
+        if (limitValues != null) {
             if (limitValues.size() == 1) {
                 try {
                     limit = Integer.parseInt(limitValues.get(0));

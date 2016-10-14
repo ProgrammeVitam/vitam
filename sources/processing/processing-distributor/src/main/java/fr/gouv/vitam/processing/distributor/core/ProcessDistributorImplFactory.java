@@ -33,14 +33,14 @@ public final class ProcessDistributorImplFactory {
 
     private static final ProcessDistributorImpl PROCESS_DISTRIBUTOR = new ProcessDistributorImpl();
 
-    
-    private ProcessDistributorImplFactory(){
+
+    private ProcessDistributorImplFactory() {
         // empty constructor
     }
-    
+
     /**
      * Retrieve a process distributor
-     * 
+     *
      * @return the default ProcessDistributorImpl
      */
     public static ProcessDistributorImpl getDefaultDistributor() {

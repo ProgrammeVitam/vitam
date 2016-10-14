@@ -27,8 +27,6 @@
 
 package fr.gouv.vitam.storage.engine.server.spi.mapper;
 
-import fr.gouv.vitam.common.ParametersChecker;
-
 /**
  * FileDriverMapper configuration mapping
  */
@@ -52,7 +50,7 @@ class FileDriverMapperConfiguration {
      */
     FileDriverMapperConfiguration(String path, String delimiter) {
         ParametersChecker.checkParameter("Driver Mapping directory and delimiter configuration", path, delimiter);
-        this.driverMappingPath = path;
+        driverMappingPath = path;
         this.delimiter = delimiter;
     }
 

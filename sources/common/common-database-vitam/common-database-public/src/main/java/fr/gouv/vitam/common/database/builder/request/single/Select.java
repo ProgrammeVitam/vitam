@@ -29,10 +29,10 @@ package fr.gouv.vitam.common.database.builder.request.single;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
-import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -356,6 +356,7 @@ public class Select extends RequestSingle {
      *
      * @return True if the projection is not restricted
      */
+    @Override
     public final boolean getAllProjection() {
         if (projection != null) {
             final ObjectNode node = (ObjectNode) projection.get(PROJECTION.FIELDS.exactToken());
@@ -374,6 +375,7 @@ public class Select extends RequestSingle {
     /**
      * @return the projection
      */
+    @Override
     public final ObjectNode getProjection() {
         if (projection == null) {
             return JsonHandler.createObjectNode();

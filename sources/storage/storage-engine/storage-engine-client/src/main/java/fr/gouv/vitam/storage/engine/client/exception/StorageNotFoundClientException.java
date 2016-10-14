@@ -32,6 +32,11 @@ package fr.gouv.vitam.storage.engine.client.exception;
 public class StorageNotFoundClientException extends StorageClientException {
 
     /**
+     *
+     */
+    private static final long serialVersionUID = -580542273100315062L;
+
+    /**
      * @param message associated message
      */
     public StorageNotFoundClientException(String message) {

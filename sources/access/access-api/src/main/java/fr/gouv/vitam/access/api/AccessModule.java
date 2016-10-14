@@ -26,14 +26,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.api;
 
+import java.io.InputStream;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.access.common.exception.AccessExecutionException;
-import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
-
-import java.io.InputStream;
 
 /**
  * AccessModule interface for database operations in select
@@ -77,7 +77,7 @@ public interface AccessModule {
      * @throws IllegalArgumentException Throw if error occurs when checking argument
      */
     public JsonNode updateUnitbyId(JsonNode queryJson, String idUnit)
-            throws InvalidParseOperationException, AccessExecutionException;
+        throws InvalidParseOperationException, AccessExecutionException;
 
     /**
      * Retrieve an ObjectGroup by its id with results fields filtered based on given query

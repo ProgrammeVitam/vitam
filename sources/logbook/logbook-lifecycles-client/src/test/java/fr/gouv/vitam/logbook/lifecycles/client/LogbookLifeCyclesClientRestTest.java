@@ -51,6 +51,7 @@ import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.client.StatusMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -59,7 +60,6 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
@@ -157,7 +157,7 @@ public class LogbookLifeCyclesClientRestTest extends JerseyTest {
 
 
         logbookLifeCyclesUnitParametersStart = LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
-        logbookLifeCyclesUnitParametersStart.setStatus(LogbookOutcome.STARTED);
+        logbookLifeCyclesUnitParametersStart.setStatus(StatusCode.STARTED);
         logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.eventIdentifier,
             eip.toString());
         logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.eventIdentifierProcess,
@@ -187,7 +187,7 @@ public class LogbookLifeCyclesClientRestTest extends JerseyTest {
 
         logbookLifeCycleObjectGroupParametersStart =
             LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
-        logbookLifeCycleObjectGroupParametersStart.setStatus(LogbookOutcome.STARTED);
+        logbookLifeCycleObjectGroupParametersStart.setStatus(StatusCode.STARTED);
         logbookLifeCycleObjectGroupParametersStart.putParameterValue(LogbookParameterName.eventIdentifier,
             eip.toString());
         logbookLifeCycleObjectGroupParametersStart.putParameterValue(LogbookParameterName.eventIdentifierProcess,
@@ -384,14 +384,14 @@ public class LogbookLifeCyclesClientRestTest extends JerseyTest {
     @Test(expected = LogbookClientNotFoundException.class)
     public void selectLifeCycle() throws Exception {
         when(mock.post()).thenReturn(Response.status(Response.Status.OK).build());
-        String id = "ushshsjskqlqlqlqqmqm";
+        final String id = "ushshsjskqlqlqlqqmqm";
         client.selectLifeCycles(id);
     }
 
     @Test(expected = LogbookClientNotFoundException.class)
     public void selectLifeCycleById() throws Exception {
         when(mock.post()).thenReturn(Response.status(Response.Status.OK).build());
-        String id = "ushshsjskqlqlqlqqmqm";
+        final String id = "ushshsjskqlqlqlqqmqm";
         client.selectLifeCyclesById(id);
     }
 
@@ -433,7 +433,7 @@ public class LogbookLifeCyclesClientRestTest extends JerseyTest {
 
         logbookLifeCycleObjectGroupParametersStart =
             LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
-        logbookLifeCycleObjectGroupParametersStart.setStatus(LogbookOutcome.STARTED);
+        logbookLifeCycleObjectGroupParametersStart.setStatus(StatusCode.STARTED);
 
         logbookLifeCycleObjectGroupParametersStart.putParameterValue(LogbookParameterName.eventType, "event");
         logbookLifeCycleObjectGroupParametersStart.setTypeProcess(LogbookTypeProcess.INGEST);

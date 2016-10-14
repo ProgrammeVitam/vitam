@@ -42,8 +42,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
- * Test class for error code enum validation.
- * Modify this class only if you exactly know what you do !
+ * Test class for error code enum validation. Modify this class only if you exactly know what you do !
  */
 public class CodeTest {
 
@@ -62,7 +61,7 @@ public class CodeTest {
     public void serviceCodeValidation() {
         boolean error = false;
         char c;
-        for (ServiceName service : ServiceName.values()) {
+        for (final ServiceName service : ServiceName.values()) {
             if (service.getCode().length() != 2) {
                 error = true;
                 LOGGER.error(ERROR_SERVICE + String.format(MESSAGE_CODE_LENGTH, service.name(), service.getCode()));
@@ -88,7 +87,7 @@ public class CodeTest {
     public void domainCodeValidation() {
         boolean error = false;
         char c;
-        for (DomainName domain : DomainName.values()) {
+        for (final DomainName domain : DomainName.values()) {
             if (domain.getCode().length() != 2) {
                 error = true;
                 LOGGER.error(ERROR_DOMAIN + String.format(MESSAGE_CODE_LENGTH, domain.name(), domain.getCode()));
@@ -112,10 +111,11 @@ public class CodeTest {
     public void codeVitamCodeValidation() {
         boolean error = false;
         char c;
-        for (VitamCode vitamCode : VitamCode.values()) {
+        for (final VitamCode vitamCode : VitamCode.values()) {
             if (vitamCode.getItem().length() != 2) {
                 error = true;
-                LOGGER.error(ERROR_CODE_VITAM + String.format(MESSAGE_CODE_LENGTH, vitamCode.name(), vitamCode.getItem()));
+                LOGGER.error(
+                    ERROR_CODE_VITAM + String.format(MESSAGE_CODE_LENGTH, vitamCode.name(), vitamCode.getItem()));
             }
             for (int i = 0; i < vitamCode.getItem().length(); i++) {
                 c = vitamCode.getItem().charAt(i);
@@ -135,9 +135,9 @@ public class CodeTest {
      */
     @Test
     public void serviceCodeDuplicateValidation() {
-        Map<String, String> enumCodesNames = new HashMap<>();
-        List<String> messages = new ArrayList<>();
-        for (ServiceName service : ServiceName.values()) {
+        final Map<String, String> enumCodesNames = new HashMap<>();
+        final List<String> messages = new ArrayList<>();
+        for (final ServiceName service : ServiceName.values()) {
             if (enumCodesNames.containsKey(service.getCode())) {
                 messages.add(String.format(DUPLICATE_MESSAGE, service.getCode(), service.name(), enumCodesNames
                     .get(service.getCode())));
@@ -153,9 +153,9 @@ public class CodeTest {
      */
     @Test
     public void domainCodeDuplicateValidation() {
-        Map<String, String> enumCodesNames = new HashMap<>();
-        List<String> messages = new ArrayList<>();
-        for (DomainName domain : DomainName.values()) {
+        final Map<String, String> enumCodesNames = new HashMap<>();
+        final List<String> messages = new ArrayList<>();
+        for (final DomainName domain : DomainName.values()) {
             if (enumCodesNames.containsKey(domain.getCode())) {
                 messages.add(String.format(DUPLICATE_MESSAGE, domain.getCode(), domain.name(), enumCodesNames
                     .get(domain.getCode())));
@@ -171,10 +171,10 @@ public class CodeTest {
      */
     @Test
     public void vitamCodeDuplicateValidation() {
-        Map<String, String> enumCodesNames = new HashMap<>();
-        List<String> messages = new ArrayList<>();
+        final Map<String, String> enumCodesNames = new HashMap<>();
+        final List<String> messages = new ArrayList<>();
         String code;
-        for (VitamCode vitamCode : VitamCode.values()) {
+        for (final VitamCode vitamCode : VitamCode.values()) {
             code = vitamCode.getService().getCode() + vitamCode.getDomain().getCode() + vitamCode.getItem();
             if (enumCodesNames.containsKey(code)) {
                 messages.add(String.format(DUPLICATE_MESSAGE, code, vitamCode.name(), enumCodesNames.get(code)));
@@ -182,6 +182,7 @@ public class CodeTest {
                 enumCodesNames.put(code, vitamCode.name());
             }
         }
-        assertTrue(ERROR_CODE_VITAM + messages.stream().map(s -> s).collect(Collectors.joining("\n")), messages.isEmpty());
+        assertTrue(ERROR_CODE_VITAM + messages.stream().map(s -> s).collect(Collectors.joining("\n")),
+            messages.isEmpty());
     }
 }

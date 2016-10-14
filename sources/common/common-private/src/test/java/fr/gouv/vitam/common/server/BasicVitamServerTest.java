@@ -67,7 +67,7 @@ public class BasicVitamServerTest {
 
     @Test
     public final void testBuild() {
-        JunitHelper junitHelper = new JunitHelper();
+        JunitHelper junitHelper = JunitHelper.getInstance();
         int port = junitHelper.findAvailablePort();
         final BasicVitamServer server = new BasicVitamServer(port);
         try {

@@ -26,6 +26,6 @@
  *******************************************************************************/
 /**
  * Util function for internal ingest package
- * 
+ *
  */
 package fr.gouv.vitam.ingest.internal.common.util;

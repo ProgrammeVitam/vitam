@@ -118,7 +118,7 @@ public final class ServerIdentity implements ServerIdentityInterface {
     private static final int GLOBAL_ADDRESS_VALUE = 1;
 
     private static final ServerIdentity SERVER_IDENTITY = new ServerIdentity();
-    
+
     private String name;
     private String role;
     private int platformId;
@@ -136,8 +136,8 @@ public final class ServerIdentity implements ServerIdentityInterface {
             initializeCommentFormat();
         } catch (final IOException e) {
             SysErrLogger.FAKE_LOGGER.syserr(
-                    "Issue while getting configuration File: " +
-                        e.getMessage());
+                "Issue while getting configuration File: " +
+                    e.getMessage());
             propertyFileNotFound = true;
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
@@ -155,19 +155,19 @@ public final class ServerIdentity implements ServerIdentityInterface {
                 name = System.getenv(COMPUTERNAME);
                 found = true;
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             // ignore
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
-        if (! found) {
+        if (!found) {
             try {
                 name = System.getenv(HOSTNAME);
                 found = true;
-            } catch (SecurityException e) {
+            } catch (final SecurityException e) {
                 // ignore
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
-            if (! found || name == null) {
+            if (!found || name == null) {
                 // Some Unix do return null
                 executeHostnameCommand();
                 if (name == null) {

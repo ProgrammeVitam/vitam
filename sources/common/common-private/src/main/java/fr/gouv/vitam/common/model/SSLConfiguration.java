@@ -71,7 +71,7 @@ public class SSLConfiguration {
 
     /**
      * SSLConfiguration Constructor
-     * 
+     *
      * @param trustConfigs
      * @param keyConfig
      * @throws IllegalArgumentException if keystore/truststore is null or empty
@@ -115,7 +115,7 @@ public class SSLConfiguration {
 
     /**
      * Converts pwd string to a new character array.
-     * 
+     *
      * @param pwd
      * @return character array
      * @throws VitamException
@@ -129,7 +129,7 @@ public class SSLConfiguration {
     /**
      * get the File associated with this filename, trying in this order: as fullpath, as in Vitam Config Folder, as
      * Resources file
-     * 
+     *
      * @param filePath
      * @return the File if found
      * @throws VitamException
@@ -139,7 +139,7 @@ public class SSLConfiguration {
         ParametersChecker.checkParameter(PARAMETERS, filePath);
         try {
             return new FileInputStream(PropertiesUtils.findFile(filePath));
-        } catch (FileNotFoundException e) {
+        } catch (final FileNotFoundException e) {
             throw new VitamException(e);
         }
     }
@@ -147,7 +147,7 @@ public class SSLConfiguration {
 
     /**
      * load Key Managers
-     * 
+     *
      * @param filePath
      * @param pwd
      * @return key managers
@@ -156,11 +156,11 @@ public class SSLConfiguration {
      */
     private KeyManager[] loadKeyManagers(String filePath, String pwd) throws VitamException {
         ParametersChecker.checkParameter(PARAMETERS, filePath, pwd);
-        char[] password = readPassword(pwd);
+        final char[] password = readPassword(pwd);
         try (InputStream keyInputStream = readInputStream(filePath)) {
-            KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+            final KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
             keyStore.load(keyInputStream, password);
-            KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+            final KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
             kmf.init(keyStore, password);
             return kmf.getKeyManagers();
         } catch (IOException | NoSuchAlgorithmException | CertificateException | UnrecoverableKeyException |
@@ -171,7 +171,7 @@ public class SSLConfiguration {
 
     /**
      * load Trust Managers
-     * 
+     *
      * @param filePath
      * @param pwd
      * @return Trust Managers
@@ -181,11 +181,11 @@ public class SSLConfiguration {
     private TrustManager[] loadTrustManagers(String filePath, String pwd) throws VitamException {
 
         ParametersChecker.checkParameter(PARAMETERS, filePath, pwd);
-        char[] password = readPassword(pwd);
+        final char[] password = readPassword(pwd);
         try (InputStream trustInputStream = readInputStream(filePath)) {
-            KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+            final KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
             keyStore.load(trustInputStream, password);
-            TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            final TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
             tmf.init(keyStore);
             return tmf.getTrustManagers();
         } catch (IOException | KeyStoreException | NoSuchAlgorithmException | CertificateException e) {
@@ -197,22 +197,25 @@ public class SSLConfiguration {
 
     /**
      * load Trust Managers
-     * 
+     *
      * @return Trust Managers
      * @throws VitamException
      */
     private TrustManager[] loadTrustManagers() throws VitamException {
         return new TrustManager[] {new X509TrustManager() {
+            @Override
             public void checkClientTrusted(X509Certificate[] arg0,
                 String arg1) throws CertificateException {
                 // Empty
             }
 
+            @Override
             public void checkServerTrusted(X509Certificate[] arg0,
                 String arg1) throws CertificateException {
                 // Empty
             }
 
+            @Override
             public X509Certificate[] getAcceptedIssuers() {
                 return new X509Certificate[0];
             }
@@ -221,13 +224,13 @@ public class SSLConfiguration {
 
     /**
      * read Trust Managers
-     * 
+     *
      * @return Trust Managers
      * @throws VitamException
      */
     private TrustManager[] readTrustManagers() throws VitamException {
         TrustManager[] result = ObjectArrays.newArray(TrustManager.class, 0);
-        for (SSLKey key : truststore) {
+        for (final SSLKey key : truststore) {
             result = ObjectArrays.concat(result, loadTrustManagers(key.getKeyPath(), key.getKeyPassword()),
                 TrustManager.class);
         }
@@ -236,13 +239,13 @@ public class SSLConfiguration {
 
     /**
      * read Key Managers
-     * 
+     *
      * @return Key Managers
      * @throws VitamException
      */
     private KeyManager[] readKeyManagers() throws VitamException {
         KeyManager[] result = ObjectArrays.newArray(KeyManager.class, 0);
-        for (SSLKey key : keystore) {
+        for (final SSLKey key : keystore) {
             result =
                 ObjectArrays.concat(result, loadKeyManagers(key.getKeyPath(), key.getKeyPassword()), KeyManager.class);
         }

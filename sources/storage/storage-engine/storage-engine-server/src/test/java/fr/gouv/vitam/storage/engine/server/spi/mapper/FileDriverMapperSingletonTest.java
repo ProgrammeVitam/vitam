@@ -34,9 +34,6 @@ import java.io.FileNotFoundException;
 
 import org.junit.Test;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.exception.VitamException;
-
 public class FileDriverMapperSingletonTest {
 
     private File file;
@@ -47,7 +44,7 @@ public class FileDriverMapperSingletonTest {
             file = PropertiesUtils.getResourcesFile("driver-mapping.conf");
             file.setReadable(false);
             FileDriverMapper.getInstance();
-        } catch (FileNotFoundException exc) {
+        } catch (final FileNotFoundException exc) {
             fail("should not raise an exception !");
         } finally {
             file.setReadable(true);

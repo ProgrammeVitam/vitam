@@ -51,9 +51,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import de.odysseus.staxon.json.JsonXMLConfig;
 import de.odysseus.staxon.json.JsonXMLConfigBuilder;
 import de.odysseus.staxon.json.JsonXMLOutputFactory;
-import fr.gouv.vitam.api.exception.MetaDataException;
-import fr.gouv.vitam.client.MetaDataClient;
-import fr.gouv.vitam.client.MetaDataClientFactory;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.request.multiple.Insert;
@@ -62,15 +59,18 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.metadata.api.exception.MetaDataException;
+import fr.gouv.vitam.metadata.client.MetaDataClient;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.OutcomeMessage;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
-import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
@@ -98,7 +98,7 @@ public class IndexUnitActionHandler extends ActionHandler {
     public static final String TXT_EXTENSION = ".txt";
     private static final String FILE_COULD_NOT_BE_DELETED_MSG = "File could not be deleted";
 
-    private LogbookLifeCycleUnitParameters logbookLifecycleUnitParameters = LogbookParametersFactory
+    private final LogbookLifeCycleUnitParameters logbookLifecycleUnitParameters = LogbookParametersFactory
         .newLogbookLifeCycleUnitParameters();
     private HandlerIO handlerIO;
 
@@ -145,7 +145,7 @@ public class IndexUnitActionHandler extends ActionHandler {
                     OutcomeMessage.INDEX_UNIT_OK.value());
             }
             SedaUtils.setLifeCycleFinalEventStatusByStep(logbookLifecycleUnitParameters, response.getStatus());
-        } catch (ProcessingException e) {
+        } catch (final ProcessingException e) {
             LOGGER.error(e);
             response.setStatus(StatusCode.WARNING);
         }
@@ -173,14 +173,15 @@ public class IndexUnitActionHandler extends ActionHandler {
                 workspaceClient.getObject(containerId, IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName);
 
             if (input != null) {
-                Insert insertQuery = new Insert();
+                final Insert insertQuery = new Insert();
 
-                List<Object> archiveDetailsRequiredTForIndex = convertArchiveUnitToJson(input, containerId, objectName);
+                final List<Object> archiveDetailsRequiredTForIndex =
+                    convertArchiveUnitToJson(input, containerId, objectName);
                 final JsonNode json = ((JsonNode) archiveDetailsRequiredTForIndex.get(0)).get(ARCHIVE_UNIT);
 
                 // Add _up to archive unit json object
                 if (archiveDetailsRequiredTForIndex.size() == 2) {
-                    ArrayNode parents = (ArrayNode) archiveDetailsRequiredTForIndex.get(1);
+                    final ArrayNode parents = (ArrayNode) archiveDetailsRequiredTForIndex.get(1);
                     insertQuery.addRoots(parents);
                 }
 
@@ -212,7 +213,7 @@ public class IndexUnitActionHandler extends ActionHandler {
 
         JsonNode data = null;
         String parentsList = null;
-        List<Object> archiveUnitDetails = new ArrayList<Object>();
+        final List<Object> archiveUnitDetails = new ArrayList<Object>();
 
         try {
             tmpFileWriter = new FileWriter(tmpFile);
@@ -252,7 +253,7 @@ public class IndexUnitActionHandler extends ActionHandler {
                     }
 
                     if (tag == IngestWorkflowConstants.UP_FIELD) {
-                        XMLEvent upsEvent = reader.nextEvent();
+                        final XMLEvent upsEvent = reader.nextEvent();
                         if (!upsEvent.isEndElement() && upsEvent.isCharacters()) {
                             parentsList = upsEvent.asCharacters().getData();
                         }
@@ -303,13 +304,13 @@ public class IndexUnitActionHandler extends ActionHandler {
             }
 
             // Prepare archive unit details required for index process
-            archiveUnitDetails.add((ObjectNode) data);
+            archiveUnitDetails.add(data);
 
             // Add parents GUIDs
             if (parentsList != null) {
-                String[] parentsGuid = parentsList.split(IngestWorkflowConstants.UPS_SEPARATOR);
-                ArrayNode parentsArray = JsonHandler.createArrayNode();
-                for (String parent : parentsGuid) {
+                final String[] parentsGuid = parentsList.split(IngestWorkflowConstants.UPS_SEPARATOR);
+                final ArrayNode parentsArray = JsonHandler.createArrayNode();
+                for (final String parent : parentsGuid) {
                     parentsArray.add(parent);
                 }
                 archiveUnitDetails.add(parentsArray);

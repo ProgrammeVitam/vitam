@@ -31,7 +31,7 @@ import fr.gouv.vitam.common.model.SSLConfiguration;
 /**
  * Defines minimal common configurations for secure client configuration properties.
  */
-public interface SecureClientConfiguration extends VitamApplicationConfiguration{
+public interface SecureClientConfiguration extends VitamApplicationConfiguration {
 
     /**
      * Must return the value of a 'serverHost' attribute
@@ -46,21 +46,21 @@ public interface SecureClientConfiguration extends VitamApplicationConfiguration
      * @return the server port value
      */
     int getServerPort();
-    
+
     /**
      * Must return the value of a 'secure' attribute
      *
      * @return secure = false : HTTP, secure = true : HTTPS
      */
     public boolean isSecure();
-    
+
     /**
      * Must return the value of a 'hostnameVerification' attribute
      *
      * @return HostnameVerification
      */
     public boolean isHostnameVerification();
-    
+
     /**
      * Must return the value of a 'sslConfiguration' attribute
      *

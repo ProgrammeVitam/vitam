@@ -42,7 +42,7 @@ public class MinAction extends fr.gouv.vitam.common.database.builder.query.actio
      * For Parsing
      *
      * @param action UPDATEACTION
-     * @param adapter VarNameAdapter 
+     * @param adapter VarNameAdapter
      * @param request JsonNode
      * @throws InvalidParseOperationException if could not parse to JSON
      */

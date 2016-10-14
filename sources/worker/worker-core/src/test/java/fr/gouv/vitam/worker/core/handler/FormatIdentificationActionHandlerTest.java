@@ -16,7 +16,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
+import org.mockito.Matchers;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -35,12 +35,12 @@ import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierTech
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
 import fr.gouv.vitam.common.format.identification.siegfried.FormatIdentifierSiegfried;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.OutcomeMessage;
-import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
@@ -79,61 +79,61 @@ public class FormatIdentificationActionHandlerTest {
 
     @Test
     public void getFormatIdentifierNotFound() throws Exception {
-        FormatIdentifierFactory identifierFactory = PowerMockito.mock(FormatIdentifierFactory.class);
+        final FormatIdentifierFactory identifierFactory = PowerMockito.mock(FormatIdentifierFactory.class);
         when(FormatIdentifierFactory.getInstance()).thenReturn(identifierFactory);
         when(identifierFactory.getFormatIdentifierFor(anyObject()))
             .thenThrow(new FormatIdentifierNotFoundException(""));
         handler = new FormatIdentificationActionHandler();
-        WorkerParameters params = getDefaultWorkerParameters();
-        HandlerIO handlerIO = new HandlerIO("");
+        final WorkerParameters params = getDefaultWorkerParameters();
+        final HandlerIO handlerIO = new HandlerIO("");
 
-        EngineResponse response = handler.execute(params, handlerIO);
+        final EngineResponse response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getStatus());
         assertEquals(OutcomeMessage.GETTING_FORMAT_IDENTIFIER_FATAL, response.getOutcomeMessages().get(HANDLER_ID));
     }
 
     @Test
     public void getFormatIdentifierFactoryError() throws Exception {
-        FormatIdentifierFactory identifierFactory = PowerMockito.mock(FormatIdentifierFactory.class);
+        final FormatIdentifierFactory identifierFactory = PowerMockito.mock(FormatIdentifierFactory.class);
         when(FormatIdentifierFactory.getInstance()).thenReturn(identifierFactory);
         handler = new FormatIdentificationActionHandler();
-        WorkerParameters params = getDefaultWorkerParameters();
-        HandlerIO handlerIO = new HandlerIO("");
+        final WorkerParameters params = getDefaultWorkerParameters();
+        final HandlerIO handlerIO = new HandlerIO("");
 
         when(identifierFactory.getFormatIdentifierFor(anyObject())).thenThrow(new FormatIdentifierFactoryException(""));
-        EngineResponse response = handler.execute(params, handlerIO);
+        final EngineResponse response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getStatus());
         assertEquals(OutcomeMessage.GETTING_FORMAT_IDENTIFIER_FATAL, response.getOutcomeMessages().get(HANDLER_ID));
     }
 
     @Test
     public void getFormatIdentifierTechnicalError() throws Exception {
-        FormatIdentifierFactory identifierFactory = PowerMockito.mock(FormatIdentifierFactory.class);
+        final FormatIdentifierFactory identifierFactory = PowerMockito.mock(FormatIdentifierFactory.class);
         when(FormatIdentifierFactory.getInstance()).thenReturn(identifierFactory);
         handler = new FormatIdentificationActionHandler();
-        WorkerParameters params = getDefaultWorkerParameters();
-        HandlerIO handlerIO = new HandlerIO("");
+        final WorkerParameters params = getDefaultWorkerParameters();
+        final HandlerIO handlerIO = new HandlerIO("");
 
         when(identifierFactory.getFormatIdentifierFor(anyObject()))
             .thenThrow(new FormatIdentifierTechnicalException(""));
-        EngineResponse response = handler.execute(params, handlerIO);
+        final EngineResponse response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getStatus());
         assertEquals(OutcomeMessage.GETTING_FORMAT_IDENTIFIER_FATAL, response.getOutcomeMessages().get(HANDLER_ID));
     }
 
     @Test
     public void gettingJsonFromWorkspaceError() throws Exception {
-        FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
+        final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
 
-        WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
-        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        final WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
+        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
         when(workspaceClient.getObject(anyObject(), anyObject()))
             .thenThrow(new ContentAddressableStorageNotFoundException(""));
         handler = new FormatIdentificationActionHandler();
-        WorkerParameters params = getDefaultWorkerParameters();
-        HandlerIO handlerIO = new HandlerIO("");
+        final WorkerParameters params = getDefaultWorkerParameters();
+        final HandlerIO handlerIO = new HandlerIO("");
 
-        EngineResponse response = handler.execute(params, handlerIO);
+        final EngineResponse response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getStatus());
         assertEquals(OutcomeMessage.FILE_FORMAT_TECHNICAL_ERROR, response.getOutcomeMessages().get(HANDLER_ID));
         deleteFiles();
@@ -141,31 +141,31 @@ public class FormatIdentificationActionHandlerTest {
 
     @Test
     public void formatNotFoundInInternalReferential() throws Exception {
-        FormatIdentifierSiegfried siegfried =
+        final FormatIdentifierSiegfried siegfried =
             getMockedFormatIdentifierSiegfried();
 
         when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierResponseList());
 
-        WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
-        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        final WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
+        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(objectGroup)
             .thenReturn(IOUtils.toInputStream("VitamTest"));
 
-        AdminManagementClient adminManagementClient = getMockedAdminManagementClient();
+        final AdminManagementClient adminManagementClient = getMockedAdminManagementClient();
         when(adminManagementClient.getFormats(anyObject())).thenReturn(getAdminManagementJson2Result());
 
         handler = new FormatIdentificationActionHandler();
-        WorkerParameters params = getDefaultWorkerParameters();
-        HandlerIO handlerIO = new HandlerIO("");
+        final WorkerParameters params = getDefaultWorkerParameters();
+        final HandlerIO handlerIO = new HandlerIO("");
 
-        EngineResponse response = handler.execute(params, handlerIO);
+        final EngineResponse response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.KO, response.getStatus());
         assertEquals(OutcomeMessage.FILE_FORMAT_PUID_NOT_FOUND, response.getOutcomeMessages().get(HANDLER_ID));
     }
 
     private AdminManagementClient getMockedAdminManagementClient() {
-        AdminManagementClient adminManagementClient = mock(AdminManagementClient.class);
-        AdminManagementClientFactory adminManagementClientFactory =
+        final AdminManagementClient adminManagementClient = mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminManagementClientFactory =
             PowerMockito.mock(AdminManagementClientFactory.class);
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
         when(adminManagementClientFactory.getAdminManagementClient()).thenReturn(adminManagementClient);
@@ -174,147 +174,147 @@ public class FormatIdentificationActionHandlerTest {
 
     @Test
     public void formatIdentificationWarning() throws Exception {
-        FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
+        final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
 
         when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierResponseList());
 
-        WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
-        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        final WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
+        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(objectGroup)
             .thenReturn(IOUtils.toInputStream("VitamTest"));
         doNothing().when(workspaceClient).putObject(anyObject(), anyObject(), anyObject());
 
-        AdminManagementClient adminManagementClient =
+        final AdminManagementClient adminManagementClient =
             getMockedAdminManagementClient();
 
         when(adminManagementClient.getFormats(anyObject())).thenReturn(getAdminManagementJson());
 
         handler = new FormatIdentificationActionHandler();
-        WorkerParameters params = getDefaultWorkerParameters();
-        HandlerIO handlerIO = new HandlerIO("");
+        final WorkerParameters params = getDefaultWorkerParameters();
+        final HandlerIO handlerIO = new HandlerIO("");
 
-        EngineResponse response = handler.execute(params, handlerIO);
+        final EngineResponse response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.WARNING, response.getStatus());
         assertEquals(OutcomeMessage.FILE_FORMAT_METADATA_UPDATE, response.getOutcomeMessages().get(HANDLER_ID));
     }
 
     @Test
     public void formatIdentificationWithoutFormat() throws Exception {
-        FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
+        final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
 
         when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierResponseList());
 
-        WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
-        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        final WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
+        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(objectGroup2)
             .thenReturn(IOUtils.toInputStream("VitamTest"));
         doNothing().when(workspaceClient).putObject(anyObject(), anyObject(), anyObject());
 
-        AdminManagementClient adminManagementClient =
+        final AdminManagementClient adminManagementClient =
             getMockedAdminManagementClient();
 
         when(adminManagementClient.getFormats(anyObject())).thenReturn(getAdminManagementJson());
 
         handler = new FormatIdentificationActionHandler();
-        WorkerParameters params = getDefaultWorkerParameters();
-        HandlerIO handlerIO = new HandlerIO("");
+        final WorkerParameters params = getDefaultWorkerParameters();
+        final HandlerIO handlerIO = new HandlerIO("");
 
-        EngineResponse response = handler.execute(params, handlerIO);
+        final EngineResponse response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.WARNING, response.getStatus());
         assertEquals(OutcomeMessage.FILE_FORMAT_METADATA_UPDATE, response.getOutcomeMessages().get(HANDLER_ID));
     }
 
     @Test
     public void formatIdentificationNotFound() throws Exception {
-        FormatIdentifierSiegfried siegfried =
+        final FormatIdentifierSiegfried siegfried =
             getMockedFormatIdentifierSiegfried();
 
         when(siegfried.analysePath(anyObject())).thenThrow(new FileFormatNotFoundException(""));
 
-        WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
-        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        final WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
+        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(objectGroup)
             .thenReturn(IOUtils.toInputStream("VitamTest"));
 
         handler = new FormatIdentificationActionHandler();
-        WorkerParameters params = getDefaultWorkerParameters();
-        HandlerIO handlerIO = new HandlerIO("");
+        final WorkerParameters params = getDefaultWorkerParameters();
+        final HandlerIO handlerIO = new HandlerIO("");
 
-        EngineResponse response = handler.execute(params, handlerIO);
+        final EngineResponse response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.KO, response.getStatus());
         assertEquals(OutcomeMessage.FILE_FORMAT_NOT_FOUND, response.getOutcomeMessages().get(HANDLER_ID));
     }
 
     @Test
     public void formatIdentificationReferentialException() throws Exception {
-        FormatIdentifierSiegfried siegfried =
+        final FormatIdentifierSiegfried siegfried =
             getMockedFormatIdentifierSiegfried();
 
         when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierResponseList());
 
-        AdminManagementClient adminManagementClient =
+        final AdminManagementClient adminManagementClient =
             getMockedAdminManagementClient();
 
         when(adminManagementClient.getFormats(anyObject())).thenThrow(new ReferentialException(""));
 
-        WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
-        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        final WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
+        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(objectGroup)
             .thenReturn(IOUtils.toInputStream("VitamTest"));
 
         handler = new FormatIdentificationActionHandler();
-        WorkerParameters params = getDefaultWorkerParameters();
-        HandlerIO handlerIO = new HandlerIO("");
+        final WorkerParameters params = getDefaultWorkerParameters();
+        final HandlerIO handlerIO = new HandlerIO("");
 
-        EngineResponse response = handler.execute(params, handlerIO);
+        final EngineResponse response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getStatus());
         assertEquals(OutcomeMessage.FILE_FORMAT_REFERENTIAL_ERROR, response.getOutcomeMessages().get(HANDLER_ID));
     }
 
     @Test
     public void formatIdentificationTechnicalException() throws Exception {
-        FormatIdentifierSiegfried siegfried =
+        final FormatIdentifierSiegfried siegfried =
             getMockedFormatIdentifierSiegfried();
 
         when(siegfried.analysePath(anyObject())).thenThrow(new FormatIdentifierTechnicalException(""));
 
-        WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
-        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        final WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
+        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(objectGroup);
 
         handler = new FormatIdentificationActionHandler();
-        WorkerParameters params = getDefaultWorkerParameters();
-        HandlerIO handlerIO = new HandlerIO("");
+        final WorkerParameters params = getDefaultWorkerParameters();
+        final HandlerIO handlerIO = new HandlerIO("");
 
-        EngineResponse response = handler.execute(params, handlerIO);
+        final EngineResponse response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getStatus());
         assertEquals(OutcomeMessage.FILE_FORMAT_TECHNICAL_ERROR, response.getOutcomeMessages().get(HANDLER_ID));
     }
 
     @Test
     public void formatIdentificationFileIdentifierDoesNotRespond() throws Exception {
-        FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
+        final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
 
         when(siegfried.analysePath(anyObject())).thenThrow(new FormatIdentifierNotFoundException(""));
 
-        WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
-        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        final WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
+        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(objectGroup)
             .thenReturn(IOUtils.toInputStream("VitamTest"));
 
         handler = new FormatIdentificationActionHandler();
-        WorkerParameters params = getDefaultWorkerParameters();
-        HandlerIO handlerIO = new HandlerIO("");
+        final WorkerParameters params = getDefaultWorkerParameters();
+        final HandlerIO handlerIO = new HandlerIO("");
 
-        EngineResponse response = handler.execute(params, handlerIO);
+        final EngineResponse response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getStatus());
         assertEquals(OutcomeMessage.FILE_FORMAT_TOOL_DOES_NOT_ANSWER, response.getOutcomeMessages().get(HANDLER_ID));
     }
 
     private FormatIdentifierSiegfried getMockedFormatIdentifierSiegfried()
         throws FormatIdentifierNotFoundException, FormatIdentifierFactoryException, FormatIdentifierTechnicalException {
-        FormatIdentifierSiegfried siegfried = mock(FormatIdentifierSiegfried.class);
-        FormatIdentifierFactory identifierFactory = PowerMockito.mock(FormatIdentifierFactory.class);
+        final FormatIdentifierSiegfried siegfried = mock(FormatIdentifierSiegfried.class);
+        final FormatIdentifierFactory identifierFactory = PowerMockito.mock(FormatIdentifierFactory.class);
         when(FormatIdentifierFactory.getInstance()).thenReturn(identifierFactory);
         when(identifierFactory.getFormatIdentifierFor(anyObject())).thenReturn(siegfried);
         return siegfried;
@@ -326,7 +326,7 @@ public class FormatIdentificationActionHandlerTest {
     }
 
     private List<FormatIdentifierResponse> getFormatIdentifierResponseList() {
-        List<FormatIdentifierResponse> list = new ArrayList<>();
+        final List<FormatIdentifierResponse> list = new ArrayList<>();
         list.add(new FormatIdentifierResponse("OpenDocument Presentation", "application/vnd.oasis.opendocument" +
             ".presentation",
             "fmt/293", "pronom"));
@@ -334,25 +334,25 @@ public class FormatIdentificationActionHandlerTest {
     }
 
     private JsonNode getAdminManagementJson() {
-        ObjectNode node = JsonHandler.createObjectNode();
+        final ObjectNode node = JsonHandler.createObjectNode();
         node.put("PUID", "fmt/293");
         node.put("Name", "OpenDocument Presentation");
         node.put("MIMEType", "application/vnd.oasis.opendocument");
-        ArrayNode ret = JsonHandler.createArrayNode();
+        final ArrayNode ret = JsonHandler.createArrayNode();
         ret.add(node);
         return ret;
     }
 
     private JsonNode getAdminManagementJson2Result() {
-        ObjectNode node2 = JsonHandler.createObjectNode();
+        final ObjectNode node2 = JsonHandler.createObjectNode();
         return node2;
     }
 
     private void deleteFiles() {
-        String fileName1 = "containerNameobjNameaeaaaaaaaaaam7myaaaamakxfgivurqaaaaq";
-        String fileName2 = "containerNameobjNameaeaaaaaaaaaam7myaaaamakxfgivuuiaaaaq";
-        String fileName3 = "containerNameobjNameaeaaaaaaaaaam7myaaaamakxfgivuuyaaaaq";
-        String fileName4 = "containerNameobjNameaeaaaaaaaaaam7myaaaamakxfgivuvaaaaaq";
+        final String fileName1 = "containerNameobjNameaeaaaaaaaaaam7myaaaamakxfgivurqaaaaq";
+        final String fileName2 = "containerNameobjNameaeaaaaaaaaaam7myaaaamakxfgivuuiaaaaq";
+        final String fileName3 = "containerNameobjNameaeaaaaaaaaaam7myaaaamakxfgivuuyaaaaq";
+        final String fileName4 = "containerNameobjNameaeaaaaaaaaaam7myaaaamakxfgivuvaaaaaq";
         File file = new File(VitamConfiguration.getVitamTmpFolder() + "/" + fileName1);
         if (file.exists()) {
             file.delete();

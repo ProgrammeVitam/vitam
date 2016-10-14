@@ -26,12 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.server.logbook;
 
-import fr.gouv.vitam.common.ParametersChecker;
-
 /**
  * Storage Logbook Factory
- * 
+ *
  * Example for adding a log:
+ * 
  * <pre>
  * {
  *     &#64;code
@@ -58,11 +57,11 @@ public final class StorageLogbookFactory {
     private static StorageLogbookType defaultStorageLogbookType;
     private static final StorageLogbookFactory STORAGE_LOGBOOK_FACTORY = new StorageLogbookFactory();
 
-    
+
     private StorageLogbookFactory() {
         changeDefaultStorageLogbookType(StorageLogbookType.MOCK);
     }
-    
+
     /**
      * Get the StorageLogbookFactory instance
      *
@@ -85,7 +84,7 @@ public final class StorageLogbookFactory {
                 break;
             default:
                 throw new IllegalArgumentException("Storage Log type unknown");
-        }        
+        }
         return storageLogbook;
     }
 

@@ -76,7 +76,7 @@ public class ReferentialFormatFileImplTest {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         final MongodStarter starter = MongodStarter.getDefaultInstance();
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .version(Version.Main.PRODUCTION)
@@ -108,14 +108,14 @@ public class ReferentialFormatFileImplTest {
     @Test
     public void testimportAndDeleteFormat() throws Exception {
         formatFile.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
-        MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
-        MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
+        final MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
+        final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
         assertEquals(1328, collection.count());
-        Select select = new Select();
+        final Select select = new Select();
         select.setQuery(eq("PUID", "fmt/164"));
-        List<FileFormat> fileList = formatFile.findDocuments(select.getFinalSelect());
-        String id = fileList.get(0).getString("_id");
-        FileFormat file = formatFile.findDocumentById(id);
+        final List<FileFormat> fileList = formatFile.findDocuments(select.getFinalSelect());
+        final String id = fileList.get(0).getString("_id");
+        final FileFormat file = formatFile.findDocumentById(id);
         assertEquals("[wps]", file.get("Extension").toString());
         assertEquals(file, fileList.get(0));
         assertFalse(fileList.get(0).getBoolean("Alert"));

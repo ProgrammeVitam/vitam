@@ -61,7 +61,8 @@ public class ProcessingUnauthorizeException extends ProcessingException {
      * @param enableSuppression allow suppression or not
      * @param writableStackTrace allow writable stack trace or not
      */
-    public ProcessingUnauthorizeException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    public ProcessingUnauthorizeException(String message, Throwable cause, boolean enableSuppression,
+        boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

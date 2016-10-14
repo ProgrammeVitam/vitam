@@ -46,7 +46,7 @@ public interface UploadService {
      * @param uploadedInputStream
      * @return Response
      * @throws VitamException, if inputstream is null
-     * @throws XMLStreamException 
+     * @throws XMLStreamException
      */
     // TODO commentaire incorrect
     public Response uploadSipAsStream(List<FormDataBodyPart> partList)

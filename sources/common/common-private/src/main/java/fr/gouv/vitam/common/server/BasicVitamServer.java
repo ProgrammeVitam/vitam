@@ -73,42 +73,41 @@ public class BasicVitamServer implements VitamServer {
 
 
     /**
-     * A Vitam server can be instantiated with a jetty xml configuration file. This configuration file can be in :
-     *  - /vitam/conf,
-     *  - resource folder
-     *  - resource in classpath
+     * A Vitam server can be instantiated with a jetty xml configuration file. This configuration file can be in : -
+     * /vitam/conf, - resource folder - resource in classpath
      *
      * @param jettyConfigPath configuration file of jetty server
-     * @throws VitamApplicationServerException if configuration not found, can't be parsed, can't be read or server can't started
+     * @throws VitamApplicationServerException if configuration not found, can't be parsed, can't be read or server
+     *         can't started
      */
     protected BasicVitamServer(final String jettyConfigPath) throws VitamApplicationServerException {
 
         File jcFile = null;
         try {
-            LOGGER.info("Starting server with configuration file : "+jettyConfigPath);
+            LOGGER.info("Starting server with configuration file : " + jettyConfigPath);
 
             jcFile = PropertiesUtils.findFile(jettyConfigPath);
-            FileInputStream fis = new FileInputStream(jcFile);
+            final FileInputStream fis = new FileInputStream(jcFile);
             serverConfiguration = new XmlConfiguration(fis);
-            this.server = new Server();
+            server = new Server();
             server = (Server) serverConfiguration.configure(server);
-            this.configured = true;
+            configured = true;
 
             LOGGER.info("Server started.");
 
-        } catch (FileNotFoundException e) {
+        } catch (final FileNotFoundException e) {
             setConfigured(false);
             LOGGER.error("Server configuration file not found.", e);
             throw new VitamApplicationServerException(e);
-        } catch (SAXException e) {
+        } catch (final SAXException e) {
             setConfigured(false);
             LOGGER.error("Server configuration file can't be parsed.", e);
             throw new VitamApplicationServerException(e);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             setConfigured(false);
             LOGGER.error("Server configuration file can't be read.", e);
             throw new VitamApplicationServerException(e);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             setConfigured(false);
             LOGGER.error("Server can't be started.", e);
             throw new VitamApplicationServerException(e);
@@ -140,6 +139,7 @@ public class BasicVitamServer implements VitamServer {
      *
      * @throws VitamApplicationServerException
      */
+    @Override
     public void start() throws VitamApplicationServerException {
         if (!isConfigured()) {
             throw new VitamApplicationServerException("You must configure the server before running");
@@ -156,6 +156,7 @@ public class BasicVitamServer implements VitamServer {
      *
      * @throws VitamApplicationServerException
      */
+    @Override
     public void stop() throws VitamApplicationServerException {
         if (!isConfigured()) {
             throw new VitamApplicationServerException("You must configure the server before running");
@@ -174,12 +175,17 @@ public class BasicVitamServer implements VitamServer {
      *
      * @return the underlying jetty server
      */
-    public Server getServer() { return server; }
+    @Override
+    public Server getServer() {
+        return server;
+    }
 
     /**
      * Retrieving the server jetty configuration
+     * 
      * @return XmlConfiguration
      */
+    @Override
     public XmlConfiguration getServerConfiguration() {
         return serverConfiguration;
     }
@@ -189,8 +195,9 @@ public class BasicVitamServer implements VitamServer {
      *
      * @return true if jetty server is started
      */
-    @Override public boolean isStarted() {
-        if(server!=null) {
+    @Override
+    public boolean isStarted() {
+        if (server != null) {
             return server.isStarted();
         } else {
             LOGGER.error("Jetty Server is null");
@@ -203,8 +210,9 @@ public class BasicVitamServer implements VitamServer {
      *
      * @return true if jetty server is stopped
      */
-    @Override public boolean isStopped() {
-        if(server!=null) {
+    @Override
+    public boolean isStopped() {
+        if (server != null) {
             return server.isStopped();
         } else {
             LOGGER.error("Jetty Server is null");
@@ -219,10 +227,10 @@ public class BasicVitamServer implements VitamServer {
      */
     @Override
     public void join() throws VitamException {
-        if(server!=null && server.isStarted()) {
+        if (server != null && server.isStarted()) {
             try {
                 server.join();
-            } catch (InterruptedException e) {
+            } catch (final InterruptedException e) {
                 throw new VitamException(e);
             }
         }
@@ -230,6 +238,7 @@ public class BasicVitamServer implements VitamServer {
 
     /**
      * Retrieving the vitam server port
+     * 
      * @return the vitam server port
      */
     @Override
@@ -239,6 +248,7 @@ public class BasicVitamServer implements VitamServer {
 
     /**
      * check if is configured
+     * 
      * @return true if it is configured
      */
     @Override
@@ -248,6 +258,7 @@ public class BasicVitamServer implements VitamServer {
 
     /**
      * setter configured status
+     * 
      * @param configured configured status
      */
     protected void setConfigured(boolean configured) {
@@ -256,6 +267,7 @@ public class BasicVitamServer implements VitamServer {
 
     /**
      * retrieving the handler
+     * 
      * @return the handler
      */
     @Override
@@ -266,8 +278,10 @@ public class BasicVitamServer implements VitamServer {
 
     /**
      * setter of the handler
+     * 
      * @param handler the handler to set
      */
+    @Override
     public void setHandler(Handler handler) {
         ParametersChecker.checkParameter("Handler must not be nul", handler);
         this.handler = handler;

@@ -32,13 +32,6 @@ import java.io.InputStream;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-
 /**
  * Default offer service interface define offer methods
  */
@@ -70,7 +63,7 @@ public interface DefaultOfferService {
 
     /**
      * Initialize object creation
-     * 
+     *
      * Create container on offer if does not exist for one object Also update digest type and object GUID
      *
      * @param containerName the container name to create
@@ -109,7 +102,7 @@ public interface DefaultOfferService {
      * @param objectPart the part of the object to create (chunk style)
      * @param ending true if objectPart is the last part
      * @return the digest of the complete file or the digest of the chunk
-     * 
+     *
      * @throws IOException if an IOException is encountered with files
      * @throws ContentAddressableStorageException if the container does not exist
      */

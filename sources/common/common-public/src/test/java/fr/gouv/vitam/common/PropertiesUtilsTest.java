@@ -60,10 +60,10 @@ public class PropertiesUtilsTest {
         file = PropertiesUtils.fileFromTmpFolder(fictivePath);
         assertTrue(file.getAbsolutePath().startsWith(VitamConfiguration.getVitamTmpFolder()));
         assertTrue(file.getAbsolutePath().endsWith(fictivePath));
-        
+
         try (InputStream stream = PropertiesUtils.getResourcesAsStream("json-test.json")) {
             assertTrue(stream != null);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             fail("Should not raized an exception");
         }
     }
@@ -116,6 +116,7 @@ public class PropertiesUtilsTest {
         PropertiesUtils.getResourcesAsStream(null);
         fail(ResourcesPublicUtilTest.EXPECTING_EXCEPTION_FILE_NOT_FOUND_EXCEPTION);
     }
+
     @Test
     public void testGetResourcesFile() throws FileNotFoundException {
         final File file = PropertiesUtils.getResourcesFile(
@@ -238,7 +239,7 @@ public class PropertiesUtilsTest {
             // ignore
         }
     }
-    
+
     @Test
     public void testWriteYamlFile() throws FileNotFoundException {
         try {
@@ -246,11 +247,12 @@ public class PropertiesUtilsTest {
             final ConfigurationTest test = PropertiesUtils.readYaml(original, ConfigurationTest.class);
             assertEquals("test", test.getTest());
             assertEquals(12346, test.getNumber());
-            File destination = File.createTempFile("test", ResourcesPublicUtilTest.YAML_TEST_CONF, original.getParentFile());
+            final File destination =
+                File.createTempFile("test", ResourcesPublicUtilTest.YAML_TEST_CONF, original.getParentFile());
             PropertiesUtils.writeYaml(destination, test);
         } catch (final IOException e1) {
             e1.printStackTrace();
             fail(ResourcesPublicUtilTest.SHOULD_NOT_HAVE_AN_EXCEPTION);
-        }        
+        }
     }
 }

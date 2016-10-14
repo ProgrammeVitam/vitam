@@ -60,11 +60,11 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.BasicVitamServer;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
@@ -94,7 +94,7 @@ public class IngestInternalResourceTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
         try {
             vitamServer = buildTestServer();
@@ -104,7 +104,7 @@ public class IngestInternalResourceTest {
             RestAssured.basePath = REST_URI;
 
             LOGGER.debug("Beginning tests");
-        } catch (VitamApplicationServerException e) {
+        } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
             throw new IllegalStateException(
                 "Cannot start the Ingest Application Server", e);
@@ -128,25 +128,25 @@ public class IngestInternalResourceTest {
     @Before
     public void setUp() throws Exception {
 
-        GUID ingestGuid = GUIDFactory.newGUID();
-        GUID conatinerGuid = GUIDFactory.newGUID();
-        LogbookOperationParameters externalOperationParameters1 =
+        final GUID ingestGuid = GUIDFactory.newGUID();
+        final GUID conatinerGuid = GUIDFactory.newGUID();
+        final LogbookOperationParameters externalOperationParameters1 =
             LogbookParametersFactory.newLogbookOperationParameters(
                 ingestGuid,
                 "Ingest external",
                 conatinerGuid,
                 LogbookTypeProcess.INGEST,
-                LogbookOutcome.STARTED,
+                StatusCode.STARTED,
                 "Start Ingest external",
                 conatinerGuid);
 
-        LogbookOperationParameters externalOperationParameters2 =
+        final LogbookOperationParameters externalOperationParameters2 =
             LogbookParametersFactory.newLogbookOperationParameters(
                 ingestGuid,
                 "Ingest external",
                 conatinerGuid,
                 LogbookTypeProcess.INGEST,
-                LogbookOutcome.OK,
+                StatusCode.OK,
                 "End Ingest external",
                 conatinerGuid);
         operationList = new ArrayList<LogbookParameters>();
@@ -157,14 +157,14 @@ public class IngestInternalResourceTest {
 
 
     private static VitamServer buildTestServer() throws VitamApplicationServerException {
-        VitamServer vitamServer = VitamServerFactory.newVitamServer(port);
+        final VitamServer vitamServer = VitamServerFactory.newVitamServer(port);
         workspaceClient = mock(WorkspaceClient.class);
         processingClient = mock(ProcessingManagementClient.class);
 
         final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(JacksonFeature.class);
         resourceConfig.register(MultiPartFeature.class);
-        IngestInternalConfiguration configuration = new IngestInternalConfiguration();
+        final IngestInternalConfiguration configuration = new IngestInternalConfiguration();
         // url is here just for validation, not used
         configuration.setWorkspaceUrl("http://localhost:8888");
         configuration.setProcessingUrl("http://localhost:9999");
@@ -177,7 +177,7 @@ public class IngestInternalResourceTest {
         contextHandler.setContextPath("/");
         contextHandler.addServlet(sh, "/*");
 
-        HandlerList handlers = new HandlerList();
+        final HandlerList handlers = new HandlerList();
         handlers.setHandlers(new Handler[] {contextHandler});
         vitamServer.configure(contextHandler);
         return vitamServer;
@@ -192,17 +192,17 @@ public class IngestInternalResourceTest {
     public void givenAllServicesAvailableAndNoVirusWhenUploadSipAsStreamThenReturnOK() throws Exception {
         reset(workspaceClient);
         reset(processingClient);
-        Mockito.doReturn(false).when(workspaceClient).isExistingContainer(Mockito.anyObject());
-        Mockito.doNothing().when(workspaceClient).createContainer(Mockito.anyObject());
-        Mockito.doNothing().when(workspaceClient).unzipObject(Mockito.anyObject(), Mockito.anyObject(),
-            Mockito.anyObject());
+        Mockito.doReturn(false).when(workspaceClient).isExistingContainer(Matchers.anyObject());
+        Mockito.doNothing().when(workspaceClient).createContainer(Matchers.anyObject());
+        Mockito.doNothing().when(workspaceClient).unzipObject(Matchers.anyObject(), Matchers.anyObject(),
+            Matchers.anyObject());
 
-        Mockito.doReturn("OK").when(processingClient).executeVitamProcess(Mockito.anyObject(),
-            Mockito.anyObject());
+        Mockito.doReturn("OK").when(processingClient).executeVitamProcess(Matchers.anyObject(),
+            Matchers.anyObject());
 
-        InputStream inputStream =
+        final InputStream inputStream =
             Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
-        
+
         RestAssured.given()
             .multiPart("part", operationList, MediaType.APPLICATION_JSON)
             .multiPart("part", "SIP_bordereau_avec_objet_OK", inputStream)
@@ -217,7 +217,7 @@ public class IngestInternalResourceTest {
         throws Exception {
         reset(workspaceClient);
         reset(processingClient);
-        
+
         RestAssured.given()
             .multiPart("part", operationList, MediaType.APPLICATION_JSON)
             .when().post(UPLOAD_URI)
@@ -230,12 +230,12 @@ public class IngestInternalResourceTest {
         reset(workspaceClient);
         reset(processingClient);
         Mockito.doThrow(new ContentAddressableStorageZipException("Test")).when(workspaceClient)
-            .unzipObject(Mockito.anyString(), Mockito.anyString(), Mockito.anyObject());
+            .unzipObject(Matchers.anyString(), Matchers.anyString(), Matchers.anyObject());
 
-        Mockito.doReturn("OK").when(processingClient).executeVitamProcess(Mockito.anyObject(),
-            Mockito.anyObject());
+        Mockito.doReturn("OK").when(processingClient).executeVitamProcess(Matchers.anyObject(),
+            Matchers.anyObject());
 
-        InputStream inputStreamZip =
+        final InputStream inputStreamZip =
             Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_mauvais_format.pdf");
 
         RestAssured.given()
@@ -254,7 +254,7 @@ public class IngestInternalResourceTest {
         Mockito.doThrow(new ContentAddressableStorageServerException("Test")).when(workspaceClient)
             .unzipObject(Matchers.anyObject(), Matchers.anyObject(), Matchers.anyObject());
 
-        InputStream inputStream =
+        final InputStream inputStream =
             Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
 
         RestAssured.given()
@@ -272,11 +272,11 @@ public class IngestInternalResourceTest {
     public void givenContainerAlreadyExistsWhenUploadSipAsStreamThenReturnKO() throws Exception {
         reset(workspaceClient);
         reset(processingClient);
-        Mockito.doReturn(true).when(workspaceClient).isExistingContainer(Mockito.anyObject());
+        Mockito.doReturn(true).when(workspaceClient).isExistingContainer(Matchers.anyObject());
 
-        InputStream inputStream =
+        final InputStream inputStream =
             Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
-        
+
         RestAssured.given()
             .multiPart("part", operationList, MediaType.APPLICATION_JSON)
             .multiPart("part", "SIP_bordereau_avec_objet_OK", inputStream)
@@ -293,9 +293,9 @@ public class IngestInternalResourceTest {
         reset(workspaceClient);
         reset(processingClient);
         Mockito.doThrow(new ProcessingBadRequestException("Test")).when(processingClient).executeVitamProcess(
-            Mockito.anyObject(),
-            Mockito.anyObject());
-        InputStream inputStream =
+            Matchers.anyObject(),
+            Matchers.anyObject());
+        final InputStream inputStream =
             Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
 
         RestAssured.given()
@@ -311,9 +311,9 @@ public class IngestInternalResourceTest {
         reset(workspaceClient);
         reset(processingClient);
         Mockito.doThrow(new ProcessingInternalServerException("Test")).when(processingClient).executeVitamProcess(
-            Mockito.anyObject(),
-            Mockito.anyObject());
-        InputStream inputStream =
+            Matchers.anyObject(),
+            Matchers.anyObject());
+        final InputStream inputStream =
             Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
 
         RestAssured.given()
@@ -328,9 +328,9 @@ public class IngestInternalResourceTest {
         throws Exception {
         reset(workspaceClient);
         reset(processingClient);
-        Mockito.doThrow(new ProcessingException("")).when(processingClient).executeVitamProcess(Mockito.anyObject(),
-            Mockito.anyObject());
-        InputStream inputStream =
+        Mockito.doThrow(new ProcessingException("")).when(processingClient).executeVitamProcess(Matchers.anyObject(),
+            Matchers.anyObject());
+        final InputStream inputStream =
             Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
 
         RestAssured.given()
@@ -345,15 +345,15 @@ public class IngestInternalResourceTest {
     public void givenAllServicesAvailableAndVirusWhenUploadSipAsStreamThenReturnOK() throws Exception {
         reset(workspaceClient);
         reset(processingClient);
-        Mockito.doReturn(false).when(workspaceClient).isExistingContainer(Mockito.anyObject());
-        Mockito.doNothing().when(workspaceClient).createContainer(Mockito.anyObject());
-        Mockito.doNothing().when(workspaceClient).unzipObject(Mockito.anyObject(), Mockito.anyObject(),
-            Mockito.anyObject());
+        Mockito.doReturn(false).when(workspaceClient).isExistingContainer(Matchers.anyObject());
+        Mockito.doNothing().when(workspaceClient).createContainer(Matchers.anyObject());
+        Mockito.doNothing().when(workspaceClient).unzipObject(Matchers.anyObject(), Matchers.anyObject(),
+            Matchers.anyObject());
 
-        Mockito.doReturn("OK").when(processingClient).executeVitamProcess(Mockito.anyObject(),
-            Mockito.anyObject());
+        Mockito.doReturn("OK").when(processingClient).executeVitamProcess(Matchers.anyObject(),
+            Matchers.anyObject());
 
-        InputStream inputStream =
+        final InputStream inputStream =
             Thread.currentThread().getContextClassLoader().getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
         RestAssured.given()
             .multiPart("part", operationList, MediaType.APPLICATION_JSON)

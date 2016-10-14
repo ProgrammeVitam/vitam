@@ -34,11 +34,11 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * 
+ *
  */
 public class WorkerClientFactoryTest {
 
-	@Before
+    @Before
     public void initFileConfiguration() {
         WorkerClientFactory.getInstance().changeConfigurationFile("worker-client.conf");
     }
@@ -65,24 +65,24 @@ public class WorkerClientFactoryTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testInitWithDefaultClientTypeNullThenThrowsException() throws Exception {
-    	WorkerClientFactory.changeDefaultClientType(null);
+        WorkerClientFactory.changeDefaultClientType(null);
     }
 
     @Test
     public void testWorkerClientTest() {
-    	WorkerClientFactory.changeDefaultClientType(WorkerClientFactory.WorkerClientType.WORKER);
+        WorkerClientFactory.changeDefaultClientType(WorkerClientFactory.WorkerClientType.WORKER);
         final WorkerClientFactory.WorkerClientType type = WorkerClientFactory.getDefaultWorkerClientType();
         assertNotNull(type);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testWithWrongInitServerParameters() {
-    	WorkerClientFactory.setConfiguration(WorkerClientFactory.WorkerClientType.WORKER, null);
+        WorkerClientFactory.setConfiguration(WorkerClientFactory.WorkerClientType.WORKER, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testWithWrongInitPortParameters() {
-    	WorkerClientFactory.setConfiguration(WorkerClientFactory.WorkerClientType.WORKER, null);
+        WorkerClientFactory.setConfiguration(WorkerClientFactory.WorkerClientType.WORKER, null);
     }
-	
+
 }

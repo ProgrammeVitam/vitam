@@ -42,6 +42,7 @@ import org.junit.Test;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.model.StatusCode;
 
 /**
  * Test class for LogbookOperationParameters
@@ -93,7 +94,7 @@ public class LogbookOperationParametersTest {
         assertNotNull(params2);
         assertEquals(1, params2.getMandatoriesParameters().size());
         assertEquals(null, params.getStatus());
-        for (final LogbookOutcome outcome : LogbookOutcome.values()) {
+        for (final StatusCode outcome : StatusCode.values()) {
             params.setStatus(outcome);
             assertEquals(outcome, params.getStatus());
         }
@@ -122,17 +123,17 @@ public class LogbookOperationParametersTest {
         final GUID aa = GUIDFactory.newOperationIdGUID(0);
         final GUID cc = GUIDFactory.newOperationIdGUID(0);
         LogbookParametersFactory.newLogbookOperationParameters(aa, "aa", aa,
-            LogbookTypeProcess.AUDIT, LogbookOutcome.STARTED, "Informative Message", cc);
+            LogbookTypeProcess.AUDIT, StatusCode.STARTED, "Informative Message", cc);
         try {
             LogbookParametersFactory.newLogbookOperationParameters(aa, "", aa,
-                LogbookTypeProcess.AUDIT, LogbookOutcome.STARTED, "Informative Message", cc);
+                LogbookTypeProcess.AUDIT, StatusCode.STARTED, "Informative Message", cc);
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
         }
         try {
             LogbookParametersFactory.newLogbookOperationParameters(aa, "aa", null,
-                LogbookTypeProcess.AUDIT, LogbookOutcome.STARTED, "Informative Message", cc);
+                LogbookTypeProcess.AUDIT, StatusCode.STARTED, "Informative Message", cc);
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
@@ -146,7 +147,7 @@ public class LogbookOperationParametersTest {
         }
         try {
             LogbookParametersFactory.newLogbookOperationParameters(aa, "aa", aa,
-                null, LogbookOutcome.STARTED, "Informative Message", cc);
+                null, StatusCode.STARTED, "Informative Message", cc);
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
@@ -158,17 +159,17 @@ public class LogbookOperationParametersTest {
     public void deprecatedMethod() {
 
         LogbookParametersFactory.newLogbookOperationParameters("aa", "aa", "aa",
-            LogbookTypeProcess.AUDIT, LogbookOutcome.STARTED, "bb", "cc");
+            LogbookTypeProcess.AUDIT, StatusCode.STARTED, "bb", "cc");
         try {
             LogbookParametersFactory.newLogbookOperationParameters("aa", "aa", "",
-                LogbookTypeProcess.AUDIT, LogbookOutcome.STARTED, "bb", "cc");
+                LogbookTypeProcess.AUDIT, StatusCode.STARTED, "bb", "cc");
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
         }
         try {
             LogbookParametersFactory.newLogbookOperationParameters("aa", "aa", null,
-                LogbookTypeProcess.AUDIT, LogbookOutcome.STARTED, "bb", "cc");
+                LogbookTypeProcess.AUDIT, StatusCode.STARTED, "bb", "cc");
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
@@ -182,7 +183,7 @@ public class LogbookOperationParametersTest {
         }
         try {
             LogbookParametersFactory.newLogbookOperationParameters("aa", "aa", "aa",
-                null, LogbookOutcome.STARTED, "bb", "cc");
+                null, StatusCode.STARTED, "bb", "cc");
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
@@ -201,7 +202,7 @@ public class LogbookOperationParametersTest {
 
     @Test
     public void testConstructorWithEmptyParameters() {
-        LogbookOperationParameters lop = new LogbookOperationParameters(new HashMap());
+        final LogbookOperationParameters lop = new LogbookOperationParameters(new HashMap());
         assertEquals(true, lop.getMapParameters().isEmpty());
     }
 

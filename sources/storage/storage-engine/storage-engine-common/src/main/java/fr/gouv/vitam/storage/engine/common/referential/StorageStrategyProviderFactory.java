@@ -40,6 +40,7 @@ public final class StorageStrategyProviderFactory {
 
     /**
      * Retrieve a StorageStrategyProvider
+     * 
      * @return the default StorageStrategyProvider
      */
     public static StorageStrategyProvider getDefaultProvider() {

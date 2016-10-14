@@ -52,17 +52,18 @@ public class VitamRestClientBuilder {
 
     /**
      * build a new Client
-     * 
+     *
      * @return Client
      * @throws VitamException
      */
     public Client build() throws VitamException {
         final SSLContext sslContext = sslConfiguration.createSSLContext();
-        ClientBuilder clientBuilder = ClientBuilder.newBuilder();
-        ClientConfig config = new ClientConfig().register(JacksonJsonProvider.class).register(JacksonFeature.class)
-            .register(MultiPartFeature.class);
+        final ClientBuilder clientBuilder = ClientBuilder.newBuilder();
+        final ClientConfig config =
+            new ClientConfig().register(JacksonJsonProvider.class).register(JacksonFeature.class)
+                .register(MultiPartFeature.class);
 
-        ClientBuilder cb = clientBuilder.sslContext(sslContext).withConfig(config);
+        final ClientBuilder cb = clientBuilder.sslContext(sslContext).withConfig(config);
 
         if (!hostnameVerification) {
             cb.hostnameVerifier(getAllowAllHostnameVerifier());

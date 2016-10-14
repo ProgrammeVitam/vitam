@@ -64,11 +64,11 @@ public class WorkerClientMockTest {
         final WorkerClient client = WorkerClientFactory.getInstance()
             .getWorkerClient();
 
-        Step step = new Step();
-        DefaultWorkerParameters workParams = (DefaultWorkerParameters) WorkerParametersFactory.newWorkerParameters();
-        DescriptionStep descriptionStep = new DescriptionStep(step, workParams);
-        String requestId = "requestId";
-        List<EngineResponse> result = client.submitStep(requestId, descriptionStep);
+        final Step step = new Step();
+        final DefaultWorkerParameters workParams = WorkerParametersFactory.newWorkerParameters();
+        final DescriptionStep descriptionStep = new DescriptionStep(step, workParams);
+        final String requestId = "requestId";
+        final List<EngineResponse> result = client.submitStep(requestId, descriptionStep);
 
         assertNotNull(result);
         assertEquals(result.size(), 1);

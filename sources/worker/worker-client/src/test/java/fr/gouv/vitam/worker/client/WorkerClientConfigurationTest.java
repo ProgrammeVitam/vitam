@@ -32,17 +32,17 @@ import static org.junit.Assert.assertNull;
 import org.junit.Test;
 
 public class WorkerClientConfigurationTest {
-	
-	@Test
-	public void constructorTest() {
-		WorkerClientConfiguration configuration = new WorkerClientConfiguration();
+
+    @Test
+    public void constructorTest() {
+        final WorkerClientConfiguration configuration = new WorkerClientConfiguration();
         assertNull(configuration.getServerHost());
         configuration.setServerHost("host");
         assertEquals("host", configuration.getServerHost());
 
-        WorkerClientConfiguration configuration2 = new WorkerClientConfiguration("host", 1);
+        final WorkerClientConfiguration configuration2 = new WorkerClientConfiguration("host", 1);
         assertEquals("host", configuration2.getServerHost());
         assertEquals(1, configuration2.getServerPort());
-	}
+    }
 
 }

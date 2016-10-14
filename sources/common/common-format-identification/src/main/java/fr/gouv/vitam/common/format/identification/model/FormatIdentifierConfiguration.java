@@ -50,11 +50,11 @@ public class FormatIdentifierConfiguration {
     private FormatIdentifierType type;
 
     @JsonIgnore
-    private Map<String, Object> configurationProperties = new HashMap<>();
+    private final Map<String, Object> configurationProperties = new HashMap<>();
 
     /**
      * Get the type
-     * 
+     *
      * @return the type
      */
     @JsonProperty("type")
@@ -64,7 +64,7 @@ public class FormatIdentifierConfiguration {
 
     /**
      * Set the type
-     * 
+     *
      * @param type the type
      */
     @JsonProperty("type")
@@ -74,23 +74,23 @@ public class FormatIdentifierConfiguration {
 
     /**
      * Get the configuration properties
-     * 
+     *
      * @return map of configuration properties
      */
     @JsonAnyGetter
     public Map<String, Object> getConfigurationProperties() {
-        return this.configurationProperties;
+        return configurationProperties;
     }
 
     /**
      * Add a property to the configuration properties
-     * 
+     *
      * @param name the property name
      * @param value the property value
      */
     @JsonAnySetter
     public void setConfigurationProperty(String name, Object value) {
-        this.configurationProperties.put(name, value);
+        configurationProperties.put(name, value);
     }
 
 }

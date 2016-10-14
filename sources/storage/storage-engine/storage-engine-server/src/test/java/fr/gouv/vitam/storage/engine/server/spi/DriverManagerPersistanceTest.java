@@ -33,6 +33,7 @@ import static org.junit.Assert.assertNotNull;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.sql.Driver;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,8 +41,6 @@ import org.junit.AfterClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
-
-import fr.gouv.vitam.storage.driver.Driver;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class DriverManagerPersistanceTest {
@@ -59,33 +58,33 @@ public class DriverManagerPersistanceTest {
 
     @Test
     public void firstLoadTest() throws Exception {
-        List<String> offersDriver1 = new ArrayList<>();
+        final List<String> offersDriver1 = new ArrayList<>();
         offersDriver1.add(OFFER_1);
         offersDriver1.add("offer2");
         offersDriver1.add("offer3");
         offersDriver1.add("offer4");
 
         DriverManager.addOffersToDriver(MON_MODULE_DRIVER_MON_DRIVER, offersDriver1);
-        Driver driver1 = DriverManager.getDriverFor("offer1");
+        final Driver driver1 = DriverManager.getDriverFor("offer1");
         assertNotNull(driver1);
 
-        List<String> offersDriver2 = new ArrayList<>();
+        final List<String> offersDriver2 = new ArrayList<>();
         offersDriver2.add("offer5");
         offersDriver2.add("offer6");
         offersDriver2.add(OFFER_7);
 
         DriverManager.addOffersToDriver(THE_DRIVER_THE_DRIVER, offersDriver2);
-        Driver driver2 = DriverManager.getDriverFor(OFFER_7);
+        final Driver driver2 = DriverManager.getDriverFor(OFFER_7);
         assertNotNull(driver2);
     }
 
     @Test
     public void secondLoadTest() throws Exception {
-        Driver driver1 = DriverManager.getDriverFor(OFFER_1);
+        final Driver driver1 = DriverManager.getDriverFor(OFFER_1);
         assertNotNull(driver1);
         assertEquals(MON_MODULE_DRIVER_MON_DRIVER, driver1.getClass().getName());
 
-        Driver driver2 = DriverManager.getDriverFor(OFFER_7);
+        final Driver driver2 = DriverManager.getDriverFor(OFFER_7);
         assertNotNull(driver2);
         assertEquals(THE_DRIVER_THE_DRIVER, driver2.getClass().getName());
     }

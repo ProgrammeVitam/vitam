@@ -62,25 +62,25 @@ public class StorageClientMockTest {
 
     @Test
     public void storageInfos() throws Exception {
-        JsonNode expectedResult = JsonHandler.getFromString(StorageClientMock.MOCK_INFOS_RESULT);
+        final JsonNode expectedResult = JsonHandler.getFromString(StorageClientMock.MOCK_INFOS_RESULT);
         StorageClientFactory.setConfiguration(StorageClientFactory.StorageClientType.MOCK_STORAGE, null);
         final StorageClient client = StorageClientFactory.getInstance().getStorageClient();
-        JsonNode result = client.getStorageInformation("idTenant", "idStrategy");
+        final JsonNode result = client.getStorageInformation("idTenant", "idStrategy");
         assertEquals(result, expectedResult);
     }
 
     @Test
     public void store() throws VitamClientException {
-        CreateObjectDescription description = new CreateObjectDescription();
+        final CreateObjectDescription description = new CreateObjectDescription();
         description.setWorkspaceContainerGUID("aeaaaaaaaaaam7mxaaaamakwfnzbudaaaaaq");
         description.setWorkspaceObjectURI(
             "SIP/content/e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804.odt");
-        StoredInfoResult expectedResult = generateStoredInfoResult("guid");
+        final StoredInfoResult expectedResult = generateStoredInfoResult("guid");
 
         StorageClientFactory.setConfiguration(StorageClientFactory.StorageClientType.MOCK_STORAGE, null);
         final StorageClient client = StorageClientFactory.getInstance().getStorageClient();
 
-        StoredInfoResult result =
+        final StoredInfoResult result =
             client.storeFileFromWorkspace("idTenant", "idStrategy", StorageCollectionType.OBJECTS, "guid", description);
         assertEquals(result.getId(), expectedResult.getId());
     }
@@ -105,14 +105,14 @@ public class StorageClientMockTest {
     public void getContainerObjectTest() throws StorageNotFoundException, StorageServerClientException, IOException {
         StorageClientFactory.setConfiguration(StorageClientFactory.StorageClientType.MOCK_STORAGE, null);
         final StorageClient client = StorageClientFactory.getInstance().getStorageClient();
-        InputStream stream = client.getContainer("tenantId", "strategyId", "guid", StorageCollectionType.OBJECTS);
-        InputStream stream2 = IOUtils.toInputStream(StorageClientMock.MOCK_GET_FILE_CONTENT);
+        final InputStream stream = client.getContainer("tenantId", "strategyId", "guid", StorageCollectionType.OBJECTS);
+        final InputStream stream2 = IOUtils.toInputStream(StorageClientMock.MOCK_GET_FILE_CONTENT);
         assertNotNull(stream);
         assertTrue(IOUtils.contentEquals(stream, stream2));
     }
 
     private StoredInfoResult generateStoredInfoResult(String guid) {
-        StoredInfoResult result = new StoredInfoResult();
+        final StoredInfoResult result = new StoredInfoResult();
         result.setId(guid);
         result.setInfo("Creation OK");
         result.setCreationTime(LocalDateUtil.getString(LocalDateTime.now()));

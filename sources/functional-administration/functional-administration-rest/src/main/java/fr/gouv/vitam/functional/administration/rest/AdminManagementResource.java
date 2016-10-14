@@ -75,8 +75,8 @@ import fr.gouv.vitam.functional.administration.format.core.ReferentialFormatFile
 @Path("/adminmanagement/v1")
 public class AdminManagementResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementResource.class);
-    private ReferentialFormatFileImpl formatManagement;
-    private RulesManagerFileImpl rulesFileManagement;
+    private final ReferentialFormatFileImpl formatManagement;
+    private final RulesManagerFileImpl rulesFileManagement;
 
     /**
      * Constructor
@@ -103,9 +103,9 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
         try {
             formatManagement.checkFile(xmlPronom);
-        } catch (ReferentialException e) {
+        } catch (final ReferentialException e) {
             LOGGER.error(e.getMessage());
-            Status status = Status.PRECONDITION_FAILED;
+            final Status status = Status.PRECONDITION_FAILED;
             return Response.status(status)
                 .entity(status)
                 .build();
@@ -126,15 +126,15 @@ public class AdminManagementResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", xmlPronom);
         try {
             formatManagement.importFile(xmlPronom);
-        } catch (ReferentialException e) {
+        } catch (final ReferentialException e) {
             LOGGER.error(e.getMessage());
-            Status status = Status.PRECONDITION_FAILED;
+            final Status status = Status.PRECONDITION_FAILED;
             return Response.status(status)
                 .entity(status)
                 .build();
-        } catch (DatabaseConflictException e) {
+        } catch (final DatabaseConflictException e) {
             LOGGER.error(e);
-            Status status = Status.CONFLICT;
+            final Status status = Status.CONFLICT;
             return Response.status(status)
                 .entity(status)
                 .build();
@@ -176,9 +176,9 @@ public class AdminManagementResource extends ApplicationStatusResource {
                 throw new ReferentialException("NO DATA for the specified formatId");
             }
 
-        } catch (ReferentialException e) {
+        } catch (final ReferentialException e) {
             LOGGER.error(e.getMessage());
-            Status status = Status.NOT_FOUND;
+            final Status status = Status.NOT_FOUND;
             return Response.status(status).build();
         }
         return Response.status(Status.OK).entity(JsonHandler.toJsonNode(fileFormat)).build();
@@ -206,7 +206,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ReferentialException e) {
             LOGGER.error(e.getMessage());
-            Status status = Status.NOT_FOUND;
+            final Status status = Status.NOT_FOUND;
             return Response.status(status).build();
         }
 
@@ -243,9 +243,9 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
         try {
             rulesFileManagement.checkFile(rulesStream);
-        } catch (FileRulesException e) {
+        } catch (final FileRulesException e) {
             LOGGER.error(e.getMessage());
-            Status status = Status.PRECONDITION_FAILED;
+            final Status status = Status.PRECONDITION_FAILED;
             return Response.status(status)
                 .entity(status)
                 .build();
@@ -270,15 +270,15 @@ public class AdminManagementResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter("rulesStream is a mandatory parameter", rulesStream);
         try {
             rulesFileManagement.importFile(rulesStream);
-        } catch (FileRulesException e) {
+        } catch (final FileRulesException e) {
             LOGGER.error(e.getMessage());
-            Status status = Status.PRECONDITION_FAILED;
+            final Status status = Status.PRECONDITION_FAILED;
             return Response.status(status)
                 .entity(status)
                 .build();
-        } catch (DatabaseConflictException e) {
+        } catch (final DatabaseConflictException e) {
             LOGGER.error(e);
-            Status status = Status.CONFLICT;
+            final Status status = Status.CONFLICT;
             return Response.status(status)
                 .entity(status)
                 .build();
@@ -300,7 +300,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
     /**
      * findRuleByID
-     * 
+     *
      * @param rulesId path param as String
      * @return Response jersey response
      * @throws InvalidParseOperationException
@@ -326,9 +326,9 @@ public class AdminManagementResource extends ApplicationStatusResource {
                 throw new FileRulesException("NO DATA for the specified rule Value or More than one records exists");
             }
 
-        } catch (FileRulesException e) {
+        } catch (final FileRulesException e) {
             LOGGER.error(e.getMessage());
-            Status status = Status.NOT_FOUND;
+            final Status status = Status.NOT_FOUND;
             return Response.status(status).build();
         }
         return Response.status(Status.OK).entity(JsonHandler.toJsonNode(fileRules.get(0))).build();
@@ -336,7 +336,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
     /**
      * findRulesByRuleValueQueryBuilder
-     * 
+     *
      * @param rulesValue
      * @return
      * @throws InvalidCreateOperationException
@@ -348,7 +348,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         final Select select =
             new Select();
         select.addOrderByDescFilter(rulesId);
-        BooleanQuery query = and();
+        final BooleanQuery query = and();
         query.add(eq("RuleId", rulesId));
         select.setQuery(query);
         result = JsonHandler.getFromString(select.getFinalSelect().toString());
@@ -377,7 +377,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ReferentialException e) {
             LOGGER.error(e.getMessage());
-            Status status = Status.NOT_FOUND;
+            final Status status = Status.NOT_FOUND;
             return Response.status(status).build();
         }
 

@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -27,7 +27,6 @@
 package fr.gouv.vitam.ihmdemo.common.pagination;
 
 import java.util.Collection;
-import java.util.Iterator;
 
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.UnavailableSecurityManagerException;
@@ -52,11 +51,11 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 public class PaginationHelper {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PaginationHelper.class);
     private static final String PARAMETERS = "PaginationHelper parameters";
-    private static final String RESULT_SESSION_ATTRIBUTE="result";
-    private static final String JSON_NODE_RESULT="result";
-    private static final String JSON_NODE_HITS="hits";
-    private static final String JSON_NODE_OFFSET="offset";
-    private static final String JSON_NODE_LIMIT="limit";
+    private static final String RESULT_SESSION_ATTRIBUTE = "result";
+    private static final String JSON_NODE_RESULT = "result";
+    private static final String JSON_NODE_HITS = "hits";
+    private static final String JSON_NODE_OFFSET = "offset";
+    private static final String JSON_NODE_LIMIT = "limit";
 
     /**
      * @param sessionId
@@ -65,8 +64,8 @@ public class PaginationHelper {
      */
     public static void setResult(String sessionId, JsonNode result) throws VitamException {
 
-        ParametersChecker.checkParameter(PARAMETERS,sessionId, result); 
-        Session session=getSession(sessionId);
+        ParametersChecker.checkParameter(PARAMETERS, sessionId, result);
+        final Session session = getSession(sessionId);
         session.setAttribute(RESULT_SESSION_ATTRIBUTE, result);
     }
 
@@ -78,9 +77,9 @@ public class PaginationHelper {
      */
     public static JsonNode getResult(String sessionId, OffsetBasedPagination pagination) throws VitamException {
 
-        Session session=getSession(sessionId);
-        ObjectNode result= (ObjectNode) session.getAttribute(RESULT_SESSION_ATTRIBUTE);
-        if (result!=null) {
+        final Session session = getSession(sessionId);
+        final ObjectNode result = (ObjectNode) session.getAttribute(RESULT_SESSION_ATTRIBUTE);
+        if (result != null) {
             return paginate(result, pagination);
         }
         return JsonHandler.createObjectNode();
@@ -96,43 +95,45 @@ public class PaginationHelper {
      */
     public static JsonNode getResult(JsonNode result, OffsetBasedPagination pagination) throws VitamException {
 
-        ObjectNode jsonResult= (ObjectNode) result;
+        final ObjectNode jsonResult = (ObjectNode) result;
         return paginate(jsonResult, pagination);
     }
 
     private static Session getSession(String sessionId) throws VitamException {
-        try{
-            DefaultSecurityManager securityManager = (DefaultSecurityManager) SecurityUtils.getSecurityManager();
-            DefaultSessionManager sessionManager = (DefaultSessionManager) securityManager.getSessionManager();
-            Collection<Session> activeSessions = sessionManager.getSessionDAO().getActiveSessions();
+        try {
+            final DefaultSecurityManager securityManager = (DefaultSecurityManager) SecurityUtils.getSecurityManager();
+            final DefaultSessionManager sessionManager = (DefaultSessionManager) securityManager.getSessionManager();
+            final Collection<Session> activeSessions = sessionManager.getSessionDAO().getActiveSessions();
 
-            for (Session session: activeSessions){
-                if ( session.getId().equals(sessionId) ) {
+            for (final Session session : activeSessions) {
+                if (session.getId().equals(sessionId)) {
                     return session;
                 }
             }
 
             throw new VitamException("Session Not Found Exception");
-        } catch ( UnavailableSecurityManagerException e) {
+        } catch (final UnavailableSecurityManagerException e) {
             LOGGER.debug(e.getMessage(), e);
             throw new VitamException(e.getMessage(), e);
         }
     }
 
-    private static JsonNode paginate(ObjectNode result, OffsetBasedPagination pagination ) throws InvalidParseOperationException{
+    private static JsonNode paginate(ObjectNode result, OffsetBasedPagination pagination)
+        throws InvalidParseOperationException {
 
-        ObjectNode jsonResult=(ObjectNode) JsonHandler.toJsonNode(result);
-        JsonNode resultsPagination=JsonHandler.getSubArrayNode((ArrayNode) jsonResult.get(JSON_NODE_RESULT),pagination.getOffset(), pagination.getLimit());
+        final ObjectNode jsonResult = (ObjectNode) JsonHandler.toJsonNode(result);
+        final JsonNode resultsPagination = JsonHandler.getSubArrayNode((ArrayNode) jsonResult.get(JSON_NODE_RESULT),
+            pagination.getOffset(), pagination.getLimit());
         jsonResult.replace(JSON_NODE_RESULT, resultsPagination);
 
-        ObjectNode hits =(ObjectNode) jsonResult.get(JSON_NODE_HITS);
+        final ObjectNode hits = (ObjectNode) jsonResult.get(JSON_NODE_HITS);
 
         hits.put(JSON_NODE_OFFSET, pagination.getOffset());
         hits.put(JSON_NODE_LIMIT, pagination.getLimit());
 
         jsonResult.replace(JSON_NODE_HITS, hits);
 
-        return  jsonResult;
+        return jsonResult;
     }
 
 }

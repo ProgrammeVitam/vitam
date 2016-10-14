@@ -39,6 +39,7 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.ingest.external.api.IngestExternal;
 import fr.gouv.vitam.ingest.external.api.IngestExternalException;
 import fr.gouv.vitam.ingest.external.api.IngestExternalOutcomeMessage;
@@ -46,7 +47,6 @@ import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
 import fr.gouv.vitam.ingest.external.common.util.JavaExecuteScript;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
@@ -69,7 +69,7 @@ public class IngestExternalImpl implements IngestExternal {
 
     /**
      * Constructor IngestExternalImpl with parameter IngestExternalConfiguration
-     * 
+     *
      * @param config
      */
     public IngestExternalImpl(IngestExternalConfiguration config) {
@@ -79,21 +79,22 @@ public class IngestExternalImpl implements IngestExternal {
     @Override
     public Response upload(InputStream input) throws IngestExternalException, XMLStreamException {
         ParametersChecker.checkParameter("input is a mandatory parameter", input);
-        GUID guid = GUIDFactory.newOperationIdGUID(DEFAULT_TENANT);
+        final GUID guid = GUIDFactory.newOperationIdGUID(DEFAULT_TENANT);
         // Store in local
         GUID containerName = guid;
-        GUID objectName = GUIDFactory.newGUID();
-        GUID ingestGuid = guid;
+        final GUID objectName = GUIDFactory.newGUID();
+        final GUID ingestGuid = guid;
 
-        FileSystem workspaceFileSystem = new FileSystem(new StorageConfiguration().setStoragePath(config.getPath()));
-        String antiVirusScriptName = config.getAntiVirusScriptName();
-        long timeoutScanDelay = config.getTimeoutScanDelay();
+        final FileSystem workspaceFileSystem =
+            new FileSystem(new StorageConfiguration().setStoragePath(config.getPath()));
+        final String antiVirusScriptName = config.getAntiVirusScriptName();
+        final long timeoutScanDelay = config.getTimeoutScanDelay();
         Response responseResult = null;
         while (true) {
             boolean hasError = false;
             try {
                 workspaceFileSystem.createContainer(containerName.toString());
-            } catch (ContentAddressableStorageAlreadyExistException e) {
+            } catch (final ContentAddressableStorageAlreadyExistException e) {
                 hasError = true;
                 containerName = GUIDFactory.newGUID();
             }
@@ -105,18 +106,18 @@ public class IngestExternalImpl implements IngestExternal {
         try {
             try {
                 workspaceFileSystem.putObject(containerName.getId(), objectName.getId(), input);
-            } catch (ContentAddressableStorageException e) {
+            } catch (final ContentAddressableStorageException e) {
                 LOGGER.error("Can not store file", e);
                 throw new IngestExternalException(e);
             }
 
-            List<LogbookParameters> logbookParametersList = new ArrayList<LogbookParameters>();
-            LogbookParameters startedParameters = LogbookParametersFactory.newLogbookOperationParameters(
+            final List<LogbookParameters> logbookParametersList = new ArrayList<LogbookParameters>();
+            final LogbookParameters startedParameters = LogbookParametersFactory.newLogbookOperationParameters(
                 ingestGuid,
                 INGEST_EXT,
                 containerName,
                 LogbookTypeProcess.INGEST,
-                LogbookOutcome.STARTED,
+                StatusCode.STARTED,
                 "Début de l'action " + INGEST_EXT,
                 containerName);
 
@@ -124,7 +125,7 @@ public class IngestExternalImpl implements IngestExternal {
             startedParameters.getMapParameters().put(LogbookParameterName.objectIdentifierIncome, objectName.getId());
             logbookParametersList.add(startedParameters);
 
-            String filePath = config.getPath() + "/" + containerName.getId() + "/" + objectName.getId();
+            final String filePath = config.getPath() + "/" + containerName.getId() + "/" + objectName.getId();
             int antiVirusResult;
 
             try {
@@ -133,17 +134,17 @@ public class IngestExternalImpl implements IngestExternal {
                  * virus found but not corrected 3: Fatal scan not performed
                  */
                 antiVirusResult = JavaExecuteScript.executeCommand(antiVirusScriptName, filePath, timeoutScanDelay);
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 LOGGER.error("Can not scan virus", e);
                 throw new IngestExternalException(e);
             }
 
-            LogbookParameters endParameters = LogbookParametersFactory.newLogbookOperationParameters(
+            final LogbookParameters endParameters = LogbookParametersFactory.newLogbookOperationParameters(
                 ingestGuid,
                 INGEST_EXT,
                 containerName,
                 LogbookTypeProcess.INGEST,
-                LogbookOutcome.STARTED,
+                StatusCode.STARTED,
                 "End " + INGEST_EXT,
                 containerName);
 
@@ -154,27 +155,27 @@ public class IngestExternalImpl implements IngestExternal {
             switch (antiVirusResult) {
                 case 0:
                     LOGGER.info(IngestExternalOutcomeMessage.OK_VIRUS.toString());
-                    endParameters.setStatus(LogbookOutcome.OK);
+                    endParameters.setStatus(StatusCode.OK);
                     endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                         IngestExternalOutcomeMessage.OK_VIRUS.value());
                     break;
                 case 1:
                     LOGGER.debug(IngestExternalOutcomeMessage.KO_VIRUS.toString());
-                    endParameters.setStatus(LogbookOutcome.KO);
+                    endParameters.setStatus(StatusCode.KO);
                     endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                         IngestExternalOutcomeMessage.KO_VIRUS.value());
                     isFileInfected = true;
                     break;
                 case 2:
                     LOGGER.error(IngestExternalOutcomeMessage.KO_VIRUS.toString());
-                    endParameters.setStatus(LogbookOutcome.KO);
+                    endParameters.setStatus(StatusCode.KO);
                     endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                         IngestExternalOutcomeMessage.KO_VIRUS.value());
                     isFileInfected = true;
                     break;
                 default:
                     LOGGER.error(IngestExternalOutcomeMessage.KO_VIRUS.toString());
-                    endParameters.setStatus(LogbookOutcome.FATAL);
+                    endParameters.setStatus(StatusCode.FATAL);
                     endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                         IngestExternalOutcomeMessage.KO_VIRUS.value());
                     isFileInfected = true;
@@ -183,33 +184,33 @@ public class IngestExternalImpl implements IngestExternal {
             if (!isFileInfected) {
                 try {
                     inputStream = workspaceFileSystem.getObject(containerName.getId(), objectName.getId());
-                } catch (ContentAddressableStorageException e) {
+                } catch (final ContentAddressableStorageException e) {
                     LOGGER.error(e.getMessage());
                     throw new IngestExternalException(e.getMessage(), e);
                 }
             }
 
             logbookParametersList.add(endParameters);
-            IngestInternalClient client = IngestInternalClientFactory.getInstance().getIngestInternalClient();
-            
+            final IngestInternalClient client = IngestInternalClientFactory.getInstance().getIngestInternalClient();
+
             try {
-                //TODO Response async
+                // TODO Response async
                 responseResult = client.upload(logbookParametersList, inputStream);
-                if ( responseResult.getStatus()>= 400) {
+                if (responseResult.getStatus() >= 400) {
                     throw new IngestExternalException("Ingest Internal Exception");
                 }
-            } catch (VitamException e) {
+            } catch (final VitamException e) {
                 throw new IngestExternalException(e.getMessage(), e);
             }
-            
+
         } finally {
             try {
                 workspaceFileSystem.deleteObject(containerName.getId(), objectName.getId());
-            } catch (ContentAddressableStorageNotFoundException e) {
+            } catch (final ContentAddressableStorageNotFoundException e) {
                 LOGGER.warn(e);
             }
         }
-        
+
         return responseResult;
     }
 }

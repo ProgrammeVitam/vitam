@@ -37,20 +37,19 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.operations.client.LogbookClient;
-import fr.gouv.vitam.logbook.operations.client.LogbookClientFactory;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
+import fr.gouv.vitam.processing.common.model.ProcessBehavior;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
-import fr.gouv.vitam.processing.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.model.ProcessBehavior;
 import fr.gouv.vitam.processing.common.model.WorkFlow;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.utils.ProcessPopulator;
@@ -65,7 +64,8 @@ import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
  */
 public class ProcessEngineImpl implements ProcessEngine {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessEngineImpl.class);
-    private static LogbookClient client = LogbookClientFactory.getInstance().getLogbookOperationClient();
+    private static LogbookOperationsClient client =
+        LogbookOperationsClientFactory.getInstance().getLogbookOperationClient();
 
     private static final String RUNTIME_EXCEPTION_MESSAGE =
         "runtime exceptions thrown by the Process engine during the execution :";
@@ -130,7 +130,7 @@ public class ProcessEngineImpl implements ProcessEngine {
                 LOGGER.info("Start Workflow: " + processId.getId());
 
 
-                Map<String, ProcessStep> processSteps = ProcessMonitoringImpl.getInstance().initOrderedWorkflow(
+                final Map<String, ProcessStep> processSteps = ProcessMonitoringImpl.getInstance().initOrderedWorkflow(
                     workParams.getProcessId(), workFlow,
                     workParams.getContainerName());
 
@@ -138,17 +138,17 @@ public class ProcessEngineImpl implements ProcessEngine {
                  * call process distribute to manage steps
                  */
                 String messageIdentifier = null;
-                for (Map.Entry<String, ProcessStep> entry : processSteps.entrySet()) {
-                    ProcessStep step = entry.getValue();
-                    String uniqueId = entry.getKey();
+                for (final Map.Entry<String, ProcessStep> entry : processSteps.entrySet()) {
+                    final ProcessStep step = entry.getValue();
+                    final String uniqueId = entry.getKey();
                     workParams.setStepUniqId(uniqueId);
                     LOGGER.info("Start Workflow: " + uniqueId + " Step:" + step.getStepName());
-                    LogbookParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
+                    final LogbookParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
                         GUIDFactory.newGUID(),
                         step.getStepName(),
                         GUIDReader.getGUID(workParams.getContainerName()),
                         LogbookTypeProcess.INGEST,
-                        LogbookOutcome.STARTED,
+                        StatusCode.STARTED,
                         START_WORKER + step.getStepName(),
                         GUIDReader.getGUID(workParams.getContainerName()));
 
@@ -191,8 +191,8 @@ public class ProcessEngineImpl implements ProcessEngine {
 
                     // if the step has been defined as Blocking and then stepStatus is KO or FATAL
                     // then break the process
-                    if ((step.getBehavior().equals(ProcessBehavior.BLOCKING)) &&
-                        (stepStatus.isGreaterOrEqualToKo())) {
+                    if (step.getBehavior().equals(ProcessBehavior.BLOCKING) &&
+                        stepStatus.isGreaterOrEqualToKo()) {
                         break;
                     }
                     // TODO : deal with the pause

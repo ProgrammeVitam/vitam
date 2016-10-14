@@ -34,12 +34,12 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.api.model.RequestResponseError;
-import fr.gouv.vitam.api.model.VitamError;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
+import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
+import fr.gouv.vitam.metadata.api.model.RequestResponseError;
+import fr.gouv.vitam.metadata.api.model.VitamError;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
@@ -81,8 +81,8 @@ public class ProcessManagementResource extends ApplicationStatusResource {
      */
     ProcessManagementResource(ProcessManagement pManagement, ServerConfiguration configuration) {
         super(new BasicVitamStatusServiceImpl());
-        this.processManagement = pManagement;
-        this.config = configuration;
+        processManagement = pManagement;
+        config = configuration;
     }
 
     /**

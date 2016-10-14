@@ -58,13 +58,11 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  * filter }
  *
  */
-public abstract class RequestParserMultiple  extends AbstractParser<RequestMultiple> {
+public abstract class RequestParserMultiple extends AbstractParser<RequestMultiple> {
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(RequestParserMultiple.class);
-    /**  
-     * Component's position
-     * [ {root}, {query}, {filter} ]
-     * [   0   ,    1   ,    2     ]
+    /**
+     * Component's position [ {root}, {query}, {filter} ] [ 0 , 1 , 2 ]
      */
     protected static final int ROOT_POS = 0;
     protected static final int QUERY_POS = 1;
@@ -127,6 +125,7 @@ public abstract class RequestParserMultiple  extends AbstractParser<RequestMulti
         }
     }
 
+    @Override
     protected void parseJson(final JsonNode jsonRequest) throws InvalidParseOperationException {
         super.parseJson(jsonRequest);
         internalParse();
@@ -181,7 +180,7 @@ public abstract class RequestParserMultiple  extends AbstractParser<RequestMulti
 
     /**
      * Filter part
-     * 
+     *
      * @param rootNode JsonNode The filter of the request
      * @throws InvalidParseOperationException if rootNode could not parse to JSON
      */
@@ -304,7 +303,7 @@ public abstract class RequestParserMultiple  extends AbstractParser<RequestMulti
             LOGGER.debug("Depth step: {}:{}:{}:{}:{}", lastDepth, lastDepth - prevDepth,
                 relativedepth, exactdepth, isDepth);
         }
-        
+
         QueryDepthHelper.HELPER.setDepths(query.setFullText(hasFullTextCurrentQuery),
             exactdepth, relativedepth);
         hasFullTextQuery |= hasFullTextCurrentQuery;
@@ -319,6 +318,7 @@ public abstract class RequestParserMultiple  extends AbstractParser<RequestMulti
     /**
      * @return the Request
      */
+    @Override
     public RequestMultiple getRequest() {
         return request;
     }
@@ -326,6 +326,7 @@ public abstract class RequestParserMultiple  extends AbstractParser<RequestMulti
     /**
      * @return the lastDepth
      */
+    @Override
     public final int getLastDepth() {
         return lastDepth;
     }
@@ -334,6 +335,7 @@ public abstract class RequestParserMultiple  extends AbstractParser<RequestMulti
     /**
      * @return True if the hint contains cache
      */
+    @Override
     public boolean hintCache() {
         final JsonNode jsonNode = request.getFilter().get(SELECTFILTER.HINT.exactToken());
         if (jsonNode == null) {
@@ -352,6 +354,7 @@ public abstract class RequestParserMultiple  extends AbstractParser<RequestMulti
     /**
      * @return True if the hint contains notimeout
      */
+    @Override
     public boolean hintNoTimeout() {
         final JsonNode jsonNode = request.getFilter().get(SELECTFILTER.HINT.exactToken());
         if (jsonNode != null) {
@@ -368,6 +371,7 @@ public abstract class RequestParserMultiple  extends AbstractParser<RequestMulti
     /**
      * @return the model between Units/ObjectGroups/Objects (in that order)
      */
+    @Override
     public FILTERARGS model() {
         final JsonNode jsonNode = request.getFilter().get(SELECTFILTER.HINT.exactToken());
         if (jsonNode != null) {

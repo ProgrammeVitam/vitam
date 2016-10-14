@@ -39,18 +39,18 @@ import fr.gouv.vitam.ingest.external.api.IngestExternalException;
  */
 public interface IngestExternalClient {
     /**
-     * ingest upload file in local
-     * TODO : add file name
-     * @throws IngestExternalException 
-     * @throws XMLStreamException 
+     * ingest upload file in local TODO : add file name
+     * 
+     * @throws IngestExternalException
+     * @throws XMLStreamException
      */
     Response upload(InputStream stream) throws IngestExternalException, XMLStreamException;
-    
+
     /**
      * Get the status from the service
      *
      * @return the Message status
-     * @throws IngestExternalException 
+     * @throws IngestExternalException
      */
     Status status() throws IngestExternalException;
 }

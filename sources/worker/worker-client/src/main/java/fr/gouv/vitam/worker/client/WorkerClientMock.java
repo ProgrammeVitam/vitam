@@ -60,7 +60,7 @@ class WorkerClientMock extends WorkerClientRest implements WorkerClient {
     @Override
     public List<EngineResponse> submitStep(String requestId, DescriptionStep data)
         throws WorkerNotFoundClientException, WorkerServerClientException {
-        List<EngineResponse> mockResponse = new ArrayList<>();
+        final List<EngineResponse> mockResponse = new ArrayList<>();
         mockResponse.add(new ProcessResponse());
         return mockResponse;
     }

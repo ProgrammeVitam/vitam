@@ -47,7 +47,7 @@ public interface StorageClient extends BasicClient {
 
     /**
      * Check if the storage of objects could be done, knowing a required size
-     * 
+     *
      * @param tenantId the tenant id
      * @param strategyId the storage strategy id
      * @return the capacity of the storage
@@ -59,7 +59,7 @@ public interface StorageClient extends BasicClient {
 
     /**
      * Store an object available in workspace by its vitam guid
-     * 
+     *
      * @param tenantId the tenant id
      * @param strategyId the storage strategy id
      * @param type the type of object collection
@@ -76,7 +76,7 @@ public interface StorageClient extends BasicClient {
 
     /**
      * Check the existance of a tenant container in storage by its id
-     * 
+     *
      * @param tenantId the tenant id
      * @param strategyId the storage strategy id
      * @return true if exist
@@ -86,7 +86,7 @@ public interface StorageClient extends BasicClient {
 
     /**
      * Check the existence of an object in storage by its id and type {@link StorageCollectionType}.
-     * 
+     *
      * @param tenantId the tenant id
      * @param strategyId the storage strategy id
      * @param type the type of object collection
@@ -98,9 +98,8 @@ public interface StorageClient extends BasicClient {
         throws StorageServerClientException;
 
     /**
-     * Delete a container in the storage offer strategy
-     * A non-empty container CANNOT be deleted !
-     * 
+     * Delete a container in the storage offer strategy A non-empty container CANNOT be deleted !
+     *
      * @param tenantId the tenant id
      * @param strategyId the storage strategy id
      * @return true if deleted
@@ -110,7 +109,7 @@ public interface StorageClient extends BasicClient {
 
     /**
      * Delete an object of given type in the storage offer strategy
-     * 
+     *
      * @param tenantId the tenant id
      * @param strategyId the storage strategy id
      * @param type the type of object collection

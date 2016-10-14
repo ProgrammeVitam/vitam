@@ -116,8 +116,8 @@ public class AccessClientMockTest {
         final AccessClient client =
             AccessClientFactory.getInstance().getAccessOperationClient();
         assertNotNull(client);
-        InputStream stream = client.getObjectAsInputStream(queryDsql, ID, "usage", 1);
-        InputStream stream2 = IOUtils.toInputStream(AccessClientMock.MOCK_GET_FILE_CONTENT);
+        final InputStream stream = client.getObjectAsInputStream(queryDsql, ID, "usage", 1);
+        final InputStream stream2 = IOUtils.toInputStream(AccessClientMock.MOCK_GET_FILE_CONTENT);
         assertNotNull(stream);
         assertTrue(IOUtils.contentEquals(stream, stream2));
     }

@@ -30,11 +30,11 @@ import java.util.List;
 
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.OutcomeMessage;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
-import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
@@ -74,12 +74,12 @@ public class CheckVersionActionHandler extends ActionHandler {
 
         try {
             checkMandatoryIOParameter(actionDefinition);
-            List<String> versionInvalidList = sedaUtils.checkSupportedBinaryObjectVersion(params);
+            final List<String> versionInvalidList = sedaUtils.checkSupportedBinaryObjectVersion(params);
             if (!versionInvalidList.isEmpty()) {
                 response.setErrorNumber(versionInvalidList.size());
                 response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_VERSION_KO);
             }
-        } catch (ProcessingException e) {
+        } catch (final ProcessingException e) {
             LOGGER.error(e);
             response.setStatus(StatusCode.FATAL).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_VERSION_KO);
         }

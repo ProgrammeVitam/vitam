@@ -36,6 +36,7 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.Action;
@@ -43,7 +44,6 @@ import fr.gouv.vitam.processing.common.model.ActionDefinition;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.ProcessBehavior;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
-import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.core.api.Worker;
@@ -68,18 +68,20 @@ public class WorkerImplTest {
     public void givenWorkerImplementWhenStepIsNullThenThrowsIllegalArgumentException()
         throws IllegalArgumentException, HandlerNotFoundException, ProcessingException {
         workerImpl = WorkerImplFactory.create();
-        workerImpl.run(WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
-            ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
-            ("containerName"), null);
+        workerImpl.run(
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName"),
+            null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void givenWorkerImplementWhenEmptyActionsInStepThenThrowsIllegalArgumentException()
         throws IllegalArgumentException, HandlerNotFoundException, ProcessingException {
         workerImpl = WorkerImplFactory.create();
-        workerImpl.run(WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
-            ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
-            ("containerName"), new Step());
+        workerImpl.run(
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName"),
+            new Step());
     }
 
     @Test(expected = HandlerNotFoundException.class)
@@ -88,13 +90,14 @@ public class WorkerImplTest {
         workerImpl = WorkerImplFactory.create();
         final Step step = new Step();
         final List<Action> actions = new ArrayList<Action>();
-        Action action = new Action();
+        final Action action = new Action();
         action.setActionDefinition(new ActionDefinition());
         actions.add(action);
         step.setActions(actions);
-        workerImpl.run(WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
-            ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
-            ("containerName"), step);
+        workerImpl.run(
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName"),
+            step);
     }
 
     @Test
@@ -114,9 +117,10 @@ public class WorkerImplTest {
         final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK);
         when(actionHandler.execute(anyObject(), anyObject())).thenReturn(response);
         workerImpl = WorkerImplFactory.create().addActionHandler(ExtractSedaActionHandler.getId(), actionHandler);
-        workerImpl.run(WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
-            ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
-            ("containerName"), step);
+        workerImpl.run(
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName"),
+            step);
     }
 
     @Test
@@ -136,9 +140,10 @@ public class WorkerImplTest {
         final EngineResponse response = new ProcessResponse().setStatus(StatusCode.FATAL);
         when(actionHandler.execute(anyObject(), anyObject())).thenReturn(response);
         workerImpl = WorkerImplFactory.create().addActionHandler(ExtractSedaActionHandler.getId(), actionHandler);
-        workerImpl.run(WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
-            ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
-            ("containerName"), step);
+        workerImpl.run(
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName"),
+            step);
     }
 
     @Test
@@ -158,9 +163,10 @@ public class WorkerImplTest {
         final EngineResponse response = new ProcessResponse().setStatus(StatusCode.FATAL);
         when(actionHandler.execute(anyObject(), anyObject())).thenReturn(response);
         workerImpl = WorkerImplFactory.create().addActionHandler(ExtractSedaActionHandler.getId(), actionHandler);
-        workerImpl.run(WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
-            ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName
-            ("containerName"), step);
+        workerImpl.run(
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName"),
+            step);
     }
 
 }

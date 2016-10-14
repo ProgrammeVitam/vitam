@@ -117,8 +117,8 @@ public class VitamCollection {
      */
     @SuppressWarnings({"rawtypes", "unchecked"})
     public static MongoClientOptions getMongoClientOptions(List<Class<?>> claszList) {
-        List<CodecRegistry> codecs = new ArrayList<CodecRegistry>();
-        for (Class<?> clasz : claszList) {
+        final List<CodecRegistry> codecs = new ArrayList<CodecRegistry>();
+        for (final Class<?> clasz : claszList) {
             codecs.add(CodecRegistries.fromCodecs(new VitamDocumentCodec(clasz)));
         }
 

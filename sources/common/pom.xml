@@ -18,5 +18,6 @@
 		<module>common-junit</module>
 		<module>common-database-vitam</module>
 		<module>common-format-identification</module>
+		<module>common-http-interface</module>
 	</modules>
 </project>

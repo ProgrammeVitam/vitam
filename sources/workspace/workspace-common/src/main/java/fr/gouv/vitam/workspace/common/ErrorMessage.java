@@ -87,7 +87,7 @@ public enum ErrorMessage {
      * Internal Server Error
      */
     INTERNAL_SERVER_ERROR("Internal Server Error"),
-    
+
     /**
      * Algo name is a mandatory parameter
      */

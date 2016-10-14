@@ -99,12 +99,11 @@ public class DigestTest {
             byteArrayInputStream0 = new ByteArrayInputStream(byteArray0);
             digest0.update(byteArrayInputStream0, 100, 2);
             assertEquals(hex, digest0.digestHex());
-            
+
             digest0.reset();
             byteArrayInputStream0 = new ByteArrayInputStream(byteArray0);
-            InputStream inputStream = digest0.getDigestInputStream(byteArrayInputStream0);
-            while (inputStream.read(byteArray1) >= 0) {
-            }
+            final InputStream inputStream = digest0.getDigestInputStream(byteArrayInputStream0);
+            while (inputStream.read(byteArray1) >= 0) {}
             inputStream.close();
             assertEquals(hex, digest0.digestHex());
         }

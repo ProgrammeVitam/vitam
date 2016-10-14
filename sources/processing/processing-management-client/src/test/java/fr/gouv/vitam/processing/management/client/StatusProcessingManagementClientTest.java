@@ -57,12 +57,12 @@ public class StatusProcessingManagementClientTest extends JerseyTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
         url = "http://localhost:" + port;
         client = new ProcessingManagementClient(url);
     }
-    
+
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         junitHelper.releasePort(port);

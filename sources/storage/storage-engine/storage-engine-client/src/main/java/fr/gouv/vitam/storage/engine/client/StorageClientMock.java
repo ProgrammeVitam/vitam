@@ -74,7 +74,7 @@ class StorageClientMock extends StorageClientRest implements StorageClient {
         throws StorageNotFoundClientException, StorageServerClientException {
         try {
             return JsonHandler.getFromString(MOCK_INFOS_RESULT);
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             throw new StorageServerClientException(e);
         }
     }
@@ -115,7 +115,7 @@ class StorageClientMock extends StorageClientRest implements StorageClient {
     }
 
     private StoredInfoResult generateStoredInfoResult(String guid) {
-        StoredInfoResult result = new StoredInfoResult();
+        final StoredInfoResult result = new StoredInfoResult();
         result.setId(guid);
         result.setInfo("Stockage de l'objet réalisé avec succès");
         result.setCreationTime(LocalDateUtil.getString(LocalDateTime.now()));

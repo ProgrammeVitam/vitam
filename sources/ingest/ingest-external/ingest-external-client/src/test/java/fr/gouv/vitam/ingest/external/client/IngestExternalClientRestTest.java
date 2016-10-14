@@ -59,28 +59,29 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.SSLConfiguration;
 import fr.gouv.vitam.ingest.external.api.IngestExternalException;
 
-public class IngestExternalClientRestTest extends JerseyTest{
+public class IngestExternalClientRestTest extends JerseyTest {
     private static final String ATR_EXAMPLE_XML = "ATR_example.xml";
     protected static final String HOSTNAME = "localhost";
     protected static final String PATH = "/ingest-ext/v1";
     protected final IngestExternalClientRest client;
     private static JunitHelper junitHelper;
     private static int port;
-    
+
     protected ExpectedResults mock;
 
     interface ExpectedResults {
         Response post();
+
         Response get();
     }
-    
+
     public IngestExternalClientRestTest() throws VitamException {
-        client = new IngestExternalClientRest(HOSTNAME, port,false, new SSLConfiguration(), false);
+        client = new IngestExternalClientRest(HOSTNAME, port, false, new SSLConfiguration(), false);
     }
-    
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
     }
 
@@ -88,7 +89,7 @@ public class IngestExternalClientRestTest extends JerseyTest{
     public static void tearDownAfterClass() throws Exception {
         junitHelper.releasePort(port);
     }
-    
+
     @Override
     protected Application configure() {
         // enable(TestProperties.LOG_TRAFFIC);
@@ -124,29 +125,30 @@ public class IngestExternalClientRestTest extends JerseyTest{
         }
 
     }
-    
+
     @Test
     public void givenStatusOK() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.OK).build());
         client.status();
     }
-    
+
     @Test
-    public void givenInputstreamWhenUploadThenReturnOK() throws IngestExternalException, XMLStreamException, IOException{
+    public void givenInputstreamWhenUploadThenReturnOK()
+        throws IngestExternalException, XMLStreamException, IOException {
         InputStream inputStreamATR = PropertiesUtils.getResourcesAsStream(ATR_EXAMPLE_XML);
         final String xmlString = FileUtil.readInputStream(inputStreamATR);
         when(mock.post()).thenReturn(Response.status(Status.OK).entity(xmlString).build());
-        InputStream stream = PropertiesUtils.getResourcesAsStream("no-virus.txt");
+        final InputStream stream = PropertiesUtils.getResourcesAsStream("no-virus.txt");
         inputStreamATR = PropertiesUtils.getResourcesAsStream(ATR_EXAMPLE_XML);
-        Response res = client.upload(stream);
+        final Response res = client.upload(stream);
         assertEquals(xmlString, res.readEntity(String.class));
     }
-    
+
     @Test(expected = IngestExternalException.class)
     public void givenOperationNotYetCreatedWhenUpdateThenReturnNotFoundException() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.ACCEPTED).build());
-        InputStream stream = PropertiesUtils.getResourcesAsStream("unfixed-virus.txt");
+        final InputStream stream = PropertiesUtils.getResourcesAsStream("unfixed-virus.txt");
         client.upload(stream);
     }
-    
+
 }

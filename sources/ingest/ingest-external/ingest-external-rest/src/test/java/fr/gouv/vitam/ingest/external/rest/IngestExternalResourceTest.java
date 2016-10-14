@@ -74,7 +74,7 @@ public class IngestExternalResourceTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         serverPort = junitHelper.findAvailablePort();
         // TODO verifier la compatibilité avec les test parallèle sur jenkins
         SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
@@ -137,8 +137,8 @@ public class IngestExternalResourceTest {
         stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("fixed-virus.txt");
 
         PowerMockito.mockStatic(IngestInternalClientFactory.class);
-        IngestInternalClient ingestInternalClient = PowerMockito.mock(IngestInternalClient.class);
-        IngestInternalClientFactory ingestInternalFactory = PowerMockito.mock(IngestInternalClientFactory.class);
+        final IngestInternalClient ingestInternalClient = PowerMockito.mock(IngestInternalClient.class);
+        final IngestInternalClientFactory ingestInternalFactory = PowerMockito.mock(IngestInternalClientFactory.class);
         PowerMockito.when(ingestInternalFactory.getIngestInternalClient()).thenReturn(ingestInternalClient);
         PowerMockito.when(IngestInternalClientFactory.getInstance()).thenReturn(ingestInternalFactory);
 

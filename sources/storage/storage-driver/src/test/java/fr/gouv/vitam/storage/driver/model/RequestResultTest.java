@@ -44,8 +44,8 @@ public class RequestResultTest {
     private static GetObjectResult getObjectResult;
     private static RemoveObjectRequest removeObjectRequest;
     private static RemoveObjectResult removeObjectResult;
-    private static StorageCapacityResult storageCapacityResult;    
-    
+    private static StorageCapacityResult storageCapacityResult;
+
 
     @BeforeClass
     public static void init() {
@@ -59,15 +59,15 @@ public class RequestResultTest {
     @Test
     public void testGetObject() throws Exception {
         assertNotNull(getObjectRequest);
-        assertNotNull(getObjectResult);        
+        assertNotNull(getObjectResult);
     }
-    
+
     @Test
     public void testRemoveObject() throws Exception {
         assertNotNull(removeObjectRequest);
-        assertNotNull(removeObjectResult);        
+        assertNotNull(removeObjectResult);
     }
-    
+
     @Test
     public void testStorageCapacity() throws Exception {
         assertEquals(1000, storageCapacityResult.getUsableSpace());

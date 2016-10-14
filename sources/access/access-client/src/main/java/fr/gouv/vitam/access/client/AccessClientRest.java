@@ -59,7 +59,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * Access client
- * 
+ *
  * TODO : tenantId should be determined otherwise with a config or so
  */
 public class AccessClientRest implements AccessClient {
@@ -255,13 +255,13 @@ public class AccessClientRest implements AccessClient {
             }
 
 
-            InputStream streamClosedAutomatically = response.readEntity(InputStream.class);
+            final InputStream streamClosedAutomatically = response.readEntity(InputStream.class);
             try {
                 // TODO : this is ugly but necessarily in order to close the response and avoid concurrent issues
                 // to be improved (https://jersey.java.net/documentation/latest/client.html#d0e5170) and
                 // remove the IOUtils.toByteArray after correction of problem
                 stream = new ByteArrayInputStream(IOUtils.toByteArray(streamClosedAutomatically));
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 LOGGER.error(e);
                 throw new AccessClientServerException("Internal Server Error");
             }

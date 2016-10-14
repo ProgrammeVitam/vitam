@@ -93,7 +93,7 @@ public class ResourcesPublicUtilTest {
     }
 
     /**
-     * 
+     *
      * @return the Json3 Stream
      */
     public InputStream getJsonTest3JsonInputStream() {
@@ -101,14 +101,14 @@ public class ResourcesPublicUtilTest {
     }
 
     /**
-     * 
+     *
      * @return the Json empty Stream
      */
     public InputStream getJsonTestEmptyJsonInputStream() {
         return getTestResourcesInputStream(JSON_TEST_EMPTY_JSON);
     }
-    
-    
+
+
 
     /**
      *

@@ -34,24 +34,24 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.io.CharStreams;
 
-import fr.gouv.vitam.api.exception.MetaDataException;
-import fr.gouv.vitam.client.MetaDataClient;
-import fr.gouv.vitam.client.MetaDataClientFactory;
 import fr.gouv.vitam.common.database.builder.request.multiple.Insert;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.metadata.api.exception.MetaDataException;
+import fr.gouv.vitam.metadata.client.MetaDataClient;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingInternalServerException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.OutcomeMessage;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
-import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.core.api.HandlerIO;
@@ -73,7 +73,7 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
     public static final String UNIT_LIFE_CYCLE_CREATION_EVENT_TYPE =
         "Check SIP – Units – Lifecycle Logbook Creation – Création du journal du cycle de vie des units";
     public static final String TXT_EXTENSION = ".txt";
-    private LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters = LogbookParametersFactory
+    private final LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters = LogbookParametersFactory
         .newLogbookLifeCycleObjectGroupParameters();
 
 
@@ -103,7 +103,7 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
             checkMandatoryIOParameter(actionDefinition);
             SedaUtils.updateLifeCycleByStep(logbookLifecycleObjectGroupParameters, params);
             indexObjectGroup(params);
-        } catch (ProcessingInternalServerException exc) {
+        } catch (final ProcessingInternalServerException exc) {
             LOGGER.error(exc);
             response.setStatus(StatusCode.FATAL);
             response.setOutcomeMessages(HANDLER_ID, OutcomeMessage.INDEX_OBJECT_GROUP_KO);
@@ -122,7 +122,7 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
                     OutcomeMessage.INDEX_OBJECT_GROUP_OK.value());
             }
             SedaUtils.setLifeCycleFinalEventStatusByStep(logbookLifecycleObjectGroupParameters, response.getStatus());
-        } catch (ProcessingException e) {
+        } catch (final ProcessingException e) {
             LOGGER.error(e);
             if (!response.getStatus().equals(StatusCode.FATAL)) {
                 response.setStatus(StatusCode.WARNING);
@@ -166,7 +166,7 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
                 throw new ProcessingException("Object group not found");
             }
 
-        } catch (MetaDataException e) {
+        } catch (final MetaDataException e) {
             LOGGER.debug("Metadata Server Error", e);
             throw new ProcessingInternalServerException(e);
         } catch (InvalidParseOperationException | IOException e) {

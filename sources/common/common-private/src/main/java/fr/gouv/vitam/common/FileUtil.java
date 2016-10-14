@@ -45,7 +45,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 public final class FileUtil {
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(FileUtil.class);
-    
+
     private FileUtil() {
         // Unused
     }
@@ -62,7 +62,7 @@ public final class FileUtil {
 
     /**
      * @param file
-     * @return the content of the file  
+     * @return the content of the file
      * @throws IOException
      */
     public static final String readFile(final File file) throws IOException {
@@ -129,15 +129,15 @@ public final class FileUtil {
             LOGGER.warn("File could not be deleted");
         }
     }
-    
+
     /**
      * @param input to read
      * @return String
      * @throws XMLStreamException
      * @throws IOException
      */
-    private static final String readInputStreamLimited(InputStream input, int limit) throws IOException{
-        StringBuilder builder = new StringBuilder();
+    private static final String readInputStreamLimited(InputStream input, int limit) throws IOException {
+        final StringBuilder builder = new StringBuilder();
         try (final InputStreamReader reader = new InputStreamReader(input)) {
             try (final BufferedReader buffered = new BufferedReader(reader)) {
                 String line;
@@ -151,14 +151,14 @@ public final class FileUtil {
         }
         return builder.toString();
     }
-    
+
     /**
      * @param input to read
      * @return String
      * @throws XMLStreamException
      * @throws IOException
      */
-    public static final String readInputStream(InputStream input) throws IOException{
-        return readInputStreamLimited(input,Integer.MAX_VALUE);
+    public static final String readInputStream(InputStream input) throws IOException {
+        return readInputStreamLimited(input, Integer.MAX_VALUE);
     }
 }

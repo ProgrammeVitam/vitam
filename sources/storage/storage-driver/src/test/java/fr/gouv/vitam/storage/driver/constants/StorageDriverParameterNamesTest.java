@@ -27,14 +27,14 @@
 
 package fr.gouv.vitam.storage.driver.constants;
 
-import org.junit.Test;
+import static org.junit.Assert.fail;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 /**
  * StorageDriverParameterNames Test
@@ -45,10 +45,10 @@ public class StorageDriverParameterNamesTest {
 
     @Test
     public void testIt() {
-        List<String> collect = Stream.of(StorageDriverParameterNames.values())
+        final List<String> collect = Stream.of(StorageDriverParameterNames.values())
             .map(Enum::name)
             .collect(Collectors.toList());
-        if(!VALUES.containsAll(collect)) {
+        if (!VALUES.containsAll(collect)) {
             fail("Enum has changed ?");
         }
     }

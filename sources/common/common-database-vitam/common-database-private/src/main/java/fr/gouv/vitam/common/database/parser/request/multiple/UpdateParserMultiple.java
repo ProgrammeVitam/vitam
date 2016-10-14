@@ -44,12 +44,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.common.database.builder.query.action.Action;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
 import fr.gouv.vitam.common.database.builder.request.multiple.Update;
-import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameUpdateAdapter;
@@ -153,7 +153,7 @@ public class UpdateParserMultiple extends RequestParserMultiple {
      */
     protected static final UPDATEACTION getUpdateActionId(final String actionroot)
         throws InvalidParseOperationException {
-        if (!actionroot.startsWith(ParserTokens.DEFAULT_PREFIX)) {
+        if (!actionroot.startsWith(BuilderToken.DEFAULT_PREFIX)) {
             throw new InvalidParseOperationException(
                 "Incorrect action $command: " + actionroot);
         }

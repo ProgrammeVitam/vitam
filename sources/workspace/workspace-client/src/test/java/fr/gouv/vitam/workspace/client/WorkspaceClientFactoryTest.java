@@ -35,7 +35,7 @@ public class WorkspaceClientFactoryTest {
     @Test
     public void givenWorkspaceClientFactoryWhenCallingCreateThenReturnClient() {
         final WorkspaceClientFactory factory = new WorkspaceClientFactory();
-        assertTrue(factory.create("") instanceof WorkspaceClient);
+        assertTrue(WorkspaceClientFactory.create("") instanceof WorkspaceClient);
     }
 
 }

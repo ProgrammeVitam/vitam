@@ -32,11 +32,11 @@ import java.util.List;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.OutcomeMessage;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
-import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.utils.ContainerExtractionUtils;
 import fr.gouv.vitam.worker.common.utils.ContainerExtractionUtilsFactory;
@@ -87,7 +87,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
         checkMandatoryParameters(params);
         LOGGER.debug("CheckObjectsNumberActionHandler running ...");
 
-        EngineResponse response = new ProcessResponse();
+        final EngineResponse response = new ProcessResponse();
         response.setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_OK);
 
         try {
@@ -106,7 +106,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
                     .setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_KO);
             }
 
-        } catch (ProcessingException e) {
+        } catch (final ProcessingException e) {
             response.setStatus(StatusCode.FATAL).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_KO);
         }
 
@@ -217,6 +217,6 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-      //TODO Add Workspace:SIP/manifest.xml and check it 
+        // TODO Add Workspace:SIP/manifest.xml and check it
     }
 }

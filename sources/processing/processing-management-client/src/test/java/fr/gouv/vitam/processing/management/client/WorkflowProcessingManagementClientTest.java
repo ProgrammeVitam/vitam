@@ -67,12 +67,12 @@ public class WorkflowProcessingManagementClientTest extends JerseyTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
         url = "http://localhost:" + port;
         client = new ProcessingManagementClient(url);
     }
-    
+
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         junitHelper.releasePort(port);
@@ -80,7 +80,7 @@ public class WorkflowProcessingManagementClientTest extends JerseyTest {
 
     @Override
     protected Application configure() {
-        //enable(TestProperties.LOG_TRAFFIC);
+        // enable(TestProperties.LOG_TRAFFIC);
         enable(TestProperties.DUMP_ENTITY);
         forceSet(TestProperties.CONTAINER_PORT, Integer.toString(port));
         mock = mock(Supplier.class);
@@ -136,9 +136,9 @@ public class WorkflowProcessingManagementClientTest extends JerseyTest {
 
     @Test
     public void executeVitamProcessOk() throws Exception {
-        String desired = "{\"JSON\": \"OK\"}";
+        final String desired = "{\"JSON\": \"OK\"}";
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(desired).build());
-        String ret = client.executeVitamProcess(CONTAINER, WORKFLOWID);
+        final String ret = client.executeVitamProcess(CONTAINER, WORKFLOWID);
         assertNotNull(ret);
         assertEquals(desired, ret);
     }

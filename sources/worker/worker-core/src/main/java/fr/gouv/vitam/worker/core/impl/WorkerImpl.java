@@ -104,11 +104,12 @@ public class WorkerImpl implements Worker {
 
     /**
      * Add an actionhandler in the pool of action
-     * 
+     *
      * @param actionName action name
      * @param actionHandler action handler
      * @return WorkerImpl
      */
+    @Override
     public WorkerImpl addActionHandler(String actionName, ActionHandler actionHandler) {
         ParametersChecker.checkParameter("actionName is a mandatory parameter", actionName);
         ParametersChecker.checkParameter("actionHandler is a mandatory parameter", actionHandler);
@@ -145,7 +146,7 @@ public class WorkerImpl implements Worker {
         // mandatory check
         ParameterHelper.checkNullOrEmptyParameters(workParams);
 
-        WorkspaceClient client = WorkspaceClientFactory.create(workParams.getUrlWorkspace());
+        final WorkspaceClient client = WorkspaceClientFactory.create(workParams.getUrlWorkspace());
         if (step == null) {
             throw new IllegalArgumentException(STEP_NULL);
         }
@@ -155,34 +156,34 @@ public class WorkerImpl implements Worker {
         }
 
         final List<EngineResponse> responses = new ArrayList<>();
-        List<HandlerIO> handlerIOParams = new ArrayList<>();
+        final List<HandlerIO> handlerIOParams = new ArrayList<>();
 
         for (final Action action : step.getActions()) {
 
-            HandlerIO handlerIO = getHandlerIOParam(action, client, workParams);
+            final HandlerIO handlerIO = getHandlerIOParam(action, client, workParams);
             final ActionHandler actionHandler = getActionHandler(action.getActionDefinition().getActionKey());
             if (actionHandler == null) {
                 throw new HandlerNotFoundException(action.getActionDefinition().getActionKey() + HANDLER_NOT_FOUND);
             }
 
             handlerIOParams.add(handlerIO);
-            EngineResponse actionResponse = actionHandler.execute(workParams, handlerIO);
+            final EngineResponse actionResponse = actionHandler.execute(workParams, handlerIO);
             responses.add(actionResponse);
             // if the action has been defined as Blocking and the action status is KO or FATAL
             // then break the process
             if (ProcessBehavior.BLOCKING.equals(action.getActionDefinition().getBehavior()) &&
-                (actionResponse.getStatus().isGreaterOrEqualToKo())) {
+                actionResponse.getStatus().isGreaterOrEqualToKo()) {
                 break;
             }
         }
         // Clear all worker input and output
         try {
             clearWorkerIOParam(workParams.getContainerName() + "_" + workerId);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             LOGGER.error("Can not clean temporary folder", e);
             throw new ProcessingException(e);
         }
-        this.memoryMap.clear();
+        memoryMap.clear();
 
         LOGGER.debug("step name :" + step.getStepName());
         return responses;
@@ -199,25 +200,25 @@ public class WorkerImpl implements Worker {
 
     private HandlerIO getHandlerIOParam(Action action, WorkspaceClient client, WorkerParameters workParams)
         throws HandlerNotFoundException {
-        HandlerIO handlerIO = new HandlerIO(workParams.getContainerName() + "_" + workerId);
+        final HandlerIO handlerIO = new HandlerIO(workParams.getContainerName() + "_" + workerId);
         if (action.getActionDefinition().getIn() != null) {
-            for (IOParameter input : action.getActionDefinition().getIn()) {
+            for (final IOParameter input : action.getActionDefinition().getIn()) {
                 switch (input.getUri().getPrefix()) {
                     case WORKSPACE: {
                         try {
-                            File file = WorkerIOManagementHelper.findFileFromWorkspace(
+                            final File file = WorkerIOManagementHelper.findFileFromWorkspace(
                                 client,
                                 workParams.getContainerName(),
                                 input.getUri().getPath(), workerId);
                             handlerIO.addInput(file);
                             break;
-                        } catch (FileNotFoundException e) {
+                        } catch (final FileNotFoundException e) {
                             LOGGER.error(HANDLER_INPUT_NOT_FOUND, e);
                             throw new IllegalArgumentException(HANDLER_INPUT_NOT_FOUND + input.getUri().getPath());
                         }
                     }
                     case MEMORY: {
-                        handlerIO.addInput(this.memoryMap.get(input.getValue()));
+                        handlerIO.addInput(memoryMap.get(input.getValue()));
                         break;
                     }
                     case VALUE: {
@@ -230,7 +231,7 @@ public class WorkerImpl implements Worker {
             }
         }
         if (action.getActionDefinition().getOut() != null) {
-            for (IOParameter output : action.getActionDefinition().getOut()) {
+            for (final IOParameter output : action.getActionDefinition().getOut()) {
                 switch (output.getUri().getPrefix()) {
                     case WORKSPACE:
                         handlerIO.addOutput(output.getUri().getPath());

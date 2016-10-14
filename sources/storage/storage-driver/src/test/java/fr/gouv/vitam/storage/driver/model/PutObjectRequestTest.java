@@ -27,12 +27,12 @@
 
 package fr.gouv.vitam.storage.driver.model;
 
-import org.junit.BeforeClass;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 import java.io.ByteArrayInputStream;
 
-import static org.junit.Assert.assertEquals;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 /**
  * TEst for PutObjectRequestTest

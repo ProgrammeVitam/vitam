@@ -88,7 +88,7 @@ public class AdminManagementClientMockTest {
         IOException {
         AdminManagementClientFactory.setConfiguration(AdminManagementClientType.MOCK_CLIENT, null, 0);
         final AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
-        Select select = new Select();
+        final Select select = new Select();
         assertNotNull(client.getFormats(select.getFinalSelect()));
     }
 
@@ -118,7 +118,7 @@ public class AdminManagementClientMockTest {
         // {"RuleId":"APP-00001","RuleType":"testList","RuleDescription":"testList","RuleDuration":"10","RuleMeasurement":"Annee"};
         AdminManagementClientFactory.setConfiguration(AdminManagementClientType.MOCK_CLIENT, null, 0);
         final AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
-        ObjectNode objectNode = (ObjectNode) (client.getRuleByID("APP-00001"));
+        final ObjectNode objectNode = (ObjectNode) client.getRuleByID("APP-00001");
         assertEquals("AppraiseRule", objectNode.get("RuleType").asText().toString());
         assertEquals("10", objectNode.get("RuleDuration").asText().toString());
         assertEquals("Annee", objectNode.get("RuleMeasurement").asText().toString());
@@ -130,7 +130,7 @@ public class AdminManagementClientMockTest {
         IOException {
         AdminManagementClientFactory.setConfiguration(AdminManagementClientType.MOCK_CLIENT, null, 0);
         final AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
-        Select select = new Select();
+        final Select select = new Select();
         assertNotNull(client.getRule(select.getFinalSelect()));
     }
 }

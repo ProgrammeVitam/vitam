@@ -98,7 +98,7 @@ public class StorageClientRestTest extends JerseyTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         serverPort = junitHelper.findAvailablePort();
     }
 
@@ -330,7 +330,7 @@ public class StorageClientRestTest extends JerseyTest {
     }
 
     private CreateObjectDescription getDescription() {
-        CreateObjectDescription description = new CreateObjectDescription();
+        final CreateObjectDescription description = new CreateObjectDescription();
         description.setWorkspaceContainerGUID("aeaaaaaaaaaam7mxaaaamakwfnzbudaaaaaq");
         description.setWorkspaceObjectURI(
             "SIP/content/e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804.odt");
@@ -388,7 +388,7 @@ public class StorageClientRestTest extends JerseyTest {
         try {
             client.existsContainer("idTenant", "idStrategy");
             fail("Should rise an exception");
-        } catch (VitamClientException e) {
+        } catch (final VitamClientException e) {
             // nothing to do
         }
 
@@ -396,7 +396,7 @@ public class StorageClientRestTest extends JerseyTest {
         try {
             client.existsContainer("idTenant", "idStrategy");
             fail("Should rise an exception");
-        } catch (VitamClientException e) {
+        } catch (final VitamClientException e) {
             // nothing to do
         }
     }
@@ -457,7 +457,7 @@ public class StorageClientRestTest extends JerseyTest {
         try {
             client.deleteContainer("idTenant", "idStrategy");
             fail("Should rise an exception");
-        } catch (VitamClientException e) {
+        } catch (final VitamClientException e) {
             // nothing to do
         }
 
@@ -465,7 +465,7 @@ public class StorageClientRestTest extends JerseyTest {
         try {
             client.deleteContainer("idTenant", "idStrategy");
             fail("Should rise an exception");
-        } catch (VitamClientException e) {
+        } catch (final VitamClientException e) {
             // nothing to do
         }
     }
@@ -512,14 +512,14 @@ public class StorageClientRestTest extends JerseyTest {
     @Test
     public void successGetContainerObjectExecutionWhenFound() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("Vitam test")).build());
-        InputStream stream = client.getContainer("idTenant", "idStrategy", "guid", StorageCollectionType.OBJECTS);
-        InputStream stream2 = IOUtils.toInputStream("Vitam test");
+        final InputStream stream = client.getContainer("idTenant", "idStrategy", "guid", StorageCollectionType.OBJECTS);
+        final InputStream stream2 = IOUtils.toInputStream("Vitam test");
         assertNotNull(stream);
         assertTrue(IOUtils.contentEquals(stream, stream2));
     }
 
     private StoredInfoResult generateStoredInfoResult(String guid) {
-        StoredInfoResult result = new StoredInfoResult();
+        final StoredInfoResult result = new StoredInfoResult();
         result.setId(guid);
         result.setInfo("Creation ok");
         result.setCreationTime(LocalDateUtil.getString(LocalDateTime.now()));

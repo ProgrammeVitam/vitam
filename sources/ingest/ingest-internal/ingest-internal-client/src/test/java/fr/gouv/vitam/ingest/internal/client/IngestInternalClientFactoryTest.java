@@ -44,25 +44,25 @@ public class IngestInternalClientFactoryTest {
 
     @Before
     public void initFileConfiguration() {
-    	IngestInternalClientFactory.getInstance().changeConfigurationFile("ingest-internal-client-test.conf");
+        IngestInternalClientFactory.getInstance().changeConfigurationFile("ingest-internal-client-test.conf");
     }
 
     @Test
     public void getClientInstanceTest() {
         try {
-        	IngestInternalClientFactory.setConfiguration(IngestInternalClientType.PRODUCTION, null, 10);
+            IngestInternalClientFactory.setConfiguration(IngestInternalClientType.PRODUCTION, null, 10);
             fail("Should raise an exception");
         } catch (final IllegalArgumentException e) {
 
         }
         try {
-        	IngestInternalClientFactory.setConfiguration(IngestInternalClientType.PRODUCTION, "localhost", -10);
+            IngestInternalClientFactory.setConfiguration(IngestInternalClientType.PRODUCTION, "localhost", -10);
             fail("Should raise an exception");
         } catch (final IllegalArgumentException e) {
 
         }
         try {
-        	IngestInternalClientFactory.setConfiguration(null, null, 10);
+            IngestInternalClientFactory.setConfiguration(null, null, 10);
             fail("Should raise an exception");
         } catch (final IllegalArgumentException e) {
 
@@ -70,11 +70,11 @@ public class IngestInternalClientFactoryTest {
         IngestInternalClientFactory.setConfiguration(IngestInternalClientType.MOCK, null, -1);
 
         final IngestInternalClient client =
-        		IngestInternalClientFactory.getInstance().getIngestInternalClient();
+            IngestInternalClientFactory.getInstance().getIngestInternalClient();
         assertNotNull(client);
 
         final IngestInternalClient client2 =
-        		IngestInternalClientFactory.getInstance().getIngestInternalClient();
+            IngestInternalClientFactory.getInstance().getIngestInternalClient();
         assertNotNull(client2);
 
         assertNotSame(client, client2);
@@ -83,9 +83,10 @@ public class IngestInternalClientFactoryTest {
     @Test
     public void changeDefaultClientTypeTest() {
         final IngestInternalClient client =
-        		IngestInternalClientFactory.getInstance().getIngestInternalClient();
+            IngestInternalClientFactory.getInstance().getIngestInternalClient();
         assertTrue(client instanceof IngestInternalClientRest);
-        final IngestInternalClientFactory.IngestInternalClientType type = IngestInternalClientFactory.getDefaultIngestInternalClientType();
+        final IngestInternalClientFactory.IngestInternalClientType type =
+            IngestInternalClientFactory.getDefaultIngestInternalClientType();
         assertNotNull(type);
         assertEquals(IngestInternalClientType.PRODUCTION, type);
 
@@ -93,14 +94,17 @@ public class IngestInternalClientFactoryTest {
         final IngestInternalClient client2 = IngestInternalClientFactory.getInstance().getIngestInternalClient();
 
         assertTrue(client2 instanceof IngestInternalClientMock);
-        final IngestInternalClientFactory.IngestInternalClientType type2 = IngestInternalClientFactory.getDefaultIngestInternalClientType();
+        final IngestInternalClientFactory.IngestInternalClientType type2 =
+            IngestInternalClientFactory.getDefaultIngestInternalClientType();
         assertNotNull(type2);
         assertEquals(IngestInternalClientType.MOCK, type2);
 
-        IngestInternalClientFactory.setConfiguration(IngestInternalClientFactory.IngestInternalClientType.PRODUCTION, "server", 1025);
+        IngestInternalClientFactory.setConfiguration(IngestInternalClientFactory.IngestInternalClientType.PRODUCTION,
+            "server", 1025);
         final IngestInternalClient client3 = IngestInternalClientFactory.getInstance().getIngestInternalClient();
         assertTrue(client3 instanceof IngestInternalClientRest);
-        final IngestInternalClientFactory.IngestInternalClientType type3 = IngestInternalClientFactory.getDefaultIngestInternalClientType();
+        final IngestInternalClientFactory.IngestInternalClientType type3 =
+            IngestInternalClientFactory.getDefaultIngestInternalClientType();
         assertNotNull(type3);
         assertEquals(IngestInternalClientType.PRODUCTION, type3);
     }
@@ -108,9 +112,10 @@ public class IngestInternalClientFactoryTest {
     @Test
     public void testInitWithConfigurationFile() {
         final IngestInternalClient client =
-        		IngestInternalClientFactory.getInstance().getIngestInternalClient();
+            IngestInternalClientFactory.getInstance().getIngestInternalClient();
         assertTrue(client instanceof IngestInternalClientRest);
-        final IngestInternalClientFactory.IngestInternalClientType type = IngestInternalClientFactory.getDefaultIngestInternalClientType();
+        final IngestInternalClientFactory.IngestInternalClientType type =
+            IngestInternalClientFactory.getDefaultIngestInternalClientType();
         assertNotNull(type);
         assertEquals(IngestInternalClientType.PRODUCTION, type);
     }

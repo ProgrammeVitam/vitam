@@ -37,14 +37,8 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.server.VitamServerFactory;
-
 /**
- * 
+ *
  */
 public class StorageApplicationTest {
 
@@ -54,7 +48,7 @@ public class StorageApplicationTest {
 
     private static int serverPort;
     private static int oldPort;
-    private static JunitHelper junitHelper = new JunitHelper();
+    private static JunitHelper junitHelper = JunitHelper.getInstance();
     private static File storage;
 
     // @BeforeClass
@@ -90,9 +84,9 @@ public class StorageApplicationTest {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         } catch (final VitamApplicationServerException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        } catch (VitamException e) {
+        } catch (final VitamException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
 

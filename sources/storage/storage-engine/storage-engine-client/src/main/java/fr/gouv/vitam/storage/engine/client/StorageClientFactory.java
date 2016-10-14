@@ -44,7 +44,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  *
  * Example :
  * </p>
- * 
+ *
  * <pre>
  * {
  *     &#64;code
@@ -149,18 +149,18 @@ public class StorageClientFactory {
             configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
                 StorageClientConfiguration.class);
         } catch (final IOException fnf) {
-                LOGGER
-                    .warn("Error when retrieving configuration file {}, using mock",
-                        CONFIGURATION_FILENAME,
-                        fnf);
+            LOGGER
+                .warn("Error when retrieving configuration file {}, using mock",
+                    CONFIGURATION_FILENAME,
+                    fnf);
         }
         if (configuration == null) {
-            this.clientConfiguration = null;
+            clientConfiguration = null;
             LOGGER.warn("Error when retrieving configuration file {}, using mock",
                 CONFIGURATION_FILENAME);
         } else {
             checkConfiguration(configuration);
-            this.clientConfiguration = configuration;
+            clientConfiguration = configuration;
             changeDefaultClientType(StorageClientType.STORAGE);
         }
     }

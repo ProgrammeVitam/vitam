@@ -34,7 +34,7 @@ import java.io.IOException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
+import org.mockito.Matchers;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -42,9 +42,9 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
-import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.core.api.HandlerIO;
@@ -57,15 +57,15 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 @PrepareForTest({WorkspaceClientFactory.class})
 public class CheckObjectUnitConsistencyActionHandlerTest {
-    
+
     CheckObjectUnitConsistencyActionHandler handler;
     private static final String HANDLER_ID = "CheckObjectUnitConsistency";
-    
+
     private static final String OBJECT_GROUP_ID_TO_GUID_MAP = "OBJECT_GROUP_ID_TO_GUID_MAP_obj.json";
     private static final String OG_AU = "OG_TO_ARCHIVE_ID_MAP_obj.json";
-    
+
     private static final String EMPTY = "EMPTY_MAP.json";
-    
+
     private WorkspaceClient workspaceClient;
     private static final String OBJ = "obj";
 
@@ -82,32 +82,34 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
     }
 
     @Test
-    public void givenObjectUnitConsistencyCheckWhenNotFindBDOWithoutOGAndOGNonReferencedByArchiveUnitThenResponseOK() 
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, InvalidParseOperationException, IOException, ProcessingException {
-        
+    public void givenObjectUnitConsistencyCheckWhenNotFindBDOWithoutOGAndOGNonReferencedByArchiveUnitThenResponseOK()
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
+        InvalidParseOperationException, IOException, ProcessingException {
+
         action.addInput(PropertiesUtils.getResourcesFile(EMPTY));
         action.addInput(PropertiesUtils.getResourcesFile(EMPTY));
-        
-        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
-                
+
+        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
+
         handler = new CheckObjectUnitConsistencyActionHandler();
-        
+
         assertEquals(CheckObjectUnitConsistencyActionHandler.getId(), HANDLER_ID);
         final EngineResponse response = handler.execute(params, action);
         assertEquals(response.getStatus(), StatusCode.OK);
     }
-    
+
     @Test
-    public void givenObjectUnitConsistencyCheckWhenFindBDOWithoutOGAndOGNonReferencedByArchiveUnitThenResponseKO() 
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, InvalidParseOperationException, IOException, ProcessingException {
-        
+    public void givenObjectUnitConsistencyCheckWhenFindBDOWithoutOGAndOGNonReferencedByArchiveUnitThenResponseKO()
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
+        InvalidParseOperationException, IOException, ProcessingException {
+
         action.addInput(PropertiesUtils.getResourcesFile(OG_AU));
         action.addInput(PropertiesUtils.getResourcesFile(OBJECT_GROUP_ID_TO_GUID_MAP));
-        
-        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
-                
+
+        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
+
         handler = new CheckObjectUnitConsistencyActionHandler();
-        
+
         assertEquals(CheckObjectUnitConsistencyActionHandler.getId(), HANDLER_ID);
         final EngineResponse response = handler.execute(params, action);
         assertEquals(response.getStatus(), StatusCode.KO);

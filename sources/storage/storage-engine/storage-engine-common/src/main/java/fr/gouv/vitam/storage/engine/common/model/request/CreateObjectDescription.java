@@ -43,7 +43,7 @@ public class CreateObjectDescription {
 
     /**
      * Constructor.
-     * 
+     *
      * @param workspaceContainerGUID workspace container id
      * @param workspaceObjectURI workspace object URI
      */

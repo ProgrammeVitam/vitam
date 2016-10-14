@@ -26,6 +26,6 @@
  *******************************************************************************/
 
 /**
- *  This package contains FileSystem implementation
+ * This package contains FileSystem implementation
  */
 package fr.gouv.vitam.workspace.core.filesystem;

@@ -37,7 +37,7 @@ public class RequestResponseErrorTest {
 
     @Test
     public void testRequestResponseError() {
-        RequestResponseError requestError = new RequestResponseError();
+        final RequestResponseError requestError = new RequestResponseError();
         requestError.setError(new VitamError(1)
             .setCode(2)
             .setContext("context")

@@ -33,15 +33,15 @@ import java.io.InputStream;
  * Holds every needed parameters that may be needed to put an object on the distant storage offer
  */
 public class PutObjectRequest {
-    private String tenantId;
-    private String digestAlgorithm;
-    private String guid;
-    private String type;
-    private InputStream dataStream;
+    private final String tenantId;
+    private final String digestAlgorithm;
+    private final String guid;
+    private final String type;
+    private final InputStream dataStream;
 
     /**
      * Initialize the needed parameters for put requests
-     * 
+     *
      * @param tenantId request tenantId
      * @param digestAlgorithm the object digestAlgorithm
      * @param guid the object guid
@@ -78,7 +78,7 @@ public class PutObjectRequest {
     }
 
     /**
-     * 
+     *
      * @return the type
      */
     public String getType() {
@@ -86,7 +86,7 @@ public class PutObjectRequest {
     }
 
     /**
-     * 
+     *
      * @return the digestAlgorithm
      */
     public String getDigestAlgorithm() {

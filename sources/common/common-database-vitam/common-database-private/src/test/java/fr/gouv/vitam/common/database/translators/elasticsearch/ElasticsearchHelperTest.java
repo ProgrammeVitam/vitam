@@ -27,8 +27,8 @@
 package fr.gouv.vitam.common.database.translators.elasticsearch;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -46,11 +46,11 @@ public class ElasticsearchHelperTest {
     public void testElasticsearchHelper()
         throws NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException,
         IllegalArgumentException, InvocationTargetException {
-        Constructor<ElasticsearchHelper> constructor = ElasticsearchHelper.class.getDeclaredConstructor();
+        final Constructor<ElasticsearchHelper> constructor = ElasticsearchHelper.class.getDeclaredConstructor();
         assertTrue(Modifier.isPrivate(constructor.getModifiers()));
 
         constructor.setAccessible(true);
-        ElasticsearchHelper helper = constructor.newInstance();
+        final ElasticsearchHelper helper = constructor.newInstance();
         assertNotNull(helper);
 
         assertEquals(QUERY.toString(), ElasticsearchHelper.queryBuilderToString(QUERY));

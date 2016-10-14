@@ -50,6 +50,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
@@ -57,7 +58,6 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.OutcomeMessage;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
-import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageCollectionType;
@@ -92,13 +92,13 @@ public class TransferNotificationActionHandler extends ActionHandler {
     private static final String DEFAULT_TENANT = "0";
     private static final String DEFAULT_STRATEGY = "default";
 
-    private HandlerIO handlerInitialIOList = new HandlerIO(HANDLER_ID);
-    private MarshallerObjectCache marshallerObjectCache = new MarshallerObjectCache();
+    private final HandlerIO handlerInitialIOList = new HandlerIO(HANDLER_ID);
+    private final MarshallerObjectCache marshallerObjectCache = new MarshallerObjectCache();
     public static final int HANDLER_IO_PARAMETER_NUMBER = 5;
 
     /**
      * Constructor TransferNotificationActionHandler with parameter SedaUtilsFactory
-     * 
+     *
      * @param factory SedaUtils factory
      * @throws IOException
      */
@@ -128,9 +128,10 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
         try {
             checkMandatoryIOParameter(handler);
-            File atrFile = createATR(params, handlerIO);
-            // FIXME : Fix bug on jenkin org.xml.sax.SAXParseException: src-resolve: Cannot resolve the name 'xml:id' to a(n) 'attribute declaration' component.
-            //if (new ValidationXsdUtils().checkWithXSD(new FileInputStream(atrFile), SEDA_VALIDATION_FILE)) {
+            final File atrFile = createATR(params, handlerIO);
+            // FIXME : Fix bug on jenkin org.xml.sax.SAXParseException: src-resolve: Cannot resolve the name 'xml:id' to
+            // a(n) 'attribute declaration' component.
+            // if (new ValidationXsdUtils().checkWithXSD(new FileInputStream(atrFile), SEDA_VALIDATION_FILE)) {
             HandlerIO.transferFileFromTmpIntoWorkspace(
                 WorkspaceClientFactory.create(params.getUrlWorkspace()),
                 params.getContainerName() + ATR_FILE_NAME,
@@ -138,7 +139,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 params.getContainerName(),
                 true);
             // store binary data object
-            CreateObjectDescription description = new CreateObjectDescription();
+            final CreateObjectDescription description = new CreateObjectDescription();
             description.setWorkspaceContainerGUID(params.getContainerName());
             description.setWorkspaceObjectURI(IngestWorkflowConstants.ATR_FOLDER + "/" + ATR_FILE_NAME);
             storageClientFactory.getStorageClient().storeFileFromWorkspace(
@@ -146,7 +147,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 DEFAULT_STRATEGY,
                 StorageCollectionType.REPORTS,
                 params.getContainerName() + XML, description);
-            //}
+            // }
         } catch (ProcessingException | ContentAddressableStorageException e) {
             LOGGER.error(e);
             response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID, OutcomeMessage.ATR_KO);
@@ -154,9 +155,9 @@ public class TransferNotificationActionHandler extends ActionHandler {
             StorageClientException | IOException e) {
             LOGGER.error(e);
             response.setStatus(StatusCode.FATAL).setOutcomeMessages(HANDLER_ID, OutcomeMessage.ATR_KO);
-//        } catch (SAXException | XMLStreamException e) {
-//            LOGGER.error(e);
-//            response.setStatus(StatusCode.FATAL).setOutcomeMessages(HANDLER_ID, OutcomeMessage.ATR_KO);
+            // } catch (SAXException | XMLStreamException e) {
+            // LOGGER.error(e);
+            // response.setStatus(StatusCode.FATAL).setOutcomeMessages(HANDLER_ID, OutcomeMessage.ATR_KO);
         }
 
         LOGGER.debug("TransferNotificationActionHandler response: ", response.getStatus().name());
@@ -165,14 +166,14 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
     /**
      * Serialize a Jaxb POJO object in the current XML stream
-     * 
+     *
      * @param jaxbPOJO
      * @throws VitamSedaException
      */
     private void writeXMLFragment(Object jaxbPOJO, XMLStreamWriter xmlsw) throws ProcessingException {
         try {
             marshallerObjectCache.getMarshaller(jaxbPOJO.getClass()).marshal(jaxbPOJO, xmlsw);
-        } catch (JAXBException e) {
+        } catch (final JAXBException e) {
             throw new ProcessingException("Error on writing " + jaxbPOJO + "object", e);
         }
 
@@ -194,33 +195,35 @@ public class TransferNotificationActionHandler extends ActionHandler {
         ContentAddressableStorageServerException, URISyntaxException, ContentAddressableStorageException, IOException,
         InvalidParseOperationException {
         ParameterHelper.checkNullOrEmptyParameters(params);
-        String atrPath = params.getContainerName() + ATR_FILE_NAME;
-        File atrTmpFile = PropertiesUtils.fileFromTmpFolder(atrPath);
+        final String atrPath = params.getContainerName() + ATR_FILE_NAME;
+        final File atrTmpFile = PropertiesUtils.fileFromTmpFolder(atrPath);
 
         // Pre-actions
-        InputStream archiveUnitMapTmpFile = new FileInputStream((File) handlerIO.getInput().get(0));
-        InputStream binaryDataObjectMapTmpFile = new FileInputStream((File) handlerIO.getInput().get(1));
-        InputStream bdoObjectGroupStoredMapTmpFile = new FileInputStream((File) handlerIO.getInput().get(2));
-        InputStream binaryDataObjectIdToVersionDataObjectMapTmpFile =
+        final InputStream archiveUnitMapTmpFile = new FileInputStream((File) handlerIO.getInput().get(0));
+        final InputStream binaryDataObjectMapTmpFile = new FileInputStream((File) handlerIO.getInput().get(1));
+        final InputStream bdoObjectGroupStoredMapTmpFile = new FileInputStream((File) handlerIO.getInput().get(2));
+        final InputStream binaryDataObjectIdToVersionDataObjectMapTmpFile =
             new FileInputStream((File) handlerIO.getInput().get(3));
 
-        Map<String, Object> archiveUnitSystemGuid = JsonHandler.getMapFromInputStream(archiveUnitMapTmpFile);
-        Map<String, Object> binaryDataObjectSystemGuid = JsonHandler.getMapFromInputStream(binaryDataObjectMapTmpFile);
-        Map<String, Object> bdoObjectGroupSystemGuid =
+        final Map<String, Object> archiveUnitSystemGuid = JsonHandler.getMapFromInputStream(archiveUnitMapTmpFile);
+        final Map<String, Object> binaryDataObjectSystemGuid =
+            JsonHandler.getMapFromInputStream(binaryDataObjectMapTmpFile);
+        final Map<String, Object> bdoObjectGroupSystemGuid =
             JsonHandler.getMapFromInputStream(bdoObjectGroupStoredMapTmpFile);
-        Map<String, Object> bdoVersionDataObject =
+        final Map<String, Object> bdoVersionDataObject =
             JsonHandler.getMapFromInputStream(binaryDataObjectIdToVersionDataObjectMapTmpFile);
-        SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+        final SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 
         final JsonNode sedaParameters = JsonHandler.getFromFile((File) handlerIO.getInput().get(4));
-        JsonNode infoATR = sedaParameters.get(SedaConstants.TAG_ARCHIVE_TRANSFER).get(SedaConstants.TAG_ARCHIVE_TRANSFER);
-        String messageIdentifier = infoATR.get(SedaConstants.TAG_MESSAGE_IDENTIFIER).textValue();
+        final JsonNode infoATR =
+            sedaParameters.get(SedaConstants.TAG_ARCHIVE_TRANSFER).get(SedaConstants.TAG_ARCHIVE_TRANSFER);
+        final String messageIdentifier = infoATR.get(SedaConstants.TAG_MESSAGE_IDENTIFIER).textValue();
         // creation of ATR report
         try {
-            XMLOutputFactory outputFactory = XMLOutputFactory.newInstance();
+            final XMLOutputFactory outputFactory = XMLOutputFactory.newInstance();
             final FileWriter artTmpFileWriter = new FileWriter(atrTmpFile);
 
-            XMLStreamWriter xmlsw = outputFactory.createXMLStreamWriter(artTmpFileWriter);
+            final XMLStreamWriter xmlsw = outputFactory.createXMLStreamWriter(artTmpFileWriter);
             xmlsw.writeStartDocument();
 
             xmlsw.writeStartElement(SedaConstants.TAG_ARCHIVE_TRANSFER_REPLY);
@@ -234,16 +237,19 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
             writeAttributeValue(xmlsw, SedaConstants.TAG_DATE, sdfDate.format(new Date()));
             writeAttributeValue(xmlsw, SedaConstants.TAG_MESSAGE_IDENTIFIER, params.getProcessId());
-            writeAttributeValue(xmlsw, SedaConstants.TAG_ARCHIVAL_AGREEMENT, 
+            writeAttributeValue(xmlsw, SedaConstants.TAG_ARCHIVAL_AGREEMENT,
                 infoATR.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT).textValue());
 
             xmlsw.writeStartElement(SedaConstants.TAG_CODE_LIST_VERSIONS);
             writeAttributeValue(xmlsw, SedaConstants.TAG_REPLY_CODE_LIST_VERSION,
-                infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS).get(SedaConstants.TAG_REPLY_CODE_LIST_VERSION).textValue());
+                infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS).get(SedaConstants.TAG_REPLY_CODE_LIST_VERSION)
+                    .textValue());
             writeAttributeValue(xmlsw, SedaConstants.TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION,
-                infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS).get(SedaConstants.TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION).textValue());
+                infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
+                    .get(SedaConstants.TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION).textValue());
             writeAttributeValue(xmlsw, SedaConstants.TAG_FILE_FORMAT_CODE_LIST_VERSION,
-                infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS).get(SedaConstants.TAG_FILE_FORMAT_CODE_LIST_VERSION).textValue());
+                infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS).get(SedaConstants.TAG_FILE_FORMAT_CODE_LIST_VERSION)
+                    .textValue());
             xmlsw.writeEndElement(); // END SedaConstants.TAG_CODE_LIST_VERSIONS
 
             xmlsw.writeStartElement(SedaConstants.TAG_DATA_OBJECT_PACKAGE);
@@ -255,8 +261,8 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
             xmlsw.writeStartElement(SedaConstants.TAG_ARCHIVE_UNIT_LIST);
             if (archiveUnitSystemGuid != null) {
-                for (Map.Entry<String, Object> entry : archiveUnitSystemGuid.entrySet()) {
-                    ArchiveUnitReplyTypeRoot au = new ArchiveUnitReplyTypeRoot();
+                for (final Map.Entry<String, Object> entry : archiveUnitSystemGuid.entrySet()) {
+                    final ArchiveUnitReplyTypeRoot au = new ArchiveUnitReplyTypeRoot();
                     au.setId(entry.getKey());
                     au.setSystemId(entry.getValue().toString());
                     writeXMLFragment(au, xmlsw);
@@ -266,12 +272,12 @@ public class TransferNotificationActionHandler extends ActionHandler {
             xmlsw.writeEndElement(); // END ARCHIVE_UNIT_LIST
             xmlsw.writeStartElement(SedaConstants.TAG_DATA_OBJECT_LIST);
             // Set to known which DOGIG has already be used in the XML
-            Set<String> usedDataObjectGroup = new HashSet<String>();
+            final Set<String> usedDataObjectGroup = new HashSet<String>();
             if (binaryDataObjectSystemGuid != null) {
-                for (Map.Entry<String, Object> entry : binaryDataObjectSystemGuid.entrySet()) {
-                    String dataOGID = bdoObjectGroupSystemGuid.get(entry.getKey()).toString();
-                    String dataBDOVersion = bdoVersionDataObject.get(entry.getKey()).toString();
-                    DataObjectTypeRoot dotr = new DataObjectTypeRoot();
+                for (final Map.Entry<String, Object> entry : binaryDataObjectSystemGuid.entrySet()) {
+                    final String dataOGID = bdoObjectGroupSystemGuid.get(entry.getKey()).toString();
+                    final String dataBDOVersion = bdoVersionDataObject.get(entry.getKey()).toString();
+                    final DataObjectTypeRoot dotr = new DataObjectTypeRoot();
                     dotr.setId(entry.getKey());
                     // Test if the DOGID has already be used . If so, use DOGRefID, else DOGID in the SEDA XML
                     if (usedDataObjectGroup.contains(dataOGID)) {
@@ -322,14 +328,14 @@ public class TransferNotificationActionHandler extends ActionHandler {
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         if (handler.getInput().size() != handlerInitialIOList.getInput().size()) {
             throw new ProcessingException(HandlerIO.NOT_ENOUGH_PARAM);
-        } else if (!HandlerIO.checkHandlerIO(handlerIO, this.handlerInitialIOList)) {
+        } else if (!HandlerIO.checkHandlerIO(handlerIO, handlerInitialIOList)) {
             throw new ProcessingException(HandlerIO.NOT_CONFORM_PARAM);
         }
     }
 
     /**
      * Write an attribute with only one value
-     * 
+     *
      * @param writer : The XMLStreamWriter on which the attribute is written
      * @param attribute
      * @param value
