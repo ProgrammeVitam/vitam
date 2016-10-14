@@ -26,7 +26,8 @@
  */
  
 angular.module('core', ['restangular',  'angularShiro'])
-  .config(function(angularShiroConfigProvider) {
+  .config(function(angularShiroConfigProvider, $httpProvider) {
     angularShiroConfigProvider.setAuthenticateUrl('/ihm-demo/v1/api/login');
     angularShiroConfigProvider.setLoginPath ('/#!/login');
+    $httpProvider.interceptors.push('redirectInterceptor');
   });
