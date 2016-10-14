@@ -35,6 +35,9 @@ import java.util.TreeMap;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.storage.engine.common.exception.StorageException;
+
 /**
  * Storage Logbook Parameters Class
  */
@@ -107,7 +110,7 @@ public class StorageLogbookParameters {
     @JsonIgnore
     public StorageLogbookOutcome getStatus() {
         final String status = mapParameters.get(StorageLogbookParameterName.outcome);
-        return StorageStatusCode.valueOf(status);
+        return StorageLogbookOutcome.valueOf(status);
     }
 
 

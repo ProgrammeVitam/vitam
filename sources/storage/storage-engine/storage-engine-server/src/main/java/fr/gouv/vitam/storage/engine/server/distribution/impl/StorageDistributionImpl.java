@@ -28,7 +28,6 @@
 package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
 import java.io.InputStream;
-import java.sql.Driver;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -44,6 +43,40 @@ import org.apache.commons.io.IOUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import fr.gouv.vitam.common.BaseXx;
+import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.digest.Digest;
+import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamCodeHelper;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.storage.driver.Connection;
+import fr.gouv.vitam.storage.driver.Driver;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
+import fr.gouv.vitam.storage.driver.exception.StorageObjectAlreadyExistsException;
+import fr.gouv.vitam.storage.driver.model.GetObjectRequest;
+import fr.gouv.vitam.storage.driver.model.GetObjectResult;
+import fr.gouv.vitam.storage.driver.model.PutObjectRequest;
+import fr.gouv.vitam.storage.driver.model.PutObjectResult;
+import fr.gouv.vitam.storage.engine.common.exception.StorageDriverNotFoundException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
+import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
+import fr.gouv.vitam.storage.engine.common.referential.StorageOfferProvider;
+import fr.gouv.vitam.storage.engine.common.referential.StorageOfferProviderFactory;
+import fr.gouv.vitam.storage.engine.common.referential.StorageStrategyProvider;
+import fr.gouv.vitam.storage.engine.common.referential.StorageStrategyProviderFactory;
+import fr.gouv.vitam.storage.engine.common.referential.model.HotStrategy;
+import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.logbook.StorageLogbook;
 import fr.gouv.vitam.storage.engine.server.logbook.StorageLogbookFactory;
@@ -52,6 +85,10 @@ import fr.gouv.vitam.storage.engine.server.logbook.parameters.StorageLogbookPara
 import fr.gouv.vitam.storage.engine.server.logbook.parameters.StorageLogbookParameters;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.spi.DriverManager;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
  * StorageDistribution service Implementation TODO: see what to do with RuntimeException (catch it and log it to let the
@@ -263,7 +300,7 @@ public class StorageDistributionImpl implements StorageDistribution {
                 messageDigest != null ? messageDigest.digest().toString() : "messageDigest NA", digestType.getName(),
                 "fakeSize", offer.getId(), "X-Application-Id",
                 null, null,
-                objectStored == Status.INTERNAL_SERVER_ERROR ? StorageStatusCode.KO : StorageStatusCode.OK));
+                objectStored == Status.INTERNAL_SERVER_ERROR ? StorageLogbookOutcome.KO : StorageLogbookOutcome.OK));
         } catch (final StorageException exc) {
             throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_LOGBOOK_CANNOT_LOG),
                 exc);

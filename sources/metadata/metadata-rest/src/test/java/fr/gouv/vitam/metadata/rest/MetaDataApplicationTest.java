@@ -149,11 +149,13 @@ public class MetaDataApplicationTest {
         config.getElasticsearchNodes().get(0).setTcpPort(TCP_PORT);
         final File newConf = File.createTempFile("test", METADATA_CONF, conf.getParentFile());
         PropertiesUtils.writeYaml(newConf, config);
+        final int serverPort = junitHelper.findAvailablePort();
         application.configure(newConf.getAbsolutePath());
         newConf.delete();
+        junitHelper.releasePort(serverPort);
         MetaDataApplication.stop();
     }
-
+    
     @Test
     public void givenPortNegativeWhenConfigureApplicationThenUseDefaultPortToRunServer() throws Exception {
         final File conf = PropertiesUtils.findFile(METADATA_CONF);
@@ -162,8 +164,10 @@ public class MetaDataApplicationTest {
         config.getElasticsearchNodes().get(0).setTcpPort(TCP_PORT);
         final File newConf = File.createTempFile("test", METADATA_CONF, conf.getParentFile());
         PropertiesUtils.writeYaml(newConf, config);
+        final int serverPort = junitHelper.findAvailablePort();
         application.configure(newConf.getAbsolutePath());
         newConf.delete();
+        junitHelper.releasePort(serverPort);
         MetaDataApplication.stop();
     }
 }

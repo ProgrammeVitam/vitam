@@ -41,6 +41,8 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Test;
 
+import fr.gouv.vitam.common.exception.VitamException;
+
 public class FileDriverMapperTest {
 
     private static final String DRIVER1 = "driver1";

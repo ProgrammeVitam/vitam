@@ -35,6 +35,8 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import fr.gouv.vitam.storage.engine.common.exception.StorageException;
+import fr.gouv.vitam.storage.engine.server.logbook.parameters.StorageLogbookOutcome;
 import fr.gouv.vitam.storage.engine.server.logbook.parameters.StorageLogbookParameterName;
 import fr.gouv.vitam.storage.engine.server.logbook.parameters.StorageLogbookParameters;
 
@@ -85,7 +87,7 @@ public class StorageLogbookMockTest {
         final Map<StorageLogbookParameterName, String> initalParameters = new TreeMap<>();
 
         initalParameters.put(StorageLogbookParameterName.eventDateTime, "2016-07-29T11:56:35.914");
-        initalParameters.put(StorageLogbookParameterName.outcome, StorageStatusCode.OK.name());
+        initalParameters.put(StorageLogbookParameterName.outcome, StorageLogbookOutcome.OK.name());
         initalParameters.put(StorageLogbookParameterName.objectIdentifier, "aeaaaaaaaaaam7mxaaaamakv36y6m3yaaaaq");
         initalParameters.put(StorageLogbookParameterName.objectGroupIdentifier, "aeaaaaaaaaaam7mxaaaamakv36y6m3yaaaaq");
         initalParameters.put(StorageLogbookParameterName.digest, "aeaaaaaaaaaam7mxaaaamakv36y6m3yaaaaq");

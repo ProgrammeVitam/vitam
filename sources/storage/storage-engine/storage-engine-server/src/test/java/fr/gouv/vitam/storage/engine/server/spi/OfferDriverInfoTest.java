@@ -31,10 +31,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 
-import java.sql.Driver;
 import java.util.Properties;
 
 import org.junit.Test;
+
+import fr.gouv.vitam.storage.driver.Connection;
+import fr.gouv.vitam.storage.driver.Driver;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 
 public class OfferDriverInfoTest {
 

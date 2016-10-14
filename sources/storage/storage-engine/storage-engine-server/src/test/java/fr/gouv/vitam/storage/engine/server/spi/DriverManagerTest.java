@@ -34,13 +34,15 @@ import static org.junit.Assert.fail;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.sql.Driver;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.After;
 import org.junit.Test;
 
+import fr.gouv.vitam.storage.driver.Driver;
+import fr.gouv.vitam.storage.engine.common.exception.StorageDriverMapperException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.engine.server.spi.mapper.DriverMapper;
 
 /**

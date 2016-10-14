@@ -31,6 +31,8 @@ import java.io.File;
 
 import org.junit.Test;
 
+import fr.gouv.vitam.common.PropertiesUtils;
+
 public class DefaultOfferServiceSingletonTest {
 
     private File file;

@@ -37,12 +37,14 @@ import java.util.TreeMap;
 
 import org.junit.Test;
 
+import fr.gouv.vitam.common.model.StatusCode;
+
 /**
  * Test class for StorageLogbookParameters
  */
 public class StorageLogbookParametersTest {
-    private static final StorageLogbookOutcome OK_STATUS = StorageStatusCode.OK;
-    private static final StorageLogbookOutcome KO_STATUS = StorageStatusCode.KO;
+    private static final StorageLogbookOutcome OK_STATUS = StorageLogbookOutcome.OK;
+    private static final StorageLogbookOutcome KO_STATUS = StorageLogbookOutcome.KO;
     private static final String DATE = "2016-07-29T11:56:35.914";
 
     @Test
