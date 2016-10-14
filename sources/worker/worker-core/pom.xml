@@ -41,6 +41,11 @@
 		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>common-database-private</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>common-format-identification</artifactId>
 			<version>${project.version}</version>
 		</dependency>
@@ -68,6 +73,12 @@
 			<groupId>org.powermock</groupId>
 			<artifactId>powermock-module-junit4</artifactId>
 			<scope>test</scope>
+		</dependency>
+		<!-- FIXME : should be removed when REST cursors are implemented in logbook -->
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>logbook-common-server</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.powermock</groupId>

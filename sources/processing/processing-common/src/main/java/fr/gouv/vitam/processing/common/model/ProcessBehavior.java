@@ -42,5 +42,9 @@ public enum ProcessBehavior {
     /**
      * Pausing type step
      */
-    PAUSE
+    PAUSE,
+    /**
+     * Final step type
+     */
+    FINALLY
 }

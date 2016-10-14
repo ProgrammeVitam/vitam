@@ -26,6 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.engine.core;
 
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
+
 /**
  * Class ProcessEngineImplFactory Goal : create an instance of ProcessEngineImpl
  */
@@ -37,5 +40,17 @@ public class ProcessEngineImplFactory {
     public ProcessEngineImpl create() {
         final ProcessEngineImpl processImpl = new ProcessEngineImpl();
         return processImpl;
+    }
+
+    /**
+     * For test purpose
+     *
+     * @param processDistributor the wanted processDistributor
+     * @return ProcessEngineImpl object created
+     * @throws IllegalArgumentException if processDistributor is null
+     */
+    ProcessEngineImpl create(ProcessDistributor processDistributor) {
+        ParametersChecker.checkParameter("ProcessDistributor cannot be null", processDistributor);
+        return new ProcessEngineImpl(processDistributor);
     }
 }

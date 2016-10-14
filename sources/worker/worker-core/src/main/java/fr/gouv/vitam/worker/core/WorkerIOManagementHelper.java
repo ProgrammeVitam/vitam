@@ -1,4 +1,4 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
+ *******************************************************************************/
 package fr.gouv.vitam.worker.core;
 
 import java.io.File;
@@ -51,33 +51,55 @@ public class WorkerIOManagementHelper {
     /**
      * Get the File associated with this filename, trying in this order: as fullpath, as in Vitam Config Folder, as
      * Resources file
-     *
-     * @param filename
-     * @return the File if found
-     * @throws FileNotFoundException if not fount
+     * 
+     * @param client workspace client
+     * @param containerName container name
+     * @param objectName object name
+     * @param workerId worker id
+     * @param optional if file is optional
+     * @return file if found, if not found, null if optional
+     * @throws FileNotFoundException if file is not found and not optional
      */
     public static final File findFileFromWorkspace(WorkspaceClient client, String containerName, String objectName,
-        String workerId) throws FileNotFoundException {
+        String workerId, boolean optional) throws FileNotFoundException {
         // First try as full path
         File file = PropertiesUtils.fileFromTmpFolder(containerName + "_" + workerId + "/" + objectName);
-        try {
-            if (!file.exists()) {
-                final InputStream input = client.getObject(containerName, objectName);
-                file = PropertiesUtils.fileFromTmpFolder(containerName + "_" + workerId + "/" + objectName);
-                file.getParentFile().mkdirs();
-                try (final FileOutputStream outputStream = new FileOutputStream(file)) {
-                    IOUtils.copy(input, outputStream);
+        // TODO : this optional situation would be treated later when lazy file loading is implemented
+        if (optional) {
+            try {
+                if (file == null || !file.exists()) {
+                    InputStream input = client.getObject(containerName, objectName);
+                    file = PropertiesUtils.fileFromTmpFolder(containerName + "_" + workerId + "/" + objectName);
+                    file.getParentFile().mkdirs();
+                    IOUtils.copy(input, new FileOutputStream(file));
                 }
+            } catch (final ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
+                IOException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                file = null;
             }
-        } catch (final ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
-            IOException e) {
-            // need to rewrite the exception
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            throw new FileNotFoundException("File not found: " + objectName);
-        }
-        if (!file.exists()) {
-            throw new FileNotFoundException("File not found: " + objectName);
+            if (file != null && !file.exists()) {
+                file = null;
+            }
+        } else {
+            try {
+                if (!file.exists()) {
+                    InputStream input = client.getObject(containerName, objectName);
+                    file = PropertiesUtils.fileFromTmpFolder(containerName + "_" + workerId + "/" + objectName);
+                    file.getParentFile().mkdirs();
+                    IOUtils.copy(input, new FileOutputStream(file));
+                }
+            } catch (final ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
+                IOException e) {
+                // need to rewrite the exception
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                throw new FileNotFoundException("File not found: " + objectName);
+            }
+            if (!file.exists()) {
+                throw new FileNotFoundException("File not found: " + objectName);
+            }
         }
         return file;
     }
+
 }

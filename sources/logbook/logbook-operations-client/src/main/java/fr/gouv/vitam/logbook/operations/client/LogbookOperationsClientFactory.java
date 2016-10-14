@@ -37,7 +37,7 @@ import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 
 /**
- * Logbook client factory<br /> 
+ * Logbook client factory<br />
  * <br />
  * Used to get a client logbook depending on its type.
  *
@@ -157,7 +157,7 @@ public final class LogbookOperationsClientFactory extends VitamClientFactory<Log
      *
      * @param configuration null for MOCK
      */
-    static final void changeMode(ClientConfiguration configuration) {
+    public static final void changeMode(ClientConfiguration configuration) {
         getInstance().initialisation(configuration, getInstance().getResourcePath());
     }
 

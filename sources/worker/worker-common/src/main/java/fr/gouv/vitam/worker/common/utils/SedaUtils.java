@@ -531,7 +531,6 @@ public class SedaUtils {
         InputStream xmlFile = null;
         List<String> invalidVersionList;
         XMLEventReader reader = null;
-
         try {
             try {
                 xmlFile = client.getObject(containerId,

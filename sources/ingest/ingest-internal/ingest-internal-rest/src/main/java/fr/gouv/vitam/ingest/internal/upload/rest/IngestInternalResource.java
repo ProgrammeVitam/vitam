@@ -228,6 +228,7 @@ public class IngestInternalResource extends ApplicationStatusResource implements
                         .build();
                 } else {
                     response = Response.status(Status.INTERNAL_SERVER_ERROR)
+                        .entity(getAtrFromStorage(containerGUID.getId()))
                         .header(GlobalDataRest.X_REQUEST_ID, xRequestId)
                         .build();
                 }

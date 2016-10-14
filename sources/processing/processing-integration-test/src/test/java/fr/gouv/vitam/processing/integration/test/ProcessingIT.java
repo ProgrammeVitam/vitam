@@ -30,13 +30,11 @@ import static com.jayway.restassured.RestAssured.get;
 import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.InputStream;
 import java.util.Map;
 
-import javax.validation.constraints.AssertTrue;
 import javax.ws.rs.core.Response.Status;
 
 import org.elasticsearch.common.settings.Settings;
@@ -47,8 +45,6 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.util.concurrent.Service.State;
 import com.jayway.restassured.RestAssured;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
@@ -63,8 +59,8 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
+import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -73,6 +69,16 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementApplication;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.logbook.rest.LogbookApplication;
 import fr.gouv.vitam.metadata.rest.MetaDataApplication;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -111,12 +117,14 @@ public class ProcessingIT {
     private static final int PORT_SERVICE_METADATA = 8096;
     private static final int PORT_SERVICE_PROCESSING = 8097;
     private static final int PORT_SERVICE_FUNCTIONAL_ADMIN = 8093;
+    private static final int PORT_SERVICE_LOGBOOK = 8099;
 
     private static final String SIP_FOLDER = "SIP";
     private static final String METADATA_PATH = "/metadata/v1";
     private static final String PROCESSING_PATH = "/processing/v1";
     private static final String WORKER_PATH = "/worker/v1";
     private static final String WORKSPACE_PATH = "/workspace/v1";
+    private static final String LOGBOOK_PATH = "/logbook/v1";
 
     private static String CONFIG_WORKER_PATH = "";
     private static String CONFIG_WORKSPACE_PATH = "";
@@ -124,13 +132,14 @@ public class ProcessingIT {
     private static String CONFIG_PROCESSING_PATH = "";
     private static String CONFIG_FUNCTIONAL_ADMIN_PATH = "";
     private static String CONFIG_FUNCTIONAL_CLIENT_PATH = "";
+    private static String CONFIG_LOGBOOK_PATH = "";
     private static String CONFIG_SIEGFRIED_PATH = "";
 
     // private static VitamServer workerApplication;
     private static MetaDataApplication medtadataApplication;
     private static WorkerApplication wkrapplication;
     private static AdminManagementApplication adminApplication;
-
+    private static LogbookApplication lgbapplication;
     private WorkspaceClient workspaceClient;
     private ProcessingManagementClient processingClient;
     private static ProcessMonitoringImpl processMonitoring;
@@ -161,9 +170,10 @@ public class ProcessingIT {
         try {
             WorkspaceApplication.stop();
             wkrapplication.stop();
+            lgbapplication.stop();
             ProcessManagementApplication.stop();
             MetaDataApplication.stop();
-        } catch (final Exception e) {
+        } catch (Exception e) {
             LOGGER.error(e);
         }
     }
@@ -181,7 +191,10 @@ public class ProcessingIT {
         CONFIG_FUNCTIONAL_CLIENT_PATH =
             PropertiesUtils.getResourcePath("integration/functional-administration-client-it.conf").toString();
 
-        final Settings settings = Settings.settingsBuilder()
+        CONFIG_LOGBOOK_PATH = PropertiesUtils.getResourcePath("integration/logbook.conf").toString();
+        CONFIG_SIEGFRIED_PATH = PropertiesUtils.getResourcePath("integration/format-identifiers.conf").toString();
+
+        Settings settings = Settings.settingsBuilder()
             .put("http.enabled", true)
             .put("discovery.zen.ping.multicast.enabled", false)
             .put("transport.tcp.port", TCP_PORT)
@@ -202,7 +215,7 @@ public class ProcessingIT {
             .build());
         mongod = mongodExecutable.start();
 
-        //AdminManagementClientFactory.getInstance().changeConfigurationFile(CONFIG_FUNCTIONAL_CLIENT_PATH);
+        // AdminManagementClientFactory.getInstance().changeConfigurationFile(CONFIG_FUNCTIONAL_CLIENT_PATH);
 
         // launch metadata
         medtadataApplication = new MetaDataApplication();
@@ -227,17 +240,29 @@ public class ProcessingIT {
 
         FormatIdentifierFactory.getInstance().changeConfigurationFile(CONFIG_SIEGFRIED_PATH);
 
+        // launch logbook
+        SystemPropertyUtil
+            .set(LogbookApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_LOGBOOK));
+        lgbapplication = new LogbookApplication(CONFIG_LOGBOOK_PATH);
+        lgbapplication.start();
+
+        LogbookOperationsClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_LOGBOOK));
+
+
         // launch functional Admin server
         AdminManagementApplication adminApplication = new AdminManagementApplication(CONFIG_FUNCTIONAL_ADMIN_PATH);
         adminApplication.start();
 
-        AdminManagementClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_FUNCTIONAL_ADMIN));
+        AdminManagementClientFactory
+            .changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_FUNCTIONAL_ADMIN));
         AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient();
+        // VitamClientFactory;
         adminClient.importFormat(PropertiesUtils.getResourceAsStream("integration/DROID_SignatureFile_V88.xml"));
 
         processMonitoring = ProcessMonitoringImpl.getInstance();
 
         CONTAINER_NAME = GUIDFactory.newGUID().toString();
+
     }
 
 
@@ -260,12 +285,18 @@ public class ProcessingIT {
         RestAssured.basePath = WORKER_PATH;
         get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
 
+        RestAssured.port = PORT_SERVICE_LOGBOOK;
+        RestAssured.basePath = LOGBOOK_PATH;
+        get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
     }
 
     @Test
     public void testWorkflow() throws Exception {
+        GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+        GUID objectGuid = GUIDFactory.newManifestGUID(0);
+        String containerName = objectGuid.getId();
+        createLogbookOperation(operationGuid, objectGuid);
 
-        final String containerName = GUIDFactory.newManifestGUID(0).getId();
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
         RestAssured.basePath = WORKSPACE_PATH;
@@ -291,7 +322,10 @@ public class ProcessingIT {
 
     @Test
     public void testWorkflowWithTarSIP() throws Exception {
-        final String containerName = GUIDFactory.newManifestGUID(0).getId();
+        GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+        GUID objectGuid = GUIDFactory.newManifestGUID(0);
+        String containerName = objectGuid.getId();
+        createLogbookOperation(operationGuid, objectGuid);
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
         RestAssured.basePath = WORKSPACE_PATH;
@@ -319,7 +353,10 @@ public class ProcessingIT {
 
     @Test
     public void testWorkflow_with_complexe_unit_seda() throws Exception {
-        final String containerName = GUIDFactory.newManifestGUID(0).getId();
+        GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+        GUID objectGuid = GUIDFactory.newManifestGUID(0);
+        String containerName = objectGuid.getId();
+        createLogbookOperation(operationGuid, objectGuid);
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -347,7 +384,10 @@ public class ProcessingIT {
 
     @Test
     public void testWorkflow_with_accession_register() throws Exception {
-        final String containerName = GUIDFactory.newManifestGUID(0).getId();
+        GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+        GUID objectGuid = GUIDFactory.newManifestGUID(0);
+        String containerName = objectGuid.getId();
+        createLogbookOperation(operationGuid, objectGuid);
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -375,7 +415,10 @@ public class ProcessingIT {
 
     @Test(expected = ProcessingBadRequestException.class)
     public void testWorkflowWithSipNoManifest() throws Exception {
-        final String containerName = GUIDFactory.newManifestGUID(0).getId();
+        GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+        GUID objectGuid = GUIDFactory.newManifestGUID(0);
+        String containerName = objectGuid.getId();
+        createLogbookOperation(operationGuid, objectGuid);
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -396,7 +439,10 @@ public class ProcessingIT {
 
     @Test
     public void testWorkflowSipNoFormat() throws Exception {
-        final String containerName = GUIDFactory.newManifestGUID(0).getId();
+        GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+        GUID objectGuid = GUIDFactory.newManifestGUID(0);
+        String containerName = objectGuid.getId();
+        createLogbookOperation(operationGuid, objectGuid);
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -425,7 +471,10 @@ public class ProcessingIT {
 
     @Test(expected=ProcessingException.class)
     public void testWorkflowSipDoubleVersionBM() throws Exception {
-        final String containerName = GUIDFactory.newManifestGUID(0).getId();
+        GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+        GUID objectGuid = GUIDFactory.newManifestGUID(0);
+        String containerName = objectGuid.getId();
+        createLogbookOperation(operationGuid, objectGuid);
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -447,7 +496,10 @@ public class ProcessingIT {
 
     @Test
     public void testWorkflowSipNoFormatNoTag() throws Exception {
-        final String containerName = GUIDFactory.newManifestGUID(0).getId();
+        GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+        GUID objectGuid = GUIDFactory.newManifestGUID(0);
+        String containerName = objectGuid.getId();
+        createLogbookOperation(operationGuid, objectGuid);
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -466,7 +518,7 @@ public class ProcessingIT {
         assertNotNull(ret);
         // format file warning state
         assertEquals(StatusCode.WARNING, ret.getGlobalStatus());
-        
+
         // checkMonitoring - meaning something has been added in the monitoring tool
         Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(ret.getItemId());
         assertNotNull(map);
@@ -476,7 +528,10 @@ public class ProcessingIT {
 
     @Test(expected = ProcessingBadRequestException.class)
     public void testWorkflowWithManifestIncorrectObjectNumber() throws Exception {
-        final String containerName = GUIDFactory.newManifestGUID(0).getId();
+        GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+        GUID objectGuid = GUIDFactory.newManifestGUID(0);
+        String containerName = objectGuid.getId();
+        createLogbookOperation(operationGuid, objectGuid);
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -498,7 +553,10 @@ public class ProcessingIT {
 
     @Test(expected = ProcessingBadRequestException.class)
     public void testWorkflowWithOrphelins() throws Exception {
-        final String containerName = GUIDFactory.newManifestGUID(0).getId();
+        GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+        GUID objectGuid = GUIDFactory.newManifestGUID(0);
+        String containerName = objectGuid.getId();
+        createLogbookOperation(operationGuid, objectGuid);
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -520,7 +578,10 @@ public class ProcessingIT {
 
     @Test
     public void testWorkflow_withoutObjectGroups() throws Exception {
-        final String containerName = GUIDFactory.newManifestGUID(0).getId();
+        GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+        GUID objectGuid = GUIDFactory.newManifestGUID(0);
+        String containerName = objectGuid.getId();
+        createLogbookOperation(operationGuid, objectGuid);
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -544,5 +605,20 @@ public class ProcessingIT {
         // checkMonitoring - meaning something has been added in the monitoring tool
         Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(ret.getItemId());
         assertNotNull(map);
+    }
+
+
+    public void createLogbookOperation(GUID operationId, GUID objectId)
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
+        LogbookClientNotFoundException {
+
+        LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
+
+        LogbookParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+            operationId, "Process_SIP_unitary", objectId,
+            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            operationId != null ? operationId.toString() : "outcomeDetailMessage",
+            operationId);
+        logbookClient.create(initParameters);
     }
 }

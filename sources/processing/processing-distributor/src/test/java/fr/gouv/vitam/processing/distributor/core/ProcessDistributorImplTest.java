@@ -112,7 +112,9 @@ public class ProcessDistributorImplTest {
         actions.add(action);
         step.setActions(actions);
 
-        PROCESS_DISTRIBUTOR.distribute(params, step, WORKFLOW_ID);
+        ProcessStep processStep = new ProcessStep(step, "containerName", WORKFLOW_ID, 0, 0, 0);
+
+        PROCESS_DISTRIBUTOR.distribute(params, processStep, WORKFLOW_ID);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -140,7 +142,10 @@ public class ProcessDistributorImplTest {
         final List<Action> actions = new ArrayList<>();
         actions.add(a);
         step.setActions(actions);
-        PROCESS_DISTRIBUTOR.distribute(params, step, WORKFLOW_ID);
+
+        ProcessStep processStep = new ProcessStep(step, "containerName", WORKFLOW_ID, 0, 0, 0);
+
+        PROCESS_DISTRIBUTOR.distribute(params, processStep, WORKFLOW_ID);
     }
 
     @Test
@@ -154,7 +159,10 @@ public class ProcessDistributorImplTest {
         final List<Action> actions = new ArrayList<>();
         actions.add(a);
         step.setActions(actions);
-        PROCESS_DISTRIBUTOR.distribute(params, step, WORKFLOW_ID);
+
+        ProcessStep processStep = new ProcessStep(step, "containerName", WORKFLOW_ID, 0, 0, 0);
+
+        PROCESS_DISTRIBUTOR.distribute(params, processStep, WORKFLOW_ID);
     }
 
     @Test
@@ -165,7 +173,10 @@ public class ProcessDistributorImplTest {
         response.add(new ProcessResponse().setStatus(StatusCode.OK));
         // when(worker.run(anyObject(), anyObject())).thenReturn(response);
 
-        PROCESS_DISTRIBUTOR.distribute(params, worfklow.getSteps().get(0), WORKFLOW_ID);
+        Step step = worfklow.getSteps().get(0);
+        ProcessStep processStep = new ProcessStep(step, "containerName", WORKFLOW_ID, 0, 0, 0);
+
+        PROCESS_DISTRIBUTOR.distribute(params, processStep, WORKFLOW_ID);
 
         // checkMonitoring
         // String processId = (String) params.getAdditionalProperties().get(WorkParams.PROCESS_ID);

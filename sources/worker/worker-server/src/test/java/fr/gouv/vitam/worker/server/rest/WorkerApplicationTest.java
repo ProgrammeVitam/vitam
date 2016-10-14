@@ -39,6 +39,13 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
+import de.flapdoodle.embed.mongo.MongodExecutable;
+import de.flapdoodle.embed.mongo.MongodProcess;
+import de.flapdoodle.embed.mongo.MongodStarter;
+import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
+import de.flapdoodle.embed.mongo.config.Net;
+import de.flapdoodle.embed.mongo.distribution.Version;
+import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -54,9 +61,13 @@ public class WorkerApplicationTest {
 
     private static final String WORKER_CONF = "worker-test.conf";
     private static int serverPort;
+    private static final String DATABASE_HOST = "localhost";
     private static int oldPort;
+    private static int databasePort;
     private static JunitHelper junitHelper;
     private static File worker;
+    private static MongodExecutable mongodExecutable;
+    static MongodProcess mongod;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -64,10 +75,21 @@ public class WorkerApplicationTest {
         new JHades().overlappingJarsReport();
 
         junitHelper = JunitHelper.getInstance();
+
+
+        databasePort = junitHelper.findAvailablePort();
+        final MongodStarter starter = MongodStarter.getDefaultInstance();
+        mongodExecutable = starter.prepare(new MongodConfigBuilder()
+            .version(Version.Main.PRODUCTION)
+            .net(new Net(databasePort, Network.localhostIsIPv6()))
+            .build());
+        mongod = mongodExecutable.start();
+
         worker = PropertiesUtils.findFile(WORKER_CONF);
         final WorkerConfiguration realWorker = PropertiesUtils.readYaml(worker, WorkerConfiguration.class);
         realWorker.setRegisterServerPort(serverPort).setRegisterServerHost("localhost")
-            .setRegisterDelay(1).setRegisterRetry(1).setProcessingUrl("http://localhost:8888");
+            .setRegisterDelay(1).setRegisterRetry(1).setProcessingUrl("http://localhost:8888").setDbHost(DATABASE_HOST)
+            .setDbPort(databasePort).setDbName("Vitam-test");
 
         try (FileOutputStream outputStream = new FileOutputStream(worker)) {
             final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
@@ -84,7 +106,10 @@ public class WorkerApplicationTest {
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
+        mongod.stop();
+        mongodExecutable.stop();
         junitHelper.releasePort(serverPort);
+        junitHelper.releasePort(databasePort);
         VitamServerFactory.setDefaultPort(oldPort);
     }
 

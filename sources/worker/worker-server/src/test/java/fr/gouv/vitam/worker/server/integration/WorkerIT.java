@@ -36,7 +36,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -72,9 +71,9 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.logbook.rest.LogbookApplication;
 import fr.gouv.vitam.metadata.rest.MetaDataApplication;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 import fr.gouv.vitam.processing.common.model.WorkerRemoteConfiguration;
@@ -95,6 +94,7 @@ import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
 
 /**
  * Worker integration test
+ * TODO : do a "worker-integration" module
  */
 public class WorkerIT {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerIT.class);
@@ -114,22 +114,26 @@ public class WorkerIT {
     private static final int PORT_SERVICE_WORKSPACE = 8094;
     private static final int PORT_SERVICE_METADATA = 8096;
     private static final int PORT_SERVICE_PROCESSING = 8097;
+    private static final int PORT_SERVICE_LOGBOOK = 8099;
 
     private static final String SIP_FOLDER = "SIP";
     private static final String METADATA_PATH = "/metadata/v1";
     private static final String PROCESSING_PATH = "/processing/v1";
     private static final String WORKER_PATH = "/worker/v1";
     private static final String WORKSPACE_PATH = "/workspace/v1";
+    private static final String LOGBOOK_PATH = "/logbook/v1";
 
     private static String CONFIG_WORKER_PATH = "";
     private static String CONFIG_WORKSPACE_PATH = "";
     private static String CONFIG_METADATA_PATH = "";
     private static String CONFIG_PROCESSING_PATH = "";
+    private static String CONFIG_LOGBOOK_PATH = "";
 
     private static MetaDataApplication medtadataApplication;
     private static WorkerApplication wkrapplication;
 
     private WorkspaceClient workspaceClient;
+    private static LogbookApplication lgbapplication;
     private WorkerClient workerClient;
     private ProcessingManagementClient processingClient;
 
@@ -149,6 +153,7 @@ public class WorkerIT {
         CONFIG_WORKER_PATH = PropertiesUtils.getResourcePath("integration/worker.conf").toString();
         CONFIG_WORKSPACE_PATH = PropertiesUtils.getResourcePath("integration/workspace.conf").toString();
         CONFIG_PROCESSING_PATH = PropertiesUtils.getResourcePath("integration/processing.conf").toString();
+        CONFIG_LOGBOOK_PATH = PropertiesUtils.getResourcePath("integration/logbook.conf").toString();
 
         elasticsearchHome = tempFolder.newFolder();
         final Settings settings = Settings.settingsBuilder()
@@ -184,13 +189,18 @@ public class WorkerIT {
         .set(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_PROCESSING));
         ProcessManagementApplication.startApplication(CONFIG_PROCESSING_PATH);
 
-
         // launch worker
         SystemPropertyUtil
         .set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
         wkrapplication = new WorkerApplication(CONFIG_WORKER_PATH);
         wkrapplication.start();
 
+     // launch logbook
+        SystemPropertyUtil
+            .set(LogbookApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_LOGBOOK));
+        lgbapplication = new LogbookApplication(CONFIG_LOGBOOK_PATH);
+        lgbapplication.start();
+        
         // launch workspace
         SystemPropertyUtil
         .set(WorkspaceApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_WORKSPACE));
@@ -207,6 +217,7 @@ public class WorkerIT {
         try {
             WorkspaceApplication.stop();
             wkrapplication.stop();
+            lgbapplication.stop();
             ProcessManagementApplication.stop();
             MetaDataApplication.stop();
         } catch (final Exception e) {

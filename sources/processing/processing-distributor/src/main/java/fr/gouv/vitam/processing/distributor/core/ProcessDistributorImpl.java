@@ -57,6 +57,7 @@ import fr.gouv.vitam.processing.common.model.ProcessBehavior;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
@@ -108,7 +109,9 @@ public class ProcessDistributorImpl implements ProcessDistributor {
     /**
      * Constructor with parameter worker
      *
-     * @param worker worker implementation
+     * @param workerBean
+     * @param workerId
+     * @param familyId
      */
     ProcessDistributorImpl(WorkerBean workerBean, String workerId, String familyId) {
         ParametersChecker.checkParameter("workerBean is a mandatory parameter", workerBean);
@@ -141,11 +144,14 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         ParametersChecker.checkParameter("Step is a mandatory parameter", step);
         ParametersChecker.checkParameter("workflowId is a mandatory parameter", workflowId);
         final long time = System.currentTimeMillis();
-
         final CompositeItemStatus responses = new CompositeItemStatus(step.getStepName());
         final String processId = workParams.getProcessId();
         final String uniqueStepId = workParams.getStepUniqId();
         try {
+            // update workParams
+            LOGGER.debug("Status {}", ProcessMonitoringImpl.getInstance().isWorkflowStatusGreaterOrEqualToKo(processId));
+            workParams.putParameterValue(WorkerParameterName.workflowStatusKo,
+                ProcessMonitoringImpl.getInstance().isWorkflowStatusGreaterOrEqualToKo(processId).toString());
 
             if (step.getDistribution().getKind().equals(DistributionKind.LIST)) {
                 try (final WorkspaceClient workspaceClient =
@@ -178,7 +184,6 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                             .getListUriDigitalObjectFromFolder(workParams.getContainerName(),
                                 step.getDistribution().getElement());
                     }
-
                     // Iterate over Objects List
                     if (objectsList == null || objectsList.isEmpty()) {
                         responses.setItemsStatus("OBJECTS_LIST_EMPTY", getItemStatus("OBJECTS_LIST_EMPTY", StatusCode.WARNING));
@@ -216,7 +221,6 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                                     responses.getGlobalStatus().isGreaterOrEqualToKo()) {
                                     break;
                                 }
-
                             }
                         }
                     }
@@ -277,7 +281,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
     public void registerWorker(String familyId, String workerId, String workerInformation)
         throws WorkerAlreadyExistsException, ProcessingBadRequestException {
         LOGGER.debug("Worker Information " + familyId + " " + workerId + " " + workerInformation);
-        WorkerBean worker = null;
+        WorkerBean worker;
         try {
             worker = JsonHandler.getFromString(workerInformation, WorkerBean.class);
             worker.setWorkerId(workerId);

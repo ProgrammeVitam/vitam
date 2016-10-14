@@ -8,9 +8,8 @@
 			<pattern>%d{ISO8601} [%thread] %-5level %logger - %replace(%caller{1..2}){'Caller\+1	 at |\n',''} : %msg %rootException{5}%n</pattern>
 		</encoder>
 	</appender>
-
 	<!-- By default, the level of the root level is set to TRACE -->
-	<root level="INFO">
+	<root level="DEBUG">
 		<appender-ref ref="STDOUT" />
 	</root>
 </configuration>
