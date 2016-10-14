@@ -55,19 +55,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.jayway.restassured.RestAssured;
 
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.storage.engine.common.StorageConstants;
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
-import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
-
 /**
  * DefaultOfferResource Test
  */
@@ -118,7 +105,7 @@ public class DefaultOfferResourceTest {
         try {
             DefaultOfferApplication.startApplication(new String[] {
                 workspaceOffer.getAbsolutePath()});
-        } catch (VitamApplicationServerException e) {
+        } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
             throw new IllegalStateException(
                 "Cannot start the Wokspace Offer Application Server", e);
@@ -138,12 +125,12 @@ public class DefaultOfferResourceTest {
 
     @After
     public void deleteExistingFiles() throws Exception {
-        StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
             StorageConfiguration.class);
         File container = new File(conf.getStoragePath() + "/1");
         File folder = new File(container.getAbsolutePath(), "/" + DataCategory.OBJECT.getFolder());
-        File object = new File(folder.getAbsolutePath(), "id1");
-        File object2 = new File(container.getAbsolutePath(), "id1");
+        final File object = new File(folder.getAbsolutePath(), "id1");
+        final File object2 = new File(container.getAbsolutePath(), "id1");
         Files.deleteIfExists(object.toPath());
         Files.deleteIfExists(object2.toPath());
         Files.deleteIfExists(folder.toPath());
@@ -162,7 +149,7 @@ public class DefaultOfferResourceTest {
     @Test
     public void getCapacityTestOk() {
         // create tenant
-        ObjectInit objectInit = new ObjectInit();
+        final ObjectInit objectInit = new ObjectInit();
         objectInit.setType(DataCategory.OBJECT);
         given().header(GlobalDataRest.X_TENANT_ID, "0").header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_INIT)
             .contentType(MediaType.APPLICATION_JSON)
@@ -189,7 +176,7 @@ public class DefaultOfferResourceTest {
     @Test
     public void getObjectTestOK() throws Exception {
 
-        ObjectInit objectInit = new ObjectInit();
+        final ObjectInit objectInit = new ObjectInit();
         objectInit.setType(DataCategory.OBJECT);
         with().header(GlobalDataRest.X_TENANT_ID, "1").header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_INIT)
             .contentType(MediaType.APPLICATION_JSON)
@@ -197,8 +184,8 @@ public class DefaultOfferResourceTest {
 
         try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
             assertNotNull(in);
-            FileChannel fc = in.getChannel();
-            ByteBuffer bb = ByteBuffer.allocate(1024);
+            final FileChannel fc = in.getChannel();
+            final ByteBuffer bb = ByteBuffer.allocate(1024);
 
             byte[] bytes;
             int read = fc.read(bb);
@@ -237,7 +224,7 @@ public class DefaultOfferResourceTest {
 
     @Test
     public void postObjectsTest() throws Exception {
-        String guid = GUIDFactory.newGUID().toString();
+        final String guid = GUIDFactory.newGUID().toString();
         // no tenant id
         given().contentType(MediaType.APPLICATION_JSON).when().post(OBJECTS_URI + "/" + guid).then().statusCode(400);
 
@@ -256,7 +243,7 @@ public class DefaultOfferResourceTest {
         given().header(GlobalDataRest.X_TENANT_ID, "1").header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_INIT)
             .contentType(MediaType.APPLICATION_JSON).when().post(OBJECTS_URI + "/" + guid).then().statusCode(400);
 
-        ObjectInit objectInit = new ObjectInit();
+        final ObjectInit objectInit = new ObjectInit();
         objectInit.setType(DataCategory.OBJECT);
         assertNotNull(objectInit);
 
@@ -264,12 +251,12 @@ public class DefaultOfferResourceTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectInit).when().post(OBJECTS_URI + "/" + guid).then().statusCode(201);
 
-        StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
             StorageConfiguration.class);
-        File container = new File(conf.getStoragePath() + "/1");
+        final File container = new File(conf.getStoragePath() + "/1");
         assertTrue(container.exists());
         assertTrue(container.isDirectory());
-        File folder = new File(container.getAbsolutePath() + "/" + DataCategory.OBJECT.getFolder());
+        final File folder = new File(container.getAbsolutePath() + "/" + DataCategory.OBJECT.getFolder());
         assertTrue(folder.exists());
         assertTrue(folder.isDirectory());
     }
@@ -295,7 +282,7 @@ public class DefaultOfferResourceTest {
         try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
             assertNotNull(in);
             // try only with one chunk
-            byte[] bytes = new byte[1024];
+            final byte[] bytes = new byte[1024];
             in.read(bytes);
             try (InputStream inChunk = new ByteArrayInputStream(bytes)) {
                 assertNotNull(inChunk);
@@ -307,15 +294,15 @@ public class DefaultOfferResourceTest {
             }
         }
 
-        ObjectInit objectInit = new ObjectInit();
+        final ObjectInit objectInit = new ObjectInit();
         objectInit.setType(DataCategory.OBJECT);
         given().header(GlobalDataRest.X_TENANT_ID, "1").header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_INIT)
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectInit).when().post(OBJECTS_URI + "/" + "id1").then().statusCode(201);
         try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
             assertNotNull(in);
-            FileChannel fc = in.getChannel();
-            ByteBuffer bb = ByteBuffer.allocate(1024);
+            final FileChannel fc = in.getChannel();
+            final ByteBuffer bb = ByteBuffer.allocate(1024);
 
             byte[] bytes;
             int read = fc.read(bb);
@@ -348,17 +335,17 @@ public class DefaultOfferResourceTest {
             }
         }
         // check
-        StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
             StorageConfiguration.class);
-        File container = new File(conf.getStoragePath() + "/1");
+        final File container = new File(conf.getStoragePath() + "/1");
         assertNotNull(container);
         assertTrue(container.exists());
         assertTrue(container.isDirectory());
-        File folder = new File(container.getAbsolutePath(), "/" + DataCategory.OBJECT.getFolder());
+        final File folder = new File(container.getAbsolutePath(), "/" + DataCategory.OBJECT.getFolder());
         assertNotNull(folder);
         assertTrue(folder.exists());
         assertTrue(folder.isDirectory());
-        File object = new File(folder.getAbsolutePath(), "id1");
+        final File object = new File(folder.getAbsolutePath(), "id1");
         assertNotNull(object);
         assertTrue(object.exists());
         assertFalse(object.isDirectory());
@@ -375,11 +362,11 @@ public class DefaultOfferResourceTest {
         given().header(GlobalDataRest.X_TENANT_ID, "1").head(OBJECTS_URI + OBJECT_ID_URI, "id1").then().statusCode(404);
 
         // object
-        StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
             StorageConfiguration.class);
-        File container = new File(conf.getStoragePath() + "/1");
+        final File container = new File(conf.getStoragePath() + "/1");
         container.mkdir();
-        File object = new File(container.getAbsolutePath(), "id1");
+        final File object = new File(container.getAbsolutePath(), "id1");
         object.createNewFile();
         given().header(GlobalDataRest.X_TENANT_ID, "1").head(OBJECTS_URI + OBJECT_ID_URI, "id1").then().statusCode(204);
     }

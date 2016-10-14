@@ -80,7 +80,7 @@ public class DownStatusResourceImplTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
         try {
             vitamServer = buildTestServer();

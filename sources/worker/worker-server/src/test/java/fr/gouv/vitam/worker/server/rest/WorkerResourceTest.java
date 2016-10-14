@@ -100,7 +100,7 @@ public class WorkerResourceTest {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
 
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         serverPort = junitHelper.findAvailablePort();
 
         final File workerFile = PropertiesUtils.findFile(WORKER_CONF);
@@ -144,7 +144,7 @@ public class WorkerResourceTest {
         context.setContextPath("/");
         context.addServlet(sh, "/*");
         context.addEventListener(new WorkerRegistrationListener(configuration));
-        String jettyConfig = configuration.getJettyConfig();
+        final String jettyConfig = configuration.getJettyConfig();
         vitamServer = VitamServerFactory.newVitamServerByJettyConf(jettyConfig);
         vitamServer.getServer().setHandler(context);
         return vitamServer;
@@ -204,15 +204,16 @@ public class WorkerResourceTest {
     public final void testSubmitStepOK()
         throws InvalidParseOperationException, IOException, HandlerNotFoundException, IllegalArgumentException,
         ProcessingException {
-        ProcessResponse processResponse = new ProcessResponse();
-        List<EngineResponse> responses = new ArrayList<>();
+        final ProcessResponse processResponse = new ProcessResponse();
+        final List<EngineResponse> responses = new ArrayList<>();
         responses.add(processResponse);
         Mockito.reset(worker);
 
         when(worker.run(anyObject(), anyObject())).thenReturn(responses);
 
-        InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("descriptionStep.json");
-        String body = IOUtils.toString(stream);
+        final InputStream stream =
+            Thread.currentThread().getContextClassLoader().getResourceAsStream("descriptionStep.json");
+        final String body = IOUtils.toString(stream);
 
         given().contentType(ContentType.JSON).body(body).when().post(WORKER_STEP_URI).then()
             .statusCode(Status.OK.getStatusCode());
@@ -225,9 +226,9 @@ public class WorkerResourceTest {
         Mockito.reset(worker);
         when(worker.run(anyObject(), anyObject())).thenThrow(new HandlerNotFoundException(""));
 
-        InputStream stream =
+        final InputStream stream =
             Thread.currentThread().getContextClassLoader().getResourceAsStream("descriptionStep_wrong_handler.json");
-        String body = IOUtils.toString(stream);
+        final String body = IOUtils.toString(stream);
 
         given().contentType(ContentType.JSON).body(body).when().post(WORKER_STEP_URI).then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
@@ -240,9 +241,9 @@ public class WorkerResourceTest {
         Mockito.reset(worker);
         when(worker.run(anyObject(), anyObject())).thenThrow(new ProcessingException(""));
 
-        InputStream stream =
+        final InputStream stream =
             Thread.currentThread().getContextClassLoader().getResourceAsStream("descriptionStep_wrong_handler.json");
-        String body = IOUtils.toString(stream);
+        final String body = IOUtils.toString(stream);
 
         given().contentType(ContentType.JSON).body(body).when().post(WORKER_STEP_URI).then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());

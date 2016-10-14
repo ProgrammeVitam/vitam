@@ -27,8 +27,8 @@
 
 package fr.gouv.vitam.storage.engine.server.spi;
 
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 
@@ -38,7 +38,7 @@ public class DriverManagerConfigurationTest {
 
     @Test
     public void constructorTest() {
-        DriverManagerConfiguration conf = new DriverManagerConfiguration(DRIVER_LOCATION);
+        final DriverManagerConfiguration conf = new DriverManagerConfiguration(DRIVER_LOCATION);
         assertNotNull(conf);
         assertEquals(DRIVER_LOCATION, conf.getDriverLocation());
     }

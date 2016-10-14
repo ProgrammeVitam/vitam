@@ -32,7 +32,7 @@ import static org.junit.Assert.assertNotNull;
 import org.junit.Test;
 
 public class ContentAddressableStorageNotFoundExceptionTest {
-    
+
     @Test
     public void testContentAddressableStorageNotFoundExceptionThrowable() throws Exception {
         assertEquals(null, new ContentAddressableStorageNotFoundException((String) null).getMessage());

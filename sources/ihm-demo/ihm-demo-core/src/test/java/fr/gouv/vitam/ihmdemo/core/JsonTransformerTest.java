@@ -97,7 +97,7 @@ public class JsonTransformerTest {
 
     @Test
     public void testTransformerSuccess() throws Exception {
-        JsonNode sampleObjectGroup =
+        final JsonNode sampleObjectGroup =
             JsonHandler.getFromFile(PropertiesUtils.findFile("sample_objectGroup_document.json"));
         assertNotNull(JsonTransformer.transformResultObjects(sampleObjectGroup));
     }
@@ -139,7 +139,7 @@ public class JsonTransformerTest {
 
     @Test
     public void testBuildLogbookStatCsvFile() throws VitamException, IOException {
-        ByteArrayOutputStream report = JsonTransformer.buildLogbookStatCsvFile(sampleLogbookOperation, "");
+        final ByteArrayOutputStream report = JsonTransformer.buildLogbookStatCsvFile(sampleLogbookOperation, "");
         // TODO : validate the created report
     }
 }

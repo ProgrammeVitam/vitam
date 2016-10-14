@@ -47,9 +47,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
-import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;
@@ -76,7 +76,7 @@ public class WorkerClientRestTest extends JerseyTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         serverPort = junitHelper.findAvailablePort();
     }
 
@@ -117,7 +117,7 @@ public class WorkerClientRestTest extends JerseyTest {
 
     @Test
     public void submitOK() throws Exception {
-        String jsonResult =
+        final String jsonResult =
             "[{\"processId\":null,\"status\":\"OK\",\"outcomeMessages\":{\"checkSeda\":\"CHECK_MANIFEST_OK\"},\"stepResponses\":{},\"messageIdentifier\":\"vitam\",\"errorNumber\":0,\"value\":\"OK\"}," +
                 "{\"processId\":null,\"status\":\"OK\",\"outcomeMessages\":{\"CheckVersion\":\"CHECK_VERSION_OK\"},\"stepResponses\":{},\"messageIdentifier\":\"\",\"errorNumber\":0,\"value\":\"OK\"}," +
                 "{\"processId\":null,\"status\":\"OK\",\"outcomeMessages\":{\"CheckObjectsNumber\":\"CHECK_OBJECT_NUMBER_OK\"},\"stepResponses\":{},\"messageIdentifier\":\"\",\"errorNumber\":0,\"value\":\"OK\"}," +
@@ -125,7 +125,7 @@ public class WorkerClientRestTest extends JerseyTest {
                 "{\"processId\":null,\"status\":\"OK\",\"outcomeMessages\":{\"CheckConformity\":\"CHECK_CONFORMITY_OK\"},\"stepResponses\":{},\"messageIdentifier\":\"\",\"errorNumber\":0,\"value\":\"OK\"}]";
 
         when(mock.post()).thenReturn(Response.status(Response.Status.OK).entity(jsonResult).build());
-        List<EngineResponse> responses =
+        final List<EngineResponse> responses =
             client.submitStep("requestId",
                 new DescriptionStep(new Step(), WorkerParametersFactory.newWorkerParameters()));
         assertNotNull(responses);

@@ -40,6 +40,7 @@ public final class StorageOfferProviderFactory {
 
     /**
      * Retrieve a StorageOfferProvider
+     * 
      * @return the default StorageOfferProvider
      */
     public static StorageOfferProvider getDefaultProvider() {

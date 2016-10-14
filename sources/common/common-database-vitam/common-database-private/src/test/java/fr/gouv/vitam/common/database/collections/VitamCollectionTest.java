@@ -25,6 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 package fr.gouv.vitam.common.database.collections;
+
 import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
 import static org.junit.Assert.assertEquals;
 
@@ -67,7 +68,7 @@ public class VitamCollectionTest {
     static final String DATABASE_HOST = "localhost";
     static final String DATABASE_NAME = "vitam-test";
     static int port;
-    
+
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
     private static File elasticsearchHome;
@@ -77,18 +78,18 @@ public class VitamCollectionTest {
     private static int TCP_PORT = 9300;
     private static int HTTP_PORT = 9200;
     private static Node node;
-    
+
     private static ElasticsearchAccess esClient;
-    
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        junitHelper = new JunitHelper();
-        //ES
+        junitHelper = JunitHelper.getInstance();
+        // ES
         TCP_PORT = junitHelper.findAvailablePort();
         HTTP_PORT = junitHelper.findAvailablePort();
 
         elasticsearchHome = tempFolder.newFolder();
-        Settings settings = Settings.settingsBuilder()
+        final Settings settings = Settings.settingsBuilder()
             .put("http.enabled", true)
             .put("discovery.zen.ping.multicast.enabled", false)
             .put("transport.tcp.port", TCP_PORT)
@@ -102,13 +103,13 @@ public class VitamCollectionTest {
             .clusterName(CLUSTER_NAME)
             .node();
 
-       node.start();
-        
-        List<ElasticsearchNode> nodes = new ArrayList<ElasticsearchNode>();
+        node.start();
+
+        final List<ElasticsearchNode> nodes = new ArrayList<ElasticsearchNode>();
         nodes.add(new ElasticsearchNode(HOST_NAME, TCP_PORT));
-       
+
         esClient = new ElasticsearchAccess(CLUSTER_NAME, nodes);
-        
+
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         port = junitHelper.findAvailablePort();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
@@ -116,7 +117,7 @@ public class VitamCollectionTest {
             .net(new Net(port, Network.localhostIsIPv6()))
             .build());
         mongod = mongodExecutable.start();
-        
+
     }
 
     @AfterClass
@@ -124,7 +125,7 @@ public class VitamCollectionTest {
         mongod.stop();
         mongodExecutable.stop();
         junitHelper.releasePort(port);
-        
+
 
         if (node != null) {
             node.close();
@@ -133,21 +134,23 @@ public class VitamCollectionTest {
         junitHelper.releasePort(TCP_PORT);
         junitHelper.releasePort(HTTP_PORT);
     }
-    
+
     @SuppressWarnings("unchecked")
     @Test
     public void shouldCreateVitamCollection() {
-        List<Class<?>> classList = new ArrayList<>();
+        final List<Class<?>> classList = new ArrayList<>();
         classList.add(CollectionSample.class);
-        mongoClient = new MongoClient(new ServerAddress(DATABASE_HOST, port), VitamCollection.getMongoClientOptions(classList));
-        VitamCollection vitamCollection = VitamCollectionHelper.getCollection(CollectionSample.class);
+        mongoClient =
+            new MongoClient(new ServerAddress(DATABASE_HOST, port), VitamCollection.getMongoClientOptions(classList));
+        final VitamCollection vitamCollection = VitamCollectionHelper.getCollection(CollectionSample.class);
         assertEquals(vitamCollection.getClasz(), CollectionSample.class);
         assertEquals(vitamCollection.getName(), "CollectionSample");
         vitamCollection.initialize(esClient);
         assertEquals(esClient, vitamCollection.getEsClient());
         vitamCollection.initialize(mongoClient.getDatabase(DATABASE_NAME), true);
-        MongoCollection<CollectionSample> collection = (MongoCollection<CollectionSample>) vitamCollection.getCollection();
-        CollectionSample test = new CollectionSample(new Document("_id", GUIDFactory.newGUID().toString()));
+        final MongoCollection<CollectionSample> collection =
+            (MongoCollection<CollectionSample>) vitamCollection.getCollection();
+        final CollectionSample test = new CollectionSample(new Document("_id", GUIDFactory.newGUID().toString()));
         collection.insertOne(test);
         assertEquals(1, collection.count());
     }

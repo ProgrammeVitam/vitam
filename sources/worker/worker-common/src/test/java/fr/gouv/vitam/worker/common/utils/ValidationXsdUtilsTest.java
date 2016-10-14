@@ -70,18 +70,20 @@ public class ValidationXsdUtilsTest {
         final ValidationXsdUtils valid = new ValidationXsdUtils();
         valid.checkWithXSD(new FileInputStream(PropertiesUtils.getResourcesFile("")), SEDA_VALIDATION_FILE);
     }
-    
+
     @Test
     public void givenXmlARTCorrectWhenCheckXsdThenReturnTrue() throws XMLStreamException, SAXException, IOException {
         final ValidationXsdUtils valid = new ValidationXsdUtils();
         assertTrue(
-            valid.checkWithXSD(PropertiesUtils.getResourcesAsStream(SEDA_ARCHIVE_TRANSFER_REPLY), SEDA_VITAM_VALIDATION_FILE));
+            valid.checkWithXSD(PropertiesUtils.getResourcesAsStream(SEDA_ARCHIVE_TRANSFER_REPLY),
+                SEDA_VITAM_VALIDATION_FILE));
     }
 
     @Test(expected = SAXException.class)
     public void givenXmlARTNotValidWhenCheckXsdThenReturnFalse() throws XMLStreamException, SAXException, IOException {
         final ValidationXsdUtils valid = new ValidationXsdUtils();
-        assertFalse(valid.checkWithXSD(PropertiesUtils.getResourcesAsStream(SEDA_ARCHIVE_TRANSFER_REPLY_NOTVALID), SEDA_VITAM_VALIDATION_FILE));
+        assertFalse(valid.checkWithXSD(PropertiesUtils.getResourcesAsStream(SEDA_ARCHIVE_TRANSFER_REPLY_NOTVALID),
+            SEDA_VITAM_VALIDATION_FILE));
     }
-    
+
 }

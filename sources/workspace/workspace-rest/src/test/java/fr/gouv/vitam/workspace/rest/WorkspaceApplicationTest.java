@@ -26,11 +26,16 @@
  *******************************************************************************/
 package fr.gouv.vitam.workspace.rest;
 
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server.VitamServer;
-import org.junit.*;
 
 public class WorkspaceApplicationTest {
 
@@ -40,10 +45,10 @@ public class WorkspaceApplicationTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
 
-        //TODO verifier la compatibilité avec les tests parallèles sur jenkins
+        // TODO verifier la compatibilité avec les tests parallèles sur jenkins
         SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(port));
     }
 
@@ -59,18 +64,18 @@ public class WorkspaceApplicationTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void givenEmptyArgsWhenConfigureApplicationOThenRaiseAnException() throws Exception {
-        application.startApplication(new String[0]);
+        WorkspaceApplication.startApplication(new String[0]);
     }
 
     @Test(expected = Exception.class)
     public void givenFileNotFoundWhenConfigureApplicationOThenRaiseAnException() throws Exception {
-        application.startApplication(PropertiesUtils.getResourcesPath("notFound.conf").toString());
+        WorkspaceApplication.startApplication(PropertiesUtils.getResourcesPath("notFound.conf").toString());
     }
 
     @Test
     public void givenFileAlreadyExistsWhenConfigureApplicationOThenRunServer() throws Exception {
-        application.startApplication(PropertiesUtils.getResourcesPath("workspace-test.conf").toString());
-        application.stop();
+        WorkspaceApplication.startApplication(PropertiesUtils.getResourcesPath("workspace-test.conf").toString());
+        WorkspaceApplication.stop();
     }
 
     @Test
@@ -80,7 +85,7 @@ public class WorkspaceApplicationTest {
 
     @Test(expected = Exception.class)
     public void givenNullConfigWhenRunAppThenThrowException() throws Exception {
-        WorkspaceConfiguration config = new WorkspaceConfiguration();
+        final WorkspaceConfiguration config = new WorkspaceConfiguration();
         WorkspaceApplication.startApplication(config);
     }
 

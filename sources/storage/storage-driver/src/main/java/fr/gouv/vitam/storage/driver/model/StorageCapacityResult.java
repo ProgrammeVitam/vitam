@@ -28,12 +28,12 @@
 package fr.gouv.vitam.storage.driver.model;
 
 /**
- *  Data structure representing global result from a 'get storage information / capacity' request
+ * Data structure representing global result from a 'get storage information / capacity' request
  */
 public class StorageCapacityResult {
 
     private String tenantId;
-    
+
     private long usableSpace;
 
     private long usedSpace;
@@ -41,10 +41,10 @@ public class StorageCapacityResult {
     public StorageCapacityResult() {
         // Empty
     }
-    
+
     /**
      * Initialize the needed parameters for get capacity results
-     * 
+     *
      * @param tenantId The request tenantId
      * @param usableSpace The usable space in offer
      * @param usedSpace The used space in offer
@@ -54,14 +54,14 @@ public class StorageCapacityResult {
         this.usableSpace = usableSpace;
         this.usedSpace = usedSpace;
     }
-    
+
     /**
      * @return The request tenantId
      */
     public String getTenantId() {
         return tenantId;
     }
-    
+
     /**
      * @return The offer usable space
      */
@@ -82,14 +82,14 @@ public class StorageCapacityResult {
     public void setTenantId(String tenantId) {
         this.tenantId = tenantId;
     }
-    
+
     /**
      * @param usableSpace The usable space in offer
      */
     public void setUsableSpace(long usableSpace) {
         this.usableSpace = usableSpace;
     }
-    
+
     /**
      * @param usedSpace The used space in offer
      */

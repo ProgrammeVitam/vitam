@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * This package concerns Common Stream handling as Helpers for common actions or MultipleInputStream multiplexer. 
+ * This package concerns Common Stream handling as Helpers for common actions or MultipleInputStream multiplexer.
  */
 package fr.gouv.vitam.common.stream;

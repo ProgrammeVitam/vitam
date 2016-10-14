@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Web application firewall package which uses owasp esapi 
+ * Web application firewall package which uses owasp esapi
  */
 package fr.gouv.vitam.common.security.waf;

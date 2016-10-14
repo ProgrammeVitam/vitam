@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -47,24 +47,24 @@ public class FormatIdentifierMockTest {
     @Test
     public void testIdentifyFormatMock() throws Exception {
         final FormatIdentifierMock mock = new FormatIdentifierMock();
-        List<FormatIdentifierResponse> responses = mock.analysePath(Paths.get("pathToFile"));
+        final List<FormatIdentifierResponse> responses = mock.analysePath(Paths.get("pathToFile"));
         assertNotNull(responses);
         assertEquals(responses.size(), 1);
-        FormatIdentifierResponse response = responses.get(0);
+        final FormatIdentifierResponse response = responses.get(0);
         assertEquals("Plain Text File", response.getFormatLiteral());
         assertEquals("text/plain", response.getMimetype());
         assertEquals("x-fmt/111", response.getPuid());
         assertEquals("pronom", response.getMatchedNamespace());
     }
-    
+
     @Test
     public void testStatusFormatMock() throws Exception {
         final FormatIdentifierMock mock = new FormatIdentifierMock();
-        FormatIdentifierInfo response = mock.status();
+        final FormatIdentifierInfo response = mock.status();
         assertNotNull(response);
         assertEquals("1.0", response.getVersion());
         assertEquals("FormatIdentifierMock", response.getSoftwareName());
-        
+
     }
 
 }

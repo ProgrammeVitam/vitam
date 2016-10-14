@@ -63,13 +63,13 @@ public class IngestInternalClientMock implements IngestInternalClient {
         InputStream inputstreamATR = null;
         try {
             inputstreamATR = PropertiesUtils.getResourcesAsStream("ATR_example.xml");
-        } catch (FileNotFoundException e1) {
+        } catch (final FileNotFoundException e1) {
             LOGGER.debug("Get mock result error");
         }
         String result = "";
         try {
             result = FileUtil.readInputStream(inputstreamATR);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             LOGGER.debug("Read mock result error");
         }
         return Response.status(Status.OK).entity(result).build();

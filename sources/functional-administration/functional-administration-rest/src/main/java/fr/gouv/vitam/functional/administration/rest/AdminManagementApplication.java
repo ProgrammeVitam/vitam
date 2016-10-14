@@ -109,7 +109,7 @@ public final class AdminManagementApplication
 
     private static void run(AdminManagementConfiguration configuration) throws VitamApplicationServerException {
         final ServletContextHandler context = (ServletContextHandler) APPLICATION.buildApplicationHandler();
-        String jettyConfig = configuration.getJettyConfig();
+        final String jettyConfig = configuration.getJettyConfig();
         vitamServer = VitamServerFactory.newVitamServerByJettyConf(jettyConfig);
         vitamServer.configure(context);
         vitamServer.start();

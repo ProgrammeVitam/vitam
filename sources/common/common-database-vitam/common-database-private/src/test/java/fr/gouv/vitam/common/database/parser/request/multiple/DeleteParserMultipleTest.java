@@ -83,27 +83,34 @@ public class DeleteParserMultipleTest {
     public static void init() throws InvalidParseOperationException {
         VitamLoggerFactory.setLogLevel(VitamLogLevel.INFO);
         exampleMd = JsonHandler.getFromString("{ $roots : [ 'id0' ], $query : [ " + "{ $path : [ 'id1', 'id2'] }," +
-            "{ $and : [ " + "{$exists : 'mavar1'}, " + "{$missing : 'mavar2'}, " + "{$isNull : 'mavar3'}, " + "{ $or : [ " +
+            "{ $and : [ " + "{$exists : 'mavar1'}, " + "{$missing : 'mavar2'}, " + "{$isNull : 'mavar3'}, " +
+            "{ $or : [ " +
             "{$in : { 'mavar4' : [1, 2, 'maval1'] }}, " + "{ $nin : { 'mavar5' : ['maval2', true] } } ] } ] }," +
             "{ $not : [ " + "{ $size : { 'mavar5' : 5 } }, " + "{ $gt : { 'mavar6' : 7 } }, " +
             "{ $lte : { 'mavar7' : 8 } } ] , $exactdepth : 4}," + "{ $not : [ " + "{ $eq : { 'mavar8' : 5 } }, " +
-            "{ $ne : { 'mavar9' : 'ab' } }, " + "{ $range : { 'mavar10' : { $gte : 12, $lte : 20} } } ], $depth : 1}, " +
+            "{ $ne : { 'mavar9' : 'ab' } }, " +
+            "{ $range : { 'mavar10' : { $gte : 12, $lte : 20} } } ], $depth : 1}, " +
             "{ $and : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] }, " +
             "{ $regex : { 'mavar14' : '^start?aa.*' } } " + "], " + "$filter : {$mult : false } }");
-        exampleBothEsMd = JsonHandler.getFromString("{ $roots : [ 'id0' ], $query : [ " + "{ $path : [ 'id1', 'id2'] }," +
-            "{ $and : [ " + "{$exists : 'mavar1'}, " + "{$missing : 'mavar2'}, " + "{$isNull : 'mavar3'}, " + "{ $or : [ " +
-            "{$in : { 'mavar4' : [1, 2, 'maval1'] }}, " + "{ $nin : { 'mavar5' : ['maval2', true] } } ] } ] }," +
-            "{ $not : [ " + "{ $size : { 'mavar5' : 5 } }, " + "{ $gt : { 'mavar6' : 7 } }, " +
-            "{ $lte : { 'mavar7' : 8 } } ] , $exactdepth : 4}," + "{ $not : [ " + "{ $eq : { 'mavar8' : 5 } }, { " +
-            "$ne : { 'mavar9' : 'ab' } }, { " + "$range : { 'mavar10' : { $gte : 12, $lte : 20} } } ], $depth : 1}," +
-            "{ $match_phrase : { 'mavar11' : 'ceci est une phrase' }, $depth : 0}," +
-            "{ $match_phrase_prefix : { 'mavar11' : 'ceci est une phrase', $max_expansions : 10 }, $depth : 0}," +
-            "{ $flt : { $fields : [ 'mavar12', 'mavar13' ], $like : 'ceci est une phrase' }, $depth : 1}," + "{ $and : [ " +
-            "{ $search : { 'mavar13' : 'ceci est une phrase' } }, " + "{ $regex : { 'mavar14' : '^start?aa.*' } } ] }," +
-            "{ $and : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] }, " + "{ $and : [ " +
-            "{ $term : { 'mavar16' : 'motMajuscule', 'mavar17' : 'simplemot' } }, " +
-            "{ $or : [ {$eq : { 'mavar19' : 'abcd' } }, { $match : { 'mavar18' : 'quelques mots' } } ] } ] }, " +
-            "{ $regex : { 'mavar14' : '^start?aa.*' } } " + "], " + "$filter : {$mult : false } }");
+        exampleBothEsMd =
+            JsonHandler.getFromString("{ $roots : [ 'id0' ], $query : [ " + "{ $path : [ 'id1', 'id2'] }," +
+                "{ $and : [ " + "{$exists : 'mavar1'}, " + "{$missing : 'mavar2'}, " + "{$isNull : 'mavar3'}, " +
+                "{ $or : [ " +
+                "{$in : { 'mavar4' : [1, 2, 'maval1'] }}, " + "{ $nin : { 'mavar5' : ['maval2', true] } } ] } ] }," +
+                "{ $not : [ " + "{ $size : { 'mavar5' : 5 } }, " + "{ $gt : { 'mavar6' : 7 } }, " +
+                "{ $lte : { 'mavar7' : 8 } } ] , $exactdepth : 4}," + "{ $not : [ " + "{ $eq : { 'mavar8' : 5 } }, { " +
+                "$ne : { 'mavar9' : 'ab' } }, { " +
+                "$range : { 'mavar10' : { $gte : 12, $lte : 20} } } ], $depth : 1}," +
+                "{ $match_phrase : { 'mavar11' : 'ceci est une phrase' }, $depth : 0}," +
+                "{ $match_phrase_prefix : { 'mavar11' : 'ceci est une phrase', $max_expansions : 10 }, $depth : 0}," +
+                "{ $flt : { $fields : [ 'mavar12', 'mavar13' ], $like : 'ceci est une phrase' }, $depth : 1}," +
+                "{ $and : [ " +
+                "{ $search : { 'mavar13' : 'ceci est une phrase' } }, " +
+                "{ $regex : { 'mavar14' : '^start?aa.*' } } ] }," +
+                "{ $and : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] }, " + "{ $and : [ " +
+                "{ $term : { 'mavar16' : 'motMajuscule', 'mavar17' : 'simplemot' } }, " +
+                "{ $or : [ {$eq : { 'mavar19' : 'abcd' } }, { $match : { 'mavar18' : 'quelques mots' } } ] } ] }, " +
+                "{ $regex : { 'mavar14' : '^start?aa.*' } } " + "], " + "$filter : {$mult : false } }");
     }
 
     @Test

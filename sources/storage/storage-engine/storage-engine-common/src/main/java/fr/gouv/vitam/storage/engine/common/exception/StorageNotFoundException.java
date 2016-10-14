@@ -33,6 +33,11 @@ package fr.gouv.vitam.storage.engine.common.exception;
 public class StorageNotFoundException extends StorageException {
 
     /**
+     *
+     */
+    private static final long serialVersionUID = -5842192450647467382L;
+
+    /**
      * @param message associated message
      */
     public StorageNotFoundException(String message) {
@@ -60,8 +65,9 @@ public class StorageNotFoundException extends StorageException {
      * @param enableSuppression allow suppression or not
      * @param writableStackTrace allow writable stack trace or not
      */
-    public StorageNotFoundException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    public StorageNotFoundException(String message, Throwable cause, boolean enableSuppression,
+        boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
-    
+
 }

@@ -33,8 +33,6 @@ import java.util.List;
 
 import org.junit.Test;
 
-import fr.gouv.vitam.ingest.internal.api.response.IngestResponse;
-
 /**
  *
  */

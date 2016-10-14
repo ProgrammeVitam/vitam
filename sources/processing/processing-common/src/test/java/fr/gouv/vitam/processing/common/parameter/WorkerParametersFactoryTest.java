@@ -54,12 +54,12 @@ public class WorkerParametersFactoryTest {
 
     @Test
     public void constructorTest() {
-        WorkerParameters parameters = WorkerParametersFactory.newWorkerParameters();
+        final WorkerParameters parameters = WorkerParametersFactory.newWorkerParameters();
         assertNotNull(parameters);
         assertEquals(5, parameters.getMandatoriesParameters().size());
         assertEquals(0, parameters.getMapParameters().size());
 
-        WorkerParameters parameters2 = WorkerParametersFactory.newWorkerParameters("processId", "stepUniqId",
+        final WorkerParameters parameters2 = WorkerParametersFactory.newWorkerParameters("processId", "stepUniqId",
             "containerName", "currentStep", "objectName", "urlMetadata", "urlWorkspace");
         assertNotNull(parameters2);
         assertEquals(7, parameters2.getMapParameters().size());

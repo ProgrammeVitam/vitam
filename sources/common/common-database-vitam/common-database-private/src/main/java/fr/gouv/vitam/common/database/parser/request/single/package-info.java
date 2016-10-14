@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Database parser for single request 
+ * Database parser for single request
  */
 package fr.gouv.vitam.common.database.parser.request.single;

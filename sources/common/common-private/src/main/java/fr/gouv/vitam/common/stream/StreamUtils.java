@@ -38,8 +38,10 @@ public class StreamUtils {
     private StreamUtils() {
         // Empty
     }
+
     /**
      * Close silently the InputStream, ignoring IOException or null object.
+     * 
      * @param inputStream
      */
     public static final void closeSilently(InputStream inputStream) {
@@ -48,7 +50,7 @@ public class StreamUtils {
         }
         try {
             inputStream.close();
-        } catch (IOException e) {
+        } catch (final IOException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
     }

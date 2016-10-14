@@ -75,7 +75,7 @@ public class AdminManagementClientRest implements AdminManagementClient {
 
     /**
      * Constructor IngestExternalClientRest
-     * 
+     *
      * @param server
      * @param port
      */

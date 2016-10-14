@@ -46,6 +46,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
@@ -55,7 +56,6 @@ import fr.gouv.vitam.processing.common.model.DistributionKind;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.ProcessBehavior;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
-import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
@@ -73,13 +73,13 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
  * The Process Distributor call the workers and intercept the response for manage a post actions step
  *
  * <pre>
- * TODO : 
+ * TODO :
  * - handle listing of items through a limited arraylist (memory) and through iterative (async) listing from
- * Workspace 
+ * Workspace
  * - handle result in FATAL mode from one distributed item to stop the distribution in FATAL mode (do not
- * continue) 
+ * continue)
  * - try to handle distribution on 1 or on many as the same loop (so using a default arrayList of 1)
- * - handle error level using order in enum in ProcessResponse.getGlobalProcessStatusCode instead of manually comparing: 
+ * - handle error level using order in enum in ProcessResponse.getGlobalProcessStatusCode instead of manually comparing:
  *  {@code
  *    for (final EngineResponse response : responses) {
  *       tempStatusCode = response.getStatus();
@@ -118,7 +118,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         ParametersChecker.checkParameter("workerId is a mandatory parameter", workerId);
         ParametersChecker.checkParameter("familyId is a mandatory parameter", familyId);
         workerBean.setWorkerId(workerId);
-        NavigableMap<String, WorkerBean> workers = new TreeMap<>();
+        final NavigableMap<String, WorkerBean> workers = new TreeMap<>();
         workers.put(workerId, workerBean);
         WORKERS_LIST.put(familyId, workers);
         availableWorkers.add(workerId);
@@ -126,7 +126,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
 
     /**
      * Method used for test purpose
-     * 
+     *
      */
     Map<String, NavigableMap<String, WorkerBean>> getWorkersList() {
         return WORKERS_LIST;
@@ -146,13 +146,13 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         final long time = System.currentTimeMillis();
         final EngineResponse errorResponse = new ProcessResponse();
         errorResponse.setStatus(StatusCode.FATAL);
-        
+
         final EngineResponse warningResponse = new ProcessResponse();
         warningResponse.setStatus(StatusCode.WARNING);
-        
+
         final List<EngineResponse> responses = new ArrayList<>();
-        String processId = workParams.getProcessId();
-        String uniqueStepId = workParams.getStepUniqId();
+        final String processId = workParams.getProcessId();
+        final String uniqueStepId = workParams.getStepUniqId();
         try {
 
             if (step.getDistribution().getKind().equals(DistributionKind.LIST)) {
@@ -165,15 +165,15 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                     objectsList = new ArrayList<URI>();
 
                     // get the file to retrieve the GUID
-                    InputStream levelFile =
+                    final InputStream levelFile =
                         workspaceClient.getObject(workParams.getContainerName(),
                             UNITS_LEVEL + "/" + INGEST_LEVEL_STACK);
                     final String inputStreamString = CharStreams.toString(new InputStreamReader(levelFile, "UTF-8"));
                     final JsonNode levelFileJson = JsonHandler.getFromString(inputStreamString);
-                    Iterator<Entry<String, JsonNode>> iteratorlLevelFile = levelFileJson.fields();
+                    final Iterator<Entry<String, JsonNode>> iteratorlLevelFile = levelFileJson.fields();
                     while (iteratorlLevelFile.hasNext()) {
-                        Entry<String, JsonNode> guidFieldList = iteratorlLevelFile.next();
-                        JsonNode guid = guidFieldList.getValue();
+                        final Entry<String, JsonNode> guidFieldList = iteratorlLevelFile.next();
+                        final JsonNode guid = guidFieldList.getValue();
                         if (guid != null && guid.size() > 0) {
                             for (final JsonNode _idGuid : guid) {
                                 // include the GUID in the new URI
@@ -209,7 +209,8 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                             final List<EngineResponse> actionsResponse =
                                 WorkerClientFactory.getInstance().getWorkerClient().submitStep("requestId",
                                     new DescriptionStep(step, (DefaultWorkerParameters) workParams));
-                            // FIXME : This is inefficient. The aggregation of results must be placed here and not in ProcessResponse
+                            // FIXME : This is inefficient. The aggregation of results must be placed here and not in
+                            // ProcessResponse
                             responses.addAll(actionsResponse);
                             // update the number of processed element
                             ProcessMonitoringImpl.getInstance().updateStep(processId, uniqueStepId, 0, true);
@@ -217,8 +218,8 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                             final StatusCode stepStatus = processResponse.getGlobalProcessStatusCode(actionsResponse);
                             // if the step has been defined as Blocking and then stepStatus is KO or FATAL
                             // then break the process
-                            if ((step.getBehavior().equals(ProcessBehavior.BLOCKING)) &&
-                                (stepStatus.isGreaterOrEqualToKo())) {
+                            if (step.getBehavior().equals(ProcessBehavior.BLOCKING) &&
+                                stepStatus.isGreaterOrEqualToKo()) {
                                 break;
                             }
 
@@ -262,7 +263,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
     }
 
     private void loadWorkerClient(WorkerBean workerBean) {
-        WorkerClientConfiguration workerClientConfiguration =
+        final WorkerClientConfiguration workerClientConfiguration =
             new WorkerClientConfiguration(workerBean.getConfiguration().getServerHost(),
                 workerBean.getConfiguration().getServerPort());
         WorkerClientFactory.setConfiguration(WorkerClientType.WORKER, workerClientConfiguration);
@@ -285,13 +286,13 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         try {
             worker = JsonHandler.getFromString(workerInformation, WorkerBean.class);
             worker.setWorkerId(workerId);
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             LOGGER.error("Worker Information incorrect", e);
             throw new ProcessingBadRequestException("Worker description is incorrect");
         }
         if (WORKERS_LIST.get(familyId) != null) {
             LOGGER.debug("Family known");
-            NavigableMap<String, WorkerBean> familyWorkers = WORKERS_LIST.get(familyId);
+            final NavigableMap<String, WorkerBean> familyWorkers = WORKERS_LIST.get(familyId);
             if (familyWorkers.get(workerId) != null) {
                 LOGGER.error("Worker already registered");
                 throw new WorkerAlreadyExistsException("Worker already registered");
@@ -302,7 +303,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             }
         } else {
             LOGGER.debug("Family unknown");
-            NavigableMap<String, WorkerBean> familyWorkers = new TreeMap<String, WorkerBean>();
+            final NavigableMap<String, WorkerBean> familyWorkers = new TreeMap<String, WorkerBean>();
 
             familyWorkers.put(workerId, worker);
             WORKERS_LIST.put(familyId, familyWorkers);
@@ -313,7 +314,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
     @Override
     public void unregisterWorker(String familyId, String workerId)
         throws WorkerNotFoundException, WorkerFamilyNotFoundException {
-        NavigableMap<String, WorkerBean> familyWorkers = WORKERS_LIST.get(familyId);
+        final NavigableMap<String, WorkerBean> familyWorkers = WORKERS_LIST.get(familyId);
         if (familyWorkers != null) {
             if (familyWorkers.get(workerId) != null) {
                 familyWorkers.remove(workerId);

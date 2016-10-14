@@ -49,7 +49,7 @@ public class UserInterfaceTransactionManager {
 
     /**
      * Gets search units result
-     * 
+     *
      * @param parameters search criteria as DSL query
      * @return
      * @throws AccessClientServerException thrown when an errors occurs during the connection with the server
@@ -62,9 +62,9 @@ public class UserInterfaceTransactionManager {
     }
 
     /**
-     * 
+     *
      * Gets archive unit details
-     * 
+     *
      * @param preparedDslQuery search criteria as DSL query
      * @param unitId archive unit id to find
      * @return
@@ -79,7 +79,7 @@ public class UserInterfaceTransactionManager {
 
     /**
      * Update units result
-     * 
+     *
      * @param parameters search criteria as DSL query
      * @param unitId unitIdentifier
      * @return
@@ -94,7 +94,7 @@ public class UserInterfaceTransactionManager {
 
     /**
      * Retrieve an ObjectGroup as Json data based on the provided ObjectGroup id
-     * 
+     *
      * @param preparedDslQuery the query to be executed
      * @param objectId the Id of the ObjectGroup
      * @return JsonNode object including DSL queries, context and results
@@ -104,12 +104,12 @@ public class UserInterfaceTransactionManager {
      */
     public static JsonNode selectObjectbyId(String preparedDslQuery, String objectId)
         throws AccessClientServerException, AccessClientNotFoundException, InvalidParseOperationException {
-        return ACCESS_CLIENT.selectObjectbyId(preparedDslQuery, objectId);        
+        return ACCESS_CLIENT.selectObjectbyId(preparedDslQuery, objectId);
     }
-    
+
     /**
      * Retrieve an Object data as an input stream
-     * 
+     *
      * @param selectObjectQuery the query to be executed
      * @param objectGroupId the Id of the ObjectGroup
      * @param usage the requested usage
@@ -119,14 +119,15 @@ public class UserInterfaceTransactionManager {
      * @throws AccessClientServerException if the server encountered an exception
      * @throws AccessClientNotFoundException if the requested object does not exist
      */
-    public static InputStream getObjectAsInputStream(String selectObjectQuery, String objectGroupId, String usage, int version)
-        throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException{
+    public static InputStream getObjectAsInputStream(String selectObjectQuery, String objectGroupId, String usage,
+        int version)
+        throws InvalidParseOperationException, AccessClientServerException, AccessClientNotFoundException {
         return ACCESS_CLIENT.getObjectAsInputStream(selectObjectQuery, objectGroupId, usage, version);
     }
-    
+
     /**
      * Build all paths relative to a unit based on its all parents list (_us)
-     * 
+     *
      * @param unitId the unit Id for which all paths will be constructed
      * @param allParents unit's all parents (_us field value + the unit id)
      * @return all paths relative to the specified unit
@@ -134,24 +135,24 @@ public class UserInterfaceTransactionManager {
      */
     public static JsonNode buildUnitTree(String unitId, JsonNode allParents) throws VitamException {
         // Construct all parents referential
-        JsonNode allParentsRef = JsonTransformer.buildAllParentsRef(unitId, allParents);
-        
+        final JsonNode allParentsRef = JsonTransformer.buildAllParentsRef(unitId, allParents);
+
         // All paths
-        ArrayNode allPaths = JsonHandler.createArrayNode();
+        final ArrayNode allPaths = JsonHandler.createArrayNode();
 
         // Start by the immediate parents
-        ArrayNode immediateParents =
+        final ArrayNode immediateParents =
             (ArrayNode) allParentsRef.get(unitId).get(UiConstants.UNITUPS.getResultConstantValue());
 
         // Build all paths
-        for (JsonNode currentParentNode : immediateParents) {
-            String currentParentId = currentParentNode.asText();
-            JsonNode currentParentDetails = allParentsRef.get(currentParentId);
-           
+        for (final JsonNode currentParentNode : immediateParents) {
+            final String currentParentId = currentParentNode.asText();
+            final JsonNode currentParentDetails = allParentsRef.get(currentParentId);
+
             // Create path node
-            ArrayNode currentPath = JsonHandler.createArrayNode();
+            final ArrayNode currentPath = JsonHandler.createArrayNode();
             currentPath.add(currentParentDetails);
-            
+
             buildOnePathForOneParent(currentPath, currentParentDetails, allPaths, allParentsRef);
         }
 
@@ -160,7 +161,7 @@ public class UserInterfaceTransactionManager {
 
     private static void buildOnePathForOneParent(ArrayNode path, JsonNode parent, ArrayNode allPaths,
         JsonNode allParentsRef) {
-        ArrayNode immediateParents = (ArrayNode) parent.get(UiConstants.UNITUPS.getResultConstantValue());
+        final ArrayNode immediateParents = (ArrayNode) parent.get(UiConstants.UNITUPS.getResultConstantValue());
 
         if (immediateParents.size() == 0) {
             // it is a root
@@ -168,17 +169,17 @@ public class UserInterfaceTransactionManager {
             allPaths.add(path);
         } else if (immediateParents.size() == 1) {
             // One immediate parent
-            JsonNode oneImmediateParent = allParentsRef.get(immediateParents.get(0).asText());
+            final JsonNode oneImmediateParent = allParentsRef.get(immediateParents.get(0).asText());
             path.add(oneImmediateParent);
             buildOnePathForOneParent(path, oneImmediateParent, allPaths, allParentsRef);
         } else {
             // More than one immediate parent
             // Duplicate path so many times as parents
-            for (JsonNode currentParentNode : immediateParents) {
-                String currentParentId = currentParentNode.asText();
-                JsonNode currentParentDetails = allParentsRef.get(currentParentId);
+            for (final JsonNode currentParentNode : immediateParents) {
+                final String currentParentId = currentParentNode.asText();
+                final JsonNode currentParentDetails = allParentsRef.get(currentParentId);
 
-                ArrayNode pathDuplicate = path.deepCopy();
+                final ArrayNode pathDuplicate = path.deepCopy();
                 pathDuplicate.add(currentParentDetails);
                 buildOnePathForOneParent(pathDuplicate, currentParentDetails, allPaths, allParentsRef);
             }

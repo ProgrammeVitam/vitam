@@ -66,7 +66,7 @@ public class MltQuery extends Query {
      *
      * @param mltQuery flt, mlt
      * @param value to compare
-     * @param variableNames criteria of query 
+     * @param variableNames criteria of query
      * @throws InvalidCreateOperationException when query is not valid
      */
     public MltQuery(final QUERY mltQuery, final String value,

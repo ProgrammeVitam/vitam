@@ -48,17 +48,7 @@ import javax.ws.rs.core.Response.Status;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
 
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
-import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
-import fr.gouv.vitam.storage.engine.common.StorageConstants;
-import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.storage.offers.workspace.core.DefaultOfferServiceImpl;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 /**
  * Default offer REST Resource
@@ -95,12 +85,12 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         try {
-            JsonNode result = DefaultOfferServiceImpl.getInstance().getCapacity(xTenantId);
+            final JsonNode result = DefaultOfferServiceImpl.getInstance().getCapacity(xTenantId);
             return Response.status(Response.Status.OK).entity(result).build();
-        } catch (ContentAddressableStorageNotFoundException exc) {
+        } catch (final ContentAddressableStorageNotFoundException exc) {
             LOGGER.error(exc);
             return Response.status(Response.Status.SERVICE_UNAVAILABLE).build();
-        } catch (ContentAddressableStorageServerException exc) {
+        } catch (final ContentAddressableStorageServerException exc) {
             LOGGER.error(exc);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
@@ -122,7 +112,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(value = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_OCTET_STREAM})
     public Response getObject(@PathParam("id") String objectId, @Context HttpHeaders headers) throws IOException {
-        String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
+        final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
         if (Strings.isNullOrEmpty(xTenantId)) {
             LOGGER.error("Missing the tenant ID (X-Tenant-Id)");
             return Response.status(Response.Status.PRECONDITION_FAILED).build();
@@ -132,10 +122,10 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             stream = DefaultOfferServiceImpl.getInstance().getObject(xTenantId, objectId);
             return Response.ok(stream, MediaType.APPLICATION_OCTET_STREAM).header("Content-Length", stream.available())
                 .build();
-        } catch (ContentAddressableStorageNotFoundException e) {
+        } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(e);
             return Response.status(Status.NOT_FOUND).entity(objectId).build();
-        } catch (ContentAddressableStorageException e) {
+        } catch (final ContentAddressableStorageException e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(objectId).build();
         }
@@ -159,12 +149,12 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response postObject(@PathParam("guid") String objectGUID, @Context HttpHeaders headers,
         ObjectInit objectInit) {
-        String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
+        final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
         if (Strings.isNullOrEmpty(xTenantId)) {
             LOGGER.error("Missing the tenant ID (X-Tenant-Id)");
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
-        String xCommandHeader = headers.getHeaderString(GlobalDataRest.X_COMMAND);
+        final String xCommandHeader = headers.getHeaderString(GlobalDataRest.X_COMMAND);
         if (xCommandHeader == null || !xCommandHeader.equals(StorageConstants.COMMAND_INIT)) {
             LOGGER.error("Missing the INIT required command (X-Command header)");
             return Response.status(Response.Status.BAD_REQUEST).build();
@@ -174,10 +164,10 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         try {
-            ObjectInit objectInitFilled =
+            final ObjectInit objectInitFilled =
                 DefaultOfferServiceImpl.getInstance().initCreateObject(xTenantId, objectInit, objectGUID);
             return Response.status(Response.Status.CREATED).entity(objectInitFilled).build();
-        } catch (ContentAddressableStorageException exc) {
+        } catch (final ContentAddressableStorageException exc) {
             LOGGER.error(exc);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
@@ -200,20 +190,20 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     public Response putObject(@PathParam("id") String objectId, @Context HttpHeaders headers, InputStream input) {
-        String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
+        final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
         if (Strings.isNullOrEmpty(xTenantId)) {
             LOGGER.error("Missing the tenant ID (X-Tenant-Id)");
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
-        String xCommandHeader = headers.getHeaderString(GlobalDataRest.X_COMMAND);
-        if (xCommandHeader == null || (!xCommandHeader.equals(StorageConstants.COMMAND_WRITE) && !xCommandHeader
-            .equals(StorageConstants.COMMAND_END))) {
+        final String xCommandHeader = headers.getHeaderString(GlobalDataRest.X_COMMAND);
+        if (xCommandHeader == null || !xCommandHeader.equals(StorageConstants.COMMAND_WRITE) && !xCommandHeader
+            .equals(StorageConstants.COMMAND_END)) {
             LOGGER.error("Missing the WRITE or END required command (X-Command header), {} found",
                 xCommandHeader);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         try {
-            String digest = DefaultOfferServiceImpl.getInstance().createObject(xTenantId, objectId, input,
+            final String digest = DefaultOfferServiceImpl.getInstance().createObject(xTenantId, objectId, input,
                 xCommandHeader.equals(StorageConstants.COMMAND_END));
             return Response.status(Response.Status.CREATED).entity("{\"digest\":\"" + digest + "\"}").build();
         } catch (IOException | ContentAddressableStorageException exc) {

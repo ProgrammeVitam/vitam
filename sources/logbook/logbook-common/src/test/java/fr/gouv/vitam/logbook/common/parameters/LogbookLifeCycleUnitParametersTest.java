@@ -42,6 +42,7 @@ import org.junit.Test;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.model.StatusCode;
 
 /**
  * Test class for LogbookLifeCycleUnitParameters
@@ -93,7 +94,7 @@ public class LogbookLifeCycleUnitParametersTest {
         assertNotNull(params2);
         assertEquals(1, params2.getMandatoriesParameters().size());
         assertEquals(null, params.getStatus());
-        for (final LogbookOutcome outcome : LogbookOutcome.values()) {
+        for (final StatusCode outcome : StatusCode.values()) {
             params.setStatus(outcome);
             assertEquals(outcome, params.getStatus());
         }
@@ -122,17 +123,17 @@ public class LogbookLifeCycleUnitParametersTest {
         final GUID aa = GUIDFactory.newOperationIdGUID(0);
         final GUID cc = GUIDFactory.newOperationIdGUID(0);
         LogbookParametersFactory.newLogbookLifeCycleUnitParameters(aa, "aa", aa,
-            LogbookTypeProcess.AUDIT, LogbookOutcome.STARTED, "CheckDigest", "Informative Message", cc);
+            LogbookTypeProcess.AUDIT, StatusCode.STARTED, "CheckDigest", "Informative Message", cc);
         try {
             LogbookParametersFactory.newLogbookLifeCycleUnitParameters(aa, "", aa,
-                LogbookTypeProcess.AUDIT, LogbookOutcome.STARTED, "CheckDigest", "Informative Message", cc);
+                LogbookTypeProcess.AUDIT, StatusCode.STARTED, "CheckDigest", "Informative Message", cc);
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
         }
         try {
             LogbookParametersFactory.newLogbookLifeCycleUnitParameters(aa, "aa", null,
-                LogbookTypeProcess.AUDIT, LogbookOutcome.STARTED, "CheckDigest", "Informative Message", cc);
+                LogbookTypeProcess.AUDIT, StatusCode.STARTED, "CheckDigest", "Informative Message", cc);
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
@@ -146,7 +147,7 @@ public class LogbookLifeCycleUnitParametersTest {
         }
         try {
             LogbookParametersFactory.newLogbookLifeCycleUnitParameters(aa, "aa", aa,
-                null, LogbookOutcome.STARTED, "CheckDigest", "Informative Message", cc);
+                null, StatusCode.STARTED, "CheckDigest", "Informative Message", cc);
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
@@ -165,7 +166,7 @@ public class LogbookLifeCycleUnitParametersTest {
 
     @Test
     public void testConstructorWithEmptyParameters() {
-        LogbookLifeCycleUnitParameters llcup = new LogbookLifeCycleUnitParameters(new HashMap());
+        final LogbookLifeCycleUnitParameters llcup = new LogbookLifeCycleUnitParameters(new HashMap());
         assertEquals(true, llcup.getMapParameters().isEmpty());
     }
 }

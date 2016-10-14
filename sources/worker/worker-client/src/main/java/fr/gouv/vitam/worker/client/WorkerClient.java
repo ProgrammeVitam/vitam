@@ -43,7 +43,7 @@ public interface WorkerClient extends BasicClient {
 
     /**
      * add a step to the worker
-     * 
+     *
      * @param requestId unique request id
      * @param step the new step
      * @return List of EngineResponse {@link EngineResponse} : list of action response {OK,KO,FATAL...}

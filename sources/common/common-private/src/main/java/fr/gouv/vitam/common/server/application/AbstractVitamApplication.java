@@ -27,16 +27,16 @@
 
 package fr.gouv.vitam.common.server.application;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.logging.SysErrLogger;
-
-import org.eclipse.jetty.server.Handler;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
+
+import org.eclipse.jetty.server.Handler;
+
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 
 /**
  * Abstract implementation of VitamApplication which handle common tasks for all sub-implementation

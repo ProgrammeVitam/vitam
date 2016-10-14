@@ -38,18 +38,18 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 public abstract class WorkspaceClientTest extends JerseyTest {
     protected static final String HOST = "http://localhost";
     protected static final String PATH = "/workspace/v1";
-    private static JunitHelper junitHelper = new JunitHelper();
+    private static JunitHelper junitHelper = JunitHelper.getInstance();
     protected static int port = junitHelper.findAvailablePort();
     protected WorkspaceClient client;
+
     @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
-    }
+    public static void setUpBeforeClass() throws Exception {}
 
     @AfterClass
     public static void shutdownAfterClass() {
         junitHelper.releasePort(port);
     }
-    
+
     public WorkspaceClientTest() {
         client = new WorkspaceClient(HOST + ":" + port);
     }
@@ -62,9 +62,9 @@ public abstract class WorkspaceClientTest extends JerseyTest {
         Response delete();
 
         Response head();
-        
+
         Response headContainer();
-        
+
         Response headFolder();
 
         Response get();

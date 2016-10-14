@@ -26,10 +26,16 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.rest;
 
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import org.junit.*;
 
 public class ProcessManagementApplicationTest {
 
@@ -39,7 +45,7 @@ public class ProcessManagementApplicationTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
     }
 
@@ -57,7 +63,7 @@ public class ProcessManagementApplicationTest {
     public void end() {
         try {
             ProcessManagementApplication.stop();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
         }
     }
@@ -86,7 +92,7 @@ public class ProcessManagementApplicationTest {
     public void givenFileExistsWhenStartupApplicationThenRunServer() throws Exception {
         SystemPropertyUtil
             .set(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(port));
-        application.startApplication("processing.conf");
-        application.stop();
+        ProcessManagementApplication.startApplication("processing.conf");
+        ProcessManagementApplication.stop();
     }
 }

@@ -32,30 +32,31 @@ import org.junit.Test;
 
 public class UnitRequestDTOTest {
 
-	private UnitRequestDTO unitRequetsDTO;
-	private static final String SAMPLE_QUERY_DSL = "{ \"$queries\": [{ \"$path\": \"aaaaa\" }],\"$filter\": { },\"$projection\": {}}";
+    private UnitRequestDTO unitRequetsDTO;
+    private static final String SAMPLE_QUERY_DSL =
+        "{ \"$queries\": [{ \"$path\": \"aaaaa\" }],\"$filter\": { },\"$projection\": {}}";
 
-	@Before
-	public void intUnitDTO() {
-		unitRequetsDTO = new UnitRequestDTO();
-	}
+    @Before
+    public void intUnitDTO() {
+        unitRequetsDTO = new UnitRequestDTO();
+    }
 
-	@Test
-	public void testGetQueryDsl() {
-		unitRequetsDTO = new UnitRequestDTO();
-		Assert.assertNull(unitRequetsDTO.getQueryDsl());
-	}
+    @Test
+    public void testGetQueryDsl() {
+        unitRequetsDTO = new UnitRequestDTO();
+        Assert.assertNull(unitRequetsDTO.getQueryDsl());
+    }
 
-	@Test
-	public void testSetQueryDsl() {
-		unitRequetsDTO.setQueryDsl(SAMPLE_QUERY_DSL);
-		Assert.assertEquals(SAMPLE_QUERY_DSL, unitRequetsDTO.getQueryDsl());
-	}
+    @Test
+    public void testSetQueryDsl() {
+        unitRequetsDTO.setQueryDsl(SAMPLE_QUERY_DSL);
+        Assert.assertEquals(SAMPLE_QUERY_DSL, unitRequetsDTO.getQueryDsl());
+    }
 
-	@Test
-	public void givenUnitRequestDTO_when_instanciateWithDSL_then_getDSL() {
-		unitRequetsDTO = new UnitRequestDTO("fakeQuery");
-		Assert.assertEquals("fakeQuery", unitRequetsDTO.getQueryDsl());
-	}
+    @Test
+    public void givenUnitRequestDTO_when_instanciateWithDSL_then_getDSL() {
+        unitRequetsDTO = new UnitRequestDTO("fakeQuery");
+        Assert.assertEquals("fakeQuery", unitRequetsDTO.getQueryDsl());
+    }
 
 }

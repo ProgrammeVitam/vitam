@@ -40,16 +40,17 @@ import fr.gouv.vitam.common.json.JsonHandler;
  */
 public class RequestResponseTest {
     private static RequestResponse requestResponse = new RequestResponse();
+
     @Test
     public void testGetSetResult() throws Exception {
-        JsonNode node = JsonHandler.createObjectNode();
+        final JsonNode node = JsonHandler.createObjectNode();
         requestResponse.setResult(node);
         assertEquals(node, requestResponse.getResult());
     }
 
     @Test
     public void testGetSetQuery() throws Exception {
-        JsonNode node = JsonHandler.createObjectNode();
+        final JsonNode node = JsonHandler.createObjectNode();
         requestResponse.setQuery(node);
         assertEquals(node, requestResponse.getQuery());
     }

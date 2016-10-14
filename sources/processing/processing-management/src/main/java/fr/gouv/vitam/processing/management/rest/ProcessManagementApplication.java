@@ -122,7 +122,7 @@ public class ProcessManagementApplication
 
         try {
             vitamServer.start();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error(format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
             throw new VitamApplicationServerException(
                 format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);

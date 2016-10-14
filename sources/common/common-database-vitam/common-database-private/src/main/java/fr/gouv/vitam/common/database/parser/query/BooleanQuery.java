@@ -33,5 +33,5 @@ package fr.gouv.vitam.common.database.parser.query;
  *
  *
  */
-public class BooleanQuery extends fr.gouv.vitam.common.database.builder.query.BooleanQuery{
+public class BooleanQuery extends fr.gouv.vitam.common.database.builder.query.BooleanQuery {
 }

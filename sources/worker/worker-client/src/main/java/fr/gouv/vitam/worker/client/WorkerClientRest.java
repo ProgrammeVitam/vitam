@@ -46,11 +46,11 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.OutcomeMessage;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
-import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;
 import fr.gouv.vitam.worker.client.exception.WorkerServerClientException;
 import fr.gouv.vitam.worker.common.DescriptionStep;
@@ -79,16 +79,16 @@ public class WorkerClientRest extends AbstractClient implements WorkerClient {
         ParametersChecker.checkParameter(DATA_MUST_HAVE_A_VALID_VALUE, step);
         Response response = null;
         try {
-            JsonNode stepJson = JsonHandler.toJsonNode(step);
+            final JsonNode stepJson = JsonHandler.toJsonNode(step);
             response =
                 performGenericRequest("/" + "tasks", stepJson, MediaType.APPLICATION_JSON, getDefaultHeaders(requestId),
                     HttpMethod.POST, MediaType.APPLICATION_JSON);
-            JsonNode node = (JsonNode) handleCommonResponseStatus(response, JsonNode.class);
+            final JsonNode node = handleCommonResponseStatus(response, JsonNode.class);
             return getListResponses(node);
-        } catch (javax.ws.rs.ProcessingException e) {
+        } catch (final javax.ws.rs.ProcessingException e) {
             LOGGER.error("Worker Internal Server Error", e);
             throw new WorkerServerClientException("Worker Internal Server Error", e);
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             LOGGER.error("Worker Client Error", e);
             throw new WorkerServerClientException("Step description incorrect", e);
         } finally {
@@ -98,12 +98,12 @@ public class WorkerClientRest extends AbstractClient implements WorkerClient {
 
     /**
      * Generate the default header map
-     * 
+     *
      * @param asyncId the tenant id
      * @return header map
      */
     private MultivaluedHashMap<String, Object> getDefaultHeaders(String requestId) {
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_REQUEST_ID, requestId);
         return headers;
     }
@@ -126,15 +126,15 @@ public class WorkerClientRest extends AbstractClient implements WorkerClient {
     /**
      * Create a List<EngineResponse> from the JsonNode representation <br>
      * TODO : replace EngineResponse with real usable POJO (and json compatible).
-     * 
+     *
      * @param node representation of List<EngineResponse> as JsonNode
      * @return List<EngineResponse>
      */
     private List<EngineResponse> getListResponses(JsonNode node) {
-        List<EngineResponse> responses = new ArrayList<>();
+        final List<EngineResponse> responses = new ArrayList<>();
         if (node != null && node.isArray()) {
-            for (JsonNode engineResponseNode : node) {
-                ProcessResponse response = new ProcessResponse();
+            for (final JsonNode engineResponseNode : node) {
+                final ProcessResponse response = new ProcessResponse();
                 if (engineResponseNode.get("processId") != null) {
                     response.setProcessId(engineResponseNode.get("processId").asText(null));
                 }
@@ -147,24 +147,24 @@ public class WorkerClientRest extends AbstractClient implements WorkerClient {
                 if (engineResponseNode.get("errorNumber") != null) {
                     response.setErrorNumber(engineResponseNode.get("errorNumber").asInt());
                 }
-                JsonNode outcomeMessages = engineResponseNode.get("outcomeMessages");
+                final JsonNode outcomeMessages = engineResponseNode.get("outcomeMessages");
                 if (outcomeMessages != null) {
                     if (outcomeMessages.isArray()) {
-                        for (JsonNode outcomeMessageNode : outcomeMessages) {
-                            Iterator<String> fieldNames = outcomeMessageNode.fieldNames();
+                        for (final JsonNode outcomeMessageNode : outcomeMessages) {
+                            final Iterator<String> fieldNames = outcomeMessageNode.fieldNames();
                             while (fieldNames.hasNext()) {
-                                String actionKey = fieldNames.next();
-                                String messageValue = outcomeMessageNode.get(actionKey).asText();
-                                OutcomeMessage message = OutcomeMessage.valueOf(messageValue);
+                                final String actionKey = fieldNames.next();
+                                final String messageValue = outcomeMessageNode.get(actionKey).asText();
+                                final OutcomeMessage message = OutcomeMessage.valueOf(messageValue);
                                 response.setOutcomeMessages(actionKey, message);
                             }
                         }
                     } else {
-                        Iterator<String> fieldNames = outcomeMessages.fieldNames();
+                        final Iterator<String> fieldNames = outcomeMessages.fieldNames();
                         while (fieldNames.hasNext()) {
-                            String actionKey = fieldNames.next();
-                            String messageValue = outcomeMessages.get(actionKey).asText();
-                            OutcomeMessage message = OutcomeMessage.valueOf(messageValue);
+                            final String actionKey = fieldNames.next();
+                            final String messageValue = outcomeMessages.get(actionKey).asText();
+                            final OutcomeMessage message = OutcomeMessage.valueOf(messageValue);
                             response.setOutcomeMessages(actionKey, message);
                         }
                     }

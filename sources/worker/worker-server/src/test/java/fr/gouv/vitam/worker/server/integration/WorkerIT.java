@@ -64,10 +64,10 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.metadata.rest.MetaDataApplication;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
-import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 import fr.gouv.vitam.processing.common.model.WorkerRemoteConfiguration;
@@ -144,7 +144,7 @@ public class WorkerIT {
         CONFIG_PROCESSING_PATH = PropertiesUtils.getResourcesPath("integration/processing.conf").toString();
 
         elasticsearchHome = tempFolder.newFolder();
-        Settings settings = Settings.settingsBuilder()
+        final Settings settings = Settings.settingsBuilder()
             .put("http.enabled", true)
             .put("discovery.zen.ping.multicast.enabled", false)
             .put("transport.tcp.port", TCP_PORT)
@@ -201,13 +201,13 @@ public class WorkerIT {
             WorkerApplication.stop();
             ProcessManagementApplication.stop();
             MetaDataApplication.stop();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error(e);
         }
     }
 
     private static WorkerClientConfiguration getWorkerClientConfiguration() {
-        WorkerClientConfiguration workerClientConfiguration =
+        final WorkerClientConfiguration workerClientConfiguration =
             new WorkerClientConfiguration("localhost",
                 PORT_SERVICE_WORKER);
         return workerClientConfiguration;
@@ -240,7 +240,7 @@ public class WorkerIT {
         RestAssured.port = PORT_SERVICE_WORKSPACE;
         RestAssured.basePath = WORKSPACE_PATH;
 
-        InputStream zipInputStreamSipObject =
+        final InputStream zipInputStreamSipObject =
             Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_FILE_OK_NAME);
         workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
         workspaceClient.createContainer(CONTAINER_NAME);
@@ -251,33 +251,33 @@ public class WorkerIT {
         RestAssured.basePath = WORKER_PATH;
 
         workerClient = WorkerClientFactory.getInstance().getWorkerClient();
-        List<EngineResponse> retStepControl =
+        final List<EngineResponse> retStepControl =
             workerClient.submitStep("resquestId", getDescriptionStep("integration/step_control_SIP.json"));
         assertNotNull(retStepControl);
-        for (EngineResponse response : retStepControl) {
+        for (final EngineResponse response : retStepControl) {
             assertEquals(StatusCode.OK, response.getStatus());
         }
 
-        List<EngineResponse> retStepCheckStorage =
+        final List<EngineResponse> retStepCheckStorage =
             workerClient.submitStep("resquestId", getDescriptionStep("integration/step_storage_SIP.json"));
         assertNotNull(retStepCheckStorage);
-        for (EngineResponse response : retStepCheckStorage) {
+        for (final EngineResponse response : retStepCheckStorage) {
             assertEquals(StatusCode.OK, response.getStatus());
         }
 
-        DescriptionStep descriptionStepUnit = getDescriptionStep("integration/step_units_SIP.json");
+        final DescriptionStep descriptionStepUnit = getDescriptionStep("integration/step_units_SIP.json");
         descriptionStepUnit.getWorkParams().setObjectName(unitName());
-        List<EngineResponse> retStepStoreUnit = workerClient.submitStep("resquestId", descriptionStepUnit);
+        final List<EngineResponse> retStepStoreUnit = workerClient.submitStep("resquestId", descriptionStepUnit);
         assertNotNull(retStepStoreUnit);
-        for (EngineResponse response : retStepStoreUnit) {
+        for (final EngineResponse response : retStepStoreUnit) {
             assertEquals(StatusCode.OK, response.getStatus());
         }
 
-        DescriptionStep descriptionStepOg = getDescriptionStep("integration/step_objects_SIP.json");
+        final DescriptionStep descriptionStepOg = getDescriptionStep("integration/step_objects_SIP.json");
         descriptionStepOg.getWorkParams().setObjectName(objectGroupName());
-        List<EngineResponse> retStepStoreOg = workerClient.submitStep("resquestId", descriptionStepOg);
+        final List<EngineResponse> retStepStoreOg = workerClient.submitStep("resquestId", descriptionStepOg);
         assertNotNull(retStepStoreOg);
-        for (EngineResponse response : retStepStoreOg) {
+        for (final EngineResponse response : retStepStoreOg) {
             assertEquals(StatusCode.OK, response.getStatus());
         }
 
@@ -293,7 +293,7 @@ public class WorkerIT {
         RestAssured.port = PORT_SERVICE_WORKSPACE;
         RestAssured.basePath = WORKSPACE_PATH;
 
-        InputStream zipInputStreamSipObject =
+        final InputStream zipInputStreamSipObject =
             Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_ARBO_COMPLEXE_FILE_OK);
         workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
         workspaceClient.createContainer(CONTAINER_NAME);
@@ -304,33 +304,33 @@ public class WorkerIT {
         RestAssured.basePath = WORKER_PATH;
 
         workerClient = WorkerClientFactory.getInstance().getWorkerClient();
-        List<EngineResponse> retStepControl =
+        final List<EngineResponse> retStepControl =
             workerClient.submitStep("resquestId", getDescriptionStep("integration/step_control_SIP.json"));
         assertNotNull(retStepControl);
-        for (EngineResponse response : retStepControl) {
+        for (final EngineResponse response : retStepControl) {
             assertEquals(StatusCode.OK, response.getStatus());
         }
 
-        List<EngineResponse> retStepCheckStorage =
+        final List<EngineResponse> retStepCheckStorage =
             workerClient.submitStep("resquestId", getDescriptionStep("integration/step_storage_SIP.json"));
         assertNotNull(retStepCheckStorage);
-        for (EngineResponse response : retStepCheckStorage) {
+        for (final EngineResponse response : retStepCheckStorage) {
             assertEquals(StatusCode.OK, response.getStatus());
         }
 
-        DescriptionStep descriptionStepUnit = getDescriptionStep("integration/step_units_SIP.json");
+        final DescriptionStep descriptionStepUnit = getDescriptionStep("integration/step_units_SIP.json");
         descriptionStepUnit.getWorkParams().setObjectName(unitName());
-        List<EngineResponse> retStepStoreUnit = workerClient.submitStep("resquestId", descriptionStepUnit);
+        final List<EngineResponse> retStepStoreUnit = workerClient.submitStep("resquestId", descriptionStepUnit);
         assertNotNull(retStepStoreUnit);
-        for (EngineResponse response : retStepStoreUnit) {
+        for (final EngineResponse response : retStepStoreUnit) {
             assertEquals(StatusCode.OK, response.getStatus());
         }
 
-        DescriptionStep descriptionStepOg = getDescriptionStep("integration/step_objects_SIP.json");
+        final DescriptionStep descriptionStepOg = getDescriptionStep("integration/step_objects_SIP.json");
         descriptionStepOg.getWorkParams().setObjectName(objectGroupName());
-        List<EngineResponse> retStepStoreOg = workerClient.submitStep("resquestId", descriptionStepOg);
+        final List<EngineResponse> retStepStoreOg = workerClient.submitStep("resquestId", descriptionStepOg);
         assertNotNull(retStepStoreOg);
-        for (EngineResponse response : retStepStoreOg) {
+        for (final EngineResponse response : retStepStoreOg) {
             assertEquals(StatusCode.OK, response.getStatus());
         }
 
@@ -345,7 +345,7 @@ public class WorkerIT {
         RestAssured.port = PORT_SERVICE_WORKSPACE;
         RestAssured.basePath = WORKSPACE_PATH;
 
-        InputStream zipInputStreamSipObject =
+        final InputStream zipInputStreamSipObject =
             Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_WITHOUT_MANIFEST);
         workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
         workspaceClient.createContainer(CONTAINER_NAME);
@@ -356,10 +356,10 @@ public class WorkerIT {
         RestAssured.basePath = WORKER_PATH;
 
         workerClient = WorkerClientFactory.getInstance().getWorkerClient();
-        List<EngineResponse> retStepControl =
+        final List<EngineResponse> retStepControl =
             workerClient.submitStep("resquestId", getDescriptionStep("integration/step_control_SIP.json"));
         assertNotNull(retStepControl);
-        for (EngineResponse response : retStepControl) {
+        for (final EngineResponse response : retStepControl) {
             assertEquals(StatusCode.KO, response.getStatus());
         }
 
@@ -374,7 +374,7 @@ public class WorkerIT {
         RestAssured.port = PORT_SERVICE_WORKSPACE;
         RestAssured.basePath = WORKSPACE_PATH;
 
-        InputStream zipInputStreamSipObject =
+        final InputStream zipInputStreamSipObject =
             Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_CONFORMITY_KO);
         workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
         workspaceClient.createContainer(CONTAINER_NAME);
@@ -385,7 +385,7 @@ public class WorkerIT {
         RestAssured.basePath = WORKER_PATH;
 
         workerClient = WorkerClientFactory.getInstance().getWorkerClient();
-        List<EngineResponse> retStepControl =
+        final List<EngineResponse> retStepControl =
             workerClient.submitStep("resquestId", getDescriptionStep("integration/step_control_SIP.json"));
         assertNotNull(retStepControl);
         assertEquals(6, retStepControl.size());
@@ -401,14 +401,15 @@ public class WorkerIT {
 
     @Test
     public void testRegistration() throws Exception {
-        WorkerRemoteConfiguration remoteConfiguration = new WorkerRemoteConfiguration("localhost", PORT_SERVICE_WORKER);
-        WorkerBean workerBean =
+        final WorkerRemoteConfiguration remoteConfiguration =
+            new WorkerRemoteConfiguration("localhost", PORT_SERVICE_WORKER);
+        final WorkerBean workerBean =
             new WorkerBean("name", WorkerRegister.DEFAULT_FAMILY, 1L, 1L, "active", remoteConfiguration);
         processingClient = ProcessingManagementClientFactory.create(PROCESSING_URL);
         try {
             processingClient.registerWorker(WorkerRegister.DEFAULT_FAMILY, "1", workerBean);
             fail("Should have raized an exception");
-        } catch (WorkerAlreadyExistsException e) {
+        } catch (final WorkerAlreadyExistsException e) {
             processingClient.unregisterWorker(WorkerRegister.DEFAULT_FAMILY, "1");
         }
         processingClient.registerWorker(WorkerRegister.DEFAULT_FAMILY, "1", workerBean);
@@ -416,7 +417,7 @@ public class WorkerIT {
 
 
     private DefaultWorkerParameters getWorkParams() {
-        DefaultWorkerParameters workparams = (DefaultWorkerParameters) WorkerParametersFactory.newWorkerParameters();
+        final DefaultWorkerParameters workparams = WorkerParametersFactory.newWorkerParameters();
         workparams.setContainerName(CONTAINER_NAME);
         return workparams;
     }
@@ -437,7 +438,7 @@ public class WorkerIT {
     }
 
     private DescriptionStep getDescriptionStep(String stepFilePath) {
-        DescriptionStep descriptionStep = new DescriptionStep(getStep(stepFilePath), getWorkParams());
+        final DescriptionStep descriptionStep = new DescriptionStep(getStep(stepFilePath), getWorkParams());
         descriptionStep.getWorkParams().setContainerName(CONTAINER_NAME);
         descriptionStep.getWorkParams().setCurrentStep(descriptionStep.getStep().getStepName());
         descriptionStep.getWorkParams().setUrlMetadata(METADATA_URL);
@@ -449,16 +450,16 @@ public class WorkerIT {
     private String unitName() {
         String unitName = "";
         try {
-            InputStream stream = workspaceClient.getObject(CONTAINER_NAME,
+            final InputStream stream = workspaceClient.getObject(CONTAINER_NAME,
                 "UnitsLevel/ingestLevelStack.json");
-            Map<String, Object> map = JsonHandler.getMapFromString(IOUtils.toString(stream, "UTF-8"));
+            final Map<String, Object> map = JsonHandler.getMapFromString(IOUtils.toString(stream, "UTF-8"));
 
             @SuppressWarnings("rawtypes")
-            ArrayList levelUnits = (ArrayList) map.values().iterator().next();
+            final ArrayList levelUnits = (ArrayList) map.values().iterator().next();
             if (levelUnits.size() > 0) {
                 unitName = (String) levelUnits.get(0);
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error("Exception while retrieving objectGroup", e);
         }
         return unitName + ".xml";
@@ -467,11 +468,11 @@ public class WorkerIT {
     private String objectGroupName() {
         String objectName = "";
         try {
-            InputStream stream = workspaceClient.getObject(CONTAINER_NAME,
+            final InputStream stream = workspaceClient.getObject(CONTAINER_NAME,
                 "Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json");
-            Map<String, Object> map = JsonHandler.getMapFromString(IOUtils.toString(stream, "UTF-8"));
+            final Map<String, Object> map = JsonHandler.getMapFromString(IOUtils.toString(stream, "UTF-8"));
             objectName = (String) map.values().iterator().next();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error("Exception while retrieving objectGroup", e);
         }
         return objectName + ".json";

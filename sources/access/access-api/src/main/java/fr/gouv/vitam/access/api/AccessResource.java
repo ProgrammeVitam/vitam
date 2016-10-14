@@ -47,7 +47,7 @@ public interface AccessResource {
 
     /**
      * gets archive units by Id with Json query
-     * 
+     *
      * @param dslQuery DSK, null not allowed
      * @param headerParam X-Http-Method-Override header
      * @param unit_id units identifier
@@ -68,7 +68,7 @@ public interface AccessResource {
 
     /**
      * Retrieve an ObjectGroup by its id
-     * 
+     *
      * @param idObjectGroup the ObjectGroup id
      * @param query the json query
      * @return an http response containing the objectGroup as json or a json serialized error
@@ -78,7 +78,7 @@ public interface AccessResource {
     /**
      * POST version of getObjectGroup. Implicitly call getObjectGroup(String idObject, String query) if the "GET" value
      * is found in method override http header. Return an error otherwise.
-     * 
+     *
      * @param xHttpOverride value of the associated header
      * @param idObjectGroup the ObjectGroup id
      * @param query the json query
@@ -88,7 +88,7 @@ public interface AccessResource {
 
     /**
      * Retrieve an Object associated to the given ObjectGroup id based on given (via headers) Qualifier and Version
-     * 
+     *
      * @param headers http request headers
      * @param idObjectGroup the ObjectGroup id
      * @param query the DSL query as json
@@ -99,7 +99,7 @@ public interface AccessResource {
     /**
      * POST version of getObjectStream. Implicitly call getObjectStream(HttpHeaders headers, String idObjectGroup,
      * String query) if the "GET" value is found in method override http header. Return an error otherwise.
-     * 
+     *
      * @param headers http request headers
      * @param idObjectGroup the ObjectGroup id
      * @param query the DSL query as json

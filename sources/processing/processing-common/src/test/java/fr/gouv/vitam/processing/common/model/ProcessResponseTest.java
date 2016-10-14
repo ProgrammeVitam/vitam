@@ -37,13 +37,15 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import fr.gouv.vitam.common.model.StatusCode;
+
 public class ProcessResponseTest {
 
     private static String TEST = "test";
 
     @Test
     public void testConstructor() {
-        ProcessResponse processResponse = new ProcessResponse();
+        final ProcessResponse processResponse = new ProcessResponse();
         assertEquals(StatusCode.WARNING, processResponse.getStatus());
         assertTrue(processResponse.getOutcomeMessages().isEmpty());
         assertTrue(processResponse.getStepResponses().isEmpty());
@@ -57,11 +59,11 @@ public class ProcessResponseTest {
             .isEmpty());
 
         assertEquals(0, new ProcessResponse().getErrorNumber());
-        ArrayList<String> detailMessages = new ArrayList<String>();
+        final ArrayList<String> detailMessages = new ArrayList<String>();
         detailMessages.add(TEST);
         assertEquals(1, processResponse.setErrorNumber(detailMessages.size()).getErrorNumber());
-        Map<String, List<EngineResponse>> stepResponses = new HashMap<String, List<EngineResponse>>();
-        List<EngineResponse> processResponses = new ArrayList<EngineResponse>();
+        final Map<String, List<EngineResponse>> stepResponses = new HashMap<String, List<EngineResponse>>();
+        final List<EngineResponse> processResponses = new ArrayList<EngineResponse>();
         processResponses.add(processResponse.setStatus(StatusCode.KO));
         processResponses.add(new ProcessResponse().setStatus(StatusCode.OK));
 

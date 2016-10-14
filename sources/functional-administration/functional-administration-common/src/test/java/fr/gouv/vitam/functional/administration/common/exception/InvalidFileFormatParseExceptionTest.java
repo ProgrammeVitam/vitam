@@ -31,8 +31,6 @@ import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 
-import fr.gouv.vitam.functional.administration.common.exception.InvalidFileFormatParseException;
-
 public class InvalidFileFormatParseExceptionTest {
     @Test
     public final void testFileFormatException() {

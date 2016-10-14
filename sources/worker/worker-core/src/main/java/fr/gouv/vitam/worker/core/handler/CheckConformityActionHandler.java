@@ -46,6 +46,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -54,17 +55,15 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCycleClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.OutcomeMessage;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
-import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.utils.BinaryObjectInfo;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
@@ -85,7 +84,7 @@ public class CheckConformityActionHandler extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckConformityActionHandler.class);
     private static final String HANDLER_ID = "CheckConformity";
     LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters();
-    private static final LogbookLifeCycleClient LOGBOOK_LIFECYCLE_CLIENT = LogbookLifeCyclesClientFactory.getInstance()
+    private static final LogbookLifeCyclesClient LOGBOOK_LIFECYCLE_CLIENT = LogbookLifeCyclesClientFactory.getInstance()
         .getLogbookLifeCyclesClient();
 
     public static final String JSON_EXTENSION = ".json";
@@ -101,8 +100,8 @@ public class CheckConformityActionHandler extends ActionHandler {
     private HandlerIO handlerIO;
 
     /**
-     * Empty constructor CheckConformityActionHandler 
-     * 
+     * Empty constructor CheckConformityActionHandler
+     *
      */
     public CheckConformityActionHandler() {
         // empty constructor
@@ -126,7 +125,7 @@ public class CheckConformityActionHandler extends ActionHandler {
 
         try {
             checkMandatoryIOParameter(handlerIO);
-            List<String> digestMessageInvalidList = checkConformityBinaryObject(params);
+            final List<String> digestMessageInvalidList = checkConformityBinaryObject(params);
             if (!digestMessageInvalidList.isEmpty()) {
                 response.setErrorNumber(digestMessageInvalidList.size());
                 response.setStatus(StatusCode.KO);
@@ -141,7 +140,7 @@ public class CheckConformityActionHandler extends ActionHandler {
         LOGGER.debug("CheckConformityActionHandler response: ", response.getStatus().name());
         return response;
     }
-    
+
     /**
      * check the conformity of the binary object
      *
@@ -156,37 +155,37 @@ public class CheckConformityActionHandler extends ActionHandler {
     public List<String> checkConformityBinaryObject(WorkerParameters params)
         throws ProcessingException, ContentAddressableStorageNotFoundException,
         ContentAddressableStorageServerException, ContentAddressableStorageException {
-        ParameterHelper.checkNullOrEmptyParameters(params);        
+        ParameterHelper.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
         final WorkspaceClient client = WorkspaceClientFactory.create(params.getUrlWorkspace());
 
-        
+
 
         final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
         XMLEventReader reader = null;
 
-        try(InputStream xmlFile = new FileInputStream((File) handlerIO.getInput().get(0))) {
+        try (InputStream xmlFile = new FileInputStream((File) handlerIO.getInput().get(0))) {
             reader = xmlInputFactory.createXMLEventReader(xmlFile);
-            List<String> digestMessageInvalidList = compareDigestMessage(reader, client, containerId);
+            final List<String> digestMessageInvalidList = compareDigestMessage(reader, client, containerId);
             reader.close();
             xmlFile.close();
             return digestMessageInvalidList;
         } catch (final XMLStreamException e) {
             LOGGER.error(CANNOT_READ_SEDA);
             throw new ProcessingException(e);
-        } catch (LogbookClientException e) {
-            LOGGER.error(LOGBOOK_CLIENT_EXCEPTION,e);
+        } catch (final LogbookClientException e) {
+            LOGGER.error(LOGBOOK_CLIENT_EXCEPTION, e);
             throw new ProcessingException(e);
         } catch (InvalidParseOperationException | IOException e) {
             LOGGER.error(LOGBOOK_LF_MAPS_PARSING_EXCEPTION_MSG);
             throw new ProcessingException(e);
         }
     }
-    
+
     /**
      * Compare the digest message between the manifest.xml and related uri content in workspace container
      *
-     * 
+     *
      * @param evenReader manifest xml reader
      * @param client workspace client instance
      * @param containerId container id
@@ -214,22 +213,23 @@ public class CheckConformityActionHandler extends ActionHandler {
         final Map<String, BinaryObjectInfo> binaryObjectMap = sedaUtilInfo.getBinaryObjectMap();
         final List<String> digestMessageInvalidList = new ArrayList<>();
 
-        InputStream firstMapTmpFile = new FileInputStream((File) handlerIO.getInput().get(1));
-        InputStream secondMapTmpFile = new FileInputStream((File) handlerIO.getInput().get(2));
-        String firstStoredMap = IOUtils.toString(firstMapTmpFile, "UTF-8");
-        String secondStoredMap = IOUtils.toString(secondMapTmpFile, "UTF-8");
+        final InputStream firstMapTmpFile = new FileInputStream((File) handlerIO.getInput().get(1));
+        final InputStream secondMapTmpFile = new FileInputStream((File) handlerIO.getInput().get(2));
+        final String firstStoredMap = IOUtils.toString(firstMapTmpFile, "UTF-8");
+        final String secondStoredMap = IOUtils.toString(secondMapTmpFile, "UTF-8");
 
-        Map<String, Object> binaryDataObjectIdToObjectGroupIdBackupMap = JsonHandler.getMapFromString(firstStoredMap);
-        Map<String, Object> objectGroupIdToGuidBackupMap = JsonHandler.getMapFromString(secondStoredMap);
+        final Map<String, Object> binaryDataObjectIdToObjectGroupIdBackupMap =
+            JsonHandler.getMapFromString(firstStoredMap);
+        final Map<String, Object> objectGroupIdToGuidBackupMap = JsonHandler.getMapFromString(secondStoredMap);
 
         for (final String mapKey : binaryObjectMap.keySet()) {
 
             // Update OG lifecycle
-            String bdoXmlId = binaryObjectMap.get(mapKey).getId();
-            String objectGroupId = (String) binaryDataObjectIdToObjectGroupIdBackupMap.get(bdoXmlId);
+            final String bdoXmlId = binaryObjectMap.get(mapKey).getId();
+            final String objectGroupId = (String) binaryDataObjectIdToObjectGroupIdBackupMap.get(bdoXmlId);
             LogbookLifeCycleObjectGroupParameters logbookLifeCycleObjGrpParam = null;
             if (objectGroupId != null) {
-                String objectGroupGuid = (String) objectGroupIdToGuidBackupMap.get(objectGroupId);
+                final String objectGroupGuid = (String) objectGroupIdToGuidBackupMap.get(objectGroupId);
                 logbookLifeCycleObjGrpParam = updateObjectGroupLifeCycleOnBdoCheck(objectGroupGuid, bdoXmlId,
                     containerId);
             }
@@ -246,9 +246,9 @@ public class CheckConformityActionHandler extends ActionHandler {
                 // Set KO status
                 if (logbookLifeCycleObjGrpParam != null) {
                     logbookLifeCycleObjGrpParam.putParameterValue(LogbookParameterName.outcome,
-                        LogbookOutcome.WARNING.name());
+                        StatusCode.WARNING.name());
                     logbookLifeCycleObjGrpParam.putParameterValue(LogbookParameterName.outcomeDetail,
-                        LogbookOutcome.WARNING.name());
+                        StatusCode.WARNING.name());
                     logbookLifeCycleObjGrpParam.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                         OutcomeMessage.CHECK_BDO_KO.value() + " " + binaryObjectMap.get(mapKey).getId());
                     LOGBOOK_LIFECYCLE_CLIENT.update(logbookLifeCycleObjGrpParam);
@@ -259,9 +259,9 @@ public class CheckConformityActionHandler extends ActionHandler {
                 // Set OK status
                 if (logbookLifeCycleObjGrpParam != null) {
                     logbookLifeCycleObjGrpParam.putParameterValue(LogbookParameterName.outcome,
-                        LogbookOutcome.OK.name());
+                        StatusCode.OK.name());
                     logbookLifeCycleObjGrpParam.putParameterValue(LogbookParameterName.outcomeDetail,
-                        LogbookOutcome.OK.name());
+                        StatusCode.OK.name());
                     logbookLifeCycleObjGrpParam.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                         OutcomeMessage.CHECK_BDO_OK.value());
                     LOGBOOK_LIFECYCLE_CLIENT.update(logbookLifeCycleObjGrpParam);
@@ -275,9 +275,9 @@ public class CheckConformityActionHandler extends ActionHandler {
 
     private LogbookLifeCycleObjectGroupParameters updateObjectGroupLifeCycleOnBdoCheck(String objectGroupGuid,
         String bdoXmlId, String containerId) throws LogbookClientBadRequestException,
-            LogbookClientAlreadyExistsException, LogbookClientServerException, LogbookClientNotFoundException {
+        LogbookClientAlreadyExistsException, LogbookClientServerException, LogbookClientNotFoundException {
 
-        LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters =
+        final LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters =
             (LogbookLifeCycleObjectGroupParameters) initLogbookLifeCycleParameters(
                 objectGroupGuid, true);
 
@@ -289,25 +289,26 @@ public class CheckConformityActionHandler extends ActionHandler {
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventType,
             OG_LIFE_CYCLE_CHECK_BDO_EVENT_TYPE);
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcome,
-            LogbookOutcome.STARTED.toString());
+            StatusCode.STARTED.toString());
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-            LogbookOutcome.STARTED.toString());
+            StatusCode.STARTED.toString());
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
             OutcomeMessage.CHECK_BDO.value());
         LOGBOOK_LIFECYCLE_CLIENT.update(logbookLifecycleObjectGroupParameters);
 
         return logbookLifecycleObjectGroupParameters;
     }
-    
+
     private LogbookParameters initLogbookLifeCycleParameters(String guid, boolean isObjectGroup) {
-        LogbookParameters logbookLifeCycleParameters = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
+        final LogbookParameters logbookLifeCycleParameters =
+            LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
         logbookLifeCycleParameters.putParameterValue(LogbookParameterName.objectIdentifier, guid);
         return logbookLifeCycleParameters;
     }
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        //TODO Add Workspace:SIP/manifest.xml and check it 
-        
+        // TODO Add Workspace:SIP/manifest.xml and check it
+
     }
 }

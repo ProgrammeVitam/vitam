@@ -96,16 +96,16 @@ class FSProvider implements StorageStrategyProvider, StorageOfferProvider {
     private void initReferentials() {
         try {
             loadReferential(ReferentialType.STRATEGY);
-        } catch (IOException exc) {
+        } catch (final IOException exc) {
             LOGGER.warn("Couldn't load " + STRATEGY_FILENAME + " file", exc);
-        } catch (InvalidParseOperationException exc) {
+        } catch (final InvalidParseOperationException exc) {
             LOGGER.warn("Couldn't parse " + STRATEGY_FILENAME + " file", exc);
         }
         try {
             loadReferential(ReferentialType.OFFER);
-        } catch (IOException exc) {
+        } catch (final IOException exc) {
             LOGGER.warn("Couldn't load " + OFFER_FILENAME + " file", exc);
-        } catch (InvalidParseOperationException exc) {
+        } catch (final InvalidParseOperationException exc) {
             LOGGER.warn("Couldn't parse " + OFFER_FILENAME + " file", exc);
         }
     }

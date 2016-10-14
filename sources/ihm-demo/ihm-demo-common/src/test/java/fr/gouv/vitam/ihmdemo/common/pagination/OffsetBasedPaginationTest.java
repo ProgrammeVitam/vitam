@@ -24,8 +24,8 @@ public class OffsetBasedPaginationTest {
     }
 
     @Test
-    public void testPaginationConstructor(){
-        OffsetBasedPagination paginationEmptyConstructor = new OffsetBasedPagination();
+    public void testPaginationConstructor() {
+        final OffsetBasedPagination paginationEmptyConstructor = new OffsetBasedPagination();
         assertEquals(PaginationParameters.DEFAULT_OFFSET, paginationEmptyConstructor.getOffset());
         assertEquals(PaginationParameters.DEFAULT_LIMIT, paginationEmptyConstructor.getLimit());
 
@@ -34,7 +34,7 @@ public class OffsetBasedPaginationTest {
         assertEquals(100, paginationOffsetLimit.getLimit());
         assertEquals(0, paginationOffsetLimit.getTotal());
 
-        paginationOffsetLimit = new OffsetBasedPagination(12, 101,1000);
+        paginationOffsetLimit = new OffsetBasedPagination(12, 101, 1000);
         assertEquals(12, paginationOffsetLimit.getOffset());
         assertEquals(101, paginationOffsetLimit.getLimit());
         assertEquals(1000, paginationOffsetLimit.getTotal());
@@ -45,11 +45,11 @@ public class OffsetBasedPaginationTest {
             Collections.singletonList("2"));
 
         try {
-            OffsetBasedPagination paginationHeaders= new OffsetBasedPagination(httpHeadersMock);
+            final OffsetBasedPagination paginationHeaders = new OffsetBasedPagination(httpHeadersMock);
             assertEquals(1, paginationHeaders.getOffset());
             assertEquals(2, paginationHeaders.getLimit());
             assertEquals(0, paginationHeaders.getTotal());
-        } catch (VitamException e) {
+        } catch (final VitamException e) {
             fail();
         }
 
@@ -60,8 +60,7 @@ public class OffsetBasedPaginationTest {
         try {
             new OffsetBasedPagination(httpHeadersMock);
             fail();
-        } catch (VitamException e) {
-        }
+        } catch (final VitamException e) {}
 
         Mockito.when(httpHeadersMock.getRequestHeader(IhmWebAppHeader.OFFSET.getName())).thenReturn(
             Collections.singletonList("-1"));
@@ -69,8 +68,7 @@ public class OffsetBasedPaginationTest {
         try {
             new OffsetBasedPagination(httpHeadersMock);
             fail();
-        } catch (VitamException e) {
-        }
+        } catch (final VitamException e) {}
 
 
         Mockito.when(httpHeadersMock.getRequestHeader(IhmWebAppHeader.OFFSET.getName())).thenReturn(
@@ -81,8 +79,7 @@ public class OffsetBasedPaginationTest {
         try {
             new OffsetBasedPagination(httpHeadersMock);
             fail();
-        } catch (VitamException e) {
-        }
+        } catch (final VitamException e) {}
 
         Mockito.when(httpHeadersMock.getRequestHeader(IhmWebAppHeader.LIMIT.getName())).thenReturn(
             Collections.singletonList("0"));
@@ -90,8 +87,7 @@ public class OffsetBasedPaginationTest {
         try {
             new OffsetBasedPagination(httpHeadersMock);
             fail();
-        } catch (VitamException e) {
-        }
+        } catch (final VitamException e) {}
 
     }
 }

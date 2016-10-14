@@ -38,14 +38,6 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.error.VitamCode;
-import fr.gouv.vitam.common.error.VitamCodeHelper;
-import fr.gouv.vitam.common.logging.SysErrLogger;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.storage.engine.common.exception.StorageDriverMapperException;
-
 /**
  * The driver mapper implementation. Using file to persist driver / offer association. One file by driver (the filename
  * is the driver name). In the file, offers are isolated by delimiter.
@@ -63,7 +55,7 @@ public class FileDriverMapper implements DriverMapper {
         try {
             configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(DRIVER_MAPPING_CONF_FILE),
                 FileDriverMapperConfiguration.class);
-        } catch (IOException exc) {
+        } catch (final IOException exc) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_DRIVER_MAPPING_INITIALIZE), exc);
         }
     }
@@ -86,12 +78,12 @@ public class FileDriverMapper implements DriverMapper {
     public List<String> getOffersFor(String driverName) throws StorageDriverMapperException {
         try {
             return getOfferIdsFrom(getDriverFile(driverName));
-        } catch (FileNotFoundException exc) {
+        } catch (final FileNotFoundException exc) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(exc);
             LOGGER.warn("Configuration file not found for {}, then return empty list", driverName);
             return new ArrayList<>();
-        } catch (IOException exc) {
-            String log = VitamCodeHelper.getLogMessage(VitamCode.STORAGE_DRIVER_MAPPER_FILE_CONTENT, driverName);
+        } catch (final IOException exc) {
+            final String log = VitamCodeHelper.getLogMessage(VitamCode.STORAGE_DRIVER_MAPPER_FILE_CONTENT, driverName);
             LOGGER.error(log);
             throw new StorageDriverMapperException(log, exc);
         }
@@ -107,7 +99,7 @@ public class FileDriverMapper implements DriverMapper {
     @Override
     public void addOffersTo(List<String> offersIdsToAdd, String driverName) throws StorageDriverMapperException {
         List<String> offerIds = getOfferIdsList(driverName);
-        for (String offerIdToAdd : offersIdsToAdd) {
+        for (final String offerIdToAdd : offersIdsToAdd) {
             offerIds = addOfferTo(offerIdToAdd, offerIds);
         }
         persistDriverMapping(driverName, offerIds);
@@ -124,7 +116,7 @@ public class FileDriverMapper implements DriverMapper {
     @Override
     public void removeOffersTo(List<String> offersIdsToRemove, String driverName) throws StorageDriverMapperException {
         List<String> offerIds = getOfferIdsList(driverName);
-        for (String offerIdToRemove : offersIdsToRemove) {
+        for (final String offerIdToRemove : offersIdsToRemove) {
             offerIds = removeOfferTo(offerIdToRemove, offerIds);
         }
         persistDriverMapping(driverName, offerIds);
@@ -135,13 +127,13 @@ public class FileDriverMapper implements DriverMapper {
     }
 
     private List<String> getOfferIdsFrom(File fileDriverMapping) throws IOException {
-        String content = com.google.common.io.Files.readFirstLine(fileDriverMapping, Charset.defaultCharset());
+        final String content = com.google.common.io.Files.readFirstLine(fileDriverMapping, Charset.defaultCharset());
         return content == null ? new ArrayList<>()
             : Pattern.compile(configuration.getDelimiter()).splitAsStream(content).collect(Collectors.toList());
     }
 
     private List<String> addOfferTo(String offerId, List<String> offerMapping) {
-        int index = offerMapping.indexOf(offerId);
+        final int index = offerMapping.indexOf(offerId);
         if (index >= 0) {
             LOGGER.warn("Offer ID {} already associated to the driver !", offerId);
         } else {
@@ -151,7 +143,7 @@ public class FileDriverMapper implements DriverMapper {
     }
 
     private List<String> removeOfferTo(String offerId, List<String> offerMapping) {
-        int index = offerMapping.indexOf(offerId);
+        final int index = offerMapping.indexOf(offerId);
         if (index >= 0) {
             offerMapping.remove(index);
         } else {
@@ -168,11 +160,11 @@ public class FileDriverMapper implements DriverMapper {
         List<String> offerIds = null;
         try {
             offerIds = getOfferIdsFrom(getDriverFile(driverName));
-        } catch (FileNotFoundException exc) {
+        } catch (final FileNotFoundException exc) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(exc);
             LOGGER.warn("Configuration file not found for {}, then return empty list", driverName);
-        } catch (IOException exc) {
-            String log = VitamCodeHelper.getLogMessage(VitamCode.STORAGE_DRIVER_MAPPER_FILE_CONTENT, driverName);
+        } catch (final IOException exc) {
+            final String log = VitamCodeHelper.getLogMessage(VitamCode.STORAGE_DRIVER_MAPPER_FILE_CONTENT, driverName);
             LOGGER.error(log);
             throw new StorageDriverMapperException(log, exc);
         }
@@ -186,8 +178,8 @@ public class FileDriverMapper implements DriverMapper {
         try {
             Files.write(Paths.get(configuration.getDriverMappingPath() + driverName),
                 getContentFrom(offerIds).getBytes());
-        } catch (IOException exc) {
-            String log = VitamCodeHelper.getLogMessage(VitamCode.STORAGE_DRIVER_MAPPING_SAVE, driverName);
+        } catch (final IOException exc) {
+            final String log = VitamCodeHelper.getLogMessage(VitamCode.STORAGE_DRIVER_MAPPING_SAVE, driverName);
             LOGGER.error(log);
             throw new StorageDriverMapperException(log, exc);
         }

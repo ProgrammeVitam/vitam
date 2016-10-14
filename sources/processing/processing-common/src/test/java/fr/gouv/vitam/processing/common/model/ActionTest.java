@@ -35,8 +35,8 @@ public class ActionTest {
 
     @Test
     public void testConstructor() {
-        ActionDefinition actionDefinition = new ActionDefinition();
-        Action action = new Action();        
+        final ActionDefinition actionDefinition = new ActionDefinition();
+        final Action action = new Action();
         assertEquals("", actionDefinition.getActionKey());
         actionDefinition.setActionKey(TEST);
         actionDefinition.setBehavior(ProcessBehavior.BLOCKING);

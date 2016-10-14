@@ -33,9 +33,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  *
- * ActionDefinition class 
- * This class is used to define an action
- * It has for the moment 2 fields actionKey and actionType
+ * ActionDefinition class This class is used to define an action It has for the moment 2 fields actionKey and actionType
  *
  */
 @JsonIgnoreProperties(ignoreUnknown = false)
@@ -46,12 +44,12 @@ public class ActionDefinition {
 
     @JsonProperty("behavior")
     private ProcessBehavior behavior;
-    
+
     @JsonProperty("in")
     private List<IOParameter> in;
     @JsonProperty("out")
     private List<IOParameter> out;
-    
+
     /**
      *
      * @return actionKey the action key
@@ -66,67 +64,67 @@ public class ActionDefinition {
     /**
      * set action key
      *
-     * @param actionKey the key of the action 
+     * @param actionKey the key of the action
      * @return the updated ActionDefinition object
      */
     public ActionDefinition setActionKey(String actionKey) {
         this.actionKey = actionKey;
         return this;
     }
-    
+
     /**
-    *
-    * @return ({ProcessBehavior}) Type of action object or bean
-    */
-   public ProcessBehavior getBehavior() {
-       return behavior;
-   }
+     *
+     * @return ({ProcessBehavior}) Type of action object or bean
+     */
+    public ProcessBehavior getBehavior() {
+        return behavior;
+    }
 
-   /**
-    * set action type
-    *
-    * @param actionType the type of the action
-    * @return the updated ActionDefinition object
-    */
-   public ActionDefinition setBehavior(ProcessBehavior behavior) {
-       this.behavior = behavior;
-       return this;
-   }
-   
+    /**
+     * set action type
+     *
+     * @param actionType the type of the action
+     * @return the updated ActionDefinition object
+     */
+    public ActionDefinition setBehavior(ProcessBehavior behavior) {
+        this.behavior = behavior;
+        return this;
+    }
 
-   /**
-    * @return the in
-    */
-   public List<IOParameter> getIn() {
-       return in;
-   }
 
-   /**
-    * @param in the in to set
-    *
-    * @return this Action
-    */
-   public ActionDefinition setIn(List<IOParameter> in) {
-       this.in = in;
-       return this;
-   }
+    /**
+     * @return the in
+     */
+    public List<IOParameter> getIn() {
+        return in;
+    }
 
-   /**
-    * @return the out
-    */
-   public List<IOParameter> getOut() {
-       return out;
-   }
+    /**
+     * @param in the in to set
+     *
+     * @return this Action
+     */
+    public ActionDefinition setIn(List<IOParameter> in) {
+        this.in = in;
+        return this;
+    }
 
-   /**
-    * @param out the out to set
-    *
-    * @return this Action
-    */
-   public ActionDefinition setOut(List<IOParameter> out) {
-       this.out = out;
-       return this;
-   }
+    /**
+     * @return the out
+     */
+    public List<IOParameter> getOut() {
+        return out;
+    }
+
+    /**
+     * @param out the out to set
+     *
+     * @return this Action
+     */
+    public ActionDefinition setOut(List<IOParameter> out) {
+        this.out = out;
+        return this;
+    }
 
 
 

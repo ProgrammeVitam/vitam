@@ -52,14 +52,14 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.operations.client.LogbookClientFactory.LogbookClientType;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory.LogbookClientType;
 import fr.gouv.vitam.logbook.rest.LogbookApplication;
 import fr.gouv.vitam.logbook.rest.LogbookConfiguration;
 
@@ -87,28 +87,28 @@ public class LogbookResourceIT {
     public static void setUpBeforeClass() throws Exception {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
-        
-        junitHelper = new JunitHelper();
-        
-       
+
+        junitHelper = JunitHelper.getInstance();
+
+
         databasePort = junitHelper.findAvailablePort();
-        
+
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .version(Version.Main.PRODUCTION)
             .net(new Net(databasePort, Network.localhostIsIPv6()))
             .build());
-        
+
         mongod = mongodExecutable.start();
         serverPort = junitHelper.findAvailablePort();
 
         try {
-            LogbookConfiguration logbookConf = new LogbookConfiguration();
+            final LogbookConfiguration logbookConf = new LogbookConfiguration();
             logbookConf.setDbHost(SERVER_HOST).setDbName("vitam-test").setDbPort(databasePort);
             logbookConf.setJettyConfig(JETTY_CONFIG);
             SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
             LogbookApplication.run(logbookConf);
-            
+
             RestAssured.port = serverPort;
             RestAssured.basePath = REST_URI;
         } catch (final VitamApplicationServerException e) {
@@ -117,25 +117,25 @@ public class LogbookResourceIT {
                 "Cannot start the Logbook Application Server", e);
         }
 
-        LogbookClientFactory.setConfiguration(LogbookClientType.OPERATIONS, DATABASE_HOST, serverPort);
+        LogbookOperationsClientFactory.setConfiguration(LogbookClientType.OPERATIONS, DATABASE_HOST, serverPort);
         LOGGER.debug("Initialize client: " + DATABASE_HOST + ":" + serverPort);
 
         final GUID eip = GUIDFactory.newOperationIdGUID(0);
         logbookParametersStart = LogbookParametersFactory.newLogbookOperationParameters(
             eip, "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
-            LogbookOutcome.STARTED, "start ingest", eip);
+            StatusCode.STARTED, "start ingest", eip);
         logbookParametersAppend = LogbookParametersFactory.newLogbookOperationParameters(
             GUIDFactory.newOperationIdGUID(0),
             "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
-            LogbookOutcome.OK, "end ingest", eip);
+            StatusCode.OK, "end ingest", eip);
         logbookParametersWrongStart = LogbookParametersFactory.newLogbookOperationParameters(
             eip,
             "eventTypeValue2", eip, LogbookTypeProcess.INGEST,
-            LogbookOutcome.STARTED, "start ingest", eip);
+            StatusCode.STARTED, "start ingest", eip);
         logbookParametersWrongAppend = LogbookParametersFactory.newLogbookOperationParameters(
             GUIDFactory.newOperationIdGUID(0),
             "eventTypeValue2", GUIDFactory.newOperationIdGUID(0), LogbookTypeProcess.INGEST,
-            LogbookOutcome.OK, "end ingest", eip);
+            StatusCode.OK, "end ingest", eip);
     }
 
     @AfterClass
@@ -162,8 +162,8 @@ public class LogbookResourceIT {
         logbookParametersStart.putParameterValue(LogbookParameterName.agentIdentifier,
             ServerIdentity.getInstance().getJsonIdentity());
 
-        final LogbookClient client =
-            LogbookClientFactory.getInstance().getLogbookOperationClient();
+        final LogbookOperationsClient client =
+            LogbookOperationsClientFactory.getInstance().getLogbookOperationClient();
 
         client.create(logbookParametersStart);
 

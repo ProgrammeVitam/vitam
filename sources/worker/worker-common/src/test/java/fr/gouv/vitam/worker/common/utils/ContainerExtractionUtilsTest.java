@@ -38,7 +38,7 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
+import org.mockito.Matchers;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -82,13 +82,14 @@ public class ContainerExtractionUtilsTest {
     @Test
     public void givenWorkspaceExistWhenGetUriListThenReturnOK() throws ProcessingException {
 
-        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
+        PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
         when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject())).thenReturn(uriListWorkspace);
         containerExtractionUtils = new ContainerExtractionUtils();
-        WorkerParameters workParams = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory.newGUID
-            ()).setUrlWorkspace("fakeURL").setUrlMetadata("fakeURL").setObjectName(folder);
+        final WorkerParameters workParams =
+            WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory.newGUID())
+                .setUrlWorkspace("fakeURL").setUrlMetadata("fakeURL").setObjectName(folder);
 
-        ContainerExtractionUtilsFactory factory = new ContainerExtractionUtilsFactory();
+        final ContainerExtractionUtilsFactory factory = new ContainerExtractionUtilsFactory();
         containerExtractionUtils = factory.create();
         uriListWorkspace = containerExtractionUtils.getDigitalObjectUriListFromWorkspace(workParams);
 

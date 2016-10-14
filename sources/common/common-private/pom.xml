@@ -51,20 +51,9 @@
 			</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>org.glassfish.jersey.media</groupId>
-			<artifactId>jersey-media-json-jackson</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.fasterxml.jackson.dataformat</groupId>
-			<artifactId>jackson-dataformat-yaml</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.glassfish.jersey.media</groupId>
-			<artifactId>jersey-media-multipart</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>org.glassfish.jersey.connectors</groupId>
 			<artifactId>jersey-jetty-connector</artifactId>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.glassfish.jersey.test-framework.providers</groupId>
@@ -74,10 +63,6 @@
 		<dependency>
 			<groupId>com.mikesamuel</groupId>
 			<artifactId>json-sanitizer</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-lang3</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.owasp.esapi</groupId>
@@ -165,5 +150,61 @@
             <artifactId>rest-assured</artifactId>
             <scope>test</scope>
         </dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>common-http-interface</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.glassfish.jersey.media</groupId>
+			<artifactId>jersey-media-json-jackson</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.dataformat</groupId>
+			<artifactId>jackson-dataformat-yaml</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.media</groupId>
+			<artifactId>jersey-media-multipart</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.connectors</groupId>
+			<artifactId>jersey-apache-connector</artifactId>
+			<version>${jersey.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+		</dependency>
+		<dependency>
+			<!-- Keep for test case -->
+			<groupId>org.glassfish.jersey.connectors</groupId>
+			<artifactId>jersey-jetty-connector</artifactId>
+			<!-- <scope>test</scope> -->
+		</dependency>
+		<dependency>
+			<!-- Keep for test case -->
+			<groupId>org.glassfish.jersey.connectors</groupId>
+			<artifactId>jersey-grizzly-connector</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<!-- Keep for test case -->
+			<groupId>org.glassfish.jersey.connectors</groupId>
+			<artifactId>jersey-netty-connector</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<!-- Keep for test case -->
+			<groupId>io.netty</groupId>
+			<artifactId>netty-all</artifactId>
+			<scope>test</scope>
+		</dependency>
+
 	</dependencies>
 </project>

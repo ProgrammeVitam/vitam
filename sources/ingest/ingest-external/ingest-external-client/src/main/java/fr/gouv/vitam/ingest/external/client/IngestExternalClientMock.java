@@ -54,9 +54,9 @@ public class IngestExternalClientMock implements IngestExternalClient {
             throw new IngestExternalException("stream is null");
         }
         String result = "";
-        try(InputStream inputstreamATR = PropertiesUtils.getResourcesAsStream("ATR_example.xml")) {
+        try (InputStream inputstreamATR = PropertiesUtils.getResourcesAsStream("ATR_example.xml")) {
             result = FileUtil.readInputStream(inputstreamATR);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             LOGGER.debug("Get Mock result error");
         }
         LOGGER.debug("Running mock upload");

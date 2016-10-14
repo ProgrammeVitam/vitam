@@ -45,7 +45,7 @@ public class IngestExternalConfiguration {
     public IngestExternalConfiguration() {
         // Empty constructor
     }
-    
+
     /**
      * @return host
      */
@@ -77,7 +77,7 @@ public class IngestExternalConfiguration {
         this.port = port;
         return this;
     }
-    
+
     /**
      * @return path
      */
@@ -128,7 +128,7 @@ public class IngestExternalConfiguration {
         this.authentication = authentication;
         return this;
     }
-    
+
     /**
      * @return antiVirusScriptName
      */
@@ -144,7 +144,7 @@ public class IngestExternalConfiguration {
         this.antiVirusScriptName = antiVirusScriptName;
         return this;
     }
-    
+
     /**
      * @return long
      */

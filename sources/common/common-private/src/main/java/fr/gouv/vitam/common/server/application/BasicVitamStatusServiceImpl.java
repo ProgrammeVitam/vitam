@@ -33,8 +33,8 @@ import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
  * BasicVitamStatusServiceImpl : Manage Basic Functionality of Status Service
- * 
- * 
+ *
+ *
  */
 public class BasicVitamStatusServiceImpl implements VitamStatusService {
 

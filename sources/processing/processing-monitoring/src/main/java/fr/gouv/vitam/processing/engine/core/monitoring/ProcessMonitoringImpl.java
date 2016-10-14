@@ -30,9 +30,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
-import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.model.WorkFlow;
 
@@ -54,7 +54,7 @@ public class ProcessMonitoringImpl implements ProcessMonitoring {
 
 
     /**
-     * 
+     *
      * Get the Process Monitoring instance
      *
      * @return the ProcessMonitoring instance
@@ -67,11 +67,11 @@ public class ProcessMonitoringImpl implements ProcessMonitoring {
     @Override
     public Map<String, ProcessStep> initOrderedWorkflow(String processId, WorkFlow workflow, String containerName)
         throws IllegalArgumentException {
-        Map<String, ProcessStep> orderedWorkflow = new LinkedHashMap<>();
+        final Map<String, ProcessStep> orderedWorkflow = new LinkedHashMap<>();
         String uniqueId;
         int iterator = 0;
         for (final Step step : workflow.getSteps()) {
-            ProcessStep processStep = new ProcessStep(step, 0, 0);
+            final ProcessStep processStep = new ProcessStep(step, 0, 0);
             uniqueId = containerName + "_" + workflow.getId() + "_" + iterator++ + "_" + step.getStepName();
             orderedWorkflow.put(uniqueId, processStep);
         }
@@ -83,9 +83,9 @@ public class ProcessMonitoringImpl implements ProcessMonitoring {
     public void updateStep(String processId, String uniqueId, long elementToProcess, boolean elementProcessed)
         throws ProcessingException {
         if (WORKFLOWS_LIST.containsKey(processId)) {
-            Map<String, ProcessStep> orderedSteps = WORKFLOWS_LIST.get(processId);
+            final Map<String, ProcessStep> orderedSteps = WORKFLOWS_LIST.get(processId);
             if (orderedSteps.containsKey(uniqueId)) {
-                ProcessStep step = orderedSteps.get(uniqueId);
+                final ProcessStep step = orderedSteps.get(uniqueId);
                 if (elementProcessed) {
                     step.setElementProcessed(step.getElementProcessed() + 1);
                 } else {
@@ -114,9 +114,9 @@ public class ProcessMonitoringImpl implements ProcessMonitoring {
     @Override
     public void updateStepStatus(String processId, String uniqueId, StatusCode status) throws ProcessingException {
         if (WORKFLOWS_LIST.containsKey(processId)) {
-            Map<String, ProcessStep> orderedSteps = WORKFLOWS_LIST.get(processId);
+            final Map<String, ProcessStep> orderedSteps = WORKFLOWS_LIST.get(processId);
             if (orderedSteps.containsKey(uniqueId)) {
-                ProcessStep step = orderedSteps.get(uniqueId);
+                final ProcessStep step = orderedSteps.get(uniqueId);
                 step.setStepStatusCode(status);
                 orderedSteps.put(uniqueId, step);
                 WORKFLOWS_LIST.put(processId, orderedSteps);

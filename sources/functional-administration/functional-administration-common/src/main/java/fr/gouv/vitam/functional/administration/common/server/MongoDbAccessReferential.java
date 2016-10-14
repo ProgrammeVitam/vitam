@@ -40,7 +40,7 @@ public interface MongoDbAccessReferential {
 
     /**
      * insert documents
-     * 
+     *
      * @param arrayNode of documents
      * @param collection collection of Mongo for insert
      * @throws ReferentialException when error occurs
@@ -49,7 +49,7 @@ public interface MongoDbAccessReferential {
 
     /**
      * Drop FileFormat collections
-     * 
+     *
      * @param collection collection of Mongo for insert
      */
     public void deleteCollection(FunctionalAdminCollections collection);

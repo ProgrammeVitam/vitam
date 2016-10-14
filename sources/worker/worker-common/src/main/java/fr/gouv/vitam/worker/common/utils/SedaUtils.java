@@ -57,17 +57,16 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCycleClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -85,7 +84,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 public class SedaUtils {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SedaUtils.class);
-    private static final LogbookLifeCycleClient LOGBOOK_LIFECYCLE_CLIENT = LogbookLifeCyclesClientFactory.getInstance()
+    private static final LogbookLifeCyclesClient LOGBOOK_LIFECYCLE_CLIENT = LogbookLifeCyclesClientFactory.getInstance()
         .getLogbookLifeCyclesClient();
 
     private static final String NAMESPACE_URI = "fr:gouv:culture:archivesdefrance:seda:v2.0";
@@ -111,7 +110,7 @@ public class SedaUtils {
     // objectGroup referenced before declaration
     private final Map<String, String> unitIdToGuid;
 
-    private final Map<String, String> binaryDataObjectIdToObjectGroupId;    
+    private final Map<String, String> binaryDataObjectIdToObjectGroupId;
     private final Map<String, List<String>> objectGroupIdToBinaryDataObjectId;
     private final Map<String, String> unitIdToGroupId;
 
@@ -168,7 +167,7 @@ public class SedaUtils {
 
     /**
      * get Message Identifier from seda
-     * 
+     *
      * @param params parameters of workspace server
      * @return message id
      * @throws ProcessingException throw when can't read or extract message id from SEDA
@@ -225,7 +224,7 @@ public class SedaUtils {
         throws ProcessingException {
 
         try {
-            String extension = FilenameUtils.getExtension(params.getObjectName());
+            final String extension = FilenameUtils.getExtension(params.getObjectName());
             logbookLifecycleParameters.putParameterValue(LogbookParameterName.objectIdentifier,
                 params.getObjectName().replace("." + extension, ""));
             logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
@@ -236,20 +235,20 @@ public class SedaUtils {
                 LIFE_CYCLE_EVENT_TYPE_PROCESS);
             logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventType, params.getCurrentStep());
             logbookLifecycleParameters.putParameterValue(LogbookParameterName.outcome,
-                LogbookOutcome.STARTED.toString());
+                StatusCode.STARTED.toString());
             logbookLifecycleParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-                LogbookOutcome.STARTED.toString());
+                StatusCode.STARTED.toString());
             logbookLifecycleParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                LogbookOutcome.STARTED.toString());
+                StatusCode.STARTED.toString());
 
             LOGBOOK_LIFECYCLE_CLIENT.update(logbookLifecycleParameters);
-        } catch (LogbookClientBadRequestException e) {
+        } catch (final LogbookClientBadRequestException e) {
             LOGGER.error(LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG, e);
             throw new ProcessingException(e);
-        } catch (LogbookClientServerException e) {
+        } catch (final LogbookClientServerException e) {
             LOGGER.error(LOGBOOK_SERVER_INTERNAL_EXCEPTION_MSG, e);
             throw new ProcessingException(e);
-        } catch (LogbookClientNotFoundException e) {
+        } catch (final LogbookClientNotFoundException e) {
             LOGGER.error(LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG, e);
             throw new ProcessingException(e);
         }
@@ -272,13 +271,13 @@ public class SedaUtils {
                 logbookLifecycleParameters.getParameterValue(LogbookParameterName.outcomeDetailMessage));
 
             LOGBOOK_LIFECYCLE_CLIENT.update(logbookLifecycleParameters);
-        } catch (LogbookClientBadRequestException e) {
+        } catch (final LogbookClientBadRequestException e) {
             LOGGER.error(LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG, e);
             throw new ProcessingException(e);
-        } catch (LogbookClientServerException e) {
+        } catch (final LogbookClientServerException e) {
             LOGGER.error(LOGBOOK_SERVER_INTERNAL_EXCEPTION_MSG, e);
             throw new ProcessingException(e);
-        } catch (LogbookClientNotFoundException e) {
+        } catch (final LogbookClientNotFoundException e) {
             LOGGER.error(LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG, e);
             throw new ProcessingException(e);
         }
@@ -304,10 +303,10 @@ public class SedaUtils {
         } catch (ProcessingException | IOException e) {
             LOGGER.error("Manifest.xml not found", e);
             return CheckSedaValidationStatus.NO_FILE;
-        } catch (XMLStreamException e) {
+        } catch (final XMLStreamException e) {
             LOGGER.error("Manifest.xml is not a correct xml file", e);
             return CheckSedaValidationStatus.NOT_XML_FILE;
-        } catch (SAXException e) {
+        } catch (final SAXException e) {
             // if the cause is null, that means the file is an xml, but it does not validate the XSD
             if (e.getCause() == null) {
                 LOGGER.error("Manifest.xml is not valid with the XSD", e);
@@ -341,7 +340,7 @@ public class SedaUtils {
     }
 
     /**
-     * 
+     *
      * @param params - parameters of workspace server
      * @return ExtractUriResponse - Object ExtractUriResponse contains listURI, listMessages and value boolean(error).
      * @throws ProcessingException - throw when error in execution.
@@ -605,7 +604,7 @@ public class SedaUtils {
 
         try {
             file = PropertiesUtils.findFile("version.conf");
-        } catch (FileNotFoundException e) {
+        } catch (final FileNotFoundException e) {
             LOGGER.error("Can not get config file ");
             throw new ProcessingException(e);
         }
@@ -614,7 +613,7 @@ public class SedaUtils {
 
         try {
             fileVersionList = SedaVersion.fileVersionList(file);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             LOGGER.error("Can not read config file");
             throw new ProcessingException(e);
         }
@@ -637,7 +636,7 @@ public class SedaUtils {
 
     /**
      * Parse SEDA file manifest.xml to retrieve all its binary data objects informations as a SedaUtilInfo.
-     * 
+     *
      * @param workspaceClient workspace connector
      * @param containerId container id
      * @return SedaUtilInfo
@@ -672,7 +671,7 @@ public class SedaUtils {
                 if (reader != null) {
                     reader.close();
                 }
-            } catch (XMLStreamException e) {
+            } catch (final XMLStreamException e) {
                 // nothing to throw
                 LOGGER.debug("Can not close XML reader SEDA", e);
             }
@@ -682,7 +681,7 @@ public class SedaUtils {
 
     /**
      * Compute the total size of objects listed in the manifest.xml file
-     * 
+     *
      * @param params worker parameters
      * @return the computed size of all BinaryObjects
      * @throws ProcessingException when error in getting binary object info
@@ -699,7 +698,7 @@ public class SedaUtils {
 
     /**
      * Compute the total size of objects listed in the manifest.xml file
-     * 
+     *
      * @param workspaceClient workspace client to be used.
      * @param containerId the container guid
      * @return the computed size of all BinaryObjects
@@ -712,7 +711,7 @@ public class SedaUtils {
         final SedaUtilInfo sedaUtilInfo = getSedaUtilInfo(workspaceClient, containerId);
         final Map<String, BinaryObjectInfo> binaryObjectMap = sedaUtilInfo.getBinaryObjectMap();
         for (final String mapKey : binaryObjectMap.keySet()) {
-            long binaryObjectSize = binaryObjectMap.get(mapKey).getSize();
+            final long binaryObjectSize = binaryObjectMap.get(mapKey).getSize();
             if (binaryObjectSize > 0) {
                 size += binaryObjectSize;
             }
@@ -722,7 +721,7 @@ public class SedaUtils {
 
     /**
      * Get the size of the manifest file
-     * 
+     *
      * @param params worker parameters
      * @return the size of the manifest
      */
@@ -733,7 +732,7 @@ public class SedaUtils {
         ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
         final WorkspaceClient client = WorkspaceClientFactory.create(params.getUrlWorkspace());
         // TODO : whould use worker configuration instead of the processing configuration
-        JsonNode jsonSeda = getObjectInformation(client, containerId,
+        final JsonNode jsonSeda = getObjectInformation(client, containerId,
             IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
         if (jsonSeda == null || jsonSeda.get("size") == null) {
             LOGGER.error("Error while getting object size : " + IngestWorkflowConstants.SEDA_FILE);
@@ -745,7 +744,7 @@ public class SedaUtils {
 
     /**
      * Retrieve information about an object.
-     * 
+     *
      * @param workspaceClient workspace connector
      * @param containerId container id
      * @param pathToObject path to the object

@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -43,10 +43,10 @@ public class PaginationParameters {
      * Default Offset
      */
     public static final int DEFAULT_OFFSET = 0;
-    
+
     /**
      * Max limit for loading result
      */
-    public static final int MAXIMUM_OFFSET= 1000000;
+    public static final int MAXIMUM_OFFSET = 1000000;
 
 }

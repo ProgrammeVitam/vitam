@@ -37,7 +37,8 @@ import fr.gouv.vitam.common.ParametersChecker;
  */
 public class VitamCodeHelper {
 
-    private static final String INVALID_ARGUMENT_TO_RETRIEVE_ERROR_MESSAGE = "Invalid argument to retrieve error message";
+    private static final String INVALID_ARGUMENT_TO_RETRIEVE_ERROR_MESSAGE =
+        "Invalid argument to retrieve error message";
     private static final int START_SERVICE_INDEX = 0;
     private static final int END_SERVICE_START_DOMAIN_INDEX = 2;
     private static final int END_DOMAIN_START_ITEM_INDEX = 4;
@@ -70,19 +71,19 @@ public class VitamCodeHelper {
      *
      * @param code the code to get VitamCode
      * @return VitamCode if exists
-     * @throws IllegalArgumentException thrown if the code is wrong format or if VitamCode associated to code does
-     *                                  not exists
+     * @throws IllegalArgumentException thrown if the code is wrong format or if VitamCode associated to code does not
+     *         exists
      */
     public static VitamCode getFrom(String code) {
         ParametersChecker.checkParameter("Code cannot be null or empty", code);
         if (code.length() != VITAM_CODE_SIZE || !VitamCodeHelper.isAlphanumericCode(code)) {
             throw new IllegalArgumentException("Code must have six characters alphanumerics");
         }
-        ServiceName service =
+        final ServiceName service =
             ServiceName.getFromCode(code.substring(START_SERVICE_INDEX, END_SERVICE_START_DOMAIN_INDEX));
-        DomainName domain =
+        final DomainName domain =
             DomainName.getFromCode(code.substring(END_SERVICE_START_DOMAIN_INDEX, END_DOMAIN_START_ITEM_INDEX));
-        String item = code.substring(END_DOMAIN_START_ITEM_INDEX, END_ITEM_INDEX);
+        final String item = code.substring(END_DOMAIN_START_ITEM_INDEX, END_ITEM_INDEX);
 
         return getFrom(service, domain, item);
     }
@@ -91,14 +92,14 @@ public class VitamCodeHelper {
      * Get VitamCode from Service, Domain and item values
      *
      * @param service the service
-     * @param domain  the domain
-     * @param item    the item
+     * @param domain the domain
+     * @param item the item
      * @return VitamCode if exists
-     * @throws IllegalArgumentException thrown if one argument at least is null or if VitamCode associated
-     *                                  to the wanted Service, Domain and item does not exist
+     * @throws IllegalArgumentException thrown if one argument at least is null or if VitamCode associated to the wanted
+     *         Service, Domain and item does not exist
      */
     public static VitamCode getFrom(ServiceName service, DomainName domain, String item) {
-        for (VitamCode vitamCode : VitamCode.values()) {
+        for (final VitamCode vitamCode : VitamCode.values()) {
             if (vitamCode.getService().equals(service) && vitamCode.getDomain().equals(domain) && vitamCode.getItem()
                 .equals(item)) {
                 return vitamCode;
@@ -113,11 +114,11 @@ public class VitamCodeHelper {
      * Get the message from the Service, Domain and item values
      *
      * @param service the service
-     * @param domain  the domain
-     * @param item    the item
+     * @param domain the domain
+     * @param item the item
      * @return the String message if exists
-     * @throws IllegalArgumentException thrown if one argument at least is null or if VitamCode (and the
-     *                                  message) associated to the wanted Service, Domain and item does not exist
+     * @throws IllegalArgumentException thrown if one argument at least is null or if VitamCode (and the message)
+     *         associated to the wanted Service, Domain and item does not exist
      */
     public static String getMessage(ServiceName service, DomainName domain, String item) {
         ParametersChecker.checkParameter(INVALID_ARGUMENT_TO_RETRIEVE_ERROR_MESSAGE, service, domain, item);
@@ -129,21 +130,21 @@ public class VitamCodeHelper {
      *
      * @param vitamCode the code
      * @return the String message if exists
-     * @throws IllegalArgumentException thrown if vitamCode is null or if VitamCode (and the
-     *                                  message) associated to the wanted code does not exist
+     * @throws IllegalArgumentException thrown if vitamCode is null or if VitamCode (and the message) associated to the
+     *         wanted code does not exist
      */
     public static String getMessageFromVitamCode(VitamCode vitamCode) {
         ParametersChecker.checkParameter(INVALID_ARGUMENT_TO_RETRIEVE_ERROR_MESSAGE, vitamCode);
         return getMessage(vitamCode.getService(), vitamCode.getDomain(), vitamCode.getItem());
     }
-    
+
     /**
      * Get the message from code
      *
      * @param vitamCode the code
      * @return the String message if exists
-     * @throws IllegalArgumentException thrown if vitamCode is null or if VitamCode (and the
-     *                                  message) associated to the wanted code does not exist
+     * @throws IllegalArgumentException thrown if vitamCode is null or if VitamCode (and the message) associated to the
+     *         wanted code does not exist
      */
     public static String getMessage(String vitamCode) {
         ParametersChecker.checkParameter(INVALID_ARGUMENT_TO_RETRIEVE_ERROR_MESSAGE, vitamCode);
@@ -154,10 +155,10 @@ public class VitamCodeHelper {
      * Get parameterized message from code
      *
      * @param vitamCode the code
-     * @param params    parameters to add to message
+     * @param params parameters to add to message
      * @return parameterized message
-     * @throws IllegalArgumentException thrown if vitamCode or params is null if VitamCode (and the
-     *                                  message) associated to the wanted code does not exist
+     * @throws IllegalArgumentException thrown if vitamCode or params is null if VitamCode (and the message) associated
+     *         to the wanted code does not exist
      */
     public static String getParametrizedMessageFromVitamCode(VitamCode vitamCode, Object... params) {
         ParametersChecker.checkParameter(INVALID_ARGUMENT_TO_RETRIEVE_ERROR_MESSAGE, vitamCode, params);
@@ -168,10 +169,10 @@ public class VitamCodeHelper {
      * Get parameterized message from code
      *
      * @param vitamCode the code
-     * @param params    parameters to add to message
+     * @param params parameters to add to message
      * @return parameterized message
-     * @throws IllegalArgumentException thrown if vitamCode or params is null or if VitamCode (and the
-     *                                  message) associated to the wanted code does not exist
+     * @throws IllegalArgumentException thrown if vitamCode or params is null or if VitamCode (and the message)
+     *         associated to the wanted code does not exist
      */
     public static String getParametrizedMessageFromCode(String vitamCode, Object... params) {
         ParametersChecker.checkParameter(INVALID_ARGUMENT_TO_RETRIEVE_ERROR_MESSAGE, vitamCode, params);
@@ -182,12 +183,12 @@ public class VitamCodeHelper {
      * Get parameterized message from Service, Domain and item values
      *
      * @param service the service
-     * @param domain  the domain
-     * @param item    the item
-     * @param params  the parameters
+     * @param domain the domain
+     * @param item the item
+     * @param params the parameters
      * @return parameterized message
-     * @throws IllegalArgumentException thrown if one argument at least is null or if VitamCode (and the
-     *                                  message) associated to the wanted code does not exist
+     * @throws IllegalArgumentException thrown if one argument at least is null or if VitamCode (and the message)
+     *         associated to the wanted code does not exist
      */
     public static String getParametrizedMessage(ServiceName service, DomainName domain, String item, Object... params) {
         ParametersChecker.checkParameter(INVALID_ARGUMENT_TO_RETRIEVE_ERROR_MESSAGE, service, domain, item);
@@ -203,8 +204,8 @@ public class VitamCodeHelper {
      */
     public static List<VitamCode> getFromDomain(DomainName domain) {
         ParametersChecker.checkParameter("Invalid argument to retrieve Vitam code", domain);
-        List<VitamCode> codes = new ArrayList<>();
-        for (VitamCode vitamCode : VitamCode.values()) {
+        final List<VitamCode> codes = new ArrayList<>();
+        for (final VitamCode vitamCode : VitamCode.values()) {
             if (vitamCode.getDomain().equals(domain)) {
                 codes.add(vitamCode);
             }
@@ -221,8 +222,8 @@ public class VitamCodeHelper {
      */
     public static List<VitamCode> getFromService(ServiceName service) {
         ParametersChecker.checkParameter("Invalid argument to retrieve Vitam code", service);
-        List<VitamCode> codes = new ArrayList<>();
-        for (VitamCode vitamCode : VitamCode.values()) {
+        final List<VitamCode> codes = new ArrayList<>();
+        for (final VitamCode vitamCode : VitamCode.values()) {
             if (vitamCode.getService().equals(service)) {
                 codes.add(vitamCode);
             }
@@ -236,7 +237,7 @@ public class VitamCodeHelper {
      * @return the vitam code in String
      */
     public static String getCode(VitamCode vitamCode) {
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         sb.append(vitamCode.getService().getCode());
         sb.append(vitamCode.getDomain().getCode());
         sb.append(vitamCode.getItem());

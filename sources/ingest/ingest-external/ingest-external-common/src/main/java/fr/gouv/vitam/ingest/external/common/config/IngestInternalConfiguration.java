@@ -33,15 +33,15 @@ package fr.gouv.vitam.ingest.external.common.config;
 public class IngestInternalConfiguration {
 
     private String host;
-    private int port; 
-    
+    private int port;
+
     /**
      * IngestInternalConfiguration empty constructor for YAMLFactory
      */
     public IngestInternalConfiguration() {
         // Empty constructor
     }
-    
+
     /**
      * @return host
      */

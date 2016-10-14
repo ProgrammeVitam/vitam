@@ -27,6 +27,7 @@
 package fr.gouv.vitam.processing.common.model;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.model.StatusCode;
 
 /**
  * Step Object in process workflow
@@ -37,30 +38,30 @@ public class ProcessStep extends Step {
     private long elementProcessed;
     private long elementToProcess;
     private StatusCode stepStatusCode;
-    
+
 
     /**
      * Constructor to initalize a Process Step with a Step object
-     * 
-     * @param step the Step object 
+     *
+     * @param step the Step object
      * @param elementToProcess number of element to process
      * @param elementProcessed number of element processed
      * @throws IllegalArgumentException if the step is null
      */
     public ProcessStep(Step step, long elementToProcess, long elementProcessed) throws IllegalArgumentException {
         ParametersChecker.checkParameter("Step could not be null", step);
-        this.setActions(step.getActions());
-        this.setDistribution(step.getDistribution());
-        this.setStepName(step.getStepName());
-        this.setBehavior(step.getBehavior());
-        this.setWorkerGroupId(step.getWorkerGroupId());
+        setActions(step.getActions());
+        setDistribution(step.getDistribution());
+        setStepName(step.getStepName());
+        setBehavior(step.getBehavior());
+        setWorkerGroupId(step.getWorkerGroupId());
         this.elementProcessed = elementProcessed;
         this.elementToProcess = elementToProcess;
-        
-    }
-    
 
-    //Used for tests
+    }
+
+
+    // Used for tests
     ProcessStep() {
 
     }
@@ -98,7 +99,7 @@ public class ProcessStep extends Step {
         this.elementToProcess = elementToProcess;
         return this;
     }
-    
+
     /**
      * @return the stepStatusCode
      */

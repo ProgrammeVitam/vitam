@@ -36,7 +36,7 @@ public class LibraryApplicationTest {
         // Given
         final LibraryApplication application = new LibraryApplication();
         // When
-        application.start(new String[]{"src/test/resources/library.conf"});
+        application.start(new String[] {"src/test/resources/library.conf"});
         // Then
         Assert.assertTrue(application.isStarted());
         // When

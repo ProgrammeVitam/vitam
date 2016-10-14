@@ -29,6 +29,7 @@ package fr.gouv.vitam.logbook.common.parameters;
 import java.time.LocalDateTime;
 import java.util.Map;
 
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.VitamParameter;
 
 /**
@@ -49,7 +50,7 @@ public interface LogbookParameters extends VitamParameter<LogbookParameterName> 
      * @param outcome
      * @return this
      */
-    LogbookParameters setStatus(LogbookOutcome outcome);
+    LogbookParameters setStatus(StatusCode outcome);
 
     /**
      * Get the outcome status
@@ -57,7 +58,7 @@ public interface LogbookParameters extends VitamParameter<LogbookParameterName> 
      * @return the status (or null if not set yet)
      * @throws IllegalArgumentException if the status is with incorrect value
      */
-    LogbookOutcome getStatus();
+    StatusCode getStatus();
 
     /**
      * Set the process type

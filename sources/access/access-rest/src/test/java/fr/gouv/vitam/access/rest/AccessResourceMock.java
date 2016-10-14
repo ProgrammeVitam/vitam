@@ -73,6 +73,7 @@ public class AccessResourceMock implements AccessResource {
     /**
      * get unit list by unit id
      */
+    @Override
     @POST
     @Path("/units/{id_unit}")
     public Response getUnitById(String dslQuery,
@@ -87,6 +88,7 @@ public class AccessResourceMock implements AccessResource {
      * @param unit_id units identifier
      * @return a archive unit result list
      */
+    @Override
     @PUT
     @Path("/units/{id_unit}")
     public Response updateUnitById(String dslQuery, @PathParam("id_unit") String unit_id) {

@@ -26,9 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.workspace.rest;
 
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.server.application.configuration.VitamApplicationConfiguration;
-
 /**
  * Workspace offer configuration.
  */
@@ -51,7 +48,7 @@ public class DefaultOfferConfiguration implements VitamApplicationConfiguration 
 
     /**
      * Construct an DefaultOfferConfiguration manually with a specific contextPath
-     * 
+     *
      * @param storagePath path of the storage
      * @param contextPath the application context path
      */

@@ -32,6 +32,11 @@ import fr.gouv.vitam.common.exception.VitamException;
 public class FormatIdentifierFactoryException extends VitamException {
 
     /**
+     *
+     */
+    private static final long serialVersionUID = -3288206303819769296L;
+
+    /**
      * @param message associated message
      */
     public FormatIdentifierFactoryException(String message) {

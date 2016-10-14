@@ -63,12 +63,12 @@ public class ElasticsearchAccessTest {
     @Before
     public void setup() throws IOException {
 
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         TCP_PORT = junitHelper.findAvailablePort();
         HTTP_PORT = junitHelper.findAvailablePort();
 
         elasticsearchHome = tempFolder.newFolder();
-        Settings settings = Settings.settingsBuilder()
+        final Settings settings = Settings.settingsBuilder()
             .put("http.enabled", true)
             .put("discovery.zen.ping.multicast.enabled", false)
             .put("transport.tcp.port", TCP_PORT)
@@ -99,10 +99,10 @@ public class ElasticsearchAccessTest {
 
     @Test
     public void testElasticsearchAccess() throws VitamException {
-        List<ElasticsearchNode> nodes = new ArrayList<ElasticsearchNode>();
+        final List<ElasticsearchNode> nodes = new ArrayList<ElasticsearchNode>();
         nodes.add(new ElasticsearchNode(HOST_NAME, TCP_PORT));
 
-        ElasticsearchAccess elastic = new ElasticsearchAccess(CLUSTER_NAME, nodes);
+        final ElasticsearchAccess elastic = new ElasticsearchAccess(CLUSTER_NAME, nodes);
         assertEquals(CLUSTER_NAME, elastic.getClusterName());
         assertEquals(nodes, elastic.getNodes());
         assertNotNull(elastic.getClient());

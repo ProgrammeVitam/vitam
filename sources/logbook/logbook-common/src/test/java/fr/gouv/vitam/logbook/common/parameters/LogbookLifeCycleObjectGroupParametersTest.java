@@ -42,6 +42,7 @@ import org.junit.Test;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.model.StatusCode;
 
 /**
  * Test class for LogbookLifeCycleObjectGroupParameters
@@ -50,7 +51,8 @@ public class LogbookLifeCycleObjectGroupParametersTest {
 
     @Test
     public void getMapParameters() {
-        final LogbookLifeCycleObjectGroupParameters params = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
+        final LogbookLifeCycleObjectGroupParameters params =
+            LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
         assertNotNull(params);
         for (final LogbookParameterName value : LogbookParameterName.values()) {
             params.putParameterValue(value, value.name());
@@ -59,7 +61,8 @@ public class LogbookLifeCycleObjectGroupParametersTest {
 
         assertEquals(params.getMapParameters().get(LogbookParameterName.eventType),
             LogbookParameterName.eventType.name());
-        final LogbookLifeCycleObjectGroupParameters params2 = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
+        final LogbookLifeCycleObjectGroupParameters params2 =
+            LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
         params2.setFromParameters(params);
         for (final LogbookParameterName value : LogbookParameterName.values()) {
             assertEquals(params.getParameterValue(value), params2.getParameterValue(value));
@@ -68,7 +71,8 @@ public class LogbookLifeCycleObjectGroupParametersTest {
         for (final LogbookParameterName value : LogbookParameterName.values()) {
             map.put(value.name(), params.getParameterValue(value));
         }
-        final LogbookLifeCycleObjectGroupParameters params3 = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
+        final LogbookLifeCycleObjectGroupParameters params3 =
+            LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
         params3.setMap(map);
         for (final LogbookParameterName value : LogbookParameterName.values()) {
             assertEquals(params.getParameterValue(value), params3.getParameterValue(value));
@@ -77,7 +81,8 @@ public class LogbookLifeCycleObjectGroupParametersTest {
 
     @Test
     public void getMandatoriesParameters() {
-        final LogbookLifeCycleObjectGroupParameters params = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
+        final LogbookLifeCycleObjectGroupParameters params =
+            LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
         assertNotNull(params);
 
         final Set<LogbookParameterName> mandatories = params.getMandatoriesParameters();
@@ -93,7 +98,7 @@ public class LogbookLifeCycleObjectGroupParametersTest {
         assertNotNull(params2);
         assertEquals(1, params2.getMandatoriesParameters().size());
         assertEquals(null, params.getStatus());
-        for (final LogbookOutcome outcome : LogbookOutcome.values()) {
+        for (final StatusCode outcome : StatusCode.values()) {
             params.setStatus(outcome);
             assertEquals(outcome, params.getStatus());
         }
@@ -122,17 +127,17 @@ public class LogbookLifeCycleObjectGroupParametersTest {
         final GUID aa = GUIDFactory.newOperationIdGUID(0);
         final GUID cc = GUIDFactory.newOperationIdGUID(0);
         LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(aa, "aa", aa,
-            LogbookTypeProcess.AUDIT, LogbookOutcome.STARTED, "CheckDigest", "Informative Message", cc);
+            LogbookTypeProcess.AUDIT, StatusCode.STARTED, "CheckDigest", "Informative Message", cc);
         try {
             LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(aa, "", aa,
-                LogbookTypeProcess.AUDIT, LogbookOutcome.STARTED, "CheckDigest", "Informative Message", cc);
+                LogbookTypeProcess.AUDIT, StatusCode.STARTED, "CheckDigest", "Informative Message", cc);
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
         }
         try {
             LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(aa, "aa", null,
-                LogbookTypeProcess.AUDIT, LogbookOutcome.STARTED, "CheckDigest", "Informative Message", cc);
+                LogbookTypeProcess.AUDIT, StatusCode.STARTED, "CheckDigest", "Informative Message", cc);
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
@@ -146,7 +151,7 @@ public class LogbookLifeCycleObjectGroupParametersTest {
         }
         try {
             LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(aa, "aa", aa,
-                null, LogbookOutcome.STARTED, "CheckDigest", "Informative Message", cc);
+                null, StatusCode.STARTED, "CheckDigest", "Informative Message", cc);
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
@@ -156,16 +161,17 @@ public class LogbookLifeCycleObjectGroupParametersTest {
 
     @Test
     public void getEventDateTime() {
-        final LogbookLifeCycleObjectGroupParameters params = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
+        final LogbookLifeCycleObjectGroupParameters params =
+            LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
         assertNotNull(params);
         final LocalDateTime dateTime = LocalDateUtil.now();
         params.getMapParameters().put(LogbookParameterName.eventDateTime, dateTime.toString());
         assertEquals(dateTime, params.getEventDateTime());
     }
-    
+
     @Test
     public void testConstructorWithEmptyParameters() {
-        LogbookLifeCycleObjectGroupParameters llcogp = new LogbookLifeCycleObjectGroupParameters(new HashMap());
-        assertEquals(true,llcogp.getMapParameters().isEmpty());
+        final LogbookLifeCycleObjectGroupParameters llcogp = new LogbookLifeCycleObjectGroupParameters(new HashMap());
+        assertEquals(true, llcogp.getMapParameters().isEmpty());
     }
 }

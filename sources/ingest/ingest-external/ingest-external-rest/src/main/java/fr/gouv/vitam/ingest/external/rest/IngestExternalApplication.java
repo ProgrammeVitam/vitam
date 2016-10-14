@@ -109,7 +109,8 @@ public final class IngestExternalApplication
         serverConfiguration = application.getConfiguration();
 
         LOGGER.info(format(VitamServer.SERVER_START_WITH_JETTY_CONFIG, MODULE_NAME));
-        VitamServer vitamServer = VitamServerFactory.newVitamServerByJettyConf(serverConfiguration.getJettyConfig());
+        final VitamServer vitamServer =
+            VitamServerFactory.newVitamServerByJettyConf(serverConfiguration.getJettyConfig());
         vitamServer.configure(application.getApplicationHandler());
 
         return vitamServer;
@@ -141,7 +142,7 @@ public final class IngestExternalApplication
             File shiroFile = null;
             try {
                 shiroFile = PropertiesUtils.findFile(SHIRO_FILE);
-            } catch (FileNotFoundException e) {
+            } catch (final FileNotFoundException e) {
                 LOGGER.error(e.getMessage(), e);
                 throw new VitamApplicationServerException(e.getMessage());
             }

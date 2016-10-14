@@ -54,7 +54,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * Helper class to create DSL queries
- * 
+ *
  */
 public final class DslQueryHelper {
 
@@ -96,8 +96,8 @@ public final class DslQueryHelper {
 
     /**
      * generate the DSL query after receiving the search criteria
-     * 
-     * 
+     *
+     *
      * @param searchCriteriaMap the map containing the criteria
      * @return DSL request
      * @throws InvalidParseOperationException if a parse exception is encountered
@@ -107,11 +107,11 @@ public final class DslQueryHelper {
         throws InvalidParseOperationException, InvalidCreateOperationException {
         final fr.gouv.vitam.common.database.builder.request.single.Select select =
             new fr.gouv.vitam.common.database.builder.request.single.Select();
-        BooleanQuery query = and();
+        final BooleanQuery query = and();
         BooleanQuery queryOr = null;
-        for (Entry<String, String> entry : searchCriteriaMap.entrySet()) {
-            String searchKeys = entry.getKey();
-            String searchValue = entry.getValue();
+        for (final Entry<String, String> entry : searchCriteriaMap.entrySet()) {
+            final String searchKeys = entry.getKey();
+            final String searchValue = entry.getValue();
 
             switch (searchKeys) {
                 case ORDER_BY:
@@ -141,8 +141,8 @@ public final class DslQueryHelper {
                 case RULETYPE:
                     if (searchValue.contains(",")) {
                         queryOr = or();
-                        String[] ruleTypeArray = searchValue.split(",");
-                        for (String s : ruleTypeArray) {
+                        final String[] ruleTypeArray = searchValue.split(",");
+                        for (final String s : ruleTypeArray) {
                             queryOr.add(eq("RuleType", s));
 
                         }
@@ -198,10 +198,10 @@ public final class DslQueryHelper {
         final Select select = new Select();
 
         // AND by default
-        BooleanQuery booleanQueries = and();
-        for (Entry<String, String> entry : searchCriteriaMap.entrySet()) {
-            String searchKeys = entry.getKey();
-            String searchValue = entry.getValue();
+        final BooleanQuery booleanQueries = and();
+        for (final Entry<String, String> entry : searchCriteriaMap.entrySet()) {
+            final String searchKeys = entry.getKey();
+            final String searchValue = entry.getValue();
 
             if (searchKeys.isEmpty() || searchValue.isEmpty()) {
                 throw new InvalidParseOperationException("Parameters should not be empty or null");
@@ -247,15 +247,15 @@ public final class DslQueryHelper {
         throws InvalidParseOperationException, InvalidCreateOperationException {
 
         final Select select = new Select();
-        BooleanQuery andQuery = and();
-        BooleanQuery booleanQueries = or();
+        final BooleanQuery andQuery = and();
+        final BooleanQuery booleanQueries = or();
         String startDate = null;
         String endDate = null;
         String advancedSearchFlag = "";
 
-        for (Entry<String, String> entry : searchCriteriaMap.entrySet()) {
-            String searchKeys = entry.getKey();
-            String searchValue = entry.getValue();
+        for (final Entry<String, String> entry : searchCriteriaMap.entrySet()) {
+            final String searchKeys = entry.getKey();
+            final String searchValue = entry.getValue();
 
             if (searchKeys.isEmpty() || searchValue.isEmpty()) {
                 throw new InvalidParseOperationException("Parameters should not be empty or null");
@@ -341,9 +341,9 @@ public final class DslQueryHelper {
 
         final Update update = new Update();
 
-        for (Entry<String, String> entry : searchCriteriaMap.entrySet()) {
-            String searchKeys = entry.getKey();
-            String searchValue = entry.getValue();
+        for (final Entry<String, String> entry : searchCriteriaMap.entrySet()) {
+            final String searchKeys = entry.getKey();
+            final String searchValue = entry.getValue();
 
             if (searchKeys.isEmpty() || searchValue.isEmpty()) {
                 throw new InvalidParseOperationException("Parameters should not be empty or null");
@@ -361,7 +361,7 @@ public final class DslQueryHelper {
 
     /**
      * Creates Select Query to retrieve all parents relative to the unit specified by its id
-     * 
+     *
      * @param unitId the unit id
      * @param immediateParents immediate parents (_up field value)
      * @return DSL Select Query
@@ -390,9 +390,9 @@ public final class DslQueryHelper {
         }
 
         immediateParents.add(unitId);
-        String[] allParentsArray = immediateParents.stream().toArray(size -> new String[size]);
+        final String[] allParentsArray = immediateParents.stream().toArray(size -> new String[size]);
 
-        BooleanQuery inParentsIdListQuery = and();
+        final BooleanQuery inParentsIdListQuery = and();
         inParentsIdListQuery.add(in(UiConstants.ID.getConstantValue(), allParentsArray)).setDepthLimit(DEPTH_LIMIT);
 
         if (inParentsIdListQuery.isReady()) {
@@ -408,16 +408,16 @@ public final class DslQueryHelper {
 
         LOGGER.debug("in createSearchUntisQueryByDate / beginDate:" + startDate + "/ endDate:" + endDate);
 
-        BooleanQuery query = or();
+        final BooleanQuery query = or();
 
         if (StringUtils.isNotBlank(endDate) && StringUtils.isNotBlank(startDate)) {
-            BooleanQuery transactedDateBetween = and();
+            final BooleanQuery transactedDateBetween = and();
             // search by transacted date
             transactedDateBetween.add(gte(TRANSACTED_DATE, startDate));
             transactedDateBetween.add(lte(TRANSACTED_DATE, endDate));
             query.add(transactedDateBetween);
             // search by begin and end date
-            BooleanQuery queryAroundDate = and();
+            final BooleanQuery queryAroundDate = and();
             queryAroundDate.add(gte(END_DATE, startDate));
             queryAroundDate.add(lte(START_DATE, endDate));
             query.add(queryAroundDate);

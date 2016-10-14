@@ -1,6 +1,6 @@
 /**
  * Copyright Paul Merlin 2011 (Apache Licence v2.0)
- * 
+ *
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -44,7 +44,7 @@ public class X509AuthenticationInfo extends SimpleAuthenticationInfo {
 
     private static final int BASE_16 = 16;
     /**
-     * 
+     *
      */
     // Name Constrains Extensions (RFC 3280 4.2.1.11)
     private static final String NAME_CONSTRAINTS_ASN_1 = "2.5.29.30"; // NOSONAR : ASN-1 OID
@@ -56,7 +56,7 @@ public class X509AuthenticationInfo extends SimpleAuthenticationInfo {
     private final String serialNumber;
 
     /**
-     * 
+     *
      * @param principal
      * @param clientCertificate
      * @param grantedIssuers
@@ -67,19 +67,19 @@ public class X509AuthenticationInfo extends SimpleAuthenticationInfo {
         super(principal, null, realmName);
         this.clientCertificate = clientCertificate;
         if (clientCertificate != null) {
-            this.subjectDN = clientCertificate.getSubjectX500Principal();
-            this.issuerDN = clientCertificate.getIssuerX500Principal();
-            this.serialNumber = clientCertificate.getSerialNumber().toString(BASE_16);
+            subjectDN = clientCertificate.getSubjectX500Principal();
+            issuerDN = clientCertificate.getIssuerX500Principal();
+            serialNumber = clientCertificate.getSerialNumber().toString(BASE_16);
         } else {
-            this.subjectDN = null;
-            this.issuerDN = null;
-            this.serialNumber = null;
+            subjectDN = null;
+            issuerDN = null;
+            serialNumber = null;
         }
         this.grantedIssuers.addAll(grantedIssuers);
     }
 
     /**
-     * 
+     *
      * @param principal
      * @param issuerDN
      * @param serialNumber
@@ -87,28 +87,28 @@ public class X509AuthenticationInfo extends SimpleAuthenticationInfo {
      */
     public X509AuthenticationInfo(Object principal, X500Principal issuerDN, String serialNumber, String realmName) {
         super(principal, null, realmName);
-        this.clientCertificate = null;
-        this.subjectDN = null;
+        clientCertificate = null;
+        subjectDN = null;
         this.issuerDN = issuerDN;
         this.serialNumber = serialNumber;
     }
 
     /**
-     * 
+     *
      * @param principal
      * @param subjectDN
      * @param realmName
      */
     public X509AuthenticationInfo(Object principal, X500Principal subjectDN, String realmName) {
         super(principal, null, realmName);
-        this.clientCertificate = null;
+        clientCertificate = null;
         this.subjectDN = subjectDN;
-        this.issuerDN = null;
-        this.serialNumber = null;
+        issuerDN = null;
+        serialNumber = null;
     }
 
     /**
-     * 
+     *
      * @return the clientCertificate
      */
     public X509Certificate getX509Certificate() {
@@ -116,7 +116,7 @@ public class X509AuthenticationInfo extends SimpleAuthenticationInfo {
     }
 
     /**
-     * 
+     *
      * @return the subjectDN of the certificate
      */
     public X500Principal getSubjectDN() {
@@ -124,7 +124,7 @@ public class X509AuthenticationInfo extends SimpleAuthenticationInfo {
     }
 
     /**
-     * 
+     *
      * @return the issuerDN of the certificate
      */
     public X500Principal getIssuerDN() {
@@ -132,7 +132,7 @@ public class X509AuthenticationInfo extends SimpleAuthenticationInfo {
     }
 
     /**
-     * 
+     *
      * @return the serialNumber of the certificate
      */
     public String getHexSerialNumber() {
@@ -140,13 +140,13 @@ public class X509AuthenticationInfo extends SimpleAuthenticationInfo {
     }
 
     /**
-     * 
+     *
      * @return the trusted certificates
      */
     public Set<TrustAnchor> getGrantedTrustAnchors() {
-        Set<TrustAnchor> trustAnchors = new HashSet<>();
-        for (X509Certificate eachCert : grantedIssuers) {
-            trustAnchors.add(new TrustAnchor(eachCert, eachCert.getExtensionValue(NAME_CONSTRAINTS_ASN_1))); 
+        final Set<TrustAnchor> trustAnchors = new HashSet<>();
+        for (final X509Certificate eachCert : grantedIssuers) {
+            trustAnchors.add(new TrustAnchor(eachCert, eachCert.getExtensionValue(NAME_CONSTRAINTS_ASN_1)));
         }
         return trustAnchors;
 

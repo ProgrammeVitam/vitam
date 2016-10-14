@@ -28,11 +28,11 @@ package fr.gouv.vitam.worker.core.handler;
 
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.OutcomeMessage;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
-import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtils.CheckSedaValidationStatus;
@@ -77,7 +77,7 @@ public class CheckSedaActionHandler extends ActionHandler {
             if (CheckSedaValidationStatus.VALID.equals(status)) {
                 messageId = sedaUtils.getMessageIdentifier(params);
             }
-        } catch (ProcessingException e) {
+        } catch (final ProcessingException e) {
             LOGGER.error("getMessageIdentifier ProcessingException", e);
             response.setStatus(StatusCode.FATAL).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_MANIFEST_KO);
             return response;

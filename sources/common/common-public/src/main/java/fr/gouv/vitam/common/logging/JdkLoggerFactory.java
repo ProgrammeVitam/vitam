@@ -49,12 +49,12 @@ public final class JdkLoggerFactory extends VitamLoggerFactory {
         final Logger logger = Logger.getLogger(name); // NOSONAR keep it non static
         // Note: JDK Logger does not allow level < INFO per global
         if (currentLevel == VitamLogLevel.DEBUG || currentLevel == VitamLogLevel.TRACE) {
-            setLevelSpecificLogger(logger, currentLevel);
+            loggerSetLevel(logger, currentLevel);
         }
         return new JdkLogger(logger);
     }
 
-    private void setLevelSpecificLogger(final Logger logger, final VitamLogLevel level) {
+    static void loggerSetLevel(final Logger logger, final VitamLogLevel level) {
         Level jdklevel;
         switch (level) {
             case TRACE:
@@ -82,12 +82,10 @@ public final class JdkLoggerFactory extends VitamLoggerFactory {
     @Override
     protected void seLevelSpecific(final VitamLogLevel level) {
         final Logger logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME); // NOSONAR keep it non static
-        setLevelSpecificLogger(logger, level);
+        loggerSetLevel(logger, level);
     }
 
-    @Override
-    protected VitamLogLevel getLevelSpecific() {
-        final Logger logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME); // NOSONAR keep it non static
+    static VitamLogLevel loggerGetLevel(final Logger logger) {
         if (logger.isLoggable(Level.FINEST)) {
             return VitamLogLevel.TRACE;
         } else if (logger.isLoggable(Level.FINE)) {
@@ -100,5 +98,11 @@ public final class JdkLoggerFactory extends VitamLoggerFactory {
             return VitamLogLevel.ERROR;
         }
         return null;
+    }
+
+    @Override
+    protected VitamLogLevel getLevelSpecific() {
+        final Logger logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME); // NOSONAR keep it non static
+        return loggerGetLevel(logger);
     }
 }

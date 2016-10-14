@@ -49,14 +49,13 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.ingest.internal.model.UploadResponseDTO;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 
 
 /**
  * Rest client implementation for Ingest Internal
  */
-public class IngestInternalClientRest implements IngestInternalClient{
+public class IngestInternalClientRest implements IngestInternalClient {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestInternalClientRest.class);
     private static final String RESOURCE_PATH = "/ingest/v1";
@@ -67,7 +66,7 @@ public class IngestInternalClientRest implements IngestInternalClient{
     private final Client client;
 
     IngestInternalClientRest(String server, int port) {
-        ParametersChecker.checkParameter("server and port are a mandatory parameter",server, port);
+        ParametersChecker.checkParameter("server and port are a mandatory parameter", server, port);
         serviceUrl = "http://" + server + ":" + port + RESOURCE_PATH;
         final ClientConfig config = new ClientConfig();
         config.register(JacksonJsonProvider.class);
@@ -84,18 +83,19 @@ public class IngestInternalClientRest implements IngestInternalClient{
     }
 
     @Override
-    public Response upload(List<LogbookParameters> logbookParametersList, InputStream inputStream) throws VitamException{
+    public Response upload(List<LogbookParameters> logbookParametersList, InputStream inputStream)
+        throws VitamException {
 
-        ParametersChecker.checkParameter("check Upload Parameter", logbookParametersList );
+        ParametersChecker.checkParameter("check Upload Parameter", logbookParametersList);
         final FormDataMultiPart multiPart = new FormDataMultiPart();
 
         multiPart.field("part", logbookParametersList, MediaType.APPLICATION_JSON_TYPE);
 
-        if(inputStream!=null){
+        if (inputStream != null) {
             multiPart.bodyPart(
                 new StreamDataBodyPart("part", inputStream, "SIP", MediaType.APPLICATION_OCTET_STREAM_TYPE));
         }
-        //TODO Ajouter X-REQUEST-ID dans les headers pour utiliser dans IngestInternalResource
+        // TODO Ajouter X-REQUEST-ID dans les headers pour utiliser dans IngestInternalResource
         final Response response = client.target(serviceUrl).path(UPLOAD_URL).request()
             .post(Entity.entity(multiPart, MediaType.MULTIPART_FORM_DATA_TYPE));
 

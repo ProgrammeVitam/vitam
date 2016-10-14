@@ -45,6 +45,7 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
@@ -55,18 +56,18 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.access.common.exception.AccessExecutionException;
 import fr.gouv.vitam.access.config.AccessConfiguration;
-import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
-import fr.gouv.vitam.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.api.exception.MetadataInvalidSelectException;
-import fr.gouv.vitam.client.MetaDataClient;
-import fr.gouv.vitam.client.MetaDataClientFactory;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCycleClient;
-import fr.gouv.vitam.logbook.operations.client.LogbookClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
+import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
+import fr.gouv.vitam.metadata.client.MetaDataClient;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 
@@ -83,8 +84,8 @@ public class AccessModuleImplTest {
 
     private MetaDataClient metaDataClient;
 
-    private LogbookClient logbookOperationClient;
-    private LogbookLifeCycleClient logbookLifeCycleClient;
+    private LogbookOperationsClient logbookOperationClient;
+    private LogbookLifeCyclesClient logbookLifeCycleClient;
 
     private static JunitHelper junitHelper;
     private static int serverPort;
@@ -101,7 +102,7 @@ public class AccessModuleImplTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         serverPort = junitHelper.findAvailablePort();
         HOST += serverPort;
         sampleObjectGroup = JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_OBJECTGROUP_FILENAME));
@@ -128,9 +129,9 @@ public class AccessModuleImplTest {
     public void setUp() {
         PowerMockito.mockStatic(MetaDataClientFactory.class);
         metaDataClient = mock(MetaDataClient.class);
-        PowerMockito.when(MetaDataClientFactory.create(Mockito.anyObject())).thenReturn(metaDataClient);
-        logbookLifeCycleClient = mock(LogbookLifeCycleClient.class);
-        logbookOperationClient = mock(LogbookClient.class);
+        PowerMockito.when(MetaDataClientFactory.create(Matchers.anyObject())).thenReturn(metaDataClient);
+        logbookLifeCycleClient = mock(LogbookLifeCyclesClient.class);
+        logbookOperationClient = mock(LogbookOperationsClient.class);
         conf = new AccessConfiguration();
         conf.setUrlMetaData(HOST);
         accessModuleImpl = new AccessModuleImpl(conf);
@@ -307,17 +308,17 @@ public class AccessModuleImplTest {
 
     @Test(expected = AccessExecutionException.class)
     public void given_metadataAccessProblem_throw_AccessExecutionException() throws Exception {
-        Mockito.doThrow(new ProcessingException("Fake error")).when(metaDataClient).selectObjectGrouptbyId
-            (FromStringToJson(QUERY).toString(), "ds");
+        Mockito.doThrow(new ProcessingException("Fake error")).when(metaDataClient)
+            .selectObjectGrouptbyId(FromStringToJson(QUERY).toString(), "ds");
         accessModuleImpl.selectObjectGroupById(FromStringToJson(QUERY), "ds");
     }
 
     @Test
     public void given_selectObjectGroupById_OK()
         throws Exception {
-        when(metaDataClient.selectObjectGrouptbyId(FromStringToJson(QUERY).toString(), ID)).thenReturn
-            (sampleObjectGroup);
-        JsonNode result = accessModuleImpl.selectObjectGroupById(FromStringToJson(QUERY), ID);
+        when(metaDataClient.selectObjectGrouptbyId(FromStringToJson(QUERY).toString(), ID))
+            .thenReturn(sampleObjectGroup);
+        final JsonNode result = accessModuleImpl.selectObjectGroupById(FromStringToJson(QUERY), ID);
         assertEquals(sampleObjectGroup, result);
     }
 
@@ -330,7 +331,7 @@ public class AccessModuleImplTest {
         accessModuleImpl.selectObjectGroupById(FromStringToJson(QUERY), ID);
     }
 
-    //update by id - start
+    // update by id - start
     @Test
     public void given_correct_dsl_When_updateUnitById_thenOK()
         throws Exception {
@@ -338,7 +339,7 @@ public class AccessModuleImplTest {
         Mockito.doNothing().when(logbookOperationClient).update(anyObject());
         Mockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
 
-        String id = "aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq";
+        final String id = "aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq";
         // Mock select unit response
         when(metaDataClient.selectUnitbyId(anyObject(), anyObject())).thenReturn(JsonHandler.getFromString("{\"$hint" +
             "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
@@ -449,22 +450,22 @@ public class AccessModuleImplTest {
             new AccessModuleImpl(conf, logbookOperationClient, logbookLifeCycleClient);
         accessModuleImpl.updateUnitbyId(FromStringToJson(QUERY), "");
     }
-    
+
     @Test
     public void testGetOneObjectFromObjectGroup_OK() throws Exception {
-        when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString())).thenReturn
-            (FromStringToJson(FAKE_METADATA_RESULT));
-        InputStream binaryMaster =
+        when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString()))
+            .thenReturn(FromStringToJson(FAKE_METADATA_RESULT));
+        final InputStream binaryMaster =
             accessModuleImpl.getOneObjectFromObjectGroup(ID, FromStringToJson(QUERY), "BinaryMaster", 0, "0");
         assertNotNull(binaryMaster);
-        InputStream stream2 = IOUtils.toInputStream("Vitam test");
+        final InputStream stream2 = IOUtils.toInputStream("Vitam test");
         assertTrue(IOUtils.contentEquals(binaryMaster, stream2));
     }
 
     @Test(expected = AccessExecutionException.class)
     public void testGetOneObjectFromObjectGroup_With_Multiple_Result() throws Exception {
-        when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString())).thenReturn
-            (FromStringToJson(FAKE_METADATA_MULTIPLE_RESULT));
+        when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString()))
+            .thenReturn(FromStringToJson(FAKE_METADATA_MULTIPLE_RESULT));
         accessModuleImpl.getOneObjectFromObjectGroup(ID, FromStringToJson(QUERY), "BinaryMaster", 0, "0");
     }
 
@@ -476,11 +477,11 @@ public class AccessModuleImplTest {
 
     @Test(expected = AccessExecutionException.class)
     public void testGetOneObjectFromObjectGroup_With_StorageClient_Error() throws Exception {
-        StorageClient mockStorageClient = mock(StorageClient.class);
-        when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString())).thenReturn(FromStringToJson
-            (FAKE_METADATA_RESULT));
-        when(mockStorageClient.getContainer(anyString(), anyString(), anyString(), anyObject())).thenThrow(new
-            StorageServerClientException("Test wanted exception"));
+        final StorageClient mockStorageClient = mock(StorageClient.class);
+        when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString()))
+            .thenReturn(FromStringToJson(FAKE_METADATA_RESULT));
+        when(mockStorageClient.getContainer(anyString(), anyString(), anyString(), anyObject()))
+            .thenThrow(new StorageServerClientException("Test wanted exception"));
         accessModuleImpl = new AccessModuleImpl(conf, mockStorageClient);
         accessModuleImpl.getOneObjectFromObjectGroup(ID, FromStringToJson(QUERY), "BinaryMaster", 0, "0");
     }

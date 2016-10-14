@@ -59,7 +59,7 @@ public interface ProcessDistributor {
 
     /**
      * Register a new worker knowing its family
-     * 
+     *
      * @param familyId the id of the family
      * @param workerId the id of the worker
      * @param workerInformation information of the worker to be registered
@@ -71,11 +71,12 @@ public interface ProcessDistributor {
 
     /**
      * Delete a worker knowing its id
-     * 
+     *
      * @param familyId the id of the family
      * @param workerId the id of the worker
      * @throws WorkerFamilyNotFoundException if the family does not exist
      * @throws WorkerNotFoundException if the worker does not exist
      */
-    void unregisterWorker(String familyId, String workerId) throws WorkerFamilyNotFoundException, WorkerNotFoundException;
+    void unregisterWorker(String familyId, String workerId)
+        throws WorkerFamilyNotFoundException, WorkerNotFoundException;
 }

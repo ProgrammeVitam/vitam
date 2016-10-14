@@ -51,7 +51,6 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
 
 /**
  * Tests UserInterfaceTransactionManager class
@@ -115,7 +114,7 @@ public class UserInterfaceTransactionManagerTest {
         when(accessClient.selectUnits(SEARCH_UNIT_DSL_QUERY)).thenReturn(searchResult);
 
         // Test method
-        JsonNode searchResult = UserInterfaceTransactionManager.searchUnits(SEARCH_UNIT_DSL_QUERY);
+        final JsonNode searchResult = UserInterfaceTransactionManager.searchUnits(SEARCH_UNIT_DSL_QUERY);
         assertTrue(searchResult.get("$hint").get("total").textValue().equals("1"));
     }
 
@@ -125,7 +124,8 @@ public class UserInterfaceTransactionManagerTest {
         when(accessClient.selectUnitbyId(SELECT_ID_DSL_QUERY, ID_UNIT)).thenReturn(unitDetails);
 
         // Test method
-        JsonNode archiveDetails = UserInterfaceTransactionManager.getArchiveUnitDetails(SELECT_ID_DSL_QUERY, ID_UNIT);
+        final JsonNode archiveDetails =
+            UserInterfaceTransactionManager.getArchiveUnitDetails(SELECT_ID_DSL_QUERY, ID_UNIT);
         assertTrue(archiveDetails.get("Title").textValue().equals("Archive 1"));
     }
 
@@ -135,7 +135,7 @@ public class UserInterfaceTransactionManagerTest {
         when(accessClient.updateUnitbyId(UPDATE_UNIT_DSL_QUERY, ID_UNIT)).thenReturn(updateResult);
 
         // Test method
-        JsonNode updateResult = UserInterfaceTransactionManager.updateUnits(UPDATE_UNIT_DSL_QUERY, "1");
+        final JsonNode updateResult = UserInterfaceTransactionManager.updateUnits(UPDATE_UNIT_DSL_QUERY, "1");
         assertTrue(updateResult.get("$hint").get("total").textValue().equals("1"));
     }
 
@@ -145,8 +145,10 @@ public class UserInterfaceTransactionManagerTest {
         when(accessClient.selectObjectbyId(OBJECT_GROUP_QUERY, ID_OBJECT_GROUP)).thenReturn(sampleObjectGroup);
 
         // Test method
-        JsonNode objectGroup = UserInterfaceTransactionManager.selectObjectbyId(OBJECT_GROUP_QUERY, ID_OBJECT_GROUP);
-        assertTrue(objectGroup.get("$result").get(0).get("_id").textValue().equals("aeaaaaaaaaaam7mxaaaaoakwy5h6czqaaaaq"));
+        final JsonNode objectGroup =
+            UserInterfaceTransactionManager.selectObjectbyId(OBJECT_GROUP_QUERY, ID_OBJECT_GROUP);
+        assertTrue(
+            objectGroup.get("$result").get(0).get("_id").textValue().equals("aeaaaaaaaaaam7mxaaaaoakwy5h6czqaaaaq"));
     }
 
     @Test
@@ -154,7 +156,7 @@ public class UserInterfaceTransactionManagerTest {
         throws AccessClientServerException, AccessClientNotFoundException, InvalidParseOperationException, IOException {
         when(accessClient.getObjectAsInputStream(OBJECT_GROUP_QUERY, ID_OBJECT_GROUP, "usage", 1))
             .thenReturn(IOUtils.toInputStream("Vitam Test"));
-        InputStream streamToTest = IOUtils.toInputStream("Vitam Test");
+        final InputStream streamToTest = IOUtils.toInputStream("Vitam Test");
         // Test method
         assertTrue(IOUtils.contentEquals(streamToTest,
             UserInterfaceTransactionManager.getObjectAsInputStream(OBJECT_GROUP_QUERY, ID_OBJECT_GROUP, "usage", 1)));
@@ -162,22 +164,22 @@ public class UserInterfaceTransactionManagerTest {
 
     @Test
     public void testBuildUnitTree() throws VitamException {
-        JsonNode unitTree = UserInterfaceTransactionManager.buildUnitTree("ID029", allParents);
+        final JsonNode unitTree = UserInterfaceTransactionManager.buildUnitTree("ID029", allParents);
         assertTrue(unitTree.isArray());
         assertTrue(unitTree.size() == 4);
         assertTrue(unitTree.get(0).isArray());
-        
-        ArrayNode onePath = (ArrayNode) unitTree.get(0);
+
+        final ArrayNode onePath = (ArrayNode) unitTree.get(0);
         assertTrue(onePath.size() == 3);
 
-        JsonNode oneImmediateParent = onePath.get(0);
+        final JsonNode oneImmediateParent = onePath.get(0);
         assertTrue(oneImmediateParent.get(UiConstants.ID.getResultConstantValue()).asText().equals("ID028") ||
             oneImmediateParent.get(UiConstants.ID.getResultConstantValue()).asText().equals("ID030"));
 
-        JsonNode nextParent = onePath.get(1);
+        final JsonNode nextParent = onePath.get(1);
         assertTrue(nextParent.get(UiConstants.ID.getResultConstantValue()).asText().equals("ID027"));
 
-        JsonNode oneRoot = onePath.get(2);
+        final JsonNode oneRoot = onePath.get(2);
         assertTrue(oneRoot.get(UiConstants.ID.getResultConstantValue()).asText().equals("ID025") ||
             oneRoot.get(UiConstants.ID.getResultConstantValue()).asText().equals("ID026"));
     }

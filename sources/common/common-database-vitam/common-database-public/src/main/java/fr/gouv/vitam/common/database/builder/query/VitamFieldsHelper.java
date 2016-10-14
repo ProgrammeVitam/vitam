@@ -138,14 +138,14 @@ public class VitamFieldsHelper {
     public static final String qualifiers() {
         return QUALIFIERS.exactToken();
     }
-    
+
     /**
      * @return #og
      */
     public static final String object() {
         return OBJECT.exactToken();
     }
-    
+
     /**
      * @return #up
      */

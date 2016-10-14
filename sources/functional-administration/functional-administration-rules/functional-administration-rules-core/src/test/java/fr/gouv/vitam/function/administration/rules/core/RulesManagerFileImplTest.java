@@ -78,7 +78,7 @@ public class RulesManagerFileImplTest {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         final MongodStarter starter = MongodStarter.getDefaultInstance();
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .version(Version.Main.PRODUCTION)
@@ -112,14 +112,14 @@ public class RulesManagerFileImplTest {
     @Test
     public void testimportAndDeleteRulesFile() throws Exception {
         rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
-        MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
-        MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
+        final MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
+        final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
         assertEquals(22, collection.count());
-        Select select = new Select();
+        final Select select = new Select();
         select.setQuery(eq("RuleId", "APP-00005"));
-        List<FileRules> fileList = rulesFileManager.findDocuments(select.getFinalSelect());
-        String id = fileList.get(0).getString("RuleId");
-        FileRules file = rulesFileManager.findDocumentById(id);
+        final List<FileRules> fileList = rulesFileManager.findDocuments(select.getFinalSelect());
+        final String id = fileList.get(0).getString("RuleId");
+        final FileRules file = rulesFileManager.findDocumentById(id);
         // assertEquals(file, fileList.get(0));
         rulesFileManager.deleteCollection();
         assertEquals(0, collection.count());

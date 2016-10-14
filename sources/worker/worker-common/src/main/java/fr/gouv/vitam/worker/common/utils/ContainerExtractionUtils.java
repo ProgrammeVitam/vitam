@@ -58,7 +58,7 @@ public class ContainerExtractionUtils {
      * get the uri list of digital object from a container into the workspace *
      *
      * @param workParams parameters of workspace server
-     * @return List of Uri 
+     * @return List of Uri
      * @throws ProcessingException - throw when workspace is unavailable.
      *
      */

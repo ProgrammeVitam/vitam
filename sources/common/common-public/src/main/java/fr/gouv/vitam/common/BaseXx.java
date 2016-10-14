@@ -76,13 +76,14 @@ public final class BaseXx {
 
     /**
      * @param bytes
-     * @return the Base 64 With Padding representation 
+     * @return the Base 64 With Padding representation
      * @throws IllegalArgumentException if argument is not compatible
      */
     public static final String getBase64Padding(byte[] bytes) {
         ParametersChecker.checkParameter(ARGUMENT_NULL_NOT_ALLOWED, bytes);
         return BASE64_PADDING.encode(bytes);
-    }    
+    }
+
     /**
      * @param base16
      * @return the byte from Base 16
@@ -112,7 +113,7 @@ public final class BaseXx {
         ParametersChecker.checkParameter(ARGUMENT_NULL_NOT_ALLOWED, base64);
         return BASE64.decode(base64);
     }
-    
+
     /**
      * @param base64Padding
      * @return the byte from Base 64 With Padding

@@ -77,7 +77,7 @@ public class MongoDbAccessAdminImplTest {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         final MongodStarter starter = MongodStarter.getDefaultInstance();
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .version(Version.Main.PRODUCTION)
@@ -87,7 +87,7 @@ public class MongoDbAccessAdminImplTest {
         mongoAccess = MongoDbAccessAdminFactory.create(
             new DbConfigurationImpl(DATABASE_HOST, port, DATABASE_NAME));
 
-        List<String> testList = new ArrayList<>();
+        final List<String> testList = new ArrayList<>();
         testList.add("test1");
 
         file = new FileFormat()
@@ -120,21 +120,21 @@ public class MongoDbAccessAdminImplTest {
 
     @Test
     public void testImplementFunction() throws Exception {
-        JsonNode jsonNode = JsonHandler.getFromString(file.toJson());
-        ArrayNode arrayNode = JsonHandler.createArrayNode();
+        final JsonNode jsonNode = JsonHandler.getFromString(file.toJson());
+        final ArrayNode arrayNode = JsonHandler.createArrayNode();
         arrayNode.add(jsonNode);
         mongoAccess.insertDocuments(arrayNode, FunctionalAdminCollections.FORMATS);
         assertEquals("FileFormat", FunctionalAdminCollections.FORMATS.getName());
-        MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
-        MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
+        final MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
+        final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
         assertEquals(1, collection.count());
-        Select select = new Select();
+        final Select select = new Select();
         select.setQuery(eq("Name", "name"));
-        MongoCursor<FileFormat> fileList =
+        final MongoCursor<FileFormat> fileList =
             (MongoCursor<FileFormat>) mongoAccess.select(select.getFinalSelect(), FunctionalAdminCollections.FORMATS);
-        FileFormat f1 = fileList.next();
-        String id = f1.getString("_id");
-        FileFormat f2 = (FileFormat) mongoAccess.getDocumentById(id, FunctionalAdminCollections.FORMATS);
+        final FileFormat f1 = fileList.next();
+        final String id = f1.getString("_id");
+        final FileFormat f2 = (FileFormat) mongoAccess.getDocumentById(id, FunctionalAdminCollections.FORMATS);
         assertEquals(f2, f1);
         mongoAccess.deleteCollection(FunctionalAdminCollections.FORMATS);
         assertEquals(0, collection.count());
@@ -143,22 +143,22 @@ public class MongoDbAccessAdminImplTest {
 
     @Test
     public void testRulesFunction() throws Exception {
-        JsonNode jsonNode = JsonHandler.getFromString(fileRules.toJson());
-        ArrayNode arrayNode = JsonHandler.createArrayNode();
+        final JsonNode jsonNode = JsonHandler.getFromString(fileRules.toJson());
+        final ArrayNode arrayNode = JsonHandler.createArrayNode();
         arrayNode.add(jsonNode);
         mongoAccess.insertDocuments(arrayNode, FunctionalAdminCollections.RULES);
         assertEquals("FileRules", FunctionalAdminCollections.RULES.getName());
-        MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
-        MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_RULES);
+        final MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
+        final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_RULES);
         assertEquals(1, collection.count());
-        Select select = new Select();
+        final Select select = new Select();
         select.setQuery(eq("RuleId", "APK-485"));
-        MongoCursor<FileRules> fileList =
+        final MongoCursor<FileRules> fileList =
             (MongoCursor<FileRules>) mongoAccess.select(select.getFinalSelect(), FunctionalAdminCollections.RULES);
-        FileRules f1 = fileList.next();
+        final FileRules f1 = fileList.next();
         assertEquals("APK-485", f1.getString("RuleId"));
-        String id = f1.getString("RuleId");
-        FileRules f2 = (FileRules) mongoAccess.getDocumentById(id, FunctionalAdminCollections.RULES);
+        final String id = f1.getString("RuleId");
+        final FileRules f2 = (FileRules) mongoAccess.getDocumentById(id, FunctionalAdminCollections.RULES);
         mongoAccess.deleteCollection(FunctionalAdminCollections.RULES);
         assertEquals(0, collection.count());
         client.close();

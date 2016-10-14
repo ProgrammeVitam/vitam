@@ -14,13 +14,13 @@ public class IOParameterTest {
 
     @Test
     public void testGetterSetter() throws URISyntaxException {
-        IOParameter param = new IOParameter();
+        final IOParameter param = new IOParameter();
         param.setUri(new ProcessingUri(WORKSPACE_FILE)).setName(IN).setValue(TEST);
-        assertEquals(param.getUri().getPath(),"file");
-        assertEquals(param.getUri().getPrefix(),UriPrefix.WORKSPACE);
-        assertEquals(param.getName(),IN);
-        assertEquals(param.getValue(),TEST);
-        
+        assertEquals(param.getUri().getPath(), "file");
+        assertEquals(param.getUri().getPrefix(), UriPrefix.WORKSPACE);
+        assertEquals(param.getName(), IN);
+        assertEquals(param.getValue(), TEST);
+
     }
 
 }

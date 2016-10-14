@@ -265,7 +265,7 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
 
         // Temporary fix as the obIdIn (MessageIdentifier in the SEDA manifest) is only available on the 2 to last
         // Logbook operation event . Must be removed when the processing will be reworked
-        ObjectNode operationSlice = JsonHandler.createObjectNode();
+        final ObjectNode operationSlice = JsonHandler.createObjectNode();
         operationSlice.putObject(LogbookDocument.EVENTS).put(SLICE, TWO_LAST_EVENTS_SLICE);
         return select(LogbookCollections.OPERATION, select, operationSlice);
     }
@@ -549,7 +549,7 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
         final VitamDocument document = getDocumentForUpdate(item);
         try {
             // Save the _id content before removing it
-            String mainLogbookDocumentId = document.getId();
+            final String mainLogbookDocumentId = document.getId();
 
             // Remove _id and events fields
             document.remove(LogbookDocument.EVENTS);
@@ -646,7 +646,7 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
         if (items != null && items.length > 0) {
             final List<VitamDocument> events = new ArrayList<>(items.length);
             for (final LogbookParameters item2 : items) {
-                VitamDocument currentEvent = getDocumentForUpdate(item2);
+                final VitamDocument currentEvent = getDocumentForUpdate(item2);
                 currentEvent.remove(LogbookDocument.EVENTS);
                 currentEvent.remove(LogbookDocument.ID);
                 events.add(currentEvent);
@@ -701,7 +701,7 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
         final List<VitamDocument> events = new ArrayList<>(items.length);
         // Get the first event to preserve the _id field value
         final VitamDocument firstEvent = getDocumentForUpdate(items[0]);
-        String mainLogbookDocumentId = firstEvent.getId();
+        final String mainLogbookDocumentId = firstEvent.getId();
 
         firstEvent.remove(LogbookDocument.EVENTS);
         firstEvent.remove(LogbookDocument.ID);
@@ -709,7 +709,7 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
 
         for (int i = 1; i < items.length; i++) {
             // Remove _id and events fields
-            VitamDocument currentEvent = getDocument(items[i]);
+            final VitamDocument currentEvent = getDocument(items[i]);
             currentEvent.remove(LogbookDocument.EVENTS);
             currentEvent.remove(LogbookDocument.ID);
 

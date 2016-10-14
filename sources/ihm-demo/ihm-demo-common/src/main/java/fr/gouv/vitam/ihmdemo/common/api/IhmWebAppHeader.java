@@ -37,7 +37,7 @@ import fr.gouv.vitam.common.GlobalDataRest;
  *
  */
 public enum IhmWebAppHeader {
-    
+
     /**
      * The X_LIMIT header, used to get an object
      */
@@ -79,7 +79,7 @@ public enum IhmWebAppHeader {
      * @return the header name
      */
     public String getName() {
-        return this.name;
+        return name;
     }
 
     /**
@@ -88,7 +88,7 @@ public enum IhmWebAppHeader {
      * @return the regular expression
      */
     public String getRegExp() {
-        return this.regExp;
+        return regExp;
     }
 
     /**
@@ -98,7 +98,7 @@ public enum IhmWebAppHeader {
      * @return the header if exists, null otherwise
      */
     public static IhmWebAppHeader get(String headerName) {
-        for (IhmWebAppHeader v : values()) {
+        for (final IhmWebAppHeader v : values()) {
             if (v.getName().equals(headerName)) {
                 return v;
             }

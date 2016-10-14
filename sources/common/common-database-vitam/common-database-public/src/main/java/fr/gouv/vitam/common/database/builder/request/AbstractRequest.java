@@ -184,24 +184,24 @@ public abstract class AbstractRequest {
     }
 
     /**
-     * Set the query of request: in case of multi-query request: re-initialize list of query 
-     * 
+     * Set the query of request: in case of multi-query request: re-initialize list of query
+     *
      * @param query of request
      * @return this request
      * @throws InvalidCreateOperationException when query is invalid
      */
     public abstract AbstractRequest setQuery(Query query) throws InvalidCreateOperationException;
-    
+
     /**
      * @return the number of queries
      */
     public abstract int getNbQueries();
-    
+
     /**
      * @return the queries list
      */
     public abstract List<Query> getQueries();
-    
+
     /**
      * @return the queries list
      */
@@ -211,23 +211,23 @@ public abstract class AbstractRequest {
      * @return the projection json
      */
     public abstract JsonNode getProjection();
-    
+
     /**
      * @return the data
      */
     public abstract JsonNode getData();
-    
+
     /**
      * @return list of actions
      */
     public abstract List<Action> getActions();
-    
-    
+
+
     /**
      * @return add projections
      */
     public abstract boolean getAllProjection();
-    
-    
+
+
 
 }

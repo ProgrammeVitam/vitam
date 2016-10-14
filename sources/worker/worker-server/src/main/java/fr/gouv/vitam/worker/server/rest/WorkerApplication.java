@@ -106,7 +106,7 @@ public final class WorkerApplication extends AbstractVitamApplication<WorkerAppl
 
     /**
      * Run the server.
-     * 
+     *
      * @param configuration the worker configuration
      * @throws VitamApplicationServerException is thrown if the APPLICATION could not be started
      */
@@ -121,13 +121,13 @@ public final class WorkerApplication extends AbstractVitamApplication<WorkerAppl
         context.setContextPath("/");
         context.addServlet(sh, "/*");
         context.addEventListener(new WorkerRegistrationListener(configuration));
-        String jettyConfig = configuration.getJettyConfig();
+        final String jettyConfig = configuration.getJettyConfig();
         vitamServer = VitamServerFactory.newVitamServerByJettyConf(jettyConfig);
         vitamServer.getServer().setHandler(context);
 
         try {
             vitamServer.getServer().start();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error(String.format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
             throw new VitamApplicationServerException(
                 String.format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);

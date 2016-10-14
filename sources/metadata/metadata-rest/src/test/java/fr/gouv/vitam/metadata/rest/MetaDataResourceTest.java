@@ -61,12 +61,6 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
-import fr.gouv.vitam.api.config.MetaDataConfiguration;
-import fr.gouv.vitam.api.exception.MetaDataException;
-import fr.gouv.vitam.api.model.DatabaseCursor;
-import fr.gouv.vitam.api.model.RequestResponseError;
-import fr.gouv.vitam.api.model.RequestResponseOK;
-import fr.gouv.vitam.api.model.VitamError;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
@@ -74,7 +68,13 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.api.exception.MetaDataException;
+import fr.gouv.vitam.metadata.api.model.DatabaseCursor;
+import fr.gouv.vitam.metadata.api.model.RequestResponseError;
+import fr.gouv.vitam.metadata.api.model.RequestResponseOK;
+import fr.gouv.vitam.metadata.api.model.VitamError;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 
 public class MetaDataResourceTest {
     private static final String DATA =
@@ -140,14 +140,14 @@ public class MetaDataResourceTest {
     public static void setUpBeforeClass() throws Exception {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
 
         // ES
         TCP_PORT = junitHelper.findAvailablePort();
         HTTP_PORT = junitHelper.findAvailablePort();
 
         elasticsearchHome = tempFolder.newFolder();
-        Settings settings = Settings.settingsBuilder()
+        final Settings settings = Settings.settingsBuilder()
             .put("http.enabled", true)
             .put("discovery.zen.ping.multicast.enabled", false)
             .put("transport.tcp.port", TCP_PORT)
@@ -163,7 +163,7 @@ public class MetaDataResourceTest {
 
         node.start();
 
-        List<ElasticsearchNode> nodes = new ArrayList<ElasticsearchNode>();
+        final List<ElasticsearchNode> nodes = new ArrayList<ElasticsearchNode>();
         nodes.add(new ElasticsearchNode(HOST_NAME, TCP_PORT));
 
         dataBasePort = junitHelper.findAvailablePort();
@@ -188,7 +188,7 @@ public class MetaDataResourceTest {
     public static void tearDownAfterClass() {
         try {
             MetaDataApplication.stop();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             // ignore
         }
         mongod.stop();
@@ -314,7 +314,7 @@ public class MetaDataResourceTest {
 
     @Test
     public void shouldReturnErrorRequestBadRequestIfDocumentIsTooLarge() throws Exception {
-        int limitRequest = GlobalDatasParser.limitRequest;
+        final int limitRequest = GlobalDatasParser.limitRequest;
         GlobalDatasParser.limitRequest = 99;
         given()
             .contentType(ContentType.JSON)
@@ -381,7 +381,7 @@ public class MetaDataResourceTest {
 
     @Test
     public void shouldReturnErrorRequestBadRequestWhenInsertGOIfDocumentIsTooLarge() throws Exception {
-        int limitRequest = GlobalDatasParser.limitRequest;
+        final int limitRequest = GlobalDatasParser.limitRequest;
         GlobalDatasParser.limitRequest = 99;
         given()
             .contentType(ContentType.JSON)

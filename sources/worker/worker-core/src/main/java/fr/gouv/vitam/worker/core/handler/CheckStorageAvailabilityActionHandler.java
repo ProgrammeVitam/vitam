@@ -32,11 +32,11 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.OutcomeMessage;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
-import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.model.StorageInformation;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
@@ -91,16 +91,16 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
             checkMandatoryIOParameter(actionDefinition);
             // TODO get size manifest.xml in local
             // TODO extract this information from first parsing
-            long objectsSizeInSip = sedaUtils.computeTotalSizeOfObjectsInManifest(params);
-            long manifestSize = sedaUtils.getManifestSize(params);
+            final long objectsSizeInSip = sedaUtils.computeTotalSizeOfObjectsInManifest(params);
+            final long manifestSize = sedaUtils.getManifestSize(params);
             totalSizeToBeStored = objectsSizeInSip + manifestSize;
 
-            JsonNode storageCapacityNode = STORAGE_CLIENT.getStorageInformation(DEFAULT_TENANT, DEFAULT_STRATEGY);
+            final JsonNode storageCapacityNode = STORAGE_CLIENT.getStorageInformation(DEFAULT_TENANT, DEFAULT_STRATEGY);
             // TODO : add JsonNode to POJO functionality in JsonHandler. For the moment we have to convert to
             // JsonNode to a string then convert it back to a POJO.
-            StorageInformation information =
+            final StorageInformation information =
                 JsonHandler.getFromString(JsonHandler.writeAsString(storageCapacityNode), StorageInformation.class);
-            long storageCapacity = information.getUsableSpace();
+            final long storageCapacity = information.getUsableSpace();
             if (storageCapacity >= totalSizeToBeStored) {
                 response.setStatus(StatusCode.OK);
             } else {

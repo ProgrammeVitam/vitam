@@ -32,6 +32,11 @@ package fr.gouv.vitam.storage.driver.exception;
 public class StorageObjectAlreadyExistsException extends Exception {
 
     /**
+     *
+     */
+    private static final long serialVersionUID = -3017427500292680375L;
+
+    /**
      * @param message associated message
      */
     public StorageObjectAlreadyExistsException(String message) {
@@ -59,8 +64,9 @@ public class StorageObjectAlreadyExistsException extends Exception {
      * @param enableSuppression allow suppression or not
      * @param writableStackTrace allow writable stack trace or not
      */
-    public StorageObjectAlreadyExistsException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    public StorageObjectAlreadyExistsException(String message, Throwable cause, boolean enableSuppression,
+        boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
-    
+
 }

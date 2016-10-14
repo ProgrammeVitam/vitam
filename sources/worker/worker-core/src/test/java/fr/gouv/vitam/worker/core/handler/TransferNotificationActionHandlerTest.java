@@ -29,6 +29,7 @@ package fr.gouv.vitam.worker.core.handler;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
+
 import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
 
@@ -41,8 +42,8 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
-import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.core.api.HandlerIO;
@@ -52,23 +53,24 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
 @PrepareForTest({WorkspaceClientFactory.class})
-public class TransferNotificationActionHandlerTest {        
+public class TransferNotificationActionHandlerTest {
     private static final String ARCHIVE_ID_TO_GUID_MAP = "ARCHIVE_ID_TO_GUID_MAP_obj.json";
     private static final String BINARY_DATA_OBJECT_ID_TO_GUID_MAP = "BINARY_DATA_OBJECT_ID_TO_GUID_MAP_obj.json";
     private static final String BDO_TO_OBJECT_GROUP_ID_MAP = "BDO_TO_OBJECT_GROUP_ID_MAP_obj.json";
     private static final String BDO_TO_VERSION_BDO_MAP = "BDO_TO_VERSION_BDO_MAP_obj.json";
     private static final String ATR_GLOBAL_SEDA_PARAMETERS = "globalSEDAParameters.json";
-   
+
     private static final String HANDLER_ID = "TransferNotification";
     private WorkspaceClient workspaceClient;
     private HandlerIO action;
-    private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata
-        ("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName").setProcessId("aeaaaaaaaaaaaaababz4aakxtykbybyaaaaq");
+    private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl")
+        .setUrlMetadata("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep")
+        .setContainerName("containerName").setProcessId("aeaaaaaaaaaaaaababz4aakxtykbybyaaaaq");
 
     TransferNotificationActionHandler transferNotificationHandler = new TransferNotificationActionHandler();
-    
+
     @Before
-    public void setUp() throws URISyntaxException, FileNotFoundException  { 
+    public void setUp() throws URISyntaxException, FileNotFoundException {
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
@@ -77,19 +79,18 @@ public class TransferNotificationActionHandlerTest {
         action.addInput(PropertiesUtils.getResourcesFile(ARCHIVE_ID_TO_GUID_MAP));
         action.addInput(PropertiesUtils.getResourcesFile(BINARY_DATA_OBJECT_ID_TO_GUID_MAP));
         action.addInput(PropertiesUtils.getResourcesFile(BDO_TO_OBJECT_GROUP_ID_MAP));
-        action.addInput(PropertiesUtils.getResourcesFile(BDO_TO_VERSION_BDO_MAP));    
+        action.addInput(PropertiesUtils.getResourcesFile(BDO_TO_VERSION_BDO_MAP));
         action.addInput(PropertiesUtils.getResourcesFile(ATR_GLOBAL_SEDA_PARAMETERS));
     }
 
-    
+
     @Test
     public void givenXMLCreationWhenValidThenResponseOK()
         throws Exception {
         transferNotificationHandler = new TransferNotificationActionHandler();
-        
+
         assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
         final EngineResponse response = transferNotificationHandler.execute(params, action);
         assertEquals(response.getStatus(), StatusCode.OK);
-    }    
+    }
 }
-    

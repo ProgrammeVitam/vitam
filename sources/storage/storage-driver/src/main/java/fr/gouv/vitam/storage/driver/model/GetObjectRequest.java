@@ -32,15 +32,15 @@ package fr.gouv.vitam.storage.driver.model;
  */
 public class GetObjectRequest {
 
-    private String tenantId;
+    private final String tenantId;
 
-    private String guid;
+    private final String guid;
 
-    private String folder;
+    private final String folder;
 
     /**
      * Initialize the needed parameters for get/head requests
-     * 
+     *
      * @param tenantId the request tenantId
      * @param guid the object guid
      * @param folder the folder
@@ -66,7 +66,7 @@ public class GetObjectRequest {
     }
 
     /**
-     * 
+     *
      * @return the folder
      */
     public String getFolder() {

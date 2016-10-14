@@ -58,8 +58,8 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
+import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -379,7 +379,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
                 containerName, objectName);
-        } catch (IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         }
@@ -433,7 +433,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
                 containerName, folderName);
-        } catch (IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         }
@@ -448,7 +448,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
             return Response.status(Status.CONFLICT).entity(containerName).build();
         } catch (final ContentAddressableStorageZipException e) {
             LOGGER.error(e);
-            Status status = Status.BAD_REQUEST;
+            final Status status = Status.BAD_REQUEST;
             // TODO : For now it is generic code "0000" since vitam error code have not been defined
             return Response.status(status)
                 .entity(new RequestResponseError().setError(
@@ -511,9 +511,9 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getContainerInformation(@PathParam("containerName") String containerName) {
         try {
-            ContainerInformation containerInformation = workspace.getContainerInformation(containerName);
+            final ContainerInformation containerInformation = workspace.getContainerInformation(containerName);
             return Response.status(Status.OK).entity(containerInformation).build();
-        } catch (ContentAddressableStorageNotFoundException exc) {
+        } catch (final ContentAddressableStorageNotFoundException exc) {
             LOGGER.error(exc);
             return Response.status(Status.NOT_FOUND).entity(containerName).build();
         }

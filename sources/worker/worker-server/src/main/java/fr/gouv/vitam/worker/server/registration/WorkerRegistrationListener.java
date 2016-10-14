@@ -43,11 +43,11 @@ public class WorkerRegistrationListener implements ServletContextListener {
     /**
      * Worker configuration used to retrieve the register configuration
      */
-    private WorkerConfiguration configuration;
+    private final WorkerConfiguration configuration;
 
     /**
      * Constructor.
-     * 
+     *
      * @param configuration configuration
      */
     public WorkerRegistrationListener(WorkerConfiguration configuration) {
@@ -57,8 +57,8 @@ public class WorkerRegistrationListener implements ServletContextListener {
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         LOGGER.debug("ServletContextListener started");
-        WorkerRegister register = new WorkerRegister(configuration);
-        Thread thread = new Thread(register);
+        final WorkerRegister register = new WorkerRegister(configuration);
+        final Thread thread = new Thread(register);
         thread.start();
     }
 

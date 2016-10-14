@@ -49,7 +49,7 @@ public final class WorkerImplFactory {
     /**
      * @param actionName the name of the action
      * @param actionHandler the handler
-     * @return WorkerImpl 
+     * @return WorkerImpl
      */
     public static Worker create(String actionName, ActionHandler actionHandler) {
         ParametersChecker.checkParameter("actionName is a mandatory parameter", actionName);

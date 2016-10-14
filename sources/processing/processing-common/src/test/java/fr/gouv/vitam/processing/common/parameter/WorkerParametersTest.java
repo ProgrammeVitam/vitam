@@ -27,8 +27,8 @@
 
 package fr.gouv.vitam.processing.common.parameter;
 
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -91,16 +91,16 @@ public class WorkerParametersTest {
 
     @Test
     public void defaultWorkerParametersConstructorTest() {
-        Map<String, String> map = new HashMap<>();
+        final Map<String, String> map = new HashMap<>();
         map.put(WorkerParameterName.currentStep.name(), WorkerParameterName.currentStep.name());
-        WorkerParameters parameters = new DefaultWorkerParameters(map);
+        final WorkerParameters parameters = new DefaultWorkerParameters(map);
         assertNotNull(parameters);
         assertEquals(1, parameters.getMapParameters().size());
     }
 
     @Test
     public void getterSetterTest() {
-        WorkerParameters parameters = WorkerParametersFactory.newWorkerParameters();
+        final WorkerParameters parameters = WorkerParametersFactory.newWorkerParameters();
         assertNotNull(parameters);
         assertEquals(0, parameters.getMapParameters().size());
         parameters.setContainerName("containerName");
@@ -133,7 +133,7 @@ public class WorkerParametersTest {
         parameters.setUrlWorkspace("urlWorkspace");
         assertEquals(9, parameters.getMapParameters().size());
         assertEquals("urlWorkspace", parameters.getUrlWorkspace());
-        GUID guid = GUIDFactory.newGUID();
+        final GUID guid = GUIDFactory.newGUID();
         parameters.setWorkerGUID(guid);
         assertEquals(10, parameters.getMapParameters().size());
         assertEquals(guid.getId(), parameters.getWorkerGUID());
@@ -141,8 +141,8 @@ public class WorkerParametersTest {
 
     @Test
     public void toStringTest() {
-        GUID guid = GUIDFactory.newGUID();
-        String json = "{\n" +
+        final GUID guid = GUIDFactory.newGUID();
+        final String json = "{\n" +
             "  \"urlMetadata\" : \"urlMetadata\",\n" +
             "  \"urlWorkspace\" : \"urlWorkspace\",\n" +
             "  \"processId\" : \"processId\",\n" +
@@ -154,7 +154,7 @@ public class WorkerParametersTest {
             "  \"metadataRequest\" : \"metadataRequest\",\n" +
             "  \"currentStep\" : \"currentStep\"\n" +
             "}";
-        WorkerParameters parameters = WorkerParametersFactory.newWorkerParameters("processId", "stepUniqId",
+        final WorkerParameters parameters = WorkerParametersFactory.newWorkerParameters("processId", "stepUniqId",
             "containerName", "currentStep", "objectName", "urlMetadata", "urlWorkspace");
         assertNotNull(parameters);
         parameters.setObjectId("objectId");

@@ -99,7 +99,7 @@ public class WorkspaceResourceTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
     }
 
     @AfterClass
@@ -126,7 +126,7 @@ public class WorkspaceResourceTest {
 
     @After
     public void tearDown() throws Exception {
-        workspaceApplication.stop();
+        WorkspaceApplication.stop();
     }
 
     // Status
@@ -339,7 +339,7 @@ public class WorkspaceResourceTest {
                 .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/objects");
         }
         try (InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("file1.pdf")) {
-            Digest digest = new Digest(DigestType.fromValue(ALGO));
+            final Digest digest = new Digest(DigestType.fromValue(ALGO));
             digest.update(stream);
 
             given().header(X_DIGEST_ALGORITHM, ALGO)
@@ -414,7 +414,7 @@ public class WorkspaceResourceTest {
     public void givenContainerNotFoundWhenUnzippingObjectThenReturnNotFound() throws IOException {
         try (InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("sip.zip")) {
 
-            byte[] bytes = IOUtils.toByteArray(stream); // need for the test !
+            final byte[] bytes = IOUtils.toByteArray(stream); // need for the test !
             given()
                 .contentType(ContentType.BINARY)
                 .config(RestAssured.config().encoderConfig(
@@ -434,7 +434,7 @@ public class WorkspaceResourceTest {
             with().contentType(ContentType.JSON).body(new Entry(FOLDER_SIP)).then()
                 .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME + "/folders");
 
-            byte[] bytes = IOUtils.toByteArray(stream); // need for the test !
+            final byte[] bytes = IOUtils.toByteArray(stream); // need for the test !
             given()
                 .contentType(ContentType.BINARY)
                 .config(RestAssured.config().encoderConfig(
@@ -453,7 +453,7 @@ public class WorkspaceResourceTest {
             with().contentType(ContentType.JSON).body(new Entry(CONTAINER_NAME)).then()
                 .statusCode(Status.CREATED.getStatusCode()).when().post("/containers");
             try {
-                RequestResponseError response = new RequestResponseError().setError(
+                final RequestResponseError response = new RequestResponseError().setError(
                     new VitamError(Status.BAD_REQUEST.getStatusCode())
                         .setContext("WORKSPACE")
                         .setState("vitam_code")
@@ -464,7 +464,7 @@ public class WorkspaceResourceTest {
                     .then().contentType(ContentType.JSON).statusCode(Status.BAD_REQUEST.getStatusCode())
                     .body(Matchers.equalTo(OBJECT_MAPPER.writeValueAsString(response))).when()
                     .put("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_SIP);
-            } catch (JsonProcessingException exc) {
+            } catch (final JsonProcessingException exc) {
                 fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
             }
         }

@@ -40,7 +40,7 @@ public class VitamLoggerLogFactory implements LogFactory {
     }
 
     /**
-     * 
+     *
      * @return the instance of this factory
      */
     public static LogFactory getInstance() {
@@ -50,15 +50,18 @@ public class VitamLoggerLogFactory implements LogFactory {
     /**
      * getter of the Logger by module name
      */
+    @Override
     public Logger getLogger(String moduleName) {
         return new VitamLoggerLog(moduleName);
     }
 
     /**
      * getter of the Logger by class
+     * 
      * @param clazz
      * @return Logger
      */
+    @Override
     public Logger getLogger(@SuppressWarnings("rawtypes") Class clazz) {
         return new VitamLoggerLog(clazz.getName());
     }

@@ -41,26 +41,26 @@ import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import fr.gouv.vitam.api.MetaData;
-import fr.gouv.vitam.api.config.MetaDataConfiguration;
-import fr.gouv.vitam.api.exception.MetaDataAlreadyExistException;
-import fr.gouv.vitam.api.exception.MetaDataDocumentSizeException;
-import fr.gouv.vitam.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.api.model.RequestResponseError;
-import fr.gouv.vitam.api.model.RequestResponseOK;
-import fr.gouv.vitam.api.model.VitamError;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
-import fr.gouv.vitam.core.MetaDataImpl;
-import fr.gouv.vitam.core.MongoDbAccessMetadataFactory;
-import fr.gouv.vitam.core.database.collections.DbRequest;
+import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
+import fr.gouv.vitam.metadata.api.MetaData;
+import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.api.model.RequestResponseError;
+import fr.gouv.vitam.metadata.api.model.RequestResponseOK;
+import fr.gouv.vitam.metadata.api.model.VitamError;
+import fr.gouv.vitam.metadata.core.MetaDataImpl;
+import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
+import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
 
 /**
  * Units resource REST API
@@ -77,7 +77,7 @@ public class MetaDataResource extends ApplicationStatusResource {
 
     /**
      * MetaDataResource constructor
-     * 
+     *
      * @param configuration {@link MetaDataConfiguration}
      */
 
@@ -90,7 +90,7 @@ public class MetaDataResource extends ApplicationStatusResource {
 
     /**
      * Insert or Select unit with json request
-     * 
+     *
      * @throws MetaDataDocumentSizeException
      * @throws MetaDataExecutionException
      */
@@ -189,7 +189,7 @@ public class MetaDataResource extends ApplicationStatusResource {
 
     /**
      * select units list by query
-     * 
+     *
      * @param selectRequest
      * @return
      * @throws MetaDataDocumentSizeException
@@ -202,7 +202,7 @@ public class MetaDataResource extends ApplicationStatusResource {
         try {
             jsonResultNode = metaDataImpl.selectUnitsByQuery(selectRequest);
 
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             status = Status.BAD_REQUEST;
             return Response.status(status)
@@ -235,7 +235,7 @@ public class MetaDataResource extends ApplicationStatusResource {
 
     /**
      * Select unit by query and path parameter unit_id
-     * 
+     *
      * @param selectRequest
      * @param unitId
      * @return {@link Response} will be contains an json filled by unit result
@@ -255,7 +255,7 @@ public class MetaDataResource extends ApplicationStatusResource {
     }
 
     /**
-     * 
+     *
      * @param selectRequest
      * @param unitId
      * @return {@link Response} will be contains an json filled by unit result
@@ -272,7 +272,7 @@ public class MetaDataResource extends ApplicationStatusResource {
 
     /**
      * Update unit by query and path parameter unit_id
-     * 
+     *
      * @param updateRequest
      * @param unitId
      * @return {@link Response} will be contains an json filled by unit result
@@ -381,7 +381,7 @@ public class MetaDataResource extends ApplicationStatusResource {
     // avoid so much lines and complex maintenance
     /**
      * Create unit with json request
-     * 
+     *
      * @throws InvalidParseOperationException
      */
     @Path("objectgroups")
@@ -492,7 +492,7 @@ public class MetaDataResource extends ApplicationStatusResource {
     public Response getObjectGroupById(String selectRequest, @PathParam("id_og") String objectGroupId) {
         try {
             ParametersChecker.checkParameter("Request select required", selectRequest);
-        } catch (IllegalArgumentException exc) {
+        } catch (final IllegalArgumentException exc) {
             return Response.status(Status.PRECONDITION_FAILED).entity(new RequestResponseError().setError(
                 new VitamError(Status.PRECONDITION_FAILED.getStatusCode())
                     .setContext("METADATA")

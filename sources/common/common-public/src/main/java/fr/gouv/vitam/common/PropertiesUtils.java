@@ -64,7 +64,7 @@ public final class PropertiesUtils {
      * @return the associated File
      * @throws FileNotFoundException
      */
-    public static final InputStream getResourcesAsStream(String resourcesFile)throws FileNotFoundException {
+    public static final InputStream getResourcesAsStream(String resourcesFile) throws FileNotFoundException {
         if (resourcesFile == null) {
             throw new FileNotFoundException(FILE_NOT_FOUND_IN_RESOURCES + resourcesFile);
         }
@@ -88,7 +88,7 @@ public final class PropertiesUtils {
         }
         return stream;
     }
-    
+
     /**
      * Get the File representation from the local path to the Resources directory
      *
@@ -280,7 +280,7 @@ public final class PropertiesUtils {
 
     /**
      * Write the Yaml file
-     * 
+     *
      * @param destination the destination file
      * @param config the configuration object to write using Yaml format
      * @throws IOException

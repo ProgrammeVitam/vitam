@@ -58,7 +58,7 @@ public class FileRules extends VitamDocument<FileRules> {
 
     /**
      * Constructor
-     * 
+     *
      * @param document
      */
     public FileRules(Document document) {
@@ -68,91 +68,91 @@ public class FileRules extends VitamDocument<FileRules> {
 
     /**
      * setRuleId
-     * 
+     *
      * @param ruleId
      * @return FileRules
      */
     public FileRules setRuleId(String ruleId) {
-        this.append(RULEID, ruleId);
+        append(RULEID, ruleId);
         return this;
     }
 
     /**
      * setRuleType
-     * 
+     *
      * @param ruleType
      * @return FileRules
      */
     public FileRules setRuleType(String ruleType) {
-        this.append(RULETYPE, ruleType);
+        append(RULETYPE, ruleType);
         return this;
     }
 
     /**
      * setRuleValue
-     * 
+     *
      * @param ruleValue
      * @return FileRules
      */
     public FileRules setRuleValue(String ruleValue) {
-        this.append(RULEVALUE, ruleValue);
+        append(RULEVALUE, ruleValue);
         return this;
     }
 
     /**
      * setRuleDescription
-     * 
+     *
      * @param ruleDescription
      * @return FileRules
      */
 
     public FileRules setRuleDescription(String ruleDescription) {
-        this.append(RULEDESCRIPTION, ruleDescription);
+        append(RULEDESCRIPTION, ruleDescription);
         return this;
     }
 
     /**
      * setRuleDuration
-     * 
+     *
      * @param ruleDuration
      * @return FileRules
      */
     public FileRules setRuleDuration(String ruleDuration) {
-        this.append(RULEDURATION, ruleDuration);
+        append(RULEDURATION, ruleDuration);
         return this;
     }
 
     /**
      * setRuleMeasurement
-     * 
+     *
      * @param ruleMeasurement
      * @return FileRules
      */
     public FileRules setRuleMeasurement(String ruleMeasurement) {
-        this.append(RULEMEASUREMENT, ruleMeasurement);
+        append(RULEMEASUREMENT, ruleMeasurement);
         return this;
     }
 
     /**
      * setCreationDate
-     * 
+     *
      * @param creationDate
      * @return
      */
     public FileRules setCreationDate(String creationDate) {
-        this.append(CREATIONDATE, creationDate);
+        append(CREATIONDATE, creationDate);
         return this;
     }
 
     /**
      * setUpdateDate
-     * 
+     *
      * @param updateDate
      * @return
      */
 
     public FileRules setUpdateDate(String updateDate) {
-        this.append(UPDATEDATE, updateDate);
+        append(UPDATEDATE, updateDate);
         return this;
     }
 }

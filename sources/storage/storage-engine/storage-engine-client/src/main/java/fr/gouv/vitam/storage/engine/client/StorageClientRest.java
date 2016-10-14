@@ -198,7 +198,7 @@ class StorageClientRest extends AbstractSSLClient implements StorageClient {
 
     /**
      * Tranform a noContent call response to a boolean (or error)
-     * 
+     *
      * @param status Http reponse
      * @return true 204, false if 404
      * @throws StorageServerClientException is thrown if an unexpected response is sent by the server
@@ -213,7 +213,7 @@ class StorageClientRest extends AbstractSSLClient implements StorageClient {
                 result = false;
                 break;
             default:
-                String log = VitamCodeHelper.getCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR) + " : " +
+                final String log = VitamCodeHelper.getCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR) + " : " +
                     status.getReasonPhrase();
                 LOGGER.error(log);
                 throw new StorageServerClientException(log);
@@ -223,13 +223,13 @@ class StorageClientRest extends AbstractSSLClient implements StorageClient {
 
     /**
      * Perform a HEAD request on given resource
-     * 
+     *
      * @param path the path to the resource to request
      * @param headers headers HTTP to add to request
      * @return the server response
      */
     protected Response performHeadRequest(String path, MultivaluedHashMap<String, Object> headers) {
-        Invocation.Builder request = getClient().target(getServiceUrl()).path(path).request().headers(headers);
+        final Invocation.Builder request = getClient().target(getServiceUrl()).path(path).request().headers(headers);
         return request.head();
     }
 
@@ -237,25 +237,25 @@ class StorageClientRest extends AbstractSSLClient implements StorageClient {
 
     /**
      * Perform a DELETE request on given resource
-     * 
+     *
      * @param path the path to the resource to request
      * @return the server response
      */
     protected Response performDeleteRequest(String path, MultivaluedHashMap<String, Object> headers) {
-        Invocation.Builder request = getClient().target(getServiceUrl()).path(path).request().headers(headers);
+        final Invocation.Builder request = getClient().target(getServiceUrl()).path(path).request().headers(headers);
         return request.delete();
     }
 
 
     /**
      * Generate the default header map
-     * 
+     *
      * @param tenantId the tenant id
      * @param strategyId the storage strategy id
      * @return header map
      */
     private MultivaluedHashMap<String, Object> getDefaultHeaders(String tenantId, String strategyId) {
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         headers.add(GlobalDataRest.X_STRATEGY_ID, strategyId);
         return headers;
@@ -264,7 +264,7 @@ class StorageClientRest extends AbstractSSLClient implements StorageClient {
 
     /**
      * Common method to handle responses expecting NO_CONTENT (204) status
-     * 
+     *
      * @param response the server response
      * @return the response status if it is an expected response (204, 404 and 412)
      * @throws StorageServerClientException is thrown if an unexpected response is sent by the server
@@ -278,7 +278,7 @@ class StorageClientRest extends AbstractSSLClient implements StorageClient {
             case PRECONDITION_FAILED:
                 return status;
             default:
-                String log = VitamCodeHelper.getCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR) + " : " +
+                final String log = VitamCodeHelper.getCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR) + " : " +
                     status.getReasonPhrase();
                 LOGGER.error(log);
                 throw new StorageServerClientException(log);
@@ -302,7 +302,7 @@ class StorageClientRest extends AbstractSSLClient implements StorageClient {
                 throw new StorageNotFoundClientException(VitamCodeHelper.getCode(VitamCode.STORAGE_NOT_FOUND) + " : " +
                     status.getReasonPhrase());
             default:
-                String log = VitamCodeHelper.getCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR) + " : " +
+                final String log = VitamCodeHelper.getCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR) + " : " +
                     status.getReasonPhrase();
                 LOGGER.error(log);
                 throw new StorageServerClientException(log);
@@ -322,7 +322,7 @@ class StorageClientRest extends AbstractSSLClient implements StorageClient {
                 throw new StorageNotFoundClientException(VitamCodeHelper.getCode(VitamCode.STORAGE_NOT_FOUND) + " : " +
                     status.getReasonPhrase());
             default:
-                String log = VitamCodeHelper.getCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR) + " : " +
+                final String log = VitamCodeHelper.getCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR) + " : " +
                     status.getReasonPhrase();
                 LOGGER.error(log);
                 throw new StorageServerClientException(log);
@@ -348,10 +348,10 @@ class StorageClientRest extends AbstractSSLClient implements StorageClient {
                     // TODO : this is ugly but necessarily in order to close the response and avoid concurrent issues
                     // to be improved (https://jersey.java.net/documentation/latest/client.html#d0e5170) and
                     // remove the IOUtils.toByteArray after correction of concurrent problem
-                    InputStream streamClosedAutomatically = response.readEntity(InputStream.class);
+                    final InputStream streamClosedAutomatically = response.readEntity(InputStream.class);
                     try {
                         stream = new ByteArrayInputStream(IOUtils.toByteArray(streamClosedAutomatically));
-                    } catch (IOException e) {
+                    } catch (final IOException e) {
                         LOGGER.error(VitamCodeHelper.getCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR) + " : " + e);
                         throw new StorageServerClientException(
                             VitamCodeHelper.getCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e);
@@ -364,7 +364,7 @@ class StorageClientRest extends AbstractSSLClient implements StorageClient {
                     throw new StorageServerClientException(
                         VitamCodeHelper.getCode(VitamCode.STORAGE_MISSING_HEADER) + ": " + status.getReasonPhrase());
                 default:
-                    String log = VitamCodeHelper.getCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR) + " : " +
+                    final String log = VitamCodeHelper.getCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR) + " : " +
                         status.getReasonPhrase();
                     LOGGER.error(log);
                     throw new StorageServerClientException(log);

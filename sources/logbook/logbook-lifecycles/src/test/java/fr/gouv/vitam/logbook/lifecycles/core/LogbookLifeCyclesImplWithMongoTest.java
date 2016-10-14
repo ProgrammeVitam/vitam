@@ -48,10 +48,10 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
@@ -87,7 +87,7 @@ public class LogbookLifeCyclesImplWithMongoTest {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         final MongodStarter starter = MongodStarter.getDefaultInstance();
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .version(Version.Main.PRODUCTION)
@@ -100,7 +100,7 @@ public class LogbookLifeCyclesImplWithMongoTest {
                     "vitam-test"));
 
         logbookLifeCyclesUnitParametersStart = LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
-        logbookLifeCyclesUnitParametersStart.setStatus(LogbookOutcome.STARTED);
+        logbookLifeCyclesUnitParametersStart.setStatus(StatusCode.STARTED);
         logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.eventIdentifier,
             eip.toString());
         logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.eventIdentifierProcess,
@@ -133,7 +133,7 @@ public class LogbookLifeCyclesImplWithMongoTest {
 
         logbookLifeCyclesObjectGroupParametersStart =
             LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
-        logbookLifeCyclesObjectGroupParametersStart.setStatus(LogbookOutcome.STARTED);
+        logbookLifeCyclesObjectGroupParametersStart.setStatus(StatusCode.STARTED);
         logbookLifeCyclesObjectGroupParametersStart.putParameterValue(LogbookParameterName.eventIdentifier,
             eip.toString());
         logbookLifeCyclesObjectGroupParametersStart.putParameterValue(LogbookParameterName.eventIdentifierProcess,
@@ -182,7 +182,7 @@ public class LogbookLifeCyclesImplWithMongoTest {
         // update unit ok
         logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.outcomeDetailMessage,
             "ModifiedoutcomeDetailMessage");
-        logbookLifeCyclesUnitParametersStart.setStatus(LogbookOutcome.OK);
+        logbookLifeCyclesUnitParametersStart.setStatus(StatusCode.OK);
 
         logbookLifeCyclesImpl.updateUnit(
             logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.eventIdentifierProcess),
@@ -199,10 +199,10 @@ public class LogbookLifeCyclesImplWithMongoTest {
         } catch (final LogbookAlreadyExistsException e) {}
 
         // get objectgroup
-        LogbookLifeCycleUnit logbookLifeCycle = logbookLifeCyclesImpl.getUnitById(
+        final LogbookLifeCycleUnit logbookLifeCycle = logbookLifeCyclesImpl.getUnitById(
             logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.objectIdentifier));
         assertNotNull(logbookLifeCycle);
-        LogbookLifeCycleUnit logbookLifeCycle2 =
+        final LogbookLifeCycleUnit logbookLifeCycle2 =
             logbookLifeCyclesImpl
                 .getUnitByOperationIdAndByUnitId(logbookLifeCyclesUnitParametersStart
                     .getParameterValue(LogbookParameterName.eventIdentifierProcess),
@@ -290,7 +290,7 @@ public class LogbookLifeCyclesImplWithMongoTest {
         // update unit ok
         logbookLifeCyclesObjectGroupParametersStart.putParameterValue(LogbookParameterName.outcomeDetailMessage,
             "ModifiedoutcomeDetailMessage");
-        logbookLifeCyclesObjectGroupParametersStart.setStatus(LogbookOutcome.OK);
+        logbookLifeCyclesObjectGroupParametersStart.setStatus(StatusCode.OK);
         logbookLifeCyclesImpl.updateObjectGroup(
             logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.eventIdentifierProcess),
             logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.objectIdentifier),
@@ -308,10 +308,10 @@ public class LogbookLifeCyclesImplWithMongoTest {
 
 
         // get objectgroup
-        LogbookLifeCycleObjectGroup logbookLifeCycle = logbookLifeCyclesImpl.getObjectGroupById(
+        final LogbookLifeCycleObjectGroup logbookLifeCycle = logbookLifeCyclesImpl.getObjectGroupById(
             logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.objectIdentifier));
         assertNotNull(logbookLifeCycle);
-        LogbookLifeCycleObjectGroup logbookLifeCycle2 =
+        final LogbookLifeCycleObjectGroup logbookLifeCycle2 =
             logbookLifeCyclesImpl
                 .getObjectGroupByOperationIdAndByObjectGroupId(logbookLifeCyclesObjectGroupParametersStart
                     .getParameterValue(LogbookParameterName.eventIdentifierProcess),

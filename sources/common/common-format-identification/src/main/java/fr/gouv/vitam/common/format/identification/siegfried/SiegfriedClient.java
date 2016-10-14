@@ -50,7 +50,7 @@ public interface SiegfriedClient {
 
     /**
      * Call Siegfried instance to get disponibility and version
-     * 
+     *
      * @param filePath path to an empty folder (can be null)
      * @return the identified version as a json or an exception if siegfried is unavailable
      * @throws FormatIdentifierTechnicalException

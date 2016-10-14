@@ -40,7 +40,7 @@ public enum DataCategory {
 
     /**
      * Constructor.
-     * 
+     *
      * @param folder folder
      */
     private DataCategory(String folder) {
@@ -49,13 +49,13 @@ public enum DataCategory {
 
     /**
      * Gets the folder
-     * 
+     *
      * @return the folder
      */
     public String getFolder() {
         return folder;
     }
-    
+
 
     /**
      * Get DataCategory from folder
@@ -64,7 +64,7 @@ public enum DataCategory {
      * @return the DataCategory if exists, null otherwise
      */
     public static DataCategory getByFolder(String folder) {
-        for (DataCategory v : values()) {
+        for (final DataCategory v : values()) {
             if (v.getFolder().equals(folder)) {
                 return v;
             }

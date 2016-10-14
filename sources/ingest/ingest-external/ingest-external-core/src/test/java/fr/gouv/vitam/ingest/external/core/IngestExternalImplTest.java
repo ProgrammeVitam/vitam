@@ -47,12 +47,12 @@ public class IngestExternalImplTest {
     private static final String SCRIPT_SCAN_CLAMAV = "scan-clamav.sh";
     IngestExternalImpl ingestExternalImpl;
     private InputStream stream;
-    
+
     private static final long timeoutScanDelay = 60000;
-    
+
     @Before
-    public void setUp(){
-        IngestExternalConfiguration config = new IngestExternalConfiguration();
+    public void setUp() {
+        final IngestExternalConfiguration config = new IngestExternalConfiguration();
         config.setPath(PATH);
         config.setAntiVirusScriptName(SCRIPT_SCAN_CLAMAV);
         config.setTimeoutScanDelay(timeoutScanDelay);
@@ -62,23 +62,23 @@ public class IngestExternalImplTest {
     @Test
     public void givenNoVirusFile() throws Exception {
         stream = PropertiesUtils.getResourcesAsStream("no-virus.txt");
-        Response xmlResponse= ingestExternalImpl.upload(stream);
-        InputStream inputstream = PropertiesUtils.getResourcesAsStream("ATR_example.xml");
+        final Response xmlResponse = ingestExternalImpl.upload(stream);
+        final InputStream inputstream = PropertiesUtils.getResourcesAsStream("ATR_example.xml");
         assertEquals(xmlResponse.getEntity(), FileUtil.readInputStream(inputstream));
     }
-    
+
     @Test
     public void givenFixedVirusFile() throws IngestExternalException, FileNotFoundException, XMLStreamException {
         stream = PropertiesUtils.getResourcesAsStream("fixed-virus.txt");
         ingestExternalImpl.upload(stream);
     }
-    
+
     @Test
     public void givenUnfixedVirusFile() throws IngestExternalException, FileNotFoundException, XMLStreamException {
         stream = PropertiesUtils.getResourcesAsStream("unfixed-virus.txt");
         ingestExternalImpl.upload(stream);
     }
-    
+
     @Test
     public void givenUnknownErrorFile() throws IngestExternalException, FileNotFoundException, XMLStreamException {
         stream = PropertiesUtils.getResourcesAsStream("unknown.txt");

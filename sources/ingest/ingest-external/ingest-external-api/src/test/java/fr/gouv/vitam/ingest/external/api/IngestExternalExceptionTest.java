@@ -32,7 +32,7 @@ import static org.junit.Assert.assertNotNull;
 import org.junit.Test;
 
 public class IngestExternalExceptionTest {
-    
+
     @Test
     public final void givenIngestExternalExceptionWhenOccurThenThrow() {
         assertEquals(null, new IngestExternalException((String) null).getMessage());

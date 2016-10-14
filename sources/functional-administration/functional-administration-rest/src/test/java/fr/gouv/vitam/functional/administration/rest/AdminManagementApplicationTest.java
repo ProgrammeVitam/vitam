@@ -26,8 +26,19 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.rest;
 
+import static org.junit.Assert.fail;
+
+import java.io.File;
+import java.io.FileOutputStream;
+
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -43,15 +54,6 @@ import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import java.io.File;
-import java.io.FileOutputStream;
-
-import static org.junit.Assert.fail;
 
 public class AdminManagementApplicationTest {
 
@@ -75,7 +77,7 @@ public class AdminManagementApplicationTest {
     public static void setUpBeforeClass() throws Exception {
         // Identify overlapping in particular jsr311
 
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         databasePort = junitHelper.findAvailablePort();
 
         functionalAdmin = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
@@ -119,19 +121,19 @@ public class AdminManagementApplicationTest {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         } catch (final VitamApplicationServerException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        } catch (VitamException e) {
+        } catch (final VitamException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
     }
 
     @Test(expected = VitamException.class)
     public void shouldRaiseAnExceptionWhenConfigureApplicationWithEmptyArgs() throws Exception {
-        application.startApplication(new String[] {""});
+        AdminManagementApplication.startApplication(new String[] {""});
     }
 
     @Test(expected = VitamException.class)
     public void shouldRaiseAnExceptionWhenConfigureApplicationWithNullArgs() throws Exception {
-        application.startApplication(null);
+        AdminManagementApplication.startApplication(null);
     }
 
 

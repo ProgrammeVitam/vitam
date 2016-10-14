@@ -42,8 +42,8 @@ public class StorageLogbookFactoryTest {
 
     @Test
     public void getStorageLogbookInstanceTest() {
-       final StorageLogbook storageLogbook =
-           StorageLogbookFactory.getInstance().getStorageLogbook();
+        final StorageLogbook storageLogbook =
+            StorageLogbookFactory.getInstance().getStorageLogbook();
         assertNotNull(storageLogbook);
 
         final StorageLogbook storageLogbook2 =
@@ -58,15 +58,16 @@ public class StorageLogbookFactoryTest {
         final StorageLogbook storageLogbook =
             StorageLogbookFactory.getInstance().getStorageLogbook();
         assertTrue(storageLogbook instanceof StorageLogbookMock);
-        
+
         final StorageLogbookFactory.StorageLogbookType type = StorageLogbookFactory.getDefaultStorageLogbookType();
         assertNotNull(type);
         assertEquals(StorageLogbookType.MOCK, type);
     }
-    
+
     @Test(expected = IllegalArgumentException.class)
-    public void changeDefaultStorageLogbookTypeThrowsExceptionTest() throws Exception{       
-        StorageLogbookFactory.getInstance().changeDefaultStorageLogbookType(null);        
-    }    
-    
+    public void changeDefaultStorageLogbookTypeThrowsExceptionTest() throws Exception {
+        StorageLogbookFactory.getInstance();
+        StorageLogbookFactory.changeDefaultStorageLogbookType(null);
+    }
+
 }

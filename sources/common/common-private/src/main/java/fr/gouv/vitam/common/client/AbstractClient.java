@@ -74,16 +74,16 @@ public abstract class AbstractClient implements BasicClient {
         boolean suppressHttpCompliance) {
         ParametersChecker.checkParameter("Configuration cannot be null", configuration);
         ParametersChecker.checkParameter("resourcePath cannot be null", resourcePath);
-        String scheme = "http";
+        final String scheme = "http";
 
         ParametersChecker.checkParameter("Host cannot be null", configuration.getServerHost());
         ParametersChecker.checkValue("Port has invalid value", configuration.getServerPort(), 1);
-        this.clientConfiguration = configuration;
+        clientConfiguration = configuration;
 
         this.resourcePath = Optional.ofNullable(resourcePath).orElse("/");
 
         this.resourcePath = resourcePath;
-        String uri = this.resourcePath;
+        final String uri = this.resourcePath;
 
         serviceUrl =
             scheme + "://" + clientConfiguration.getServerHost() + ":" + clientConfiguration.getServerPort() + uri;
@@ -108,7 +108,7 @@ public abstract class AbstractClient implements BasicClient {
         clientConfiguration = configuration;
 
         this.resourcePath = resourcePath;
-        String uri = this.resourcePath;
+        final String uri = this.resourcePath;
 
         serviceUrl = "http://" + clientConfiguration.getServerHost() + ":" + clientConfiguration.getServerPort() + uri;
         this.client = client;
@@ -151,7 +151,7 @@ public abstract class AbstractClient implements BasicClient {
                     }
                     return message;
                 case NO_CONTENT:
-                    return  new StatusMessage();
+                    return new StatusMessage();
                 default:
                     LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
                     throw new VitamClientException(INTERNAL_SERVER_ERROR);

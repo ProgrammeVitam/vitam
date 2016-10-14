@@ -46,8 +46,8 @@ public class ProcessEngineImplTest {
     private WorkerParameters workParams;
     private EngineResponse response;
     private ProcessMonitoringImpl processMonitoring;
-        
-    
+
+
     @Before
     public void init() throws WorkflowNotFoundException {
         workParams = WorkerParametersFactory.newWorkerParameters();
@@ -61,10 +61,10 @@ public class ProcessEngineImplTest {
 
     @Test
     public void processEngineTest() throws Exception {
-        response = processEngine.startWorkflow(workParams, "workflowJSONv1");        
+        response = processEngine.startWorkflow(workParams, "workflowJSONv1");
         assertNotNull(response);
-        String processId = workParams.getProcessId();
-        Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(processId);
+        final String processId = workParams.getProcessId();
+        final Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(processId);
         assertNotNull(map);
     }
 

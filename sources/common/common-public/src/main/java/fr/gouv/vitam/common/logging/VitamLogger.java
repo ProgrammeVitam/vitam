@@ -39,6 +39,20 @@ public interface VitamLogger {
     String name();
 
     /**
+     * Change the log level of this logger
+     *
+     * @param level
+     */
+    void setLevel(VitamLogLevel level);
+
+    /**
+     * Get the log level of this logger
+     *
+     * @return level
+     */
+    VitamLogLevel getLevel();
+
+    /**
      * Time Info
      *
      * @param msg

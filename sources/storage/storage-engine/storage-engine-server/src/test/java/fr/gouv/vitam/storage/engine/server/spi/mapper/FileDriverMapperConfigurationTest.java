@@ -27,8 +27,8 @@
 
 package fr.gouv.vitam.storage.engine.server.spi.mapper;
 
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 
@@ -36,7 +36,7 @@ public class FileDriverMapperConfigurationTest {
 
     @Test
     public void constructorTest() {
-        FileDriverMapperConfiguration conf = new FileDriverMapperConfiguration("path", ";");
+        final FileDriverMapperConfiguration conf = new FileDriverMapperConfiguration("path", ";");
         assertNotNull(conf);
         assertEquals("path", conf.getDriverMappingPath());
         assertEquals(";", conf.getDelimiter());

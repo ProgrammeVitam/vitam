@@ -29,8 +29,6 @@ package fr.gouv.vitam.storage.engine.server.spi.mapper;
 
 import java.util.List;
 
-import fr.gouv.vitam.storage.engine.common.exception.StorageDriverMapperException;
-
 /**
  * Interface use to implement DriverMapper. This object is use to persist informations about drivers and offers
  * associations.

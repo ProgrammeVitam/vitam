@@ -35,8 +35,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 public enum ServiceName {
 
     /**
-     * Used if the service does not exist
-     * Used in test
+     * Used if the service does not exist Used in test
      */
     VITAM("00", "Vitam"),
 
@@ -102,6 +101,7 @@ public enum ServiceName {
         this.code = code;
         this.name = name;
     }
+
     public String getCode() {
         return code;
     }
@@ -116,12 +116,12 @@ public enum ServiceName {
      *
      * @param code the code
      * @return the service if exists
-     * @throws IllegalArgumentException thrown if code is null or empty or if the attached service to the code does
-     *                                  not exist
+     * @throws IllegalArgumentException thrown if code is null or empty or if the attached service to the code does not
+     *         exist
      */
     public static ServiceName getFromCode(String code) {
         ParametersChecker.checkParameter("code is required", code);
-        for (ServiceName service : values()) {
+        for (final ServiceName service : values()) {
             if (service.getCode().equals(code)) {
                 return service;
             }

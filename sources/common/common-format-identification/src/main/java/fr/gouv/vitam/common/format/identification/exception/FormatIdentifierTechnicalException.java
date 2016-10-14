@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -33,6 +33,11 @@ import fr.gouv.vitam.common.exception.VitamException;
  * Define a File Format Exception to be thrown when the format identifier does not found the format of the file
  */
 public class FormatIdentifierTechnicalException extends VitamException {
+
+    /**
+     *
+     */
+    private static final long serialVersionUID = -6929676119021587755L;
 
     /**
      * @param message associated message

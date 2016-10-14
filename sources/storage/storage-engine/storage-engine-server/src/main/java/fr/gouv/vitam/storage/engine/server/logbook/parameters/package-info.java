@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * 
+ *
  */
 package fr.gouv.vitam.storage.engine.server.logbook.parameters;

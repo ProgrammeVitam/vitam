@@ -32,8 +32,6 @@ import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 
-import fr.gouv.vitam.ingest.internal.model.UploadResponseDTO;
-
 public class UploadResponseDTOTest {
 
     @Test

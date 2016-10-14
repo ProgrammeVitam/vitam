@@ -33,9 +33,6 @@ import java.io.FileNotFoundException;
 
 import org.junit.Test;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.exception.VitamException;
-
 /**
  * DefaultOfferApplication Test
  */

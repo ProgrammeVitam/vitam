@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -31,13 +31,11 @@ import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 
-import fr.gouv.vitam.common.format.identification.exception.FileFormatNotFoundException;
-
 public class FileFormatNotFoundExceptionTest {
 
     private static final String MESSAGE = "message";
     private static final Exception exception = new Exception();
-    
+
     @Test
     public final void testFileFormatNotFoundExceptionThrowable() {
         assertNotNull(new FileFormatNotFoundException((String) null));
@@ -46,6 +44,6 @@ public class FileFormatNotFoundExceptionTest {
         assertNotNull(new FileFormatNotFoundException(MESSAGE, exception));
         assertNotNull(new FileFormatNotFoundException(MESSAGE, exception, true, true));
     }
-    
+
 }
 

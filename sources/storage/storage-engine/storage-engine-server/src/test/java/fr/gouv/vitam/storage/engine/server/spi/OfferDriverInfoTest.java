@@ -31,13 +31,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.sql.Driver;
 import java.util.Properties;
 
 import org.junit.Test;
-
-import fr.gouv.vitam.storage.driver.Connection;
-import fr.gouv.vitam.storage.driver.Driver;
-import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 
 public class OfferDriverInfoTest {
 
@@ -48,42 +45,47 @@ public class OfferDriverInfoTest {
 
     @Test
     public void offerDriverInfoTest() {
-        TheDriver driver = new TheDriver();
+        final TheDriver driver = new TheDriver();
         assertNotNull(driver);
-        TheDriver driver2 = new TheDriver();
+        final TheDriver driver2 = new TheDriver();
         assertNotNull(driver2);
 
-        OfferDriverInfo offerDriverInfo = new OfferDriverInfo(driver);
+        final OfferDriverInfo offerDriverInfo = new OfferDriverInfo(driver);
         assertNotNull(offerDriverInfo);
-        OfferDriverInfo offerDriverInfo2 = new OfferDriverInfo(driver2);
+        final OfferDriverInfo offerDriverInfo2 = new OfferDriverInfo(driver2);
         assertNotNull(offerDriverInfo2);
         assertNotEquals(offerDriverInfo, offerDriverInfo2);
 
-        OfferDriverInfo offerDriverInfo3 = new OfferDriverInfo(driver);
+        final OfferDriverInfo offerDriverInfo3 = new OfferDriverInfo(driver);
         assertNotNull(offerDriverInfo3);
         assertEquals(offerDriverInfo, offerDriverInfo3);
     }
 
     class TheDriver implements Driver {
 
-        @Override public Connection connect(String url, Properties parameters) throws StorageDriverException {
+        @Override
+        public Connection connect(String url, Properties parameters) throws StorageDriverException {
             return null;
         }
 
-        @Override public boolean isStorageOfferAvailable(String url, Properties parameters)
+        @Override
+        public boolean isStorageOfferAvailable(String url, Properties parameters)
             throws StorageDriverException {
             return false;
         }
 
-        @Override public String getName() {
+        @Override
+        public String getName() {
             return null;
         }
 
-        @Override public int getMajorVersion() {
+        @Override
+        public int getMajorVersion() {
             return 0;
         }
 
-        @Override public int getMinorVersion() {
+        @Override
+        public int getMinorVersion() {
             return 0;
         }
     }

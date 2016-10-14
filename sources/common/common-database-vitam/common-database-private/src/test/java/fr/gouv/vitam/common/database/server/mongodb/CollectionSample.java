@@ -29,27 +29,27 @@ package fr.gouv.vitam.common.database.server.mongodb;
 import org.bson.Document;
 
 /**
- * 
+ *
  */
-public class CollectionSample extends VitamDocument<CollectionSample>{
+public class CollectionSample extends VitamDocument<CollectionSample> {
 
-        /**
-     * 
-     */
+    /**
+    * 
+    */
     private static final long serialVersionUID = -132115596185118655L;
 
-        /**
-         * Constructor from Document
-         *
-         * @param content
-         * @throws IllegalArgumentException if Id is not a GUID
-         */
-        public CollectionSample(Document content) {
-            super(content);
-        }
+    /**
+     * Constructor from Document
+     *
+     * @param content
+     * @throws IllegalArgumentException if Id is not a GUID
+     */
+    public CollectionSample(Document content) {
+        super(content);
+    }
 
-        @Override
-        public String getId() {
-            return null;
-        }
+    @Override
+    public String getId() {
+        return null;
+    }
 }

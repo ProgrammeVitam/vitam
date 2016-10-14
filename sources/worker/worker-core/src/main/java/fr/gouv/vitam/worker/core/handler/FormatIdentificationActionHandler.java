@@ -63,6 +63,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
@@ -74,13 +75,12 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCycleClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.OutcomeMessage;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
-import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
@@ -103,11 +103,11 @@ public class FormatIdentificationActionHandler extends ActionHandler {
     private static final String FORMAT_IDENTIFIER_ID = "siegfried-local";
 
     // TODO should not be a private attribute -> to refactor
-    private LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters = LogbookParametersFactory
+    private final LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters = LogbookParametersFactory
         .newLogbookLifeCycleObjectGroupParameters();
 
     private FormatIdentifier formatIdentifier;
-    private LogbookLifeCycleClient logbookClient =
+    private final LogbookLifeCyclesClient logbookClient =
         LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient();
 
     private boolean metadatasUpdated = false;
@@ -135,7 +135,7 @@ public class FormatIdentificationActionHandler extends ActionHandler {
 
         try {
             SedaUtils.updateLifeCycleByStep(logbookLifecycleObjectGroupParameters, params);
-        } catch (ProcessingException e) {
+        } catch (final ProcessingException e) {
             LOGGER.error(e);
             response.setStatus(StatusCode.FATAL);
             response.setOutcomeMessages(HANDLER_ID, OutcomeMessage.UPDATE_LOGBOOK_LIFECYCLE_KO);
@@ -144,19 +144,19 @@ public class FormatIdentificationActionHandler extends ActionHandler {
 
         try {
             formatIdentifier = FormatIdentifierFactory.getInstance().getFormatIdentifierFor(FORMAT_IDENTIFIER_ID);
-        } catch (FormatIdentifierNotFoundException e) {
+        } catch (final FormatIdentifierNotFoundException e) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.WORKER_FORMAT_IDENTIFIER_NOT_FOUND,
                 FORMAT_IDENTIFIER_ID), e);
             response.setStatus(StatusCode.FATAL);
             response.setOutcomeMessages(HANDLER_ID, OutcomeMessage.GETTING_FORMAT_IDENTIFIER_FATAL);
             return response;
-        } catch (FormatIdentifierFactoryException e) {
+        } catch (final FormatIdentifierFactoryException e) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.WORKER_FORMAT_IDENTIFIER_IMPLEMENTATION_NOT_FOUND,
                 FORMAT_IDENTIFIER_ID), e);
             response.setStatus(StatusCode.FATAL);
             response.setOutcomeMessages(HANDLER_ID, OutcomeMessage.GETTING_FORMAT_IDENTIFIER_FATAL);
             return response;
-        } catch (FormatIdentifierTechnicalException e) {
+        } catch (final FormatIdentifierTechnicalException e) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.WORKER_FORMAT_IDENTIFIER_TECHNICAL_INTERNAL_ERROR), e);
             response.setStatus(StatusCode.FATAL);
             response.setOutcomeMessages(HANDLER_ID, OutcomeMessage.GETTING_FORMAT_IDENTIFIER_FATAL);
@@ -168,17 +168,18 @@ public class FormatIdentificationActionHandler extends ActionHandler {
             final JsonNode jsonOG = getJsonFromWorkspace(workspaceClient, params.getContainerName(),
                 IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName());
 
-            Map<String, String> objectIdToUri = getMapOfObjectsIdsAndUris(jsonOG);
+            final Map<String, String> objectIdToUri = getMapOfObjectsIdsAndUris(jsonOG);
 
-            JsonNode qualifiers = jsonOG.get(SedaConstants.PREFIX_QUALIFIERS);
+            final JsonNode qualifiers = jsonOG.get(SedaConstants.PREFIX_QUALIFIERS);
             if (qualifiers != null) {
-                List<JsonNode> versions = qualifiers.findValues(SedaConstants.TAG_VERSIONS);
+                final List<JsonNode> versions = qualifiers.findValues(SedaConstants.TAG_VERSIONS);
                 if (versions != null && !versions.isEmpty()) {
-                    for (JsonNode versionsArray : versions) {
-                        for (JsonNode version : versionsArray) {
+                    for (final JsonNode versionsArray : versions) {
+                        for (final JsonNode version : versionsArray) {
                             try {
-                                JsonNode jsonFormatIdentifier = version.get(SedaConstants.TAG_FORMAT_IDENTIFICATION);
-                                String objectId = version.get(SedaConstants.PREFIX_ID).asText();
+                                final JsonNode jsonFormatIdentifier =
+                                    version.get(SedaConstants.TAG_FORMAT_IDENTIFICATION);
+                                final String objectId = version.get(SedaConstants.PREFIX_ID).asText();
 
 
                                 // Retrieve the file
@@ -209,16 +210,16 @@ public class FormatIdentificationActionHandler extends ActionHandler {
                     new ByteArrayInputStream(JsonHandler.writeAsString(jsonOG).getBytes()));
             }
 
-        } catch (ProcessingException e) {
+        } catch (final ProcessingException e) {
             LOGGER.error(e);
             response.setStatus(StatusCode.FATAL);
             response.setOutcomeMessages(HANDLER_ID, OutcomeMessage.FILE_FORMAT_TECHNICAL_ERROR);
-        } catch (ContentAddressableStorageServerException e) {
+        } catch (final ContentAddressableStorageServerException e) {
             // workspace error
             LOGGER.error(e);
             response.setStatus(StatusCode.FATAL);
             response.setOutcomeMessages(HANDLER_ID, OutcomeMessage.FILE_FORMAT_TECHNICAL_ERROR);
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             // try to write modified json metadata error
             LOGGER.error(e);
             response.setStatus(StatusCode.FATAL);
@@ -227,14 +228,14 @@ public class FormatIdentificationActionHandler extends ActionHandler {
             try {
                 // delete the file
                 deleteLocalFile(filename);
-            } catch (ProcessingException e) {
+            } catch (final ProcessingException e) {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
         }
 
         try {
             commitLifecycleLogbook(response, params.getObjectName());
-        } catch (ProcessingException e) {
+        } catch (final ProcessingException e) {
             LOGGER.error(e);
             if (!response.getStatus().equals(StatusCode.FATAL) && !response.getStatus().equals(StatusCode.KO)) {
                 response.setStatus(StatusCode.WARNING);
@@ -266,25 +267,26 @@ public class FormatIdentificationActionHandler extends ActionHandler {
 
     private ObjectCheckFormatResult executeOneObjectFromOG(String objectId, JsonNode formatIdentification,
         String filename, JsonNode version) {
-        ObjectCheckFormatResult objectCheckFormatResult = new ObjectCheckFormatResult(objectId);
+        final ObjectCheckFormatResult objectCheckFormatResult = new ObjectCheckFormatResult(objectId);
         objectCheckFormatResult.setStatus(StatusCode.OK);
         objectCheckFormatResult.setOutcomeMessage(OutcomeMessage.FILE_FORMAT_OK);
         try {
 
             // check the file
-            List<FormatIdentifierResponse> formats = formatIdentifier.analysePath(Paths.get(filename));
+            final List<FormatIdentifierResponse> formats = formatIdentifier.analysePath(Paths.get(filename));
 
-            FormatIdentifierResponse format = getFirstPronomFormat(formats);
+            final FormatIdentifierResponse format = getFirstPronomFormat(formats);
             if (format == null) {
                 throw new FileFormatNotFoundException("File format not found in " + FORMAT_IDENTIFIER_ID);
             }
 
-            String formatId = format.getPuid();
+            final String formatId = format.getPuid();
 
-            AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getAdminManagementClient();
-            Select select = new Select();
+            final AdminManagementClient adminClient =
+                AdminManagementClientFactory.getInstance().getAdminManagementClient();
+            final Select select = new Select();
             select.setQuery(eq(FileFormat.PUID, formatId));
-            JsonNode result = adminClient.getFormats(select.getFinalSelect());
+            final JsonNode result = adminClient.getFormats(select.getFinalSelect());
             // TODO : what should we do if more than 1 result (for the moment, we take into account the first one)
             if (result.size() == 0) {
                 // format not found in vitam referential
@@ -300,7 +302,7 @@ public class FormatIdentificationActionHandler extends ActionHandler {
                 logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier, objectId);
                 try {
                     updateLifeCycleLogbook(logbookLifecycleObjectGroupParameters);
-                } catch (LogbookClientException e) {
+                } catch (final LogbookClientException e) {
                     LOGGER.error(e);
                     objectCheckFormatResult.setStatus(StatusCode.FATAL);
                     objectCheckFormatResult.setOutcomeMessage(OutcomeMessage.FILE_FORMAT_TECHNICAL_ERROR);
@@ -315,12 +317,12 @@ public class FormatIdentificationActionHandler extends ActionHandler {
             LOGGER.error(e);
             objectCheckFormatResult.setStatus(StatusCode.FATAL);
             objectCheckFormatResult.setOutcomeMessage(OutcomeMessage.FILE_FORMAT_REFERENTIAL_ERROR);
-        } catch (FormatIdentifierBadRequestException e) {
+        } catch (final FormatIdentifierBadRequestException e) {
             // path does not match a file
             LOGGER.error(e);
             objectCheckFormatResult.setStatus(StatusCode.FATAL);
             objectCheckFormatResult.setOutcomeMessage(OutcomeMessage.FILE_FORMAT_OBJECT_NOT_FOUND);
-        } catch (FileFormatNotFoundException e) {
+        } catch (final FileFormatNotFoundException e) {
             // format no found case
             LOGGER.error(e);
             objectCheckFormatResult.setStatus(StatusCode.KO);
@@ -331,17 +333,17 @@ public class FormatIdentificationActionHandler extends ActionHandler {
                 objectCheckFormatResult.getStatus().name());
             try {
                 updateLifeCycleLogbook(logbookLifecycleObjectGroupParameters);
-            } catch (LogbookClientException exc) {
+            } catch (final LogbookClientException exc) {
                 LOGGER.error(exc);
                 objectCheckFormatResult.setStatus(StatusCode.FATAL);
                 objectCheckFormatResult.setOutcomeMessage(OutcomeMessage.FILE_FORMAT_TECHNICAL_ERROR);
             }
-        } catch (FormatIdentifierTechnicalException e) {
+        } catch (final FormatIdentifierTechnicalException e) {
             // technical error
             LOGGER.error(e);
             objectCheckFormatResult.setStatus(StatusCode.FATAL);
             objectCheckFormatResult.setOutcomeMessage(OutcomeMessage.FILE_FORMAT_TECHNICAL_ERROR);
-        } catch (FormatIdentifierNotFoundException e) {
+        } catch (final FormatIdentifierNotFoundException e) {
             // identifier does not respond
             LOGGER.error(e);
             objectCheckFormatResult.setStatus(StatusCode.FATAL);
@@ -352,9 +354,9 @@ public class FormatIdentificationActionHandler extends ActionHandler {
 
     private void checkAndUpdateFormatIdentification(String objectId, JsonNode formatIdentification,
         ObjectCheckFormatResult objectCheckFormatResult, JsonNode result, JsonNode version) {
-        JsonNode refFormat = result.get(0);
-        JsonNode puid = refFormat.get("PUID");
-        StringBuilder diff = new StringBuilder();
+        final JsonNode refFormat = result.get(0);
+        final JsonNode puid = refFormat.get("PUID");
+        final StringBuilder diff = new StringBuilder();
         if ((formatIdentification == null || !formatIdentification.isObject()) && puid != null) {
             formatIdentification = JsonHandler.createObjectNode();
             ((ObjectNode) version).set(SedaConstants.TAG_FORMAT_IDENTIFICATION, formatIdentification);
@@ -371,7 +373,7 @@ public class FormatIdentificationActionHandler extends ActionHandler {
             diff.append(puid);
             metadatasUpdated = true;
         }
-        JsonNode name = refFormat.get("Name");
+        final JsonNode name = refFormat.get("Name");
         if (formatIdentification != null && !name.equals(formatIdentification.get(SedaConstants.TAG_FORMAT_LITTERAL))) {
             if (diff.length() != 0) {
                 diff.append('\n');
@@ -387,7 +389,7 @@ public class FormatIdentificationActionHandler extends ActionHandler {
             diff.append(name);
             metadatasUpdated = true;
         }
-        JsonNode mimeType = refFormat.get("MIMEType");
+        final JsonNode mimeType = refFormat.get("MIMEType");
         if (formatIdentification != null && !mimeType.equals(formatIdentification.get(SedaConstants.TAG_MIME_TYPE))) {
             if (diff.length() != 0) {
                 diff.append('\n');
@@ -418,7 +420,7 @@ public class FormatIdentificationActionHandler extends ActionHandler {
                 "{\"diff\": \"" + diff.toString().replaceAll("\"", "'") + "\"}");
             try {
                 updateLifeCycleLogbook(logbookLifecycleObjectGroupParameters);
-            } catch (LogbookClientException e) {
+            } catch (final LogbookClientException e) {
                 LOGGER.error(e);
                 objectCheckFormatResult.setStatus(StatusCode.FATAL);
                 objectCheckFormatResult.setOutcomeMessage(OutcomeMessage.FILE_FORMAT_TECHNICAL_ERROR);
@@ -438,7 +440,7 @@ public class FormatIdentificationActionHandler extends ActionHandler {
      * @return the first pronom file format or null if not found
      */
     private FormatIdentifierResponse getFirstPronomFormat(List<FormatIdentifierResponse> formats) {
-        for (FormatIdentifierResponse format : formats) {
+        for (final FormatIdentifierResponse format : formats) {
             if (FormatIdentifierSiegfried.PRONOM_NAMESPACE.equals(format.getMatchedNamespace())) {
                 return format;
             }
@@ -479,8 +481,8 @@ public class FormatIdentificationActionHandler extends ActionHandler {
         throws ProcessingException {
         try (InputStream is =
             workspaceClient.getObject(containerId, IngestWorkflowConstants.SEDA_FOLDER + "/" + filePath)) {
-            String fileName = containerId + objectGroupGuid + objectGuid;
-            File file = new File(VitamConfiguration.getVitamTmpFolder() + "/" + fileName);
+            final String fileName = containerId + objectGroupGuid + objectGuid;
+            final File file = new File(VitamConfiguration.getVitamTmpFolder() + "/" + fileName);
 
             if (!file.exists()) {
                 try (OutputStream os = new FileOutputStream(file)) {
@@ -490,7 +492,7 @@ public class FormatIdentificationActionHandler extends ActionHandler {
             } else {
                 throw new ProcessingException("Cannot save file because it already exists");
             }
-        } catch (IOException e) {
+        } catch (final IOException e) {
             LOGGER.debug("Error while saving the file", e);
             throw new ProcessingException(e);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
@@ -503,7 +505,7 @@ public class FormatIdentificationActionHandler extends ActionHandler {
     private void deleteLocalFile(String fileName)
         throws ProcessingException {
         if (fileName != null && !fileName.isEmpty()) {
-            File file = new File(VitamConfiguration.getVitamTmpFolder() + "/" + fileName);
+            final File file = new File(VitamConfiguration.getVitamTmpFolder() + "/" + fileName);
             if (file.exists()) {
                 file.delete();
             } else {
@@ -514,22 +516,22 @@ public class FormatIdentificationActionHandler extends ActionHandler {
 
 
     private Map<String, String> getMapOfObjectsIdsAndUris(JsonNode jsonOG) throws ProcessingException {
-        Map<String, String> binaryObjectsToStore = new HashMap<>();
+        final Map<String, String> binaryObjectsToStore = new HashMap<>();
 
         // Filter on objectGroup objects ids to retrieve only binary objects
         // informations linked to the ObjectGroup
-        JsonNode work = jsonOG.get(SedaConstants.PREFIX_WORK);
-        JsonNode qualifiers = work.get(SedaConstants.PREFIX_QUALIFIERS);
+        final JsonNode work = jsonOG.get(SedaConstants.PREFIX_WORK);
+        final JsonNode qualifiers = work.get(SedaConstants.PREFIX_QUALIFIERS);
         if (qualifiers == null) {
             return binaryObjectsToStore;
         }
 
-        List<JsonNode> versions = qualifiers.findValues(SedaConstants.TAG_VERSIONS);
+        final List<JsonNode> versions = qualifiers.findValues(SedaConstants.TAG_VERSIONS);
         if (versions == null || versions.isEmpty()) {
             return binaryObjectsToStore;
         }
-        for (JsonNode version : versions) {
-            for (JsonNode binaryObject : version) {
+        for (final JsonNode version : versions) {
+            for (final JsonNode binaryObject : version) {
                 binaryObjectsToStore.put(binaryObject.get(SedaConstants.PREFIX_ID).asText(),
                     binaryObject.get(SedaConstants.TAG_URI).asText());
             }
@@ -544,8 +546,8 @@ public class FormatIdentificationActionHandler extends ActionHandler {
      * @param response the response to update
      */
     private void updateResponseStatus(ObjectCheckFormatResult result, EngineResponse response) {
-        StatusCode responseStatus = response.getStatus();
-        StatusCode checkStatus = result.getStatus();
+        final StatusCode responseStatus = response.getStatus();
+        final StatusCode checkStatus = result.getStatus();
         if (responseStatus.equals(StatusCode.OK) && (checkStatus.equals(StatusCode.KO) ||
             checkStatus.equals(StatusCode.FATAL) || checkStatus.equals(StatusCode.WARNING))) {
             response.setStatus(checkStatus);
@@ -568,7 +570,7 @@ public class FormatIdentificationActionHandler extends ActionHandler {
      * Object used to keep all file format result for all objects. Not really actually used, but can be usefull
      */
     private class ObjectCheckFormatResult {
-        private String objectId;
+        private final String objectId;
         private StatusCode status;
         private OutcomeMessage outcomeMessage;
 

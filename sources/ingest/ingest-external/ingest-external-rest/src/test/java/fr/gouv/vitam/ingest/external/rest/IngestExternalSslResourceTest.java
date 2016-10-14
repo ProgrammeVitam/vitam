@@ -61,7 +61,7 @@ public class IngestExternalSslResourceTest {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
 
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         serverPort = junitHelper.findAvailablePort();
         // TODO verifier la compatibilité avec les test parallèle sur jenkins
         SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));

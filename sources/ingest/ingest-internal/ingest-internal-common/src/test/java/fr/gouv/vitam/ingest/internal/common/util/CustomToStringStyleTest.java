@@ -30,8 +30,6 @@ import java.util.Date;
 
 import org.junit.Test;
 
-import fr.gouv.vitam.ingest.internal.common.util.CustomToStringStyle;
-
 /**
  *
  */

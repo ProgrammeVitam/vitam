@@ -121,7 +121,7 @@ public class AdminManagementResourceTest {
 
         new JHades().overlappingJarsReport();
 
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         databasePort = junitHelper.findAvailablePort();
 
         functionalAdmin = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
@@ -227,19 +227,19 @@ public class AdminManagementResourceTest {
     @Test
     public void getFileFormatByID() throws InvalidCreateOperationException, InvalidParseOperationException {
         stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
-        Select select = new Select();
+        final Select select = new Select();
         select.setQuery(eq("PUID", "x-fmt/2"));
         with()
             .contentType(ContentType.BINARY).body(stream)
             .when().post(IMPORT_FORMAT_URI)
             .then().statusCode(Status.OK.getStatusCode());
 
-        String document =
+        final String document =
             given()
                 .contentType(ContentType.JSON)
                 .body(select.getFinalSelect())
                 .when().post(GET_DOCUMENT_FORMAT_URI).getBody().asString();
-        JsonNode jsonDocument = JsonHandler.getFromString(document);
+        final JsonNode jsonDocument = JsonHandler.getFromString(document);
 
 
         given()
@@ -254,19 +254,19 @@ public class AdminManagementResourceTest {
     public void givenFileFormatByIDWhenNotFoundThenThrowReferentialException()
         throws InvalidCreateOperationException, InvalidParseOperationException {
         stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
-        Select select = new Select();
+        final Select select = new Select();
         select.setQuery(eq("PUID", "x-fmt/2"));
         with()
             .contentType(ContentType.BINARY).body(stream)
             .when().post(IMPORT_FORMAT_URI)
             .then().statusCode(Status.OK.getStatusCode());
 
-        String document =
+        final String document =
             given()
                 .contentType(ContentType.JSON)
                 .body(select.getFinalSelect())
                 .when().post(GET_DOCUMENT_FORMAT_URI).getBody().asString();
-        JsonNode jsonDocument = JsonHandler.getFromString(document);
+        final JsonNode jsonDocument = JsonHandler.getFromString(document);
 
         given()
             .contentType(ContentType.JSON)
@@ -280,7 +280,7 @@ public class AdminManagementResourceTest {
     @Test
     public void getDocument() throws InvalidCreateOperationException {
         stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
-        Select select = new Select();
+        final Select select = new Select();
         select.setQuery(eq("PUID", "x-fmt/2"));
         with()
             .contentType(ContentType.BINARY).body(stream)
@@ -300,7 +300,7 @@ public class AdminManagementResourceTest {
         throws IOException, InvalidParseOperationException, InvalidCreateOperationException {
 
         stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
-        Select select = new Select();
+        final Select select = new Select();
         select.setQuery(eq("fakeName", "fakeValue"));
 
         with()
@@ -357,19 +357,19 @@ public class AdminManagementResourceTest {
     @Test
     public void getRuleByID() throws InvalidCreateOperationException, InvalidParseOperationException {
         stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
-        Select select = new Select();
+        final Select select = new Select();
         select.setQuery(eq("RuleId", "APP-00001"));
         with()
             .contentType(ContentType.BINARY).body(stream)
             .when().post(IMPORT_RULES_URI)
             .then().statusCode(Status.OK.getStatusCode());
 
-        String document =
+        final String document =
             given()
                 .contentType(ContentType.JSON)
                 .body(select.getFinalSelect())
                 .when().post(GET_DOCUMENT_RULES_URI).getBody().asString();
-        JsonNode jsonDocument = JsonHandler.getFromString(document);
+        final JsonNode jsonDocument = JsonHandler.getFromString(document);
 
 
         given()
@@ -384,19 +384,19 @@ public class AdminManagementResourceTest {
     public void givenFakeRuleByIDTheReturnNotFound()
         throws InvalidCreateOperationException, InvalidParseOperationException {
         stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
-        Select select = new Select();
+        final Select select = new Select();
         select.setQuery(eq("RuleId", "APP-00001"));
         with()
             .contentType(ContentType.BINARY).body(stream)
             .when().post(IMPORT_RULES_URI)
             .then().statusCode(Status.OK.getStatusCode());
 
-        String document =
+        final String document =
             given()
                 .contentType(ContentType.JSON)
                 .body(select.getFinalSelect())
                 .when().post(GET_DOCUMENT_RULES_URI).getBody().asString();
-        JsonNode jsonDocument = JsonHandler.getFromString(document);
+        final JsonNode jsonDocument = JsonHandler.getFromString(document);
 
         given()
             .contentType(ContentType.JSON)
@@ -411,7 +411,7 @@ public class AdminManagementResourceTest {
     public void getDocumentRulesFile() throws InvalidCreateOperationException {
         stream = Thread.currentThread().getContextClassLoader()
             .getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
-        Select select = new Select();
+        final Select select = new Select();
         select.setQuery(eq("RuleId", "APP-00001"));
         with()
             .contentType(ContentType.BINARY).body(stream)
@@ -431,7 +431,7 @@ public class AdminManagementResourceTest {
         throws IOException, InvalidParseOperationException, InvalidCreateOperationException {
 
         stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
-        Select select = new Select();
+        final Select select = new Select();
         select.setQuery(eq("fakeName", "fakeValue"));
 
         with()

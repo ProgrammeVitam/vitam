@@ -34,13 +34,12 @@ public class ElasticsearchNode {
     private String hostName;
     private int tcpPort;
 
-    
+
     /**
      * ElasticsearchNode empty constructor for YAMLFactory
      */
-    public ElasticsearchNode() {
-    }
-    
+    public ElasticsearchNode() {}
+
     /**
      * @param hostName
      * @param tcpPort
@@ -50,7 +49,7 @@ public class ElasticsearchNode {
         this.hostName = hostName;
         this.tcpPort = tcpPort;
     }
-    
+
     /**
      * @return the hostName
      */
@@ -85,6 +84,6 @@ public class ElasticsearchNode {
         return this;
     }
 
-    
+
 
 }

@@ -49,7 +49,6 @@ import fr.gouv.vitam.access.api.AccessResource;
 import fr.gouv.vitam.access.common.exception.AccessExecutionException;
 import fr.gouv.vitam.access.config.AccessConfiguration;
 import fr.gouv.vitam.access.core.AccessModuleImpl;
-import fr.gouv.vitam.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
@@ -60,10 +59,11 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.VitamError;
 import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
 import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
-import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
+import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 
 
@@ -81,7 +81,7 @@ public class AccessResourceImpl extends ApplicationStatusResource implements Acc
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessResourceImpl.class);
 
 
-    private AccessModule accessModule;
+    private final AccessModule accessModule;
 
     /**
      *
@@ -107,6 +107,7 @@ public class AccessResourceImpl extends ApplicationStatusResource implements Acc
     /**
      * get units list by query
      */
+    @Override
     @POST
     @Path("/units")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -147,6 +148,7 @@ public class AccessResourceImpl extends ApplicationStatusResource implements Acc
     /**
      * get units list by query based on identifier
      */
+    @Override
     @POST
     @Path("/units/{id_unit}")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -193,6 +195,7 @@ public class AccessResourceImpl extends ApplicationStatusResource implements Acc
      * @param id_unit units identifier
      * @return a archive unit result list
      */
+    @Override
     @PUT
     @Path("/units/{id_unit}")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -238,17 +241,17 @@ public class AccessResourceImpl extends ApplicationStatusResource implements Acc
         try {
             ParametersChecker.checkParameter("Must have a dsl query", query);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(query));
-            JsonNode queryJson = JsonHandler.getFromString(query);
+            final JsonNode queryJson = JsonHandler.getFromString(query);
             result = accessModule.selectObjectGroupById(queryJson, idObjectGroup);
-        } catch (InvalidParseOperationException exc) {
+        } catch (final InvalidParseOperationException exc) {
             LOGGER.error(exc);
             status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status)).build();
-        } catch (IllegalArgumentException exc) {
+        } catch (final IllegalArgumentException exc) {
             LOGGER.error(exc);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status).entity(getErrorEntity(status)).build();
-        } catch (AccessExecutionException exc) {
+        } catch (final AccessExecutionException exc) {
             LOGGER.error(exc);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(getErrorEntity(status)).build();
@@ -264,7 +267,7 @@ public class AccessResourceImpl extends ApplicationStatusResource implements Acc
     public Response getObjectGroup(@HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xHttpOverride,
         @PathParam("id_object_group") String idObjectGroup, String query) {
         if (!"GET".equalsIgnoreCase(xHttpOverride)) {
-            Status status = Status.METHOD_NOT_ALLOWED;
+            final Status status = Status.METHOD_NOT_ALLOWED;
             return Response.status(status).entity(getErrorEntity(status)).build();
         }
         return getObjectGroup(idObjectGroup, query);
@@ -285,25 +288,25 @@ public class AccessResourceImpl extends ApplicationStatusResource implements Acc
             return Response.status(Status.PRECONDITION_FAILED)
                 .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build();
         }
-        String xQualifier = headers.getRequestHeader(GlobalDataRest.X_QUALIFIER).get(0);
-        String xVersion = headers.getRequestHeader(GlobalDataRest.X_VERSION).get(0);
-        String xTenantId = headers.getRequestHeader(GlobalDataRest.X_TENANT_ID).get(0);
+        final String xQualifier = headers.getRequestHeader(GlobalDataRest.X_QUALIFIER).get(0);
+        final String xVersion = headers.getRequestHeader(GlobalDataRest.X_VERSION).get(0);
+        final String xTenantId = headers.getRequestHeader(GlobalDataRest.X_TENANT_ID).get(0);
         InputStream result;
         try {
             HttpHeaderHelper.checkVitamHeaders(headers);
             ParametersChecker.checkParameter("Must have a dsl query", query);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(query));
-            JsonNode queryJson = JsonHandler.getFromString(query);
+            final JsonNode queryJson = JsonHandler.getFromString(query);
             result = accessModule.getOneObjectFromObjectGroup(idObjectGroup, queryJson, xQualifier,
                 Integer.valueOf(xVersion), xTenantId);
-        } catch (InvalidParseOperationException exc) {
+        } catch (final InvalidParseOperationException exc) {
             LOGGER.error(exc);
             return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST).toString()).build();
-        } catch (IllegalArgumentException exc) {
+        } catch (final IllegalArgumentException exc) {
             LOGGER.error(exc);
             return Response.status(Status.PRECONDITION_FAILED)
                 .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build();
-        } catch (AccessExecutionException exc) {
+        } catch (final AccessExecutionException exc) {
             LOGGER.error(exc.getMessage(), exc);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR)
                 .toString()).build();
@@ -326,7 +329,7 @@ public class AccessResourceImpl extends ApplicationStatusResource implements Acc
             return Response.status(Status.PRECONDITION_FAILED)
                 .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build();
         }
-        String xHttpOverride = headers.getRequestHeader(GlobalDataRest.X_HTTP_METHOD_OVERRIDE).get(0);
+        final String xHttpOverride = headers.getRequestHeader(GlobalDataRest.X_HTTP_METHOD_OVERRIDE).get(0);
         if (!"GET".equalsIgnoreCase(xHttpOverride)) {
             return Response.status(Status.METHOD_NOT_ALLOWED).entity(getErrorEntity(Status.METHOD_NOT_ALLOWED)
                 .toString()).build();

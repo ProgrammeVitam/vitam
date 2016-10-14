@@ -27,28 +27,30 @@
 
 package fr.gouv.vitam.workspace.common;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.gouv.vitam.common.json.JsonHandler;
+import static org.junit.Assert.assertEquals;
+
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import com.fasterxml.jackson.databind.JsonNode;
+
+import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
  *
  */
 public class RequestResponseTest {
     private static RequestResponse requestResponse = new RequestResponse();
+
     @Test
     public void testGetSetResult() throws Exception {
-        JsonNode node = JsonHandler.createObjectNode();
+        final JsonNode node = JsonHandler.createObjectNode();
         requestResponse.setResult(node);
         assertEquals(node, requestResponse.getResult());
     }
 
     @Test
     public void testGetSetQuery() throws Exception {
-        JsonNode node = JsonHandler.createObjectNode();
+        final JsonNode node = JsonHandler.createObjectNode();
         requestResponse.setQuery(node);
         assertEquals(node, requestResponse.getQuery());
     }

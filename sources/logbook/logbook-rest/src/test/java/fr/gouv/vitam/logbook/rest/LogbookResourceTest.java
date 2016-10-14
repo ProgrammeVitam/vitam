@@ -59,10 +59,10 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
@@ -106,7 +106,7 @@ public class LogbookResourceTest {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
 
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         databasePort = junitHelper.findAvailablePort();
         final File logbook = PropertiesUtils.findFile(LOGBOOK_CONF);
         final LogbookConfiguration realLogbook = PropertiesUtils.readYaml(logbook, LogbookConfiguration.class);
@@ -143,27 +143,27 @@ public class LogbookResourceTest {
 
         logbookParametersStart = LogbookParametersFactory.newLogbookOperationParameters(
             eip, "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
-            LogbookOutcome.STARTED, "start ingest", eip);
+            StatusCode.STARTED, "start ingest", eip);
         logbookParametersAppend = LogbookParametersFactory.newLogbookOperationParameters(
             GUIDFactory.newOperationIdGUID(0),
             "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
-            LogbookOutcome.OK, "end ingest", eip);
+            StatusCode.OK, "end ingest", eip);
         logbookParametersWrongStart = LogbookParametersFactory.newLogbookOperationParameters(
             eip,
             "eventTypeValue2", eip, LogbookTypeProcess.INGEST,
-            LogbookOutcome.STARTED, "start ingest", eip);
+            StatusCode.STARTED, "start ingest", eip);
         logbookParametersWrongAppend = LogbookParametersFactory.newLogbookOperationParameters(
             GUIDFactory.newOperationIdGUID(0),
             "eventTypeValue2", GUIDFactory.newOperationIdGUID(0), LogbookTypeProcess.INGEST,
-            LogbookOutcome.OK, "end ingest", eip);
+            StatusCode.OK, "end ingest", eip);
 
         logbookParametersSelect = LogbookParametersFactory.newLogbookOperationParameters(
             eip, "eventTypeValueSelect", GUIDFactory.newOperationIdGUID(0), LogbookTypeProcess.INGEST,
-            LogbookOutcome.OK, "start ingest", eip);
+            StatusCode.OK, "start ingest", eip);
 
         logbookParametersSelectId = LogbookParametersFactory.newLogbookOperationParameters(
             eip, "eventTypeValueSelectId", GUIDFactory.newOperationIdGUID(0), LogbookTypeProcess.INGEST,
-            LogbookOutcome.OK, "start ingest", eip);
+            StatusCode.OK, "start ingest", eip);
     }
 
     @AfterClass

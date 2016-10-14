@@ -69,7 +69,7 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 
 /**
- * 
+ *
  */
 public class ProcessDistributorResourceTest {
 
@@ -78,7 +78,7 @@ public class ProcessDistributorResourceTest {
     private static VitamServer vitamServer;
 
     private static int serverPort;
-    private String JSON_INVALID_FILE = "json";
+    private final String JSON_INVALID_FILE = "json";
 
     private static final String REST_URI = "/processing/v1";
     private static final String WORKER_FAMILY_URI = "/worker_family";
@@ -100,7 +100,7 @@ public class ProcessDistributorResourceTest {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
 
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         serverPort = junitHelper.findAvailablePort();
 
         RestAssured.port = serverPort;
@@ -180,8 +180,8 @@ public class ProcessDistributorResourceTest {
 
     @Test
     public final void testRegisterWorkerBadRequest() throws Exception {
-        File file = PropertiesUtils.findFile(JSON_INVALID_FILE);
-        JsonNode json = JsonHandler.getFromFile(file);
+        final File file = PropertiesUtils.findFile(JSON_INVALID_FILE);
+        final JsonNode json = JsonHandler.getFromFile(file);
         given().contentType(ContentType.JSON).body(json).when()
             .post(WORKER_FAMILY_URI + ID_FAMILY_URI + WORKERS_URI + ID_WORKER_URI).then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
@@ -224,11 +224,11 @@ public class ProcessDistributorResourceTest {
     }
 
     private static VitamServer buildTestServer() throws VitamApplicationServerException {
-        VitamServer vitamServer = VitamServerFactory.newVitamServer(serverPort);
+        final VitamServer vitamServer = VitamServerFactory.newVitamServer(serverPort);
 
         final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(JacksonFeature.class);
-        ProcessDistributorResourceTest outer = new ProcessDistributorResourceTest();
+        final ProcessDistributorResourceTest outer = new ProcessDistributorResourceTest();
         resourceConfig.register(new ProcessDistributorResource(outer.new ProcessDistributorInnerClass()));
 
         final ServletContainer servletContainer = new ServletContainer(resourceConfig);
@@ -237,7 +237,7 @@ public class ProcessDistributorResourceTest {
         contextHandler.setContextPath("/");
         contextHandler.addServlet(sh, "/*");
 
-        HandlerList handlers = new HandlerList();
+        final HandlerList handlers = new HandlerList();
         handlers.setHandlers(new Handler[] {contextHandler});
         vitamServer.configure(contextHandler);
         return vitamServer;

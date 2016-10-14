@@ -130,7 +130,7 @@ public class ServerApplication {
         }
 
         if (!StringUtils.isBlank(configuration.getJettyConfig())) {
-            String jettyConfig = configuration.getJettyConfig();
+            final String jettyConfig = configuration.getJettyConfig();
             vitamServer = VitamServerFactory.newVitamServerByJettyConf(jettyConfig);
         } else {
             throw new VitamApplicationServerException("jetty config is mandatory");
@@ -150,7 +150,7 @@ public class ServerApplication {
             try {
                 shiroFile = PropertiesUtils.findFile(SHIRO_FILE);
                 restResourceContext.setInitParameter("shiroConfigLocations", "file:" + shiroFile.getAbsolutePath());
-            } catch (FileNotFoundException e) {
+            } catch (final FileNotFoundException e) {
                 LOGGER.error(e.getMessage(), e);
                 throw new VitamApplicationServerException(e.getMessage());
             }
@@ -173,7 +173,7 @@ public class ServerApplication {
         staticContentHandler.setResourceBase(webAppDir.toURI().toString());
 
         // wrap to context handler
-        ContextHandler staticContext = new ContextHandler("/ihm-demo"); /* the server uri path */
+        final ContextHandler staticContext = new ContextHandler("/ihm-demo"); /* the server uri path */
         staticContext.setHandler(staticContentHandler);
 
         // Set Handlers (Static content and REST API)

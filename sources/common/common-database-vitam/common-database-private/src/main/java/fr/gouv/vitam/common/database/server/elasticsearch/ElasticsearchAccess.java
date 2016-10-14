@@ -71,19 +71,19 @@ public class ElasticsearchAccess {
         this.clusterName = clusterName;
         this.nodes = nodes;
 
-        Settings settings = Settings.settingsBuilder().put("cluster.name", clusterName)
+        final Settings settings = Settings.settingsBuilder().put("cluster.name", clusterName)
             .build();
 
         try {
 
             client = TransportClient.builder().settings(settings).build();
 
-            for (ElasticsearchNode node : nodes) {
+            for (final ElasticsearchNode node : nodes) {
                 client.addTransportAddress(
                     new InetSocketTransportAddress(InetAddress.getByName(node.getHostName()), node.getTcpPort()));
             }
 
-        } catch (UnknownHostException e) {
+        } catch (final UnknownHostException e) {
             LOGGER.error(e.getMessage(), e);
             throw new VitamException(e.getMessage());
         }
@@ -98,7 +98,7 @@ public class ElasticsearchAccess {
     }
 
     /**
-     * 
+     *
      * @return the Cluster Name
      */
     public String getClusterName() {

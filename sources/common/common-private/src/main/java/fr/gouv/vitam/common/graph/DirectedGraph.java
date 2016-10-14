@@ -49,11 +49,11 @@ public class DirectedGraph {
 
     private static final String NEWLINE = System.getProperty("line.separator");
     // number of vertices
-    private int vertices;
+    private final int vertices;
     // adjacency list for vertex v
-    private NodeIterable<Integer>[] adj;
+    private final NodeIterable<Integer>[] adj;
     // indegree of vertex v
-    private int[] indegree;
+    private final int[] indegree;
 
     // map id_xml index
     BidiMap<Integer, String> indexMapping;
@@ -73,7 +73,7 @@ public class DirectedGraph {
         }
         this.vertices = vertices;
         indegree = new int[vertices];
-        adj = (NodeIterable<Integer>[]) new NodeIterable[vertices];
+        adj = new NodeIterable[vertices];
         for (int v = 0; v < vertices; v++) {
             adj[v] = new NodeIterable<Integer>();
         }
@@ -91,18 +91,18 @@ public class DirectedGraph {
     public DirectedGraph(JsonNode jsonGraph) {
         indexMapping = new DualHashBidiMap<Integer, String>();
         vertices = jsonGraph.size() + 1;
-        adj = (NodeIterable<Integer>[]) new NodeIterable[vertices];
+        adj = new NodeIterable[vertices];
 
         for (int v = 0; v < vertices; v++) {
             adj[v] = new NodeIterable<Integer>();
         }
         indegree = new int[vertices];
         // parse json to create graph
-        Iterator<Entry<String, JsonNode>> iterator2 = jsonGraph.fields();
+        final Iterator<Entry<String, JsonNode>> iterator2 = jsonGraph.fields();
         while (iterator2.hasNext()) {
-            Entry<String, JsonNode> cycle = iterator2.next();
-            String idChild = cycle.getKey();
-            JsonNode up = cycle.getValue();
+            final Entry<String, JsonNode> cycle = iterator2.next();
+            final String idChild = cycle.getKey();
+            final JsonNode up = cycle.getValue();
 
             // create mappping
             addMapIdToIndex(idChild);
@@ -187,9 +187,9 @@ public class DirectedGraph {
      * @return the reverse of the DirectedGraph (child[parents] to parent[children])
      */
     public DirectedGraph reverse() {
-        DirectedGraph reverse = new DirectedGraph(vertices);
+        final DirectedGraph reverse = new DirectedGraph(vertices);
         for (int v = 0; v < vertices; v++) {
-            for (int w : adj(v)) {
+            for (final int w : adj(v)) {
                 reverse.addEdge(w, v);
             }
         }
@@ -202,12 +202,13 @@ public class DirectedGraph {
      *
      * @return the number of vertice, adjacency lists
      */
+    @Override
     public String toString() {
-        StringBuilder s = new StringBuilder();
+        final StringBuilder s = new StringBuilder();
         s.append(vertices + " vertices,  " + NEWLINE);
         for (int v = 0; v < vertices; v++) {
             s.append(String.format("%d: ", v));
-            for (int w : adj[v]) {
+            for (final int w : adj[v]) {
                 s.append(String.format("%d ", w));
             }
             s.append(NEWLINE);
@@ -220,7 +221,7 @@ public class DirectedGraph {
         if (indexMapping != null) {
             // FIXME better to directly get the private xmlIdToIndex.get(id) and checking if not null
             if (indexMapping.containsValue(id)) {
-                BidiMap<String, Integer> xmlIdToIndex = indexMapping.inverseBidiMap();
+                final BidiMap<String, Integer> xmlIdToIndex = indexMapping.inverseBidiMap();
                 key = xmlIdToIndex.get(id);
             } else {
                 key = addMapIdToIndex(id);
@@ -233,7 +234,7 @@ public class DirectedGraph {
 
     private int addMapIdToIndex(String idXml) {
         if (indexMapping != null) {
-            BidiMap<String, Integer> xmlIdToIndex = indexMapping.inverseBidiMap();
+            final BidiMap<String, Integer> xmlIdToIndex = indexMapping.inverseBidiMap();
             if (xmlIdToIndex.get(idXml) == null) {
                 count++;
                 indexMapping.put(count, idXml);

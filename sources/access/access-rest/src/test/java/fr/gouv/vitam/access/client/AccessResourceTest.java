@@ -26,7 +26,16 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.client;
 
+import static org.junit.Assert.assertNotNull;
+
+import java.io.FileNotFoundException;
+
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import com.jayway.restassured.RestAssured;
+
 import fr.gouv.vitam.access.common.exception.AccessClientException;
 import fr.gouv.vitam.access.rest.AccessApplication;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -35,13 +44,6 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import java.io.FileNotFoundException;
-
-import static org.junit.Assert.assertNotNull;
 
 /**
  * AccessResourceTest class
@@ -61,16 +63,16 @@ public class AccessResourceTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
         try {
-            application.startApplication(PropertiesUtils.getResourcesFile(ACCESS_CONF).getAbsolutePath());
+            AccessApplication.startApplication(PropertiesUtils.getResourcesFile(ACCESS_CONF).getAbsolutePath());
 
             RestAssured.port = port;
             RestAssured.basePath = ACCESS_RESOURCE_URI;
 
             LOGGER.debug("Beginning tests");
-        } catch (FileNotFoundException e) {
+        } catch (final FileNotFoundException e) {
             LOGGER.error(e);
             throw new IllegalStateException(
                 "Cannot start the Access Application Server", e);

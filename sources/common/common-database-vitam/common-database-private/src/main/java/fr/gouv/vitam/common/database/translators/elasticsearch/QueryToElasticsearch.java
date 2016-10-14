@@ -173,13 +173,13 @@ public class QueryToElasticsearch {
     private static QueryBuilder sizeCommand(final QUERY query, final JsonNode content)
         throws InvalidParseOperationException {
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(query.exactToken(), content);
-        Script script = new Script("doc['" + element.getKey() + "'].values.length == " + element.getValue());
+        final Script script = new Script("doc['" + element.getKey() + "'].values.length == " + element.getValue());
         return QueryBuilders.scriptQuery(script);
     }
 
     /**
      * $gt : { name : value } $gte : { name : value } $lt : { name : value } $lte : { name : value }
-     * 
+     *
      * @param req QUERY
      * @param content JsonNode
      * @return the compare Command
@@ -229,18 +229,18 @@ public class QueryToElasticsearch {
         if (fields == null || like == null) {
             throw new InvalidParseOperationException("Incorrect command: " + query.exactToken() + " : " + query);
         }
-        String[] names = new String[fields.size()];
+        final String[] names = new String[fields.size()];
         int i = 0;
-        for (JsonNode name : fields) {
+        for (final JsonNode name : fields) {
             names[i++] = name.toString();
         }
         switch (query) {
             case FLT:
-                String slike = like.toString();
+                final String slike = like.toString();
                 if (names.length > 0) {
-                    BoolQueryBuilder builder = QueryBuilders.boolQuery();
-                    for (int j = 0; j < names.length; j++) {
-                        builder.should(QueryBuilders.matchQuery(names[j], slike).fuzziness(FUZZINESS));
+                    final BoolQueryBuilder builder = QueryBuilders.boolQuery();
+                    for (final String name : names) {
+                        builder.should(QueryBuilders.matchQuery(name, slike).fuzziness(FUZZINESS));
                     }
                     return builder;
                 } else {
@@ -328,18 +328,18 @@ public class QueryToElasticsearch {
         throws InvalidParseOperationException {
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(query.exactToken(), content);
         String key = element.getKey();
-        List<JsonNode> nodes = element.getValue().findValues(ParserTokens.QUERYARGS.DATE.exactToken());
+        final List<JsonNode> nodes = element.getValue().findValues(ParserTokens.QUERYARGS.DATE.exactToken());
 
         if (nodes != null && !nodes.isEmpty()) {
             key += "." + ParserTokens.QUERYARGS.DATE.exactToken();
         }
-        Set<Object> set = new HashSet<Object>();
+        final Set<Object> set = new HashSet<Object>();
         for (final JsonNode value : nodes) {
             set.add(getAsObject(value));
         }
-        QueryBuilder query2 = QueryBuilders.termsQuery(key, set);
+        final QueryBuilder query2 = QueryBuilders.termsQuery(key, set);
         if (query == QUERY.NIN) {
-            QueryBuilder query3 = QueryBuilders.boolQuery().mustNot(query2);
+            final QueryBuilder query3 = QueryBuilders.boolQuery().mustNot(query2);
             return query3;
         }
         return query2;
@@ -363,7 +363,7 @@ public class QueryToElasticsearch {
         if (node != null) {
             key += "." + ParserTokens.QUERYARGS.DATE.exactToken();
         }
-        RangeQueryBuilder range = QueryBuilders.rangeQuery(key);
+        final RangeQueryBuilder range = QueryBuilders.rangeQuery(key);
         for (final Iterator<Entry<String, JsonNode>> iterator = element.getValue().fields(); iterator.hasNext();) {
             final Entry<String, JsonNode> requestItem = iterator.next();
             RANGEARGS arg = null;
@@ -503,13 +503,13 @@ public class QueryToElasticsearch {
             key += "." + ParserTokens.QUERYARGS.DATE.exactToken();
         }
         if (isAttributeNotAnalyzed(key) || isDate) {
-            QueryBuilder query2 = QueryBuilders.termQuery(key, getAsObject(node));
+            final QueryBuilder query2 = QueryBuilders.termQuery(key, getAsObject(node));
             if (query == QUERY.NE) {
                 return QueryBuilders.boolQuery().mustNot(query2);
             }
             return query2;
         } else {
-            QueryBuilder query2 = QueryBuilders.simpleQueryStringQuery("\"" + getAsObject(node) + "\"").field(key)
+            final QueryBuilder query2 = QueryBuilders.simpleQueryStringQuery("\"" + getAsObject(node) + "\"").field(key)
                 .flags(SimpleQueryStringFlag.PHRASE);
             if (query == QUERY.NE) {
                 return QueryBuilders.boolQuery().mustNot(query2);
@@ -530,7 +530,7 @@ public class QueryToElasticsearch {
         throws InvalidParseOperationException {
 
         final String fieldname = content.asText();
-        QueryBuilder queryBuilder = QueryBuilders.existsQuery(fieldname);
+        final QueryBuilder queryBuilder = QueryBuilders.existsQuery(fieldname);
         switch (query) {
             case MISSING:
                 return QueryBuilders.boolQuery().mustNot(queryBuilder);

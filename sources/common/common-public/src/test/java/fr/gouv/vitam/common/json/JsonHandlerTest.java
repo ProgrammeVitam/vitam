@@ -118,7 +118,7 @@ public class JsonHandlerTest {
         assertEquals(0, JsonHandler
             .getMapFromInputStream(ResourcesPublicUtilTest.getInstance().getJsonTestEmptyJsonInputStream()).size());
         assertEquals(0, JsonHandler.getMapFromInputStream(null).size());
-        Map<String, Object> map =
+        final Map<String, Object> map =
             JsonHandler.getMapFromInputStream(ResourcesPublicUtilTest.getInstance().getJsonTest3JsonInputStream());
         assertEquals("val1", map.get("a"));
         assertNotNull(JsonHandler
@@ -127,10 +127,10 @@ public class JsonHandlerTest {
             JsonHandler
                 .getFromInputStream(ResourcesPublicUtilTest.getInstance().getJsonTest3JsonInputStream(), JsonNode.class)
                 .get("b").asText());
-        
-        
-        ArrayNode array= (ArrayNode) JsonHandler.getFromString("['0', '1', '2', '3', '4' , '5']");
-        ArrayNode subArray= JsonHandler.getSubArrayNode(array, 3, 2);
+
+
+        final ArrayNode array = (ArrayNode) JsonHandler.getFromString("['0', '1', '2', '3', '4' , '5']");
+        final ArrayNode subArray = JsonHandler.getSubArrayNode(array, 3, 2);
         assertEquals(2, subArray.size());
         assertEquals("3", subArray.get(0).asText());
     }

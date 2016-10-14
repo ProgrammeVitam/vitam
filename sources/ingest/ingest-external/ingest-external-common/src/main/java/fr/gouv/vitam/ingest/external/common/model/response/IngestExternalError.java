@@ -42,7 +42,7 @@ public class IngestExternalError {
     private String message;
     private String description;
     private List<IngestExternalError> errors;
-    
+
     /**
      * RequestResponseError constructor
      *

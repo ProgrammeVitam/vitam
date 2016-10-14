@@ -53,7 +53,7 @@ public class ProcessingEntry {
     @JsonCreator
     public ProcessingEntry(@JsonProperty("container") String container, @JsonProperty("workflow") String workflow) {
         ParametersChecker.checkParameter("container is a mandatory parameter", container);
-        ParametersChecker.checkParameter("workflow is a mandatory parameter", workflow);        
+        ParametersChecker.checkParameter("workflow is a mandatory parameter", workflow);
         this.container = container;
         this.workflow = workflow;
     }

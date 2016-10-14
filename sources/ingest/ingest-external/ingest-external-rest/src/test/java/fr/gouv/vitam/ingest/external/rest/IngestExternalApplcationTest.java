@@ -26,17 +26,18 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.rest;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.server.BasicVitamServer;
-import org.junit.Assert;
-import org.junit.Test;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 
-import static org.junit.Assert.fail;
+import org.junit.Assert;
+import org.junit.Test;
+
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.server.BasicVitamServer;
 
 public class IngestExternalApplcationTest {
 
@@ -58,7 +59,7 @@ public class IngestExternalApplcationTest {
 
     @Test(expected = NullPointerException.class)
     public final void givenNullConfigWhenStartApplicaitionThenRaiseException() throws VitamException {
-            ((BasicVitamServer) IngestExternalApplication.startApplication(null)).stop();
+        ((BasicVitamServer) IngestExternalApplication.startApplication(null)).stop();
     }
 
     @Test(expected = VitamApplicationServerException.class)
@@ -78,7 +79,7 @@ public class IngestExternalApplcationTest {
 
     @Test
     public void givenConfigFileNameWhenGetThenReturnConfigFileName() {
-        IngestExternalApplication ingest = new IngestExternalApplication();
+        final IngestExternalApplication ingest = new IngestExternalApplication();
         Assert.assertEquals("ingest-external.conf", ingest.getConfigFilename());
     }
 }

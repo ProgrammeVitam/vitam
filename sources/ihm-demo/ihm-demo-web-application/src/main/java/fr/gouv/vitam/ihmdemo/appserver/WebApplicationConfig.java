@@ -112,6 +112,7 @@ public class WebApplicationConfig {
 
     /**
      * getter jettyConfig
+     *
      * @return
      */
     public String getJettyConfig() {
@@ -120,6 +121,7 @@ public class WebApplicationConfig {
 
     /**
      * setter jettyConfig
+     *
      * @param jettyConfig the jetty config
      */
     public WebApplicationConfig setJettyConfig(String jettyConfig) {

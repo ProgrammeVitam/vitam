@@ -73,14 +73,14 @@ public abstract class AbstractSSLClient implements BasicClient {
         boolean suppressHttpCompliance) {
         ParametersChecker.checkParameter("Configuration cannot be null", configuration);
         ParametersChecker.checkParameter("resourcePath cannot be null", resourcePath);
-        String scheme = "http";
+        final String scheme = "http";
         if (configuration.getUseSSL()) {
             throw new UnsupportedOperationException("SSL is not yet implemented");
         }
         ParametersChecker.checkParameter("Host cannot be null", configuration.getServerHost());
         ParametersChecker.checkValue("Port has invalid value", configuration.getServerPort(), 1);
         ParametersChecker.checkParameter("Context path cannot be null", configuration.getServerContextPath());
-        this.clientConfiguration = configuration;
+        clientConfiguration = configuration;
 
         this.resourcePath = Optional.ofNullable(resourcePath).orElse("/");
         if (clientConfiguration.getServerContextPath().endsWith("/") && this.resourcePath.length() > 1) {

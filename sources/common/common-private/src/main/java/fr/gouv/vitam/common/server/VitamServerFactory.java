@@ -59,7 +59,7 @@ public class VitamServerFactory {
 
     /**
      * Set a new Default Port
-     * 
+     *
      * @param port
      * @throws IllegalArgumentException if port <= 0
      */
@@ -70,7 +70,7 @@ public class VitamServerFactory {
 
     /**
      * Get the Default Port
-     * 
+     *
      * @return the default current port
      */
     public static int getDefaultPort() {
@@ -100,8 +100,9 @@ public class VitamServerFactory {
         try {
             ParametersChecker.checkParameter("jetty config file", jettyConfigFile);
             return new BasicVitamServer(jettyConfigFile);
-        } catch (IllegalArgumentException e) {
-            LOGGER.error("Jetty server can not run with this jetty config file : " + jettyConfigFile + e.getMessage(), e);
+        } catch (final IllegalArgumentException e) {
+            LOGGER.error("Jetty server can not run with this jetty config file : " + jettyConfigFile + e.getMessage(),
+                e);
             throw new VitamApplicationServerException(
                 "Jetty server can not run with this jetty config file : " + jettyConfigFile);
         }

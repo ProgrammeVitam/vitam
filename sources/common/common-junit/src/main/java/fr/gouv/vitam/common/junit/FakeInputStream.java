@@ -27,6 +27,7 @@ public class FakeInputStream extends InputStream {
     private byte getValue() {
         return (byte) random.nextInt(BYTE_VALUE_LIMIT);
     }
+
     @Override
     public int read() {
         if (limit <= 0) {
@@ -52,7 +53,7 @@ public class FakeInputStream extends InputStream {
 
     private int readBlockUnitary(byte[] b, int off, int len) {
         for (int i = 0; i < len; i++) {
-            int val = read();
+            final int val = read();
             if (val < 0) {
                 if (i == 0) {
                     return -1;
@@ -68,7 +69,7 @@ public class FakeInputStream extends InputStream {
         if (limit <= 0) {
             return -1;
         }
-        int max = Math.min(available(), len);
+        final int max = Math.min(available(), len);
         limit -= max;
         read += max;
         for (int i = 0; i < max; i++) {

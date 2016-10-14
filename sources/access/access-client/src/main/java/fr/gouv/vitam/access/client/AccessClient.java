@@ -41,7 +41,7 @@ public interface AccessClient {
 
     /**
      * Select Units
-     * 
+     *
      * @param selectQuery the query used to select units
      * @return JsonNode object including DSL queries and results
      * @throws InvalidParseOperationException if the query is not well formatted
@@ -53,7 +53,7 @@ public interface AccessClient {
 
     /**
      * select Unit By Id
-     * 
+     *
      * @param sqlQuery the query to be executed
      * @param id the id of the unit
      * @return JsonNode object including DSL queries, context and results
@@ -79,7 +79,7 @@ public interface AccessClient {
 
     /**
      * Retrieve an ObjectGroup as Json data based on the provided ObjectGroup id
-     * 
+     *
      * @param selectObjectQuery the query to be executed
      * @param objectId the Id of the ObjectGroup
      * @return JsonNode object including DSL queries, context and results
@@ -92,7 +92,7 @@ public interface AccessClient {
 
     /**
      * Retrieve an Object data as an input stream
-     * 
+     *
      * @param selectObjectQuery the query to be executed
      * @param objectGroupId the Id of the ObjectGroup
      * @param usage the requested usage

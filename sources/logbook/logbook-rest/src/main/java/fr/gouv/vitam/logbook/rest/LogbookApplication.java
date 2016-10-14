@@ -125,13 +125,13 @@ public final class LogbookApplication extends AbstractVitamApplication<LogbookAp
         final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
         context.addServlet(sh, "/*");
-        String jettyConfig = configuration.getJettyConfig();
+        final String jettyConfig = configuration.getJettyConfig();
         vitamServer = VitamServerFactory.newVitamServerByJettyConf(jettyConfig);
         vitamServer.getServer().setHandler(context);
 
         try {
             vitamServer.getServer().start();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error(format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
             throw new VitamApplicationServerException(
                 format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);

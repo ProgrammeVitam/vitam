@@ -35,6 +35,11 @@ public class StorageClientException extends VitamClientException {
 
 
     /**
+     *
+     */
+    private static final long serialVersionUID = 7625894473864118681L;
+
+    /**
      * @param message associated message
      */
     public StorageClientException(String message) {

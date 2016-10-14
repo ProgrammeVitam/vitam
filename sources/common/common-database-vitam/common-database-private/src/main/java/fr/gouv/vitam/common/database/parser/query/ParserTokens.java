@@ -35,7 +35,7 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
  *
  */
 public class ParserTokens extends BuilderToken {
-    
+
     /**
      * Default prefix for internal variable
      */

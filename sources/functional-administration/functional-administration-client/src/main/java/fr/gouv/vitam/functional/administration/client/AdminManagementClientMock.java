@@ -56,7 +56,7 @@ public class AdminManagementClientMock implements AdminManagementClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementClientMock.class);
 
     private FileFormat createFileFormat(String _id) {
-        List<String> testList = new ArrayList<>();
+        final List<String> testList = new ArrayList<>();
         testList.add("test1");
         return (FileFormat) new FileFormat()
             .setCreatedDate("now")
@@ -71,7 +71,7 @@ public class AdminManagementClientMock implements AdminManagementClient {
     }
 
     private FileRules createFileRules(String ruleValue) {
-        return (FileRules) new FileRules()
+        return new FileRules()
             .setRuleId("APP_00001")
             .setRuleType("AppraiseRule")
             .setRuleDescription("testList")
@@ -114,7 +114,7 @@ public class AdminManagementClientMock implements AdminManagementClient {
     public JsonNode getFormatByID(String id) throws FileFormatException, InvalidParseOperationException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", id);
         LOGGER.debug("get format by id request:");
-        FileFormat file = createFileFormat(id);
+        final FileFormat file = createFileFormat(id);
         return JsonHandler.toJsonNode(file);
     }
 
@@ -124,9 +124,9 @@ public class AdminManagementClientMock implements AdminManagementClient {
         IOException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", query);
         LOGGER.debug("get document format request:");
-        FileFormat file1 = createFileFormat(GUIDFactory.newGUID().toString());
-        FileFormat file2 = createFileFormat(GUIDFactory.newGUID().toString());
-        List<FileFormat> fileFormatList = new ArrayList<FileFormat>();
+        final FileFormat file1 = createFileFormat(GUIDFactory.newGUID().toString());
+        final FileFormat file2 = createFileFormat(GUIDFactory.newGUID().toString());
+        final List<FileFormat> fileFormatList = new ArrayList<FileFormat>();
         fileFormatList.add(file1);
         fileFormatList.add(file2);
         return JsonHandler.getFromString(fileFormatListToJsonString(fileFormatList));
@@ -157,7 +157,7 @@ public class AdminManagementClientMock implements AdminManagementClient {
     public JsonNode getRuleByID(String id) throws FileRulesException, InvalidParseOperationException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", id);
         LOGGER.debug("get rule by id request:");
-        FileRules file = createFileRules(id);
+        final FileRules file = createFileRules(id);
         return JsonHandler.toJsonNode(file);
 
     }
@@ -168,9 +168,9 @@ public class AdminManagementClientMock implements AdminManagementClient {
         IOException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", query);
         LOGGER.debug("get document rules request:");
-        FileRules file1 = createFileRules(GUIDFactory.newGUID().toString());
-        FileRules file2 = createFileRules(GUIDFactory.newGUID().toString());
-        List<FileRules> fileRulesList = new ArrayList<FileRules>();
+        final FileRules file1 = createFileRules(GUIDFactory.newGUID().toString());
+        final FileRules file2 = createFileRules(GUIDFactory.newGUID().toString());
+        final List<FileRules> fileRulesList = new ArrayList<FileRules>();
         fileRulesList.add(file1);
         fileRulesList.add(file2);
         return JsonHandler.getFromString(fileRulesListToJsonString(fileRulesList));

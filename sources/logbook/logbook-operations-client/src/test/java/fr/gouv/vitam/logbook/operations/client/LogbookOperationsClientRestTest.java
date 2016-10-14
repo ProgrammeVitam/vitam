@@ -50,13 +50,13 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.client.StatusMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 
@@ -87,7 +87,7 @@ public class LogbookOperationsClientRestTest extends JerseyTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        junitHelper = new JunitHelper();
+        junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
     }
 
@@ -142,7 +142,7 @@ public class LogbookOperationsClientRestTest extends JerseyTest {
 
     private static final LogbookOperationParameters getComplete() {
         return LogbookParametersFactory.newLogbookOperationParameters("eventIdentifier",
-            "eventType", "eventIdentifierProcess", LogbookTypeProcess.INGEST, LogbookOutcome.STARTED,
+            "eventType", "eventIdentifierProcess", LogbookTypeProcess.INGEST, StatusCode.STARTED,
             "outcomeDetailMessage", "eventIdentifierRequest");
     }
 

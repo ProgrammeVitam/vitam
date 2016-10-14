@@ -65,7 +65,7 @@ public abstract class BuilderToken {
      * $depth with a relative value (+ or -, meaning leaves or parents, 0 for no limit in leaves depth) Only one of
      * $exactdepth and $depth might be set. If both are set, only $depth will be kept. <br>
      * { expression, $exactdepth : exactdepth, $depth : /- depth }
-     * 
+     *
      */
     public static enum GLOBAL {
 

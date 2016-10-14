@@ -76,14 +76,16 @@ public enum VitamCode {
         "driver %s mapping !"),
     STORAGE_DRIVER_MAPPING_INITIALIZE(ServiceName.STORAGE, DomainName.IO, "12", Status.INTERNAL_SERVER_ERROR, "Cannot" +
         " initialize FileDriverMapper, error on configuration file, please check it"),
-    STORAGE_DRIVER_OBJECT_ALREADY_EXISTS(ServiceName.STORAGE, DomainName.ILLEGAL, "13", Status.METHOD_NOT_ALLOWED, 
+    STORAGE_DRIVER_OBJECT_ALREADY_EXISTS(ServiceName.STORAGE, DomainName.ILLEGAL, "13", Status.METHOD_NOT_ALLOWED,
         "Cannot override an existing object (%s)"),
 
     WORKER_FORMAT_IDENTIFIER_NOT_FOUND(ServiceName.WORKER, DomainName.IO, "00", Status.NOT_FOUND, "Format identifier " +
         "%s not found"),
-    WORKER_FORMAT_IDENTIFIER_IMPLEMENTATION_NOT_FOUND(ServiceName.WORKER, DomainName.IO, "01", Status.NOT_FOUND, "Format " +
-        "identifier %s implementation not found"),
-    WORKER_FORMAT_IDENTIFIER_TECHNICAL_INTERNAL_ERROR(ServiceName.WORKER, DomainName.IO, "02", Status.INTERNAL_SERVER_ERROR,
+    WORKER_FORMAT_IDENTIFIER_IMPLEMENTATION_NOT_FOUND(ServiceName.WORKER, DomainName.IO, "01", Status.NOT_FOUND,
+        "Format " +
+            "identifier %s implementation not found"),
+    WORKER_FORMAT_IDENTIFIER_TECHNICAL_INTERNAL_ERROR(ServiceName.WORKER, DomainName.IO, "02",
+        Status.INTERNAL_SERVER_ERROR,
         "Format identifier internal error");
 
     private final ServiceName service;

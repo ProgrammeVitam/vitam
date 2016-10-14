@@ -201,7 +201,8 @@ public class SelectTest {
         final Select select = new Select();
         select.parseOrderByFilter("{$orderby : { maclef1 : 1 , maclef2 : -1 }}");
         select.parseLimitFilter("{$limit : 5}");
-        assertEquals("{\"maclef1\":1,\"maclef2\":-1}", select.getFilter().get(SELECTFILTER.ORDERBY.exactToken()).toString());
+        assertEquals("{\"maclef1\":1,\"maclef2\":-1}",
+            select.getFilter().get(SELECTFILTER.ORDERBY.exactToken()).toString());
         assertEquals("5", select.getFilter().get(SELECTFILTER.LIMIT.exactToken()).toString());
         select.resetFilter();
         select.parseFilter("{$orderby : { maclef1 : 1 , maclef2 : -1 }, $limit : 5}");

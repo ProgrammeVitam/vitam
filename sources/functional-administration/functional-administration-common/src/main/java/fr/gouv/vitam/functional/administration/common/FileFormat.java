@@ -61,7 +61,7 @@ public class FileFormat extends VitamDocument<FileFormat> {
 
     /**
      * constructor with Mongo Document
-     * 
+     *
      * @param document as Document of bson
      */
     public FileFormat(Document document) {
@@ -70,130 +70,130 @@ public class FileFormat extends VitamDocument<FileFormat> {
 
     /**
      * setPUID
-     * 
+     *
      * @param puid as String
      * @return FileFormat with puid setted
      */
     public FileFormat setPUID(String puid) {
-        this.append(PUID, puid);
+        append(PUID, puid);
         return this;
     }
 
     /**
      * setExtension
-     * 
+     *
      * @param extension as a list of String
      * @return FileFormat with extension setted
      */
     public FileFormat setExtension(List<String> extension) {
         if (!extension.isEmpty()) {
-            List<String> ext = new ArrayList<>();
+            final List<String> ext = new ArrayList<>();
             ext.addAll(extension);
-            this.append(EXTENSION, ext);
+            append(EXTENSION, ext);
         }
         return this;
     }
 
     /**
      * setName
-     * 
+     *
      * @param name as String
      * @return FileFormat with name setted
      */
     public FileFormat setName(String name) {
-        this.append(NAME, name);
+        append(NAME, name);
         return this;
     }
 
     /**
      * setMimeType
-     * 
+     *
      * @param mimeType as String
      * @return FileFormat with mimeType setted
      */
     public FileFormat setMimeType(List<String> mimeType) {
-        this.append(MIME_TYPE, mimeType);
+        append(MIME_TYPE, mimeType);
         return this;
     }
 
     /**
      * setVersion
-     * 
+     *
      * @param version as String
      * @return FileFormat with version setted
      */
     public FileFormat setVersion(String version) {
-        this.append(VERSION, version);
+        append(VERSION, version);
         return this;
     }
 
     /**
      * setPriorityOverIdList
-     * 
+     *
      * @param priorityOverIdList as a list of String
      * @return FileFormat
      */
     public FileFormat setPriorityOverIdList(List<String> priorityOverIdList) {
         if (!priorityOverIdList.isEmpty()) {
-            List<String> priorityList = new ArrayList<>();
+            final List<String> priorityList = new ArrayList<>();
             priorityList.addAll(priorityOverIdList);
-            this.append(HAS_PRIORITY_OVER_FILE_FORMAT_ID, priorityList);
+            append(HAS_PRIORITY_OVER_FILE_FORMAT_ID, priorityList);
         }
         return this;
     }
 
     /**
      * setCreatedDate
-     * 
+     *
      * @param createdDate as String
      * @return FileFormat with createdDate setted
      */
     public FileFormat setCreatedDate(String createdDate) {
-        this.append(CREATED_DATE, createdDate);
+        append(CREATED_DATE, createdDate);
         return this;
     }
 
     /**
      * setPronomVersion
-     * 
+     *
      * @param pronomVersion as String
      * @return FileFormat with pronomVersion setted
      */
     public FileFormat setPronomVersion(String pronomVersion) {
-        this.append(VERSION_PRONOM, pronomVersion);
+        append(VERSION_PRONOM, pronomVersion);
         return this;
     }
-    
+
     /**
      * setComment
-     * 
+     *
      * @param comment as String
      * @return FileFormat with pronomVersion setted
      */
     public FileFormat setComment(String comment) {
-        this.append(COMMENT, comment);
+        append(COMMENT, comment);
         return this;
     }
-    
+
     /**
      * setAlert
-     * 
+     *
      * @param alert as boolean
      * @return FileFormat with pronomVersion setted
      */
     public FileFormat setAlert(boolean alert) {
-        this.append(ALERT, alert);
+        append(ALERT, alert);
         return this;
     }
 
     /**
      * setGroup
-     * 
+     *
      * @param group as String
      * @return FileFormat with pronomVersion setted
      */
     public FileFormat setGroup(String group) {
-        this.append(GROUP, group);
+        append(GROUP, group);
         return this;
     }
 }

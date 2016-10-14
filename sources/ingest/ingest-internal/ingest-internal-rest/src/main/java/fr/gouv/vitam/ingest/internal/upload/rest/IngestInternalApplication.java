@@ -101,15 +101,15 @@ public class IngestInternalApplication
                 try {
                     final File yamlFile = PropertiesUtils.findFile(args[0]);
                     configuration = PropertiesUtils.readYaml(yamlFile, IngestInternalConfiguration.class);
-                    String jettyConfig = configuration.getJettyConfig();
+                    final String jettyConfig = configuration.getJettyConfig();
 
                     LOGGER.info("Ingest Internal Starts with jetty config");
                     vitamServer = VitamServerFactory.newVitamServerByJettyConf(jettyConfig);
 
-                } catch (FileNotFoundException e) {
+                } catch (final FileNotFoundException e) {
                     LOGGER.warn(INGEST_INTERNAL_APPLICATION_STARTS_ON_DEFAULT_PORT + ", config file not found ", e);
                     vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     LOGGER.warn(INGEST_INTERNAL_APPLICATION_STARTS_ON_DEFAULT_PORT + ", config file io error ", e);
                     vitamServer = VitamServerFactory.newVitamServerOnDefaultPort();
                 }

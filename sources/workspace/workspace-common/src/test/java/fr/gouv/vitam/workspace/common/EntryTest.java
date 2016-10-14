@@ -31,18 +31,16 @@ import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 
-import fr.gouv.vitam.workspace.common.Entry;
-
 public class EntryTest {
 
     @Test
     public void testEntry() {
-        Entry step = new Entry("NAME_ENTRY");
+        final Entry step = new Entry("NAME_ENTRY");
         assertNotNull(step);
         assertNotNull(step.getName());
         assertEquals("NAME_ENTRY", step.getName());
     }
-    
+
     @Test(expected = IllegalArgumentException.class)
     public void testEntryWithNullName() {
         new Entry(null);

@@ -26,30 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.workspace.client;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.workspace.api.ContentAddressableStorage;
-import fr.gouv.vitam.workspace.api.exception.*;
-import fr.gouv.vitam.workspace.api.model.ContainerInformation;
-import fr.gouv.vitam.workspace.common.Entry;
-import fr.gouv.vitam.workspace.common.ErrorMessage;
-import org.apache.commons.io.IOUtils;
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.jackson.JacksonFeature;
-import org.glassfish.jersey.media.multipart.FormDataBodyPart;
-import org.glassfish.jersey.media.multipart.FormDataMultiPart;
-import org.glassfish.jersey.media.multipart.MultiPartFeature;
-import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
-
-import javax.ws.rs.client.*;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -58,6 +34,41 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import org.apache.commons.io.IOUtils;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.jackson.JacksonFeature;
+import org.glassfish.jersey.media.multipart.FormDataBodyPart;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.workspace.api.ContentAddressableStorage;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageZipException;
+import fr.gouv.vitam.workspace.api.model.ContainerInformation;
+import fr.gouv.vitam.workspace.common.Entry;
+import fr.gouv.vitam.workspace.common.ErrorMessage;
 
 
 /**
@@ -238,7 +249,7 @@ public class WorkspaceClient implements ContentAddressableStorage {
                 LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
                 throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
             }
-        } catch (IOException exc) { // NOSONAR no log to do
+        } catch (final IOException exc) { // NOSONAR no log to do
             // Do nothing since FormDataMultiPart#close() cannot throw IOException based on its implementation
         } finally {
             Optional.ofNullable(response).ifPresent(Response::close);
@@ -261,17 +272,18 @@ public class WorkspaceClient implements ContentAddressableStorage {
             response = builder.get();
 
 
-            /*response =
-                client.target(serviceUrl).path("/containers/" + containerName + "/objects/" + objectName)
-                    .request(MediaType.MULTIPART_FORM_DATA).accept(MediaType.APPLICATION_OCTET_STREAM).get();*/
+            /*
+             * response = client.target(serviceUrl).path("/containers/" + containerName + "/objects/" + objectName)
+             * .request(MediaType.MULTIPART_FORM_DATA).accept(MediaType.APPLICATION_OCTET_STREAM).get();
+             */
 
             if (Response.Status.OK.getStatusCode() == response.getStatus()) {
                 // TODO : this is ugly but necessarily in order to close the response and avoid concurrent issues
                 // to be improved
-                InputStream streamClosedAutomatically = response.readEntity(InputStream.class);
+                final InputStream streamClosedAutomatically = response.readEntity(InputStream.class);
                 try {
                     stream = new ByteArrayInputStream(IOUtils.toByteArray(streamClosedAutomatically));
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
                     throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
                 }
@@ -335,8 +347,7 @@ public class WorkspaceClient implements ContentAddressableStorage {
                 .request().get();
 
         if (response != null && Response.Status.OK.getStatusCode() == response.getStatus()) {
-            return response.readEntity(new GenericType<List<URI>>() {
-            });
+            return response.readEntity(new GenericType<List<URI>>() {});
         } else {
             return Collections.<URI>emptyList();
         }

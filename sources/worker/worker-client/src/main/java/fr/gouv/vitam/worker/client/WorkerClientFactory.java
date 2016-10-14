@@ -42,13 +42,13 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  *
  * Example :
  * </p>
- * 
+ *
  * <pre>
  * {
  *     &#064;code
  *     // Retrieve default worker client
  *     WorkerClient client = WorkerClientFactory.getInstance().getWorkerClient();
- * 
+ *
  *     // Exists
  *     client.exists(asyncId);
  * }
@@ -87,7 +87,8 @@ public class WorkerClientFactory {
      *
      * @param type the worker type
      * @param configuration the client configuration
-     * @throws IllegalArgumentException if type null or if type is WORKER and server is null or empty or port is less than or equal to 0
+     * @throws IllegalArgumentException if type null or if type is WORKER and server is null or empty or port is less
+     *         than or equal to 0
      */
     public static final void setConfiguration(WorkerClientType type, WorkerClientConfiguration configuration) {
         changeDefaultClientType(type);
@@ -153,12 +154,12 @@ public class WorkerClientFactory {
                     fnf);
         }
         if (configuration == null) {
-            this.clientConfiguration = null;
+            clientConfiguration = null;
             LOGGER.warn("Error when retrieving configuration file {}, using mock",
                 CONFIGURATION_FILENAME);
         } else {
             checkConfiguration(configuration);
-            this.clientConfiguration = configuration;
+            clientConfiguration = configuration;
             changeDefaultClientType(WorkerClientType.WORKER);
         }
     }

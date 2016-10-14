@@ -48,13 +48,14 @@ import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory.IngestEx
 import fr.gouv.vitam.ingest.external.rest.IngestExternalApplication;
 
 /**
- * 
+ *
  */
 public class IngestExternalIT {
 
     private static final String INGEST_EXTERNAL_CONF = "ingest-external-ssl-test.conf";
     private static final String INGEST_EXTERNAL_CLIENT_CONF = "ingest-external-client-secure.conf";
-    private static final String INGEST_EXTERNAL_CLIENT_CONF_NOTGRANTED = "ingest-external-client-secure_notgranted.conf";
+    private static final String INGEST_EXTERNAL_CLIENT_CONF_NOTGRANTED =
+        "ingest-external-client-secure_notgranted.conf";
     private static final String INGEST_EXTERNAL_CLIENT_CONF_EXPIRED = "ingest-external-client-secure_expired.conf";
     private static VitamServer vitamServer;
     private static JunitHelper junitHelper;
@@ -63,8 +64,8 @@ public class IngestExternalIT {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
 
-        junitHelper = new JunitHelper();
-        serverPort =junitHelper.findAvailablePort();
+        junitHelper = JunitHelper.getInstance();
+        serverPort = junitHelper.findAvailablePort();
         SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
         final File conf = PropertiesUtils.findFile(INGEST_EXTERNAL_CONF);
 
@@ -76,45 +77,45 @@ public class IngestExternalIT {
                 "Cannot start the Ingest External Application Server", e);
         }
     }
-    
+
     @Test
     public void givenCertifValidThenReturnOK() {
-        IngestExternalClientFactory factory = IngestExternalClientFactory.getInstance();
+        final IngestExternalClientFactory factory = IngestExternalClientFactory.getInstance();
         factory.changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF);
         IngestExternalClientFactory.setConfiguration(IngestExternalClientType.REST_CLIENT, "localhost", serverPort);
         try {
-            IngestExternalClient client = factory.getIngestExternalClient();
-            Status status= client.status();
+            final IngestExternalClient client = factory.getIngestExternalClient();
+            final Status status = client.status();
             assertEquals(Status.NO_CONTENT.getStatusCode(), status.getStatusCode());
-        } catch (VitamException e) {
+        } catch (final VitamException e) {
             e.printStackTrace();
             fail();
         }
     }
-    
-    
+
+
     @Test
     public void givenCertifNotGrantedThenReturnForbidden() {
-        IngestExternalClientFactory factory = IngestExternalClientFactory.getInstance();
+        final IngestExternalClientFactory factory = IngestExternalClientFactory.getInstance();
         factory.changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF_NOTGRANTED);
         IngestExternalClientFactory.setConfiguration(IngestExternalClientType.REST_CLIENT, "localhost", serverPort);
         try {
-            IngestExternalClient client = factory.getIngestExternalClient();
-            Status status= client.status();
+            final IngestExternalClient client = factory.getIngestExternalClient();
+            final Status status = client.status();
             assertEquals(403, status.getStatusCode());
-        } catch (VitamException e) {
+        } catch (final VitamException e) {
             fail();
         }
     }
- 
-    
+
+
     @Test(expected = IngestExternalException.class)
     public void givenCertifExpiredThenRaiseAnException() throws VitamException {
-        IngestExternalClientFactory factory = IngestExternalClientFactory.getInstance();
+        final IngestExternalClientFactory factory = IngestExternalClientFactory.getInstance();
         factory.changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF_EXPIRED);
         IngestExternalClientFactory.setConfiguration(IngestExternalClientType.REST_CLIENT, "localhost", serverPort);
-        IngestExternalClient client = factory.getIngestExternalClient();
-        Status status= client.status();
+        final IngestExternalClient client = factory.getIngestExternalClient();
+        final Status status = client.status();
         fail();
     }
 }

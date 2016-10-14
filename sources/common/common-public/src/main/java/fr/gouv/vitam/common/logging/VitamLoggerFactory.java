@@ -144,6 +144,14 @@ public abstract class VitamLoggerFactory {
     }
 
     /**
+     *
+     * @return the current Level used
+     */
+    public static VitamLogLevel getLogLevel() {
+        return getDefaultFactory().getLevelSpecific();
+    }
+
+    /**
      * @param level
      */
     public static void setLogLevel(final VitamLogLevel level) {

@@ -34,6 +34,11 @@ package fr.gouv.vitam.storage.engine.common.exception;
 public class StorageDriverMapperException extends StorageException {
 
     /**
+     *
+     */
+    private static final long serialVersionUID = -2554398476938127836L;
+
+    /**
      * @param message associated message
      */
     public StorageDriverMapperException(String message) {

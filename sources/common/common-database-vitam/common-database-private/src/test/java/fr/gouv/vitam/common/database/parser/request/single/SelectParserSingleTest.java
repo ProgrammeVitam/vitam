@@ -104,7 +104,7 @@ public class SelectParserSingleTest {
             "$filter : { " +
             "$orderby : { maclef1 : 1 , maclef2 : -1,  maclef3 : 1 } }," +
             "$projection : {$fields : {#dua : 1, myvar : 1} } }");
-        
+
         EX_MD = JsonHandler.getFromString("{ $query : " + "{ $and : [ " + "{$exists : 'mavar1'}, " +
             "{$missing : 'mavar2'}, " + "{$isNull : 'mavar3'}, " + "{ $or : [ " +
             "{$in : { 'mavar4' : [1, 2, 'maval1'] } }, " + "{ $nin : { 'mavar5' : ['maval2', true] } } ] }," +
@@ -116,12 +116,13 @@ public class SelectParserSingleTest {
             "$filter : {$offset : 100, $limit : 1000, $hint : ['cache'], " +
             "$orderby : { maclef1 : 1 , maclef2 : -1,  maclef3 : 1 } }," +
             "$projection : {$fields : {#dua : 1, #all : 1} } }");
-        
+
         EX_BOTH_ES_MD = JsonHandler.getFromString("{ $query : " + "{ $and : [ " + "{$exists : 'mavar1'}, " +
             "{$missing : 'mavar2'}, " + "{$isNull : 'mavar3'}, " + "{ $or : [ " +
             "{$in : { 'mavar4' : [1, 2, 'maval1'] } }, " + "{ $nin : { 'mavar5' : ['maval2', true] } } ] }," +
             "{ $not : [ " + "{ $size : { 'mavar5' : 5 } }, " + "{ $gt : { 'mavar6' : 7 } }, " +
-            "{ $lte : { 'mavar7' : 8 } },  { $gte : { 'mavar7' : 8 } }, { $lt : { 'mavar7' : 8 } } ] }," + "{ $not : [ " +
+            "{ $lte : { 'mavar7' : 8 } },  { $gte : { 'mavar7' : 8 } }, { $lt : { 'mavar7' : 8 } } ] }," +
+            "{ $not : [ " +
             "{ $eq : { 'mavar8' : 5 } }, { " +
             "$ne : { 'mavar9' : 'ab' } }, { " + "$range : { 'mavar10' : { $gte : 12, $lte : 20} } } ] }," +
             "{ $match_phrase : { 'mavar11' : 'ceci est une phrase' } }," +
@@ -139,8 +140,8 @@ public class SelectParserSingleTest {
             "$filter : {$offset : 100, $limit : 1000, $hint : ['cache'], " +
             "$orderby : { maclef1 : 1 , maclef2 : -1,  maclef3 : 1 } }," +
             "$projection : {$fields : {#dua : 1, #all : 1} } }");
-        
-        
+
+
     }
 
     private static String createLongString(int size) {

@@ -67,9 +67,9 @@ public class ValidationXsdUtils {
         throws SAXException, IOException, XMLStreamException {
 
         final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
-        XMLStreamReader xmlStreamReader = xmlInputFactory.createXMLStreamReader(xmlFile, "UTF-8");
+        final XMLStreamReader xmlStreamReader = xmlInputFactory.createXMLStreamReader(xmlFile, "UTF-8");
         try {
-            Schema schema = getSchema(xsdFile);
+            final Schema schema = getSchema(xsdFile);
             final Validator validator = schema.newValidator();
             validator.validate(new StAXSource(xmlStreamReader));
             return true;

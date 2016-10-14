@@ -45,20 +45,19 @@ import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOutcome;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCycleClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.OutcomeMessage;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
-import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.core.api.HandlerIO;
 
@@ -67,14 +66,17 @@ import fr.gouv.vitam.worker.core.api.HandlerIO;
  */
 public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
 
-    private static final String ERROR_MESSAGE = "Ce Groupe d'objet ou un de ses Objets n'est référencé par aucunes Unités Archivistiques : ";
-    private static final String EVENT_TYPE = "Contrôle de cohérence entre entre Objets, Groupes d'Objets et Unités Archivistiques";
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckObjectUnitConsistencyActionHandler.class);
-    private static final LogbookLifeCycleClient LOGBOOK_LIFECYCLE_CLIENT = LogbookLifeCyclesClientFactory.getInstance()
+    private static final String ERROR_MESSAGE =
+        "Ce Groupe d'objet ou un de ses Objets n'est référencé par aucunes Unités Archivistiques : ";
+    private static final String EVENT_TYPE =
+        "Contrôle de cohérence entre entre Objets, Groupes d'Objets et Unités Archivistiques";
+    private static final VitamLogger LOGGER =
+        VitamLoggerFactory.getInstance(CheckObjectUnitConsistencyActionHandler.class);
+    private static final LogbookLifeCyclesClient LOGBOOK_LIFECYCLE_CLIENT = LogbookLifeCyclesClientFactory.getInstance()
         .getLogbookLifeCyclesClient();
     private static final String HANDLER_ID = "CheckObjectUnitConsistency";
     private HandlerIO handlerIO;
-    private HandlerIO handlerInitialIOList;
+    private final HandlerIO handlerInitialIOList;
 
     /**
      * @return HANDLER_ID
@@ -102,8 +104,8 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
             OutcomeMessage.CHECK_CONFORMITY_OK);
 
         try {
-            List<String> notConformOGs = findObjectGroupsNonReferencedByArchiveUnit(params);
-            if (notConformOGs.isEmpty()){
+            final List<String> notConformOGs = findObjectGroupsNonReferencedByArchiveUnit(params);
+            if (notConformOGs.isEmpty()) {
                 response.setStatus(StatusCode.OK);
             } else {
                 response.setStatus(StatusCode.KO);
@@ -118,42 +120,45 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
 
     /**
      * find the object groups non referenced by at least one archive unit
-     * 
+     *
      * @param params worker parameter
      * @return list of non conform OG
      * @throws IOException if can not read file
      * @throws InvalidParseOperationException when maps loaded is not conform
      * @throws InvalidGuidOperationException when og guid is not correct
      */
-    private List<String> findObjectGroupsNonReferencedByArchiveUnit(WorkerParameters params) 
-        throws IOException, InvalidParseOperationException, InvalidGuidOperationException{
-        List<String> ogList = new ArrayList<>();
+    private List<String> findObjectGroupsNonReferencedByArchiveUnit(WorkerParameters params)
+        throws IOException, InvalidParseOperationException, InvalidGuidOperationException {
+        final List<String> ogList = new ArrayList<>();
 
-        //TODO: Use MEMORY to stock this map after extract seda
-        InputStream objectGroupToUnitMapFile = new FileInputStream((File) handlerIO.getInput().get(0)); 
-        String objectGroupToUnitStoredContent = IOUtils.toString(objectGroupToUnitMapFile, "UTF-8");        
-        Map<String, Object> objectGroupToUnitStoredMap = JsonHandler.getMapFromString(objectGroupToUnitStoredContent);  
+        // TODO: Use MEMORY to stock this map after extract seda
+        final InputStream objectGroupToUnitMapFile = new FileInputStream((File) handlerIO.getInput().get(0));
+        final String objectGroupToUnitStoredContent = IOUtils.toString(objectGroupToUnitMapFile, "UTF-8");
+        final Map<String, Object> objectGroupToUnitStoredMap =
+            JsonHandler.getMapFromString(objectGroupToUnitStoredContent);
 
-        //TODO: Use MEMORY to stock this map after extract seda
-        InputStream objectGroupToGuidMapFile = new FileInputStream((File) handlerIO.getInput().get(1));       
-        String objectGroupToGuidStoredContent = IOUtils.toString(objectGroupToGuidMapFile, "UTF-8");        
-        Map<String, Object> objectGroupToGuidStoredMap = JsonHandler.getMapFromString(objectGroupToGuidStoredContent);      
+        // TODO: Use MEMORY to stock this map after extract seda
+        final InputStream objectGroupToGuidMapFile = new FileInputStream((File) handlerIO.getInput().get(1));
+        final String objectGroupToGuidStoredContent = IOUtils.toString(objectGroupToGuidMapFile, "UTF-8");
+        final Map<String, Object> objectGroupToGuidStoredMap =
+            JsonHandler.getMapFromString(objectGroupToGuidStoredContent);
 
-        Iterator<Entry<String,Object>> it = objectGroupToGuidStoredMap.entrySet().iterator();
+        final Iterator<Entry<String, Object>> it = objectGroupToGuidStoredMap.entrySet().iterator();
 
         while (it.hasNext()) {
-            Map.Entry<String,Object> objectGroup = (Map.Entry<String,Object>) it.next();
-            if (! objectGroupToUnitStoredMap.containsKey(objectGroup.getKey())) { 
-             // Update logbook OG lifecycle
-                LogbookLifeCycleObjectGroupParameters logbookOGParameter = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
-                    GUIDReader.getGUID(params.getContainerName()), 
-                    EVENT_TYPE, 
-                    GUIDFactory.newGUID(), 
-                    LogbookTypeProcess.CHECK, 
-                    LogbookOutcome.WARNING, 
-                    LogbookOutcome.WARNING.toString(), 
-                    ERROR_MESSAGE + objectGroup.getKey(), 
-                    GUIDReader.getGUID(objectGroup.getValue().toString()));
+            final Map.Entry<String, Object> objectGroup = it.next();
+            if (!objectGroupToUnitStoredMap.containsKey(objectGroup.getKey())) {
+                // Update logbook OG lifecycle
+                final LogbookLifeCycleObjectGroupParameters logbookOGParameter =
+                    LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
+                        GUIDReader.getGUID(params.getContainerName()),
+                        EVENT_TYPE,
+                        GUIDFactory.newGUID(),
+                        LogbookTypeProcess.CHECK,
+                        StatusCode.WARNING,
+                        StatusCode.WARNING.toString(),
+                        ERROR_MESSAGE + objectGroup.getKey(),
+                        GUIDReader.getGUID(objectGroup.getValue().toString()));
                 try {
                     LOGBOOK_LIFECYCLE_CLIENT.update(logbookOGParameter);
                 } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
@@ -171,7 +176,7 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         if (handler.getInput().size() != handlerInitialIOList.getInput().size()) {
             throw new ProcessingException(HandlerIO.NOT_ENOUGH_PARAM);
-        } else if (!HandlerIO.checkHandlerIO(handler, this.handlerInitialIOList)) {
+        } else if (!HandlerIO.checkHandlerIO(handler, handlerInitialIOList)) {
             throw new ProcessingException(HandlerIO.NOT_CONFORM_PARAM);
         }
     }

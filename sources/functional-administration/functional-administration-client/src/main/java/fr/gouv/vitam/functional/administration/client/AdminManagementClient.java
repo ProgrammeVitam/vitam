@@ -98,7 +98,7 @@ public interface AdminManagementClient {
         IOException;
 
     /**
-     * 
+     *
      * @param stream
      * @return
      * @throws FileRulesException
@@ -107,7 +107,7 @@ public interface AdminManagementClient {
     Status checkRulesFile(InputStream stream) throws FileRulesException;
 
     /**
-     * 
+     *
      * @param stream
      * @throws FileRulesException when file rules exception occurs
      * @throws DatabaseConflictException when Database conflict exception occurs
@@ -115,14 +115,14 @@ public interface AdminManagementClient {
     void importRulesFile(InputStream stream) throws FileRulesException, DatabaseConflictException;
 
     /**
-     * 
+     *
      * @throws FileRulesException
      */
 
     void deleteRulesFile() throws FileRulesException;
 
     /**
-     * 
+     *
      * @param id ide de rule
      * @return
      * @throws FileRulesException when file rules exception occurs
@@ -131,7 +131,7 @@ public interface AdminManagementClient {
     JsonNode getRuleByID(String id) throws FileRulesException, InvalidParseOperationException;
 
     /**
-     * 
+     *
      * @param query
      * @return
      * @throws FileRulesException when file rules exception occurs

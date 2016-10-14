@@ -34,6 +34,11 @@ import fr.gouv.vitam.common.exception.VitamException;
 public class StorageException extends VitamException {
 
     /**
+     *
+     */
+    private static final long serialVersionUID = -1245399254763660871L;
+
+    /**
      * @param message associated message
      */
     public StorageException(String message) {
@@ -64,5 +69,5 @@ public class StorageException extends VitamException {
     public StorageException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
-    
+
 }

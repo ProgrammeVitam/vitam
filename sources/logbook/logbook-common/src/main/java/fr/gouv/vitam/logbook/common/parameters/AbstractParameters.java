@@ -41,6 +41,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 
 /**
@@ -57,7 +58,7 @@ abstract class AbstractParameters implements LogbookParameters {
 
     /**
      * Constructor using mandatory definition
-     * 
+     *
      * @param mandatory
      */
     AbstractParameters(final Set<LogbookParameterName> mandatory) {
@@ -94,17 +95,17 @@ abstract class AbstractParameters implements LogbookParameters {
 
     @JsonIgnore
     @Override
-    public LogbookParameters setStatus(LogbookOutcome outcome) {
+    public LogbookParameters setStatus(StatusCode outcome) {
         mapParameters.put(LogbookParameterName.outcome, outcome.name());
         return this;
     }
 
     @JsonIgnore
     @Override
-    public LogbookOutcome getStatus() {
+    public StatusCode getStatus() {
         final String status = mapParameters.get(LogbookParameterName.outcome);
         if (status != null) {
-            return LogbookOutcome.valueOf(status);
+            return StatusCode.valueOf(status);
         }
         return null;
     }

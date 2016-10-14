@@ -32,18 +32,21 @@ public class WorkerIOManagementHelperTest {
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
         PowerMockito.when(WorkspaceClientFactory.create(anyObject())).thenReturn(workspaceClient);
     }
-    
+
     @Test
     public void testGetFileFromHandlerIO() throws Exception {
-        when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(PropertiesUtils.getResourcesAsStream("sip.xml"));
-        File file = WorkerIOManagementHelper.findFileFromWorkspace(workspaceClient, "containerName", "objectName", "workerId");
+        when(workspaceClient.getObject(anyObject(), anyObject()))
+            .thenReturn(PropertiesUtils.getResourcesAsStream("sip.xml"));
+        final File file =
+            WorkerIOManagementHelper.findFileFromWorkspace(workspaceClient, "containerName", "objectName", "workerId");
         file.delete();
     }
-    
-    @Test(expected=FileNotFoundException.class)
+
+    @Test(expected = FileNotFoundException.class)
     public void testGetFileError() throws Exception {
-        when(workspaceClient.getObject(anyObject(), anyObject())).thenThrow(new ContentAddressableStorageNotFoundException(""));
-        WorkerIOManagementHelper.findFileFromWorkspace(workspaceClient, "containerName", "objectName","workerId");
+        when(workspaceClient.getObject(anyObject(), anyObject()))
+            .thenThrow(new ContentAddressableStorageNotFoundException(""));
+        WorkerIOManagementHelper.findFileFromWorkspace(workspaceClient, "containerName", "objectName", "workerId");
     }
 
 }

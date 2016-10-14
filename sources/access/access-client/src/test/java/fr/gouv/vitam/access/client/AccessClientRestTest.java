@@ -49,8 +49,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.access.api.AccessResource;
-import fr.gouv.vitam.common.GlobalDataRest;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -58,8 +56,10 @@ import org.glassfish.jersey.test.JerseyTest;
 import org.glassfish.jersey.test.TestProperties;
 import org.junit.Test;
 
+import fr.gouv.vitam.access.api.AccessResource;
 import fr.gouv.vitam.access.common.exception.AccessClientNotFoundException;
 import fr.gouv.vitam.access.common.exception.AccessClientServerException;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 public class AccessClientRestTest extends JerseyTest {
@@ -170,8 +170,8 @@ public class AccessClientRestTest extends JerseyTest {
         @Path("/objects/{id_object_group}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_OCTET_STREAM)
-        public Response getObjectStream(@Context HttpHeaders headers, @PathParam("id_object_group") String
-            idObjectGroup, String query) {
+        public Response getObjectStream(@Context HttpHeaders headers,
+            @PathParam("id_object_group") String idObjectGroup, String query) {
             return expectedResponse.get();
         }
 
@@ -180,8 +180,8 @@ public class AccessClientRestTest extends JerseyTest {
         @Path("/objects/{id_object_group}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_OCTET_STREAM)
-        public Response getObjectStreamPost(@Context HttpHeaders headers, @PathParam ("id_object_group") String
-            idObjectGroup, String query) {
+        public Response getObjectStreamPost(@Context HttpHeaders headers,
+            @PathParam("id_object_group") String idObjectGroup, String query) {
             return expectedResponse.post();
         }
 
@@ -361,7 +361,7 @@ public class AccessClientRestTest extends JerseyTest {
         when(mock.post()).thenReturn(Response.status(Status.OK).entity("{ \"hint\": {\"total\":\"1\"} }").build());
         assertThat(client.selectObjectbyId(queryDsql, ID)).isNotNull();
     }
-    
+
     @Test(expected = IllegalArgumentException.class)
     public void givenQueryNullWhenGetObjectAsInputStreamThenRaiseAnIllegalArgumentException() throws Exception {
         client.getObjectAsInputStream(null, ID, USAGE, VERSION);
@@ -394,10 +394,10 @@ public class AccessClientRestTest extends JerseyTest {
     @Test
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenOK() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("Vitam test")).build());
-        InputStream stream = client.getObjectAsInputStream(queryDsql, ID, USAGE, VERSION);
-        InputStream stream2 = IOUtils.toInputStream("Vitam test");
+        final InputStream stream = client.getObjectAsInputStream(queryDsql, ID, USAGE, VERSION);
+        final InputStream stream2 = IOUtils.toInputStream("Vitam test");
         assertNotNull(stream);
-        assertTrue(IOUtils.contentEquals(stream, stream2));        
+        assertTrue(IOUtils.contentEquals(stream, stream2));
     }
 
     @Test

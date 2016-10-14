@@ -208,7 +208,7 @@ final class GUIDImplPrivate extends GUIDImpl {
             if (count > 0xFFFFFF) {
                 try {
                     Thread.sleep(1);
-                } catch (InterruptedException e) {
+                } catch (final InterruptedException e) {
                     // ignore
                     SysErrLogger.FAKE_LOGGER.ignoreLog(e);
                 }

@@ -53,7 +53,7 @@ public class IngestExternalSslApplcationTest {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
     }
-    
+
     @Test
     public final void givenCorrrectConfigFileWhenStartApplicationThenStartOnDefaultPort() throws VitamException {
         ((BasicVitamServer) IngestExternalApplication.startApplication(INGEST_EXTERNAL_CONF)).stop();

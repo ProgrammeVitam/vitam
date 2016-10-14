@@ -35,25 +35,25 @@ import fr.gouv.vitam.common.ParametersChecker;
  * MongoDbAccess interface
  */
 public abstract class MongoDbAccess {
-    
+
     private MongoClient mongoClient;
     private MongoDatabase mongoDatabase;
     private MongoDatabase mongoAdmin;
 
     /**
-    *
-    * @param mongoClient MongoClient
-    * @param dbname MongoDB database name
-    * @param recreate True to recreate the index
-    * @throws IllegalArgumentException if mongoClient or dbname is null
-    */
+     *
+     * @param mongoClient MongoClient
+     * @param dbname MongoDB database name
+     * @param recreate True to recreate the index
+     * @throws IllegalArgumentException if mongoClient or dbname is null
+     */
     public MongoDbAccess(MongoClient mongoClient, final String dbname, final boolean recreate) {
-       ParametersChecker.checkParameter("Parameter of MongoDbAccess", mongoClient, dbname);
-       this.mongoClient = mongoClient;
-       this.mongoDatabase = mongoClient.getDatabase(dbname);
-       this.mongoAdmin = mongoClient.getDatabase("admin");
+        ParametersChecker.checkParameter("Parameter of MongoDbAccess", mongoClient, dbname);
+        this.mongoClient = mongoClient;
+        mongoDatabase = mongoClient.getDatabase(dbname);
+        mongoAdmin = mongoClient.getDatabase("admin");
     }
-   
+
     /**
      * @return MongoClient
      */

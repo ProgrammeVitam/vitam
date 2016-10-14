@@ -36,9 +36,9 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
-import fr.gouv.vitam.processing.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.model.WorkFlow;
 
@@ -46,75 +46,75 @@ public class ProcessMonitoringImplTest {
 
     @Test
     public void processMonitoringGetInstanceOK() {
-        ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
+        final ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
         assertNotNull(processMonitoring);
-        ProcessMonitoringImpl processMonitoring2 = ProcessMonitoringImpl.getInstance();
+        final ProcessMonitoringImpl processMonitoring2 = ProcessMonitoringImpl.getInstance();
         assertTrue(processMonitoring.equals(processMonitoring2));
     }
 
     @Test(expected = ProcessingException.class)
     public void processMonitoringGetWorkflowStatusUnknownThrowsException() throws Exception {
-        ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
+        final ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
         processMonitoring.getWorkflowStatus("UNKNOWN_PROCESS_ID");
     }
 
     @Test
     public void processMonitoringInitEmptyWorkflowOK() {
-        ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
+        final ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
         assertNotNull(processMonitoring.initOrderedWorkflow("processId", new WorkFlow(), "containerName"));
     }
 
     @Test
     public void processMonitoringGetWorkflowStatusKnownThenOK() throws Exception {
-        ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
+        final ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
         assertNotNull(processMonitoring.initOrderedWorkflow("EXISTING_PROCESS_ID", new WorkFlow(), "containerName"));
         assertNotNull(processMonitoring.getWorkflowStatus("EXISTING_PROCESS_ID"));
     }
 
     @Test
     public void processMonitoringInitSimpleWorkflowOK() {
-        ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
-        Map<String, ProcessStep> initMap =
+        final ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
+        final Map<String, ProcessStep> initMap =
             processMonitoring.initOrderedWorkflow("processId", initSimpleWorkflow(), "containerName");
         assertEquals(initMap.size(), 1);
         assertNotNull(initMap.get("containerName_wf1_0_step1"));
     }
-    
+
     @Test(expected = IllegalArgumentException.class)
     public void processMonitoringInitSimpleWorkflowException() {
-        ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
-        Map<String, ProcessStep> initMap =
+        final ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
+        final Map<String, ProcessStep> initMap =
             processMonitoring.initOrderedWorkflow("processId", initSimpleWorkflowWithNullStep(), "containerName");
     }
 
     @Test(expected = ProcessingException.class)
     public void processMonitoringUpdateSimpleWorkflowUnknownProcessThrowsException() throws Exception {
-        ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
+        final ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
         processMonitoring.updateStep("UNKNOWN_PROCESS_ID", "UNIQUE_ID", 10, false);
     }
 
     @Test(expected = ProcessingException.class)
     public void processMonitoringUpdateSimpleWorkflowUnknownStepThrowsException() throws Exception {
-        ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
+        final ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
         processMonitoring.initOrderedWorkflow("EXISTING_PROCESS_ID", new WorkFlow(), "containerName");
         processMonitoring.updateStep("EXISTING_PROCESS_ID", "UNKNOWN_UNIQUE_STEP_ID", 10, false);
     }
 
     @Test(expected = ProcessingException.class)
     public void processMonitoringUpdateStatusSimpleWorkflowUnknownProcessThrowsException() throws Exception {
-        ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
+        final ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
         processMonitoring.updateStepStatus("UNKNOWN_PROCESS_ID", "UNIQUE_ID", StatusCode.OK);
     }
 
     @Test(expected = ProcessingException.class)
     public void processMonitoringUpdateStatusSimpleWorkflowUnknownStepThrowsException() throws Exception {
-        ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
+        final ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
         processMonitoring.updateStepStatus("EXISTING_PROCESS_ID", "UNKNOWN_UNIQUE_STEP_ID", StatusCode.OK);
     }
 
     @Test
     public void processMonitoringUpdateSimpleWorkflowKnownOK() throws Exception {
-        ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
+        final ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
         assertNotNull(processMonitoring.initOrderedWorkflow("EXISTING_PROCESS_ID_FOR_UPDATE", initSimpleWorkflow(),
             "containerName"));
         processMonitoring.updateStep("EXISTING_PROCESS_ID_FOR_UPDATE", "containerName_wf1_0_step1", 10, false);
@@ -136,23 +136,23 @@ public class ProcessMonitoringImplTest {
     }
 
     private WorkFlow initSimpleWorkflow() {
-        WorkFlow simpleWorkflow = new WorkFlow();
+        final WorkFlow simpleWorkflow = new WorkFlow();
         simpleWorkflow.setId("wf1");
-        Step step1 = new Step();
+        final Step step1 = new Step();
         step1.setStepName("step1");
-        List<Step> steps = new ArrayList();
+        final List<Step> steps = new ArrayList();
         steps.add(step1);
         simpleWorkflow.setSteps(steps);
         return simpleWorkflow;
     }
-    
+
     private WorkFlow initSimpleWorkflowWithNullStep() {
-        WorkFlow simpleWorkflow = new WorkFlow();
+        final WorkFlow simpleWorkflow = new WorkFlow();
         simpleWorkflow.setId("wf1");
-        List<Step> steps = new ArrayList();
+        final List<Step> steps = new ArrayList();
         steps.add(null);
         simpleWorkflow.setSteps(steps);
         return simpleWorkflow;
     }
-    
+
 }

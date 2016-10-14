@@ -40,17 +40,6 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.security.waf.WafFilter;
-import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.common.server.VitamServerFactory;
-import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server.application.AdminStatusResource;
-import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
-
 /**
  * Storage web application TODO refacto config
  */
@@ -119,7 +108,7 @@ public final class StorageApplication extends AbstractVitamApplication<StorageAp
 
     public static void run(StorageConfiguration configuration) throws VitamApplicationServerException {
         final ServletContextHandler context = getStorageServletContext(configuration);
-        String jettyConfig = configuration.getJettyConfig();
+        final String jettyConfig = configuration.getJettyConfig();
         vitamServer = VitamServerFactory.newVitamServerByJettyConf(jettyConfig);
         vitamServer.configure(context);
 
@@ -137,7 +126,7 @@ public final class StorageApplication extends AbstractVitamApplication<StorageAp
             // ((ServerConnector) https[0]).setPort(Integer.valueOf(System.getProperty("jetty.port", "8080")));
 
             vitamServer.getServer().start();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error(format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
             throw new VitamApplicationServerException(
                 format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
@@ -183,7 +172,7 @@ public final class StorageApplication extends AbstractVitamApplication<StorageAp
 
     /**
      * Stops the vitam server
-     * 
+     *
      * @throws Exception
      */
     public static void stop() throws Exception {

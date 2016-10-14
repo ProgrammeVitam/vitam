@@ -92,10 +92,10 @@ import fr.gouv.vitam.ihmdemo.core.UiConstants;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCycleClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
-import fr.gouv.vitam.logbook.operations.client.LogbookClient;
-import fr.gouv.vitam.logbook.operations.client.LogbookClientFactory;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 
 /**
  * Web Application Resource class
@@ -135,9 +135,9 @@ public class WebApplicationResource {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, criteria);
         try {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(criteria));
-            Map<String, String> criteriaMap = JsonHandler.getMapStringFromString(criteria);
-            String preparedQueryDsl = DslQueryHelper.createSelectElasticsearchDSLQuery(criteriaMap);
-            JsonNode searchResult = UserInterfaceTransactionManager.searchUnits(preparedQueryDsl);
+            final Map<String, String> criteriaMap = JsonHandler.getMapStringFromString(criteria);
+            final String preparedQueryDsl = DslQueryHelper.createSelectElasticsearchDSLQuery(criteriaMap);
+            final JsonNode searchResult = UserInterfaceTransactionManager.searchUnits(preparedQueryDsl);
             return Response.status(Status.OK).entity(searchResult).build();
 
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
@@ -167,10 +167,10 @@ public class WebApplicationResource {
         try {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(unitId));
             // Prepare required map
-            Map<String, String> selectUnitIdMap = new HashMap<String, String>();
+            final Map<String, String> selectUnitIdMap = new HashMap<String, String>();
             selectUnitIdMap.put(UiConstants.SELECT_BY_ID.toString(), unitId);
-            String preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(selectUnitIdMap);
-            JsonNode archiveDetails =
+            final String preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(selectUnitIdMap);
+            final JsonNode archiveDetails =
                 UserInterfaceTransactionManager.getArchiveUnitDetails(preparedQueryDsl, unitId);
 
             return Response.status(Status.OK).entity(archiveDetails).build();
@@ -196,53 +196,55 @@ public class WebApplicationResource {
     @POST
     @Path("/logbook/operations")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getLogbookResult(@Context HttpHeaders headers, @CookieParam("JSESSIONID") String sessionId, String options) {
+    public Response getLogbookResult(@Context HttpHeaders headers, @CookieParam("JSESSIONID") String sessionId,
+        String options) {
 
         ParametersChecker.checkParameter("cookie is mandatory", sessionId);
-        String requestId =null;
+        String requestId = null;
         JsonNode result = null;
-        OffsetBasedPagination pagination= null;
+        OffsetBasedPagination pagination = null;
 
         try {
             pagination = new OffsetBasedPagination(headers);
-        } catch (VitamException e) {
+        } catch (final VitamException e) {
             LOGGER.error("Bad request Exception ", e);
             return Response.status(Status.BAD_REQUEST).build();
         }
-        List<String> requestIds=  HttpHeaderHelper.getHeaderValues(headers, IhmWebAppHeader.REQUEST_ID.name());
-        if(requestIds!=null){
-            requestId= requestIds.get(0);
+        final List<String> requestIds = HttpHeaderHelper.getHeaderValues(headers, IhmWebAppHeader.REQUEST_ID.name());
+        if (requestIds != null) {
+            requestId = requestIds.get(0);
             // get result from shiro session
             try {
-                result= PaginationHelper.getResult(sessionId, pagination);
+                result = PaginationHelper.getResult(sessionId, pagination);
 
                 return Response.status(Status.OK).entity(result)
                     .header(GlobalDataRest.X_REQUEST_ID, requestId)
                     .header(IhmDataRest.X_OFFSET, pagination.getOffset())
                     .header(IhmDataRest.X_LIMIT, pagination.getLimit())
                     .build();
-            } catch (VitamException e) {
+            } catch (final VitamException e) {
                 LOGGER.error("Bad request Exception ", e);
                 return Response.status(Status.BAD_REQUEST).header(GlobalDataRest.X_REQUEST_ID, requestId)
                     .build();
             }
-        }else {
-            requestId= GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
+        } else {
+            requestId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
 
             try {
                 ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
                 result = JsonHandler.createObjectNode();
                 SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
                 String query = "";
-                Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
+                final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
                 query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-                LogbookClient logbookClient = LogbookClientFactory.getInstance().getLogbookOperationClient();
-                result = logbookClient.selectOperation(query);
+                final LogbookOperationsClient logbookOperationsClient =
+                    LogbookOperationsClientFactory.getInstance().getLogbookOperationClient();
+                result = logbookOperationsClient.selectOperation(query);
 
                 // save result
                 PaginationHelper.setResult(sessionId, result);
                 // pagination
-                result= PaginationHelper.getResult(result, pagination);
+                result = PaginationHelper.getResult(result, pagination);
 
             } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
                 LOGGER.error("Bad request Exception ", e);
@@ -280,8 +282,9 @@ public class WebApplicationResource {
             ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
             result = JsonHandler.getFromString("{}");
-            LogbookClient logbookClient = LogbookClientFactory.getInstance().getLogbookOperationClient();
-            result = logbookClient.selectOperationbyId(operationId);
+            final LogbookOperationsClient logbookOperationsClient =
+                LogbookOperationsClientFactory.getInstance().getLogbookOperationClient();
+            result = logbookOperationsClient.selectOperationbyId(operationId);
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
@@ -312,8 +315,8 @@ public class WebApplicationResource {
      *
      * @param stream, data input stream
      * @return Response
-     * @throws XMLStreamException 
-     * @throws IOException 
+     * @throws XMLStreamException
+     * @throws IOException
      */
     @Path("ingest/upload")
     @POST
@@ -326,7 +329,7 @@ public class WebApplicationResource {
         ParametersChecker.checkParameter("SIP is a mandatory parameter", stream);
         try {
             response = IngestExternalClientFactory.getInstance().getIngestExternalClient().upload(stream);
-            //TODO: utiliser InputStream avec AsyncResponse pour ne pas charger en mémoire l'XML
+            // TODO: utiliser InputStream avec AsyncResponse pour ne pas charger en mémoire l'XML
             responseXml = response.readEntity(String.class);
             guid = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
 
@@ -335,7 +338,7 @@ public class WebApplicationResource {
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .build();
         }
-        
+
         return Response.status(Status.OK).entity(responseXml)
             .header("Content-Disposition", "attachment; filename=" + guid + ".xml")
             .header(GlobalDataRest.X_REQUEST_ID, guid)
@@ -368,8 +371,8 @@ public class WebApplicationResource {
 
         try {
             // Parse updateSet
-            Map<String, String> updateUnitIdMap = new HashMap<String, String>();
-            JsonNode modifiedFields = JsonHandler.getFromString(updateSet);
+            final Map<String, String> updateUnitIdMap = new HashMap<String, String>();
+            final JsonNode modifiedFields = JsonHandler.getFromString(updateSet);
             if (modifiedFields != null && modifiedFields.isArray()) {
                 for (final JsonNode modifiedField : modifiedFields) {
                     updateUnitIdMap.put(modifiedField.get(FIELD_ID_KEY).textValue(),
@@ -379,8 +382,8 @@ public class WebApplicationResource {
 
             // Add ID to set root part
             updateUnitIdMap.put(UiConstants.SELECT_BY_ID.toString(), unitId);
-            String preparedQueryDsl = DslQueryHelper.createUpdateDSLQuery(updateUnitIdMap);
-            JsonNode archiveDetails = UserInterfaceTransactionManager.updateUnits(preparedQueryDsl, unitId);
+            final String preparedQueryDsl = DslQueryHelper.createUpdateDSLQuery(updateUnitIdMap);
+            final JsonNode archiveDetails = UserInterfaceTransactionManager.updateUnits(preparedQueryDsl, unitId);
             return Response.status(Status.OK).entity(archiveDetails).build();
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
@@ -411,9 +414,9 @@ public class WebApplicationResource {
         try {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
             result = JsonHandler.createObjectNode();
-            Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
+            final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
             query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-            AdminManagementClient adminClient =
+            final AdminManagementClient adminClient =
                 AdminManagementClientFactory.getInstance().getAdminManagementClient();
             result = adminClient.getFormats(JsonHandler.getFromString(query));
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
@@ -448,7 +451,7 @@ public class WebApplicationResource {
             ParametersChecker.checkParameter("Format Id is mandatory", formatId);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(formatId));
             result = JsonHandler.getFromString("{}");
-            AdminManagementClient adminClient =
+            final AdminManagementClient adminClient =
                 AdminManagementClientFactory.getInstance().getAdminManagementClient();
             result = adminClient.getFormatByID(formatId);
         } catch (final InvalidParseOperationException e) {
@@ -476,7 +479,7 @@ public class WebApplicationResource {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     public Response checkRefFormat(InputStream input) {
-        AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
+        final AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
         try {
             client.checkFormat(input);
         } catch (final ReferentialException e) {
@@ -497,7 +500,7 @@ public class WebApplicationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response uploadRefFormat(InputStream input) {
 
-        AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
+        final AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
         try {
             client.importFormat(input);
         } catch (final ReferentialException e) {
@@ -517,7 +520,7 @@ public class WebApplicationResource {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteFormat() {
-        AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
+        final AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
         try {
             client.deleteFormat();
         } catch (final ReferentialException e) {
@@ -528,7 +531,7 @@ public class WebApplicationResource {
 
     /**
      * Retrieve an ObjectGroup as Json data based on the provided ObjectGroup id
-     * 
+     *
      * @param objectGroupId the object group Id
      * @return a response containing a json with informations about usages and versions for an object group
      */
@@ -540,10 +543,10 @@ public class WebApplicationResource {
         try {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(objectGroupId));
 
-            HashMap<String, String> qualifierProjection = new HashMap<>();
+            final HashMap<String, String> qualifierProjection = new HashMap<>();
             qualifierProjection.put("projection_qualifiers", "#qualifiers");
-            String preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(qualifierProjection);
-            JsonNode searchResult =
+            final String preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(qualifierProjection);
+            final JsonNode searchResult =
                 UserInterfaceTransactionManager.selectObjectbyId(preparedQueryDsl, objectGroupId);
 
             return Response.status(Status.OK).entity(JsonTransformer.transformResultObjects(searchResult)).build();
@@ -566,7 +569,7 @@ public class WebApplicationResource {
 
     /**
      * Retrieve an Object data as an input stream
-     * 
+     *
      * @param objectGroupId the object group Id
      * @param options additional parameters like usage and version
      * @return a response containing the input stream
@@ -579,14 +582,14 @@ public class WebApplicationResource {
         try {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(objectGroupId));
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-            Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
-            String usage = optionsMap.get("usage");
-            String version = optionsMap.get("version");
+            final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
+            final String usage = optionsMap.get("usage");
+            final String version = optionsMap.get("version");
             ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, usage);
             ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, version);
-            HashMap<String, String> emptyMap = new HashMap<>();
-            String preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(emptyMap);
-            InputStream stream =
+            final HashMap<String, String> emptyMap = new HashMap<>();
+            final String preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(emptyMap);
+            final InputStream stream =
                 UserInterfaceTransactionManager.getObjectAsInputStream(preparedQueryDsl, objectGroupId, usage,
                     Integer.parseInt(version));
             return Response.status(Status.OK).entity(stream).build();
@@ -622,9 +625,9 @@ public class WebApplicationResource {
         try {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
             result = JsonHandler.createObjectNode();
-            Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
+            final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
             query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-            AdminManagementClient adminClient =
+            final AdminManagementClient adminClient =
                 AdminManagementClientFactory.getInstance().getAdminManagementClient();
             result = adminClient.getRule(JsonHandler.getFromString(query));
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
@@ -659,7 +662,7 @@ public class WebApplicationResource {
             ParametersChecker.checkParameter("rule Id is mandatory", ruleId);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(ruleId));
             result = JsonHandler.createObjectNode();
-            AdminManagementClient adminClient =
+            final AdminManagementClient adminClient =
                 AdminManagementClientFactory.getInstance().getAdminManagementClient();
             result = adminClient.getRuleByID(ruleId);
         } catch (final InvalidParseOperationException e) {
@@ -687,7 +690,7 @@ public class WebApplicationResource {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     public Response checkRefRule(InputStream input) {
-        AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
+        final AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
         try {
             client.checkRulesFile(input);
         } catch (final ReferentialException e) {
@@ -708,7 +711,7 @@ public class WebApplicationResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response uploadRefRule(InputStream input) {
 
-        AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
+        final AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
         try {
             client.importRulesFile(input);
         } catch (final ReferentialException e) {
@@ -728,7 +731,7 @@ public class WebApplicationResource {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteRulesFile() {
-        AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
+        final AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
         try {
             client.deleteRulesFile();
         } catch (final ReferentialException e) {
@@ -741,7 +744,7 @@ public class WebApplicationResource {
 
     /**
      * This resource returns all paths relative to a unit
-     * 
+     *
      * @param sessionId current session
      * @param unitId the unit id
      * @param allParents all parents unit
@@ -766,30 +769,30 @@ public class WebApplicationResource {
             }
 
             // 1- Build DSL Query
-            ArrayNode allParentsArray = (ArrayNode) JsonHandler.getFromString(allParents);
-            List<String> allParentsList =
+            final ArrayNode allParentsArray = (ArrayNode) JsonHandler.getFromString(allParents);
+            final List<String> allParentsList =
                 StreamSupport.stream(allParentsArray.spliterator(), false).map(p -> new String(p.asText()))
-                .collect(Collectors.toList());
-            String preparedDslQuery = DslQueryHelper.createSelectUnitTreeDSLQuery(unitId, allParentsList);
+                    .collect(Collectors.toList());
+            final String preparedDslQuery = DslQueryHelper.createSelectUnitTreeDSLQuery(unitId, allParentsList);
 
             // 2- Execute Select Query
-            JsonNode parentsDetails = UserInterfaceTransactionManager.searchUnits(preparedDslQuery);
+            final JsonNode parentsDetails = UserInterfaceTransactionManager.searchUnits(preparedDslQuery);
 
             // 3- Build Unit tree (all paths)
-            JsonNode unitTree = UserInterfaceTransactionManager.buildUnitTree(unitId,
+            final JsonNode unitTree = UserInterfaceTransactionManager.buildUnitTree(unitId,
                 parentsDetails.get(UiConstants.RESULT.getConstantValue()));
 
             return Response.status(Status.OK).entity(unitTree).build();
         } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
             return Response.status(Status.BAD_REQUEST).build();
-        } catch (AccessClientServerException e) {
+        } catch (final AccessClientServerException e) {
             LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        } catch (AccessClientNotFoundException e) {
+        } catch (final AccessClientNotFoundException e) {
             LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
             return Response.status(Status.NOT_FOUND).build();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
@@ -804,32 +807,32 @@ public class WebApplicationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response login(JsonNode object) {
-        Subject subject = ThreadContext.getSubject();
-        String username = object.get("token").get("principal").textValue();
-        String password = object.get("token").get("credentials").textValue();
+        final Subject subject = ThreadContext.getSubject();
+        final String username = object.get("token").get("principal").textValue();
+        final String password = object.get("token").get("credentials").textValue();
 
         if (username == null || password == null) {
             return Response.status(Status.UNAUTHORIZED).build();
         }
 
-        UsernamePasswordToken token = new UsernamePasswordToken(username, password);
+        final UsernamePasswordToken token = new UsernamePasswordToken(username, password);
         token.setRememberMe(true);
 
         try {
             subject.login(token);
             // TODO add access log
             LOGGER.info("Login success: " + username);
-        } catch (Exception uae) {
+        } catch (final Exception uae) {
             LOGGER.debug("Login fail: " + username);
             return Response.status(Status.UNAUTHORIZED).build();
         }
 
         return Response.status(Status.OK).build();
     }
-    
+
     /**
      * returns the unit life cycle based on its id
-     * 
+     *
      * @param unitLifeCycleId the unit id (== unit life cycle id)
      * @return the unit life cycle
      */
@@ -840,7 +843,7 @@ public class WebApplicationResource {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitLifeCycleId);
         JsonNode result = null;
         try {
-            LogbookLifeCycleClient logbookLifeCycleClient =
+            final LogbookLifeCyclesClient logbookLifeCycleClient =
                 LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient();
             result = logbookLifeCycleClient.selectUnitLifeCycleById(unitLifeCycleId);
         } catch (final InvalidParseOperationException e) {
@@ -858,7 +861,7 @@ public class WebApplicationResource {
 
     /**
      * returns the object group life cycle based on its id
-     * 
+     *
      * @param objectGroupLifeCycleId the object group id (== object group life cycle id)
      * @return the object group life cycle
      */
@@ -871,7 +874,7 @@ public class WebApplicationResource {
         JsonNode result = null;
 
         try {
-            LogbookLifeCycleClient logbookLifeCycleClient =
+            final LogbookLifeCyclesClient logbookLifeCycleClient =
                 LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient();
             result = logbookLifeCycleClient.selectObjectGroupLifeCycleById(objectGroupLifeCycleId);
         } catch (final InvalidParseOperationException e) {
@@ -890,7 +893,7 @@ public class WebApplicationResource {
 
     /**
      * Generates the logbook operation statistics file (cvs format) relative to the operation parameter
-     * 
+     *
      * @param operationId logbook oeration id
      * @return the statistics file (csv format)
      */
@@ -898,16 +901,17 @@ public class WebApplicationResource {
     @Path("/stat/{id_op}")
     @Produces(MediaType.TEXT_PLAIN)
     public Response getLogbookStatistics(@PathParam("id_op") String operationId) {
-        LogbookClient logbookClient = LogbookClientFactory.getInstance().getLogbookOperationClient();
+        final LogbookOperationsClient logbookOperationsClient =
+            LogbookOperationsClientFactory.getInstance().getLogbookOperationClient();
         try {
-            JsonNode logbookOperationResult = logbookClient.selectOperationbyId(operationId);
+            final JsonNode logbookOperationResult = logbookOperationsClient.selectOperationbyId(operationId);
             if (logbookOperationResult != null && logbookOperationResult.has("result")) {
-                JsonNode logbookOperation = logbookOperationResult.get("result");
+                final JsonNode logbookOperation = logbookOperationResult.get("result");
                 // Create csv file
-                ByteArrayOutputStream csvOutputStream =
+                final ByteArrayOutputStream csvOutputStream =
                     JsonTransformer.buildLogbookStatCsvFile(logbookOperation, operationId);
-                byte[] csvOutArray = csvOutputStream.toByteArray();
-                ResponseBuilder response = Response.ok(csvOutArray);
+                final byte[] csvOutArray = csvOutputStream.toByteArray();
+                final ResponseBuilder response = Response.ok(csvOutArray);
                 response.header("Content-Disposition", "attachment;filename=rapport.csv");
                 response.header("Content-Length", csvOutArray.length);
 
@@ -915,13 +919,13 @@ public class WebApplicationResource {
             }
 
             return Response.status(Status.NOT_FOUND).build();
-        } catch (LogbookClientException e) {
+        } catch (final LogbookClientException e) {
             LOGGER.error("Logbook Client NOT FOUND Exception ", e);
             return Response.status(Status.NOT_FOUND).build();
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             LOGGER.error("INTERNAL SERVER ERROR", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error("INTERNAL SERVER ERROR", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
@@ -929,7 +933,7 @@ public class WebApplicationResource {
 
     /**
      * Returns the list of available files
-     * 
+     *
      * @return the list of available files
      */
     @GET
@@ -943,7 +947,7 @@ public class WebApplicationResource {
                 .build();
         }
 
-        File fileDirectory = new File(webApplicationConfig.getSipDirectory());
+        final File fileDirectory = new File(webApplicationConfig.getSipDirectory());
 
         if (!fileDirectory.isDirectory()) {
             LOGGER.error("SIP directory <{}> is not a directory.",
@@ -952,12 +956,12 @@ public class WebApplicationResource {
                 "SIP directory [" + webApplicationConfig.getSipDirectory() + "] is not a directory")
                 .build();
         }
-        File[] sipFiles = fileDirectory.listFiles(new SipFilenameFilterImpl());
-        ArrayNode filesListDetails = JsonHandler.createArrayNode();
-        
+        final File[] sipFiles = fileDirectory.listFiles(new SipFilenameFilterImpl());
+        final ArrayNode filesListDetails = JsonHandler.createArrayNode();
+
         if (sipFiles != null) {
-            for (File currentFile : sipFiles) {
-                ObjectNode fileDetails = JsonHandler.createObjectNode();
+            for (final File currentFile : sipFiles) {
+                final ObjectNode fileDetails = JsonHandler.createObjectNode();
                 fileDetails.put(FILE_NAME_KEY, currentFile.getName());
                 fileDetails.put(FILE_SIZE_KEY, currentFile.length());
                 filesListDetails.add(fileDetails);
@@ -973,10 +977,10 @@ public class WebApplicationResource {
             return fileName.toUpperCase().endsWith(ZIP_EXTENSION) || fileName.toUpperCase().endsWith(TAR_GZ_EXTENSION);
         }
     }
-    
+
     /**
      * Uploads the given file and returns the logbook operation id
-     * 
+     *
      * @param fileName the file name
      * @return the logbook operation id
      */
@@ -995,9 +999,9 @@ public class WebApplicationResource {
 
             // Read the selected file into an InputStream
             sipInputStream = new FileInputStream(webApplicationConfig.getSipDirectory() + "/" + fileName);
-            Response response =
+            final Response response =
                 IngestExternalClientFactory.getInstance().getIngestExternalClient().upload(sipInputStream);
-            String ingestOperationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+            final String ingestOperationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
 
             return Response.status(response.getStatus()).entity(ingestOperationId).build();
         } catch (final VitamException e) {
@@ -1013,7 +1017,7 @@ public class WebApplicationResource {
             if (sipInputStream != null) {
                 try {
                     sipInputStream.close();
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     LOGGER.error("Error occured when trying to close the stream", e);
                 }
             }

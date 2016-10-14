@@ -91,8 +91,8 @@ public enum FunctionalAdminCollections {
     }
 
     /**
-     * 
-     * 
+     *
+     *
      * @return the count of associated MongoCollection
      */
 

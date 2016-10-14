@@ -58,7 +58,7 @@ public interface Worker {
 
     /**
      * Constructor for test.
-     * 
+     *
      * @param actionName action name
      * @param actionHandler action handler
      * @return the worker instance
@@ -68,7 +68,7 @@ public interface Worker {
 
     /**
      * get Worker Id
-     * 
+     *
      * @return id
      */
     public String getWorkerId();

@@ -36,7 +36,7 @@ import org.junit.Test;
 public class StorageClientConfigurationTest {
     @Test
     public void constructorTest() {
-        StorageClientConfiguration configuration = new StorageClientConfiguration();
+        final StorageClientConfiguration configuration = new StorageClientConfiguration();
         assertFalse(configuration.getUseSSL());
         assertNull(configuration.getServerContextPath());
         assertNull(configuration.getServerHost());
@@ -47,7 +47,7 @@ public class StorageClientConfigurationTest {
         assertEquals("/", configuration.getServerContextPath());
         assertEquals("host", configuration.getServerHost());
 
-        StorageClientConfiguration configuration2 = new StorageClientConfiguration("host", 1, true, "/");
+        final StorageClientConfiguration configuration2 = new StorageClientConfiguration("host", 1, true, "/");
         assertTrue(configuration2.getUseSSL());
         assertEquals("/", configuration2.getServerContextPath());
         assertEquals("host", configuration2.getServerHost());

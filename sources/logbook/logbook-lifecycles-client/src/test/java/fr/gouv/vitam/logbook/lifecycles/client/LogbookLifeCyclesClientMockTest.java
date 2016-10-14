@@ -51,7 +51,7 @@ public class LogbookLifeCyclesClientMockTest {
         LogbookLifeCyclesClientFactory
             .setConfiguration(LogbookLifeCyclesClientFactory.LogbookClientType.MOCK_LIFECYCLES, null, 0);
 
-        final LogbookLifeCycleClient client =
+        final LogbookLifeCyclesClient client =
             LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient();
         assertNotNull(client);
 
@@ -85,7 +85,7 @@ public class LogbookLifeCyclesClientMockTest {
         LogbookLifeCyclesClientFactory
             .setConfiguration(LogbookLifeCyclesClientFactory.LogbookClientType.MOCK_LIFECYCLES, null, 0);
 
-        final LogbookLifeCycleClient client =
+        final LogbookLifeCyclesClient client =
             LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient();
         assertNotNull(client);
 
@@ -119,7 +119,7 @@ public class LogbookLifeCyclesClientMockTest {
         LogbookLifeCyclesClientFactory
             .setConfiguration(LogbookLifeCyclesClientFactory.LogbookClientType.MOCK_LIFECYCLES, null, 0);
 
-        final LogbookLifeCycleClient client =
+        final LogbookLifeCyclesClient client =
             LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient();
         assertNotNull(client);
 
@@ -153,7 +153,7 @@ public class LogbookLifeCyclesClientMockTest {
         LogbookLifeCyclesClientFactory
             .setConfiguration(LogbookLifeCyclesClientFactory.LogbookClientType.MOCK_LIFECYCLES, null, 0);
 
-        final LogbookLifeCycleClient client =
+        final LogbookLifeCyclesClient client =
             LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient();
         assertNotNull(client);
 
@@ -188,7 +188,7 @@ public class LogbookLifeCyclesClientMockTest {
         LogbookLifeCyclesClientFactory
             .setConfiguration(LogbookLifeCyclesClientFactory.LogbookClientType.MOCK_LIFECYCLES, null, 0);
 
-        final LogbookLifeCycleClient client =
+        final LogbookLifeCyclesClient client =
             LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient();
         assertNotNull(client);
         assertNotNull(client.status());
@@ -233,7 +233,7 @@ public class LogbookLifeCyclesClientMockTest {
         LogbookLifeCyclesClientFactory
             .setConfiguration(LogbookLifeCyclesClientFactory.LogbookClientType.MOCK_LIFECYCLES, null, 0);
 
-        final LogbookLifeCycleClient client =
+        final LogbookLifeCyclesClient client =
             LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient();
         assertEquals("aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaz",
             client.selectLifeCycles(request).get("result").get(1).get("_id").asText());

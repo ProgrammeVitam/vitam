@@ -42,7 +42,7 @@ public class WorkerClientConfiguration extends ClientConfigurationImpl {
 
     /**
      * Construct a configuration with all parameters at once
-     * 
+     *
      * @param serverHost the server hostname
      * @param serverPort the server port
      */

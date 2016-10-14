@@ -1,6 +1,6 @@
 /**
  * Copyright Paul Merlin 2011 (Apache Licence v2.0)
- * 
+ *
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -60,7 +60,7 @@ public class X509AuthenticationFilter extends AuthenticatingFilter {
     protected AuthenticationToken createToken(ServletRequest request, ServletResponse response)
         throws Exception {
 
-        X509Certificate[] clientCertChain =
+        final X509Certificate[] clientCertChain =
             (X509Certificate[]) request.getAttribute("javax.servlet.request.X509Certificate");
         if (clientCertChain == null || clientCertChain.length < 1) {
             throw new ShiroException("Request do not contain any X509Certificate ");

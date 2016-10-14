@@ -43,19 +43,19 @@ import fr.gouv.vitam.common.json.JsonHandler;
 
 
 /**
- * 
+ *
  * AdminStatusResource : Manage Admin Functionality through Admin URI
- * 
+ *
  */
 @Path("/admin/v1")
 @Consumes("application/json")
 @Produces("application/json")
 public class AdminStatusResource {
-    private VitamStatusService statusService;
+    private final VitamStatusService statusService;
 
     /**
      * Constructor AdminStatusResource
-     * 
+     *
      * @param statusService
      */
     public AdminStatusResource(VitamStatusService statusService) {
@@ -72,11 +72,11 @@ public class AdminStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response status() {
         try {
-            ObjectNode objectNode = JsonHandler.createObjectNode();
-            JsonNode node = JsonHandler.toJsonNode(ServerIdentity.getInstance());
+            final ObjectNode objectNode = JsonHandler.createObjectNode();
+            final JsonNode node = JsonHandler.toJsonNode(ServerIdentity.getInstance());
             objectNode.set("serverIdentity", node);
             objectNode.put("status", statusService.getResourcesStatus());
-            ObjectNode detail = statusService.getAdminStatus();
+            final ObjectNode detail = statusService.getAdminStatus();
             if (detail.size() != 0) {
                 objectNode.set("detail", statusService.getAdminStatus());
             }
@@ -86,7 +86,7 @@ public class AdminStatusResource {
             } else {
                 return Response.status(Status.SERVICE_UNAVAILABLE).entity(objectNode).build();
             }
-        } catch (InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             return Response.status(Status.SERVICE_UNAVAILABLE).build();
         }
     }

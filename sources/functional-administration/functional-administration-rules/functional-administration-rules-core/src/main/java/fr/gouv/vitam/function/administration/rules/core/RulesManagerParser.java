@@ -45,7 +45,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
  * RulesManagerParser Manage the parse of a CSV file
- * 
+ *
  */
 
 public class RulesManagerParser {
@@ -58,7 +58,7 @@ public class RulesManagerParser {
     }
 
     /**
-     * 
+     *
      * @param fileToParse
      * @return
      * @throws IOException
@@ -67,16 +67,16 @@ public class RulesManagerParser {
     public static ArrayNode readObjectsFromCsvWriteAsArrayNode(File fileToParse) throws IOException,
         InvalidParseOperationException {
         SimpleDateFormat formater = null;
-        Date aujourdhui = new Date();
-        CsvSchema bootstrap = CsvSchema.emptySchema().withHeader();
-        CsvMapper csvMapper = new CsvMapper();
-        MappingIterator<Map<?, ?>> mappingIterator =
+        final Date aujourdhui = new Date();
+        final CsvSchema bootstrap = CsvSchema.emptySchema().withHeader();
+        final CsvMapper csvMapper = new CsvMapper();
+        final MappingIterator<Map<?, ?>> mappingIterator =
             csvMapper.readerFor(Map.class).with(bootstrap).readValues(fileToParse);
-        ArrayNode arrayNode = JsonHandler.createArrayNode();
-        List<Map<?, ?>> data = mappingIterator.readAll();
-        for (Map<?, ?> c : data) {
-            JsonNode node = JsonHandler.toJsonNode(c);
-            ObjectNode result = (ObjectNode) node;
+        final ArrayNode arrayNode = JsonHandler.createArrayNode();
+        final List<Map<?, ?>> data = mappingIterator.readAll();
+        for (final Map<?, ?> c : data) {
+            final JsonNode node = JsonHandler.toJsonNode(c);
+            final ObjectNode result = (ObjectNode) node;
             formater = new SimpleDateFormat("yyyy-MM-dd");
             result.put("CreationDate", formater.format(aujourdhui).toString());
             result.put("UpdateDate", formater.format(aujourdhui).toString());

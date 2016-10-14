@@ -74,7 +74,7 @@ public class VitamErrorTest {
 
     @Test
     public void testToString() throws Exception {
-        VitamError error = new VitamError(0);
+        final VitamError error = new VitamError(0);
         error.setMessage("message");
         error.setDescription("description");
         error.setState("state");

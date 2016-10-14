@@ -30,20 +30,18 @@ package fr.gouv.vitam.storage.engine.common.referential;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
+
+import java.io.File;
+import java.util.List;
+
+import org.junit.Test;
+
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.referential.model.HotStrategy;
 import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
-
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import java.io.File;
-import java.util.List;
 
 /**
  *
@@ -52,42 +50,42 @@ public class FSProviderTest {
 
     @Test
     public void testGetStorageStrategy() throws Exception {
-        FSProvider fsProvider = new FSProvider();
-        StorageStrategy strategy = fsProvider.getStorageStrategy("whatever");
+        final FSProvider fsProvider = new FSProvider();
+        final StorageStrategy strategy = fsProvider.getStorageStrategy("whatever");
         assertEquals("default", strategy.getId());
-        HotStrategy hot = strategy.getHotStrategy();
+        final HotStrategy hot = strategy.getHotStrategy();
         assertNotNull(hot);
         assertEquals((Integer) 1, hot.getCopy());
-        List<OfferReference> offerReferences = hot.getOffers();
+        final List<OfferReference> offerReferences = hot.getOffers();
         assertNotNull(offerReferences);
         assertEquals(1, offerReferences.size());
-        OfferReference offerReference = offerReferences.get(0);
+        final OfferReference offerReference = offerReferences.get(0);
         assertEquals("default", offerReference.getId());
     }
 
 
     @Test
     public void testGetStorageStrategy_ForceReload() throws Exception {
-        FSProvider fsProvider = new FSProvider();
+        final FSProvider fsProvider = new FSProvider();
         fsProvider.setStorageStrategy(null);
-        StorageStrategy strategy = fsProvider.getStorageStrategy("whatever");
+        final StorageStrategy strategy = fsProvider.getStorageStrategy("whatever");
         assertEquals("default", strategy.getId());
-        HotStrategy hot = strategy.getHotStrategy();
+        final HotStrategy hot = strategy.getHotStrategy();
         assertNotNull(hot);
         assertEquals((Integer) 1, hot.getCopy());
-        List<OfferReference> offerReferences = hot.getOffers();
+        final List<OfferReference> offerReferences = hot.getOffers();
         assertNotNull(offerReferences);
         assertEquals(1, offerReferences.size());
-        OfferReference offerReference = offerReferences.get(0);
+        final OfferReference offerReference = offerReferences.get(0);
         assertEquals("default", offerReference.getId());
     }
 
     @Test(expected = StorageException.class)
     public void testGetStorageStrategy_ForceIoException() throws Exception {
-        File strategy = PropertiesUtils.findFile("static-strategy.json");
+        final File strategy = PropertiesUtils.findFile("static-strategy.json");
         assertNotNull(strategy);
         strategy.setReadable(false);
-        FSProvider fsProvider = new FSProvider();
+        final FSProvider fsProvider = new FSProvider();
         try {
             fsProvider.getStorageStrategy(null);
             fail("Expecting storage exception");
@@ -98,8 +96,8 @@ public class FSProviderTest {
 
     @Test
     public void testGetStorageOffer() throws Exception {
-        FSProvider fsProvider = new FSProvider();
-        StorageOffer offer = fsProvider.getStorageOffer("default");
+        final FSProvider fsProvider = new FSProvider();
+        final StorageOffer offer = fsProvider.getStorageOffer("default");
         assertNotNull(offer);
         assertEquals("default", offer.getId());
         assertEquals("http://workspaceOfferService", offer.getBaseUrl());
@@ -110,9 +108,9 @@ public class FSProviderTest {
 
     @Test
     public void testGetStorageOffer_ForceReload() throws Exception {
-        FSProvider fsProvider = new FSProvider();
+        final FSProvider fsProvider = new FSProvider();
         fsProvider.setStorageOffer(null);
-        StorageOffer offer = fsProvider.getStorageOffer("offerId");
+        final StorageOffer offer = fsProvider.getStorageOffer("offerId");
         assertNotNull(offer);
         assertEquals("http://workspaceOfferService", offer.getBaseUrl());
         assertNotNull(offer.getParameters());
@@ -121,10 +119,10 @@ public class FSProviderTest {
 
     @Test(expected = StorageException.class)
     public void testGetStorageOffer_ForceIoException() throws Exception {
-        File offer = PropertiesUtils.findFile("static-offer.json");
+        final File offer = PropertiesUtils.findFile("static-offer.json");
         assertNotNull(offer);
         offer.setReadable(false);
-        FSProvider fsProvider = new FSProvider();
+        final FSProvider fsProvider = new FSProvider();
         try {
             fsProvider.getStorageOffer(null);
             fail("Expecting storage exception");

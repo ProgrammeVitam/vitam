@@ -84,12 +84,12 @@ public class VitamConfiguration {
 
     /**
      * Full argument constructor
-     * 
+     *
      * @param config
      * @param log
      * @param data
      * @param tmp
-     * 
+     *
      * @throws IllegalArgumentException if one argument is null or empty
      */
     VitamConfiguration(String config, String log, String data, String tmp) {
@@ -98,7 +98,7 @@ public class VitamConfiguration {
     }
 
     /**
-     * 
+     *
      * @return the default Vitam Configuration
      */
     public static VitamConfiguration getConfiguration() {
@@ -107,7 +107,7 @@ public class VitamConfiguration {
 
     /**
      * Replace the default values with values embedded in the VitamConfiguration parameter
-     * 
+     *
      * @param vitamConfiguration the new parameter
      * @throws IllegalArgumentException if one argument is null or empty
      */
@@ -120,7 +120,7 @@ public class VitamConfiguration {
 
     /**
      * Replace the default values with values embedded in the VitamConfiguration parameter
-     * 
+     *
      * @param config
      * @param log
      * @param data
@@ -134,7 +134,7 @@ public class VitamConfiguration {
 
     /**
      * Set the default values
-     * 
+     *
      * @return this
      */
     VitamConfiguration setDefault() {
@@ -148,7 +148,7 @@ public class VitamConfiguration {
 
     /**
      * Get Config directory
-     * 
+     *
      * @return the Config directory
      */
     public String getConfig() {
@@ -157,7 +157,7 @@ public class VitamConfiguration {
 
     /**
      * Set Config directory
-     * 
+     *
      * @param config the config directory
      * @return this
      */
@@ -169,7 +169,7 @@ public class VitamConfiguration {
 
     /**
      * Get Log directory
-     * 
+     *
      * @return the Log directory
      */
     public String getLog() {
@@ -178,7 +178,7 @@ public class VitamConfiguration {
 
     /**
      * Set Log directory
-     * 
+     *
      * @param log the Log directory
      * @return this
      */
@@ -190,7 +190,7 @@ public class VitamConfiguration {
 
     /**
      * Get Data directory
-     * 
+     *
      * @return the Data directory
      */
     public String getData() {
@@ -199,7 +199,7 @@ public class VitamConfiguration {
 
     /**
      * Set Data directory
-     * 
+     *
      * @param data the Data directory
      * @return this
      */
@@ -211,7 +211,7 @@ public class VitamConfiguration {
 
     /**
      * Get Tmp directory
-     * 
+     *
      * @return the Tmp directory
      */
     public String getTmp() {
@@ -220,7 +220,7 @@ public class VitamConfiguration {
 
     /**
      * Set Tmp directory
-     * 
+     *
      * @param tmp tmp the Tmp directory
      * @return this
      */
@@ -232,15 +232,15 @@ public class VitamConfiguration {
 
     /**
      * Check if each directory not null and exists
-     * 
+     *
      * @throws IllegalArgumentException if one condition failed
      */
     void checkValues() {
         ParametersChecker.checkParameter("Check directories", tmp, data, log, config);
-        File tmpDir = new File(tmp);
-        File logDir = new File(log);
-        File dataDir = new File(data);
-        File configDir = new File(config);
+        final File tmpDir = new File(tmp);
+        final File logDir = new File(log);
+        final File dataDir = new File(data);
+        final File configDir = new File(config);
         if (!tmpDir.isDirectory()) {
             tmpDir.mkdirs();
         }
@@ -250,17 +250,16 @@ public class VitamConfiguration {
     }
 
     /**
-     * Check if Vitam Configuration is specified using directives on JVM.
-     * If an issue is detected, it only logs the status on STDERR.
+     * Check if Vitam Configuration is specified using directives on JVM. If an issue is detected, it only logs the
+     * status on STDERR.
      */
     static void checkVitamConfiguration() {
-        if (! (SystemPropertyUtil.contains(VITAM_TMP_PROPERTY)
-            && SystemPropertyUtil.contains(VITAM_CONFIG_PROPERTY) &&
+        if (!(SystemPropertyUtil.contains(VITAM_TMP_PROPERTY) && SystemPropertyUtil.contains(VITAM_CONFIG_PROPERTY) &&
             SystemPropertyUtil.contains(VITAM_DATA_PROPERTY) &&
             SystemPropertyUtil.contains(VITAM_LOG_PROPERTY))) {
-            SysErrLogger.FAKE_LOGGER.syserr("One of the directives is not specified: -Dxxx=path where xxx is one of -D"
-                + VITAM_TMP_PROPERTY + " -D" + VITAM_CONFIG_PROPERTY
-                + " -D" + VITAM_DATA_PROPERTY + " -D" + VITAM_LOG_PROPERTY);
+            SysErrLogger.FAKE_LOGGER.syserr(
+                "One of the directives is not specified: -Dxxx=path where xxx is one of -D" + VITAM_TMP_PROPERTY +
+                    " -D" + VITAM_CONFIG_PROPERTY + " -D" + VITAM_DATA_PROPERTY + " -D" + VITAM_LOG_PROPERTY);
         }
     }
 

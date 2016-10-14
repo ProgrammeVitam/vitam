@@ -40,36 +40,27 @@ public enum DomainName {
     TEST("00", "For test purpose ONLY"),
 
     /**
-     * Used for: FileNotFound
-     *           FileAlreadyExists
-     *           Json*Exception
-     *           InvalidParse...
+     * Used for: FileNotFound FileAlreadyExists Json*Exception InvalidParse...
      */
     IO("01", "Input / Output"),
 
     /**
-     * Used for: Server problems
-     *           Client problems
-     *           Network anomalies...
+     * Used for: Server problems Client problems Network anomalies...
      */
     NETWORK("02", "Network"),
 
     /**
-     * Used for: IllegalArgument
-     *           UnsupportedOperation
-     *           Schema XML...
+     * Used for: IllegalArgument UnsupportedOperation Schema XML...
      */
     ILLEGAL("03", "Illegal"),
 
     /**
-     * Used for: ReferentialException
-     *           DatabaseConflict...
+     * Used for: ReferentialException DatabaseConflict...
      */
     DATABASE("04", "Database"),
 
     /**
-     * Used for: No space left
-     *           StorageNotFound...
+     * Used for: No space left StorageNotFound...
      */
     STORAGE("05", "Storage"),
 
@@ -79,8 +70,7 @@ public enum DomainName {
     BUSINESS("06", "Business"),
 
     /**
-     * Used for: Permissions anomalies
-     *           Security problems
+     * Used for: Permissions anomalies Security problems
      */
     SECURITY("07", "Security");
 
@@ -105,12 +95,12 @@ public enum DomainName {
      *
      * @param code the code
      * @return the domain if exists
-     * @throws IllegalArgumentException thrown if code is null or empty or if the attached domain to the code does
-     *                                  not exist
+     * @throws IllegalArgumentException thrown if code is null or empty or if the attached domain to the code does not
+     *         exist
      */
     public static DomainName getFromCode(String code) {
         ParametersChecker.checkParameter("code is required", code);
-        for (DomainName domain: values()) {
+        for (final DomainName domain : values()) {
             if (domain.getCode().equals(code)) {
                 return domain;
             }

@@ -27,13 +27,14 @@
 
 package fr.gouv.vitam.workspace.common;
 
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 /**
  *
@@ -78,7 +79,7 @@ public class VitamErrorTest {
 
     @Test
     public void testSetErrors() throws Exception {
-        List<VitamError> errorList = new ArrayList<>();
+        final List<VitamError> errorList = new ArrayList<>();
         errorList.add(vitamError);
         vitamError.setErrors(errorList);
         assertTrue(vitamError.getErrors().contains(vitamError));
@@ -86,7 +87,7 @@ public class VitamErrorTest {
 
     @Test
     public void testToString() throws Exception {
-        VitamError error = new VitamError(0);
+        final VitamError error = new VitamError(0);
         error.setMessage("message");
         error.setDescription("description");
         error.setState("state");

@@ -84,6 +84,7 @@ public abstract class RequestMultiple extends AbstractRequest {
     /**
      * @return this Request
      */
+    @Override
     public RequestMultiple reset() {
         resetRoots();
         resetFilter();
@@ -109,7 +110,7 @@ public abstract class RequestMultiple extends AbstractRequest {
         }
         return this;
     }
-    
+
 
     @Override
     public RequestMultiple setQuery(Query query) throws InvalidCreateOperationException {
@@ -118,8 +119,8 @@ public abstract class RequestMultiple extends AbstractRequest {
             throw new InvalidCreateOperationException(
                 "Query is not ready to be added: " + query.getCurrentQuery());
         }
-        this.queries = new ArrayList<Query>();
-        this.queries.add(query);
+        queries = new ArrayList<Query>();
+        queries.add(query);
         return this;
     }
 
@@ -140,7 +141,7 @@ public abstract class RequestMultiple extends AbstractRequest {
 
     /**
      *
-     * @param rootContent array of root 
+     * @param rootContent array of root
      * @return this Request
      */
     public final RequestMultiple addRoots(final ArrayNode rootContent) {
@@ -169,6 +170,7 @@ public abstract class RequestMultiple extends AbstractRequest {
 
     /**
      * Get the json final of request
+     * 
      * @return the Final containing all 3 parts: roots, queries array and filter
      */
     protected final ObjectNode getFinal() {
@@ -201,6 +203,7 @@ public abstract class RequestMultiple extends AbstractRequest {
     /**
      * @return the roots array
      */
+    @Override
     public final Set<String> getRoots() {
         return roots;
     }
@@ -208,6 +211,7 @@ public abstract class RequestMultiple extends AbstractRequest {
     /**
      * @return the number of queries
      */
+    @Override
     public final int getNbQueries() {
         return queries.size();
     }
@@ -215,6 +219,7 @@ public abstract class RequestMultiple extends AbstractRequest {
     /**
      * @return the queries list
      */
+    @Override
     public final List<Query> getQueries() {
         return queries;
     }
@@ -229,33 +234,37 @@ public abstract class RequestMultiple extends AbstractRequest {
         }
         return queries.get(nth);
     }
-    
+
 
     /**
      * default implements of getData
      */
+    @Override
     public JsonNode getData() {
         return JsonHandler.createObjectNode();
     }
-    
+
     /**
      * default implements of getAllProjection
      */
+    @Override
     public boolean getAllProjection() {
         return false;
     }
-    
+
 
     /**
      * default implements of getProjection
      */
+    @Override
     public JsonNode getProjection() {
         return JsonHandler.createObjectNode();
     }
-    
+
     /**
      * default implements of getActions
      */
+    @Override
     public List<Action> getActions() {
         return SingletonUtils.singletonList();
     }
@@ -272,6 +281,6 @@ public abstract class RequestMultiple extends AbstractRequest {
         builder.append(super.toString()).append("\n\tRoots: ").append(roots);
         return builder.toString();
     }
-    
+
 
 }

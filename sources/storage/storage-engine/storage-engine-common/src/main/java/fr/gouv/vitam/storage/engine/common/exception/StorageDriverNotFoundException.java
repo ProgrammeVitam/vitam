@@ -33,6 +33,11 @@ package fr.gouv.vitam.storage.engine.common.exception;
 public class StorageDriverNotFoundException extends StorageException {
 
     /**
+     *
+     */
+    private static final long serialVersionUID = 6336933917476129625L;
+
+    /**
      * @param message associated message
      */
     public StorageDriverNotFoundException(String message) {
@@ -60,7 +65,8 @@ public class StorageDriverNotFoundException extends StorageException {
      * @param enableSuppression allow suppression or not
      * @param writableStackTrace allow writable stack trace or not
      */
-    public StorageDriverNotFoundException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    public StorageDriverNotFoundException(String message, Throwable cause, boolean enableSuppression,
+        boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

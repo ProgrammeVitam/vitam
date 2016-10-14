@@ -122,7 +122,7 @@ public class ProcessingManagementClient {
             // XXX: theoretically OK status case
             // Don't we thrown an exception if it is another status ?
             return response.readEntity(String.class);
-        } catch (javax.ws.rs.ProcessingException e) {
+        } catch (final javax.ws.rs.ProcessingException e) {
             LOGGER.error(e);
             throw new ProcessingInternalServerException("Internal Server Error", e);
         }
@@ -131,7 +131,7 @@ public class ProcessingManagementClient {
     /**
      * Register a new worker knowing its family and with a WorkerBean. If a problem is encountered, an exception is
      * thrown.
-     * 
+     *
      * @param familyId the id of the family to which the worker has to be registered
      * @param workerId the id of the worker to be registered
      * @param workerDescription the description of the worker as a workerBean
@@ -157,7 +157,7 @@ public class ProcessingManagementClient {
     /**
      * Unregister a worker knowing its family and its workerId. If the familyId or the workerId is unknown, an exception
      * is thrown.
-     * 
+     *
      * @param familyId the id of the family to which the worker has to be registered
      * @param workerId the id of the worker to be registered
      * @throws ProcessingBadRequestException if the worker or the family does not exist
