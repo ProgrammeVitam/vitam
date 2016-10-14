@@ -218,6 +218,7 @@ public class Unit extends MetadataDocument<Unit> {
         new BasicDBObject(UNITUPS, 1),
         new BasicDBObject(MINDEPTH, 1),
         new BasicDBObject(MAXDEPTH, 1),
+        new BasicDBObject(OPS, 1),
         new BasicDBObject(STORAGERULES, 1),
         new BasicDBObject(STORAGEEND, 1),
         new BasicDBObject(APPRAISALRULES, 1),

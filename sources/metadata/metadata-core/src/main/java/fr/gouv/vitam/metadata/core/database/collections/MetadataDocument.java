@@ -81,6 +81,10 @@ public abstract class MetadataDocument<E> extends Document {
      * ObjectGroup link (Unit to ObjectGroup)
      */
     public static final String OG = "_og";
+    /**
+     * Array of operations (both Unit and ObjectGroup)
+     */
+    public static final String OPS = "_ops";
 
     /**
      * Empty constructor

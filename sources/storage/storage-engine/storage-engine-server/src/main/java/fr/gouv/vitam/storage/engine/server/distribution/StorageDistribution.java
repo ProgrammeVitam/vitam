@@ -136,6 +136,7 @@ public interface StorageDistribution {
      * @param tenantId id of the tenant
      * @param strategyId id of the strategy
      * @param objectId id of the object
+     * @param category 
      * @return an object as an InputStream
      * @throws StorageNotFoundException Thrown if the Container or the object does not exist
      * @throws StorageTechnicalException thrown if a technical error happened

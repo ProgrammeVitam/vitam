@@ -96,7 +96,11 @@ public class ParserTokens extends BuilderToken {
         /**
          * Unit's immediate parents
          */
-        UNITUPS("unitups");
+        UNITUPS("unitups"),
+        /**
+         * Unit or GOT's list of participating operations
+         */
+        OPERATIONS("operations");
 
         private static final String NOT_FOUND = "Not found";
         private final String exactToken;
@@ -155,6 +159,8 @@ public class ParserTokens extends BuilderToken {
                         case QUALIFIERS:
                         case SIZE:
                         case OBJECT:
+                        case OPERATIONS:
+                        case UNITUPS:
                             return true;
                         default:
                     }

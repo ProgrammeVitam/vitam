@@ -142,7 +142,10 @@ public class SedaConstants {
      * Prefix of nb
      */
     public static final String PREFIX_NB = "_nb";
-
+    /**
+     * Prefix of ops
+     */
+    public static final String PREFIX_OPS = "_ops";
     /**
      * Prefix of type
      */

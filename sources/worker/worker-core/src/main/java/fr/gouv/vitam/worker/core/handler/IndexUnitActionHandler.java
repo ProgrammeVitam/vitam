@@ -299,6 +299,8 @@ public class IndexUnitActionHandler extends ActionHandler {
             input.close();
             tmpFileWriter.close();
             data = JsonHandler.getFromFile(tmpFile);
+            // Add operation to OPS
+            ((ObjectNode) data).putArray(SedaConstants.PREFIX_OPS).add(containerId);
             if (!tmpFile.delete()) {
                 LOGGER.warn(FILE_COULD_NOT_BE_DELETED_MSG);
             }

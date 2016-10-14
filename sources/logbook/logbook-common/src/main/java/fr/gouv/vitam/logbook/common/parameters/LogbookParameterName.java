@@ -63,7 +63,7 @@ public enum LogbookParameterName {
     /**
      * Status between: "STARTED", "OK", "WARNING", "ERROR", "FATAL" <br>
      * <br>
-     * One must use the LogbookOutcome enum. <br>
+     * One must use the StatusCode enum. <br>
      * <br>
      * Note that first call should be using "STARTED", while second should be one of the others.
      */
