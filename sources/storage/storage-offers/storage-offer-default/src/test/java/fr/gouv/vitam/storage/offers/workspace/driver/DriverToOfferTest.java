@@ -45,8 +45,24 @@ import org.junit.Test;
 
 import com.jayway.restassured.RestAssured;
 
+import fr.gouv.vitam.common.BaseXx;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.storage.driver.Connection;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
+import fr.gouv.vitam.storage.driver.model.GetObjectRequest;
+import fr.gouv.vitam.storage.driver.model.PutObjectRequest;
+import fr.gouv.vitam.storage.driver.model.PutObjectResult;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.offers.workspace.rest.DefaultOfferApplication;
 import fr.gouv.vitam.storage.offers.workspace.rest.DefaultOfferConfiguration;
+import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
 
 /**
  * Integration driver offer tests

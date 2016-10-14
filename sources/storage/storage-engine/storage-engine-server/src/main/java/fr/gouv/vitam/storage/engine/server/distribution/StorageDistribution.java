@@ -30,6 +30,14 @@ import java.io.InputStream;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.storage.driver.exception.StorageObjectAlreadyExistsException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
+import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
+
 /**
  * Interface Storage Distribution for Storage Operations
  */

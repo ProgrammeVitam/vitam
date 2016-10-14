@@ -32,6 +32,13 @@ import java.io.InputStream;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+
 /**
  * Default offer service interface define offer methods
  */

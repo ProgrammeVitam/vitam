@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.server.logbook;
 
+import fr.gouv.vitam.common.ParametersChecker;
+
 /**
  * Storage Logbook Factory
  *

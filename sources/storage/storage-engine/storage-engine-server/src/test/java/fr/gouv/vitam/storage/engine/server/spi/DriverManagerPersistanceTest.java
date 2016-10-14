@@ -33,7 +33,6 @@ import static org.junit.Assert.assertNotNull;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.sql.Driver;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,6 +40,8 @@ import org.junit.AfterClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
+
+import fr.gouv.vitam.storage.driver.Driver;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class DriverManagerPersistanceTest {
