@@ -154,7 +154,7 @@ public class ProcessingIT {
         CONFIG_WORKER_PATH = PropertiesUtils.getResourcesPath("integration/worker.conf").toString();
         CONFIG_WORKSPACE_PATH = PropertiesUtils.getResourcesPath("integration/workspace.conf").toString();
         CONFIG_PROCESSING_PATH = PropertiesUtils.getResourcesPath("integration/processing.conf").toString();
-        CONFIG_SIEGFRIED_PATH = PropertiesUtils.getResourcesPath("integration/format-identifiers.json").toString();
+        CONFIG_SIEGFRIED_PATH = PropertiesUtils.getResourcesPath("integration/format-identifiers.conf").toString();
         final Settings settings = Settings.settingsBuilder()
             .put("http.enabled", true)
             .put("discovery.zen.ping.multicast.enabled", false)

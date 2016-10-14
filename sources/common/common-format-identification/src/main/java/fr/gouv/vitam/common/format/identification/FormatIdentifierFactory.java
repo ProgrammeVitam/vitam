@@ -33,7 +33,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -56,8 +55,7 @@ public class FormatIdentifierFactory {
     private final Map<String, FormatIdentifierConfiguration> configurationsFormatIdentifiers =
         Collections.synchronizedMap(new HashMap<>());
 
-    // TODO : use a yaml configuration instead of a json.
-    private static final String FORMAT_IDENTIFIERS_CONF_FILE = "format-identifiers.json";
+    private static final String FORMAT_IDENTIFIERS_CONF_FILE = "format-identifiers.conf";
 
     /**
      * Constructor
@@ -73,12 +71,11 @@ public class FormatIdentifierFactory {
      */
     public final void changeConfigurationFile(String configurationPath) {
         try {
-            final File configurationFile = PropertiesUtils.findFile(configurationPath);
+            File configurationFile = PropertiesUtils.findFile(configurationPath);
             if (configurationFile != null) {
-                final Map<String, FormatIdentifierConfiguration> configMap =
-                    new ObjectMapper().readValue(configurationFile,
-                        new TypeReference<Map<String, FormatIdentifierConfiguration>>() {});
-                for (final FormatIdentifierConfiguration configuration : configMap.values()) {
+                Map<String, FormatIdentifierConfiguration> configMap = PropertiesUtils.readYaml(configurationFile,
+                    new TypeReference<Map<String, FormatIdentifierConfiguration>>() {});
+                for (FormatIdentifierConfiguration configuration : configMap.values()) {
                     checkConfiguration(configuration);
                 }
                 configurationsFormatIdentifiers.putAll(configMap);
