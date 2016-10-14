@@ -15,7 +15,6 @@
    prerequis
    fiche_type
    get_version
-   docker/_toc
    rpm/_toc
    validation_deploiement
    contacts
