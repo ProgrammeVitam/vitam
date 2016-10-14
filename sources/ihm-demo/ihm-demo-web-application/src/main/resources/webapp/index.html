@@ -79,6 +79,10 @@
   <script src="modules/upload-sip-perf/upload-sip-perf.module.js"></script>
   <script src="modules/upload-sip-perf/upload-sip-perf.controller.js"></script>
   <script src="modules/upload-sip-perf/upload-sip-perf.component.js"></script>
+
+  <script src="modules/fund-register-search/fund-register-search.module.js"></script>
+  <script src="modules/fund-register-search/fund-register-search.controller.js"></script>
+  <script src="modules/fund-register-search/fund-register-search.component.js"></script>
  
   <!-- FIXME Find better way to fix it -->
   <script src="modules/multiselect/angular-bootstrap-multiselect.js"></script>
@@ -122,11 +126,15 @@
               <li><a href="#!/admin/logbookOperations">Suivi des opérations d'entrée</a></li>
             </ul>
           </li>
-          <li class="@@mainMenu2">
-            <a href="#!/archiveSearch">
+          <li class="@@mainMenu2 dropdown">
+            <button class="block dropdown-toggle" data-toggle="dropdown">
               <i class="material-icons pull-left">search</i>
-              <span class="pull-left m-l-10">Recherche d'archives</span>
-            </a>
+              <span class="pull-left m-l-10">Recherche</span>
+            </button>
+            <ul class="dropdown-menu" role="menu" aria-labelledby="Recherche">
+                <li><a href="#!/archiveSearch">Recherche d'archives</a></li>
+                <li><a href="#!/fundRegister/search">Register des fonds</a></li>
+            </ul>
           </li>
           <li class="@@mainMenu3 dropdown">
             <button class="block dropdown-toggle" data-toggle="dropdown">

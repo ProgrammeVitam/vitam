@@ -86,7 +86,7 @@ angular.module('lifecycle')
     self.showResult = true;
 
     // Get lifeCycle details
-    var buildUnitLifeCycle = function() {
+    var buildLifeCycle = function() {
       ihmDemoFactory.getLifeCycleDetails(self.lifeCycleType, self.lifeCycleId).then(function(response) {
         self.receivedResponse = response;
         if (response.data.hits === undefined || response.data.hits === null || response.data.hits.total !== 1) {
@@ -120,5 +120,5 @@ angular.module('lifecycle')
     };
 
     // Display life cycle
-    buildUnitLifeCycle();
+    buildLifeCycle();
   });

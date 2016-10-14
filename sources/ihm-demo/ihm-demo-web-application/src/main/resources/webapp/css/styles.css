@@ -517,6 +517,20 @@ table {
 
 /* STORY 886 */
 
+/* STORIES 744-753 */
+#iconSpan {
+ position : absolute;
+ top:35%;
+ left :-25px;
+ color:#999;
+ z-index:100;
+}
+#iconSpan i{
+	cursor:pointer;
+ font-size:18px !important;
+}
+/* STORIES 744-753 */
+
 .width-100 {
   width: 100%;
 }

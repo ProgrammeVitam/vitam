@@ -27,21 +27,10 @@
 
 'use strict';
 
-// Define the `ihm-demo` module
-angular.module('ihm.demo', [
-  'ngAnimate',
-  'ui.bootstrap',
-  'ui.multiselect',
-  'ngRoute',
-  'core',
-  'archiveSearch',
-  'angularFileUpload',
-  'ngMaterial',
-  'archive.unit',
-  'vAccordion',
-  'ngCookies',
-  'lifecycle',
-  'pascalprecht.translate',
-  'upload.sip.perf',
-  'fund.register.search'
-]);
+// Register `fundRegisterSearch` component, along with its associated controller and template
+angular.
+  module('fund.register.search').
+  component('fundRegisterSearch', {
+    templateUrl: 'modules/fund-register-search/fund-register-search.template.html',
+    controller: 'fundRegisterSearchController'
+  });
