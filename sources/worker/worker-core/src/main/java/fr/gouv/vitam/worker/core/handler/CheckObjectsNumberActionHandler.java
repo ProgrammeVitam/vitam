@@ -63,12 +63,18 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
 
     private final ContainerExtractionUtilsFactory containerExtractionUtilsFactory;
 
+    /**
+     * Default Constructor
+     */
+    public CheckObjectsNumberActionHandler(){
+        this.containerExtractionUtilsFactory = new ContainerExtractionUtilsFactory();
+    }
 
     /**
-     * @param sedaUtilsFactory sedaUtils factory
+     * Constructor for Junit Tests      
      * @param containerExtractionUtilsFactory container Extraction utils factory
      */
-    public CheckObjectsNumberActionHandler(ContainerExtractionUtilsFactory containerExtractionUtilsFactory) {
+    protected CheckObjectsNumberActionHandler(ContainerExtractionUtilsFactory containerExtractionUtilsFactory) {
         ParametersChecker.checkParameter("containerExtractionUtilsFactory is a mandatory parameter",
             containerExtractionUtilsFactory);
         this.containerExtractionUtilsFactory = containerExtractionUtilsFactory;
@@ -85,7 +91,6 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
     @Override
     public EngineResponse execute(WorkerParameters params, HandlerIO actionDefinition) {
         checkMandatoryParameters(params);
-        LOGGER.debug("CheckObjectsNumberActionHandler running ...");
 
         final EngineResponse response = new ProcessResponse();
         response.setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_OK);
@@ -107,6 +112,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
             }
 
         } catch (final ProcessingException e) {
+            LOGGER.error(e);
             response.setStatus(StatusCode.FATAL).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_OBJECT_NUMBER_KO);
         }
 

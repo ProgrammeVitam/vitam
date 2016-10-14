@@ -50,7 +50,6 @@ import fr.gouv.vitam.processing.common.model.IOParameter;
 import fr.gouv.vitam.processing.common.model.ProcessBehavior;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.worker.common.utils.ContainerExtractionUtilsFactory;
 import fr.gouv.vitam.worker.core.WorkerIOManagementHelper;
 import fr.gouv.vitam.worker.core.api.HandlerIO;
 import fr.gouv.vitam.worker.core.api.Worker;
@@ -61,6 +60,7 @@ import fr.gouv.vitam.worker.core.handler.CheckObjectsNumberActionHandler;
 import fr.gouv.vitam.worker.core.handler.CheckSedaActionHandler;
 import fr.gouv.vitam.worker.core.handler.CheckStorageAvailabilityActionHandler;
 import fr.gouv.vitam.worker.core.handler.CheckVersionActionHandler;
+import fr.gouv.vitam.worker.core.handler.DummyHandler;
 import fr.gouv.vitam.worker.core.handler.ExtractSedaActionHandler;
 import fr.gouv.vitam.worker.core.handler.FormatIdentificationActionHandler;
 import fr.gouv.vitam.worker.core.handler.IndexObjectGroupActionHandler;
@@ -125,8 +125,7 @@ public class WorkerImpl implements Worker {
         actions.put(IndexUnitActionHandler.getId(), new IndexUnitActionHandler());
         actions.put(IndexObjectGroupActionHandler.getId(), new IndexObjectGroupActionHandler());
         actions.put(CheckSedaActionHandler.getId(), new CheckSedaActionHandler());
-        actions.put(CheckObjectsNumberActionHandler.getId(),
-            new CheckObjectsNumberActionHandler(new ContainerExtractionUtilsFactory()));
+        actions.put(CheckObjectsNumberActionHandler.getId(),new CheckObjectsNumberActionHandler());
         actions.put(CheckVersionActionHandler.getId(), new CheckVersionActionHandler());
         actions.put(CheckConformityActionHandler.getId(), new CheckConformityActionHandler());
         actions.put(StoreObjectGroupActionHandler.getId(), new StoreObjectGroupActionHandler());
@@ -138,6 +137,7 @@ public class WorkerImpl implements Worker {
             new FormatIdentificationActionHandler());
         actions.put(TransferNotificationActionHandler.getId(),
             new TransferNotificationActionHandler());
+        actions.put(DummyHandler.getId(), new DummyHandler());
     }
 
     @Override
@@ -159,9 +159,9 @@ public class WorkerImpl implements Worker {
         final List<HandlerIO> handlerIOParams = new ArrayList<>();
 
         for (final Action action : step.getActions()) {
-
-            final HandlerIO handlerIO = getHandlerIOParam(action, client, workParams);
             final ActionHandler actionHandler = getActionHandler(action.getActionDefinition().getActionKey());
+            LOGGER.debug("START handler {} in step {}",action.getActionDefinition().getActionKey(),step.getStepName());
+            final HandlerIO handlerIO = getHandlerIOParam(action, client, workParams);            
             if (actionHandler == null) {
                 throw new HandlerNotFoundException(action.getActionDefinition().getActionKey() + HANDLER_NOT_FOUND);
             }
@@ -169,6 +169,7 @@ public class WorkerImpl implements Worker {
             handlerIOParams.add(handlerIO);
             final EngineResponse actionResponse = actionHandler.execute(workParams, handlerIO);
             responses.add(actionResponse);
+            LOGGER.debug("STOP handler {} in step {}",action.getActionDefinition().getActionKey(),step.getStepName());
             // if the action has been defined as Blocking and the action status is KO or FATAL
             // then break the process
             if (ProcessBehavior.BLOCKING.equals(action.getActionDefinition().getBehavior()) &&

@@ -61,7 +61,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
- * IndexUnit Handler
+ * IndexObjectGroup Handler
  */
 public class IndexObjectGroupActionHandler extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IndexObjectGroupActionHandler.class);
@@ -80,7 +80,6 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
     /**
      * Constructor with parameter SedaUtilsFactory
      *
-     * @param factory the sedautils factory
      */
     public IndexObjectGroupActionHandler() {
         // empty constructor
@@ -97,7 +96,6 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
     @Override
     public EngineResponse execute(WorkerParameters params, HandlerIO actionDefinition) {
         checkMandatoryParameters(params);
-        LOGGER.debug("IndexObjectGroupActionHandler running ...");
         final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK);
         try {
             checkMandatoryIOParameter(actionDefinition);
@@ -129,8 +127,6 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
             }
             response.setOutcomeMessages(HANDLER_ID, OutcomeMessage.LOGBOOK_COMMIT_KO);
         }
-
-        LOGGER.debug("IndexObjectGroupActionHandler response: " + response.getStatus().name());
         return response;
     }
 
@@ -141,7 +137,7 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
      * @param params work parameters
      * @throws ProcessingException when error in execution
      */
-    public void indexObjectGroup(WorkerParameters params) throws ProcessingException {
+    private void indexObjectGroup(WorkerParameters params) throws ProcessingException {
         ParameterHelper.checkNullOrEmptyParameters(params);
 
         final String containerId = params.getContainerName();
@@ -167,14 +163,11 @@ public class IndexObjectGroupActionHandler extends ActionHandler {
             }
 
         } catch (final MetaDataException e) {
-            LOGGER.debug("Metadata Server Error", e);
-            throw new ProcessingInternalServerException(e);
+            throw new ProcessingInternalServerException("Metadata Server Error",e);
         } catch (InvalidParseOperationException | IOException e) {
-            LOGGER.debug("Json wrong format", e);
-            throw new ProcessingException(e);
+            throw new ProcessingException("Json wrong format",e);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
-            LOGGER.debug("Workspace Server Error", e);
-            throw new ProcessingException(e);
+            throw new ProcessingException("Workspace Server Error",e);
         }
 
     }

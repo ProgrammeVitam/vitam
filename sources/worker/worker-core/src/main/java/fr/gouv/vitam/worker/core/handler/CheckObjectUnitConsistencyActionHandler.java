@@ -36,8 +36,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.commons.io.IOUtils;
-
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -79,13 +77,6 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
     private final HandlerIO handlerInitialIOList;
 
     /**
-     * @return HANDLER_ID
-     */
-    public static final String getId() {
-        return HANDLER_ID;
-    }
-
-    /**
      * Empty constructor
      */
     public CheckObjectUnitConsistencyActionHandler() {
@@ -93,12 +84,20 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
         handlerInitialIOList.addInput(File.class);
         handlerInitialIOList.addInput(File.class);
     }
+    
+    /**
+     * @return HANDLER_ID
+     */
+    public static final String getId() {
+        return HANDLER_ID;
+    }
+
+
 
     @Override
     public EngineResponse execute(WorkerParameters params, HandlerIO handler) throws ProcessingException {
         checkMandatoryParameters(params);
         checkMandatoryIOParameter(handler);
-        LOGGER.debug("CheckObjectUnitConsistencyActionHandler running ...");
         handlerIO = handler;
         final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID,
             OutcomeMessage.CHECK_CONFORMITY_OK);
@@ -131,17 +130,13 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
         throws IOException, InvalidParseOperationException, InvalidGuidOperationException {
         final List<String> ogList = new ArrayList<>();
 
-        // TODO: Use MEMORY to stock this map after extract seda
-        final InputStream objectGroupToUnitMapFile = new FileInputStream((File) handlerIO.getInput().get(0));
-        final String objectGroupToUnitStoredContent = IOUtils.toString(objectGroupToUnitMapFile, "UTF-8");
-        final Map<String, Object> objectGroupToUnitStoredMap =
-            JsonHandler.getMapFromString(objectGroupToUnitStoredContent);
+        //TODO: Use MEMORY to stock this map after extract seda
+        final InputStream objectGroupToUnitMapFile = new FileInputStream((File) handlerIO.getInput().get(0));        
+        final Map<String, Object> objectGroupToUnitStoredMap = JsonHandler.getMapFromInputStream(objectGroupToUnitMapFile);
 
-        // TODO: Use MEMORY to stock this map after extract seda
-        final InputStream objectGroupToGuidMapFile = new FileInputStream((File) handlerIO.getInput().get(1));
-        final String objectGroupToGuidStoredContent = IOUtils.toString(objectGroupToGuidMapFile, "UTF-8");
-        final Map<String, Object> objectGroupToGuidStoredMap =
-            JsonHandler.getMapFromString(objectGroupToGuidStoredContent);
+        //TODO: Use MEMORY to stock this map after extract seda
+        final InputStream objectGroupToGuidMapFile = new FileInputStream((File) handlerIO.getInput().get(1));               
+        final Map<String, Object> objectGroupToGuidStoredMap = JsonHandler.getMapFromInputStream(objectGroupToGuidMapFile);      
 
         final Iterator<Entry<String, Object>> it = objectGroupToGuidStoredMap.entrySet().iterator();
 

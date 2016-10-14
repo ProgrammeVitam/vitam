@@ -49,8 +49,6 @@ public class CheckVersionActionHandler extends ActionHandler {
 
     /**
      * Constructor with parameter SedaUtilsFactory
-     *
-     * @param factory SedaUtils factory
      */
     public CheckVersionActionHandler() {
         // empty constructor
@@ -66,7 +64,6 @@ public class CheckVersionActionHandler extends ActionHandler {
     @Override
     public EngineResponse execute(WorkerParameters params, HandlerIO actionDefinition) {
         checkMandatoryParameters(params);
-        LOGGER.debug("CheckVersionActionHandler running ...");
 
         final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID,
             OutcomeMessage.CHECK_VERSION_OK);
@@ -83,8 +80,6 @@ public class CheckVersionActionHandler extends ActionHandler {
             LOGGER.error(e);
             response.setStatus(StatusCode.FATAL).setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_VERSION_KO);
         }
-
-        LOGGER.debug("CheckVersionActionHandler response: " + response.getStatus().name());
         return response;
     }
 

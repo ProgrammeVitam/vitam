@@ -124,10 +124,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
     @Override
     public EngineResponse execute(WorkerParameters params, HandlerIO actionDefinition) {
         checkMandatoryParameters(params);
-        LOGGER.info("StoreObjectGroupActionHandler running ...");
-
         final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK);
-
         try {
             checkMandatoryIOParameter(actionDefinition);
             // Update lifecycle of object group : STARTED
@@ -170,8 +167,6 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
                 response.setStatus(StatusCode.WARNING);
             }
         }
-
-        LOGGER.debug("StoreObjectGroupActionHandler response: " + response.getStatus().name());
         return response;
     }
 
@@ -315,7 +310,6 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
      *
      * @param params worker parameters
      * @param typeProcess type process event
-     * @return updated parameters
      */
     private void updateLifeCycleParametersLogbookByStep(WorkerParameters params, String typeProcess) {
         final String extension = FilenameUtils.getExtension(params.getObjectName());
