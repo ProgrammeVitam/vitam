@@ -537,7 +537,11 @@ public abstract class BuilderToken {
         /**
          * Unit's immediate parents
          */
-        UNITUPS("unitups");
+        UNITUPS("unitups"),
+        /**
+         * Unit or GOT's list of participating operations
+         */
+        OPERATIONS("operations");
 
         private final String exactToken;
 

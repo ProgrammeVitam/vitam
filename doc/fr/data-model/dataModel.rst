@@ -194,7 +194,7 @@ La structure de la collection Unit est composée de : la transposition JSON de 
 "_og": liste des identifiants des groupes d'objets référencés dans cette unit
   ce n'est pas une liste mais un seul identifiant, celui de l'ObjectGroup (sans s) référencé par cet Unit ?
 "_up": [] est un tableau qui recense les _id des units parentes (parents immédiats)
-  .
+"_ops": [] tableau des identifiants d'opérations pour lesquelles ce Unit a participé
 "_dom": il s'agit de l'identifiant du tenant
   (à changer en _tenant pour être homogène)
 * "_max": profondeur maximum de l'unit par rapport à une racine "depthmax"
@@ -272,6 +272,7 @@ Exemple :
     "_dom": identifiant du tenant, au même titre que _tenantid (devrait être _tenant ou _tenantId selon la normalisation à appliquer)
     "_nbc": ce champ n'est pas utilisé (choix à faire entre _nb ou _nbc, car ce sont les mêmes)
     Utilisation au 17/08/2016 : la valeur est toujours '0'
+    "_ops": [] tableau des identifiants d'opérations pour lesquelles ce GOT a participé
  }
 
 ::

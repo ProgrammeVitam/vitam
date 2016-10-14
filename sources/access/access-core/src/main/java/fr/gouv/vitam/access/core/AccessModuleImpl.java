@@ -40,12 +40,19 @@ import fr.gouv.vitam.access.api.DataCategory;
 import fr.gouv.vitam.access.common.exception.AccessExecutionException;
 import fr.gouv.vitam.access.config.AccessConfiguration;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.Select;
+import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserHelper;
+import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
+import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -281,8 +288,21 @@ public class AccessModuleImpl implements AccessModule {
             throw new IllegalArgumentException(ID_CHECK_FAILED);
         }
 
+        // Check Request is really an Update
+        RequestParserMultiple parser = RequestParserHelper.getParser(queryJson);
+        if (!(parser instanceof UpdateParserMultiple)) {
+            throw new IllegalArgumentException("Request is not an update operation");
+        }
         // eventidentifierprocess for lifecycle
         final GUID updateOpGuidStart = GUIDFactory.newOperationIdGUID(tenantId);
+        JsonNode newQuery = queryJson;
+        try {
+            newQuery = ((UpdateParserMultiple) parser).getRequest()
+                .addActions(UpdateActionHelper.push(VitamFieldsHelper.operations(), updateOpGuidStart.toString()))
+                .getFinalUpdate();
+        } catch (InvalidCreateOperationException e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+        }
 
         try {
 
@@ -303,11 +323,11 @@ public class AccessModuleImpl implements AccessModule {
             // update logbook lifecycle
             // TODO: interest of this private method ?
             logbookLCParamStart = getLogbookLifeCycleUpdateUnitParameters(updateOpGuidStart, StatusCode.STARTED,
-                queryJson.toString(), queryJson.toString(), idUnit);
+                newQuery.toString(), newQuery.toString(), idUnit);
             logbookLifeCycleClient.update(logbookLCParamStart);
 
             // call update
-            final JsonNode jsonNode = metaDataClient.updateUnitbyId(queryJson.toString(), idUnit);
+            final JsonNode jsonNode = metaDataClient.updateUnitbyId(newQuery.toString(), idUnit);
 
             // TODO: interest of this private method ?
             logbookOpParamEnd = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
@@ -317,7 +337,7 @@ public class AccessModuleImpl implements AccessModule {
             // update logbook lifecycle
             // TODO: interest of this private method ?
             logbookLCParamEnd = getLogbookLifeCycleUpdateUnitParameters(updateOpGuidStart, StatusCode.OK,
-                queryJson.toString(), queryJson.toString(), idUnit);
+                newQuery.toString(), newQuery.toString(), idUnit);
             logbookLCParamEnd.putParameterValue(LogbookParameterName.eventDetailData,
                 getDiffMessageFor(jsonNode, idUnit));
             logbookLifeCycleClient.update(logbookLCParamEnd);
@@ -328,31 +348,31 @@ public class AccessModuleImpl implements AccessModule {
             return jsonNode;
 
         } catch (final InvalidParseOperationException ipoe) {
-            rollBackLogbook(updateOpGuidStart, queryJson, idUnit);
+            rollBackLogbook(updateOpGuidStart, newQuery, idUnit);
             LOGGER.error("parsing error", ipoe);
             throw ipoe;
         } catch (final IllegalArgumentException iae) {
-            rollBackLogbook(updateOpGuidStart, queryJson, idUnit);
+            rollBackLogbook(updateOpGuidStart, newQuery, idUnit);
             LOGGER.error("illegal argument", iae);
             throw iae;
         } catch (final MetaDataDocumentSizeException mddse) {
-            rollBackLogbook(updateOpGuidStart, queryJson, idUnit);
+            rollBackLogbook(updateOpGuidStart, newQuery, idUnit);
             LOGGER.error("metadata document size error", mddse);
             throw new AccessExecutionException(mddse);
         } catch (final LogbookClientServerException lcse) {
-            rollBackLogbook(updateOpGuidStart, queryJson, idUnit);
+            rollBackLogbook(updateOpGuidStart, newQuery, idUnit);
             LOGGER.error("document client server error", lcse);
             throw new AccessExecutionException(lcse);
         } catch (final MetaDataExecutionException mdee) {
-            rollBackLogbook(updateOpGuidStart, queryJson, idUnit);
+            rollBackLogbook(updateOpGuidStart, newQuery, idUnit);
             LOGGER.error("metadata execution execution error", mdee);
             throw new AccessExecutionException(mdee);
         } catch (final LogbookClientNotFoundException lcnfe) {
-            rollBackLogbook(updateOpGuidStart, queryJson, idUnit);
+            rollBackLogbook(updateOpGuidStart, newQuery, idUnit);
             LOGGER.error("logbook client not found error", lcnfe);
             throw new AccessExecutionException(lcnfe);
         } catch (final LogbookClientBadRequestException lcbre) {
-            rollBackLogbook(updateOpGuidStart, queryJson, idUnit);
+            rollBackLogbook(updateOpGuidStart, newQuery, idUnit);
             LOGGER.error("logbook client bad request error", lcbre);
             throw new AccessExecutionException(lcbre);
         } catch (final LogbookClientAlreadyExistsException e) {
@@ -405,7 +425,13 @@ public class AccessModuleImpl implements AccessModule {
     }
 
     private String getDiffMessageFor(JsonNode diff, String unitId) throws InvalidParseOperationException {
+        if (diff == null) {
+            return "";
+        }
         final JsonNode arrayNode = diff.has("$diff") ? diff.get("$diff") : diff.get("$result");
+        if (arrayNode == null) {
+            return "";
+        }
         for (final JsonNode diffNode : arrayNode) {
             if (diffNode.get("_id") != null && unitId.equals(diffNode.get("_id").textValue())) {
                 return JsonHandler.writeAsString(diffNode.get("_diff"));

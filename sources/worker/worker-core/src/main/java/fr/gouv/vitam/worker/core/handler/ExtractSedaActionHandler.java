@@ -110,7 +110,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     // OUT RANK
     private static final int GRAPH_WITH_LONGEST_PATH_IO_RANK = 0;
-    // private static final int ARCHIVE_UNIT_TREE_IO_RANK = 0;
     private static final int BDO_ID_TO_OG_ID_IO_RANK = 1;
     private static final int BDO_ID_TO_GUID_IO_RANK = 2;
     private static final int OG_ID_TO_GUID_IO_RANK = 3;
@@ -344,17 +343,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
             writer.add(eventFactory.createEndDocument());
             writer.close();
             reader.close();
-            // Save Archive Unit Tree
-            // Create temporary file to store archive unit tree
-            /*
-             * final File archiveTreeTmpFileXXX = PropertiesUtils .fileFromTmpFolder(
-             * IngestWorkflowConstants.ARCHIVE_TREE_TMP_FILE_NAME_PREFIX + containerId + JSON_EXTENSION);
-             * JsonHandler.writeAsFile(archiveUnitTree, archiveTreeTmpFile);
-             * HandlerIO.transferFileFromTmpIntoWorkspace(client,
-             * IngestWorkflowConstants.ARCHIVE_TREE_TMP_FILE_NAME_PREFIX + containerId + JSON_EXTENSION, (String)
-             * handlerIO.getOutput().get(ARCHIVE_UNIT_TREE_IO_RANK), containerId, true);
-             */
-            // check cycle and create level stack; will be used when indexing unit
             // 1-detect cycle : if graph has a cycle throw CycleFoundException
             final DirectedCycle directedCycle = new DirectedCycle(new DirectedGraph(archiveUnitTree));
             if (directedCycle.isCyclic()) {
@@ -1220,7 +1208,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
             final File tmpFile = PropertiesUtils.fileFromTmpFolder(objectGroupGuid + JSON_EXTENSION);
 
             try {
-                final FileWriter tmpFileWriter = new FileWriter(tmpFile);
                 final Map<String, ArrayList<JsonNode>> categoryMap = new HashMap<>();
                 objectGroup.put(SedaConstants.PREFIX_ID, objectGroupGuid);
                 objectGroup.put(SedaConstants.PREFIX_TENANT_ID, 0);
@@ -1270,8 +1257,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 objectGroup.set(SedaConstants.PREFIX_WORK, workNode);
                 objectGroup.set(SedaConstants.PREFIX_UP, unitParent);
                 objectGroup.put(SedaConstants.PREFIX_NB, entry.getValue().size());
-                tmpFileWriter.write(objectGroup.toString());
-                tmpFileWriter.close();
+                // Add operation to OPS
+                objectGroup.putArray(SedaConstants.PREFIX_OPS).add(containerId);
+                JsonHandler.writeAsFile(objectGroup, tmpFile);
 
                 client.putObject(containerId,
                     IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + objectGroupGuid + JSON_EXTENSION,

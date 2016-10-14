@@ -61,29 +61,35 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
                 case ALL:
                     break;
                 case DUA:
+                    // Valid for Unit
                     return Unit.APPRAISALRULES;
                 case FORMAT:
+                    // Valid for OG
                     return ObjectGroup.OBJECTFORMAT;
                 case ID:
-                    // Valid for OG
+                    // Valid for Unit and OG
                     return MetadataDocument.ID;
                 case QUALIFIERS:
+                    // Valid for OG
                     return MetadataDocument.QUALIFIERS;
                 case NBUNITS:
-                    // Valid for OG
+                    // Valid for Unit and OG
                     return Unit.NBCHILD;
                 case SIZE:
+                    // Valid for OG
                     return ObjectGroup.OBJECTSIZE;
                 case TYPE:
-                    // Valid for OG
+                    // Valid for Unit and OG
                     return MetadataDocument.TYPE;
                 case OBJECT:
                     // Valid for Unit
                     return MetadataDocument.OG;
                 case UNITUPS:
-                    // Valid for OG
+                    // Valid for Unit and OG
                     return MetadataDocument.UP;
-
+                case OPERATIONS:
+                    // Valid for Unit and OG
+                    return MetadataDocument.OPS;
                 default:
                     break;
             }
