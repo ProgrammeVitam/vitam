@@ -56,6 +56,10 @@ import fr.gouv.vitam.common.json.JsonHandler;
  *
  */
 public class DslQueryHelperTest {
+    private static final String ACCESSION_REGISTER = "ACCESSIONREGISTER";
+    public static final String ORIGINATING_AGENCY = "OriginatingAgency";
+    private static final String RULES = "RULES";
+    private static final String RULETYPE = "RuleType";
 
     private static final String result =
         "QUERY: Requests: " + "{\"$and\":[" + "{\"$eq\":{\"date\":\"2006-03-05\"}}," +
@@ -339,6 +343,98 @@ public class DslQueryHelperTest {
         assertTrue(
             ((Select) selectParser.getRequest()).getProjection().get("$fields")
                 .has(UiConstants.UNITUPS.getConstantValue()));
+    }
+
+
+    /**
+     * Tests testFundsRegisterDSLQuery: method : main scenario
+     *
+     * @throws InvalidParseOperationException
+     * @throws InvalidCreateOperationException
+     */
+    @Test
+    public void testFundsRegisterDSLQuery()
+        throws InvalidParseOperationException, InvalidCreateOperationException {
+        final Map<String, String> queryMap = new HashMap<String, String>();
+        queryMap.put(ACCESSION_REGISTER, "");
+
+        final String selectRequest = DslQueryHelper.createSingleQueryDSL(queryMap);
+        assertNotNull(selectRequest);
+
+        final JsonNode selectRequestJsonNode = JsonHandler.getFromString(selectRequest);
+
+        final RequestParserMultiple selectParser = RequestParserHelper.getParser(selectRequestJsonNode);
+        assertTrue(selectParser instanceof SelectParserMultiple);
+        assertTrue(((Select) selectParser.getRequest()).getNbQueries() == 1);
+        assertTrue(((Select) selectParser.getRequest()).getRoots().size() == 0);
+        assertTrue(((Select) selectParser.getRequest()).getFilter().get("$orderby") == null);
+
+        final Map<String, String> queryMap2 = new HashMap<String, String>();
+        queryMap2.put(ORIGINATING_AGENCY, "id01");
+
+        final String selectRequest2 = DslQueryHelper.createSingleQueryDSL(queryMap2);
+        assertNotNull(selectRequest);
+
+        final JsonNode selectRequestJsonNode2 = JsonHandler.getFromString(selectRequest2);
+
+        final RequestParserMultiple selectParser2 = RequestParserHelper.getParser(selectRequestJsonNode2);
+        assertTrue(selectParser2 instanceof SelectParserMultiple);
+        assertTrue(((Select) selectParser2.getRequest()).getNbQueries() == 1);
+        assertTrue(((Select) selectParser2.getRequest()).getRoots().size() == 0);
+        assertTrue(((Select) selectParser2.getRequest()).getFilter().get("$orderby") == null);
+    }
+
+
+    /**
+     * Tests testFundsRegisterDSLQuery: method : main scenario
+     *
+     * @throws InvalidParseOperationException
+     * @throws InvalidCreateOperationException
+     */
+    @Test
+    public void testRulesDSLQuery()
+        throws InvalidParseOperationException, InvalidCreateOperationException {
+        final Map<String, String> queryMap = new HashMap<String, String>();
+        queryMap.put(RULES, "");
+
+        final String selectRequest = DslQueryHelper.createSingleQueryDSL(queryMap);
+        assertNotNull(selectRequest);
+
+        final JsonNode selectRequestJsonNode = JsonHandler.getFromString(selectRequest);
+
+        final RequestParserMultiple selectParser = RequestParserHelper.getParser(selectRequestJsonNode);
+        assertTrue(selectParser instanceof SelectParserMultiple);
+        assertTrue(((Select) selectParser.getRequest()).getNbQueries() == 1);
+        assertTrue(((Select) selectParser.getRequest()).getRoots().size() == 0);
+        assertTrue(((Select) selectParser.getRequest()).getFilter().get("$orderby") == null);
+
+        final Map<String, String> queryMap2 = new HashMap<String, String>();
+        queryMap2.put(RULETYPE, "AppraisingRule");
+
+        final String selectRequest2 = DslQueryHelper.createSingleQueryDSL(queryMap2);
+        assertNotNull(selectRequest);
+
+        final JsonNode selectRequestJsonNode2 = JsonHandler.getFromString(selectRequest2);
+
+        final RequestParserMultiple selectParser2 = RequestParserHelper.getParser(selectRequestJsonNode2);
+        assertTrue(selectParser2 instanceof SelectParserMultiple);
+        assertTrue(((Select) selectParser2.getRequest()).getNbQueries() == 1);
+        assertTrue(((Select) selectParser2.getRequest()).getRoots().size() == 0);
+        assertTrue(((Select) selectParser2.getRequest()).getFilter().get("$orderby") == null);
+
+        final Map<String, String> queryMap3 = new HashMap<String, String>();
+        queryMap3.put(RULETYPE, "AppraisingRule,test");
+
+        final String selectRequest3 = DslQueryHelper.createSingleQueryDSL(queryMap3);
+        assertNotNull(selectRequest);
+
+        final JsonNode selectRequestJsonNode3 = JsonHandler.getFromString(selectRequest3);
+
+        final RequestParserMultiple selectParser3 = RequestParserHelper.getParser(selectRequestJsonNode3);
+        assertTrue(selectParser3 instanceof SelectParserMultiple);
+        assertTrue(((Select) selectParser3.getRequest()).getNbQueries() == 1);
+        assertTrue(((Select) selectParser3.getRequest()).getRoots().size() == 0);
+        assertTrue(((Select) selectParser3.getRequest()).getFilter().get("$orderby") == null);
     }
 
 }

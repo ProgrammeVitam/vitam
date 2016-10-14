@@ -1,5 +1,5 @@
 Administration-Management-format
-#######
+################################
 
 Utilisation
 ###########
@@ -47,7 +47,7 @@ Pour instancier son client en mode Production :
      AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
      
 
-Le client propose actuellement six méthodes : 
+Le client propose actuellement 14 méthodes : 
 
 .. code-block:: java
 
@@ -57,3 +57,11 @@ Le client propose actuellement six méthodes :
 	  void deleteFormat();
 	  JsonNode getFormatByID(String id);
 	  JsonNode getFormats(JsonNode query);
+     checkRulesFile(InputStream stream);
+     importRulesFile(InputStream stream);
+     deleteRulesFile();
+     JsonNode getRuleByID(String id);
+     JsonNode getRule(JsonNode query);
+     createorUpdateAccessionRegister(AccessionRegisterDetail register);
+     JsonNode getAccessionRegister(JsonNode query);
+     JsonNode getAccessionRegisterDetail(JsonNode query);

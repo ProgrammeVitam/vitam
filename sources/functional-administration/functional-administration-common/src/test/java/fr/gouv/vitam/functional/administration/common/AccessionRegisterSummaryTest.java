@@ -51,8 +51,9 @@ public class AccessionRegisterSummaryTest {
     public void testConstructor() throws Exception {
         RegisterValueDetail initialValue = new RegisterValueDetail().setTotal(0).setDeleted(0).setRemained(0);
         AccessionRegisterSummary register = new AccessionRegisterSummary();
-        String id = GUIDFactory.newGUID().getId();
+        String id = GUIDFactory.newAccessionRegisterSummaryGUID(0).getId();
         register
+        .setId(id)
         .setOriginatingAgency(id)
         .setObjectSize(initialValue)
         .setTotalObjectGroups(initialValue)

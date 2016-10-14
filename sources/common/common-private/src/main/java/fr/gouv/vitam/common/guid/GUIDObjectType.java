@@ -73,8 +73,12 @@ public final class GUIDObjectType {
         /**
          * Store operation Id type (when a write opeation occurs within the Write Logbook)
          */
-        STORAGE_OPERATION(STORAGE_OPERATION_TYPE);
-
+        STORAGE_OPERATION(STORAGE_OPERATION_TYPE),
+        /**
+         * Store Accession register Symmary type
+         */
+        ACCESSION_REGISTER_SUMMARY(ACCESSION_REGISTER_SUMMARY_TYPE);
+        
         final int id;
 
         private GUIDObjectEnumType(int id) {
@@ -131,6 +135,10 @@ public final class GUIDObjectType {
      * Storage (CAS) Operation
      */
     public static final int STORAGE_OPERATION_TYPE = 9;
+    /**
+     * Accession register
+     */
+    public static final int ACCESSION_REGISTER_SUMMARY_TYPE = 10;
 
     private GUIDObjectType() {
         // empty
@@ -164,6 +172,8 @@ public final class GUIDObjectType {
                 return GUIDObjectEnumType.REQUESTID;
             case STORAGE_OPERATION_TYPE:
                 return GUIDObjectEnumType.STORAGE_OPERATION;
+            case ACCESSION_REGISTER_SUMMARY_TYPE:
+                return GUIDObjectEnumType.ACCESSION_REGISTER_SUMMARY;
             default:
                 return GUIDObjectEnumType.UNASSIGNED;
         }
@@ -185,6 +195,7 @@ public final class GUIDObjectType {
             case EVENT_TYPE:
             case REQUESTID_TYPE:
             case STORAGE_OPERATION_TYPE:
+            case ACCESSION_REGISTER_SUMMARY_TYPE:
             default:
                 return type;
         }
@@ -199,6 +210,7 @@ public final class GUIDObjectType {
             case UNIT_TYPE:
             case OBJECTGROUP_TYPE:
             case STORAGE_OPERATION_TYPE:
+            case ACCESSION_REGISTER_SUMMARY_TYPE:
                 return false;
             case OBJECT_TYPE:
             case OPERATION_LOGBOOK_TYPE:

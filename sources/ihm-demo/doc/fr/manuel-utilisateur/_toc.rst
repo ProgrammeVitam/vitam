@@ -8,3 +8,4 @@ IHM demo
    archiveunit.rst
    lifecycle.rst
    logbookoperation.rst
+   accessionregister.rst

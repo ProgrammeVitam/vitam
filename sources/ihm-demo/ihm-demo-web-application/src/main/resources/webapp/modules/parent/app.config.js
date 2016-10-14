@@ -27,8 +27,6 @@
 
 'use strict';
 
-var translateProvider;
-
 angular.
 module('ihm.demo').
   config(['$locationProvider' ,'$routeProvider',
@@ -95,16 +93,16 @@ module('ihm.demo').
       when('/accessionRegister/search', {
         template: '<accession-register-search></accession-register-search>'
       }).
+      when('/accessionRegister/detail/:accessionRegisterId', {
+        template: '<accession-register-details></accession-register-details>'
+      }).
       otherwise('/uploadSIP');
     }
   ])
-  .config(
-    function($translateProvider/*, $http, MessagesResource*/) {
-      translateProvider = $translateProvider;
-
-      $translateProvider.useSanitizeValueStrategy('sanitizeParameters');
-      $translateProvider.useLoader('MessagesResource', {});
-      // prefered language set options for useLoader
-      $translateProvider.preferredLanguage('fr');
-    }
+  .config(function($translateProvider) {
+    $translateProvider.useSanitizeValueStrategy('sanitizeParameters');
+    $translateProvider.useLoader('MessagesResource', {});
+    // prefered language set options for useLoader
+    $translateProvider.preferredLanguage('fr');
+   }
   );

@@ -30,6 +30,40 @@ Karma et Tests unitaires
 A priori les configurations actuelles ne sont pas suffisantes pour lancer les TU du front.
 TODO A voir par la suite si cela deviens une priorité.
 
+Modèle MVC
+==========
+
+Le front va petit à petit être migré vers une architecture reprenant le modèle MVC:
+ - Une couche Modèle, récupérant les données depuis l'API vitam (Server d'app + dossier resources Angular)
+ - Une couche Service, traitant les primise des resources ou proposant des méthodes utilitaires
+ - Une couche Vues, proposant l'affichage d'une page avec son controller associé
+ 
+Au final l'arbo type des fichiers devrait être la suivante:
+/webapp
+   => Fichiers de conf globaux du projet (bower/npm/jshint/index.html/...)
+   /core
+      => Fichiers de config globaux (core.module.js, main.controller.js, app.config.js, app.module.js, ...)
+      /static => Fichiers de traductions front (Key=value pour les champs statiques de l'IHM)
+      /services => Services utilitaires partagés de l'application (Faire des modules pour chaque services si externalisables)
+      /directives => Directives utilitaires partagés de l'application (Faire des modules pour chaque directives si externalisables)
+      /filters => Filtres utilitaires partagés de l'application ?
+   /resources
+      accession-register.resource.js => Une méthode par endpoint du server d'app (Search / GetAll / GetDetails / ...)
+      archive-unit.resource.js => Une méthode par endpoint du server d'app (Search / GetArchive / GetDetails / ...)
+      ...
+   /services
+      accession-register.service.js => Une ou plusieurs méthodes par méthode de la resource fund-register
+      archive-unit.service.js =>  Une ou plusieurs méthodes par méthode de la resource archive-unit
+      ...
+   /pages (Nom à valider)
+      /accession-register-detail => Controller + Template de la page Détails de Registre de Fonds
+      /archive-unit => Controller + Template de la page archive-unit
+      ...
+   /styles
+      /css
+      /img
+      /fonts => A migrer dans le /css ?
+
 Internationalisation
 ====================
 
@@ -63,7 +97,7 @@ où :
 	
 	var translatedLabel = $filter('translate')('archiveSearch.searchForm.id');
  
-// TODO : Rendre dynamique la langue choisie pour les traductions (actuellement static FR)
+// TODO : Rendre dynamique la langue choisi pour les traductions (actuellement static FR)
 // TODO : Utiliser la langue de fallback fr (ou autre ?)
 // TODO : Une grosse partie des constantes (js) et des String statiques (html) devraient être mises dans ces fichiers
 // TODO : Récupérer la liste des valeurs du référentiel VITAM (Build / Appel API)
@@ -74,20 +108,17 @@ Module archive-unit
 Ce module ne comprends pas le module 'archive-unit-search'
 Ce module permet le processing et l'affichage des données liées à une Archive Unit.
 Les directives utilisées sont:
- - archive-unit-field qui permet d'afficher un champ en prenant en compte le mode édition
- - archive-unit-fieldtree qui permet d'afficher un ensemble de champs en utilisant le directive archive-unit-field avec des paramètres standards pour chaque champ
+ - display-field qui permet d'afficher un champ en prenant en compte le mode édition
+ - display-fieldtree qui permet d'afficher un ensemble de champs en utilisant le directive display-field avec des paramètres standards pour chaque champ
 
-Si la suite du projet le permet, ces directives peuvent être déplacées hors du module (Ne pas oublier de changer le angular.module('archive.unit') dans ce cas).
-Elles pourront alors être plus générique et si besoin prendre plus de paramètres.
-
-Directive archive-unit-field
-============================
+Directive display-field
+=======================
 
 Cette directive permet d'afficher un champ 'simple' en mode visualisation ou edition.
 Un champ 'simple' est un champ qui à simplement une valeur (Texte/nombre) et pas de sous-élément. 
 
 Usages:
-Pour utiliser cette directive il suffit d'appeler la balise '<archive-unit-field' en spécifiant les parametres suivants:
+Pour utiliser cette directive il suffit d'appeler la balise '<display-field' en spécifiant les parametres suivants:
 - field-label: Surcharge du nom du label
 - field-object: L'ensemble des propriétés de l'objet. Doit contenir au moins:
 -- isModificationAllowed: vrai si le champ est éditable
@@ -106,15 +137,15 @@ Exemple:
 
       <div class="col-xs-12">
       	<div class="form-group col-md-6">
-      		<archive-unit-field field-label="'Service producteur'" field-size="'11'"
+      		<display-field field-label="'Service producteur'" field-size="'11'"
       			intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
       		    field-object="$ctrl.mainFields['OriginatingAgency'].content[0]" edit-mode="$ctrl.isEditMode">
-      		</archive-unit-field>
+      		</display-field>
       	</div
       </div>
 
-Directive archive-unit-fieldtree
-================================
+Directive display-fieldtree
+===========================
 
 Cette directive permet d'afficher un champ et leurs sous élément si nécessaire de manière récursive.
 - field-object: L'ensemble des propriétés de l'objet. Doit contenir au moins:
@@ -134,9 +165,9 @@ Exemple:
 
       <div class="row archiveDesc panel-collapse collapse in" id="{{'box' + key}}">
       	<div ng-repeat="fieldSet in $ctrl.managmentItems">
-      	    <archive-unit-fieldtree intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
+      	    <display-fieldtree intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
       	    	field-object="fieldSet" edit-mode="$ctrl.isEditMode">
-      	    </archive-unit-fieldtree>
+      	    </display-fieldtree>
       	</div>
       </div>
 

@@ -97,7 +97,7 @@ public class AdminManagementResourceTest {
 
     private static final String GET_DOCUMENT_RULES_URI = "/rules/document";
 
-    private static final String CREATE_FUND_REGISTER_URI = "/accession-register/create";
+    private static final String CREATE_FUND_REGISTER_URI = "/accession-register";
 
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;

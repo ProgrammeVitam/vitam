@@ -25,24 +25,32 @@
  * accept its terms.
  */
 
-'use strict';
+/*
+ Used in order to display a simple field (no children). This directive allow update with edit-mode
 
-// Define the `ihm-demo` module
-angular.module('ihm.demo', [
-  'ngAnimate',
-  'ui.bootstrap',
-  'ui.multiselect',
-  'ngRoute',
-  'core',
-  'archiveSearch',
-  'angularFileUpload',
-  'ngMaterial',
-  'archive.unit',
-  'vAccordion',
-  'ngCookies',
-  'lifecycle',
-  'pascalprecht.translate',
-  'upload.sip.perf',
-  'accession.register.search',
-  'accession.register.details'
-]);
+ It takes some mandatory parameters:
+ field-object: The field properties (fieldSet for example)
+ edit-mode: true if the view is in edition mode ($ctrl.isEditMode for example)
+ field-size: The size of the col-md-XX bootstrap css class.
+ Default to 11 (12 - 1), can be other value depend to parent col-xs-XX and to sibling col-md-XX div
+ intercept-user-change: Callback function to be called when a user update the input field in edit mode
+ The callback should take exactly one parameter called fieldSet as this example: intercept-user-change="callback(fieldSet)"
+
+ In addition, an optional parameter is available:
+ display-value: Allow to override the default fieldObject.fieldValue as value. As example, filtering can be used.
+ field-label: Allow to override the label of the field with a specific value
+ */
+angular.module('archive.unit')
+  .directive('displayField', function() {
+    return {
+      scope: {
+        fieldObject: '=fieldObject',
+        displayValue: '=displayValue',
+        editMode: '=editMode',
+        fieldSize: '=fieldSize',
+        interceptUserChange: '&interceptUserChange',
+        fieldLabel: '=fieldLabel'
+      },
+      templateUrl: 'core/directives/display-field.directive.html'
+    };
+  });

@@ -51,6 +51,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
 import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
@@ -66,6 +67,9 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
     protected static final String HOSTNAME = "localhost";
     protected static final String PATH = "/adminmanagement/v1";
     protected AdminManagementClientRest client;
+    static final String QUERY =
+        "{\"$query\":{\"$and\":[{\"$eq\":{\"OriginatingAgency\":\"OriginatingAgency\"}}]},\"$filter\":{},\"$projection\":{}}";
+
 
     // ************************************** //
     // Start of VitamJerseyTest configuration //
@@ -205,10 +209,26 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         }
 
         @POST
-        @Path("/accession-register/create")
+        @Path("/accession-register/document")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getFunds() {
+            return expectedResponse.post();
+        }
+
+        @POST
+        @Path("/accession-register")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response createAccessionRegister() {
+            return expectedResponse.post();
+        }
+
+        @POST
+        @Path("/accession-register/detail")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getAccessionRegisterDetail() {
             return expectedResponse.post();
         }
     }
@@ -373,6 +393,29 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         client.createorUpdateAccessionRegister(new AccessionRegisterDetail());
+    }
+
+    /** Accession Register Detail **/
+
+    @Test
+    public void getAccessionRegisterDetail()
+        throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.OK).entity("{}").build());
+        client.getAccessionRegisterDetail(JsonHandler.getFromString(QUERY));
+    }
+
+    @Test(expected = ReferentialException.class)
+    public void getAccessionRegisterDetailError()
+        throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        client.getAccessionRegisterDetail(JsonHandler.getFromString(QUERY));
+    }
+
+    @Test(expected = AccessionRegisterException.class)
+    public void getAccessionRegisterDetailUnknownError()
+        throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+        client.getAccessionRegisterDetail(JsonHandler.getFromString(QUERY));
     }
 
 }

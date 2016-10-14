@@ -53,7 +53,6 @@ public interface AdminManagementClient extends MockOrRestClient {
      */
     Status checkFormat(InputStream stream) throws ReferentialException;
 
-
     /**
      * @param stream as InputStream
      * @throws ReferentialException when import exception occurs
@@ -151,5 +150,25 @@ public interface AdminManagementClient extends MockOrRestClient {
      */
     void createorUpdateAccessionRegister(AccessionRegisterDetail register)
         throws AccessionRegisterException, DatabaseConflictException, AdminManagementClientServerException;
+
+    /**
+     * Get the accession register summary matching the given query
+     * 
+     * @param query The DSL Query as Json Node
+     * @return The AccessionregisterSummary list as a response JsonNode
+     * @throws InvalidParseOperationException
+     * @throws ReferentialException
+     */
+    JsonNode getAccessionRegister(JsonNode query) throws InvalidParseOperationException, ReferentialException;
+
+    /**
+     * Get the accession register details matching the given query
+     * 
+     * @param query The DSL Query as a JSON Node
+     * @return The AccessionregisterDetails list as a response jsonNode
+     * @throws InvalidParseOperationException
+     * @throws ReferentialException
+     */
+    JsonNode getAccessionRegisterDetail(JsonNode query) throws InvalidParseOperationException, ReferentialException;
 
 }

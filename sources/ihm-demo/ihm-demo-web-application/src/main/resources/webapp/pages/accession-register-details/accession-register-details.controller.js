@@ -25,24 +25,40 @@
  * accept its terms.
  */
 
-'use strict';
+// Define controller for accession-register details
+angular.module('accession.register.details')
+  .controller('accessionRegisterDetailsController', function($scope, $routeParams, accessionRegisterService) {
 
-// Define the `ihm-demo` module
-angular.module('ihm.demo', [
-  'ngAnimate',
-  'ui.bootstrap',
-  'ui.multiselect',
-  'ngRoute',
-  'core',
-  'archiveSearch',
-  'angularFileUpload',
-  'ngMaterial',
-  'archive.unit',
-  'vAccordion',
-  'ngCookies',
-  'lifecycle',
-  'pascalprecht.translate',
-  'upload.sip.perf',
-  'accession.register.search',
-  'accession.register.details'
-]);
+    $scope.accessionRegisterId = $routeParams.accessionRegisterId;
+    $scope.summaryData = null;
+    $scope.operationArray = [];
+    $scope.noop = angular.noop;
+    $scope.isEditMode = false;
+
+
+
+    /**
+     * Init the successCallback for the http accession-register getSummary function.
+     *
+     * @param response The http response
+     */
+    var summarySuccessCallback = function(response) {
+      console.log('Summary: ', response);
+      $scope.summaryData = response;
+    };
+
+    /**
+     * Init the successCallback for the http accession-register getDetails function.
+     *
+     * @param response The http response
+     */
+    var detailSuccessCallback = function(response) {
+      console.log('Detail: ', response);
+      $scope.operationArray = response;
+    };
+
+    // Init summaryData & operationArray
+    accessionRegisterService.getDetails($routeParams.accessionRegisterId, detailSuccessCallback, angular.noop);
+    accessionRegisterService.getSummary($routeParams.accessionRegisterId, summarySuccessCallback, angular.noop);
+
+  });

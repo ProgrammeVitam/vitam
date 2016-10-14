@@ -66,6 +66,7 @@ import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImp
 import fr.gouv.vitam.function.administration.rules.core.RulesManagerFileImpl;
 import fr.gouv.vitam.functional.administration.accession.register.core.ReferentialAccessionRegisterImpl;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
@@ -73,6 +74,7 @@ import fr.gouv.vitam.functional.administration.common.exception.FileFormatExcept
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.format.core.ReferentialFormatFileImpl;
+import fr.gouv.vitam.logbook.common.model.response.RequestResponseOK;
 
 /**
  * FormatManagementResourceImpl implements AccessResource
@@ -443,15 +445,29 @@ public class AdminManagementResource extends ApplicationStatusResource {
         }
     }
 
+    private String fileRulesListToJsonString(List<FileRules> rulesList)
+        throws IOException {
+        final OutputStream out = new ByteArrayOutputStream();
+        final ObjectMapper mapper = new ObjectMapper();
+        mapper.writeValue(out, rulesList);
+        final byte[] data = ((ByteArrayOutputStream) out).toByteArray();
+        final String fileRulesAsString = new String(data);
+        return fileRulesAsString;
+    }
+
     /**
-     * @param accessionRegister AccessionRegisterDetail object
+     * @param AccessionRegisterDetail object
      * @return Response jersey response
      */
-    @Path("accession-register/create")
+    @Path("accession-register")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createAccessionRegister(AccessionRegisterDetail accessionRegister) {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("register ID / Originating Agency: " + accessionRegister.getId() + " / " +
+                accessionRegister.getOriginatingAgency());
+        }
         ParametersChecker.checkParameter("Accession Register is a mandatory parameter", accessionRegister);
         try (ReferentialAccessionRegisterImpl accessionRegisterManagement =
             new ReferentialAccessionRegisterImpl(adminConfiguration)) {
@@ -467,13 +483,80 @@ public class AdminManagementResource extends ApplicationStatusResource {
         }
     }
 
-    private String fileRulesListToJsonString(List<FileRules> rulesList)
-        throws IOException {
-        final OutputStream out = new ByteArrayOutputStream();
-        final ObjectMapper mapper = new ObjectMapper();
-        mapper.writeValue(out, rulesList);
-        final byte[] data = ((ByteArrayOutputStream) out).toByteArray();
-        return new String(data);
+    /**
+     * @param select as String
+     * @return Response jersay Response
+     * @throws IOException when error json occurs
+     * @throws InvalidParseOperationException when error json occurs
+     * @throws ReferentialException
+     */
+    @Path("accession-register/document")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response findDocumentFundsRegister(JsonNode select)
+        throws InvalidParseOperationException, IOException, ReferentialException {
+        ParametersChecker.checkParameter("select is a mandatory parameter", select);
+        List<AccessionRegisterSummary> fileFundRegisters = new ArrayList<>();
+        try (ReferentialAccessionRegisterImpl accessionRegisterManagement =
+            new ReferentialAccessionRegisterImpl(adminConfiguration)) {
+            SanityChecker.checkJsonAll(select);
+            fileFundRegisters = accessionRegisterManagement.findDocuments(select);
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        } catch (ReferentialException e) {
+            LOGGER.error(e);
+            return Response.status(Status.PRECONDITION_FAILED).entity(Status.PRECONDITION_FAILED).build();
+        } catch (Exception e) {
+            LOGGER.error(e);
+            final Status status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(status).build();
+        }
+        return Response.status(Status.OK)
+            .entity(new RequestResponseOK()
+                .setHits(1, 0, 1)
+                .setResult(JsonHandler.toJsonNode(fileFundRegisters)))
+            .build();
+    }
+
+    /**
+     * @param select as String
+     * @return Response jersay Response
+     * @throws IOException when error json occurs
+     * @throws InvalidParseOperationException when error json occurs
+     * @throws ReferentialException
+     */
+    @Path("accession-register/detail")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response findDetailAccessionRegister(JsonNode select)
+        throws InvalidParseOperationException, IOException, ReferentialException {
+        ParametersChecker.checkParameter("select is a mandatory parameter", select);
+        List<AccessionRegisterDetail> fileAccessionRegistersDetail = new ArrayList<AccessionRegisterDetail>();
+        try (ReferentialAccessionRegisterImpl accessionRegisterManagement =
+            new ReferentialAccessionRegisterImpl(adminConfiguration)) {
+            SanityChecker.checkJsonAll(select);
+            fileAccessionRegistersDetail = accessionRegisterManagement.findDetail(select);
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        } catch (ReferentialException e) {
+            LOGGER.error(e);
+            return Response.status(Status.PRECONDITION_FAILED).entity(Status.PRECONDITION_FAILED).build();
+        } catch (Exception e) {
+            LOGGER.error(e);
+            final Status status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(status).build();
+        }
+
+        // TODO Check hints
+        return Response.status(Status.OK)
+            .entity(new RequestResponseOK()
+                .setHits(1, 0, 1)
+                .setResult(JsonHandler.toJsonNode(fileAccessionRegistersDetail)))
+            .build();
     }
 
 }

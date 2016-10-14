@@ -27,22 +27,10 @@
 
 'use strict';
 
-// Define the `ihm-demo` module
-angular.module('ihm.demo', [
-  'ngAnimate',
-  'ui.bootstrap',
-  'ui.multiselect',
-  'ngRoute',
-  'core',
-  'archiveSearch',
-  'angularFileUpload',
-  'ngMaterial',
-  'archive.unit',
-  'vAccordion',
-  'ngCookies',
-  'lifecycle',
-  'pascalprecht.translate',
-  'upload.sip.perf',
-  'accession.register.search',
-  'accession.register.details'
-]);
+// Register `accessionRegisterDetails` component, along with its associated controller and template
+angular.
+  module('accession.register.details').
+  component('accessionRegisterDetails', {
+    templateUrl: 'pages/accession-register-details/accession-register-details.template.html',
+    controller: 'accessionRegisterDetailsController'
+  });

@@ -177,7 +177,7 @@ implements MongoDbAccessReferential {
             updateFields.append(entry.getKey(), (Number) entry.getValue());
         }
         incQuery.append(operator.exactToken(), updateFields);
-        UpdateResult result = collection.getCollection().updateOne(eq(VitamDocument.ID, objNode.get(AccessionRegisterSummary.ORIGINATING_AGENCY).textValue()), incQuery);
+        UpdateResult result = collection.getCollection().updateOne(eq(AccessionRegisterSummary.ORIGINATING_AGENCY, objNode.get(AccessionRegisterSummary.ORIGINATING_AGENCY).textValue()), incQuery);
         if (result.getModifiedCount() == 0 && result.getMatchedCount() == 0) {
             throw new ReferentialException("Document is not updated");
         }

@@ -1,12 +1,12 @@
 DAT : module functional-administration
-#####################################
+######################################
 
 Ce document présente l'ensemble du manuel développement concernant le développment du module 
 functional-administration qui identifie par la user story #71, qui contient :
 
 - modules & packages
 - classes métiers
---------------------------
+-----------------
 
 
 1. Modules et packages
@@ -20,7 +20,12 @@ functional-administration
 	    			  |--- functional-administration-format-import 
 	    			  
 	    |--- functional-administration-rule : fournir des traitements de base pour la gestion de règles administratives
-	    |			  
+                 |--- functional-administration-rule-api  : Définition des APIs
+                 |--- functional-administration-rule-core : Impélmentation des APIs
+                 
+       |--- functional-administration-accession-register : fournir des traitements de base pour la gestion des registres de fonds
+                 |--- functional-administration-accession-register-core : Impélmentation des traitements des registres de fonds
+
 	    |--- functional-administration-rest   : le serveur REST de functional-administration qui donnes des traitement 
 	    |                       sur les traitements de format référentiel et gestion de règles administratives.
 	    |--- functional-administration-client  : client functional-administration qui sera utilisé par les autres modules 

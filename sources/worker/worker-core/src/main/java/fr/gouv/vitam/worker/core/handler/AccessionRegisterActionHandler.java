@@ -101,7 +101,13 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Aut
         handlerIO = handler;
         try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
             checkMandatoryIOParameter(handler);
+            if(LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Params: " + params);
+            }
             AccessionRegisterDetail register = generateAccessionRegister(params);
+            if(LOGGER.isDebugEnabled()) {
+                LOGGER.debug("register ID / Originating Agency: " + register.getId() + " / " + register.getOriginatingAgency());
+            }
             adminClient.createorUpdateAccessionRegister(register);
             itemStatus.increment(StatusCode.OK);
         } catch (ProcessingException | AdminManagementClientServerException e) {

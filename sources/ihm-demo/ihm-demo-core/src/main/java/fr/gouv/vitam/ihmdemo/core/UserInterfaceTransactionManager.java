@@ -242,4 +242,5 @@ public class UserInterfaceTransactionManager {
             return client.selectObjectGroupLifeCycleById(objectGroupLifeCycleId);
         }
     }
+
 }

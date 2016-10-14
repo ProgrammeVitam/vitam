@@ -25,24 +25,52 @@
  * accept its terms.
  */
 
-'use strict';
+// Define service in order to process the resource promise for accession register
+angular.module('core')
+  .service('accessionRegisterService', function(accessionRegisterResource) {
 
-// Define the `ihm-demo` module
-angular.module('ihm.demo', [
-  'ngAnimate',
-  'ui.bootstrap',
-  'ui.multiselect',
-  'ngRoute',
-  'core',
-  'archiveSearch',
-  'angularFileUpload',
-  'ngMaterial',
-  'archive.unit',
-  'vAccordion',
-  'ngCookies',
-  'lifecycle',
-  'pascalprecht.translate',
-  'upload.sip.perf',
-  'accession.register.search',
-  'accession.register.details'
-]);
+    var self = this;
+
+    /**
+     * Get and process the promise for accession register details
+     *
+     * @param {String} accessionRegisterId - Service provider ID of the required accession register
+     * @param {Function} successCallbackFunction - Specific callback for success case
+     * @returns {*}
+     */
+    self.getDetails = function(accessionRegisterId, successCallbackFunction) {
+      var options = {
+        OriginatingAgency: accessionRegisterId
+      };
+      return accessionRegisterResource.getDetails(options)
+        .then(function(response) {
+          // TODO Add checks
+          successCallbackFunction(response.data.result);
+          return response;
+        }, function (error) {
+          return error;
+        })
+    };
+
+    /**
+     * Get and process the promise for accession register summary
+     *
+     * @param {String} accessionRegisterId - Service provider ID of the required accession register
+     * @param {Function} successCallbackFunction - Specific callback for success case
+     * @returns {*}
+     */
+    self.getSummary = function(accessionRegisterId, successCallbackFunction) {
+      var options = {
+        OriginatingAgency: accessionRegisterId
+      };
+      return accessionRegisterResource.getSummary(options)
+        .then(function(response) {
+          successCallbackFunction(response.data.result[0]);
+          // TODO Add checks
+          return response;
+        }, function (error) {
+          return error;
+        })
+    };
+
+  });

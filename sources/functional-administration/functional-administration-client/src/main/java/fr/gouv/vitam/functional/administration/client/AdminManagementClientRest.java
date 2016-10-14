@@ -66,7 +66,10 @@ public class AdminManagementClientRest extends DefaultClient implements AdminMan
     private static final String RULESMANAGER_GET_DOCUMENT_URL = "/rules/document";
     private static final String RULESMANAGER_URL = "/rules";
 
-    private static final String FUND_REGISTER_CREATE_URI = "/accession-register/create";
+    private static final String ACCESSION_REGISTER_CREATE_URI = "/accession-register";
+    private static final String ACCESSION_REGISTER_GET_DOCUMENT_URL = "/accession-register/document";
+    private static final String ACCESSION_REGISTER_GET_DETAIL_URL = "accession-register/detail";
+    private static final String STATUS = "/status";
 
     AdminManagementClientRest(AdminManagementClientFactory factory) {
         super(factory);
@@ -369,7 +372,7 @@ public class AdminManagementClientRest extends DefaultClient implements AdminMan
         ParametersChecker.checkParameter("Accession register is a mandatory parameter", register);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, FUND_REGISTER_CREATE_URI, null,
+            response = performRequest(HttpMethod.POST, ACCESSION_REGISTER_CREATE_URI, null,
                 register, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {
@@ -382,6 +385,63 @@ public class AdminManagementClientRest extends DefaultClient implements AdminMan
                 default:
                     throw new AccessionRegisterException("Unknown error: " + status.getStatusCode());
             }
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public JsonNode getAccessionRegister(JsonNode query)
+        throws InvalidParseOperationException, ReferentialException {
+        ParametersChecker.checkParameter("query is a mandatory parameter", query);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.POST, ACCESSION_REGISTER_GET_DOCUMENT_URL, null,
+                query, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            final Status status = Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case OK:
+                    LOGGER.debug(Response.Status.OK.getReasonPhrase());
+                    break;
+                case NOT_FOUND:
+                    LOGGER.error(Response.Status.NOT_FOUND.getReasonPhrase());
+                    throw new ReferentialException("AccessionRegister Not found ");
+                default:
+                    break;
+            }
+            return JsonHandler.getFromString(response.readEntity(String.class));
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public JsonNode getAccessionRegisterDetail(JsonNode query)
+        throws InvalidParseOperationException, ReferentialException {
+
+        ParametersChecker.checkParameter("query is a mandatory parameter", query);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.POST, ACCESSION_REGISTER_GET_DETAIL_URL, null,
+                query, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            final Status status = Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case OK:
+                    LOGGER.debug(Response.Status.OK.getReasonPhrase());
+                    break;
+                case NOT_FOUND:
+                    LOGGER.error(Response.Status.NOT_FOUND.getReasonPhrase());
+                    throw new ReferentialException("AccessionRegister Detail Not found ");
+                default:
+                    throw new AccessionRegisterException("Unknown error: " + status.getStatusCode());
+            }
+            return JsonHandler.getFromString(response.readEntity(String.class));
         } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
