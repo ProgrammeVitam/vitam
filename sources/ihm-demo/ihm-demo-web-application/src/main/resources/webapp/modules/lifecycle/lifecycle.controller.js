@@ -73,8 +73,8 @@ angular.module('lifecycle')
     loadStaticValues.loadFromFile().then(
       function onSuccess(response) {
         var config = response.data;
-        self.columnsToDisplay = initFields(config.mandatoryFields);
-        self.customFields = initFields(config.customFields);
+        self.columnsToDisplay = initFields(config.lifeCycleMandatoryFields);
+        self.customFields = initFields(config.lifeCycleCustomFields);
       }, function onError(error) {
 
       });
