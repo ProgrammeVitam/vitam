@@ -94,17 +94,22 @@
 
 #### Elasticsearch plugins ####
 
-# TODO : à remplacer par autre chose pour ne pas partir sur internet ! (rpm packaging + package)
-- name : get HEAD plug-in for Elasticsearch
-  become_user: elasticsearch
-  command: /usr/share/elasticsearch/bin/plugin install -DproxyPort={{proxy_port}} -DproxyHost={{proxy_host}} mobz/elasticsearch-head
-  args:
-    chdir: /usr/share/elasticsearch/bin 
-    creates: /usr/share/elasticsearch/plugins/head
-  environment:
-    http_proxy: http://{{ https_reverse_proxy }}
-    https_proxy: https://{{ https_reverse_proxy }}
- 
+# OMA: remplacé par un rpm
+# - name : get HEAD plug-in for Elasticsearch
+#   become_user: elasticsearch
+#   command: /usr/share/elasticsearch/bin/plugin install -DproxyPort={{proxy_port}} -DproxyHost={{proxy_host}} mobz/elasticsearch-head
+#   args:
+#     chdir: /usr/share/elasticsearch/bin 
+#     creates: /usr/share/elasticsearch/plugins/head
+#   environment:
+#     http_proxy: http://{{ https_reverse_proxy }}
+#     https_proxy: https://{{ https_reverse_proxy }}
+
+- name: install vitam-elasticsearch-head rpm
+  yum:
+    name: vitam-elasticsearch-head
+    state: latest
+
 # OMA : deprecated as it is now a rpm package
 # - name: install unzip
 #   yum:
