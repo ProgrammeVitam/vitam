@@ -124,7 +124,7 @@ public class ProcessingIT {
 
     private static String WORFKLOW_NAME = "DefaultIngestWorkflow";
     private static String CONTAINER_NAME;
-    private static String SIP_FILE_OK_NAME = "integration/SIP.zip";
+    private static String SIP_FILE_OK_NAME = "integration/SIP-test.zip";
     private static String SIP_ARBO_COMPLEXE_FILE_OK = "integration/SIP_arbor_OK.zip";
     private static String SIP_WITHOUT_MANIFEST = "integration/SIP_no_manifest.zip";
     private static String SIP_NO_FORMAT = "integration/SIP_NO_FORMAT.zip";
