@@ -98,8 +98,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     private static final String MESSAGE_LOGBOOK_DELETE = "Succès de suppression du référentiel de règle de gestion";
     private static final String RULEID = "RuleId";
 
-    private final LogbookOperationsClient client =
-        LogbookOperationsClientFactory.getInstance().getClient();
+    private LogbookOperationsClient client;
     private static String EVENT_TYPE_CREATE = "Import du référentiel des règles de gestion";
     private static String EVENT_TYPE_DELETE = "Suppression du référentiel de règle de gestion";
     private static LogbookTypeProcess LOGBOOK_PROCESS_TYPE = LogbookTypeProcess.MASTERDATA;
@@ -137,7 +136,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         throws DatabaseConflictException, IOException, InvalidParseOperationException, ReferentialException {
         ParametersChecker.checkParameter("rulesFileStreamis a mandatory parameter", rulesFileStream);
         File csvFile = null;
-        try {
+        try (LogbookOperationsClient client2 = LogbookOperationsClientFactory.getInstance().getClient()) {
+            this.client = client2;
             csvFile = convertInputStreamToFile(rulesFileStream);
             final GUID eip = GUIDFactory.newGUID();
             final LogbookOperationParameters logbookParametersStart =
@@ -206,23 +206,25 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
 
     @Override
     public void deleteCollection() {
-        final GUID eip = GUIDFactory.newGUID();
-        final LogbookOperationParameters logbookParametersStart =
-            LogbookParametersFactory.newLogbookOperationParameters(
-                eip, EVENT_TYPE_DELETE, eip, LOGBOOK_PROCESS_TYPE, StatusCode.STARTED,
-                "Lancement de suppression du référentiel de règle de gestion ", eip);
-
-        createLogBookEntry(logbookParametersStart);
-        mongoAccess.deleteCollection(FunctionalAdminCollections.RULES);
-
-        final GUID eip1 = GUIDFactory.newGUID();
-        final LogbookOperationParameters logbookParametersEnd =
-            LogbookParametersFactory.newLogbookOperationParameters(
-                eip1, EVENT_TYPE_DELETE, eip, LOGBOOK_PROCESS_TYPE, StatusCode.OK, MESSAGE_LOGBOOK_DELETE,
-                eip1);
-
-        updateLogBookEntry(logbookParametersEnd);
-
+        try (LogbookOperationsClient client2 = LogbookOperationsClientFactory.getInstance().getClient()) {
+            this.client = client2;
+            final GUID eip = GUIDFactory.newGUID();
+            final LogbookOperationParameters logbookParametersStart =
+                LogbookParametersFactory.newLogbookOperationParameters(
+                    eip, EVENT_TYPE_DELETE, eip, LOGBOOK_PROCESS_TYPE, StatusCode.STARTED,
+                    "Lancement de suppression du référentiel de règle de gestion ", eip);
+    
+            createLogBookEntry(logbookParametersStart);
+            mongoAccess.deleteCollection(FunctionalAdminCollections.RULES);
+    
+            final GUID eip1 = GUIDFactory.newGUID();
+            final LogbookOperationParameters logbookParametersEnd =
+                LogbookParametersFactory.newLogbookOperationParameters(
+                    eip1, EVENT_TYPE_DELETE, eip, LOGBOOK_PROCESS_TYPE, StatusCode.OK, MESSAGE_LOGBOOK_DELETE,
+                    eip1);
+    
+            updateLogBookEntry(logbookParametersEnd);
+        }
     }
 
     @Override

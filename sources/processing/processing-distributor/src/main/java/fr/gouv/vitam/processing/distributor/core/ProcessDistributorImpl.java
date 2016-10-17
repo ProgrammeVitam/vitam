@@ -60,6 +60,7 @@ import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
+import fr.gouv.vitam.worker.client.WorkerClient;
 import fr.gouv.vitam.worker.client.WorkerClientConfiguration;
 import fr.gouv.vitam.worker.client.WorkerClientFactory;
 import fr.gouv.vitam.worker.common.DescriptionStep;
@@ -201,17 +202,21 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                             loadWorkerClient(WORKERS_LIST.get("defaultFamily").firstEntry().getValue());
                             // run step
                             workParams.setObjectName(objectUri.getPath());
-
-                            final List<EngineResponse> actionsResponse =
-                                WorkerClientFactory.getInstance().getClient().submitStep("requestId",
-                                    new DescriptionStep(step, (DefaultWorkerParameters) workParams));
-                            // FIXME : This is inefficient. The aggregation of results must be placed here and not in
+                            final List<EngineResponse> actionsResponse;
+                            try (WorkerClient workerClient = WorkerClientFactory.getInstance().getClient()) {
+                                actionsResponse =
+                                    workerClient.submitStep("requestId",
+                                        new DescriptionStep(step, (DefaultWorkerParameters) workParams));
+                            }
+                            // FIXME : This is inefficient. The aggregation of results must be placed here and not
+                            // in
                             // ProcessResponse
                             responses.addAll(actionsResponse);
                             // update the number of processed element
                             ProcessMonitoringImpl.getInstance().updateStep(processId, uniqueStepId, 0, true);
 
-                            final StatusCode stepStatus = processResponse.getGlobalProcessStatusCode(actionsResponse);
+                            final StatusCode stepStatus =
+                                processResponse.getGlobalProcessStatusCode(actionsResponse);
                             // if the step has been defined as Blocking and then stepStatus is KO or FATAL
                             // then break the process
                             if (step.getBehavior().equals(ProcessBehavior.BLOCKING) &&

@@ -230,15 +230,14 @@ public class WebApplicationResource {
         } else {
             requestId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
 
-            try {
+            try (final LogbookOperationsClient logbookOperationsClient =
+                    LogbookOperationsClientFactory.getInstance().getClient()) {
                 ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
-                result = JsonHandler.createObjectNode();
                 SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
                 String query = "";
                 final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
                 query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-                final LogbookOperationsClient logbookOperationsClient =
-                    LogbookOperationsClientFactory.getInstance().getClient();
+                
                 result = logbookOperationsClient.selectOperation(query);
 
                 // save result
@@ -278,12 +277,10 @@ public class WebApplicationResource {
     public Response getLogbookResultById(@PathParam("idOperation") String operationId, String options) {
 
         JsonNode result = null;
-        try {
+        try (final LogbookOperationsClient logbookOperationsClient =
+                LogbookOperationsClientFactory.getInstance().getClient()) {
             ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-            result = JsonHandler.getFromString("{}");
-            final LogbookOperationsClient logbookOperationsClient =
-                LogbookOperationsClientFactory.getInstance().getClient();
             result = logbookOperationsClient.selectOperationbyId(operationId);
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
@@ -901,9 +898,7 @@ public class WebApplicationResource {
     @Path("/stat/{id_op}")
     @Produces(MediaType.TEXT_PLAIN)
     public Response getLogbookStatistics(@PathParam("id_op") String operationId) {
-        final LogbookOperationsClient logbookOperationsClient =
-            LogbookOperationsClientFactory.getInstance().getClient();
-        try {
+        try (final LogbookOperationsClient logbookOperationsClient = LogbookOperationsClientFactory.getInstance().getClient()) {
             final JsonNode logbookOperationResult = logbookOperationsClient.selectOperationbyId(operationId);
             if (logbookOperationResult != null && logbookOperationResult.has("result")) {
                 final JsonNode logbookOperation = logbookOperationResult.get("result");

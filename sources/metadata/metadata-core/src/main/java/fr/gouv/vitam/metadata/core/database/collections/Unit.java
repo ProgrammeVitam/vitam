@@ -309,7 +309,6 @@ public class Unit extends MetadataDocument<Unit> {
         }
         LOGGER.debug("Save: {}", this);
         insert();
-        MongoDbMetadataHelper.LRU.put(getId(), this);
         return this;
     }
 
@@ -423,7 +422,6 @@ public class Unit extends MetadataDocument<Unit> {
                     new BasicDBObject(NBCHILD, nb));
                 nb = 0;
                 update(update);
-                MongoDbMetadataHelper.LRU.put(getId(), this);
             } catch (final MongoException e) {
                 LOGGER.error(EXCEPTION_FOR + update, e);
                 throw e;
@@ -549,13 +547,10 @@ public class Unit extends MetadataDocument<Unit> {
         final Map<String, Integer> map = getDepths();
         int depth = this.getInteger(MINDEPTH, GlobalDatasParser.MAXDEPTH);
         if (map != null) {
-            for (final java.util.Map.Entry<String, Integer> entry : map.entrySet()) {
-                if (entry.getValue() == 1) {
-                    final Unit parent = MongoDbMetadataHelper.LRU.get(entry.getKey());
-                    final int parentDepth = parent.getInteger(MINDEPTH) + 1;
-                    if (depth > parentDepth) {
-                        depth = parentDepth;
-                    }
+            for (final Integer integer : map.values()) {
+                final Integer type = integer;
+                if (depth > type) {
+                    depth = type;
                 }
             }
         }
@@ -572,7 +567,6 @@ public class Unit extends MetadataDocument<Unit> {
                 new BasicDBObject(NBCHILD, nb));
         nb = 0;
         update(update);
-        MongoDbMetadataHelper.LRU.put(getId(), this);
     }
 
     /**

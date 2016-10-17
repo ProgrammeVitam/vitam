@@ -126,7 +126,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private HandlerIO handlerIO;
 
     private static final String XML_EXTENSION = ".xml";
-    public static final String JSON_EXTENSION = ".json";
+    private static final String JSON_EXTENSION = ".json";
     private static final String BINARY_DATA_OBJECT = "BinaryDataObject";
     private static final String DATA_OBJECT_GROUPID = "DataObjectGroupId";
     private static final String ARCHIVE_UNIT = "ArchiveUnit";
@@ -134,8 +134,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final String DATAOBJECT_PACKAGE = "DataObjectPackage";
     private static final String FILE_INFO = "FileInfo";
     private static final String METADATA = "Metadata";
-    public static final String LIFE_CYCLE_EVENT_TYPE_PROCESS = "INGEST";
-    public static final String UNIT_LIFE_CYCLE_CREATION_EVENT_TYPE =
+    private static final String LIFE_CYCLE_EVENT_TYPE_PROCESS = "INGEST";
+    private static final String UNIT_LIFE_CYCLE_CREATION_EVENT_TYPE =
         "Check SIP – Units – Lifecycle Logbook Creation – Création du journal du cycle de vie des units";
     private static final String OG_LIFE_CYCLE_CREATION_EVENT_TYPE =
         "Check SIP – ObjectGroups – Lifecycle Logbook Creation – Création du journal du cycle de vie des groupes d’objets";
@@ -143,13 +143,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final String LOGBOOK_LF_OBJECT_EXISTS_EXCEPTION_MSG = "LifeCycle Object already exists";
     private static final String LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG = "Logbook LifeCycle resource not found";
     private static final String LOGBOOK_SERVER_INTERNAL_EXCEPTION_MSG = "Logbook Server internal error";
-    public static final String TXT_EXTENSION = ".txt";
     private static final String LEVEL = "level_";
 
     private static final String ARCHIVE_UNIT_ELEMENT_ID_ATTRIBUTE = "id";
     private static final String ARCHIVE_UNIT_REF_ID_TAG = "ArchiveUnitRefId";
-    private static final String INVALID_INGEST_TREE_EXCEPTION_MSG =
-        "INGEST_TREE invalid, can not save to temporary file";
     private static final String GRAPH_CYCLE_MSG =
         "The Archive Unit graph in the SEDA file has a cycle";
     private static final String TMP_FOLDER = "vitam" + File.separator + "temp";
@@ -616,7 +613,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 final XMLEvent event = reader.nextEvent();
                 if (event.isEndElement()) {
                     final EndElement end = event.asEndElement();
-                    if (end.getName().getLocalPart() == BINARY_DATA_OBJECT) {
+                    if (BINARY_DATA_OBJECT.equals(end.getName().getLocalPart())) {
                         writer.add(event);
                         writer.add(eventFactory.createEndDocument());
                         break;
@@ -627,13 +624,13 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     final String localPart = event.asStartElement().getName().getLocalPart();
 
                     // extract info for version DBO
-                    if (localPart == TAG_DATA_OBJECT_VERSION) {
+                    if (TAG_DATA_OBJECT_VERSION.equals(localPart)) {
                         final String version = reader.getElementText();
                         binaryDataObjectIdToVersionDataObject.put(binaryObjectId, version);
                         writer.add(eventFactory.createStartElement("", "", localPart));
                         writer.add(eventFactory.createCharacters(version));
                         writer.add(eventFactory.createEndElement("", "", localPart));
-                    } else if (localPart == DATA_OBJECT_GROUPID) {
+                    } else if (DATA_OBJECT_GROUPID.equals(localPart)) {
                         groupGuid = GUIDFactory.newGUID().toString();
                         final String groupId = reader.getElementText();
                         // Having DataObjectGroupID after a DataObjectGroupReferenceID in the XML flow .
@@ -659,7 +656,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         writer.add(eventFactory.createStartElement("", "", DATA_OBJECT_GROUPID));
                         writer.add(eventFactory.createCharacters(groupGuid));
                         writer.add(eventFactory.createEndElement("", "", DATA_OBJECT_GROUPID));
-                    } else if (localPart == SedaConstants.TAG_DATA_OBJECT_GROUP_REFERENCEID) {
+                    } else if (SedaConstants.TAG_DATA_OBJECT_GROUP_REFERENCEID.equals(localPart)) {
                         final String groupId = reader.getElementText();
                         String groupGuidTmp = GUIDFactory.newGUID().toString();
                         binaryDataObjectIdToObjectGroupId.put(binaryObjectId, groupId);
@@ -700,7 +697,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
             if (StringUtils.isBlank(binaryDataObjectIdToObjectGroupId.get(binaryObjectId))) {
                 // not have object group, must creat an technical object group
-                LOGGER.debug("BDO {} not have an GDO",binaryObjectId);
+                LOGGER.debug("BDO {} not have an GDO", binaryObjectId);
                 binaryDataObjectIdToObjectGroupId.remove(binaryObjectId);
                 postBinaryDataObjectActions(elementGuid + JSON_EXTENSION, binaryObjectId);
             }
@@ -846,7 +843,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
      */
     private void createIngestLevelStackFile(WorkspaceClient client, String containerId,
         Map<Integer, Set<String>> levelStackMap, String path) throws ProcessingException {
-        LOGGER.debug("Begin createIngestLevelStackFile/containerId: {}",containerId);
+        LOGGER.debug("Begin createIngestLevelStackFile/containerId: {}", containerId);
         ParametersChecker.checkParameter("levelStackMap is a mandatory parameter", levelStackMap);
         ParametersChecker.checkParameter("unitIdToGuid is a mandatory parameter", unitIdToGuid);
         ParametersChecker.checkParameter(WORKSPACE_MANDATORY_MSG, client);
@@ -1041,8 +1038,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     }
                 }
                 if (event.isStartElement() &&
-                    event.asStartElement().getName()
-                        .getLocalPart() == SedaConstants.TAG_DATA_OBJECT_GROUP_REFERENCEID) {
+                    SedaConstants.TAG_DATA_OBJECT_GROUP_REFERENCEID.equals(event.asStartElement().getName()
+                        .getLocalPart())) {
                     final String groupId = reader.getElementText();
                     unitIdToGroupId.put(elementID, groupId);
                     if (objectGroupIdToUnitId.get(groupId) == null) {
@@ -1066,7 +1063,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         SedaConstants.TAG_DATA_OBJECT_GROUP_REFERENCEID));
 
                 } else if (event.isStartElement() &&
-                    event.asStartElement().getName().getLocalPart() == SedaConstants.TAG_DATA_OBJECT_REFERENCEID) {
+                    SedaConstants.TAG_DATA_OBJECT_REFERENCEID.equals(event.asStartElement().getName().getLocalPart())) {
 
                     final String objRefId = reader.getElementText();
                     unitIdToGroupId.put(elementID, objRefId);

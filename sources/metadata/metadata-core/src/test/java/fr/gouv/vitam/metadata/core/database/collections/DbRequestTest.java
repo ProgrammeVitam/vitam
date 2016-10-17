@@ -812,7 +812,7 @@ public class DbRequestTest {
             .put(TITLE, VALUE_MY_TITLE + "2").put(DESCRIPTION, "Ma description2 vitam")
             .put(CREATED_DATE, "" + LocalDateUtil.now()).put(MY_INT, 10);
         final Insert insert = new Insert();
-        insert.addData(data).addQueries(exists("Title"));
+        insert.addData(data).addQueries(eq(VitamFieldsHelper.id(), parent.toString()));
         LOGGER.debug("InsertString: " + insert.getFinalInsert().toString());
         return insert.getFinalInsert();
     }

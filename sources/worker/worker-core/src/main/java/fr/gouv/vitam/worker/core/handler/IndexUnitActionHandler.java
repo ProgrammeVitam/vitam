@@ -90,14 +90,9 @@ public class IndexUnitActionHandler extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IndexUnitActionHandler.class);
     private static final String HANDLER_ID = "IndexUnit";
 
-    public static final String JSON_EXTENSION = ".json";
     private static final String ARCHIVE_UNIT = "ArchiveUnit";
     private static final String TAG_CONTENT = "Content";
     private static final String TAG_MANAGEMENT = "Management";
-    public static final String LIFE_CYCLE_EVENT_TYPE_PROCESS = "INGEST";
-    public static final String UNIT_LIFE_CYCLE_CREATION_EVENT_TYPE =
-        "Check SIP – Units – Lifecycle Logbook Creation – Création du journal du cycle de vie des units";
-    public static final String TXT_EXTENSION = ".txt";
     private static final String FILE_COULD_NOT_BE_DELETED_MSG = "File could not be deleted";
 
     private final LogbookLifeCycleUnitParameters logbookLifecycleUnitParameters = LogbookParametersFactory
@@ -212,7 +207,7 @@ public class IndexUnitActionHandler extends ActionHandler {
         String parentsList = null;
         final List<Object> archiveUnitDetails = new ArrayList<Object>();
         XMLEventReader reader = null;
-        
+
         try {
             tmpFileWriter = new FileWriter(tmpFile);
             reader = XMLInputFactory.newInstance().createXMLEventReader(input);
@@ -229,7 +224,7 @@ public class IndexUnitActionHandler extends ActionHandler {
                     if (it.hasNext() && tag != TAG_CONTENT) {
                         writer.add(eventFactory.createStartElement("", "", tag));
 
-                        if (tag == ARCHIVE_UNIT) {
+                        if (ARCHIVE_UNIT.equals(tag)) {
                             writer.add(eventFactory.createStartElement("", "", "#id"));
                             writer.add(eventFactory.createCharacters(((Attribute) it.next()).getValue()));
                             writer.add(eventFactory.createEndElement("", "", "#id"));
@@ -237,28 +232,28 @@ public class IndexUnitActionHandler extends ActionHandler {
                         eventWritable = false;
                     }
 
-                    if (tag == TAG_CONTENT) {
+                    if (TAG_CONTENT.equals(tag)) {
                         eventWritable = false;
                     }
 
-                    if (tag == SedaConstants.PREFIX_OG) {
+                    if (SedaConstants.PREFIX_OG.equals(tag)) {
                         contentWritable = true;
                     }
 
-                    if (tag == TAG_MANAGEMENT) {
+                    if (TAG_MANAGEMENT.equals(tag)) {
                         writer.add(eventFactory.createStartElement("", "", SedaConstants.PREFIX_MGT));
                         eventWritable = false;
                     }
 
-                    if (tag == IngestWorkflowConstants.UP_FIELD) {
+                    if (IngestWorkflowConstants.UP_FIELD.equals(tag)) {
                         final XMLEvent upsEvent = reader.nextEvent();
                         if (!upsEvent.isEndElement() && upsEvent.isCharacters()) {
                             parentsList = upsEvent.asCharacters().getData();
                         }
                     }
 
-                    if (tag == IngestWorkflowConstants.ROOT_TAG || tag == IngestWorkflowConstants.WORK_TAG ||
-                        tag == IngestWorkflowConstants.UP_FIELD) {
+                    if (IngestWorkflowConstants.ROOT_TAG.equals(tag) || IngestWorkflowConstants.WORK_TAG.equals(tag) ||
+                        IngestWorkflowConstants.UP_FIELD.equals(tag)) {
                         eventWritable = false;
                     }
                 }
@@ -268,17 +263,17 @@ public class IndexUnitActionHandler extends ActionHandler {
                     final String tag = endElement.getName().getLocalPart();
 
 
-                    if (tag == ARCHIVE_UNIT || tag == IngestWorkflowConstants.ROOT_TAG ||
-                        tag == IngestWorkflowConstants.WORK_TAG || tag == IngestWorkflowConstants.UP_FIELD) {
+                    if (ARCHIVE_UNIT.equals(tag) || IngestWorkflowConstants.ROOT_TAG.equals(tag) ||
+                        IngestWorkflowConstants.WORK_TAG.equals(tag) || IngestWorkflowConstants.UP_FIELD.equals(tag)) {
                         eventWritable = false;
                     }
 
-                    if (tag == "Content") {
+                    if (TAG_CONTENT.equals(tag)) {
                         eventWritable = false;
                         contentWritable = false;
                     }
 
-                    if (tag == "Management") {
+                    if (TAG_MANAGEMENT.equals(tag)) {
                         writer.add(eventFactory.createEndElement("", "", SedaConstants.PREFIX_MGT));
                         eventWritable = false;
                     }

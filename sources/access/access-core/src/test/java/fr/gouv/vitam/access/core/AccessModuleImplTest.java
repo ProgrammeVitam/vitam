@@ -63,7 +63,9 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
@@ -74,7 +76,7 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientExceptio
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({MetaDataClientFactory.class})
+@PrepareForTest({MetaDataClientFactory.class, LogbookOperationsClientFactory.class, LogbookLifeCyclesClientFactory.class})
 public class AccessModuleImplTest {
 
     private static String HOST = "http:\\localhost:";
@@ -133,6 +135,14 @@ public class AccessModuleImplTest {
         PowerMockito.when(MetaDataClientFactory.create(Matchers.anyObject())).thenReturn(metaDataClient);
         logbookLifeCycleClient = mock(LogbookLifeCyclesClient.class);
         logbookOperationClient = mock(LogbookOperationsClient.class);
+        LogbookLifeCyclesClientFactory factorylc = mock(LogbookLifeCyclesClientFactory.class);
+        LogbookOperationsClientFactory factoryop = mock(LogbookOperationsClientFactory.class);
+        PowerMockito.mockStatic(LogbookLifeCyclesClientFactory.class);
+        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(factorylc);
+        PowerMockito.when(factorylc.getLogbookLifeCyclesClient()).thenReturn(logbookLifeCycleClient);
+        PowerMockito.mockStatic(LogbookOperationsClientFactory.class);
+        PowerMockito.when(LogbookOperationsClientFactory.getInstance()).thenReturn(factoryop);
+        PowerMockito.when(factoryop.getClient()).thenReturn(logbookOperationClient);
         conf = new AccessConfiguration();
         conf.setUrlMetaData(HOST);
         accessModuleImpl = new AccessModuleImpl(conf);
