@@ -45,8 +45,11 @@ import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
 
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 
+import fr.gouv.vitam.common.CommonMediaType;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
@@ -78,26 +81,24 @@ public class IngestInternalClientRest implements IngestInternalClient {
 
     @Override
     public int status() {
-
         return client.target(serviceUrl).path(STATUS_URL).request().get().getStatus();
     }
 
     @Override
-    public Response upload(List<LogbookParameters> logbookParametersList, InputStream inputStream)
+    public Response upload(GUID guid, List<LogbookParameters> logbookParametersList, InputStream inputStream,
+        String archiveMimeType)
         throws VitamException {
-
         ParametersChecker.checkParameter("check Upload Parameter", logbookParametersList);
         final FormDataMultiPart multiPart = new FormDataMultiPart();
-
         multiPart.field("part", logbookParametersList, MediaType.APPLICATION_JSON_TYPE);
-
         if (inputStream != null) {
             multiPart.bodyPart(
-                new StreamDataBodyPart("part", inputStream, "SIP", MediaType.APPLICATION_OCTET_STREAM_TYPE));
+                new StreamDataBodyPart("part", inputStream, "SIP", CommonMediaType.valueOf(archiveMimeType)));
         }
-        // TODO Ajouter X-REQUEST-ID dans les headers pour utiliser dans IngestInternalResource
-        final Response response = client.target(serviceUrl).path(UPLOAD_URL).request()
-            .post(Entity.entity(multiPart, MediaType.MULTIPART_FORM_DATA_TYPE));
+
+        final Response response =
+            client.target(serviceUrl).path(UPLOAD_URL).request().header(GlobalDataRest.X_REQUEST_ID, guid.getId())
+                .post(Entity.entity(multiPart, MediaType.MULTIPART_FORM_DATA_TYPE));
 
         if (Status.OK.getStatusCode() == response.getStatus()) {
             LOGGER.info("SIP : " + Response.Status.OK.getReasonPhrase());

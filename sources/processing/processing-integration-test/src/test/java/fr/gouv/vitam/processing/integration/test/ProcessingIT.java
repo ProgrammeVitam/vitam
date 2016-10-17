@@ -55,6 +55,7 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
+import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
@@ -132,6 +133,8 @@ public class ProcessingIT {
     private static String WORFKLOW_NAME = "DefaultIngestWorkflow";
     private static String CONTAINER_NAME;
     private static String SIP_FILE_OK_NAME = "integration/SIP-test.zip";
+    private static String SIP_FILE_TAR_OK_NAME = "integration/SIP.tar";
+
     private static String SIP_ARBO_COMPLEXE_FILE_OK = "integration/SIP_arbor_OK.zip";
     private static String SIP_FUND_REGISTER_OK = "integration/OK-registre-fonds.zip";
     private static String SIP_WITHOUT_MANIFEST = "integration/SIP_no_manifest.zip";
@@ -164,8 +167,10 @@ public class ProcessingIT {
         CONFIG_WORKSPACE_PATH = PropertiesUtils.getResourcePath("integration/workspace.conf").toString();
         CONFIG_PROCESSING_PATH = PropertiesUtils.getResourcePath("integration/processing.conf").toString();
         CONFIG_SIEGFRIED_PATH = PropertiesUtils.getResourcePath("integration/format-identifiers.conf").toString();
-        CONFIG_FUNCTIONAL_ADMIN_PATH = PropertiesUtils.getResourcePath("integration/functional-administration.conf").toString();
-        CONFIG_FUNCTIONAL_CLIENT_PATH = PropertiesUtils.getResourcePath("integration/functional-administration-client-it.conf").toString();
+        CONFIG_FUNCTIONAL_ADMIN_PATH =
+            PropertiesUtils.getResourcePath("integration/functional-administration.conf").toString();
+        CONFIG_FUNCTIONAL_CLIENT_PATH =
+            PropertiesUtils.getResourcePath("integration/functional-administration-client-it.conf").toString();
 
         final Settings settings = Settings.settingsBuilder()
             .put("http.enabled", true)
@@ -191,11 +196,13 @@ public class ProcessingIT {
         AdminManagementClientFactory.getInstance().changeConfigurationFile(CONFIG_FUNCTIONAL_CLIENT_PATH);
         // launch metadata
         medtadataApplication = new MetaDataApplication();
-        SystemPropertyUtil.set(MetaDataApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_METADATA));
+        SystemPropertyUtil.set(MetaDataApplication.PARAMETER_JETTY_SERVER_PORT,
+            Integer.toString(PORT_SERVICE_METADATA));
         medtadataApplication.configure(CONFIG_METADATA_PATH);
 
         // launch processing
-        SystemPropertyUtil.set(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_PROCESSING));
+        SystemPropertyUtil.set(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT,
+            Integer.toString(PORT_SERVICE_PROCESSING));
         ProcessManagementApplication.startApplication(CONFIG_PROCESSING_PATH);
 
         // launch worker
@@ -204,12 +211,13 @@ public class ProcessingIT {
         wkrapplication.start();
 
         // launch workspace
-        SystemPropertyUtil.set(WorkspaceApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_WORKSPACE));
+        SystemPropertyUtil.set(WorkspaceApplication.PARAMETER_JETTY_SERVER_PORT,
+            Integer.toString(PORT_SERVICE_WORKSPACE));
         WorkspaceApplication.startApplication(CONFIG_WORKSPACE_PATH);
 
         FormatIdentifierFactory.getInstance().changeConfigurationFile(CONFIG_SIEGFRIED_PATH);
 
-        //launch functional Admin
+        // launch functional Admin
         SystemPropertyUtil.set(JETTY_FUNCTIONAL_ADMIN_PORT, Integer.toString(PORT_SERVICE_FUNCTIONAL_ADMIN));
         AdminManagementApplication.startApplication(CONFIG_FUNCTIONAL_ADMIN_PATH);
 
@@ -218,6 +226,7 @@ public class ProcessingIT {
         adminClient.importFormat(PropertiesUtils.getResourceAsStream("integration/DROID_SignatureFile_V88.xml"));
 
         processMonitoring = ProcessMonitoringImpl.getInstance();
+
         CONTAINER_NAME = GUIDFactory.newGUID().toString();
     }
 
@@ -226,6 +235,7 @@ public class ProcessingIT {
     public void testServersStatus() throws Exception {
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
+
         get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
 
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -239,24 +249,56 @@ public class ProcessingIT {
         RestAssured.port = PORT_SERVICE_WORKER;
         RestAssured.basePath = WORKER_PATH;
         get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
+
     }
 
     @Test
     public void testWorkflow() throws Exception {
 
+        final String containerName = GUIDFactory.newManifestGUID(0).getId();
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
         RestAssured.basePath = WORKSPACE_PATH;
         final InputStream zipInputStreamSipObject =
             PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
         workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
-        workspaceClient.createContainer(CONTAINER_NAME);
-        workspaceClient.unzipObject(CONTAINER_NAME, SIP_FOLDER, zipInputStreamSipObject);
+        workspaceClient.createContainer(containerName);
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
+            zipInputStreamSipObject);
         // call processing
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
         processingClient = new ProcessingManagementClient(PROCESSING_URL);
-        final String ret = processingClient.executeVitamProcess(CONTAINER_NAME, WORFKLOW_NAME);
+        String ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+        assertNotNull(ret);
+        JsonNode node = JsonHandler.getFromString(ret);
+        assertNotNull(node);
+        assertEquals("OK", node.get("status").asText());
+
+        // checkMonitoring - meaning something has been added in the monitoring tool
+        Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(node.get("processId").asText());
+        assertNotNull(map);
+    }
+
+    @Test
+    public void testWorkflowWithTarSIP() throws Exception {
+        final String containerName = GUIDFactory.newManifestGUID(0).getId();
+        // workspace client dezip SIP in workspace
+        RestAssured.port = PORT_SERVICE_WORKSPACE;
+        RestAssured.basePath = WORKSPACE_PATH;
+
+        InputStream zipInputStreamSipObject =
+            Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_FILE_TAR_OK_NAME);
+        workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
+        workspaceClient.createContainer(containerName);
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.TAR,
+            zipInputStreamSipObject);
+
+        // call processing
+        RestAssured.port = PORT_SERVICE_PROCESSING;
+        RestAssured.basePath = PROCESSING_PATH;
+        processingClient = new ProcessingManagementClient(PROCESSING_URL);
+        final String ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
         assertNotNull(ret);
         final JsonNode node = JsonHandler.getFromString(ret);
         assertNotNull(node);
@@ -279,7 +321,7 @@ public class ProcessingIT {
             PropertiesUtils.getResourceAsStream(SIP_ARBO_COMPLEXE_FILE_OK);
         workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
         workspaceClient.createContainer(containerName);
-        workspaceClient.unzipObject(containerName, SIP_FOLDER, zipInputStreamSipObject);
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
 
         // call processing
         RestAssured.port = PORT_SERVICE_PROCESSING;
@@ -305,7 +347,7 @@ public class ProcessingIT {
             PropertiesUtils.getResourceAsStream(SIP_FUND_REGISTER_OK);
         workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
         workspaceClient.createContainer(containerName);
-        workspaceClient.unzipObject(containerName, SIP_FOLDER, zipInputStreamSipObject);
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
 
         // call processing
         RestAssured.port = PORT_SERVICE_PROCESSING;
@@ -331,7 +373,7 @@ public class ProcessingIT {
             PropertiesUtils.getResourceAsStream(SIP_WITHOUT_MANIFEST);
         workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
         workspaceClient.createContainer(containerName);
-        workspaceClient.unzipObject(containerName, SIP_FOLDER, zipInputStreamSipObject);
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
 
         // call processing
         RestAssured.port = PORT_SERVICE_PROCESSING;
@@ -352,7 +394,7 @@ public class ProcessingIT {
             PropertiesUtils.getResourceAsStream(SIP_NO_FORMAT);
         workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
         workspaceClient.createContainer(containerName);
-        workspaceClient.unzipObject(containerName, SIP_FOLDER, zipInputStreamSipObject);
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
 
         // call processing
         RestAssured.port = PORT_SERVICE_PROCESSING;
@@ -382,8 +424,7 @@ public class ProcessingIT {
             PropertiesUtils.getResourceAsStream(SIP_NO_FORMAT_NO_TAG);
         workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
         workspaceClient.createContainer(containerName);
-        workspaceClient.unzipObject(containerName, SIP_FOLDER, zipInputStreamSipObject);
-
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
         // call processing
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
@@ -405,7 +446,7 @@ public class ProcessingIT {
             PropertiesUtils.getResourceAsStream(SIP_NB_OBJ_INCORRECT_IN_MANIFEST);
         workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
         workspaceClient.createContainer(containerName);
-        workspaceClient.unzipObject(containerName, SIP_FOLDER, zipInputStreamSipObject);
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
 
         // call processing
         RestAssured.port = PORT_SERVICE_PROCESSING;
@@ -427,7 +468,7 @@ public class ProcessingIT {
             PropertiesUtils.getResourceAsStream(SIP_ORPHELINS);
         workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
         workspaceClient.createContainer(containerName);
-        workspaceClient.unzipObject(containerName, SIP_FOLDER, zipInputStreamSipObject);
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
 
         // call processing
         RestAssured.port = PORT_SERVICE_PROCESSING;
@@ -449,7 +490,7 @@ public class ProcessingIT {
             PropertiesUtils.getResourceAsStream(SIP_OBJECT_SANS_GOT);
         workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
         workspaceClient.createContainer(containerName);
-        workspaceClient.unzipObject(containerName, SIP_FOLDER, zipInputStreamSipObject);
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
 
         // call processing
         RestAssured.port = PORT_SERVICE_PROCESSING;

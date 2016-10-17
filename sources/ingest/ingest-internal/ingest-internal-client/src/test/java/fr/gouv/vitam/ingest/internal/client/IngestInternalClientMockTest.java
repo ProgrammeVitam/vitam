@@ -41,6 +41,7 @@ import javax.xml.stream.XMLStreamException;
 
 import org.junit.Test;
 
+import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -77,7 +78,9 @@ public class IngestInternalClientMockTest {
     }
 
     @Test
-    public void givenMockExistsWhenPostSipThenReturnOK() throws VitamException, XMLStreamException, FileNotFoundException {
+    public void givenMockExistsWhenPostSipThenReturnOK()
+        throws VitamException, XMLStreamException, FileNotFoundException {
+
         IngestInternalClientFactory.setConfiguration(IngestInternalClientType.MOCK, null, 0);
 
         final IngestInternalClient client =
@@ -88,6 +91,7 @@ public class IngestInternalClientMockTest {
         final GUID ingestGuid = GUIDFactory.newGUID();
         final GUID conatinerGuid = GUIDFactory.newGUID();
         final LogbookOperationParameters externalOperationParameters1 =
+
             LogbookParametersFactory.newLogbookOperationParameters(
                 ingestGuid,
                 "Ingest external",
@@ -98,6 +102,7 @@ public class IngestInternalClientMockTest {
                 conatinerGuid);
 
         final LogbookOperationParameters externalOperationParameters2 =
+
             LogbookParametersFactory.newLogbookOperationParameters(
                 ingestGuid,
                 "Ingest external",
@@ -111,8 +116,9 @@ public class IngestInternalClientMockTest {
 
         inputStream =
             PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
-        final Response response = client.upload(operationList, inputStream);
+        final Response response = client.upload(conatinerGuid, operationList, inputStream, CommonMediaType.ZIP);
         assertEquals(response.getStatus(), Status.OK.getStatusCode());
+
     }
 
 }

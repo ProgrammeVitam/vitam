@@ -231,14 +231,12 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         }
         final String id = newdoc.getId();
         newdoc.remove(VitamDocument.ID);
-
         final String mongoJson = newdoc.toJson(new JsonWriterSettings(JsonMode.STRICT));
         newdoc.clear();
         // TODO test bson4jackson
         // ( https://github.com/michel-kraemer/bson4jackson)
         final DBObject dbObject = (DBObject) com.mongodb.util.JSON.parse(mongoJson);
         final String esJson = dbObject.toString();
-
         return addEntryIndex(collection, id, esJson);
     }
 

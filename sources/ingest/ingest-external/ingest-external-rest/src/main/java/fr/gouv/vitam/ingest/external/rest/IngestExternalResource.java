@@ -59,6 +59,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
      * Constructor IngestExternalResource
      *
      * @param ingestExternalConfiguration
+     * 
      */
     public IngestExternalResource(IngestExternalConfiguration ingestExternalConfiguration) {
         super(new BasicVitamStatusServiceImpl());

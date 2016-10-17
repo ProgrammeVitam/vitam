@@ -61,6 +61,7 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
@@ -148,11 +149,11 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
 
         @Path("{containerName}/folders/{folderName}")
         @PUT
-        @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+        @Consumes({MediaType.APPLICATION_OCTET_STREAM, "application/zip", "application/gzip"})
         @Produces(MediaType.APPLICATION_JSON)
-        public Response unzipObject(InputStream stream,
+        public Response uncompressObject(InputStream stream,
             @PathParam("containerName") String containerName,
-            @PathParam("folderName") String folderName) {
+            @PathParam("folderName") String folderName, @PathParam("archiveType") String archiveType) {
             return expectedResponse.put();
         }
 
@@ -309,13 +310,14 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
     @Test(expected = IllegalArgumentException.class)
     public void givenNullParamWhenUnzipSipThenRaiseAnException() throws Exception {
         stream = getInputStream("sip.zip");
-        client.unzipObject(null, FOLDER_SIP, stream);
+        client.uncompressObject(null, FOLDER_SIP, CommonMediaType.ZIP, stream);
+
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void givenEmptyParamWhenUnzipSipThenRaiseAnException() throws Exception {
         stream = getInputStream("sip.zip");
-        client.unzipObject("", FOLDER_SIP, stream);
+        client.uncompressObject("", FOLDER_SIP, CommonMediaType.ZIP, stream);
     }
 
     @Test(expected = ContentAddressableStorageServerException.class)
@@ -324,7 +326,7 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
         when(mock.headContainer()).thenReturn(Response.status(Status.OK).build());
         when(mock.headFolder()).thenReturn(Response.status(Status.NOT_FOUND).build());
         when(mock.put()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        client.unzipObject(CONTAINER_NAME, FOLDER_SIP, stream);
+        client.uncompressObject(CONTAINER_NAME, FOLDER_SIP, CommonMediaType.ZIP, stream);
     }
 
 
@@ -332,7 +334,7 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
     public void givenContainerNotFoundWhenExtractObjectThenRaiseAnException() throws Exception {
         stream = getInputStream("sip.zip");
         when(mock.headContainer()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.unzipObject(CONTAINER_NAME, FOLDER_SIP, stream);
+        client.uncompressObject(CONTAINER_NAME, FOLDER_SIP, CommonMediaType.ZIP, stream);
     }
 
     @Test(expected = ContentAddressableStorageAlreadyExistException.class)
@@ -340,7 +342,7 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
         stream = getInputStream("sip.zip");
         when(mock.headContainer()).thenReturn(Response.status(Status.OK).build());
         when(mock.headFolder()).thenReturn(Response.status(Status.OK).build());
-        client.unzipObject(CONTAINER_NAME, FOLDER_SIP, stream);
+        client.uncompressObject(CONTAINER_NAME, FOLDER_SIP, CommonMediaType.ZIP, stream);
     }
 
     @Test
@@ -349,8 +351,7 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
         when(mock.headContainer()).thenReturn(Response.status(Status.OK).build());
         when(mock.headFolder()).thenReturn(Response.status(Status.NOT_FOUND).build());
         when(mock.put()).thenReturn(Response.status(Status.CREATED).build());
-        client.unzipObject(CONTAINER_NAME, FOLDER_SIP, stream);
-        assertTrue(true);
+        client.uncompressObject(CONTAINER_NAME, FOLDER_SIP, CommonMediaType.ZIP, stream);
     }
 
 

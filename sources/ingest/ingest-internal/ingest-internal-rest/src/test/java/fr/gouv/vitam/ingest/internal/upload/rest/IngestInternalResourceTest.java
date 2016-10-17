@@ -54,6 +54,7 @@ import org.mockito.Mockito;
 
 import com.jayway.restassured.RestAssured;
 
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -73,8 +74,8 @@ import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingInternalServerException;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageZipException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 
 public class IngestInternalResourceTest {
@@ -83,7 +84,7 @@ public class IngestInternalResourceTest {
     private static final String REST_URI = "/ingest/v1";
     private static final String STATUS_URI = "/status";
     private static final String UPLOAD_URI = "/upload";
-
+    private GUID ingestGuid;
     private static VitamServer vitamServer;
     private static int port;
     private static JunitHelper junitHelper;
@@ -129,7 +130,7 @@ public class IngestInternalResourceTest {
     @Before
     public void setUp() throws Exception {
 
-        final GUID ingestGuid = GUIDFactory.newGUID();
+        ingestGuid = GUIDFactory.newManifestGUID(0);
         final GUID conatinerGuid = GUIDFactory.newGUID();
         final LogbookOperationParameters externalOperationParameters1 =
             LogbookParametersFactory.newLogbookOperationParameters(
@@ -193,10 +194,12 @@ public class IngestInternalResourceTest {
     public void givenAllServicesAvailableAndNoVirusWhenUploadSipAsStreamThenReturnOK() throws Exception {
         reset(workspaceClient);
         reset(processingClient);
-        Mockito.doReturn(false).when(workspaceClient).isExistingContainer(Matchers.anyObject());
-        Mockito.doNothing().when(workspaceClient).createContainer(Matchers.anyObject());
-        Mockito.doNothing().when(workspaceClient).unzipObject(Matchers.anyObject(), Matchers.anyObject(),
-            Matchers.anyObject());
+
+        Mockito.doReturn(false).when(workspaceClient).isExistingContainer(Mockito.anyObject());
+        Mockito.doNothing().when(workspaceClient).createContainer(Mockito.anyObject());
+        Mockito.doNothing().when(workspaceClient).uncompressObject(Mockito.anyObject(), Mockito.anyObject(),
+            Mockito.anyObject(),
+            Mockito.anyObject());
 
         Mockito.doReturn("OK").when(processingClient).executeVitamProcess(Matchers.anyObject(),
             Matchers.anyObject());
@@ -204,7 +207,7 @@ public class IngestInternalResourceTest {
         final InputStream inputStream =
             PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
 
-        RestAssured.given()
+        RestAssured.given().header(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId())
             .multiPart("part", operationList, MediaType.APPLICATION_JSON)
             .multiPart("part", "SIP_bordereau_avec_objet_OK", inputStream)
             .then().statusCode(Status.OK.getStatusCode())
@@ -230,8 +233,8 @@ public class IngestInternalResourceTest {
         throws Exception {
         reset(workspaceClient);
         reset(processingClient);
-        Mockito.doThrow(new ContentAddressableStorageZipException("Test")).when(workspaceClient)
-            .unzipObject(Matchers.anyString(), Matchers.anyString(), Matchers.anyObject());
+        Mockito.doThrow(new ContentAddressableStorageCompressedFileException("Test")).when(workspaceClient)
+            .uncompressObject(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyObject());
 
         Mockito.doReturn("OK").when(processingClient).executeVitamProcess(Matchers.anyObject(),
             Matchers.anyObject());
@@ -253,7 +256,7 @@ public class IngestInternalResourceTest {
         reset(workspaceClient);
         reset(processingClient);
         Mockito.doThrow(new ContentAddressableStorageServerException("Test")).when(workspaceClient)
-            .unzipObject(Matchers.anyObject(), Matchers.anyObject(), Matchers.anyObject());
+            .uncompressObject(Matchers.anyObject(), Matchers.anyObject(), Matchers.anyObject(), Matchers.anyObject());
 
         final InputStream inputStream =
             PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
@@ -346,17 +349,19 @@ public class IngestInternalResourceTest {
     public void givenAllServicesAvailableAndVirusWhenUploadSipAsStreamThenReturnOK() throws Exception {
         reset(workspaceClient);
         reset(processingClient);
-        Mockito.doReturn(false).when(workspaceClient).isExistingContainer(Matchers.anyObject());
-        Mockito.doNothing().when(workspaceClient).createContainer(Matchers.anyObject());
-        Mockito.doNothing().when(workspaceClient).unzipObject(Matchers.anyObject(), Matchers.anyObject(),
-            Matchers.anyObject());
+
+        Mockito.doReturn(false).when(workspaceClient).isExistingContainer(Mockito.anyObject());
+        Mockito.doNothing().when(workspaceClient).createContainer(Mockito.anyObject());
+        Mockito.doNothing().when(workspaceClient).uncompressObject(Mockito.anyObject(), Mockito.anyObject(),
+            Mockito.anyObject(),
+            Mockito.anyObject());
 
         Mockito.doReturn("OK").when(processingClient).executeVitamProcess(Matchers.anyObject(),
             Matchers.anyObject());
 
         final InputStream inputStream =
             PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
-        RestAssured.given()
+        RestAssured.given().header(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId())
             .multiPart("part", operationList, MediaType.APPLICATION_JSON)
             .multiPart("part", "SIP_bordereau_avec_objet_OK", inputStream)
             .then().statusCode(Status.OK.getStatusCode())

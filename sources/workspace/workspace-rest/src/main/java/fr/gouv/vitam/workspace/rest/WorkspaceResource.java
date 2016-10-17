@@ -42,6 +42,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -51,6 +52,7 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -62,9 +64,9 @@ import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
 import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageZipException;
 import fr.gouv.vitam.workspace.api.model.ContainerInformation;
 import fr.gouv.vitam.workspace.common.Entry;
 import fr.gouv.vitam.workspace.common.ErrorMessage;
@@ -415,20 +417,21 @@ public class WorkspaceResource extends ApplicationStatusResource {
     }
 
     /**
-     * unzip a sip into the workspace
+     * uncompress a sip into the workspace
      *
      * @param stream data input stream
      * @param containerName name of container
      * @param folderName name of folder
+     * @param archiveType
      * @return Response
      */
     @Path("containers/{containerName}/folders/{folderName}")
     @PUT
-    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Consumes({CommonMediaType.ZIP, CommonMediaType.GZIP, CommonMediaType.TAR})
     @Produces(MediaType.APPLICATION_JSON)
-    public Response unzipObject(InputStream stream,
+    public Response uncompressObject(InputStream stream,
         @PathParam("containerName") String containerName,
-        @PathParam("folderName") String folderName) {
+        @PathParam("folderName") String folderName, @HeaderParam(HttpHeaders.CONTENT_TYPE) String archiveType) {
 
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
@@ -439,14 +442,14 @@ public class WorkspaceResource extends ApplicationStatusResource {
         }
 
         try {
-            workspace.unzipObject(containerName, folderName, stream);
+            workspace.uncompressObject(containerName, folderName, archiveType, stream);
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(e);
             return Response.status(Status.NOT_FOUND).entity(containerName).build();
         } catch (final ContentAddressableStorageAlreadyExistException e) {
             LOGGER.error(e);
             return Response.status(Status.CONFLICT).entity(containerName).build();
-        } catch (final ContentAddressableStorageZipException e) {
+        } catch (final ContentAddressableStorageCompressedFileException e) {
             LOGGER.error(e);
             final Status status = Status.BAD_REQUEST;
             // TODO : For now it is generic code "0000" since vitam error code have not been defined

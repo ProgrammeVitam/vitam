@@ -24,34 +24,8 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.workspace.api.exception;
-
 /**
- * Thrown when there is an error on a zip file resource (format, etc).
+ * Provides a unified API and factories for dealing with archives in different formats.
+ *
  */
-public class ContentAddressableStorageZipException extends ContentAddressableStorageException {
-    private static final long serialVersionUID = -7976465493734475323L;
-
-    /**
-     * @param message as String message to associate with the exception
-     */
-    public ContentAddressableStorageZipException(String message) {
-        super(message);
-    }
-
-    /**
-     * @param cause as String to associate with the exception
-     */
-    public ContentAddressableStorageZipException(Throwable cause) {
-        super(cause);
-    }
-
-    /**
-     * @param message : message to associate with the exception
-     * @param cause : cause to associate with the exception
-     */
-    public ContentAddressableStorageZipException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-}
+package fr.gouv.vitam.workspace.common.compress;

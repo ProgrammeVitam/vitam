@@ -34,10 +34,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageZipException;
 import fr.gouv.vitam.workspace.api.model.ContainerInformation;
 
 /**
@@ -213,19 +213,19 @@ public interface ContentAddressableStorage {
      *
      * @param containerName : the container name (will be Guid created in ingest module)
      * @param folderName : the folder name
+     * @param archiveType : the archive type (zip, tar, tar.gz, tar.bz2)
      * @param inputStreamObject : SIP input stream
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located
      * @throws ContentAddressableStorageAlreadyExistException Thrown when folder exists
      * @throws ContentAddressableStorageServerException Thrown when internal server error happens
      * @throws ContentAddressableStorageException Thrown when get action failed due some other failure
-     * @throws ContentAddressableStorageZipException Thrown when the file is not a zip or an empty zip
+     * @throws ContentAddressableStorageCompressedFileException Thrown when the file is not a zip or an empty zip
      */
-    public void unzipObject(String containerName, String folderName, InputStream inputStreamObject)
+    public void uncompressObject(String containerName, String folderName, String archiveType,
+        InputStream inputStreamObject)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageAlreadyExistException,
-        ContentAddressableStorageServerException, ContentAddressableStorageZipException,
+        ContentAddressableStorageServerException, ContentAddressableStorageCompressedFileException,
         ContentAddressableStorageException;
-
-
 
     /**
      * compute Object Digest using a defined algorithm
@@ -266,4 +266,6 @@ public interface ContentAddressableStorage {
      */
     public JsonNode getObjectInformation(String containerName, String objectName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
+
+
 }

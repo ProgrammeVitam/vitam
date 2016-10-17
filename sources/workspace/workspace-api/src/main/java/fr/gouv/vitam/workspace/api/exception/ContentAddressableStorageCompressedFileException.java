@@ -24,50 +24,34 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-
-package fr.gouv.vitam.ingest.internal.client;
-
-import java.io.InputStream;
-import java.util.List;
-
-import javax.ws.rs.core.Response;
-import javax.xml.stream.XMLStreamException;
-
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.guid.GUID;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
+package fr.gouv.vitam.workspace.api.exception;
 
 /**
- * Ingest Internal client interface
+ * Thrown when there is an error on a Compressed file (format, etc).
  */
-
-public interface IngestInternalClient {
-
-
-    /**
-     * Get the status from the service
-     *
-     * @return http code
-     */
-    int status();
+public class ContentAddressableStorageCompressedFileException extends ContentAddressableStorageException {
+    private static final long serialVersionUID = -7976465493734475323L;
 
     /**
-     * 
-     * Upload compressed SIP as stream
-     * 
-     * @param guid
-     * @param archiveType is a format (mime type) of SIP (should be zip ,tar, tar.gz or tar.bz2)
-     * @param inputStream SIP
-     * @param logbookParametersList list of log book parameters {@link LogbookParameters}
-     * @throws XMLStreamException
-     * @throws VitamException if stream is null
-     * @return Response {@link Response}
-     * 
+     * @param message as String message to associate with the exception
      */
-    Response upload(GUID guid, List<LogbookParameters> logbookParametersList, InputStream inputStream,
-        String archiveType)
-        throws VitamException, XMLStreamException;
+    public ContentAddressableStorageCompressedFileException(String message) {
+        super(message);
+    }
 
+    /**
+     * @param cause as String to associate with the exception
+     */
+    public ContentAddressableStorageCompressedFileException(Throwable cause) {
+        super(cause);
+    }
 
+    /**
+     * @param message : message to associate with the exception
+     * @param cause : cause to associate with the exception
+     */
+    public ContentAddressableStorageCompressedFileException(String message, Throwable cause) {
+        super(message, cause);
+    }
 
 }

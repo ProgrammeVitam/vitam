@@ -28,14 +28,24 @@ package fr.gouv.vitam.ingest.external.core;
 
 import java.io.File;
 import java.io.InputStream;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.core.Response;
 import javax.xml.stream.XMLStreamException;
 
+import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.format.identification.FormatIdentifier;
+import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
+import fr.gouv.vitam.common.format.identification.exception.FileFormatNotFoundException;
+import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierBadRequestException;
+import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierFactoryException;
+import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierNotFoundException;
+import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierTechnicalException;
+import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -67,17 +77,31 @@ public class IngestExternalImpl implements IngestExternal {
     private static final int STATUS_ANTIVIRUS_WARNING = 1;
     private static final int STATUS_ANTIVIRUS_OK = 0;
     private static final String INGEST_EXT = "Contrôle sanitaire SIP";
+    private static final String EVENT_DETECT_FORMAT = "Contrôle du format du SIP";
+    private static final String OUTCOME_DETAIL_MESSAGE_START_DETECT_FORMAT = "Début du contrôle de format du SIP";
+    private static final String OUTCOME_DETAIL_MESSAGE_DETECT_FORMAT_OK = "Format du SIP OK";
+    private static final String OUTCOME_DETAIL_MESSAGE_DETECT_FORMAT_KO = "Format du SIP non conforme :";
+    private static final String FORMAT_IDENTIFIER_ID = "siegfried-local";
+    private static final String GETTING_FORMAT_IDENTIFIER_FATAL =
+        "L'outil d'analyse de format de fichier n'a pu être initialisé";
+    private static final String GETTING_FORMAT_IDENTIFIER_KO =
+        "Format n'existe pas";
+
+    public static final String PRONOM_NAMESPACE = "pronom";
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalImpl.class);
     private final IngestExternalConfiguration config;
     private static final int DEFAULT_TENANT = 0;
+    private FormatIdentifier formatIdentifier;
 
     /**
-     * Constructor IngestExternalImpl with parameter IngestExternalConfiguration
+     * Constructor IngestExternalImpl with parameter IngestExternalConfi guration
      *
      * @param config
      */
     public IngestExternalImpl(IngestExternalConfiguration config) {
         this.config = config;
+
     }
 
     @Override
@@ -125,7 +149,7 @@ public class IngestExternalImpl implements IngestExternal {
 
             final String filePath = config.getPath() + "/" + containerName.getId() + "/" + objectName.getId();
             File file = new File(filePath);
-            if (! file.canRead()) {
+            if (!file.canRead()) {
                 LOGGER.error("Can not read file");
                 throw new IngestExternalException("Can not read file");
             }
@@ -153,6 +177,8 @@ public class IngestExternalImpl implements IngestExternal {
 
             InputStream inputStream = null;
             boolean isFileInfected = false;
+            String mimeType = CommonMediaType.ZIP;
+            boolean isSupportedMedia = false;
 
             // TODO: add fileName to KO_VIRUS string. Cf. todo in IngestExternalResource
             switch (antiVirusResult) {
@@ -178,21 +204,102 @@ public class IngestExternalImpl implements IngestExternal {
                     isFileInfected = true;
             }
 
+            logbookParametersList.add(endParameters);
+
+            IngestInternalClient client = IngestInternalClientFactory.getInstance().getIngestInternalClient();
+
             if (!isFileInfected) {
+                LogbookParameters startedSiegFriedParameters = LogbookParametersFactory.newLogbookOperationParameters(
+                    ingestGuid,
+                    EVENT_DETECT_FORMAT,
+                    containerName,
+                    LogbookTypeProcess.INGEST,
+                    StatusCode.STARTED,
+                    OUTCOME_DETAIL_MESSAGE_START_DETECT_FORMAT,
+                    containerName);
+                logbookParametersList.add(startedSiegFriedParameters);
+
+
+                LogbookParameters endSiegFriedParameters = LogbookParametersFactory.newLogbookOperationParameters(
+                    ingestGuid,
+                    EVENT_DETECT_FORMAT,
+                    containerName,
+                    LogbookTypeProcess.INGEST,
+                    StatusCode.OK,
+                    OUTCOME_DETAIL_MESSAGE_DETECT_FORMAT_OK,
+                    containerName);
+
                 try {
-                    inputStream = workspaceFileSystem.getObject(containerName.getId(), objectName.getId());
-                } catch (final ContentAddressableStorageException e) {
-                    LOGGER.error(e.getMessage());
-                    throw new IngestExternalException(e.getMessage(), e);
+                    LOGGER.debug("Begin siegFried format identification");
+                    // instantiate SiegFried
+                    formatIdentifier =
+                        FormatIdentifierFactory.getInstance().getFormatIdentifierFor(FORMAT_IDENTIFIER_ID);
+                    // call siegFried
+                    List<FormatIdentifierResponse> formats =
+                        formatIdentifier.analysePath(Paths.get(containerName.getId() + "/" + objectName.getId()));
+                    FormatIdentifierResponse format = getFirstPronomFormat(formats);
+
+                    if (format == null) {
+                        endSiegFriedParameters.setStatus(StatusCode.KO);
+                        endSiegFriedParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                            GETTING_FORMAT_IDENTIFIER_KO);
+                    } else {
+                        LOGGER.debug("SIP format :" + format.getMimetype());
+                        if (CommonMediaType.isSupportedFormat(format.getMimetype())) {
+                            mimeType = format.getMimetype();
+                            isSupportedMedia = true;
+                        } else {
+                            endSiegFriedParameters.setStatus(StatusCode.KO);
+                            endSiegFriedParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                                OUTCOME_DETAIL_MESSAGE_DETECT_FORMAT_KO + format.getMimetype());
+                        }
+                    }
+
+
+                } catch (FormatIdentifierNotFoundException e) {
+                    LOGGER.error(e);
+                    endSiegFriedParameters.setStatus(StatusCode.FATAL);
+                    endSiegFriedParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                        GETTING_FORMAT_IDENTIFIER_FATAL);
+
+                } catch (FormatIdentifierFactoryException e) {
+                    LOGGER.error(e);
+                    endSiegFriedParameters.setStatus(StatusCode.FATAL);
+                    endSiegFriedParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                        GETTING_FORMAT_IDENTIFIER_FATAL);
+
+                } catch (FormatIdentifierTechnicalException e) {
+                    LOGGER.error(e);
+                    endSiegFriedParameters.setStatus(StatusCode.FATAL);
+                    endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                        GETTING_FORMAT_IDENTIFIER_FATAL);
+                } catch (FileFormatNotFoundException e) {
+                    LOGGER.error(e);
+                    endSiegFriedParameters.setStatus(StatusCode.FATAL);
+                    endSiegFriedParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                        GETTING_FORMAT_IDENTIFIER_FATAL);
+                } catch (FormatIdentifierBadRequestException e) {
+                    LOGGER.error(e);
+                    endSiegFriedParameters.setStatus(StatusCode.FATAL);
+                    endSiegFriedParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                        GETTING_FORMAT_IDENTIFIER_FATAL);
+                }
+                logbookParametersList.add(endSiegFriedParameters);
+                if (isSupportedMedia) {
+                    try {
+                        inputStream = workspaceFileSystem.getObject(containerName.getId(), objectName.getId());
+                    } catch (final ContentAddressableStorageException e) {
+                        LOGGER.error(e.getMessage());
+                        throw new IngestExternalException(e.getMessage(), e);
+                    }
                 }
             }
-
-            logbookParametersList.add(endParameters);
-            final IngestInternalClient client = IngestInternalClientFactory.getInstance().getIngestInternalClient();
+            final IngestInternalClient ingestClient =
+                IngestInternalClientFactory.getInstance().getIngestInternalClient();
 
             try {
                 // TODO Response async
-                responseResult = client.upload(logbookParametersList, inputStream);
+                responseResult = ingestClient.upload(ingestGuid, logbookParametersList, inputStream, mimeType);
                 if (responseResult.getStatus() >= 400) {
                     throw new IngestExternalException("Ingest Internal Exception");
                 }
@@ -214,5 +321,20 @@ public class IngestExternalImpl implements IngestExternal {
         }
 
         return responseResult;
+    }
+
+    /**
+     * Retrieve the first corresponding file format from pronom referential
+     *
+     * @param formats formats list to analyze
+     * @return the first pronom file format or null if not found
+     */
+    private FormatIdentifierResponse getFirstPronomFormat(List<FormatIdentifierResponse> formats) {
+        for (FormatIdentifierResponse format : formats) {
+            if (PRONOM_NAMESPACE.equals(format.getMatchedNamespace())) {
+                return format;
+            }
+        }
+        return null;
     }
 }

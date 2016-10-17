@@ -41,15 +41,17 @@ import fr.gouv.vitam.common.exception.VitamException;
 public interface UploadService {
 
     /**
-     * Upload service a received SIP from a SIA
+     * Upload compressed SIP as Stream, will be uncompressed in workspace. <br>
+     * 
+     * @since 0.9.0 : support zip , tar and tar.gz archive format
      *
-     * @param partList uploadedInputStream
-     * @return Response
-     * @throws VitamException, if inputstream is null
+     * @param partList
+     * @param xRequestId
+     * @return Response {@link Response}
+     * @throws VitamException if inputstream is null
      * @throws XMLStreamException
      */
-    // TODO commentaire incorrect
-    public Response uploadSipAsStream(List<FormDataBodyPart> partList)
+    public Response uploadSipAsStream(String xRequestId, List<FormDataBodyPart> partList)
         throws VitamException, XMLStreamException;
 
 
