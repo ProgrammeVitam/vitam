@@ -33,6 +33,7 @@ import static com.mongodb.client.model.Accumulators.addToSet;
 import static com.mongodb.client.model.Aggregates.group;
 import static com.mongodb.client.model.Aggregates.match;
 import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.gte;
 import static com.mongodb.client.model.Filters.in;
 import static com.mongodb.client.model.Filters.lte;
@@ -793,6 +794,7 @@ public class DbRequest {
                 final UpdateResult result = MongoDbMetadataHelper.update(MetadataCollections.C_UNIT,
                     roots, update, last.getCurrentIds().size());
                 last.setNbResult(result.getModifiedCount());
+                indexFieldsUpdated(last);
                 return last;
             }
             // OBJECTGROUPS:
@@ -807,6 +809,29 @@ public class DbRequest {
         } catch (final Exception e) {
             throw new MetaDataExecutionException("Update concern", e);
         }
+    }
+
+    /**
+     * indexFieldsUpdated : Update index related to Fields updated
+     * 
+     * @param last : contains the Result to be indexed
+     * 
+     * @throws Exception
+     */
+    private void indexFieldsUpdated(Result last) throws Exception {
+        final Bson finalQuery;
+        if (last.getCurrentIds().size() == 1) {
+            finalQuery = eq(Unit.ID, last.getCurrentIds().iterator().next());
+        } else {
+            finalQuery = in(Unit.ID, last.getCurrentIds());
+        }
+        @SuppressWarnings("unchecked")
+        final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper
+            .select(MetadataCollections.C_UNIT, finalQuery, null);
+        try (final MongoCursor<Unit> cursor = iterable.iterator()) {
+            MetadataCollections.C_UNIT.getEsClient().updateBulkUnitsEntriesIndexes(cursor);
+        }
+
     }
 
     /**
@@ -850,7 +875,7 @@ public class DbRequest {
                 if (!notFound.isEmpty()) {
                     // FIXME some Junit failed on this
                     LOGGER.error("Cannot find parent: " + notFound);
-                    //throw new MetaDataNotFoundException("Cannot find Parent: " + notFound);
+                    // throw new MetaDataNotFoundException("Cannot find Parent: " + notFound);
                 }
                 last.clear();
                 last.addId(unit.getId());
@@ -886,7 +911,7 @@ public class DbRequest {
             if (!notFound.isEmpty()) {
                 // FIXME some Junit failed on this
                 LOGGER.error("Cannot find parent: " + notFound);
-                //throw new MetaDataNotFoundException("Cannot find Parent: " + notFound);
+                // throw new MetaDataNotFoundException("Cannot find Parent: " + notFound);
             }
             last.clear();
             last.addId(og.getId());

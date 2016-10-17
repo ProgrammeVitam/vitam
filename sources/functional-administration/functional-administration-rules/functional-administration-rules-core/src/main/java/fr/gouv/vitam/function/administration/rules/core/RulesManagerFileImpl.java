@@ -95,7 +95,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
 
     private static final String MESSAGE_LOGBOOK_IMPORT = "Référentiel des règles de gestion importé avec succès ";
     private static final String MESSAGE_LOGBOOK_IMPORT_ERROR = "Echec de l'import du référentiel de règle de gestion";
-    private static final String MESSAGE_LOGBOOK_DELETE = "Succès de suppression du référentiel de règle de gestion";
+    private static final String MESSAGE_LOGBOOK_DELETE = "Référentiel des règles de gestion purgé avec succès";
     private static final String RULEID = "RuleId";
 
     private LogbookOperationsClient client;
@@ -208,22 +208,24 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     public void deleteCollection() {
         try (LogbookOperationsClient client2 = LogbookOperationsClientFactory.getInstance().getClient()) {
             this.client = client2;
+
             final GUID eip = GUIDFactory.newGUID();
             final LogbookOperationParameters logbookParametersStart =
                 LogbookParametersFactory.newLogbookOperationParameters(
                     eip, EVENT_TYPE_DELETE, eip, LOGBOOK_PROCESS_TYPE, StatusCode.STARTED,
-                    "Lancement de suppression du référentiel de règle de gestion ", eip);
-    
+                    "Lancement de la purge du référentiel des règles de gestion ", eip);
+
             createLogBookEntry(logbookParametersStart);
             mongoAccess.deleteCollection(FunctionalAdminCollections.RULES);
-    
+
             final GUID eip1 = GUIDFactory.newGUID();
             final LogbookOperationParameters logbookParametersEnd =
                 LogbookParametersFactory.newLogbookOperationParameters(
                     eip1, EVENT_TYPE_DELETE, eip, LOGBOOK_PROCESS_TYPE, StatusCode.OK, MESSAGE_LOGBOOK_DELETE,
                     eip1);
-    
+
             updateLogBookEntry(logbookParametersEnd);
+
         }
     }
 

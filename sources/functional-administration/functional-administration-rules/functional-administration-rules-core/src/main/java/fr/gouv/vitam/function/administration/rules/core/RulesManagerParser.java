@@ -58,6 +58,7 @@ public class RulesManagerParser {
     }
 
     /**
+     * readObjectsFromCsvWriteAsArrayNode
      *
      * @param fileToParse
      * @return
