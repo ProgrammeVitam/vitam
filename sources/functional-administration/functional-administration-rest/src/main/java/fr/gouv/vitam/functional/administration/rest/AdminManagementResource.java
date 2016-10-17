@@ -61,6 +61,8 @@ import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
 import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.function.administration.rules.core.RulesManagerFileImpl;
+import fr.gouv.vitam.functional.administration.accession.register.core.ReferentialAccessionRegisterImpl;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
@@ -77,6 +79,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementResource.class);
     private final ReferentialFormatFileImpl formatManagement;
     private final RulesManagerFileImpl rulesFileManagement;
+    private ReferentialAccessionRegisterImpl accessionRegisterManagement;
 
     /**
      * Constructor
@@ -87,6 +90,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         super(new BasicVitamStatusServiceImpl());
         formatManagement = new ReferentialFormatFileImpl(configuration);
         rulesFileManagement = new RulesManagerFileImpl(configuration);
+        accessionRegisterManagement = new ReferentialAccessionRegisterImpl(configuration);
         LOGGER.debug("init Admin Management Resource server");
     }
 
@@ -383,6 +387,25 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
         return Response.status(Status.OK).entity(JsonHandler.getFromString(fileRulesListToJsonString(filerulesList)))
             .build();
+    }
+    
+    /**
+     * @param AccessionRegisterDetail object 
+     * @return Response jersey response
+     */
+    @Path("accession-register/create")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response createAccessionRegister(AccessionRegisterDetail accessionRegister) {
+        ParametersChecker.checkParameter("Accession Register is a mandatory parameter", accessionRegister);
+        try {
+            accessionRegisterManagement.createOrUpdateAccessionRegister(accessionRegister);
+        } catch (ReferentialException e) {
+            LOGGER.error(e.getMessage());
+            return Response.status(Status.PRECONDITION_FAILED).entity(Status.PRECONDITION_FAILED).build();
+        }
+        return Response.status(Status.CREATED).build();
     }
 
     private String fileRulesListToJsonString(List<FileRules> rulesList)

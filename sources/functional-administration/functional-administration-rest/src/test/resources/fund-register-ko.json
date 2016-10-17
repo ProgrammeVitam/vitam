@@ -1,0 +1,14 @@
+{
+	""UniqueIdentifier"": "UniqueIdentifier",
+	"OriginatingAgency": "OriginatingAgency",
+	"SubmissionAgency": "SubmissionAgency",
+	"StartDate": "StartDate",
+	"EndDate": "EndDate",
+	"LastUpdate": "LastUpdate",
+	"TotalUnits": "TotalUnits",
+	"TotalObjectGroups": "TotalObjectGroups",
+	"TotalObjects": "TotalObjects",
+	"ObjectSize": "ObjectSize",
+	"IdOperation": "IdOperation",
+	"Status": "Status"
+}

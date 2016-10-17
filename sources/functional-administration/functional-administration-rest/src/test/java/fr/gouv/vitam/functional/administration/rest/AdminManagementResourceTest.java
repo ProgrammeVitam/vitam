@@ -31,9 +31,7 @@ import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.with;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -47,8 +45,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
@@ -71,6 +67,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
 
@@ -99,6 +96,8 @@ public class AdminManagementResourceTest {
     private static final String RULES_ID_URI = "/{id_rule}";
 
     private static final String GET_DOCUMENT_RULES_URI = "/rules/document";
+    
+    private static final String CREATE_FUND_REGISTER_URI = "/accession-register/create";
 
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
@@ -106,15 +105,10 @@ public class AdminManagementResourceTest {
     static String DATABASE_NAME = "vitam-test";
     private static String DATABASE_HOST = "localhost";
 
-    Select select = new Select();
-
-    private static VitamServer vitamServer;
     private InputStream stream;
-    private AdminManagementApplication adminApplication;
     private static JunitHelper junitHelper;
     private static int serverPort;
     private static int databasePort;
-    private static AdminManagementConfiguration adminManegement;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -208,6 +202,20 @@ public class AdminManagementResourceTest {
             .when().post(IMPORT_FORMAT_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
+    
+    @Test
+    public void createAccessionRegister() throws Exception {
+        stream = PropertiesUtils.getResourceAsStream("accession-register.json");
+        AccessionRegisterDetail register = JsonHandler.getFromInputStream(stream, AccessionRegisterDetail.class);
+        given().contentType(ContentType.JSON).body(register)
+            .when().post(CREATE_FUND_REGISTER_URI)
+            .then().statusCode(Status.CREATED.getStatusCode());
+        register.setTotalObjects(null);
+        
+        given().contentType(ContentType.JSON).body(register)
+        .when().post(CREATE_FUND_REGISTER_URI)
+        .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
 
     @Test
     public void deletePronom() {
@@ -217,7 +225,7 @@ public class AdminManagementResourceTest {
     }
 
     @Test
-    public void getFileFormatByID() throws InvalidCreateOperationException, InvalidParseOperationException, FileNotFoundException {
+    public void getFileFormatByID() throws Exception {
         stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
         final Select select = new Select();
         select.setQuery(eq("PUID", "x-fmt/2"));
@@ -244,7 +252,7 @@ public class AdminManagementResourceTest {
 
     @Test
     public void givenFileFormatByIDWhenNotFoundThenThrowReferentialException()
-        throws InvalidCreateOperationException, InvalidParseOperationException, FileNotFoundException {
+        throws Exception {
         stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
         final Select select = new Select();
         select.setQuery(eq("PUID", "x-fmt/2"));
@@ -270,7 +278,7 @@ public class AdminManagementResourceTest {
 
 
     @Test
-    public void getDocument() throws InvalidCreateOperationException, FileNotFoundException {
+    public void getDocument() throws Exception {
         stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
         final Select select = new Select();
         select.setQuery(eq("PUID", "x-fmt/2"));
@@ -311,7 +319,7 @@ public class AdminManagementResourceTest {
      * @throws FileNotFoundException ***************************************************/
     @Test
     @Ignore
-    public void givenAWellFormedCSVInputstreamCheckThenReturnOK() throws FileNotFoundException {
+    public void givenAWellFormedCSVInputstreamCheckThenReturnOK() throws Exception {
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         given().contentType(ContentType.BINARY).body(stream)
             .when().post(CHECK_RULES_URI)
@@ -327,7 +335,7 @@ public class AdminManagementResourceTest {
     }
 
     @Test
-    public void insertRulesFile() throws FileNotFoundException {
+    public void insertRulesFile() throws Exception {
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         given().contentType(ContentType.BINARY).body(stream)
             .when().post(IMPORT_RULES_URI)
@@ -347,7 +355,7 @@ public class AdminManagementResourceTest {
     }
 
     @Test
-    public void getRuleByID() throws InvalidCreateOperationException, InvalidParseOperationException, FileNotFoundException {
+    public void getRuleByID() throws Exception {
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         final Select select = new Select();
         select.setQuery(eq("RuleId", "APP-00001"));
@@ -374,7 +382,7 @@ public class AdminManagementResourceTest {
 
     @Test
     public void givenFakeRuleByIDTheReturnNotFound()
-        throws InvalidCreateOperationException, InvalidParseOperationException, FileNotFoundException {
+        throws Exception {
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         final Select select = new Select();
         select.setQuery(eq("RuleId", "APP-00001"));

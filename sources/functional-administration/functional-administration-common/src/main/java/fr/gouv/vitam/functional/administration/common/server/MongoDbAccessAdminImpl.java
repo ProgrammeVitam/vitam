@@ -31,16 +31,22 @@ import static com.mongodb.client.model.Filters.eq;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.bson.conversions.Bson;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.mongodb.BasicDBObject;
+import com.mongodb.MongoBulkWriteException;
 import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
+import com.mongodb.client.result.UpdateResult;
 
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.SelectToMongoDb;
@@ -48,15 +54,17 @@ import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.database.translators.mongodb.QueryToMongodb;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
 /**
  * MongoDbAccess Implement for Admin
  */
 public class MongoDbAccessAdminImpl extends MongoDbAccess
-    implements MongoDbAccessReferential {
+implements MongoDbAccessReferential {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MongoDbAccessAdminImpl.class);
 
@@ -157,6 +165,34 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess
             find = find.limit(limit);
         }
         return find.iterator();
+    }
+
+    @Override
+    public void updateDocumentByMap(Map<String, Object> map, JsonNode objNode, 
+        FunctionalAdminCollections collection, UPDATEACTION operator)
+        throws ReferentialException {
+        BasicDBObject incQuery = new BasicDBObject();
+        BasicDBObject updateFields = new BasicDBObject();
+        for (Entry<String, Object> entry : map.entrySet()) {
+            updateFields.append(entry.getKey(), (Number) entry.getValue());
+        }
+        incQuery.append(operator.exactToken(), updateFields);
+        UpdateResult result = collection.getCollection().updateOne(eq(VitamDocument.ID, objNode.get(AccessionRegisterSummary.ORIGINATING_AGENCY).textValue()), incQuery);
+        if (result.getModifiedCount() == 0 && result.getMatchedCount() == 0) {
+            throw new ReferentialException("Document is not updated");
+        }
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    @Override
+    public void insertDocument(JsonNode json, FunctionalAdminCollections collection) throws ReferentialException {
+        try {
+            VitamDocument obj = (VitamDocument) JsonHandler.getFromJsonNode(json, collection.getClasz());
+            collection.getCollection().insertOne(obj);
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error("Documents not conformed Exception", e);
+            throw new ReferentialException(e);
+        }
     }
 
 }

@@ -46,8 +46,10 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
+import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
 /**
@@ -68,6 +70,7 @@ public class AdminManagementClientRest implements AdminManagementClient {
     private static final String RULESMANAGER_GET_DOCUMENT_URL = "/rules/document";
     private static final String RULESMANAGER_URL = "/rules";
 
+    private static final String FUND_REGISTER_CREATE_URI = "/accession-register/create";
     private static final String STATUS = "/status";
 
     private final String serviceUrl;
@@ -313,5 +316,27 @@ public class AdminManagementClientRest implements AdminManagementClient {
                 break;
         }
         return JsonHandler.getFromString(response.readEntity(String.class));
+    }
+
+    @Override
+    public void createorUpdateAccessionRegister(AccessionRegisterDetail register) throws DatabaseConflictException, AccessionRegisterException {
+        ParametersChecker.checkParameter("Accession register is a mandatory parameter", register);
+        Response response;
+        response = client.target(serviceUrl).path(FUND_REGISTER_CREATE_URI)
+            .request(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .post(Entity.json(register));
+        final Status status = Status.fromStatusCode(response.getStatus());
+        switch (status) {
+            case CREATED:
+                LOGGER.debug(Response.Status.CREATED.getReasonPhrase());
+                break;
+            case PRECONDITION_FAILED:
+                LOGGER.error(Response.Status.PRECONDITION_FAILED.getReasonPhrase());
+                throw new AccessionRegisterException("File format error");
+            default:
+                throw new AccessionRegisterException("Unknown error: " + status.getStatusCode());
+        }
+
     }
 }

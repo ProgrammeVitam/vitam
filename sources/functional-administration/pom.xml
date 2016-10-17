@@ -17,5 +17,6 @@
 		<module>functional-administration-rest</module>
 		<module>functional-administration-client</module>
 		<module>functional-administration-rules</module>
+		<module>functional-administration-accession-register</module>
 	</modules>
 </project>

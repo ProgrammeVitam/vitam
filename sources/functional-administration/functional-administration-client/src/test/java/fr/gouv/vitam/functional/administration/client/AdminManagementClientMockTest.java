@@ -43,6 +43,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory.AdminManagementClientType;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
@@ -135,5 +136,10 @@ public class AdminManagementClientMockTest {
         final AdminManagementClient client = AdminManagementClientFactory.getInstance().getAdminManagementClient();
         final Select select = new Select();
         assertNotNull(client.getRule(select.getFinalSelect()));
+    }
+    
+    @Test
+    public void givenClientMockWhenCreateAccessionRegister() throws Exception {
+        client.createorUpdateAccessionRegister(new AccessionRegisterDetail());
     }
 }

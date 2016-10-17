@@ -30,7 +30,9 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.bson.Document;
 import org.junit.AfterClass;
@@ -51,12 +53,16 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FileRules;
+import fr.gouv.vitam.functional.administration.common.RegisterValueDetail;
 
 public class MongoDbAccessAdminImplTest {
 
@@ -68,11 +74,14 @@ public class MongoDbAccessAdminImplTest {
     static final String DATABASE_NAME = "vitamtest";
     static final String COLLECTION_NAME = "FileFormat";
     static final String COLLECTION_RULES = "FileRules";
+    private static final String ACCESSION_REGISTER_DETAIL_COLLECTION = "AccessionRegisterDetail";
+    private static final String AGENCY = "Agency";
 
     static int port;
     static MongoDbAccessAdminImpl mongoAccess;
     static FileFormat file;
     static FileRules fileRules;
+    static AccessionRegisterDetail register;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -107,7 +116,17 @@ public class MongoDbAccessAdminImplTest {
             .setRuleDuration("10")
             .setRuleMeasurement("Annee");
 
-
+        RegisterValueDetail initialValue = new RegisterValueDetail().setTotal(1).setDeleted(0).setRemained(1);
+        register = new AccessionRegisterDetail()
+            .setObjectSize(initialValue)
+            .setOriginatingAgency(AGENCY)
+            .setId(AGENCY)
+            .setSubmissionAgency(AGENCY)
+            .setStartDate("startDate")
+            .setEndDate("endDate")
+            .setTotalObjectGroups(initialValue)
+            .setTotalObjects(initialValue)
+            .setTotalUnits(initialValue);
 
     }
 
@@ -163,6 +182,22 @@ public class MongoDbAccessAdminImplTest {
         mongoAccess.deleteCollection(FunctionalAdminCollections.RULES);
         assertEquals(0, collection.count());
         fileList.close();
+        client.close();
+    }
+    
+    @Test
+    public void testAccessionRegister() throws Exception {
+        final JsonNode jsonNode = JsonHandler.toJsonNode(register);
+        mongoAccess.insertDocument(jsonNode, FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
+        assertEquals(ACCESSION_REGISTER_DETAIL_COLLECTION, FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName());
+        final MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
+        final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(ACCESSION_REGISTER_DETAIL_COLLECTION);
+        assertEquals(1, collection.count());
+        Map<String, Object> updateMap = new HashMap<>();
+        updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTGROUPS, 1);
+        mongoAccess.updateDocumentByMap(updateMap, jsonNode, FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, UPDATEACTION.SET);
+        mongoAccess.deleteCollection(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
+        assertEquals(0, collection.count());
         client.close();
     }
 }
