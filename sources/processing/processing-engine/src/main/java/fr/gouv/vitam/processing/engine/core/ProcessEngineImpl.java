@@ -176,7 +176,6 @@ public class ProcessEngineImpl implements ProcessEngine {
                         parameters.putParameterValue(LogbookParameterName.objectIdentifierIncome, messageIdentifier);
                     }
 
-                    parameters.putParameterValue(LogbookParameterName.eventTypeProcess, stepStatus.name());
                     parameters.putParameterValue(LogbookParameterName.outcome, stepStatus.name());
                     parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                         ProcessResponse.getGlobalProcessOutcomeMessage(stepResponse));
