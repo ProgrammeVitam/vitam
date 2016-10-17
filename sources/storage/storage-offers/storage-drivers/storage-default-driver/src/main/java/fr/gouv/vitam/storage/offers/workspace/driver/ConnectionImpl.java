@@ -379,7 +379,8 @@ public class ConnectionImpl implements Connection {
                 .headers(getDefaultHeaders(tenantId, StorageConstants.COMMAND_END))
                 .accept(MediaType.APPLICATION_JSON).method(HttpMethod.PUT, entity);
             final JsonNode json = handleResponseStatus(response, JsonNode.class);
-            finalResult = new PutObjectResult(result.getId(), json.get("digest").textValue(), tenantId);
+            finalResult = new PutObjectResult(result.getId(), json.get("digest").textValue(), tenantId, Long.valueOf(json.get
+                ("size").textValue()));
             LOGGER.error("response: " + response.getStatus());
             if (Response.Status.CREATED.getStatusCode() != response.getStatus()) {
                 throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,

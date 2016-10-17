@@ -853,7 +853,7 @@ public class StorageResourceTest {
 
         @Override
         public StoredInfoResult storeData(String tenantId, String strategyId, String objectId,
-            CreateObjectDescription createObjectDescription, DataCategory category)
+            CreateObjectDescription createObjectDescription, DataCategory category, String requester)
             throws StorageTechnicalException, StorageNotFoundException, StorageObjectAlreadyExistsException {
             if (TENANT_ID_E.equals(tenantId)) {
                 throw new StorageNotFoundException("Not Found");

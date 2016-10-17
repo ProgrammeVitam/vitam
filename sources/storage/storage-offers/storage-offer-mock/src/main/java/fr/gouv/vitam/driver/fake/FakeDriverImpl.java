@@ -110,13 +110,13 @@ public class FakeDriverImpl implements Driver {
         @Override
         public PutObjectResult putObject(PutObjectRequest objectRequest) throws StorageDriverException {
             if ("digest_bad_test".equals(objectRequest.getGuid())) {
-                return new PutObjectResult(objectRequest.getGuid(), "different_digest_hash", "0");
+                return new PutObjectResult(objectRequest.getGuid(), "different_digest_hash", "0", 0);
             } else {
                 try {
                     final byte[] bytes = IOUtils.toByteArray(objectRequest.getDataStream());
                     final MessageDigest messageDigest = MessageDigest.getInstance(objectRequest.getDigestAlgorithm());
                     return new PutObjectResult(objectRequest.getGuid(), BaseXx.getBase16(messageDigest.digest(bytes)),
-                        "0");
+                        "0", bytes.length);
                 } catch (NoSuchAlgorithmException | IOException e) {
                     throw new StorageDriverException(getName(), StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
                         e);
