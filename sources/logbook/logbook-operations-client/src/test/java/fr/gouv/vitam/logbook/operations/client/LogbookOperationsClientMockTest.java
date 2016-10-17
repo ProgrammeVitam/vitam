@@ -37,11 +37,11 @@ import org.junit.Test;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory.LogbookClientType;
 
 /**
  * Test for logbook operation client
@@ -51,10 +51,10 @@ public class LogbookOperationsClientMockTest {
 
     @Test
     public void createTest() {
-        LogbookOperationsClientFactory.setConfiguration(LogbookClientType.MOCK_OPERATIONS, null, 0);
+        LogbookOperationsClientFactory.changeMode(null);
 
         final LogbookOperationsClient client =
-            LogbookOperationsClientFactory.getInstance().getLogbookOperationClient();
+            LogbookOperationsClientFactory.getInstance().getClient();
         assertNotNull(client);
 
         final LogbookParameters logbookParameters = LogbookParametersFactory.newLogbookOperationParameters();
@@ -84,10 +84,10 @@ public class LogbookOperationsClientMockTest {
 
     @Test
     public void updateTest() {
-        LogbookOperationsClientFactory.setConfiguration(LogbookClientType.MOCK_OPERATIONS, null, 0);
+        LogbookOperationsClientFactory.changeMode(null);
 
         final LogbookOperationsClient client =
-            LogbookOperationsClientFactory.getInstance().getLogbookOperationClient();
+            LogbookOperationsClientFactory.getInstance().getClient();
         assertNotNull(client);
 
         final LogbookParameters logbookParameters = LogbookParametersFactory.newLogbookOperationParameters();
@@ -116,13 +116,13 @@ public class LogbookOperationsClientMockTest {
     }
 
     @Test
-    public void statusTest() throws LogbookClientException {
-        LogbookOperationsClientFactory.setConfiguration(LogbookClientType.MOCK_OPERATIONS, null, 0);
+    public void statusTest() throws LogbookClientException, VitamApplicationServerException {
+        LogbookOperationsClientFactory.changeMode(null);
 
         final LogbookOperationsClient client =
-            LogbookOperationsClientFactory.getInstance().getLogbookOperationClient();
+            LogbookOperationsClientFactory.getInstance().getClient();
         assertNotNull(client);
-        assertNotNull(client.status());
+        client.checkStatus();
     }
 
     private void fillLogbookParamaters(LogbookParameters logbookParamaters) {
@@ -161,10 +161,10 @@ public class LogbookOperationsClientMockTest {
 
     @Test
     public void selectTest() throws LogbookClientException, InvalidParseOperationException {
-        LogbookOperationsClientFactory.setConfiguration(LogbookClientType.MOCK_OPERATIONS, null, 0);
+        LogbookOperationsClientFactory.changeMode(null);
 
         final LogbookOperationsClient client =
-            LogbookOperationsClientFactory.getInstance().getLogbookOperationClient();
+            LogbookOperationsClientFactory.getInstance().getClient();
         assertEquals("aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaz",
             client.selectOperation(request).get("result").get(1).get("_id").asText());
         assertEquals("aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq",

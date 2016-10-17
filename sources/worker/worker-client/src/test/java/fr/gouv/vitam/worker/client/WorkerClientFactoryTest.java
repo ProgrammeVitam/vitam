@@ -27,11 +27,12 @@
 package fr.gouv.vitam.worker.client;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Before;
 import org.junit.Test;
+
+import fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType;
 
 /**
  *
@@ -40,49 +41,28 @@ public class WorkerClientFactoryTest {
 
     @Before
     public void initFileConfiguration() {
-        WorkerClientFactory.getInstance().changeConfigurationFile("worker-client.conf");
+        WorkerClientFactory.changeMode(WorkerClientFactory.changeConfigurationFile("worker-client.conf"));
     }
 
     @Test
     public void testInitWithoutConfigurationFile() {
-        // assume that a fake file is like no file
-        WorkerClientFactory.getInstance().changeConfigurationFile("tmp");
-        final WorkerClient client = WorkerClientFactory.getInstance().getWorkerClient();
+        // assume that a null file is like no file
+        WorkerClientFactory.changeMode(null);
+        final WorkerClient client = WorkerClientFactory.getInstance().getClient();
         assertTrue(client instanceof WorkerClientMock);
-        final WorkerClientFactory.WorkerClientType type = WorkerClientFactory.getDefaultWorkerClientType();
-        assertNotNull(type);
-        assertEquals(WorkerClientFactory.WorkerClientType.MOCK_WORKER, type);
+        assertEquals(VitamClientType.MOCK, WorkerClientFactory.getInstance().getVitamClientType());
     }
 
     @Test
     public void testInitWithConfigurationFile() {
-        final WorkerClient client = WorkerClientFactory.getInstance().getWorkerClient();
+        final WorkerClient client = WorkerClientFactory.getInstance().getClient();
         assertTrue(client instanceof WorkerClientRest);
-        final WorkerClientFactory.WorkerClientType type = WorkerClientFactory.getDefaultWorkerClientType();
-        assertNotNull(type);
-        assertEquals(WorkerClientFactory.WorkerClientType.WORKER, type);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testInitWithDefaultClientTypeNullThenThrowsException() throws Exception {
-        WorkerClientFactory.changeDefaultClientType(null);
-    }
-
-    @Test
-    public void testWorkerClientTest() {
-        WorkerClientFactory.changeDefaultClientType(WorkerClientFactory.WorkerClientType.WORKER);
-        final WorkerClientFactory.WorkerClientType type = WorkerClientFactory.getDefaultWorkerClientType();
-        assertNotNull(type);
+        assertEquals(VitamClientType.PRODUCTION, WorkerClientFactory.getInstance().getVitamClientType());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testWithWrongInitServerParameters() {
-        WorkerClientFactory.setConfiguration(WorkerClientFactory.WorkerClientType.WORKER, null);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testWithWrongInitPortParameters() {
-        WorkerClientFactory.setConfiguration(WorkerClientFactory.WorkerClientType.WORKER, null);
+        WorkerClientFactory.changeMode(new WorkerClientConfiguration());
     }
 
 }

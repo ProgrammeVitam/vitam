@@ -40,7 +40,7 @@ public class ElasticsearchHelper {
 
     /**
      *
-     * @param QueryBuilder query
+     * @param query QueryBuilder query
      * @return the String representation of the QueryBuilder
      */
     public static String queryBuilderToString(final QueryBuilder query) {

@@ -56,6 +56,7 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.stream.StreamUtils;
 
 /**
  * Access client
@@ -254,9 +255,7 @@ public class AccessClientRest implements AccessClient {
                 throw new AccessClientServerException(response.getStatusInfo().getReasonPhrase());
             }
 
-
-            final InputStream streamClosedAutomatically = response.readEntity(InputStream.class);
-            try {
+            try (final InputStream streamClosedAutomatically = response.readEntity(InputStream.class)) {
                 // TODO : this is ugly but necessarily in order to close the response and avoid concurrent issues
                 // to be improved (https://jersey.java.net/documentation/latest/client.html#d0e5170) and
                 // remove the IOUtils.toByteArray after correction of problem

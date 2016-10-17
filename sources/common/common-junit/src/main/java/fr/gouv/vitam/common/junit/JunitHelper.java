@@ -137,6 +137,7 @@ public class JunitHelper extends ExternalResource {
     public final synchronized void releasePort(int port) {
         LOGGER.debug("Relaese port: " + port);
         portAlreadyUsed.remove(Integer.valueOf(port));
+        unsetJettyPortSystemProperty();
     }
 
     private final int getPort() {

@@ -47,6 +47,7 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
@@ -63,11 +64,15 @@ public class ExtractObjectNumSedaTest {
 
     private static final String SIP = "sip1.xml";
     private WorkspaceClient client;
-    private final InputStream seda = Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP);
+    private final InputStream seda;
     private SedaUtils utils;
     private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setContainerName("id")
         .setUrlWorkspace("fakeURL").setUrlMetadata("fakeURL");
 
+    public ExtractObjectNumSedaTest() throws FileNotFoundException {
+        seda = PropertiesUtils.getResourceAsStream(SIP);
+    }
+    
     @Before
     public void setUp() {
         PowerMockito.mockStatic(WorkspaceClientFactory.class);

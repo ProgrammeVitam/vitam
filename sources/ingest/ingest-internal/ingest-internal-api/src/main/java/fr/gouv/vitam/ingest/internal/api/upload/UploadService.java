@@ -43,7 +43,7 @@ public interface UploadService {
     /**
      * Upload service a received SIP from a SIA
      *
-     * @param uploadedInputStream
+     * @param partList uploadedInputStream
      * @return Response
      * @throws VitamException, if inputstream is null
      * @throws XMLStreamException

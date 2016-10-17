@@ -28,27 +28,22 @@ package fr.gouv.vitam.worker.client;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
 
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Response;
 
-import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.JerseyTest;
-import org.glassfish.jersey.test.TestProperties;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.server.application.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
+import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
@@ -56,43 +51,55 @@ import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;
 import fr.gouv.vitam.worker.client.exception.WorkerServerClientException;
 import fr.gouv.vitam.worker.common.DescriptionStep;
 
-public class WorkerClientRestTest extends JerseyTest {
+public class WorkerClientRestTest extends VitamJerseyTest {
     protected static final String HOSTNAME = "localhost";
     protected static int serverPort;
-    protected final WorkerClientRest client;
-    private static JunitHelper junitHelper;
+    protected WorkerClientRest client;
 
-    protected ExpectedResults mock;
-
-    interface ExpectedResults {
-        Response get();
-
-        Response post();
-
-        Response head();
-
-        Response delete();
+    // ************************************** //
+    // Start of VitamJerseyTest configuration //
+    // ************************************** //
+    public WorkerClientRestTest() {
+        super(WorkerClientFactory.getInstance());
     }
 
-    @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
-        junitHelper = JunitHelper.getInstance();
-        serverPort = junitHelper.findAvailablePort();
-    }
-
-    @AfterClass
-    public static void tearDownAfterClass() {
-        junitHelper.releasePort(serverPort);
-    }
-
+    // Override the beforeTest if necessary
     @Override
-    protected Application configure() {
-        enable(TestProperties.DUMP_ENTITY);
-        forceSet(TestProperties.CONTAINER_PORT, Integer.toString(serverPort));
-        mock = mock(ExpectedResults.class);
-        final ResourceConfig resourceConfig = new ResourceConfig();
-        resourceConfig.register(JacksonFeature.class);
-        return resourceConfig.registerInstances(new MockResource(mock));
+    public void beforeTest() throws VitamApplicationServerException {
+        client = (WorkerClientRest) getClient();
+    }
+
+    // Define the getApplication to return your Application using the correct Configuration
+    @Override
+    public StartApplicationResponse<AbstractApplication> startVitamApplication(int reservedPort) {
+        final TestVitamApplicationConfiguration configuration = new TestVitamApplicationConfiguration();
+        configuration.setJettyConfig(DEFAULT_XML_CONFIGURATION_FILE);
+        final AbstractApplication application = new AbstractApplication(configuration);
+        try {
+            application.start();
+        } catch (final VitamApplicationServerException e) {
+            throw new IllegalStateException("Cannot start the application", e);
+        }
+        return new StartApplicationResponse<AbstractApplication>()
+            .setServerPort(application.getVitamServer().getPort())
+            .setApplication(application);
+    }
+
+    // Define your Application class if necessary
+    public final class AbstractApplication
+        extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
+        protected AbstractApplication(TestVitamApplicationConfiguration configuration) {
+            super(TestVitamApplicationConfiguration.class, configuration);
+        }
+
+        @Override
+        protected void registerInResourceConfig(ResourceConfig resourceConfig) {
+            resourceConfig.registerInstances(new MockResource(mock));
+        }
+    }
+    // Define your Configuration class if necessary
+    public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
+
     }
 
     @Path("/worker/v1")
@@ -109,10 +116,6 @@ public class WorkerClientRestTest extends JerseyTest {
         public Response submitStep() {
             return expectedResponse.post();
         }
-    }
-
-    public WorkerClientRestTest() {
-        client = new WorkerClientRest(new ClientConfigurationImpl(HOSTNAME, serverPort), "/worker/v1", false);
     }
 
     @Test

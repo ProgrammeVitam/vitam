@@ -43,13 +43,13 @@ public class IngestExternalClientMockTest {
 
     @Test
     public void givenClientMockWhenNoVirusFileThenReturnOK() throws Exception {
-        stream = PropertiesUtils.getResourcesAsStream("no-virus.txt");
+        stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
         client.upload(stream);
     }
 
     @Test
     public void givenClientMockWhenUnfixedFileThenReturnRetrunAccepted() throws Exception {
-        stream = PropertiesUtils.getResourcesAsStream("unfixed-virus.txt");
+        stream = PropertiesUtils.getResourceAsStream("unfixed-virus.txt");
         client.upload(stream);
     }
 

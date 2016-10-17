@@ -31,6 +31,7 @@ import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 
@@ -43,6 +44,7 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
@@ -65,9 +67,10 @@ public class IndexObjectGroupActionHandlerTest {
     private MetaDataClient metadataClient;
     private static final String HANDLER_ID = "IndexObjectGroup";
     private static final String OBJECT_GROUP = "objectGroup.json";
-    private final InputStream objectGroup = Thread.currentThread().getContextClassLoader()
-        .getResourceAsStream(OBJECT_GROUP);
-
+    private final InputStream objectGroup;
+    public IndexObjectGroupActionHandlerTest() throws FileNotFoundException {
+        objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP);
+    }
     @Before
     public void setUp() throws URISyntaxException {
         PowerMockito.mockStatic(WorkspaceClientFactory.class);

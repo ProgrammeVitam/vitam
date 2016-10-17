@@ -38,6 +38,5 @@ public class InvalidFileRulesParseExceptionTest {
         assertEquals("test", new InvalidFileRulesParseException("test").getMessage());
         assertNotNull(new InvalidFileRulesParseException(new Exception()).getCause());
         assertNotNull(new InvalidFileRulesParseException("test", new Exception()).getCause());
-        assertNotNull(new InvalidFileRulesParseException("test", new Exception(), true, true).getCause());
     }
 }

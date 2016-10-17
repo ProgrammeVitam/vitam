@@ -124,8 +124,8 @@ public class LogbookLifeCycleObjectGroupParametersTest {
         }
         assertEquals("incorrect", params.getParameterValue(LogbookParameterName.eventTypeProcess));
         assertEquals(null, params.getParameterValue(LogbookParameterName.eventDateTime));
-        final GUID aa = GUIDFactory.newOperationIdGUID(0);
-        final GUID cc = GUIDFactory.newOperationIdGUID(0);
+        final GUID aa = GUIDFactory.newEventGUID(0);
+        final GUID cc = GUIDFactory.newEventGUID(0);
         LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(aa, "aa", aa,
             LogbookTypeProcess.AUDIT, StatusCode.STARTED, "CheckDigest", "Informative Message", cc);
         try {

@@ -31,12 +31,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.client2.AbstractMockClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.logbook.common.client.StatusMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -50,7 +50,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 /**
  * Mock client implementation for logbook operation
  */
-class LogbookOperationsClientMock implements LogbookOperationsClient {
+class LogbookOperationsClientMock extends AbstractMockClient implements LogbookOperationsClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookOperationsClientMock.class);
     private static final ServerIdentity SERVER_IDENTITY = ServerIdentity.getInstance();
 
@@ -120,11 +120,6 @@ class LogbookOperationsClientMock implements LogbookOperationsClient {
         logInformation(UPDATE, parameters);
     }
 
-    @Override
-    public void close() {
-        // do nothing
-    }
-
     /**
      *
      * @return the default first answer
@@ -142,11 +137,6 @@ class LogbookOperationsClientMock implements LogbookOperationsClient {
             result = "{}";
         }
         LOGGER.info(operation + ":" + result);
-    }
-
-    @Override
-    public StatusMessage status() throws LogbookClientServerException {
-        return new StatusMessage(SERVER_IDENTITY);
     }
 
     @Override

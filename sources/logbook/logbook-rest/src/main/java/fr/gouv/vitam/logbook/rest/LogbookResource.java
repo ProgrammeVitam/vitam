@@ -56,10 +56,9 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
-import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
-import fr.gouv.vitam.common.server.application.configuration.DbConfiguration;
-import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.server2.application.configuration.DbConfiguration;
+import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.logbook.common.model.response.RequestResponseError;
 import fr.gouv.vitam.logbook.common.model.response.RequestResponseOK;
 import fr.gouv.vitam.logbook.common.model.response.VitamError;
@@ -95,7 +94,6 @@ public class LogbookResource extends ApplicationStatusResource {
      * @param configuration
      */
     public LogbookResource(LogbookConfiguration configuration) {
-        super(new BasicVitamStatusServiceImpl());
         final DbConfiguration logbookConfiguration =
             new DbConfigurationImpl(configuration.getDbHost(), configuration.getDbPort(), configuration.getDbName());
         final MongoDbAccess mongoDbAccess = MongoDbAccessFactory.create(logbookConfiguration);

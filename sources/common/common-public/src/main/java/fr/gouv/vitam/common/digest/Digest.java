@@ -248,6 +248,9 @@ public class Digest {
         }
         try {
             while ((size = inputStream.read(buf, 0, chunk)) >= 0) {
+                if (size == 0) {
+                    continue;
+                }
                 messageDigest.update(buf, 0, size);
                 toRead -= size;
                 if (toRead <= 0) {
@@ -311,6 +314,9 @@ public class Digest {
                 fileChannelInputStream.position(start);
             }
             while ((size = fileChannelInputStream.read(bb)) >= 0) {
+                if (size == 0) {
+                    continue;
+                }
                 if (read + size > toRead) {
                     size = (int) (toRead - read);
                 }

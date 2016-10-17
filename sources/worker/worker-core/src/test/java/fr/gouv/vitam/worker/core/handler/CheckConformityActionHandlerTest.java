@@ -88,9 +88,9 @@ public class CheckConformityActionHandlerTest {
         throws Exception {
         when(workspaceClient.computeObjectDigest(anyObject(), anyObject(), anyObject())).thenReturn(MESSAGE_DIGEST);
 
-        action.addInput(PropertiesUtils.getResourcesFile(SIP));
-        action.addInput(PropertiesUtils.getResourcesFile(BDO_TO_OBJECT_GROUP_ID_MAP));
-        action.addInput(PropertiesUtils.getResourcesFile(OBJECT_GROUP_ID_TO_GUID_MAP));
+        action.addInput(PropertiesUtils.getResourceFile(SIP));
+        action.addInput(PropertiesUtils.getResourceFile(BDO_TO_OBJECT_GROUP_ID_MAP));
+        action.addInput(PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP));
         conformityHandler = new CheckConformityActionHandler();
         assertEquals(CheckConformityActionHandler.getId(), HANDLER_ID);
         final EngineResponse response = conformityHandler.execute(params, action);
@@ -102,9 +102,9 @@ public class CheckConformityActionHandlerTest {
     public void givenConformityCheckWhenWrongDigestThenKO()
         throws Exception {
         when(workspaceClient.computeObjectDigest(anyObject(), anyObject(), anyObject())).thenReturn("Wrong digest");
-        action.addInput(PropertiesUtils.getResourcesFile(SIP));
-        action.addInput(PropertiesUtils.getResourcesFile(BDO_TO_OBJECT_GROUP_ID_MAP));
-        action.addInput(PropertiesUtils.getResourcesFile(OBJECT_GROUP_ID_TO_GUID_MAP));
+        action.addInput(PropertiesUtils.getResourceFile(SIP));
+        action.addInput(PropertiesUtils.getResourceFile(BDO_TO_OBJECT_GROUP_ID_MAP));
+        action.addInput(PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP));
         conformityHandler = new CheckConformityActionHandler();
         assertEquals(CheckConformityActionHandler.getId(), HANDLER_ID);
 

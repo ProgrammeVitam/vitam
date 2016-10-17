@@ -66,7 +66,7 @@ public class AccessResourceTest {
         junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
         try {
-            AccessApplication.startApplication(PropertiesUtils.getResourcesFile(ACCESS_CONF).getAbsolutePath());
+            AccessApplication.startApplication(PropertiesUtils.getResourceFile(ACCESS_CONF).getAbsolutePath());
 
             RestAssured.port = port;
             RestAssured.basePath = ACCESS_RESOURCE_URI;

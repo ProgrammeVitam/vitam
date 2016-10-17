@@ -46,7 +46,7 @@ public class GraphTest {
     @Test
     public void test_graph() throws Exception {
 
-        File file = PropertiesUtils.getResourcesFile("ingest_tree.json");
+        File file = PropertiesUtils.getResourceFile("ingest_tree.json");
         JsonNode json = JsonHandler.getFromFile(file);
         Graph g = new Graph(json);
         assertNotNull(g.getGraphWithLongestPaths());
@@ -58,7 +58,7 @@ public class GraphTest {
     @Test
     public void test_graph_cyc() throws Exception {
 
-        File file = PropertiesUtils.getResourcesFile("ingest_cyc_2.json");
+        File file = PropertiesUtils.getResourceFile("ingest_cyc_2.json");
         JsonNode json = JsonHandler.getFromFile(file);
         Graph g = new Graph(json);
         assertNotNull(g.getGraphWithLongestPaths());

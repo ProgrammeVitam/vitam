@@ -40,14 +40,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.SystemPropertyUtil;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.common.server.VitamServerFactory;
+import fr.gouv.vitam.common.server2.VitamServerFactory;
 
 /**
  *
@@ -57,7 +53,6 @@ public class WorkerApplicationTest {
     private static final String SHOULD_NOT_RAIZED_AN_EXCEPTION = "Should not raized an exception";
 
     private static final String WORKER_CONF = "worker-test.conf";
-    private static final String DATABASE_HOST = "localhost";
     private static int serverPort;
     private static int oldPort;
     private static JunitHelper junitHelper;
@@ -80,7 +75,7 @@ public class WorkerApplicationTest {
         }
         serverPort = junitHelper.findAvailablePort();
         // TODO verifier la compatibilité avec les tests parallèles sur jenkins
-        SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
+        JunitHelper.setJettyPortSystemProperty(serverPort);
 
         oldPort = VitamServerFactory.getDefaultPort();
         VitamServerFactory.setDefaultPort(serverPort);
@@ -96,13 +91,8 @@ public class WorkerApplicationTest {
     @Test
     public final void testFictiveLaunch() {
         try {
-            WorkerApplication.startApplication(new String[] {WORKER_CONF});
-            WorkerApplication.stop();
+            new WorkerApplication(WORKER_CONF);
         } catch (final IllegalStateException e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        } catch (final VitamApplicationServerException e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        } catch (final VitamException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
     }

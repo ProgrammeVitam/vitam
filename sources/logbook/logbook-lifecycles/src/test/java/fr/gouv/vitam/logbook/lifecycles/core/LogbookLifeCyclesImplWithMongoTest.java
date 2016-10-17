@@ -79,10 +79,10 @@ public class LogbookLifeCyclesImplWithMongoTest {
     private static LogbookLifeCycleObjectGroupParameters logbookLifeCyclesObjectGroupParametersStart;
     private static LogbookLifeCycleObjectGroupParameters logbookLifeCyclesObjectGroupParametersBAD;
 
-    final static GUID eip = GUIDFactory.newOperationIdGUID(0);
-    final static GUID iop = GUIDFactory.newOperationIdGUID(2);
-    final static GUID ioL = GUIDFactory.newOperationIdGUID(2);
-    final static GUID eip3 = GUIDFactory.newOperationIdGUID(3);
+    final static GUID eip = GUIDFactory.newEventGUID(0);
+    final static GUID iop = GUIDFactory.newEventGUID(2);
+    final static GUID ioL = GUIDFactory.newEventGUID(2);
+    final static GUID eip3 = GUIDFactory.newEventGUID(3);
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {

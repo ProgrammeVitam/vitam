@@ -57,10 +57,12 @@ import fr.gouv.vitam.common.database.builder.request.multiple.Insert;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
@@ -209,10 +211,11 @@ public class IndexUnitActionHandler extends ActionHandler {
         JsonNode data = null;
         String parentsList = null;
         final List<Object> archiveUnitDetails = new ArrayList<Object>();
-
+        XMLEventReader reader = null;
+        
         try {
             tmpFileWriter = new FileWriter(tmpFile);
-            final XMLEventReader reader = XMLInputFactory.newInstance().createXMLEventReader(input);
+            reader = XMLInputFactory.newInstance().createXMLEventReader(input);
 
             final XMLEventWriter writer = new JsonXMLOutputFactory(config).createXMLEventWriter(tmpFileWriter);
             boolean contentWritable = true;
@@ -289,9 +292,7 @@ public class IndexUnitActionHandler extends ActionHandler {
                     writer.add(event);
                 }
             }
-            reader.close();
             writer.close();
-            input.close();
             tmpFileWriter.close();
             data = JsonHandler.getFromFile(tmpFile);
             // Add operation to OPS
@@ -319,6 +320,15 @@ public class IndexUnitActionHandler extends ActionHandler {
         } catch (final IOException e) {
             LOGGER.debug("Closing stream error");
             throw new ProcessingException(e);
+        } finally {
+            StreamUtils.closeSilently(input);
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (XMLStreamException e) {
+                    SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                }
+            }
         }
         return archiveUnitDetails;
     }

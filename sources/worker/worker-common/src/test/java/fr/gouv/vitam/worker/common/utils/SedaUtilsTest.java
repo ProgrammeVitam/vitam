@@ -34,6 +34,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.InputStream;
 import java.util.List;
@@ -78,13 +79,16 @@ public class SedaUtilsTest {
     private static final String SIP = "sip1.xml";
     private static final String OBJ = "obj";
     private WorkspaceClient workspaceClient;
-    private final InputStream seda = Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP);
+    private final InputStream seda;
 
     private final SedaUtils utils = SedaUtilsFactory.create();
     private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
         .newGUID()).setContainerName(OBJ).setUrlWorkspace(OBJ).setUrlMetadata(OBJ).setObjectName(OBJ)
         .setCurrentStep("TEST");
 
+    public SedaUtilsTest() throws FileNotFoundException {
+        seda = PropertiesUtils.getResourceAsStream(SIP);
+    }
     @Before
     public void setUp() {
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
@@ -148,7 +152,7 @@ public class SedaUtilsTest {
         throws Exception {
         final XMLInputFactory factory = XMLInputFactory.newInstance();
         final XMLEventReader evenReader = factory.createXMLEventReader(
-            new FileReader(PropertiesUtils.getResourcesPath("sip.xml").toString()));
+            new FileReader(PropertiesUtils.getResourcePath("sip.xml").toString()));
         List<String> versionList;
 
         versionList = utils.manifestVersionList(evenReader);

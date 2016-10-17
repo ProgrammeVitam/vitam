@@ -49,7 +49,7 @@ public class DefaultOfferApplicationTest {
     public final void testFictiveLaunch() {
         try {
             DefaultOfferApplication.startApplication(new String[] {
-                PropertiesUtils.getResourcesFile(WORKSPACE_OFFER_CONF).getAbsolutePath()});
+                PropertiesUtils.getResourceFile(WORKSPACE_OFFER_CONF).getAbsolutePath()});
             DefaultOfferApplication.stop();
         } catch (final IllegalStateException | VitamException |
 
@@ -58,7 +58,7 @@ public class DefaultOfferApplicationTest {
         }
         try {
             DefaultOfferApplication.startApplication(new String[] {
-                PropertiesUtils.getResourcesFile(WORKSPACE_OFFER_CONF).getAbsolutePath()});
+                PropertiesUtils.getResourceFile(WORKSPACE_OFFER_CONF).getAbsolutePath()});
             DefaultOfferApplication.stop();
         } catch (final IllegalStateException | FileNotFoundException |
             VitamException e) {
@@ -66,7 +66,7 @@ public class DefaultOfferApplicationTest {
         }
         try {
             DefaultOfferApplication.startApplication(new String[] {
-                PropertiesUtils.getResourcesFile(WORKSPACE_OFFER2_CONF).getAbsolutePath()});
+                PropertiesUtils.getResourceFile(WORKSPACE_OFFER2_CONF).getAbsolutePath()});
             fail("Should raize an FileNotFoundException");
         } catch (VitamException | FileNotFoundException |
             UnsupportedOperationException exc) {

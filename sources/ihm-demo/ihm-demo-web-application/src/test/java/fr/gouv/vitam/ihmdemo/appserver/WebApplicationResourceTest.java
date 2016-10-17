@@ -187,7 +187,7 @@ public class WebApplicationResourceTest {
         final LogbookOperationsClient logbookOperationsClient = PowerMockito.mock(LogbookOperationsClient.class);
         final LogbookOperationsClientFactory logbookFactory = PowerMockito.mock(LogbookOperationsClientFactory.class);
         PowerMockito.when(LogbookOperationsClientFactory.getInstance()).thenReturn(logbookFactory);
-        PowerMockito.when(LogbookOperationsClientFactory.getInstance().getLogbookOperationClient())
+        PowerMockito.when(LogbookOperationsClientFactory.getInstance().getClient())
             .thenReturn(logbookOperationsClient);
 
         final Map<String, String> searchCriteriaMap = JsonHandler.getMapStringFromString(OPTIONS);
@@ -207,7 +207,7 @@ public class WebApplicationResourceTest {
         final LogbookOperationsClient logbookOperationsClient = PowerMockito.mock(LogbookOperationsClient.class);
         final LogbookOperationsClientFactory logbookFactory = PowerMockito.mock(LogbookOperationsClientFactory.class);
         PowerMockito.when(LogbookOperationsClientFactory.getInstance()).thenReturn(logbookFactory);
-        PowerMockito.when(LogbookOperationsClientFactory.getInstance().getLogbookOperationClient())
+        PowerMockito.when(LogbookOperationsClientFactory.getInstance().getClient())
             .thenReturn(logbookOperationsClient);
         PowerMockito.when(logbookOperationsClient.selectOperationbyId("1")).thenThrow(LogbookClientException.class);
 
@@ -223,7 +223,7 @@ public class WebApplicationResourceTest {
         final LogbookOperationsClient logbookOperationsClient = PowerMockito.mock(LogbookOperationsClient.class);
         final LogbookOperationsClientFactory logbookFactory = PowerMockito.mock(LogbookOperationsClientFactory.class);
         PowerMockito.when(LogbookOperationsClientFactory.getInstance()).thenReturn(logbookFactory);
-        PowerMockito.when(LogbookOperationsClientFactory.getInstance().getLogbookOperationClient())
+        PowerMockito.when(LogbookOperationsClientFactory.getInstance().getClient())
             .thenReturn(logbookOperationsClient);
         PowerMockito.when(logbookOperationsClient.selectOperationbyId("1")).thenThrow(Exception.class);
 
@@ -238,7 +238,7 @@ public class WebApplicationResourceTest {
         final LogbookOperationsClient logbookOperationsClient = PowerMockito.mock(LogbookOperationsClient.class);
         final LogbookOperationsClientFactory logbookFactory = PowerMockito.mock(LogbookOperationsClientFactory.class);
         PowerMockito.when(LogbookOperationsClientFactory.getInstance()).thenReturn(logbookFactory);
-        PowerMockito.when(LogbookOperationsClientFactory.getInstance().getLogbookOperationClient())
+        PowerMockito.when(LogbookOperationsClientFactory.getInstance().getClient())
             .thenReturn(logbookOperationsClient);
 
         given().contentType(ContentType.JSON).expect().statusCode(Status.BAD_REQUEST.getStatusCode()).when()
@@ -438,12 +438,12 @@ public class WebApplicationResourceTest {
         PowerMockito.when(ingestFactory.getIngestExternalClient()).thenReturn(ingestClient);
         PowerMockito.when(IngestExternalClientFactory.getInstance()).thenReturn(ingestFactory);
 
-        final InputStream inputStreamATR = PropertiesUtils.getResourcesAsStream("ATR_example.xml");
+        final InputStream inputStreamATR = PropertiesUtils.getResourceAsStream("ATR_example.xml");
         final String xmlString = FileUtil.readInputStream(inputStreamATR);
         Mockito.doReturn(Response.status(Status.OK).entity(xmlString).header(GlobalDataRest.X_REQUEST_ID, "Atr")
             .build()).when(ingestClient).upload(anyObject());
 
-        final InputStream stream = PropertiesUtils.getResourcesAsStream("SIP.zip");
+        final InputStream stream = PropertiesUtils.getResourceAsStream("SIP.zip");
         // Need for test
         IOUtils.toByteArray(stream);
         final String s = given()
@@ -467,7 +467,7 @@ public class WebApplicationResourceTest {
         PowerMockito.when(adminManagementClientFactory.getAdminManagementClient()).thenReturn(adminManagementClient);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
 
-        final InputStream stream = PropertiesUtils.getResourcesAsStream("FF-vitam-ko.fake");
+        final InputStream stream = PropertiesUtils.getResourceAsStream("FF-vitam-ko.fake");
         // Need for test
         IOUtils.toByteArray(stream);
 
@@ -490,7 +490,7 @@ public class WebApplicationResourceTest {
         PowerMockito.when(adminManagementClientFactory.getAdminManagementClient()).thenReturn(adminManagementClient);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
 
-        final InputStream stream = PropertiesUtils.getResourcesAsStream("FF-vitam.xml");
+        final InputStream stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
         // Need for test
         IOUtils.toByteArray(stream);
 
@@ -512,7 +512,7 @@ public class WebApplicationResourceTest {
         PowerMockito.when(ingestFactory.getIngestExternalClient()).thenReturn(ingestClient);
         PowerMockito.when(IngestExternalClientFactory.getInstance()).thenReturn(ingestFactory);
 
-        final InputStream stream = PropertiesUtils.getResourcesAsStream("SIP.zip");
+        final InputStream stream = PropertiesUtils.getResourceAsStream("SIP.zip");
         // Need for test
         IOUtils.toByteArray(stream);
 
@@ -627,7 +627,7 @@ public class WebApplicationResourceTest {
         PowerMockito.when(adminFactory.getAdminManagementClient()).thenReturn(adminClient);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
 
-        final InputStream stream = PropertiesUtils.getResourcesAsStream("FF-vitam-ko.fake");
+        final InputStream stream = PropertiesUtils.getResourceAsStream("FF-vitam-ko.fake");
         // Need for test
         IOUtils.toByteArray(stream);
 
@@ -852,7 +852,7 @@ public class WebApplicationResourceTest {
         PowerMockito.when(adminManagementClientFactory.getAdminManagementClient()).thenReturn(adminManagementClient);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
 
-        final InputStream stream = PropertiesUtils.getResourcesAsStream("jeu_donnees_KO_regles_CSV_Parameters.csv");
+        final InputStream stream = PropertiesUtils.getResourceAsStream("jeu_donnees_KO_regles_CSV_Parameters.csv");
         // Need for test
         IOUtils.toByteArray(stream);
 
@@ -876,7 +876,7 @@ public class WebApplicationResourceTest {
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
 
         final InputStream stream =
-            PropertiesUtils.getResourcesAsStream("jeu_donnees_OK_regles_CSV.csv");
+            PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         // Need for test
         IOUtils.toByteArray(stream);
 
@@ -977,7 +977,7 @@ public class WebApplicationResourceTest {
         PowerMockito.when(adminFactory.getAdminManagementClient()).thenReturn(adminClient);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminFactory);
 
-        final InputStream stream = PropertiesUtils.getResourcesAsStream("jeu_donnees_KO_regles_CSV_Parameters.csv");
+        final InputStream stream = PropertiesUtils.getResourceAsStream("jeu_donnees_KO_regles_CSV_Parameters.csv");
         // Need for test
         IOUtils.toByteArray(stream);
 
@@ -1147,7 +1147,7 @@ public class WebApplicationResourceTest {
         final LogbookOperationsClientFactory logbookOperationsClientFactory =
             PowerMockito.mock(LogbookOperationsClientFactory.class);
         PowerMockito.when(LogbookOperationsClientFactory.getInstance()).thenReturn(logbookOperationsClientFactory);
-        PowerMockito.when(LogbookOperationsClientFactory.getInstance().getLogbookOperationClient())
+        PowerMockito.when(LogbookOperationsClientFactory.getInstance().getClient())
             .thenReturn(logbookOperationsClient);
 
         PowerMockito.when(logbookOperationsClient.selectOperationbyId(FAKE_OPERATION_ID))
@@ -1165,7 +1165,7 @@ public class WebApplicationResourceTest {
         final LogbookOperationsClientFactory logbookOperationsClientFactory =
             PowerMockito.mock(LogbookOperationsClientFactory.class);
         PowerMockito.when(LogbookOperationsClientFactory.getInstance()).thenReturn(logbookOperationsClientFactory);
-        PowerMockito.when(LogbookOperationsClientFactory.getInstance().getLogbookOperationClient())
+        PowerMockito.when(LogbookOperationsClientFactory.getInstance().getClient())
             .thenReturn(logbookOperationsClient);
 
         PowerMockito.when(logbookOperationsClient.selectOperationbyId(FAKE_OPERATION_ID))
@@ -1183,7 +1183,7 @@ public class WebApplicationResourceTest {
         final LogbookOperationsClientFactory logbookOperationsClientFactory =
             PowerMockito.mock(LogbookOperationsClientFactory.class);
         PowerMockito.when(LogbookOperationsClientFactory.getInstance()).thenReturn(logbookOperationsClientFactory);
-        PowerMockito.when(LogbookOperationsClientFactory.getInstance().getLogbookOperationClient())
+        PowerMockito.when(LogbookOperationsClientFactory.getInstance().getClient())
             .thenReturn(logbookOperationsClient);
 
         PowerMockito.when(logbookOperationsClient.selectOperationbyId(FAKE_OPERATION_ID))
@@ -1203,7 +1203,7 @@ public class WebApplicationResourceTest {
         final LogbookOperationsClientFactory logbookOperationsClientFactory =
             PowerMockito.mock(LogbookOperationsClientFactory.class);
         PowerMockito.when(LogbookOperationsClientFactory.getInstance()).thenReturn(logbookOperationsClientFactory);
-        PowerMockito.when(LogbookOperationsClientFactory.getInstance().getLogbookOperationClient())
+        PowerMockito.when(LogbookOperationsClientFactory.getInstance().getClient())
             .thenReturn(logbookOperationsClient);
 
         PowerMockito.when(logbookOperationsClient.selectOperationbyId(FAKE_OPERATION_ID))

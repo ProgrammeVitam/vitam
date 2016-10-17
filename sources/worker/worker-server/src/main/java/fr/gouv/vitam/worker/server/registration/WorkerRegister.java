@@ -42,6 +42,9 @@ public class WorkerRegister implements Runnable {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerRegister.class);
 
+    /**
+     * Default Family name
+     */
     public static final String DEFAULT_FAMILY = "defaultFamily";
 
     /**
@@ -58,10 +61,13 @@ public class WorkerRegister implements Runnable {
         this.configuration = configuration;
     }
 
+    // FIXME bad registration should stop the worker or setup an requestable information on bad status
     @Override
     public synchronized void run() {
         LOGGER.debug("WorkerRegister run : begin");
-
+        if (configuration.getRegisterRetry() == -1) {
+            return;
+        }
         int nbRegisterCall = 0;
         final long delay = configuration.getRegisterDelay() * 1000;
         final ProcessingManagementClient processingClient =
@@ -95,7 +101,7 @@ public class WorkerRegister implements Runnable {
                 String.valueOf(ServerIdentity.getInstance().getPlatformId()), workerBean);
             return true;
         } catch (final Exception e) {
-            LOGGER.error("WorkerRegister run : register call failed", e);
+            LOGGER.error("WorkerRegister run : register call failed on " + configuration.getProcessingUrl(), e);
             return false;
         }
     }

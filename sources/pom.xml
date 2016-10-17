@@ -171,7 +171,10 @@
 		<unix.user>vitam</unix.user>
 		<unix.group>vitam</unix.group>
 		<esapi.version>2.1.0.1</esapi.version>
-		<xerces.version>2.11.0</xerces.version>
+		<!-- removed to support xerces with 1.1 support
+		<xerces.version>2.11.0</xerces.version>  -->
+		<xerces-xsd11.version>2.12-beta-r1667115</xerces-xsd11.version>
+		<xml-resolver.version>1.2</xml-resolver.version>
 		<!-- 3.2.4 ? -->
 		<cglib.version>2.2.2</cglib.version>
 		<opencsv.version>2.3</opencsv.version>
@@ -813,9 +816,19 @@
 				<version>${apache-shiro.version}</version>
 			</dependency>
 			<dependency>
+				<groupId>org.opengis.cite.xerces</groupId>
+				<artifactId>xercesImpl-xsd11</artifactId>
+				<version>${xerces-xsd11.version}</version>
+			</dependency>
+			<!-- Removed to put xerces with 1.1 support  <dependency>
 				<groupId>xerces</groupId>
 				<artifactId>xercesImpl</artifactId>
 				<version>${xerces.version}</version>
+			</dependency> -->
+			<dependency>
+				<groupId>xml-resolver</groupId>
+				<artifactId>xml-resolver</artifactId>
+				<version>${xml-resolver.version}</version>
 			</dependency>
 
 			<dependency>

@@ -30,6 +30,7 @@ import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -77,9 +78,8 @@ public class SedaUtilsLifeCycleExceptionsTest {
     private static final String OBJ = "obj";
     private WorkspaceClient workspaceClient;
     private final MetaDataClientFactory metadataFactory = new MetaDataClientFactory();
-    private final InputStream seda = Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP);
-    private final InputStream seda_2 = Thread.currentThread().getContextClassLoader()
-        .getResourceAsStream(SIP_ARCHIVE_BEFORE_BDO);
+    private final InputStream seda;
+    private final InputStream seda_2;
     private final SedaUtils utils = SedaUtilsFactory.create();
     private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
         .newGUID()).setUrlWorkspace(OBJ).setUrlMetadata(OBJ).setObjectName(OBJ).setContainerName(OBJ)
@@ -88,6 +88,10 @@ public class SedaUtilsLifeCycleExceptionsTest {
     private static LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
     private static LogbookLifeCyclesClient logbookLifeCycleClient;
 
+    public SedaUtilsLifeCycleExceptionsTest() throws FileNotFoundException {
+        seda = PropertiesUtils.getResourceAsStream(SIP);
+        seda_2 = PropertiesUtils.getResourceAsStream(SIP_ARCHIVE_BEFORE_BDO);
+    }
     @BeforeClass
     public static void setup() {
         PowerMockito.mockStatic(LogbookLifeCyclesClientFactory.class);

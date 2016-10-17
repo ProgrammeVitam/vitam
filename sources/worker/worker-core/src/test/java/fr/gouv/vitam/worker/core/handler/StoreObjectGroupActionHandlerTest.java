@@ -31,6 +31,7 @@ import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 
 import org.junit.Before;
@@ -73,17 +74,19 @@ public class StoreObjectGroupActionHandlerTest {
     private StorageClient storageClient;
     private HandlerIO action;
     private static final String OBJECT_GROUP = "storeObjectGroupHandler/aeaaaaaaaaaam7myaaaamakxfgivuryaaaaq.json";
-    private final InputStream objectGroup = Thread.currentThread().getContextClassLoader()
-        .getResourceAsStream(OBJECT_GROUP);
+    private final InputStream objectGroup;
     private static final String OBJ = "aeaaaaaaaaaam7myaaaamakxfgivuryaaaaq";
-
+    
+    public StoreObjectGroupActionHandlerTest() throws FileNotFoundException {
+        objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP);
+    }
     @Before
     public void setUp() throws Exception {
         workspaceClient = mock(WorkspaceClient.class);
         metadataClient = mock(MetaDataClient.class);
         storageClient = mock(StorageClient.class);
         action = new HandlerIO("");
-        action.addInput(PropertiesUtils.getResourcesFile(OBJECT_GROUP));
+        action.addInput(PropertiesUtils.getResourceFile(OBJECT_GROUP));
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
         PowerMockito.mockStatic(MetaDataClientFactory.class);
         PowerMockito.mockStatic(StorageClientFactory.class);

@@ -29,10 +29,8 @@ package fr.gouv.vitam.worker.client;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 
 import javax.ws.rs.HttpMethod;
-import javax.ws.rs.client.Client;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
@@ -41,13 +39,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.client.AbstractClient;
+import fr.gouv.vitam.common.client2.DefaultClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.server.application.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.OutcomeMessage;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
@@ -58,18 +57,13 @@ import fr.gouv.vitam.worker.common.DescriptionStep;
 /**
  * WorkerClient implementation for production environment using REST API.
  */
-public class WorkerClientRest extends AbstractClient implements WorkerClient {
+public class WorkerClientRest extends DefaultClient implements WorkerClient {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerClientRest.class);
     private static final String REQUEST_ID_MUST_HAVE_A_VALID_VALUE = "request id must have a valid value";
     private static final String DATA_MUST_HAVE_A_VALID_VALUE = "data must have a valid value";
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerClientRest.class);
 
-    WorkerClientRest(ClientConfigurationImpl clientConfiguration, String resourcePath,
-        boolean suppressHttpCompliance) {
-        super(clientConfiguration, resourcePath, suppressHttpCompliance);
-    }
-
-    WorkerClientRest(ClientConfigurationImpl clientConfiguration, String resourcePath, Client client) {
-        super(clientConfiguration, resourcePath, client);
+    WorkerClientRest(WorkerClientFactory factory) {
+        super(factory);
     }
 
     @Override
@@ -79,20 +73,19 @@ public class WorkerClientRest extends AbstractClient implements WorkerClient {
         ParametersChecker.checkParameter(DATA_MUST_HAVE_A_VALID_VALUE, step);
         Response response = null;
         try {
-            final JsonNode stepJson = JsonHandler.toJsonNode(step);
             response =
-                performGenericRequest("/" + "tasks", stepJson, MediaType.APPLICATION_JSON, getDefaultHeaders(requestId),
-                    HttpMethod.POST, MediaType.APPLICATION_JSON);
-            final JsonNode node = handleCommonResponseStatus(response, JsonNode.class);
+                performRequest(HttpMethod.POST, "/" + "tasks", getDefaultHeaders(requestId), 
+                    JsonHandler.toJsonNode(step), MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            final JsonNode node = handleCommonResponseStatus(requestId, step, response, JsonNode.class);
             return getListResponses(node);
-        } catch (final javax.ws.rs.ProcessingException e) {
+        } catch (final VitamClientInternalException e) {
             LOGGER.error("Worker Internal Server Error", e);
             throw new WorkerServerClientException("Worker Internal Server Error", e);
-        } catch (final InvalidParseOperationException e) {
-            LOGGER.error("Worker Client Error", e);
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error("Worker Internal Server Error", e);
             throw new WorkerServerClientException("Step description incorrect", e);
         } finally {
-            Optional.ofNullable(response).ifPresent(Response::close);
+            consumeAnyEntityAndClose(response);
         }
     }
 
@@ -108,8 +101,19 @@ public class WorkerClientRest extends AbstractClient implements WorkerClient {
         return headers;
     }
 
-    @Override
-    protected <R> R handleCommonResponseStatus(Response response, Class<R> responseType)
+
+    /**
+     * Common method to handle status responses
+     *
+     * @param requestId the current requestId
+     * @param step the current step
+     * @param response the JAX-RS response from the server
+     * @param responseType the type to map the response into
+     * @param <R> response type parameter
+     * @return the Response mapped as an POJO
+     * @throws VitamClientException the exception if any from the server
+     */
+    protected <R> R handleCommonResponseStatus(String requestId, DescriptionStep step, Response response, Class<R> responseType)
         throws WorkerNotFoundClientException, WorkerServerClientException {
         final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
         switch (status) {
@@ -118,7 +122,8 @@ public class WorkerClientRest extends AbstractClient implements WorkerClient {
             case NOT_FOUND:
                 throw new WorkerNotFoundClientException(status.getReasonPhrase());
             default:
-                LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
+                LOGGER.error(INTERNAL_SERVER_ERROR + " during execution of " + requestId
+                    + " Request, stepname:  " + step.getStep().getStepName() + " : " + status.getReasonPhrase());
                 throw new WorkerServerClientException(INTERNAL_SERVER_ERROR);
         }
     }

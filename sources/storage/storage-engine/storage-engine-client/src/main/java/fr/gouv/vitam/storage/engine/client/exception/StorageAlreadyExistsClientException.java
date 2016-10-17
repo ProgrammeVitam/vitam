@@ -57,15 +57,4 @@ public class StorageAlreadyExistsClientException extends StorageClientException 
     public StorageAlreadyExistsClientException(String messsage, Throwable cause) {
         super(messsage, cause);
     }
-
-    /**
-     * @param message associated message
-     * @param cause associated cause
-     * @param enableSuppression allow suppression or not
-     * @param writableStackTrace allow writable stack trace or not
-     */
-    public StorageAlreadyExistsClientException(String message, Throwable cause, boolean enableSuppression,
-        boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
 }

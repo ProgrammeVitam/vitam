@@ -138,6 +138,7 @@ public class MongoDbAccessAdminImplTest {
         assertEquals(f2, f1);
         mongoAccess.deleteCollection(FunctionalAdminCollections.FORMATS);
         assertEquals(0, collection.count());
+        fileList.close();
         client.close();
     }
 
@@ -161,6 +162,7 @@ public class MongoDbAccessAdminImplTest {
         final FileRules f2 = (FileRules) mongoAccess.getDocumentById(id, FunctionalAdminCollections.RULES);
         mongoAccess.deleteCollection(FunctionalAdminCollections.RULES);
         assertEquals(0, collection.count());
+        fileList.close();
         client.close();
     }
 }

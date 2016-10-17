@@ -76,11 +76,11 @@ public class TransferNotificationActionHandlerTest {
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
         PowerMockito.when(WorkspaceClientFactory.create(anyObject())).thenReturn(workspaceClient);
         action = new HandlerIO("containerName");
-        action.addInput(PropertiesUtils.getResourcesFile(ARCHIVE_ID_TO_GUID_MAP));
-        action.addInput(PropertiesUtils.getResourcesFile(BINARY_DATA_OBJECT_ID_TO_GUID_MAP));
-        action.addInput(PropertiesUtils.getResourcesFile(BDO_TO_OBJECT_GROUP_ID_MAP));
-        action.addInput(PropertiesUtils.getResourcesFile(BDO_TO_VERSION_BDO_MAP));
-        action.addInput(PropertiesUtils.getResourcesFile(ATR_GLOBAL_SEDA_PARAMETERS));
+        action.addInput(PropertiesUtils.getResourceFile(ARCHIVE_ID_TO_GUID_MAP));
+        action.addInput(PropertiesUtils.getResourceFile(BINARY_DATA_OBJECT_ID_TO_GUID_MAP));
+        action.addInput(PropertiesUtils.getResourceFile(BDO_TO_OBJECT_GROUP_ID_MAP));
+        action.addInput(PropertiesUtils.getResourceFile(BDO_TO_VERSION_BDO_MAP));
+        action.addInput(PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS));
     }
 
 

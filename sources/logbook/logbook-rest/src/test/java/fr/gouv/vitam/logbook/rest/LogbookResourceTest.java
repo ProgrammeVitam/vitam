@@ -52,7 +52,6 @@ import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.ServerIdentity;
-import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -60,8 +59,7 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server2.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
@@ -77,7 +75,6 @@ public class LogbookResourceTest {
     private static MongoDbAccess mongoDbAccess;
     private static MongodExecutable mongodExecutable;
     private static MongodProcess mongod;
-    private static VitamServer vitamServer;
 
     private static final String REST_URI = "/logbook/v1";
     private static final String OPERATIONS_URI = "/operations";
@@ -87,6 +84,7 @@ public class LogbookResourceTest {
     private static int databasePort;
     private static int serverPort;
     private static File newLogbookConf;
+    private static LogbookApplication application;
 
     private static LogbookOperationParameters logbookParametersStart;
     private static LogbookOperationParameters logbookParametersAppend;
@@ -126,26 +124,28 @@ public class LogbookResourceTest {
         serverPort = junitHelper.findAvailablePort();
 
         // TODO verifier la compatibilité avec les tests parallèles sur jenkins
-        SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
+        JunitHelper.setJettyPortSystemProperty(serverPort);
 
         RestAssured.port = serverPort;
         RestAssured.basePath = REST_URI;
 
         try {
-            LogbookApplication.startApplication(new String[] {newLogbookConf.getAbsolutePath()});
+            application = new LogbookApplication(newLogbookConf.getAbsolutePath());
+            application.start();
+            JunitHelper.unsetJettyPortSystemProperty();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
             throw new IllegalStateException(
                 "Cannot start the Logbook Application Server", e);
         }
 
-        final GUID eip = GUIDFactory.newOperationIdGUID(0);
+        final GUID eip = GUIDFactory.newEventGUID(0);
 
         logbookParametersStart = LogbookParametersFactory.newLogbookOperationParameters(
             eip, "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
             StatusCode.STARTED, "start ingest", eip);
         logbookParametersAppend = LogbookParametersFactory.newLogbookOperationParameters(
-            GUIDFactory.newOperationIdGUID(0),
+            GUIDFactory.newEventGUID(0),
             "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
             StatusCode.OK, "end ingest", eip);
         logbookParametersWrongStart = LogbookParametersFactory.newLogbookOperationParameters(
@@ -153,16 +153,16 @@ public class LogbookResourceTest {
             "eventTypeValue2", eip, LogbookTypeProcess.INGEST,
             StatusCode.STARTED, "start ingest", eip);
         logbookParametersWrongAppend = LogbookParametersFactory.newLogbookOperationParameters(
-            GUIDFactory.newOperationIdGUID(0),
-            "eventTypeValue2", GUIDFactory.newOperationIdGUID(0), LogbookTypeProcess.INGEST,
+            GUIDFactory.newEventGUID(0),
+            "eventTypeValue2", GUIDFactory.newEventGUID(0), LogbookTypeProcess.INGEST,
             StatusCode.OK, "end ingest", eip);
 
         logbookParametersSelect = LogbookParametersFactory.newLogbookOperationParameters(
-            eip, "eventTypeValueSelect", GUIDFactory.newOperationIdGUID(0), LogbookTypeProcess.INGEST,
+            eip, "eventTypeValueSelect", GUIDFactory.newEventGUID(0), LogbookTypeProcess.INGEST,
             StatusCode.OK, "start ingest", eip);
 
         logbookParametersSelectId = LogbookParametersFactory.newLogbookOperationParameters(
-            eip, "eventTypeValueSelectId", GUIDFactory.newOperationIdGUID(0), LogbookTypeProcess.INGEST,
+            eip, "eventTypeValueSelectId", GUIDFactory.newEventGUID(0), LogbookTypeProcess.INGEST,
             StatusCode.OK, "start ingest", eip);
     }
 
@@ -170,7 +170,7 @@ public class LogbookResourceTest {
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
         try {
-            LogbookApplication.stop();
+            application.stop();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
         }
@@ -246,7 +246,7 @@ public class LogbookResourceTest {
     public void testError() {
         // Create KO since Bad Request
         final LogbookOperationParameters empty = LogbookParametersFactory.newLogbookOperationParameters();
-        final String id = GUIDFactory.newOperationIdGUID(0).getId();
+        final String id = GUIDFactory.newEventGUID(0).getId();
         empty.putParameterValue(LogbookParameterName.eventIdentifierProcess, id);
         given()
             .contentType(ContentType.JSON)
@@ -267,7 +267,7 @@ public class LogbookResourceTest {
             .body(logbookParametersWrongStart.toString())
             .when()
             .post(OPERATIONS_URI + OPERATION_ID_URI,
-                GUIDFactory.newOperationIdGUID(0).getId())
+                GUIDFactory.newEventGUID(0).getId())
             .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
         given()
@@ -275,7 +275,7 @@ public class LogbookResourceTest {
             .body(logbookParametersWrongAppend.toString())
             .when()
             .put(OPERATIONS_URI + OPERATION_ID_URI,
-                GUIDFactory.newOperationIdGUID(0).getId())
+                GUIDFactory.newEventGUID(0).getId())
             .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }

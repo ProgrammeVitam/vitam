@@ -14,7 +14,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:group ref="BaseObjectGroup"/>
-            <xsd:any namespace="##other" processContents="lax" minOccurs="0"/>
+            <xsd:any namespace="##local" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
             <!-- <xsd:element ref="ObjectGroupExtenstionAbstract" minOccurs="0" maxOccurs="unbounded"/> -->
         </xsd:sequence>
     </xsd:group>

@@ -26,29 +26,66 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.stream;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 
 import org.junit.Test;
 
+import fr.gouv.vitam.common.junit.FakeInputStream;
+import fr.gouv.vitam.common.junit.JunitHelper;
+
 public class StreamUtilsTest {
+
+    @Test
+    public void constructorTest() {
+        JunitHelper.testPrivateConstructor(StreamUtils.class);
+    }
 
     @Test
     public void testClose() {
         InputStream inputStream = null;
         try {
             StreamUtils.closeSilently(inputStream);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             fail("Should not raized an exception");
         }
         inputStream = new ByteArrayInputStream(new byte[10]);
         try {
             StreamUtils.closeSilently(inputStream);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             fail("Should not raized an exception");
         }
     }
 
+    @Test
+    public void testPartialReadOnClose() throws IOException {
+        final long size = 100000;
+        FakeInputStream inputStream = new FakeInputStream(size, true);
+        try {
+            final long read = inputStream.skip(size / 2);
+            assertEquals(size / 2, read);
+            assertEquals(size / 2, inputStream.available());
+            assertEquals(size / 2, inputStream.readCount());
+        } finally {
+            inputStream.close();
+        }
+        assertEquals(0, inputStream.available());
+        assertEquals(size / 2, inputStream.readCount());
+        inputStream = new FakeInputStream(size, true);
+        final InputStream is = StreamUtils.getRemainingReadOnCloseInputStream(inputStream);
+        try {
+            final long read = is.skip(size / 2);
+            assertEquals(size / 2, read);
+            assertEquals(size / 2, is.available());
+            assertEquals(size / 2, inputStream.readCount());
+        } finally {
+            is.close();
+        }
+        assertEquals(0, inputStream.available());
+        assertEquals(size, inputStream.readCount());
+    }
 }

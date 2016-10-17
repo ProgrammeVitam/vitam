@@ -17,7 +17,6 @@ public class FormatIdentifierTechnicalExceptionTest {
         assertNotNull(new FormatIdentifierTechnicalException(MESSAGE));
         assertNotNull(new FormatIdentifierTechnicalException(exception));
         assertNotNull(new FormatIdentifierTechnicalException(MESSAGE, exception));
-        assertNotNull(new FormatIdentifierTechnicalException(MESSAGE, exception, true, true));
     }
 
 }

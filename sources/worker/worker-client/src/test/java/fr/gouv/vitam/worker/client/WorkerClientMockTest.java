@@ -33,6 +33,7 @@ import java.util.List;
 
 import org.junit.Test;
 
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.Step;
@@ -48,21 +49,19 @@ import fr.gouv.vitam.worker.common.DescriptionStep;
 public class WorkerClientMockTest {
 
     @Test
-    public void statusTest() throws VitamClientException {
-        WorkerClientFactory.setConfiguration(
-            WorkerClientFactory.WorkerClientType.MOCK_WORKER, null);
-        final WorkerClient client = WorkerClientFactory.getInstance().getWorkerClient();
+    public void statusTest() throws VitamClientException, VitamApplicationServerException {
+        WorkerClientFactory.changeMode(null);
+        final WorkerClient client = WorkerClientFactory.getInstance().getClient();
         assertNotNull(client);
-        assertNotNull(client.getStatus());
+        client.checkStatus();
     }
 
     @Test
     public void createSteps() throws WorkerNotFoundClientException,
         WorkerServerClientException {
-        WorkerClientFactory.setConfiguration(
-            WorkerClientFactory.WorkerClientType.MOCK_WORKER, null);
+        WorkerClientFactory.changeMode(null);
         final WorkerClient client = WorkerClientFactory.getInstance()
-            .getWorkerClient();
+            .getClient();
 
         final Step step = new Step();
         final DefaultWorkerParameters workParams = WorkerParametersFactory.newWorkerParameters();

@@ -60,6 +60,7 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.client2.BasicClient;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -79,7 +80,6 @@ import fr.gouv.vitam.processing.management.rest.ProcessManagementApplication;
 import fr.gouv.vitam.worker.client.WorkerClient;
 import fr.gouv.vitam.worker.client.WorkerClientConfiguration;
 import fr.gouv.vitam.worker.client.WorkerClientFactory;
-import fr.gouv.vitam.worker.client.WorkerClientFactory.WorkerClientType;
 import fr.gouv.vitam.worker.common.DescriptionStep;
 import fr.gouv.vitam.worker.server.registration.WorkerRegister;
 import fr.gouv.vitam.worker.server.rest.WorkerApplication;
@@ -121,6 +121,7 @@ public class WorkerIT {
     private static String CONFIG_PROCESSING_PATH = "";
 
     private static MetaDataApplication medtadataApplication;
+    private static WorkerApplication wkrapplication;
 
     private WorkspaceClient workspaceClient;
     private WorkerClient workerClient;
@@ -138,10 +139,10 @@ public class WorkerIT {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        CONFIG_METADATA_PATH = PropertiesUtils.getResourcesPath("integration/metadata.conf").toString();
-        CONFIG_WORKER_PATH = PropertiesUtils.getResourcesPath("integration/worker.conf").toString();
-        CONFIG_WORKSPACE_PATH = PropertiesUtils.getResourcesPath("integration/workspace.conf").toString();
-        CONFIG_PROCESSING_PATH = PropertiesUtils.getResourcesPath("integration/processing.conf").toString();
+        CONFIG_METADATA_PATH = PropertiesUtils.getResourcePath("integration/metadata.conf").toString();
+        CONFIG_WORKER_PATH = PropertiesUtils.getResourcePath("integration/worker.conf").toString();
+        CONFIG_WORKSPACE_PATH = PropertiesUtils.getResourcePath("integration/workspace.conf").toString();
+        CONFIG_PROCESSING_PATH = PropertiesUtils.getResourcePath("integration/processing.conf").toString();
 
         elasticsearchHome = tempFolder.newFolder();
         final Settings settings = Settings.settingsBuilder()
@@ -180,15 +181,16 @@ public class WorkerIT {
 
         // launch worker
         SystemPropertyUtil
-            .set(WorkerApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_WORKER));
-        WorkerApplication.startApplication(CONFIG_WORKER_PATH);
+            .set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
+        wkrapplication = new WorkerApplication(CONFIG_WORKER_PATH);
+        wkrapplication.start();
 
         // launch workspace
         SystemPropertyUtil
             .set(WorkspaceApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_WORKSPACE));
         WorkspaceApplication.startApplication(CONFIG_WORKSPACE_PATH);
 
-        WorkerClientFactory.setConfiguration(WorkerClientType.WORKER, getWorkerClientConfiguration());
+        WorkerClientFactory.changeMode(getWorkerClientConfiguration());
     }
 
     @AfterClass
@@ -198,7 +200,7 @@ public class WorkerIT {
         node.close();
         try {
             WorkspaceApplication.stop();
-            WorkerApplication.stop();
+            wkrapplication.stop();
             ProcessManagementApplication.stop();
             MetaDataApplication.stop();
         } catch (final Exception e) {
@@ -217,19 +219,19 @@ public class WorkerIT {
     public void testServersStatus() throws Exception {
         RestAssured.port = PORT_SERVICE_WORKER;
         RestAssured.basePath = WORKER_PATH;
-        get("/status").then().statusCode(204);
+        get(BasicClient.STATUS_URL).then().statusCode(204);
 
         RestAssured.port = PORT_SERVICE_WORKSPACE;
         RestAssured.basePath = WORKSPACE_PATH;
-        get("/status").then().statusCode(204);
+        get(BasicClient.STATUS_URL).then().statusCode(204);
 
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
-        get("/status").then().statusCode(204);
+        get(BasicClient.STATUS_URL).then().statusCode(204);
 
         RestAssured.port = PORT_SERVICE_METADATA;
         RestAssured.basePath = METADATA_PATH;
-        get("/status").then().statusCode(204);
+        get(BasicClient.STATUS_URL).then().statusCode(204);
     }
 
     @Test
@@ -241,7 +243,7 @@ public class WorkerIT {
         RestAssured.basePath = WORKSPACE_PATH;
 
         final InputStream zipInputStreamSipObject =
-            Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_FILE_OK_NAME);
+            PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
         workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
         workspaceClient.createContainer(CONTAINER_NAME);
         workspaceClient.unzipObject(CONTAINER_NAME, SIP_FOLDER, zipInputStreamSipObject);
@@ -250,7 +252,7 @@ public class WorkerIT {
         RestAssured.port = PORT_SERVICE_WORKER;
         RestAssured.basePath = WORKER_PATH;
 
-        workerClient = WorkerClientFactory.getInstance().getWorkerClient();
+        workerClient = WorkerClientFactory.getInstance().getClient();
         final List<EngineResponse> retStepControl =
             workerClient.submitStep("resquestId", getDescriptionStep("integration/step_control_SIP.json"));
         assertNotNull(retStepControl);
@@ -294,7 +296,7 @@ public class WorkerIT {
         RestAssured.basePath = WORKSPACE_PATH;
 
         final InputStream zipInputStreamSipObject =
-            Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_ARBO_COMPLEXE_FILE_OK);
+            PropertiesUtils.getResourceAsStream(SIP_ARBO_COMPLEXE_FILE_OK);
         workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
         workspaceClient.createContainer(CONTAINER_NAME);
         workspaceClient.unzipObject(CONTAINER_NAME, SIP_FOLDER, zipInputStreamSipObject);
@@ -303,7 +305,7 @@ public class WorkerIT {
         RestAssured.port = PORT_SERVICE_WORKER;
         RestAssured.basePath = WORKER_PATH;
 
-        workerClient = WorkerClientFactory.getInstance().getWorkerClient();
+        workerClient = WorkerClientFactory.getInstance().getClient();
         final List<EngineResponse> retStepControl =
             workerClient.submitStep("resquestId", getDescriptionStep("integration/step_control_SIP.json"));
         assertNotNull(retStepControl);
@@ -346,7 +348,7 @@ public class WorkerIT {
         RestAssured.basePath = WORKSPACE_PATH;
 
         final InputStream zipInputStreamSipObject =
-            Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_WITHOUT_MANIFEST);
+            PropertiesUtils.getResourceAsStream(SIP_WITHOUT_MANIFEST);
         workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
         workspaceClient.createContainer(CONTAINER_NAME);
         workspaceClient.unzipObject(CONTAINER_NAME, SIP_FOLDER, zipInputStreamSipObject);
@@ -355,7 +357,7 @@ public class WorkerIT {
         RestAssured.port = PORT_SERVICE_WORKER;
         RestAssured.basePath = WORKER_PATH;
 
-        workerClient = WorkerClientFactory.getInstance().getWorkerClient();
+        workerClient = WorkerClientFactory.getInstance().getClient();
         final List<EngineResponse> retStepControl =
             workerClient.submitStep("resquestId", getDescriptionStep("integration/step_control_SIP.json"));
         assertNotNull(retStepControl);
@@ -375,7 +377,7 @@ public class WorkerIT {
         RestAssured.basePath = WORKSPACE_PATH;
 
         final InputStream zipInputStreamSipObject =
-            Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_CONFORMITY_KO);
+            PropertiesUtils.getResourceAsStream(SIP_CONFORMITY_KO);
         workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
         workspaceClient.createContainer(CONTAINER_NAME);
         workspaceClient.unzipObject(CONTAINER_NAME, SIP_FOLDER, zipInputStreamSipObject);
@@ -384,7 +386,7 @@ public class WorkerIT {
         RestAssured.port = PORT_SERVICE_WORKER;
         RestAssured.basePath = WORKER_PATH;
 
-        workerClient = WorkerClientFactory.getInstance().getWorkerClient();
+        workerClient = WorkerClientFactory.getInstance().getClient();
         final List<EngineResponse> retStepControl =
             workerClient.submitStep("resquestId", getDescriptionStep("integration/step_control_SIP.json"));
         assertNotNull(retStepControl);
@@ -428,7 +430,7 @@ public class WorkerIT {
 
         try {
             final InputStream inputJSON =
-                Thread.currentThread().getContextClassLoader().getResourceAsStream(stepFilePath);
+                PropertiesUtils.getResourceAsStream(stepFilePath);
             step = objectMapper.readValue(inputJSON, Step.class);
 
         } catch (final IOException e) {

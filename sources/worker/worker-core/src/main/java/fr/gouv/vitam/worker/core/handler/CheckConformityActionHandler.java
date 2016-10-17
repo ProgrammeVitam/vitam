@@ -209,9 +209,8 @@ public class CheckConformityActionHandler extends ActionHandler {
         final List<String> digestMessageInvalidList = new ArrayList<>();
 
         final InputStream firstMapTmpFile = new FileInputStream((File) handlerIO.getInput().get(1));
-        final InputStream secondMapTmpFile = new FileInputStream((File) handlerIO.getInput().get(2));
-
         final Map<String, Object> binaryDataObjectIdToObjectGroupIdBackupMap = JsonHandler.getMapFromInputStream(firstMapTmpFile);
+        final InputStream secondMapTmpFile = new FileInputStream((File) handlerIO.getInput().get(2));
         final Map<String, Object> objectGroupIdToGuidBackupMap = JsonHandler.getMapFromInputStream(secondMapTmpFile);
 
         for (final String mapKey : binaryObjectMap.keySet()) {

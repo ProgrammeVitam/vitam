@@ -17,7 +17,6 @@ public class FormatIdentifierNotFoundExceptionTest {
         assertNotNull(new FormatIdentifierNotFoundException(MESSAGE));
         assertNotNull(new FormatIdentifierNotFoundException(exception));
         assertNotNull(new FormatIdentifierNotFoundException(MESSAGE, exception));
-        assertNotNull(new FormatIdentifierNotFoundException(MESSAGE, exception, true, true));
     }
 
 }

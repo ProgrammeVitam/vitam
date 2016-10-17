@@ -35,23 +35,111 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
  * This class supports Helpers on streams.
  */
 public class StreamUtils {
+    private static final int BUFFER_SIZE = 65536;
+
     private StreamUtils() {
         // Empty
     }
 
     /**
-     * Close silently the InputStream, ignoring IOException or null object.
-     * 
+     * Close silently the InputStream, first consuming any bytes available, ignoring IOException or null object.
+     *
      * @param inputStream
      */
     public static final void closeSilently(InputStream inputStream) {
-        if (inputStream == null) {
-            return;
+        consumeInputStream(inputStream);
+    }
+
+    private static class RemainingReadOnCloseInputStream extends InputStream {
+        private final InputStream source;
+
+        private RemainingReadOnCloseInputStream(InputStream inputStream) {
+            source = inputStream;
         }
+
+        @Override
+        public int available() throws IOException {
+            return source.available();
+        }
+
+        @Override
+        public void close() {
+            consumeInputStream(source);
+        }
+
+        @Override
+        public synchronized void mark(int readlimit) {
+            source.mark(readlimit);
+        }
+
+        @Override
+        public boolean markSupported() {
+            return source.markSupported();
+        }
+
+        @Override
+        public int read(byte[] b, int off, int len) throws IOException {
+            return source.read(b, off, len);
+        }
+
+        @Override
+        public int read(byte[] b) throws IOException {
+            return source.read(b);
+        }
+
+        @Override
+        public synchronized void reset() throws IOException {
+            source.reset();
+        }
+
+        @Override
+        public long skip(long n) throws IOException {
+            return source.skip(n);
+        }
+
+        @Override
+        public int read() throws IOException {
+            return source.read();
+        }
+
+    }
+
+    /**
+     * Build an InputStream over the source one that will consume any left data when closing it.
+     *
+     * @param inputStream
+     * @return the new InputStream to use
+     */
+    public static final InputStream getRemainingReadOnCloseInputStream(final InputStream inputStream) {
+        return new RemainingReadOnCloseInputStream(inputStream);
+    }
+
+    /**
+     * Read and close the inputStream using buffer read (read(buffer))
+     *
+     * @param inputStream
+     * @return the size of the inputStream read
+     */
+    private static final long consumeInputStream(InputStream inputStream) {
+        long read = 0;
+        if (inputStream == null) {
+            return read;
+        }
+        final byte[] buffer = new byte[BUFFER_SIZE];
         try {
-            inputStream.close();
+            int len;
+            while ((len = inputStream.read(buffer)) >= 0) {
+                read += len;
+            }
         } catch (final IOException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+        } finally {
+            try {
+                inputStream.close();
+            } catch (final IOException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
         }
+        return read;
     }
 }

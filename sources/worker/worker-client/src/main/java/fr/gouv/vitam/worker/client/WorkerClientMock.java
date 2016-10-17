@@ -29,10 +29,7 @@ package fr.gouv.vitam.worker.client;
 import java.util.ArrayList;
 import java.util.List;
 
-import fr.gouv.vitam.common.ServerIdentity;
-import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.model.StatusMessage;
-import fr.gouv.vitam.common.server.application.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.client2.AbstractMockClient;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;
@@ -42,20 +39,7 @@ import fr.gouv.vitam.worker.common.DescriptionStep;
 /**
  * Mock client implementation for worker
  */
-class WorkerClientMock extends WorkerClientRest implements WorkerClient {
-    private static final ServerIdentity SERVER_IDENTITY = ServerIdentity.getInstance();
-
-    /**
-     * Constructor
-     */
-    WorkerClientMock() {
-        super(new ClientConfigurationImpl("mock", 1), "/", false);
-    }
-
-    @Override
-    public StatusMessage getStatus() throws VitamClientException {
-        return new StatusMessage(SERVER_IDENTITY);
-    }
+class WorkerClientMock extends AbstractMockClient implements WorkerClient {
 
     @Override
     public List<EngineResponse> submitStep(String requestId, DescriptionStep data)

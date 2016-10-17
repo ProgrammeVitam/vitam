@@ -75,6 +75,11 @@
 			<artifactId>assertj-core</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>net.sf.jsignature.io-tools</groupId>
+			<artifactId>easystream</artifactId>
+			<version>1.2.15</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
@@ -83,6 +88,7 @@
 				<artifactId>maven-jaxb2-plugin</artifactId>
 				<configuration>
 					<catalog>src/main/resources/seda-vitam.cat</catalog>
+					<strict>false</strict>
 					<plugins>
 						<plugin>
 							<groupId>org.jvnet.jaxb2_commons</groupId>

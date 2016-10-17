@@ -42,6 +42,5 @@ public class FileRulesExceptionTest {
         assertEquals("test", new FileFormatException("test").getMessage());
         assertNotNull(new FileRulesException(new Exception()).getCause());
         assertNotNull(new FileRulesException("test", new Exception()).getCause());
-        assertNotNull(new FileRulesException("test", new Exception(), true, true).getCause());
     }
 }

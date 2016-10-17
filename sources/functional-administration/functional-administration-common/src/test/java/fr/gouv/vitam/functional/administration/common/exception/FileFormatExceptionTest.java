@@ -40,6 +40,5 @@ public class FileFormatExceptionTest {
         assertEquals("test", new FileFormatException("test").getMessage());
         assertNotNull(new FileFormatException(new Exception()).getCause());
         assertNotNull(new FileFormatException("test", new Exception()).getCause());
-        assertNotNull(new FileFormatException("test", new Exception(), true, true).getCause());
     }
 }

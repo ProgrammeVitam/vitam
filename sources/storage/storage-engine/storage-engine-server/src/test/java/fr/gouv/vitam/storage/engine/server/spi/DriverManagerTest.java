@@ -61,9 +61,9 @@ public class DriverManagerTest {
 
     private static final String MON_MODULE_DRIVER_MON_DRIVER = "mon.module.driver.MonDriver";
     private static final String THE_DRIVER_THE_DRIVER = "the.driver.TheDriver";
-    private static final String OFFER_1 = "offer1";
-    private static final String OFFER_3 = "offer3";
-    private static final String OFFER_4 = "offer4";
+    private static final String OFFER_1 = "DriverManagerTestoffer1";
+    private static final String OFFER_3 = "DriverManagerTestoffer3";
+    private static final String OFFER_4 = "DriverManagerTestoffer4";
 
     @After
     public void removePersistFiles() throws IOException {
@@ -88,7 +88,7 @@ public class DriverManagerTest {
     public void addOffersAndretriveDriverTest() throws Exception {
         final List<String> offers = new ArrayList<>();
         offers.add(OFFER_1);
-        offers.add("offer2");
+        offers.add("DriverManagerTestoffer2");
         offers.add(OFFER_3);
         offers.add(OFFER_4);
         DriverManager.addOffersToDriver(MON_MODULE_DRIVER_MON_DRIVER, offers);

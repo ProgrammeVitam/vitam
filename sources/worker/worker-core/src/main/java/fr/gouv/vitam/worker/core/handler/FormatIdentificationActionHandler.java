@@ -28,7 +28,6 @@ package fr.gouv.vitam.worker.core.handler;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -43,6 +42,7 @@ import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.gc.iotools.stream.is.InputStreamFromOutputStream;
 
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -112,6 +112,9 @@ public class FormatIdentificationActionHandler extends ActionHandler {
 
     private boolean metadatasUpdated = false;
 
+    /**
+     * Empty constructor
+     */
     public FormatIdentificationActionHandler() {
         // Nothing
     }
@@ -204,10 +207,26 @@ public class FormatIdentificationActionHandler extends ActionHandler {
             }
 
             if (metadatasUpdated) {
+                try (final InputStreamFromOutputStream<String> isos = new InputStreamFromOutputStream<String>() {
+
+                    @Override
+                    protected String produce(OutputStream sink) throws Exception {
+                        JsonHandler.writeAsOutputStream(jsonOG, sink);
+                        return params.getObjectName();
+                    }
+                }) {
+                    workspaceClient.putObject(params.getContainerName(),
+                        IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName(),
+                        isos);
+                } catch (IOException e) {
+                    throw new ProcessingException("Issue while reading/writing the ObjectGroup", e);
+                }
                 // TODO: uggly, i don't know how to do this correctly
-                workspaceClient.putObject(params.getContainerName(),
-                    IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName(),
-                    new ByteArrayInputStream(JsonHandler.writeAsString(jsonOG).getBytes()));
+                /*
+                 * workspaceClient.putObject(params.getContainerName(), IngestWorkflowConstants.OBJECT_GROUP_FOLDER +
+                 * "/" + params.getObjectName(), new
+                 * ByteArrayInputStream(JsonHandler.writeAsString(jsonOG).getBytes()));
+                 */
             }
 
         } catch (final ProcessingException e) {
@@ -219,11 +238,11 @@ public class FormatIdentificationActionHandler extends ActionHandler {
             LOGGER.error(e);
             response.setStatus(StatusCode.FATAL);
             response.setOutcomeMessages(HANDLER_ID, OutcomeMessage.FILE_FORMAT_TECHNICAL_ERROR);
-        } catch (final InvalidParseOperationException e) {
+        /*} catch (final InvalidParseOperationException e) {
             // try to write modified json metadata error
             LOGGER.error(e);
             response.setStatus(StatusCode.FATAL);
-            response.setOutcomeMessages(HANDLER_ID, OutcomeMessage.FILE_FORMAT_TECHNICAL_ERROR);
+            response.setOutcomeMessages(HANDLER_ID, OutcomeMessage.FILE_FORMAT_TECHNICAL_ERROR);*/
         } finally {
             try {
                 // delete the file
@@ -586,6 +605,7 @@ public class FormatIdentificationActionHandler extends ActionHandler {
             this.outcomeMessage = outcomeMessage;
         }
 
+        @SuppressWarnings("unused")
         public String getObjectId() {
             return objectId;
         }

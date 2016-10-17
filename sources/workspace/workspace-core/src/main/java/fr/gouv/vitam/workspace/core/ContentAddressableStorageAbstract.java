@@ -50,11 +50,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.SingletonUtils;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.workspace.api.ContentAddressableStorage;
 import fr.gouv.vitam.workspace.api.config.StorageConfiguration;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
@@ -261,6 +263,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
             throw new ContentAddressableStorageException(e);
         } finally {
             context.close();
+            StreamUtils.closeSilently(stream);
         }
     }
 
@@ -294,10 +297,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
         } finally {
             context.close();
         }
-        // FIXME REVIEW use from Commons SingletonUtils
-        // FIXME REVIEW : The method return an empty InputStream if the object name doesn't exists or if the file is
-        // empty. If the file doesn't exist, it must have a different return value (notfound)
-        return new ByteArrayInputStream(new byte[0]);
+        return SingletonUtils.singletonInputStream();
     }
 
     @Override
@@ -327,8 +327,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
 
         ParametersChecker.checkParameter(ErrorMessage.ALGO_IS_A_MANDATORY_PARAMETER.getMessage(),
             algo);
-        try {
-            final InputStream stream = getObject(containerName, objectName);
+        try (final InputStream stream = getObject(containerName, objectName)) {
             final Digest digest = new Digest(algo);
             digest.update(stream);
             return digest.toString();
@@ -447,9 +446,10 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
         InputStream inputStreamObject)
         throws ContentAddressableStorageException {
 
-        try {
+        try (final ZipInputStream zInputStream = new ZipInputStream(StreamUtils.getRemainingReadOnCloseInputStream(inputStreamObject))) {
             ZipEntry zipEntry;
-            final ZipInputStream zInputStream = new ZipInputStream(inputStreamObject);
+            // create entryInputStream to resolve the stream closed problem
+            final EntryImputStream entryInputStream = new EntryImputStream(zInputStream);
 
             boolean isEmpty = true;
             while ((zipEntry = zInputStream.getNextEntry()) != null) {
@@ -459,19 +459,10 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
                 if (zipEntry.isDirectory()) {
                     continue;
                 }
-                // create entryInputStream to resolve the stream closed problem
-                final EntryImputStream entryInputStream = new EntryImputStream(zInputStream);
                 // put object in container
                 putObject(containerName, folderName + File.separator + zipEntry.getName(),
                     entryInputStream);
             }
-            // Used to purge the InputStream as the ZipInputStream doesn't read the inputFile to the end
-            // TODO : should be removed when the refactorised server will be put in place
-            final byte[] buff = new byte[BUFFER_SIZE];
-            while (inputStreamObject.read(buff) != -1) {
-                // NOSONAR : PURGE THE InputStream
-            }
-            zInputStream.close();
 
             if (isEmpty) {
                 throw new ContentAddressableStorageZipException("File is empty or not a zip file");

@@ -43,7 +43,7 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 public class VitamServerFactoryTest {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamServerFactory.class);
-    private final String JETTY_CONFIG_TEST = "jetty-test.xml";
+    private final String JETTY_CONFIG_TEST = "jetty-config-test.xml";
 
     @Test
     public final void testNewVitamServerOnDefaultPort() {

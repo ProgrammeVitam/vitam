@@ -32,6 +32,7 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -71,10 +72,11 @@ public class IndexUnitActionHandlerTest {
     private static final String ARCHIVE_UNIT = "archiveUnit.xml";
     private static final String INGEST_TREE = "INGEST_TREE.json";
     private static final String ARCHIVE_ID_TO_GUID_MAP = "ARCHIVE_ID_TO_GUID_MAP.json";
-    private final InputStream archiveUnit = Thread.currentThread().getContextClassLoader()
-        .getResourceAsStream(ARCHIVE_UNIT);
+    private final InputStream archiveUnit;
     private HandlerIO action;
-
+    public IndexUnitActionHandlerTest() throws FileNotFoundException {
+        archiveUnit = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT);
+    }
     @Before
     public void setUp() throws Exception {
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
@@ -82,8 +84,8 @@ public class IndexUnitActionHandlerTest {
         workspaceClient = mock(WorkspaceClient.class);
         metadataClient = mock(MetaDataClient.class);
         action = new HandlerIO("");
-        action.addInput(PropertiesUtils.getResourcesFile(ARCHIVE_ID_TO_GUID_MAP));
-        action.addInput(PropertiesUtils.getResourcesFile(INGEST_TREE));
+        action.addInput(PropertiesUtils.getResourceFile(ARCHIVE_ID_TO_GUID_MAP));
+        action.addInput(PropertiesUtils.getResourceFile(INGEST_TREE));
     }
 
     @Test

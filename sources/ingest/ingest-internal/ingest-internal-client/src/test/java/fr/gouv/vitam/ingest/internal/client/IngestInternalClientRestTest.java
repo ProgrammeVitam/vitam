@@ -164,13 +164,13 @@ public class IngestInternalClientRestTest extends JerseyTest {
         operationList.add(externalOperationParameters1);
         operationList.add(externalOperationParameters2);
 
-        InputStream inputStreamATR = PropertiesUtils.getResourcesAsStream("ATR_example.xml");
+        InputStream inputStreamATR = PropertiesUtils.getResourceAsStream("ATR_example.xml");
         when(mock.post())
             .thenReturn(Response.status(Status.OK).entity(FileUtil.readInputStream(inputStreamATR)).build());
         final InputStream inputStream =
-            PropertiesUtils.getResourcesAsStream("SIP_bordereau_avec_objet_OK.zip");
+            PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
         final Response response = client.upload(operationList, inputStream);
-        inputStreamATR = PropertiesUtils.getResourcesAsStream("ATR_example.xml");
+        inputStreamATR = PropertiesUtils.getResourceAsStream("ATR_example.xml");
         assertEquals(response.readEntity(String.class), FileUtil.readInputStream(inputStreamATR));
     }
 
@@ -203,7 +203,7 @@ public class IngestInternalClientRestTest extends JerseyTest {
         operationList.add(externalOperationParameters1);
         operationList.add(externalOperationParameters2);
 
-        final InputStream inputStreamATR = PropertiesUtils.getResourcesAsStream("ATR_example.xml");
+        final InputStream inputStreamATR = PropertiesUtils.getResourceAsStream("ATR_example.xml");
         when(mock.post()).thenReturn(
             Response.status(Status.INTERNAL_SERVER_ERROR).entity(FileUtil.readInputStream(inputStreamATR)).build());
         client.upload(operationList, null);
@@ -241,7 +241,7 @@ public class IngestInternalClientRestTest extends JerseyTest {
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).entity(uploadResponseDTO).build());
 
         final InputStream inputStream =
-            PropertiesUtils.getResourcesAsStream("SIP_bordereau_avec_objet_OK.zip");
+            PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
         client.upload(operationList, inputStream);
     }
 
@@ -276,7 +276,7 @@ public class IngestInternalClientRestTest extends JerseyTest {
 
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).entity(uploadResponseDTO).build());
         final InputStream inputStream =
-            PropertiesUtils.getResourcesAsStream("SIP_mauvais_format.pdf");
+            PropertiesUtils.getResourceAsStream("SIP_mauvais_format.pdf");
         client.upload(operationList, inputStream);
     }
 }

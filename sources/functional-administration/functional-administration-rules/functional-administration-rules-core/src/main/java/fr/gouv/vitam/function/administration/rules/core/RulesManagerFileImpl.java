@@ -61,6 +61,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.configuration.DbConfiguration;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.ReferentialFile;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
@@ -98,7 +99,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     private static final String RULEID = "RuleId";
 
     private final LogbookOperationsClient client =
-        LogbookOperationsClientFactory.getInstance().getLogbookOperationClient();
+        LogbookOperationsClientFactory.getInstance().getClient();
     private static String EVENT_TYPE_CREATE = "Import du référentiel des règles de gestion";
     private static String EVENT_TYPE_DELETE = "Suppression du référentiel de règle de gestion";
     private static LogbookTypeProcess LOGBOOK_PROCESS_TYPE = LogbookTypeProcess.MASTERDATA;
@@ -291,7 +292,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      * findExistsRuleQueryBuilder:Check if the Collection contains records
      *
      * @param rulesValue
-     * @return
+     * @return the JsonNode answer
      * @throws InvalidCreateOperationException
      * @throws InvalidParseOperationException
      */
@@ -372,12 +373,16 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      * @throws IOException
      */
     private File convertInputStreamToFile(InputStream rulesStream) throws IOException {
-        final File csvFile = File.createTempFile("tmp", ".txt", new File(VitamConfiguration.getVitamTmpFolder()));
-        Files.copy(
-            rulesStream,
-            csvFile.toPath(),
-            StandardCopyOption.REPLACE_EXISTING);
-        return csvFile;
+        try {
+            final File csvFile = File.createTempFile("tmp", ".txt", new File(VitamConfiguration.getVitamTmpFolder()));
+            Files.copy(
+                rulesStream,
+                csvFile.toPath(),
+                StandardCopyOption.REPLACE_EXISTING);
+            return csvFile;
+        } finally {
+            StreamUtils.closeSilently(rulesStream);
+        }
     }
 
     @Override
@@ -387,11 +392,10 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
 
     @Override
     public List<FileRules> findDocuments(JsonNode select) throws ReferentialException {
-        try {
-            @SuppressWarnings("unchecked")
-            final MongoCursor<FileRules> rules =
-                (MongoCursor<FileRules>) mongoAccess.select(select,
-                    FunctionalAdminCollections.RULES);
+        try (@SuppressWarnings("unchecked")
+        final MongoCursor<FileRules> rules =
+            (MongoCursor<FileRules>) mongoAccess.select(select,
+                FunctionalAdminCollections.RULES)) {
             final List<FileRules> result = new ArrayList<>();
             if (rules == null || !rules.hasNext()) {
                 throw new FileRulesNotFoundException("Rules not found");

@@ -86,8 +86,8 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
         InvalidParseOperationException, IOException, ProcessingException {
 
-        action.addInput(PropertiesUtils.getResourcesFile(EMPTY));
-        action.addInput(PropertiesUtils.getResourcesFile(EMPTY));
+        action.addInput(PropertiesUtils.getResourceFile(EMPTY));
+        action.addInput(PropertiesUtils.getResourceFile(EMPTY));
 
         PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
 
@@ -103,8 +103,8 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
         InvalidParseOperationException, IOException, ProcessingException {
 
-        action.addInput(PropertiesUtils.getResourcesFile(OG_AU));
-        action.addInput(PropertiesUtils.getResourcesFile(OBJECT_GROUP_ID_TO_GUID_MAP));
+        action.addInput(PropertiesUtils.getResourceFile(OG_AU));
+        action.addInput(PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP));
 
         PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
 

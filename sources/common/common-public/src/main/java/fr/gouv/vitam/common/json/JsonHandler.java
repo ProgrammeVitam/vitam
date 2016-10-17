@@ -29,6 +29,7 @@ package fr.gouv.vitam.common.json;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -85,6 +86,7 @@ public final class JsonHandler {
         OBJECT_MAPPER_UNPRETTY.disable(SerializationFeature.INDENT_OUTPUT);
         OBJECT_MAPPER_LOWER_CAMEL_CASE = buildObjectMapper();
         OBJECT_MAPPER_LOWER_CAMEL_CASE.setPropertyNamingStrategy(PropertyNamingStrategy.LOWER_CAMEL_CASE);
+        OBJECT_MAPPER_LOWER_CAMEL_CASE.disable(SerializationFeature.INDENT_OUTPUT);
     }
 
     private JsonHandler() {
@@ -159,6 +161,22 @@ public final class JsonHandler {
         try {
             ParametersChecker.checkParameter("File", file);
             return OBJECT_MAPPER.readTree(file);
+        } catch (final IOException | IllegalArgumentException e) {
+            throw new InvalidParseOperationException(e);
+        }
+    }
+
+    /**
+     *
+     * @param stream
+     * @return the jsonNode (ObjectNode or ArrayNode)
+     * @throws InvalidParseOperationException
+     */
+    public static final JsonNode getFromInputStream(final InputStream stream)
+        throws InvalidParseOperationException {
+        try {
+            ParametersChecker.checkParameter("InputStream", stream);
+            return OBJECT_MAPPER.readTree(stream);
         } catch (final IOException | IllegalArgumentException e) {
             throw new InvalidParseOperationException(e);
         }
@@ -332,6 +350,21 @@ public final class JsonHandler {
     /**
      *
      * @param object
+     * @return the Json representation of the object in UnPretty Print format
+     */
+    public static String unprettyPrintLowerCamelCase(Object object) {
+        try {
+            ParametersChecker.checkParameter(OBJECT, object);
+            return OBJECT_MAPPER_LOWER_CAMEL_CASE.writeValueAsString(object);
+        } catch (final JsonProcessingException | IllegalArgumentException e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            return "{}";
+        }
+    }
+
+    /**
+     *
+     * @param object
      * @param file
      * @throws InvalidParseOperationException
      */
@@ -340,6 +373,22 @@ public final class JsonHandler {
         try {
             ParametersChecker.checkParameter("object or file", object, file);
             OBJECT_MAPPER.writeValue(file, object);
+        } catch (final IOException | IllegalArgumentException e) {
+            throw new InvalidParseOperationException(e);
+        }
+    }
+
+    /**
+     *
+     * @param object
+     * @param outputStream
+     * @throws InvalidParseOperationException
+     */
+    public static final void writeAsOutputStream(final Object object, OutputStream outputStream)
+        throws InvalidParseOperationException {
+        try {
+            ParametersChecker.checkParameter("object or file", object, outputStream);
+            OBJECT_MAPPER.writeValue(outputStream, object);
         } catch (final IOException | IllegalArgumentException e) {
             throw new InvalidParseOperationException(e);
         }
@@ -483,21 +532,24 @@ public final class JsonHandler {
      */
     public static final Map<String, Object> getMapFromInputStream(final InputStream inputStream)
         throws InvalidParseOperationException {
-        if (inputStream != null) {
-            Map<String, Object> info = null;
+        ParametersChecker.checkParameter("InputStream", inputStream);
+        Map<String, Object> info = null;
+        try {
+            info = OBJECT_MAPPER.readValue(inputStream,
+                new TypeReference<Map<String, Object>>() {});
+        } catch (final IOException e) {
+            throw new InvalidParseOperationException(e);
+        } finally {
             try {
-                info = OBJECT_MAPPER.readValue(inputStream,
-                    new TypeReference<Map<String, Object>>() {});
-            } catch (final IOException e) {
-                throw new InvalidParseOperationException(e);
+                inputStream.close();
+            } catch (IOException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
-            if (info == null) {
-                info = new HashMap<>();
-            }
-            return info;
-        } else {
-            return new HashMap<>();
         }
+        if (info == null) {
+            info = new HashMap<>();
+        }
+        return info;
     }
 
     /**
@@ -511,7 +563,15 @@ public final class JsonHandler {
         throws InvalidParseOperationException {
         try {
             ParametersChecker.checkParameter("InputStream or class", inputStream, clasz);
-            return OBJECT_MAPPER.readValue(inputStream, clasz);
+            try {
+                return OBJECT_MAPPER.readValue(inputStream, clasz);
+            } finally {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                }
+            }
         } catch (final IOException | IllegalArgumentException e) {
             throw new InvalidParseOperationException(e);
         }

@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.operations.client;
 
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 import org.jhades.JHades;
@@ -45,7 +44,7 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
-import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -53,13 +52,11 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory.LogbookClientType;
 import fr.gouv.vitam.logbook.rest.LogbookApplication;
 import fr.gouv.vitam.logbook.rest.LogbookConfiguration;
 
@@ -76,7 +73,7 @@ public class LogbookResourceIT {
     private static JunitHelper junitHelper;
     private static int databasePort;
     private static int serverPort;
-    // private static File newLogbookConf;
+    private static LogbookApplication application;
 
     private static LogbookOperationParameters logbookParametersStart;
     private static LogbookOperationParameters logbookParametersAppend;
@@ -103,11 +100,13 @@ public class LogbookResourceIT {
         serverPort = junitHelper.findAvailablePort();
 
         try {
+            JunitHelper.setJettyPortSystemProperty(serverPort);
             final LogbookConfiguration logbookConf = new LogbookConfiguration();
             logbookConf.setDbHost(SERVER_HOST).setDbName("vitam-test").setDbPort(databasePort);
             logbookConf.setJettyConfig(JETTY_CONFIG);
-            SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
-            LogbookApplication.run(logbookConf);
+            application = new LogbookApplication(logbookConf);
+            application.start();
+            JunitHelper.unsetJettyPortSystemProperty();
 
             RestAssured.port = serverPort;
             RestAssured.basePath = REST_URI;
@@ -117,15 +116,15 @@ public class LogbookResourceIT {
                 "Cannot start the Logbook Application Server", e);
         }
 
-        LogbookOperationsClientFactory.setConfiguration(LogbookClientType.OPERATIONS, DATABASE_HOST, serverPort);
+        LogbookOperationsClientFactory.changeMode(new ClientConfigurationImpl(DATABASE_HOST, serverPort));
         LOGGER.debug("Initialize client: " + DATABASE_HOST + ":" + serverPort);
 
-        final GUID eip = GUIDFactory.newOperationIdGUID(0);
+        final GUID eip = GUIDFactory.newEventGUID(0);
         logbookParametersStart = LogbookParametersFactory.newLogbookOperationParameters(
             eip, "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
             StatusCode.STARTED, "start ingest", eip);
         logbookParametersAppend = LogbookParametersFactory.newLogbookOperationParameters(
-            GUIDFactory.newOperationIdGUID(0),
+            GUIDFactory.newEventGUID(0),
             "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
             StatusCode.OK, "end ingest", eip);
         logbookParametersWrongStart = LogbookParametersFactory.newLogbookOperationParameters(
@@ -133,8 +132,8 @@ public class LogbookResourceIT {
             "eventTypeValue2", eip, LogbookTypeProcess.INGEST,
             StatusCode.STARTED, "start ingest", eip);
         logbookParametersWrongAppend = LogbookParametersFactory.newLogbookOperationParameters(
-            GUIDFactory.newOperationIdGUID(0),
-            "eventTypeValue2", GUIDFactory.newOperationIdGUID(0), LogbookTypeProcess.INGEST,
+            GUIDFactory.newEventGUID(0),
+            "eventTypeValue2", GUIDFactory.newEventGUID(0), LogbookTypeProcess.INGEST,
             StatusCode.OK, "end ingest", eip);
     }
 
@@ -142,7 +141,7 @@ public class LogbookResourceIT {
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
         try {
-            LogbookApplication.stop();
+            application.stop();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
         }
@@ -150,12 +149,11 @@ public class LogbookResourceIT {
         mongodExecutable.stop();
         junitHelper.releasePort(databasePort);
         junitHelper.releasePort(serverPort);
-        // newLogbookConf.delete();
     }
 
 
     @Test
-    public final void testOperation() throws LogbookClientException {
+    public final void testOperation() throws LogbookClientException, VitamApplicationServerException {
         // Creation OK
         logbookParametersStart.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
@@ -163,7 +161,7 @@ public class LogbookResourceIT {
             ServerIdentity.getInstance().getJsonIdentity());
 
         final LogbookOperationsClient client =
-            LogbookOperationsClientFactory.getInstance().getLogbookOperationClient();
+            LogbookOperationsClientFactory.getInstance().getClient();
 
         client.create(logbookParametersStart);
 
@@ -214,7 +212,7 @@ public class LogbookResourceIT {
         } catch (final IllegalArgumentException e) {
             // ignore
         }
-        assertNotNull(client.status());
+        client.checkStatus();
         client.close();
     }
 }

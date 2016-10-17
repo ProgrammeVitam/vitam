@@ -28,6 +28,10 @@
 			<artifactId>jackson-core</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>xml-resolver</groupId>
+			<artifactId>xml-resolver</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<scope>test</scope>

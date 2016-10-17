@@ -52,11 +52,11 @@ public interface IngestInternalClient {
 
     /**
      * Upload SIP
-     *
-     * @param InputStream SIP
-     * @param fileName SIP name
+     * @param logbookParametersList 
+     * @param inputStream SIP
      *
      * @return content of xml in type String
+     * @throws VitamException 
      * @throws XMLStreamException
      */
     Response upload(List<LogbookParameters> logbookParametersList, InputStream inputStream)

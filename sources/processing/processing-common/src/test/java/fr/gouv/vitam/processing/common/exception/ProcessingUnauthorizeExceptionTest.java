@@ -40,6 +40,5 @@ public class ProcessingUnauthorizeExceptionTest {
         assertEquals("test", new ProcessingUnauthorizeException("test").getMessage());
         assertNotNull(new ProcessingUnauthorizeException(new Exception()).getCause());
         assertNotNull(new ProcessingUnauthorizeException("test", new Exception()).getCause());
-        assertNotNull(new ProcessingUnauthorizeException("test", new Exception(), true, true).getCause());
     }
 }

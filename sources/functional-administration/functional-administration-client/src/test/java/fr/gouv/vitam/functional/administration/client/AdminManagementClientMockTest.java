@@ -29,6 +29,7 @@ package fr.gouv.vitam.functional.administration.client;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -38,6 +39,7 @@ import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory.AdminManagementClientType;
@@ -58,20 +60,20 @@ public class AdminManagementClientMockTest {
     }
 
     @Test
-    public void givenClientMockWhenAndInputXMLOKThenReturnOK() throws FileFormatException {
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
+    public void givenClientMockWhenAndInputXMLOKThenReturnOK() throws FileFormatException, FileNotFoundException {
+        stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
         client.checkFormat(stream);
     }
 
     @Test
-    public void givenClientMockWhenWhenImportThenReturnOK() throws FileFormatException {
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
+    public void givenClientMockWhenWhenImportThenReturnOK() throws FileFormatException, FileNotFoundException {
+        stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
         client.importFormat(stream);
     }
 
     @Test
-    public void givenClientMockWhenDeleteThenReturnOK() throws FileFormatException {
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
+    public void givenClientMockWhenDeleteThenReturnOK() throws FileFormatException, FileNotFoundException {
+        stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
         client.deleteFormat();
     }
 
@@ -92,23 +94,24 @@ public class AdminManagementClientMockTest {
         assertNotNull(client.getFormats(select.getFinalSelect()));
     }
 
-    /**************** Rules Manager *****/
+    /**************** Rules Manager 
+     * @throws FileNotFoundException *****/
     @Test
-    public void givenClientMockWhenAndInputCSVOKThenReturnOK() throws FileFormatException, FileRulesException {
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
+    public void givenClientMockWhenAndInputCSVOKThenReturnOK() throws FileFormatException, FileRulesException, FileNotFoundException {
+        stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         client.checkRulesFile(stream);
     }
 
     @Test
     public void givenClientMockWhenWhenImportRuleThenReturnOK()
-        throws FileFormatException, FileRulesException, DatabaseConflictException {
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
+        throws FileFormatException, FileRulesException, DatabaseConflictException, FileNotFoundException {
+        stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         client.importRulesFile(stream);
     }
 
     @Test
-    public void givenClientMockWhenDeleteRuleThenReturnOK() throws FileFormatException, FileRulesException {
-        stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
+    public void givenClientMockWhenDeleteRuleThenReturnOK() throws FileFormatException, FileRulesException, FileNotFoundException {
+        stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         client.deleteRulesFile();
     }
 

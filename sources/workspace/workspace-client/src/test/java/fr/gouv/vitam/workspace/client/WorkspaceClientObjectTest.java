@@ -33,6 +33,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 
 import javax.ws.rs.Consumes;
@@ -60,6 +61,7 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -385,7 +387,7 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
     }
 
 
-    private InputStream getInputStream(String file) {
-        return Thread.currentThread().getContextClassLoader().getResourceAsStream("file1.pdf");
+    private InputStream getInputStream(String file) throws FileNotFoundException {
+        return PropertiesUtils.getResourceAsStream("file1.pdf");
     }
 }

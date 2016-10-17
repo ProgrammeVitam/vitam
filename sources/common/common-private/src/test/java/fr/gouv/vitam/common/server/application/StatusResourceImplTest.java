@@ -81,7 +81,7 @@ public class StatusResourceImplTest {
         SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(port));
         final File conf = PropertiesUtils.findFile(TEST_CONF);
         try {
-            application.startApplication(PropertiesUtils.getResourcesFile(TEST_CONF).getAbsolutePath());
+            application.startApplication(PropertiesUtils.getResourceFile(TEST_CONF).getAbsolutePath());
             RestAssured.port = port;
             RestAssured.basePath = ADMIN_RESOURCE_URI;
             LOGGER.debug("Beginning tests");

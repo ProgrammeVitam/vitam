@@ -34,6 +34,8 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
  * This class contains default values shared among all services in Vitam
  */
 public class VitamConfiguration {
+
+    private static final VitamConfiguration DEFAULT_CONFIGURATION = new VitamConfiguration().setDefault();
     /**
      * Property Vitam Config Folder
      */
@@ -67,8 +69,55 @@ public class VitamConfiguration {
      */
     // TODO change to /vitam/tmp when configured on the PIC
     private static final String VITAM_TMP_FOLDER_DEFAULT = "/vitam/data/tmp";
+    /**
+     * Default Chunk Size
+     */
+    private static final int CHUNK_SIZE = 65536;
+    /**
+     * Default Connection timeout
+     */
+    private static final int CONNECT_TIMEOUT = 500;
+    /**
+     * Default Read Timeout
+     */
+    private static final int READ_TIMEOUT = 99999999;
 
-    private static final VitamConfiguration DEFAULT_CONFIGURATION = new VitamConfiguration().setDefault();
+    /**
+     * Max total concurrent clients
+     */
+    private static final int MAX_TOTAL_CLIENT = 100;
+    /**
+     * Max concurrent clients associated to one host
+     */
+    private static final int MAX_CLIENT_PER_HOST = 50;
+    /**
+     * Max delay to check an unused client in pool before being returned (Apache Only)
+     */
+    private static final int DELAY_VALIDATION_AFTER_INACTIVITY = 10000;
+    /**
+     * No check of unused client within pool (Apache Only)
+     */
+    public static final int NO_VALIDATION_AFTER_INACTIVITY = -1;
+    /**
+     * Max delay to get a client (Apache Only)
+     */
+    private static final int DELAY_GET_CLIENT = 1000;
+    /**
+     * Specify the delay where connections returned to pool will be checked (Apache Only)
+     */
+    private static final int INTERVAL_DELAY_CHECK_IDLE = 30000;
+    /**
+     * Specify the delay of unused connection returned in the pool before being really closed (Apache Only)
+     */
+    private static final int MAX_DELAY_UNUSED_CONNECTION = 30000;
+    /**
+     * General Admin path
+     */
+    public static final String ADMIN_PATH = "/admin/v1";
+    /**
+     * General status path
+     */
+    public static final String STATUS_URL = "/status";
 
     private String config;
     private String log;
@@ -305,5 +354,68 @@ public class VitamConfiguration {
             return SystemPropertyUtil.get(VITAM_CONFIG_PROPERTY);
         }
         return getConfiguration().getConfig();
+    }
+
+    /**
+     * @return the default chunk size
+     */
+    public static int getChunkSize() {
+        return CHUNK_SIZE;
+    }
+
+    /**
+     * @return the default connect timeout
+     */
+    public static int getConnectTimeout() {
+        return CONNECT_TIMEOUT;
+    }
+
+    /**
+     * @return the default read timeout
+     */
+    public static int getReadTimeout() {
+        return READ_TIMEOUT;
+    }
+
+    /**
+     * @return the maxTotalClient
+     */
+    public static int getMaxTotalClient() {
+        return MAX_TOTAL_CLIENT;
+    }
+
+    /**
+     * @return the maxClientPerHost
+     */
+    public static int getMaxClientPerHost() {
+        return MAX_CLIENT_PER_HOST;
+    }
+
+    /**
+     * @return the delayValidationAfterInactivity
+     */
+    public static int getDelayValidationAfterInactivity() {
+        return DELAY_VALIDATION_AFTER_INACTIVITY;
+    }
+
+    /**
+     * @return the delayGetClient
+     */
+    public static int getDelayGetClient() {
+        return DELAY_GET_CLIENT;
+    }
+
+    /**
+     * @return the intervalDelayCheckIdle
+     */
+    public static int getIntervalDelayCheckIdle() {
+        return INTERVAL_DELAY_CHECK_IDLE;
+    }
+
+    /**
+     * @return the maxDelayUnusedConnection
+     */
+    public static int getMaxDelayUnusedConnection() {
+        return MAX_DELAY_UNUSED_CONNECTION;
     }
 }

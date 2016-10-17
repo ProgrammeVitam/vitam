@@ -28,13 +28,12 @@ package fr.gouv.vitam.logbook.operations.client;
 
 import java.io.IOException;
 
-import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.VitamServerFactory;
-import fr.gouv.vitam.common.server.application.configuration.ClientConfiguration;
-import fr.gouv.vitam.common.server.application.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
+import fr.gouv.vitam.common.client2.VitamClientFactory;
+import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 
 /**
@@ -84,39 +83,18 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
  * }
  * </pre>
  */
-public final class LogbookOperationsClientFactory {
+public final class LogbookOperationsClientFactory extends VitamClientFactory<LogbookOperationsClient> {
 
-    /**
-     * Default client operation type
-     */
-    private static LogbookClientType defaultOperationsClientType;
     private static final String CONFIGURATION_FILENAME = "logbook-client.conf";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookOperationsClientFactory.class);
     private static final LogbookOperationsClientFactory LOGBOOK_CLIENT_FACTORY = new LogbookOperationsClientFactory();
-
-    private String server = "localhost";
-    private int port = VitamServerFactory.getDefaultPort();
+    /**
+     * RESOURCE PATH
+     */
+    public static final String RESOURCE_PATH = "/logbook/v1";
 
     private LogbookOperationsClientFactory() {
-        changeConfigurationFile(CONFIGURATION_FILENAME);
-    }
-
-    /**
-     * Set the LogbookClientFactory configuration
-     *
-     * @param type
-     * @param server hostname
-     * @param port port to use
-     * @throws IllegalArgumentException if type null or if type is OPERATIONS and server is null or empty or port <= 0
-     */
-    static final void setConfiguration(LogbookClientType type, String server, int port) {
-        changeDefaultClientType(type);
-        if (type == LogbookClientType.OPERATIONS) {
-            ParametersChecker.checkParameter("Server cannot be null or empty with OPERATIONS", server);
-            ParametersChecker.checkValue("port", port, 1);
-        }
-        LOGBOOK_CLIENT_FACTORY.server = server;
-        LOGBOOK_CLIENT_FACTORY.port = port;
+        super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH);
     }
 
     /**
@@ -133,14 +111,14 @@ public final class LogbookOperationsClientFactory {
      *
      * @return the default logbook client
      */
-    public LogbookOperationsClient getLogbookOperationClient() {
+    public LogbookOperationsClient getClient() {
         LogbookOperationsClient client;
-        switch (defaultOperationsClientType) {
-            case MOCK_OPERATIONS:
+        switch (getVitamClientType()) {
+            case MOCK:
                 client = new LogbookOperationsClientMock();
                 break;
-            case OPERATIONS:
-                client = new LogbookOperationsClientRest(server, port);
+            case PRODUCTION:
+                client = new LogbookOperationsClientRest(this);
                 break;
             default:
                 throw new IllegalArgumentException("Log type unknown");
@@ -149,34 +127,12 @@ public final class LogbookOperationsClientFactory {
     }
 
     /**
-     * Modify the default logbook client type
-     *
-     * @param type the client type to set
-     * @throws IllegalArgumentException if type null
-     */
-    static void changeDefaultClientType(LogbookClientType type) {
-        if (type == null) {
-            throw new IllegalArgumentException();
-        }
-        defaultOperationsClientType = type;
-    }
-
-    /**
-     * Get the default logbook client type
-     *
-     * @return the default logbook client type
-     */
-    public static LogbookClientType getDefaultLogbookClientType() {
-        return defaultOperationsClientType;
-    }
-
-    /**
      * Change client configuration from a Yaml files
      *
      * @param configurationPath the path to the configuration file
+     * @return ClientConfiguration
      */
-    public final void changeConfigurationFile(String configurationPath) {
-        changeDefaultClientType(LogbookClientType.MOCK_OPERATIONS);
+    static final ClientConfiguration changeConfigurationFile(String configurationPath) {
         ClientConfiguration configuration = null;
         try {
             configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
@@ -187,26 +143,18 @@ public final class LogbookOperationsClientFactory {
                 fnf);
         }
         if (configuration == null) {
-            LOGGER.debug("Error when retrieving configuration file {}, using mock",
+            LOGGER.error("Error when retrieving configuration file {}, using mock",
                 configurationPath);
-        } else {
-            server = configuration.getServerHost();
-            port = configuration.getServerPort();
-            changeDefaultClientType(LogbookClientType.OPERATIONS);
         }
+        return configuration;
     }
 
     /**
-     * enum to define client type
+     *
+     * @param configuration null for MOCK
      */
-    public enum LogbookClientType {
-        /**
-         * To use only in MOCK: READ operations are not supported (default)
-         */
-        MOCK_OPERATIONS,
-        /**
-         * Use real service (need server to be set)
-         */
-        OPERATIONS
+    static final void changeMode(ClientConfiguration configuration) {
+        getInstance().initialisation(configuration, getInstance().getResourcePath());
     }
+
 }

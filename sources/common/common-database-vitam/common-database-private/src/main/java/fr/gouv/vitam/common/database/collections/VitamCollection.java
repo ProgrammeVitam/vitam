@@ -74,7 +74,7 @@ public class VitamCollection {
     /**
      * Initialize the ES Client
      *
-     * @param ElasticsearchAccess ES Client
+     * @param esClient ElasticsearchAccess ES Client
      */
     public void initialize(final ElasticsearchAccess esClient) {
         this.esClient = esClient;
@@ -117,7 +117,7 @@ public class VitamCollection {
      */
     @SuppressWarnings({"rawtypes", "unchecked"})
     public static MongoClientOptions getMongoClientOptions(List<Class<?>> claszList) {
-        final List<CodecRegistry> codecs = new ArrayList<CodecRegistry>();
+        final List<CodecRegistry> codecs = new ArrayList<>();
         for (final Class<?> clasz : claszList) {
             codecs.add(CodecRegistries.fromCodecs(new VitamDocumentCodec(clasz)));
         }

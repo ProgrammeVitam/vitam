@@ -75,12 +75,12 @@ public class ProcessManagementApplicationTest {
 
     @Test(expected = Exception.class)
     public void givenFileNotFoundWhenConfigureApplicationThenRaiseAnException() throws Exception {
-        application.configure(PropertiesUtils.getResourcesPath("notFound.conf"));
+        application.configure(PropertiesUtils.getResourcePath("notFound.conf"));
     }
 
     @Test
     public void givenFileExistsWhenConfigureApplicationThenRunServer() throws Exception {
-        application.configure(PropertiesUtils.getResourcesPath("processing.conf"));
+        application.configure(PropertiesUtils.getResourcePath("processing.conf"));
     }
 
     @Test

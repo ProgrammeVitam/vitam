@@ -30,6 +30,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 
 import javax.ws.rs.Consumes;
@@ -53,6 +54,7 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.junit.JunitHelper;
@@ -210,9 +212,9 @@ public class AdminManagementClientRestTest extends JerseyTest {
     }
 
     @Test
-    public void givenInputstreamOKWhenCheckThenReturnOK() throws ReferentialException {
+    public void givenInputstreamOKWhenCheckThenReturnOK() throws ReferentialException, FileNotFoundException {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
-        final InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
+        final InputStream stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
         assertEquals(Status.OK, client.checkFormat(stream));
     }
 
@@ -220,7 +222,7 @@ public class AdminManagementClientRestTest extends JerseyTest {
     public void givenInputstreamKOWhenCheckThenReturnKO() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
         final InputStream stream =
-            Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam-format-KO.xml");
+            PropertiesUtils.getResourceAsStream("FF-vitam-format-KO.xml");
         assertEquals(Status.PRECONDITION_FAILED, client.checkFormat(stream));
     }
 
@@ -228,7 +230,7 @@ public class AdminManagementClientRestTest extends JerseyTest {
     @Test
     public void givenInputstreamOKWhenImportThenReturnOK() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
-        final InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
+        final InputStream stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
         client.importFormat(stream);
     }
 
@@ -244,7 +246,7 @@ public class AdminManagementClientRestTest extends JerseyTest {
     public void givenAnInvalidQueryThenReturnKO() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
         final Select select = new Select();
-        final InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
+        final InputStream stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
         client.importFormat(stream);
         final JsonNode jsonDocument = client.getFormats(select.getFinalSelect());
         final JsonNode result = client.getFormatByID("HDE");
@@ -252,7 +254,7 @@ public class AdminManagementClientRestTest extends JerseyTest {
 
     @Test(expected = ReferentialException.class)
     public void givenAnInvalidIDThenReturnNOTFOUND() throws Exception {
-        final InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("FF-vitam.xml");
+        final InputStream stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
         client.importFormat(stream);
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
         final JsonNode result = client.getFormatByID("HDE");
@@ -260,13 +262,14 @@ public class AdminManagementClientRestTest extends JerseyTest {
 
     /***********************************************************************************
      * Rules Manager
+     * @throws FileNotFoundException 
      ***********************************************************************************/
 
     @Test
-    public void givenInputstreamRulesFileOKWhenCheckThenReturnOK() throws ReferentialException {
+    public void givenInputstreamRulesFileOKWhenCheckThenReturnOK() throws ReferentialException, FileNotFoundException {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
         final InputStream stream =
-            Thread.currentThread().getContextClassLoader().getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
+            PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         assertEquals(Status.OK, client.checkRulesFile(stream));
     }
 
@@ -275,8 +278,7 @@ public class AdminManagementClientRestTest extends JerseyTest {
     public void givenInputstreamKORulesFileWhenCheckThenReturnKO() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
         final InputStream stream =
-            Thread.currentThread().getContextClassLoader()
-                .getResourceAsStream("jeu_donnees_KO_regles_CSV_StringToNumber.csv");
+            PropertiesUtils.getResourceAsStream("jeu_donnees_KO_regles_CSV_StringToNumber.csv");
         assertEquals(Status.PRECONDITION_FAILED, client.checkRulesFile(stream));
 
     }
@@ -286,8 +288,7 @@ public class AdminManagementClientRestTest extends JerseyTest {
     public void givenInputstreamOKRulesFileWhenImportThenReturnOK() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
         final InputStream stream =
-            Thread.currentThread().getContextClassLoader()
-                .getResourceAsStream("jeu_donnees_KO_regles_CSV_StringToNumber.csv");
+            PropertiesUtils.getResourceAsStream("jeu_donnees_KO_regles_CSV_StringToNumber.csv");
         client.importRulesFile(stream);
     }
 
@@ -304,8 +305,7 @@ public class AdminManagementClientRestTest extends JerseyTest {
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
         final Select select = new Select();
         final InputStream stream =
-            Thread.currentThread().getContextClassLoader()
-                .getResourceAsStream("jeu_donnees_KO_regles_CSV_Parameters.csv");
+            PropertiesUtils.getResourceAsStream("jeu_donnees_KO_regles_CSV_Parameters.csv");
         client.importRulesFile(stream);
 
     }
@@ -315,13 +315,14 @@ public class AdminManagementClientRestTest extends JerseyTest {
      * @throws FileRulesException
      * @throws InvalidParseOperationException
      * @throws DatabaseConflictException
+     * @throws FileNotFoundException 
      */
     @Test(expected = FileRulesException.class)
     public void givenIllegalArgumentThenthrowFilesRuleException()
-        throws FileRulesException, InvalidParseOperationException, DatabaseConflictException {
+        throws FileRulesException, InvalidParseOperationException, DatabaseConflictException, FileNotFoundException {
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
         final InputStream stream =
-            Thread.currentThread().getContextClassLoader().getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
+            PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         client.importRulesFile(stream);
         final JsonNode result = client.getRuleByID("APP-00001");
 
@@ -332,14 +333,15 @@ public class AdminManagementClientRestTest extends JerseyTest {
      * @throws FileRulesException
      * @throws InvalidParseOperationException
      * @throws DatabaseConflictException
+     * @throws FileNotFoundException 
      */
     @Test(expected = InvalidParseOperationException.class)
     public void givenInvalidQuerythenReturnko()
-        throws FileRulesException, InvalidParseOperationException, DatabaseConflictException {
+        throws FileRulesException, InvalidParseOperationException, DatabaseConflictException, FileNotFoundException {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
         final Select select = new Select();
         final InputStream stream =
-            Thread.currentThread().getContextClassLoader().getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
+            PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         client.importRulesFile(stream);
         final JsonNode result = client.getRule(select.getFinalSelect());
     }

@@ -117,7 +117,12 @@ public class JsonHandlerTest {
             .getMapFromInputStream(ResourcesPublicUtilTest.getInstance().getJsonTest3JsonInputStream()).size());
         assertEquals(0, JsonHandler
             .getMapFromInputStream(ResourcesPublicUtilTest.getInstance().getJsonTestEmptyJsonInputStream()).size());
-        assertEquals(0, JsonHandler.getMapFromInputStream(null).size());
+        try {
+            JsonHandler.getMapFromInputStream(null);
+            fail("Should raized an exception");
+        } catch (IllegalArgumentException e) {
+            // OK
+        }
         final Map<String, Object> map =
             JsonHandler.getMapFromInputStream(ResourcesPublicUtilTest.getInstance().getJsonTest3JsonInputStream());
         assertEquals("val1", map.get("a"));

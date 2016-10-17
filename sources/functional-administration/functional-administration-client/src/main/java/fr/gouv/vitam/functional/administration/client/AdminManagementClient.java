@@ -45,7 +45,7 @@ public interface AdminManagementClient {
 
     /**
      * @param stream as InputStream;
-     * @return
+     * @return status
      * @throws ReferentialException when check exception occurs
      */
     Status checkFormat(InputStream stream) throws ReferentialException;
@@ -100,7 +100,7 @@ public interface AdminManagementClient {
     /**
      *
      * @param stream
-     * @return
+     * @return status
      * @throws FileRulesException
      */
 
@@ -124,7 +124,7 @@ public interface AdminManagementClient {
     /**
      *
      * @param id ide de rule
-     * @return
+     * @return Rule in JsonNode format
      * @throws FileRulesException when file rules exception occurs
      * @throws InvalidParseOperationException when a parse problem occurs
      */
@@ -133,7 +133,7 @@ public interface AdminManagementClient {
     /**
      *
      * @param query
-     * @return
+     * @return Rules in JsonNode format
      * @throws FileRulesException when file rules exception occurs
      * @throws InvalidParseOperationException when a parse problem occurs
      * @throws IOException when IO Exception occurs

@@ -195,16 +195,15 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
         // Pre-actions
         final InputStream archiveUnitMapTmpFile = new FileInputStream((File) handlerIO.getInput().get(0));
-        final InputStream binaryDataObjectMapTmpFile = new FileInputStream((File) handlerIO.getInput().get(1));
-        final InputStream bdoObjectGroupStoredMapTmpFile = new FileInputStream((File) handlerIO.getInput().get(2));
-        final InputStream binaryDataObjectIdToVersionDataObjectMapTmpFile =
-            new FileInputStream((File) handlerIO.getInput().get(3));
-
         final Map<String, Object> archiveUnitSystemGuid = JsonHandler.getMapFromInputStream(archiveUnitMapTmpFile);
+        final InputStream binaryDataObjectMapTmpFile = new FileInputStream((File) handlerIO.getInput().get(1));
         final Map<String, Object> binaryDataObjectSystemGuid =
             JsonHandler.getMapFromInputStream(binaryDataObjectMapTmpFile);
+        final InputStream bdoObjectGroupStoredMapTmpFile = new FileInputStream((File) handlerIO.getInput().get(2));
         final Map<String, Object> bdoObjectGroupSystemGuid =
             JsonHandler.getMapFromInputStream(bdoObjectGroupStoredMapTmpFile);
+        final InputStream binaryDataObjectIdToVersionDataObjectMapTmpFile =
+            new FileInputStream((File) handlerIO.getInput().get(3));
         final Map<String, Object> bdoVersionDataObject =
             JsonHandler.getMapFromInputStream(binaryDataObjectIdToVersionDataObjectMapTmpFile);
         final SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");

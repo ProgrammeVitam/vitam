@@ -54,15 +54,4 @@ public class LogbookClientServerException extends LogbookClientException {
     public LogbookClientServerException(String messsage, Throwable cause) {
         super(messsage, cause);
     }
-
-    /**
-     * @param message associated message
-     * @param cause associated cause
-     * @param enableSuppression allow suppression or not
-     * @param writableStackTrace allow writable stack trace or not
-     */
-    public LogbookClientServerException(String message, Throwable cause, boolean enableSuppression,
-        boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
 }

@@ -69,12 +69,12 @@ public class WorkspaceApplicationTest {
 
     @Test(expected = Exception.class)
     public void givenFileNotFoundWhenConfigureApplicationOThenRaiseAnException() throws Exception {
-        WorkspaceApplication.startApplication(PropertiesUtils.getResourcesPath("notFound.conf").toString());
+        WorkspaceApplication.startApplication(PropertiesUtils.getResourcePath("notFound.conf").toString());
     }
 
     @Test
     public void givenFileAlreadyExistsWhenConfigureApplicationOThenRunServer() throws Exception {
-        WorkspaceApplication.startApplication(PropertiesUtils.getResourcesPath("workspace-test.conf").toString());
+        WorkspaceApplication.startApplication(PropertiesUtils.getResourcePath("workspace-test.conf").toString());
         WorkspaceApplication.stop();
     }
 

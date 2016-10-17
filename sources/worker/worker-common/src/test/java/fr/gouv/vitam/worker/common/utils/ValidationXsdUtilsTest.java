@@ -53,14 +53,14 @@ public class ValidationXsdUtilsTest {
     public void givenXmlCorrectWhenCheckXsdThenReturnTrue() throws XMLStreamException, SAXException, IOException {
         final ValidationXsdUtils valid = new ValidationXsdUtils();
         assertTrue(
-            valid.checkWithXSD(PropertiesUtils.getResourcesAsStream(SEDA_FILE), SEDA_VALIDATION_FILE));
+            valid.checkWithXSD(PropertiesUtils.getResourceAsStream(SEDA_FILE), SEDA_VALIDATION_FILE));
     }
 
     @Test(expected = SAXException.class)
     public void givenXmlWithInvalidContentWhenCheckXsdThenThrowSAXException()
         throws XMLStreamException, SAXException, IOException {
         final ValidationXsdUtils valid = new ValidationXsdUtils();
-        assertFalse(valid.checkWithXSD(PropertiesUtils.getResourcesAsStream(SEDA_WRONG_FILE),
+        assertFalse(valid.checkWithXSD(PropertiesUtils.getResourceAsStream(SEDA_WRONG_FILE),
             SEDA_VALIDATION_FILE));
     }
 
@@ -68,21 +68,21 @@ public class ValidationXsdUtilsTest {
     public void givenXmlNotFoundWhenCheckXsdThenRaiseAnException()
         throws XMLStreamException, SAXException, IOException {
         final ValidationXsdUtils valid = new ValidationXsdUtils();
-        valid.checkWithXSD(new FileInputStream(PropertiesUtils.getResourcesFile("")), SEDA_VALIDATION_FILE);
+        valid.checkWithXSD(new FileInputStream(PropertiesUtils.getResourceFile("")), SEDA_VALIDATION_FILE);
     }
 
     @Test
     public void givenXmlARTCorrectWhenCheckXsdThenReturnTrue() throws XMLStreamException, SAXException, IOException {
         final ValidationXsdUtils valid = new ValidationXsdUtils();
         assertTrue(
-            valid.checkWithXSD(PropertiesUtils.getResourcesAsStream(SEDA_ARCHIVE_TRANSFER_REPLY),
+            valid.checkWithXSD(PropertiesUtils.getResourceAsStream(SEDA_ARCHIVE_TRANSFER_REPLY),
                 SEDA_VITAM_VALIDATION_FILE));
     }
 
     @Test(expected = SAXException.class)
     public void givenXmlARTNotValidWhenCheckXsdThenReturnFalse() throws XMLStreamException, SAXException, IOException {
         final ValidationXsdUtils valid = new ValidationXsdUtils();
-        assertFalse(valid.checkWithXSD(PropertiesUtils.getResourcesAsStream(SEDA_ARCHIVE_TRANSFER_REPLY_NOTVALID),
+        assertFalse(valid.checkWithXSD(PropertiesUtils.getResourceAsStream(SEDA_ARCHIVE_TRANSFER_REPLY_NOTVALID),
             SEDA_VITAM_VALIDATION_FILE));
     }
 

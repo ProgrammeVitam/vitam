@@ -27,6 +27,7 @@
 
 package fr.gouv.vitam.storage.engine.server.spi.mapper;
 
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
@@ -36,19 +37,26 @@ import org.junit.Test;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 public class FileDriverMapperSingletonTest {
-
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(FileDriverMapperSingletonTest.class);
+    
     private File file;
 
-    @Test(expected = VitamException.class)
+    @Test
     public void configurationKOTest() throws Exception {
         try {
-            file = PropertiesUtils.getResourcesFile("driver-mapping.conf");
+            file = PropertiesUtils.getResourceFile("driver-mapping.conf");
             file.setReadable(false);
             FileDriverMapper.getInstance();
+            LOGGER.error("Should raize an exception");
         } catch (final FileNotFoundException exc) {
             fail("should not raise an exception !");
+        } catch (VitamException e) {
+            // SHould be raised
+            assertTrue(true);
         } finally {
             file.setReadable(true);
         }

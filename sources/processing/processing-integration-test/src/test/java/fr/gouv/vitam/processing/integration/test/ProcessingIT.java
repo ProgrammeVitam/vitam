@@ -113,6 +113,7 @@ public class ProcessingIT {
 
     // private static VitamServer workerApplication;
     private static MetaDataApplication medtadataApplication;
+    private static WorkerApplication wkrapplication;
 
     private WorkspaceClient workspaceClient;
     private ProcessingManagementClient processingClient;
@@ -139,7 +140,7 @@ public class ProcessingIT {
         node.close();
         try {
             WorkspaceApplication.stop();
-            WorkerApplication.stop();
+            wkrapplication.stop();
             ProcessManagementApplication.stop();
             MetaDataApplication.stop();
         } catch (final Exception e) {
@@ -150,11 +151,11 @@ public class ProcessingIT {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         elasticsearchHome = tempFolder.newFolder();
-        CONFIG_METADATA_PATH = PropertiesUtils.getResourcesPath("integration/metadata.conf").toString();
-        CONFIG_WORKER_PATH = PropertiesUtils.getResourcesPath("integration/worker.conf").toString();
-        CONFIG_WORKSPACE_PATH = PropertiesUtils.getResourcesPath("integration/workspace.conf").toString();
-        CONFIG_PROCESSING_PATH = PropertiesUtils.getResourcesPath("integration/processing.conf").toString();
-        CONFIG_SIEGFRIED_PATH = PropertiesUtils.getResourcesPath("integration/format-identifiers.conf").toString();
+        CONFIG_METADATA_PATH = PropertiesUtils.getResourcePath("integration/metadata.conf").toString();
+        CONFIG_WORKER_PATH = PropertiesUtils.getResourcePath("integration/worker.conf").toString();
+        CONFIG_WORKSPACE_PATH = PropertiesUtils.getResourcePath("integration/workspace.conf").toString();
+        CONFIG_PROCESSING_PATH = PropertiesUtils.getResourcePath("integration/processing.conf").toString();
+        CONFIG_SIEGFRIED_PATH = PropertiesUtils.getResourcePath("integration/format-identifiers.conf").toString();
         final Settings settings = Settings.settingsBuilder()
             .put("http.enabled", true)
             .put("discovery.zen.ping.multicast.enabled", false)
@@ -189,8 +190,9 @@ public class ProcessingIT {
 
         // launch worker
         SystemPropertyUtil
-            .set(WorkerApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_WORKER));
-        WorkerApplication.startApplication(CONFIG_WORKER_PATH);
+            .set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
+        wkrapplication = new WorkerApplication(CONFIG_WORKER_PATH);
+        wkrapplication.start();
 
         // launch workspace
         SystemPropertyUtil
@@ -231,7 +233,7 @@ public class ProcessingIT {
         RestAssured.basePath = WORKSPACE_PATH;
 
         final InputStream zipInputStreamSipObject =
-            Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_FILE_OK_NAME);
+            PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
         workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
         workspaceClient.createContainer(CONTAINER_NAME);
         workspaceClient.unzipObject(CONTAINER_NAME, SIP_FOLDER, zipInputStreamSipObject);
@@ -260,7 +262,7 @@ public class ProcessingIT {
         RestAssured.basePath = WORKSPACE_PATH;
 
         final InputStream zipInputStreamSipObject =
-            Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_ARBO_COMPLEXE_FILE_OK);
+            PropertiesUtils.getResourceAsStream(SIP_ARBO_COMPLEXE_FILE_OK);
         workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
         workspaceClient.createContainer(containerName);
         workspaceClient.unzipObject(containerName, SIP_FOLDER, zipInputStreamSipObject);
@@ -286,7 +288,7 @@ public class ProcessingIT {
         RestAssured.basePath = WORKSPACE_PATH;
 
         final InputStream zipInputStreamSipObject =
-            Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_WITHOUT_MANIFEST);
+            PropertiesUtils.getResourceAsStream(SIP_WITHOUT_MANIFEST);
         workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
         workspaceClient.createContainer(containerName);
         workspaceClient.unzipObject(containerName, SIP_FOLDER, zipInputStreamSipObject);
@@ -307,7 +309,7 @@ public class ProcessingIT {
         RestAssured.basePath = WORKSPACE_PATH;
 
         final InputStream zipInputStreamSipObject =
-            Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_NO_FORMAT);
+            PropertiesUtils.getResourceAsStream(SIP_NO_FORMAT);
         workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
         workspaceClient.createContainer(containerName);
         workspaceClient.unzipObject(containerName, SIP_FOLDER, zipInputStreamSipObject);
@@ -337,7 +339,7 @@ public class ProcessingIT {
         RestAssured.basePath = WORKSPACE_PATH;
 
         final InputStream zipInputStreamSipObject =
-            Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_NO_FORMAT_NO_TAG);
+            PropertiesUtils.getResourceAsStream(SIP_NO_FORMAT_NO_TAG);
         workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
         workspaceClient.createContainer(containerName);
         workspaceClient.unzipObject(containerName, SIP_FOLDER, zipInputStreamSipObject);
@@ -360,7 +362,7 @@ public class ProcessingIT {
         RestAssured.basePath = WORKSPACE_PATH;
 
         final InputStream zipInputStreamSipObject =
-            Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_NB_OBJ_INCORRECT_IN_MANIFEST);
+            PropertiesUtils.getResourceAsStream(SIP_NB_OBJ_INCORRECT_IN_MANIFEST);
         workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
         workspaceClient.createContainer(containerName);
         workspaceClient.unzipObject(containerName, SIP_FOLDER, zipInputStreamSipObject);
@@ -382,7 +384,7 @@ public class ProcessingIT {
         RestAssured.basePath = WORKSPACE_PATH;
 
         final InputStream zipInputStreamSipObject =
-            Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_ORPHELINS);
+            PropertiesUtils.getResourceAsStream(SIP_ORPHELINS);
         workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
         workspaceClient.createContainer(containerName);
         workspaceClient.unzipObject(containerName, SIP_FOLDER, zipInputStreamSipObject);
@@ -404,7 +406,7 @@ public class ProcessingIT {
         RestAssured.basePath = WORKSPACE_PATH;
 
         final InputStream zipInputStreamSipObject =
-            Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_OBJECT_SANS_GOT);
+            PropertiesUtils.getResourceAsStream(SIP_OBJECT_SANS_GOT);
         workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
         workspaceClient.createContainer(containerName);
         workspaceClient.unzipObject(containerName, SIP_FOLDER, zipInputStreamSipObject);

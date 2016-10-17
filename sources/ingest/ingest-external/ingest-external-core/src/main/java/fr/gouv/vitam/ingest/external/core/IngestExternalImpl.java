@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.core;
 
+import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -79,10 +80,10 @@ public class IngestExternalImpl implements IngestExternal {
     @Override
     public Response upload(InputStream input) throws IngestExternalException, XMLStreamException {
         ParametersChecker.checkParameter("input is a mandatory parameter", input);
-        final GUID guid = GUIDFactory.newOperationIdGUID(DEFAULT_TENANT);
+        final GUID guid = GUIDFactory.newEventGUID(DEFAULT_TENANT);
         // Store in local
         GUID containerName = guid;
-        final GUID objectName = GUIDFactory.newGUID();
+        final GUID objectName = guid;
         final GUID ingestGuid = guid;
 
         final FileSystem workspaceFileSystem =
@@ -90,20 +91,14 @@ public class IngestExternalImpl implements IngestExternal {
         final String antiVirusScriptName = config.getAntiVirusScriptName();
         final long timeoutScanDelay = config.getTimeoutScanDelay();
         Response responseResult = null;
-        while (true) {
-            boolean hasError = false;
+
+        try {
             try {
                 workspaceFileSystem.createContainer(containerName.toString());
             } catch (final ContentAddressableStorageAlreadyExistException e) {
-                hasError = true;
-                containerName = GUIDFactory.newGUID();
+                LOGGER.error("Can not store file", e);
+                throw new IngestExternalException(e);
             }
-            if (!hasError) {
-                break;
-            }
-        }
-
-        try {
             try {
                 workspaceFileSystem.putObject(containerName.getId(), objectName.getId(), input);
             } catch (final ContentAddressableStorageException e) {
@@ -111,7 +106,7 @@ public class IngestExternalImpl implements IngestExternal {
                 throw new IngestExternalException(e);
             }
 
-            final List<LogbookParameters> logbookParametersList = new ArrayList<LogbookParameters>();
+            final List<LogbookParameters> logbookParametersList = new ArrayList<>();
             final LogbookParameters startedParameters = LogbookParametersFactory.newLogbookOperationParameters(
                 ingestGuid,
                 INGEST_EXT,
@@ -126,6 +121,11 @@ public class IngestExternalImpl implements IngestExternal {
             logbookParametersList.add(startedParameters);
 
             final String filePath = config.getPath() + "/" + containerName.getId() + "/" + objectName.getId();
+            File file = new File(filePath);
+            if (! file.canRead()) {
+                LOGGER.error("Can not read file");
+                throw new IngestExternalException("Can not read file");
+            }
             int antiVirusResult;
 
             try {
@@ -206,6 +206,11 @@ public class IngestExternalImpl implements IngestExternal {
         } finally {
             try {
                 workspaceFileSystem.deleteObject(containerName.getId(), objectName.getId());
+            } catch (final ContentAddressableStorageNotFoundException e) {
+                LOGGER.warn(e);
+            }
+            try {
+                workspaceFileSystem.deleteContainer(containerName.getId());
             } catch (final ContentAddressableStorageNotFoundException e) {
                 LOGGER.warn(e);
             }

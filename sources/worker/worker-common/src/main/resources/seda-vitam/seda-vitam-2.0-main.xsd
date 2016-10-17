@@ -85,7 +85,7 @@
                     <xsd:documentation>Version de la liste de codes des relations.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:any namespace="##other" processContents="lax" minOccurs="0"/>
+            <xsd:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
             <!-- <xsd:element ref="OtherCodeListAbstract" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>Permet d'ajouter de nouvelles listes de codes si l'ajout d'autres métadonnées l'impose.</xsd:documentation>
