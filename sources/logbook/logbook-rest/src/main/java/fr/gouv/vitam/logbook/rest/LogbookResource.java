@@ -520,7 +520,6 @@ public class LogbookResource extends ApplicationStatusResource {
      */
     @PUT
     @Path("/operations/{id_op}/unitlifecycles/{id_lc}/commit")
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response commitUnitLifeCyclesByOperation(@PathParam("id_op") String operationId,
         @PathParam("id_lc") String unitLcId) {

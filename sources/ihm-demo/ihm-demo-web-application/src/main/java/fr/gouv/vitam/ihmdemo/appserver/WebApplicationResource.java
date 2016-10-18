@@ -841,7 +841,7 @@ public class WebApplicationResource {
         JsonNode result = null;
         try {
             final LogbookLifeCyclesClient logbookLifeCycleClient =
-                LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient();
+                LogbookLifeCyclesClientFactory.getInstance().getClient();
             result = logbookLifeCycleClient.selectUnitLifeCycleById(unitLifeCycleId);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
@@ -872,7 +872,7 @@ public class WebApplicationResource {
 
         try {
             final LogbookLifeCyclesClient logbookLifeCycleClient =
-                LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient();
+                LogbookLifeCyclesClientFactory.getInstance().getClient();
             result = logbookLifeCycleClient.selectObjectGroupLifeCycleById(objectGroupLifeCycleId);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);

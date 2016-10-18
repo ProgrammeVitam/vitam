@@ -220,7 +220,7 @@ class ApacheConnector implements Connector {
         clientBuilder.setConnectionManagerShared(
             PropertiesHelper.getValue(config.getProperties(), ApacheClientProperties.CONNECTION_MANAGER_SHARED, false,
                 null));
-        clientBuilder.setSslcontext(sslContext);
+        clientBuilder.setSSLContext(sslContext);
 
         final RequestConfig.Builder requestConfigBuilder = RequestConfig.custom();
 

@@ -47,11 +47,12 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.junit.MinimalTestVitamApplicationFactory;
 
-public class BenchmarkResourceShouldbeITbutTest {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BenchmarkResourceShouldbeITbutTest.class);
+public class BenchmarkResourceWithMultipartIT {
+    private static final VitamLogger LOGGER =
+        VitamLoggerFactory.getInstance(BenchmarkResourceWithMultipartIT.class);
 
     private static final int START_SIZE = 100;
-    private static final long MAX_SIZE_CHECKED = 1000000L;
+    private static final long MAX_SIZE_CHECKED = 100000L;
 
     private static final String BENCHMARK_CONF = "benchmark-test.conf";
     private static BenchmarkApplication application;
@@ -65,9 +66,11 @@ public class BenchmarkResourceShouldbeITbutTest {
                 @Override
                 public StartApplicationResponse<BenchmarkApplication> startVitamApplication(int reservedPort)
                     throws IllegalStateException {
-                    BenchmarkApplication.setAllowMultipart(false);
+                    BenchmarkApplication.setAllowMultipart(true);
                     final BenchmarkApplication application = new BenchmarkApplication(BENCHMARK_CONF);
-                    return startAndReturn(application);
+                    final StartApplicationResponse<BenchmarkApplication> response = startAndReturn(application);
+                    BenchmarkApplication.setAllowMultipart(false);
+                    return response;
                 }
 
             };
@@ -114,8 +117,8 @@ public class BenchmarkResourceShouldbeITbutTest {
         LOGGER.warn(builder.toString());
     }
 
-    // @Test
-    public final void testMultipartStillFailing() {
+    @Test
+    public final void testMultipart() {
         final List<List<String>> globalTests = new ArrayList<>();
         List<String> testList = new ArrayList<>();
         testList.add("CONNECTOR");
@@ -128,13 +131,14 @@ public class BenchmarkResourceShouldbeITbutTest {
                 continue;
             }
             testList = new ArrayList<>();
+            testList.add(mode.name());
             JunitHelper.awaitFullGc();
             final long available = Runtime.getRuntime().freeMemory();
-            BenchmarkClientFactory.getInstance().mode(mode);
+            BenchmarkClientFactory.getInstanceMultipart().mode(mode);
             LOGGER.warn("START " + mode.name());
 
             try (final BenchmarkClientRest client =
-                BenchmarkClientFactory.getInstance().getClient()) {
+                BenchmarkClientFactory.getInstanceMultipart().getClient()) {
                 long start = System.nanoTime();
                 client.checkStatus();
                 long stop = System.nanoTime();
@@ -142,13 +146,27 @@ public class BenchmarkResourceShouldbeITbutTest {
                 start = System.nanoTime();
                 final long size = MAX_SIZE_CHECKED;
                 final long receivedSize = client.multipart("fake-name.txt", size);
+                stop = System.nanoTime();
                 if (receivedSize != size) {
                     LOGGER.error(HttpMethod.POST + ":" + size + " = " + receivedSize);
                 }
-                // Must failed
-                assertEquals(-1, receivedSize);
-                stop = System.nanoTime();
-                testList.add("" + (stop - start));
+                switch (mode) {
+                    case APACHE:
+                    case APACHE_NOCHECK:
+                    case GRIZZLY:
+                    case STANDARD:
+                        // Must not failed
+                        assertEquals(size, receivedSize);
+                        testList.add("" + (stop - start) + " (" + (stop - start) / size + ")");
+                        break;
+                    case NETTY:
+                        // Must failed
+                        assertEquals(-1, receivedSize);
+                        testList.add("" + (stop - start) + ":ERROR");
+                        break;
+                    default:
+                        break;
+                }
             } catch (final Exception e1) {
                 LOGGER.error(e1);
                 testList.add("" + -2L);
@@ -183,14 +201,14 @@ public class BenchmarkResourceShouldbeITbutTest {
         testList.add("MEMORY_USED");
         globalTests.add(testList);
         for (final BenchmarkConnectorProvider mode : BenchmarkConnectorProvider.values()) {
-            if (mode == BenchmarkConnectorProvider.STANDARD) {
+            if (mode == BenchmarkConnectorProvider.STANDARD || mode == BenchmarkConnectorProvider.APACHE_NOCHECK) {
                 continue;
             }
             testList = new ArrayList<>();
             testList.add(mode.name());
             JunitHelper.awaitFullGc();
             final long available = Runtime.getRuntime().freeMemory();
-            BenchmarkClientFactory.getInstance().mode(mode);
+            BenchmarkClientFactory.getInstanceMultipart().mode(mode);
             LOGGER.warn("START " + mode.name());
             testBenchmark(globalTests, testList);
             final long availableEnd = Runtime.getRuntime().freeMemory();
@@ -203,7 +221,7 @@ public class BenchmarkResourceShouldbeITbutTest {
 
     public static final void testBenchmark(List<List<String>> globalTests, List<String> list) {
         try (final BenchmarkClientRest client =
-            BenchmarkClientFactory.getInstance().getClient()) {
+            BenchmarkClientFactory.getInstanceMultipart().getClient()) {
             long start = System.nanoTime();
             client.checkStatus();
             long stop = System.nanoTime();
@@ -218,7 +236,7 @@ public class BenchmarkResourceShouldbeITbutTest {
             list.add("" + (stop - start));
             long size = START_SIZE;
             checkSizeLimit(client, HttpMethod.POST, size, list);
-            if (BenchmarkClientFactory.getInstance().getMode() != BenchmarkConnectorProvider.STANDARD) {
+            if (BenchmarkClientFactory.getInstanceMultipart().getMode() != BenchmarkConnectorProvider.STANDARD) {
                 checkSizeLimit(client, HttpMethod.GET, size, list);
             } else {
                 list.add("" + -1L);
@@ -227,7 +245,7 @@ public class BenchmarkResourceShouldbeITbutTest {
             checkSizeLimit(client, HttpMethod.PUT, size, list);
             size = MAX_SIZE_CHECKED;
             checkSizeLimit(client, HttpMethod.POST, size, list);
-            if (BenchmarkClientFactory.getInstance().getMode() != BenchmarkConnectorProvider.STANDARD) {
+            if (BenchmarkClientFactory.getInstanceMultipart().getMode() != BenchmarkConnectorProvider.STANDARD) {
                 checkSizeLimit(client, HttpMethod.GET, size, list);
             } else {
                 list.add("" + -1L);

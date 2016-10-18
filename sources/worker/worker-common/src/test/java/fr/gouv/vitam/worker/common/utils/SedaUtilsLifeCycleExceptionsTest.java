@@ -44,6 +44,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -67,6 +68,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore("javax.net.ssl.*")
 @PrepareForTest({LogbookLifeCyclesClientFactory.class, WorkspaceClientFactory.class})
 public class SedaUtilsLifeCycleExceptionsTest {
 
@@ -99,7 +101,7 @@ public class SedaUtilsLifeCycleExceptionsTest {
         logbookLifeCyclesClientFactory = PowerMockito.mock(LogbookLifeCyclesClientFactory.class);
         logbookLifeCycleClient = org.mockito.Mockito.mock(LogbookLifeCyclesClient.class);
         PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(logbookLifeCyclesClientFactory);
-        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient())
+        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getClient())
             .thenReturn(logbookLifeCycleClient);
     }
 

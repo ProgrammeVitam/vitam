@@ -997,7 +997,7 @@ public class WebApplicationResourceTest {
         final LogbookLifeCyclesClientFactory logbookLifeCycleFactory =
             PowerMockito.mock(LogbookLifeCyclesClientFactory.class);
         PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(logbookLifeCycleFactory);
-        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient())
+        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getClient())
             .thenReturn(logbookLifeCycleClient);
 
         final JsonNode result = FAKE_JSONNODE_RETURN;
@@ -1015,7 +1015,7 @@ public class WebApplicationResourceTest {
         final LogbookLifeCyclesClientFactory logbookLifeCycleFactory =
             PowerMockito.mock(LogbookLifeCyclesClientFactory.class);
         PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(logbookLifeCycleFactory);
-        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient())
+        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getClient())
             .thenReturn(logbookLifeCycleClient);
 
         final JsonNode result = FAKE_JSONNODE_RETURN;
@@ -1035,7 +1035,7 @@ public class WebApplicationResourceTest {
         final LogbookLifeCyclesClientFactory logbookLifeCycleFactory =
             PowerMockito.mock(LogbookLifeCyclesClientFactory.class);
         PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(logbookLifeCycleFactory);
-        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient())
+        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getClient())
             .thenReturn(logbookLifeCycleClient);
 
         PowerMockito.when(logbookLifeCycleClient.selectUnitLifeCycleById(FAKE_UNIT_LF_ID))
@@ -1054,7 +1054,7 @@ public class WebApplicationResourceTest {
         final LogbookLifeCyclesClientFactory logbookLifeCycleFactory =
             PowerMockito.mock(LogbookLifeCyclesClientFactory.class);
         PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(logbookLifeCycleFactory);
-        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient())
+        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getClient())
             .thenReturn(logbookLifeCycleClient);
 
         PowerMockito.when(logbookLifeCycleClient.selectUnitLifeCycleById(FAKE_UNIT_LF_ID))
@@ -1073,7 +1073,7 @@ public class WebApplicationResourceTest {
         final LogbookLifeCyclesClientFactory logbookLifeCycleFactory =
             PowerMockito.mock(LogbookLifeCyclesClientFactory.class);
         PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(logbookLifeCycleFactory);
-        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient())
+        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getClient())
             .thenReturn(logbookLifeCycleClient);
 
         PowerMockito.when(logbookLifeCycleClient.selectUnitLifeCycleById(FAKE_UNIT_LF_ID))
@@ -1092,7 +1092,7 @@ public class WebApplicationResourceTest {
         final LogbookLifeCyclesClientFactory logbookLifeCycleFactory =
             PowerMockito.mock(LogbookLifeCyclesClientFactory.class);
         PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(logbookLifeCycleFactory);
-        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient())
+        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getClient())
             .thenReturn(logbookLifeCycleClient);
 
         PowerMockito.when(logbookLifeCycleClient.selectObjectGroupLifeCycleById(FAKE_OBG_LF_ID))
@@ -1111,7 +1111,7 @@ public class WebApplicationResourceTest {
         final LogbookLifeCyclesClientFactory logbookLifeCycleFactory =
             PowerMockito.mock(LogbookLifeCyclesClientFactory.class);
         PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(logbookLifeCycleFactory);
-        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient())
+        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getClient())
             .thenReturn(logbookLifeCycleClient);
 
         PowerMockito.when(logbookLifeCycleClient.selectObjectGroupLifeCycleById(FAKE_OBG_LF_ID))
@@ -1130,7 +1130,7 @@ public class WebApplicationResourceTest {
         final LogbookLifeCyclesClientFactory logbookLifeCycleFactory =
             PowerMockito.mock(LogbookLifeCyclesClientFactory.class);
         PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(logbookLifeCycleFactory);
-        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient())
+        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getClient())
             .thenReturn(logbookLifeCycleClient);
 
         PowerMockito.when(logbookLifeCycleClient.selectObjectGroupLifeCycleById(FAKE_OBG_LF_ID))

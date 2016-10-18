@@ -146,7 +146,7 @@ public class AccessModuleImpl implements AccessModule {
         logbookOperationClient = pLogbookOperationClient == null
             ? LogbookOperationsClientFactory.getInstance().getClient() : pLogbookOperationClient;
         logbookLifeCycleClient = pLogbookLifeCycleClient == null
-            ? LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient() : pLogbookLifeCycleClient;
+            ? LogbookLifeCyclesClientFactory.getInstance().getClient() : pLogbookLifeCycleClient;
         mock = pLogbookOperationClient == null;
     }
 
@@ -314,7 +314,7 @@ public class AccessModuleImpl implements AccessModule {
 
             if (! mock) {
                 logbookOperationClient = LogbookOperationsClientFactory.getInstance().getClient();
-                logbookLifeCycleClient = LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient();
+                logbookLifeCycleClient = LogbookLifeCyclesClientFactory.getInstance().getClient();
             }
             // Create logbook operation
             // TODO: interest of this private method ?

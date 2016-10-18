@@ -71,7 +71,7 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(CheckObjectUnitConsistencyActionHandler.class);
     private static final LogbookLifeCyclesClient LOGBOOK_LIFECYCLE_CLIENT = LogbookLifeCyclesClientFactory.getInstance()
-        .getLogbookLifeCyclesClient();
+        .getClient();
     private static final String HANDLER_ID = "CheckObjectUnitConsistency";
     private HandlerIO handlerIO;
     private final HandlerIO handlerInitialIOList;
