@@ -1,5 +1,6 @@
 ---
 
+# Check SELinux with command line instead of using ansible facts since we may not have libselinux-python
 - name: Get selinux mode
   shell: which getenforce >/dev/null 2>&1; if (( $? != 0 )); then echo "Disabled"; else getenforce; fi
   register: selinux
