@@ -1,9 +1,13 @@
 ---
 
-- name: Check that selinux is not set to enforcing
-  fail: msg="selinux is in enforcing mode, please set selinux to permissive or disabled."
-  when: ansible_selinux.mode == "enforcing"
+# Check SELinux with command line instead of using ansible facts since we may not have libselinux-python
+- name: Get selinux mode
+  shell: which getenforce >/dev/null 2>&1; if (( $? != 0 )); then echo "Disabled"; else getenforce; fi
+  register: selinux
 
+- name: Check that selinux is not set to enforcing
+  fail: msg="selinux detected and looks like to be set to enforcing mode, please set selinux to permissive or disabled."
+  when: selinux.stdout == "Enforcing"
 
 - name: ensure parent dir is OK ith correct permissions
   file:

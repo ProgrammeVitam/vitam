@@ -181,6 +181,7 @@
 
 #### Curator ####
 # Disabled when docker detected (local deployement)
+# todo: check if localhost instead of ansible_virtualization_type != docker
 
 - name: remove PyYAML.x86_64 as incompatible with Curator
   yum:
