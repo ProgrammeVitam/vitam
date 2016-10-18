@@ -108,7 +108,7 @@ public class FormatIdentificationActionHandler extends ActionHandler {
 
     private FormatIdentifier formatIdentifier;
     private final LogbookLifeCyclesClient logbookClient =
-        LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient();
+        LogbookLifeCyclesClientFactory.getInstance().getClient();
 
     private boolean metadatasUpdated = false;
 

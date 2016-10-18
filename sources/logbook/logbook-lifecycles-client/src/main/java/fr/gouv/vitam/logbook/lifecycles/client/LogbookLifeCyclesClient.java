@@ -28,6 +28,7 @@ package fr.gouv.vitam.logbook.lifecycles.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.client2.BasicClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.logbook.common.client.StatusMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
@@ -40,7 +41,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 /**
  * Logbook client interface
  */
-public interface LogbookLifeCyclesClient {
+public interface LogbookLifeCyclesClient extends BasicClient {
 
     /**
      * Create logbook entry <br>
@@ -99,20 +100,6 @@ public interface LogbookLifeCyclesClient {
      */
     void rollback(LogbookParameters parameters)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException;
-
-    /**
-     * Get the status from the service
-     *
-     * @return the Message status
-     * @throws LogbookClientServerException if the Server got an internal error
-     */
-    StatusMessage status() throws LogbookClientServerException;
-
-    /**
-     * Not implemented yet (think about pool logbook client)
-     */
-    void close();
-
 
     /**
      * @param select

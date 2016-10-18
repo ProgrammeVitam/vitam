@@ -26,8 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.lifecycles.client;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import javax.ws.rs.Consumes;
@@ -36,23 +34,22 @@ import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.JerseyTest;
-import org.glassfish.jersey.test.TestProperties;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.logbook.common.client.StatusMessage;
+import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
+import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -64,40 +61,56 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 
-public class LogbookLifeCyclesClientRestTest extends JerseyTest {
+public class LogbookLifeCyclesClientRestTest extends VitamJerseyTest {
 
     protected static final String HOSTNAME = "localhost";
-    protected static final int PORT = 8092;
     protected static final String PATH = "/logbook/v1";
-    protected final LogbookLifeCyclesClientRest client;
+    protected LogbookLifeCyclesClientRest client;
 
-    protected ExpectedResults mock;
-
-    interface ExpectedResults {
-        Response post();
-
-        Response put();
-
-        Response delete();
-
-        Response head();
-
-        Response get();
-    }
-
+    // ************************************** //
+    // Start of VitamJerseyTest configuration //
+    // ************************************** //
     public LogbookLifeCyclesClientRestTest() {
-        client = new LogbookLifeCyclesClientRest(HOSTNAME, PORT);
+        super(LogbookLifeCyclesClientFactory.getInstance());
     }
 
+    // Override the beforeTest if necessary
     @Override
-    protected Application configure() {
-        enable(TestProperties.LOG_TRAFFIC);
-        enable(TestProperties.DUMP_ENTITY);
-        forceSet(TestProperties.CONTAINER_PORT, Integer.toString(PORT));
-        mock = mock(ExpectedResults.class);
-        final ResourceConfig resourceConfig = new ResourceConfig();
-        resourceConfig.register(JacksonFeature.class);
-        return resourceConfig.registerInstances(new MockResource(mock));
+    public void beforeTest() throws VitamApplicationServerException {
+        client = (LogbookLifeCyclesClientRest) getClient();
+    }
+
+    // Define the getApplication to return your Application using the correct Configuration
+    @Override
+    public StartApplicationResponse<AbstractApplication> startVitamApplication(int reservedPort) {
+        final TestVitamApplicationConfiguration configuration = new TestVitamApplicationConfiguration();
+        configuration.setJettyConfig(DEFAULT_XML_CONFIGURATION_FILE);
+        final AbstractApplication application = new AbstractApplication(configuration);
+        try {
+            application.start();
+        } catch (final VitamApplicationServerException e) {
+            throw new IllegalStateException("Cannot start the application", e);
+        }
+        return new StartApplicationResponse<AbstractApplication>()
+            .setServerPort(application.getVitamServer().getPort())
+            .setApplication(application);
+    }
+
+    // Define your Application class if necessary
+    public final class AbstractApplication
+        extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
+        protected AbstractApplication(TestVitamApplicationConfiguration configuration) {
+            super(TestVitamApplicationConfiguration.class, configuration);
+        }
+
+        @Override
+        protected void registerInResourceConfig(ResourceConfig resourceConfig) {
+            resourceConfig.registerInstances(new MockResource(mock));
+        }
+    }
+    // Define your Configuration class if necessary
+    public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
+
     }
 
     @Path("/logbook/v1")
@@ -293,25 +306,13 @@ public class LogbookLifeCyclesClientRestTest extends JerseyTest {
     @Test
     public void statusExecutionWithouthBody() throws Exception {
         when(mock.get()).thenReturn(Response.status(Response.Status.OK).build());
-        client.status();
+        client.checkStatus();
     }
 
-    @Test(expected = LogbookClientServerException.class)
+    @Test(expected = VitamApplicationServerException.class)
     public void failStatusExecution() throws Exception {
         when(mock.get()).thenReturn(Response.status(Response.Status.GATEWAY_TIMEOUT).build());
-        client.status();
-    }
-
-    @Test
-    public void statusExecutionWithBody() throws Exception {
-        when(mock.get())
-            .thenReturn(Response.status(Response.Status.OK).entity("{\"name\":\"logbook\",\"role\":\"myRole\"," +
-                "\"pid\":123}")
-                .build());
-        final StatusMessage message = client.status();
-        assertEquals("logbook", message.getName());
-        assertEquals("myRole", message.getRole());
-        assertEquals(123, message.getPid());
+        client.checkStatus();
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -381,14 +382,14 @@ public class LogbookLifeCyclesClientRestTest extends JerseyTest {
     }
 
 
-    @Test(expected = LogbookClientNotFoundException.class)
+    @Test
     public void selectLifeCycle() throws Exception {
         when(mock.post()).thenReturn(Response.status(Response.Status.OK).build());
         final String id = "ushshsjskqlqlqlqqmqm";
         client.selectLifeCycles(id);
     }
 
-    @Test(expected = LogbookClientNotFoundException.class)
+    @Test
     public void selectLifeCycleById() throws Exception {
         when(mock.post()).thenReturn(Response.status(Response.Status.OK).build());
         final String id = "ushshsjskqlqlqlqqmqm";
@@ -404,7 +405,7 @@ public class LogbookLifeCyclesClientRestTest extends JerseyTest {
         client.commit(log);
     }
 
-    @Test(expected = LogbookClientNotFoundException.class)
+    @Test(expected = LogbookClientServerException.class)
     public void commitExecutionObjectGroupLifeCycle_ThrowLogBookNotFound() throws Exception {
         when(mock.post()).thenReturn(Response.status(Response.Status.OK).build());
         final LogbookLifeCycleObjectGroupParameters log = getCompleteLifeCycleObjectGroupParameters();

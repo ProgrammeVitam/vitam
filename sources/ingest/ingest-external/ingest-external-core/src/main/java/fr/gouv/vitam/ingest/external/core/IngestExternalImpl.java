@@ -63,6 +63,9 @@ import fr.gouv.vitam.workspace.core.filesystem.FileSystem;
  */
 public class IngestExternalImpl implements IngestExternal {
 
+    private static final int STATUS_ANTIVIRUS_KO = 2;
+    private static final int STATUS_ANTIVIRUS_WARNING = 1;
+    private static final int STATUS_ANTIVIRUS_OK = 0;
     private static final String INGEST_EXT = "Contrôle sanitaire SIP";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalImpl.class);
     private final IngestExternalConfiguration config;
@@ -153,20 +156,14 @@ public class IngestExternalImpl implements IngestExternal {
 
             // TODO: add fileName to KO_VIRUS string. Cf. todo in IngestExternalResource
             switch (antiVirusResult) {
-                case 0:
+                case STATUS_ANTIVIRUS_OK:
                     LOGGER.info(IngestExternalOutcomeMessage.OK_VIRUS.toString());
                     endParameters.setStatus(StatusCode.OK);
                     endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                         IngestExternalOutcomeMessage.OK_VIRUS.value());
                     break;
-                case 1:
-                    LOGGER.debug(IngestExternalOutcomeMessage.KO_VIRUS.toString());
-                    endParameters.setStatus(StatusCode.KO);
-                    endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                        IngestExternalOutcomeMessage.KO_VIRUS.value());
-                    isFileInfected = true;
-                    break;
-                case 2:
+                case STATUS_ANTIVIRUS_WARNING:
+                case STATUS_ANTIVIRUS_KO:
                     LOGGER.error(IngestExternalOutcomeMessage.KO_VIRUS.toString());
                     endParameters.setStatus(StatusCode.KO);
                     endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,

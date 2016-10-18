@@ -37,6 +37,7 @@ import org.junit.Test;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
@@ -48,11 +49,10 @@ public class LogbookLifeCyclesClientMockTest {
 
     @Test
     public void createTest() {
-        LogbookLifeCyclesClientFactory
-            .setConfiguration(LogbookLifeCyclesClientFactory.LogbookClientType.MOCK_LIFECYCLES, null, 0);
+        LogbookLifeCyclesClientFactory.changeMode(null);
 
         final LogbookLifeCyclesClient client =
-            LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient();
+            LogbookLifeCyclesClientFactory.getInstance().getClient();
         assertNotNull(client);
 
         final LogbookParameters logbookParameters = LogbookParametersFactory.newLogbookOperationParameters();
@@ -82,11 +82,10 @@ public class LogbookLifeCyclesClientMockTest {
 
     @Test
     public void updateTest() {
-        LogbookLifeCyclesClientFactory
-            .setConfiguration(LogbookLifeCyclesClientFactory.LogbookClientType.MOCK_LIFECYCLES, null, 0);
+        LogbookLifeCyclesClientFactory.changeMode(null);
 
         final LogbookLifeCyclesClient client =
-            LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient();
+            LogbookLifeCyclesClientFactory.getInstance().getClient();
         assertNotNull(client);
 
         final LogbookParameters logbookParameters = LogbookParametersFactory.newLogbookOperationParameters();
@@ -116,11 +115,10 @@ public class LogbookLifeCyclesClientMockTest {
 
     @Test
     public void commitTest() {
-        LogbookLifeCyclesClientFactory
-            .setConfiguration(LogbookLifeCyclesClientFactory.LogbookClientType.MOCK_LIFECYCLES, null, 0);
+        LogbookLifeCyclesClientFactory.changeMode(null);
 
         final LogbookLifeCyclesClient client =
-            LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient();
+            LogbookLifeCyclesClientFactory.getInstance().getClient();
         assertNotNull(client);
 
         final LogbookParameters logbookParameters = LogbookParametersFactory.newLogbookOperationParameters();
@@ -150,11 +148,10 @@ public class LogbookLifeCyclesClientMockTest {
 
     @Test
     public void rollbackTest() {
-        LogbookLifeCyclesClientFactory
-            .setConfiguration(LogbookLifeCyclesClientFactory.LogbookClientType.MOCK_LIFECYCLES, null, 0);
+        LogbookLifeCyclesClientFactory.changeMode(null);
 
         final LogbookLifeCyclesClient client =
-            LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient();
+            LogbookLifeCyclesClientFactory.getInstance().getClient();
         assertNotNull(client);
 
         final LogbookParameters logbookParameters = LogbookParametersFactory.newLogbookOperationParameters();
@@ -184,14 +181,13 @@ public class LogbookLifeCyclesClientMockTest {
 
 
     @Test
-    public void statusTest() throws LogbookClientException {
-        LogbookLifeCyclesClientFactory
-            .setConfiguration(LogbookLifeCyclesClientFactory.LogbookClientType.MOCK_LIFECYCLES, null, 0);
+    public void statusTest() throws LogbookClientException, VitamApplicationServerException {
+        LogbookLifeCyclesClientFactory.changeMode(null);
 
         final LogbookLifeCyclesClient client =
-            LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient();
+            LogbookLifeCyclesClientFactory.getInstance().getClient();
         assertNotNull(client);
-        assertNotNull(client.status());
+        client.checkStatus();
     }
 
     private void fillLogbookParamaters(LogbookParameters logbookParamaters) {
@@ -230,11 +226,10 @@ public class LogbookLifeCyclesClientMockTest {
 
     @Test
     public void selectTest() throws LogbookClientException, InvalidParseOperationException {
-        LogbookLifeCyclesClientFactory
-            .setConfiguration(LogbookLifeCyclesClientFactory.LogbookClientType.MOCK_LIFECYCLES, null, 0);
+        LogbookLifeCyclesClientFactory.changeMode(null);
 
         final LogbookLifeCyclesClient client =
-            LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient();
+            LogbookLifeCyclesClientFactory.getInstance().getClient();
         assertEquals("aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaz",
             client.selectLifeCycles(request).get("result").get(1).get("_id").asText());
         assertEquals("aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq",

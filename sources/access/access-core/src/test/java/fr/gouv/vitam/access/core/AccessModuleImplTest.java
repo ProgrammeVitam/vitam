@@ -139,7 +139,7 @@ public class AccessModuleImplTest {
         LogbookOperationsClientFactory factoryop = mock(LogbookOperationsClientFactory.class);
         PowerMockito.mockStatic(LogbookLifeCyclesClientFactory.class);
         PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(factorylc);
-        PowerMockito.when(factorylc.getLogbookLifeCyclesClient()).thenReturn(logbookLifeCycleClient);
+        PowerMockito.when(factorylc.getClient()).thenReturn(logbookLifeCycleClient);
         PowerMockito.mockStatic(LogbookOperationsClientFactory.class);
         PowerMockito.when(LogbookOperationsClientFactory.getInstance()).thenReturn(factoryop);
         PowerMockito.when(factoryop.getClient()).thenReturn(logbookOperationClient);

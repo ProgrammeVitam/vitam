@@ -85,7 +85,7 @@ public class CheckConformityActionHandler extends ActionHandler {
     private static final String HANDLER_ID = "CheckConformity";
     LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters();
     private static final LogbookLifeCyclesClient LOGBOOK_LIFECYCLE_CLIENT = LogbookLifeCyclesClientFactory.getInstance()
-        .getLogbookLifeCyclesClient();
+        .getClient();
 
     public static final String JSON_EXTENSION = ".json";
     public static final String LIFE_CYCLE_EVENT_TYPE_PROCESS = "INGEST";

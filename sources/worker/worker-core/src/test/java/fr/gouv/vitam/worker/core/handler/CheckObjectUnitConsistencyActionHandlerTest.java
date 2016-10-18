@@ -36,6 +36,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Matchers;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -43,6 +44,8 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -54,8 +57,8 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 @RunWith(PowerMockRunner.class)
-
-@PrepareForTest({WorkspaceClientFactory.class})
+@PowerMockIgnore("javax.net.ssl.*")
+@PrepareForTest({WorkspaceClientFactory.class, LogbookLifeCyclesClientFactory.class})
 public class CheckObjectUnitConsistencyActionHandlerTest {
 
     CheckObjectUnitConsistencyActionHandler handler;
@@ -67,6 +70,7 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
     private static final String EMPTY = "EMPTY_MAP.json";
 
     private WorkspaceClient workspaceClient;
+    private LogbookLifeCyclesClient logbookLifeCyclesClient;
     private static final String OBJ = "obj";
 
     private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
@@ -78,6 +82,12 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
     public void setUp() {
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
+        PowerMockito.mockStatic(LogbookLifeCyclesClientFactory.class);
+        LogbookLifeCyclesClientFactory factory = mock(LogbookLifeCyclesClientFactory.class);
+        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(factory);
+        logbookLifeCyclesClient = mock(LogbookLifeCyclesClient.class);
+        PowerMockito.when(factory.getClient()).thenReturn(logbookLifeCyclesClient);
+        
         action = new HandlerIO("");
     }
 

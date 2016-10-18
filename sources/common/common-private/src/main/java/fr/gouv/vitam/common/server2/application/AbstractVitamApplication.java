@@ -27,8 +27,6 @@
 
 package fr.gouv.vitam.common.server2.application;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -125,12 +123,7 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
     protected final void configure(String configurationFile) {
         final String role = ServerIdentity.getInstance().getRole();
         try {
-            File file = new File(configurationFile);
-            if (! file.exists()) {
-                file = PropertiesUtils.fileFromConfigFolder(configurationFile);
-            }
-            try (final InputStream yamlIS =
-                file.exists() ? new FileInputStream(file) : PropertiesUtils.getResourceAsStream(configurationFile)) {
+            try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
                 final C buildConfiguration = PropertiesUtils.readYaml(yamlIS,
                     getConfigurationType());
                 configure(buildConfiguration);

@@ -32,12 +32,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.client2.AbstractMockClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.logbook.common.client.StatusMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -51,7 +51,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 /**
  * LogbookLifeCyclesClient Mock implementation
  */
-class LogbookLifeCyclesClientMock implements LogbookLifeCyclesClient {
+class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookLifeCyclesClient {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookLifeCyclesClientMock.class);
     private static final ServerIdentity SERVER_IDENTITY = ServerIdentity.getInstance();
@@ -148,16 +148,6 @@ class LogbookLifeCyclesClientMock implements LogbookLifeCyclesClient {
         ParameterHelper
             .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
         logInformation(ROLLBACK, parameters);
-    }
-
-    @Override
-    public StatusMessage status() throws LogbookClientServerException {
-        return new StatusMessage(SERVER_IDENTITY);
-    }
-
-    @Override
-    public void close() {
-        // Empty
     }
 
     /**

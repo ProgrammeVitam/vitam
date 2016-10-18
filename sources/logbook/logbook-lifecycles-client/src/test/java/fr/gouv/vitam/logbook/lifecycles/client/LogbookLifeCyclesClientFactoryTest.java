@@ -35,47 +35,50 @@ import static org.junit.Assert.fail;
 import org.junit.Before;
 import org.junit.Test;
 
+import fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType;
+import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
+import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
+
 /**
  * Test class for client (and parameters) factory
  */
 public class LogbookLifeCyclesClientFactoryTest {
+    private final ClientConfiguration configuration = new ClientConfigurationImpl();
 
     @Before
     public void initFileConfiguration() {
-        LogbookLifeCyclesClientFactory.getInstance().changeConfigurationFile("logbook-lifecycles-client.conf");
+        LogbookLifeCyclesClientFactory.changeMode(
+            LogbookLifeCyclesClientFactory.changeConfigurationFile("logbook-lifecycles-client.conf"));
     }
 
     @Test
     public void getClientInstanceTest() {
         try {
-            LogbookLifeCyclesClientFactory.setConfiguration(LogbookLifeCyclesClientFactory.LogbookClientType.LIFECYCLES,
-                null, 10);
+            LogbookLifeCyclesClientFactory.changeMode(new ClientConfigurationImpl(null, 10));
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
         }
         try {
-            LogbookLifeCyclesClientFactory.setConfiguration(LogbookLifeCyclesClientFactory.LogbookClientType.LIFECYCLES,
-                "localhost", -10);
+            LogbookLifeCyclesClientFactory.changeMode(new ClientConfigurationImpl("localhost", -10));
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
         }
         try {
-            LogbookLifeCyclesClientFactory.setConfiguration(null, null, 10);
+            LogbookLifeCyclesClientFactory.changeMode(configuration);
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
         }
-        LogbookLifeCyclesClientFactory
-            .setConfiguration(LogbookLifeCyclesClientFactory.LogbookClientType.MOCK_LIFECYCLES, null, -1);
+        LogbookLifeCyclesClientFactory.changeMode(null);
 
         final LogbookLifeCyclesClient client =
-            LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient();
+            LogbookLifeCyclesClientFactory.getInstance().getClient();
         assertNotNull(client);
 
         final LogbookLifeCyclesClient client2 =
-            LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient();
+            LogbookLifeCyclesClientFactory.getInstance().getClient();
         assertNotNull(client2);
 
         assertNotSame(client, client2);
@@ -84,56 +87,38 @@ public class LogbookLifeCyclesClientFactoryTest {
     @Test
     public void changeDefaultClientTypeTest() {
         final LogbookLifeCyclesClient client =
-            LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient();
+            LogbookLifeCyclesClientFactory.getInstance().getClient();
         assertTrue(client instanceof LogbookLifeCyclesClientRest);
-        final LogbookLifeCyclesClientFactory.LogbookClientType type =
-            LogbookLifeCyclesClientFactory.getDefaultLogbookClientType();
-        assertNotNull(type);
-        assertEquals(LogbookLifeCyclesClientFactory.LogbookClientType.LIFECYCLES, type);
+        assertEquals(VitamClientType.PRODUCTION, LogbookLifeCyclesClientFactory.getInstance().getVitamClientType());
 
-        LogbookLifeCyclesClientFactory
-            .setConfiguration(LogbookLifeCyclesClientFactory.LogbookClientType.MOCK_LIFECYCLES, "", 0);
+        LogbookLifeCyclesClientFactory.changeMode(null);
         final LogbookLifeCyclesClient client2 =
-            LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient();
+            LogbookLifeCyclesClientFactory.getInstance().getClient();
         assertTrue(client2 instanceof LogbookLifeCyclesClientMock);
-        final LogbookLifeCyclesClientFactory.LogbookClientType type2 =
-            LogbookLifeCyclesClientFactory.getDefaultLogbookClientType();
-        assertNotNull(type2);
-        assertEquals(LogbookLifeCyclesClientFactory.LogbookClientType.MOCK_LIFECYCLES, type2);
+        assertEquals(VitamClientType.MOCK, LogbookLifeCyclesClientFactory.getInstance().getVitamClientType());
 
-        LogbookLifeCyclesClientFactory.setConfiguration(LogbookLifeCyclesClientFactory.LogbookClientType.LIFECYCLES,
-            "server", 1025);
+        LogbookLifeCyclesClientFactory.changeMode(new ClientConfigurationImpl("server", 1025));
         final LogbookLifeCyclesClient client3 =
-            LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient();
+            LogbookLifeCyclesClientFactory.getInstance().getClient();
         assertTrue(client3 instanceof LogbookLifeCyclesClientRest);
-        final LogbookLifeCyclesClientFactory.LogbookClientType type3 =
-            LogbookLifeCyclesClientFactory.getDefaultLogbookClientType();
-        assertNotNull(type3);
-        assertEquals(LogbookLifeCyclesClientFactory.LogbookClientType.LIFECYCLES, type3);
+        assertEquals(VitamClientType.PRODUCTION, LogbookLifeCyclesClientFactory.getInstance().getVitamClientType());
     }
 
     @Test
     public void testInitWithoutConfigurationFile() {
         // assume that a fake file is like no file
-        LogbookLifeCyclesClientFactory.getInstance().changeConfigurationFile("tmp");
-        final LogbookLifeCyclesClient client =
-            LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient();
+        LogbookLifeCyclesClientFactory.changeMode(null);
+        final LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient();
         assertTrue(client instanceof LogbookLifeCyclesClientMock);
-        final LogbookLifeCyclesClientFactory.LogbookClientType type =
-            LogbookLifeCyclesClientFactory.getDefaultLogbookClientType();
-        assertNotNull(type);
-        assertEquals(LogbookLifeCyclesClientFactory.LogbookClientType.MOCK_LIFECYCLES, type);
+        assertEquals(VitamClientType.MOCK, LogbookLifeCyclesClientFactory.getInstance().getVitamClientType());
     }
 
     @Test
     public void testInitWithConfigurationFile() {
         final LogbookLifeCyclesClient client =
-            LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient();
+            LogbookLifeCyclesClientFactory.getInstance().getClient();
         assertTrue(client instanceof LogbookLifeCyclesClientRest);
-        final LogbookLifeCyclesClientFactory.LogbookClientType type =
-            LogbookLifeCyclesClientFactory.getDefaultLogbookClientType();
-        assertNotNull(type);
-        assertEquals(LogbookLifeCyclesClientFactory.LogbookClientType.LIFECYCLES, type);
+        assertEquals(VitamClientType.PRODUCTION, LogbookLifeCyclesClientFactory.getInstance().getVitamClientType());
     }
 
 }

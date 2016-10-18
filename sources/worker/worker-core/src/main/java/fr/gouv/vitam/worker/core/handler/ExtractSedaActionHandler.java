@@ -121,7 +121,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final int GLOBAL_SEDA_PARAMETERS_FILE_IO_RANK = 7;
 
     private static final LogbookLifeCyclesClient LOGBOOK_LIFECYCLE_CLIENT = LogbookLifeCyclesClientFactory.getInstance()
-        .getLogbookLifeCyclesClient();
+        .getClient();
     private static final String HANDLER_ID = "ExtractSeda";
     private HandlerIO handlerIO;
 
