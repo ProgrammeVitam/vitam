@@ -25,7 +25,29 @@
  * accept its terms.
  */
 
-'use strict';
+angular.module('accession.register.search')
+  .controller('accessionRegisterSearchController', function() {
+    var self = this;
 
-// Define the `fund.register.search` module
-angular.module('fund.register.search', []);
+    // ************************************Pagination  **************************** //
+    self.viewby = 10;
+    self.currentPage = 1;
+    self.itemsPerPage = self.viewby;
+    self.maxSize = 5;
+
+    self.setPage = function(pageNo) {
+     selfcurrentPage = pageNo;
+    };
+
+    self.pageChanged = function() {
+     console.log('Page changed to: ' + self.currentPage);
+    };
+
+    self.setItemsPerPage = function(num) {
+      self.itemsPerPage = num;
+      self.currentPage = 1; // reset to first page
+    };
+    // **************************************************************************** //
+
+
+  });

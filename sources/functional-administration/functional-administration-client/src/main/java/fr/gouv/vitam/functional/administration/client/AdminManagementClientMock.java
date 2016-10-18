@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
@@ -183,6 +184,18 @@ public class AdminManagementClientMock implements AdminManagementClient {
     private String fileRulesListToJsonString(List<FileRules> fileRulesList)
         throws IOException, InvalidParseOperationException {
         return JsonHandler.writeAsString(fileRulesList);
+    }
+
+    @Override
+    public void createorUpdateAccessionRegister(AccessionRegisterDetail register) throws DatabaseConflictException {
+        String result;
+        try {
+            result = JsonHandler.writeAsString(register);
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error("Cannot serialize parameters", e);
+            result = "{}";
+        }
+        LOGGER.info("AccessionRegister: " + result);
     }
 
 

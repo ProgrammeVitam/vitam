@@ -24,7 +24,41 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.functional.administration.common;
+
 /**
- * functional administration module
+ * Enum AccessionRegisterStatus
+ *
+ * different constants status code for Accession register
+ *
  */
-package fr.gouv.vitam.functional.administration.rest;
+public enum AccessionRegisterStatus {
+
+    /**
+     * STORED_AND_COMPLETED : indicates that the Accession register stored and completed
+     */
+    STORED_AND_COMPLETED("stored and completed"),
+    /**
+     * STORED_AND_UPDATED : indicates that the Accession register stored and updated
+     */
+    STORED_AND_UPDATED("stored and updated"),
+
+    /**
+     * UNSTORED : indicates that the Accession register is not stored
+     */
+    UNSTORED("stored");
+    
+    private final String value;
+    
+    private AccessionRegisterStatus(String val) {
+        value = val;
+    }
+    
+    /**
+     * @return value
+     */
+    public String value() {
+        return value;
+    }
+
+}

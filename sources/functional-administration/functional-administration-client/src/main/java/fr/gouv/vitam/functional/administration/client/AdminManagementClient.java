@@ -34,8 +34,11 @@ import javax.ws.rs.core.Response.Status;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
+import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
 /**
@@ -141,4 +144,12 @@ public interface AdminManagementClient {
     JsonNode getRule(JsonNode query)
         throws FileRulesException, InvalidParseOperationException,
         IOException;
+    
+    /**
+     * @param AccessionRegisterDetail register
+     * @throws AccessionRegisterException when AccessionRegisterDetailexception occurs
+     * @throws DatabaseConflictException when Database conflict exception occurs
+     */
+    void createorUpdateAccessionRegister(AccessionRegisterDetail register) throws AccessionRegisterException, DatabaseConflictException;
+
 }

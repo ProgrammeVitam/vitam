@@ -27,10 +27,10 @@
 
 'use strict';
 
-// Register `fundRegisterSearch` component, along with its associated controller and template
+// Register `accessionRegisterSearch` component, along with its associated controller and template
 angular.
-  module('fund.register.search').
-  component('fundRegisterSearch', {
-    templateUrl: 'modules/fund-register-search/fund-register-search.template.html',
-    controller: 'fundRegisterSearchController'
+  module('accession.register.search').
+  component('accessionRegisterSearch', {
+    templateUrl: 'modules/accession-register-search/accession-register-search.template.html',
+    controller: 'accessionRegisterSearchController'
   });

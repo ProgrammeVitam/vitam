@@ -91,7 +91,7 @@ public final class AdminManagementApplication
      * @return the VitamServer
      * @throws IllegalStateException when state exception
      */
-    public static void startApplication(String[] args) throws VitamException {
+    public static void startApplication(String... args) throws VitamException {
         try {
             if (args == null || args.length == 0) {
                 LOGGER.error(format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME));

@@ -58,8 +58,10 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
+import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
 public class AdminManagementClientRestTest extends JerseyTest {
@@ -203,6 +205,14 @@ public class AdminManagementClientRestTest extends JerseyTest {
         public Response getRulesFile() {
             return expectedResponse.post();
         }
+        
+        @POST
+        @Path("/accession-register/create")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response createAccessionRegister() {
+            return expectedResponse.post();
+        }
     }
 
     @Test
@@ -344,5 +354,26 @@ public class AdminManagementClientRestTest extends JerseyTest {
             PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         client.importRulesFile(stream);
         final JsonNode result = client.getRule(select.getFinalSelect());
+    }
+    
+    @Test
+    public void createAccessionRegister()
+        throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.CREATED).build());
+        client.createorUpdateAccessionRegister(new AccessionRegisterDetail());
+    }
+    
+    @Test(expected=AccessionRegisterException.class)
+    public void createAccessionRegisterError()
+        throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        client.createorUpdateAccessionRegister(new AccessionRegisterDetail());
+    }
+    
+    @Test(expected=AccessionRegisterException.class)
+    public void createAccessionRegisterUnknownError()
+        throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+        client.createorUpdateAccessionRegister(new AccessionRegisterDetail());
     }
 }

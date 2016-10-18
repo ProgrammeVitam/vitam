@@ -43,5 +43,5 @@ angular.module('ihm.demo', [
   'lifecycle',
   'pascalprecht.translate',
   'upload.sip.perf',
-  'fund.register.search'
+  'accession.register.search'
 ]);

@@ -1,4 +1,4 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,31 +23,38 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
+ *******************************************************************************/
+package fr.gouv.vitam.functional.administration.common.exception;
+
+/**
+ *  Accession Register Exception 
+ * 
  */
+public class AccessionRegisterException extends ReferentialException {
 
-angular.module('fund.register.search')
-  .controller('fundRegisterSearchController', function() {
-    var self = this;
+    private static final long serialVersionUID = 6819250170621638340L;
 
-    // ************************************Pagination  **************************** //
-    self.viewby = 10;
-    self.currentPage = 1;
-    self.itemsPerPage = self.viewby;
-    self.maxSize = 5;
+    /**
+     * @param message message to associate with the exception
+     */
+    public AccessionRegisterException(String message) {
+        super(message);
+    }
 
-    self.setPage = function(pageNo) {
-     selfcurrentPage = pageNo;
-    };
+    /**
+     * @param cause cause to associate with the exception
+     */
+    public AccessionRegisterException(Throwable cause) {
+        super(cause);
+    }
 
-    self.pageChanged = function() {
-     console.log('Page changed to: ' + self.currentPage);
-    };
+    /**
+     * @param message message to associate with the exception
+     * @param cause cause to associate with the exception
+     */
+    public AccessionRegisterException(String message, Throwable cause) {
+        super(message, cause);
+    }
 
-    self.setItemsPerPage = function(num) {
-      self.itemsPerPage = num;
-      self.currentPage = 1; // reset to first page
-    };
-    // **************************************************************************** //
+}
 
-
-  });
