@@ -29,6 +29,9 @@ package fr.gouv.vitam.common.server2.application;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.EnumSet;
+
+import javax.servlet.DispatcherType;
 
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -39,13 +42,16 @@ import org.glassfish.jersey.server.ServerProperties;
 import org.glassfish.jersey.servlet.ServletContainer;
 
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import com.google.common.base.Strings;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.VitamConfigurationParameters;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.security.filter.AuthorizationFilter;
 import fr.gouv.vitam.common.server2.VitamServer;
 import fr.gouv.vitam.common.server2.VitamServerFactory;
 import fr.gouv.vitam.common.server2.application.configuration.VitamApplicationConfiguration;
@@ -60,6 +66,7 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
     implements VitamApplication<A, C> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AbstractVitamApplication.class);
     protected static final String CONFIG_FILE_IS_A_MANDATORY_ARGUMENT = "Config file is a mandatory argument for ";
+    private static final String CONF_FILE_NAME = "vitam.conf";
 
     private C configuration;
     private Handler applicationHandler;
@@ -143,6 +150,19 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
     private final void configure(C configuration) {
         final String role = ServerIdentity.getInstance().getRole();
         try {
+            // Load Platform secret from vitam.conf file
+            try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(CONF_FILE_NAME)) {
+                final VitamConfigurationParameters vitamConfigurationParameters =
+                    PropertiesUtils.readYaml(yamlIS, VitamConfigurationParameters.class);
+
+                VitamConfiguration.setSecret(vitamConfigurationParameters.getSecret());
+                VitamConfiguration.setFilterActivation(vitamConfigurationParameters.isFilterActivation());
+
+            } catch (final IOException e) {
+                LOGGER.error(e);
+                throw new IllegalStateException("Cannot start the " + role + " Application Server", e);
+            }
+
             setConfiguration(configuration);
             applicationHandler = buildApplicationHandler();
             final String jettyConfig = getConfiguration().getJettyConfig();
@@ -207,6 +227,16 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
         final ServletContextHandler context = new ServletContextHandler(getSession());
         context.setContextPath("/");
         context.addServlet(sh, "/*");
+
+        // Authorization Filter
+        if (VitamConfiguration.isFilterActivation()) {
+            if (!Strings.isNullOrEmpty(VitamConfiguration.getSecret())) {
+                context.addFilter(AuthorizationFilter.class, "/*", EnumSet.of(
+                    DispatcherType.INCLUDE, DispatcherType.REQUEST,
+                    DispatcherType.FORWARD, DispatcherType.ERROR));
+            }
+        }
+
         setFilter(context);
         return context;
     }

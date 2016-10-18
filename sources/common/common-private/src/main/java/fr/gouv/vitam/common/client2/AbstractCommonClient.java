@@ -28,6 +28,7 @@ package fr.gouv.vitam.common.client2;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.Future;
 
@@ -42,7 +43,9 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -50,6 +53,7 @@ import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.security.filter.AuthorizationFilterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
 
 /**
@@ -279,6 +283,23 @@ abstract class AbstractCommonClient implements BasicClient {
                 }
             }
         }
+
+        if (path.codePointAt(0) != '/') {
+            path = "/" + path;
+        }
+        
+        String baseUri = getResourcePath() + path;
+        if(url.endsWith(VitamConfiguration.ADMIN_PATH)){
+            baseUri=VitamConfiguration.ADMIN_PATH + path;
+        }
+
+        // add Authorization Headers (X_TIMESTAMP, X_PLATFORM_ID)
+        Map<String,String> authorizationHeaders = AuthorizationFilterHelper.getAuthorizationHeaders(httpMethod,baseUri);
+        if(authorizationHeaders.size()==2){
+            builder.header(GlobalDataRest.X_TIMESTAMP,authorizationHeaders.get(GlobalDataRest.X_TIMESTAMP));
+            builder.header(GlobalDataRest.X_PLATFORM_ID,authorizationHeaders.get(GlobalDataRest.X_PLATFORM_ID));
+        }
+
         return builder;
     }
 

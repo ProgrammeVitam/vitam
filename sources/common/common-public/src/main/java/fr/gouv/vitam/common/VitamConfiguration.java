@@ -28,6 +28,9 @@ package fr.gouv.vitam.common;
 
 import java.io.File;
 
+import com.google.common.base.Strings;
+
+import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 
 /**
@@ -118,11 +121,23 @@ public class VitamConfiguration {
      * General status path
      */
     public static final String STATUS_URL = "/status";
+    
+    /**
+     * Default Digest Type
+     */
+    private static final DigestType SECURITY_DIGEST_TYPE = DigestType.SHA256;
+
+    /**
+     * Acceptable Request Time
+     */
+    private  static final long ACCEPTABLE_REQUEST_TIME = 10;
 
     private String config;
     private String log;
     private String data;
     private String tmp;
+    private static String secret;
+    private static boolean filterActivation;
 
     /**
      * Empty constructor
@@ -418,4 +433,53 @@ public class VitamConfiguration {
     public static int getMaxDelayUnusedConnection() {
         return MAX_DELAY_UNUSED_CONNECTION;
     }
+    
+    /**
+     * @return the secret
+     */
+    public static String getSecret() {
+        if (Strings.isNullOrEmpty(secret)){
+            return "";
+        }
+        return secret;
+    }
+
+    /**
+     * @param secret the secret to set
+     *
+     */
+    public static void setSecret(String secretValue) {
+        ParametersChecker.checkParameter("Platform secret", secretValue);
+        secret = secretValue;
+    }
+
+    /**
+     * @return the filterActivation
+     */
+    public static boolean isFilterActivation() {
+        return filterActivation;
+    }
+
+    /**
+     * @param filterActivation the filterActivation to set
+     *
+     */
+    public static void setFilterActivation(boolean filterActivationValue) {
+        filterActivation = filterActivationValue;
+    }
+
+    /**
+     * @return the aCCEPTABLE_REQUEST_TIME
+     */
+    public static long getAcceptableRequestTime() {
+        return ACCEPTABLE_REQUEST_TIME;
+    }
+
+    /**
+     * @return the securityDigestType
+     */
+    public static DigestType getSecurityDigestType() {
+        return SECURITY_DIGEST_TYPE;
+    }
+    
 }
