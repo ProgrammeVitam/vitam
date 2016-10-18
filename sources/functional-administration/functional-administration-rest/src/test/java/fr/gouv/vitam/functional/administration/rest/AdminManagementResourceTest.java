@@ -115,7 +115,6 @@ public class AdminManagementResourceTest {
     private static int serverPort;
     private static int databasePort;
     private static AdminManagementConfiguration adminManegement;
-    private static File functionalAdmin;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -124,15 +123,6 @@ public class AdminManagementResourceTest {
 
         junitHelper = JunitHelper.getInstance();
         databasePort = junitHelper.findAvailablePort();
-
-        functionalAdmin = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
-        final AdminManagementConfiguration realfunctionalAdmin =
-            PropertiesUtils.readYaml(functionalAdmin, AdminManagementConfiguration.class);
-        realfunctionalAdmin.setDbPort(databasePort);
-        try (FileOutputStream outputStream = new FileOutputStream(functionalAdmin)) {
-            final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-            mapper.writeValue(outputStream, realfunctionalAdmin);
-        }
 
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
@@ -150,7 +140,8 @@ public class AdminManagementResourceTest {
         SystemPropertyUtil.set(VitamServer.PARAMETER_JETTY_SERVER_PORT, Integer.toString(serverPort));
 
         try {
-            AdminManagementApplication.startApplication(new String[] {functionalAdmin.getAbsolutePath()});
+            AdminManagementApplication.setupApplication(databasePort);
+            AdminManagementApplication.startApplication(new String[] {ADMIN_MANAGEMENT_CONF});
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
             throw new IllegalStateException(

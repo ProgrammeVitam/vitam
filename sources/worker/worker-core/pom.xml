@@ -9,6 +9,10 @@
 	<artifactId>worker-core</artifactId>
 	<name>Worker Core</name>
 
+	<properties>
+		<sonar.exclusions>**/*generated*</sonar.exclusions>
+	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
