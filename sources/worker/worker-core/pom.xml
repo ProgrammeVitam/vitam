@@ -10,7 +10,7 @@
 	<name>Worker Core</name>
 
 	<properties>
-		<sonar.exclusions>**/*generated*</sonar.exclusions>
+		<sonar.exclusions>file:**/generated-sources/**</sonar.exclusions>
 	</properties>
 
 	<dependencies>
