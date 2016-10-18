@@ -38,7 +38,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -74,6 +73,7 @@ public class CheckConformityActionHandlerTest {
     public void setUp(){
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
+        PowerMockito.when(WorkspaceClientFactory.create(anyObject())).thenReturn(workspaceClient);
     }
 
     @After
@@ -83,7 +83,6 @@ public class CheckConformityActionHandlerTest {
     @Test
     public void getNonStandardDigestUpdate() throws Exception{
         objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP);
-        PowerMockito.when(WorkspaceClientFactory.create(Mockito.anyObject())).thenReturn(workspaceClient);
         when(workspaceClient.getObject(anyObject(), eq("ObjectGroup/objName"))).thenReturn(objectGroup);
         when(workspaceClient.getObject(anyObject(), eq("SIP/content/" + bdo1)))
         .thenReturn(PropertiesUtils.getResourceAsStream("BinaryObject/" + bdo1));
@@ -99,6 +98,7 @@ public class CheckConformityActionHandlerTest {
         WorkerParameters params = getDefaultWorkerParameters();
         HandlerIO handlerIO = new HandlerIO("");
         handlerIO.addInput("SHA-512");
+        handlerIO.addOutput("Maps/containerName.json");
         
         assertEquals(CheckConformityActionHandler.getId(), HANDLER_ID);
         EngineResponse response = handler.execute(params, handlerIO);

@@ -210,7 +210,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
         final JsonNode sedaParameters = JsonHandler.getFromFile((File) handlerIO.getInput().get(4));
         final JsonNode infoATR =
-            sedaParameters.get(SedaConstants.TAG_ARCHIVE_TRANSFER).get(SedaConstants.TAG_ARCHIVE_TRANSFER);
+            sedaParameters.get(SedaConstants.TAG_ARCHIVE_TRANSFER);
         final String messageIdentifier = infoATR.get(SedaConstants.TAG_MESSAGE_IDENTIFIER).textValue();
         // creation of ATR report
         try {

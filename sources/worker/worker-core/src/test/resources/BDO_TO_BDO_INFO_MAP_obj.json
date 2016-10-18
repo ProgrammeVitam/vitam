@@ -1,0 +1,26 @@
+{
+  "ID5" : {
+    "Id" : "ID5",
+    "Version" : "BinaryMaster",
+    "Uri" : "Content/ID5.pdf",
+    "MessageDigest" : "283827d12876af7da450b13918bba23942f0d8f70f8b92ccff1e1cde1657a6cf86783539b2dac4d47b817fba6cc7a13ba511f1049e0c10ebf19f1e56f586444b",
+    "Size" : 1903749,
+    "Algo" : "SHA512"
+  },
+  "ID9" : {
+    "Id" : "ID9",
+    "Version" : "BinaryMaster",
+    "Uri" : "Content/ID9.pdf",
+    "MessageDigest" : "7f3ce13b418339cb20218473ddcbc6d308f094ff9e3dd86526e124b216c267a8f46ffa21cc5e4b646ffea725aa75b6dbd1d203331c47110a10ec293383736645",
+    "Size" : 996183,
+    "Algo" : "SHA512"
+  },
+  "ID13" : {
+    "Id" : "ID13",
+    "Version" : "BinaryMaster",
+    "Uri" : "Content/ID13.pdf",
+    "MessageDigest" : "3afe1b9682dda5c5034ed57bcb1ac42634d0e7ec45969f54484c2fa8ad80510fbb54398db0b22910246aa6ecc339c1f5ddb0c09dcd11d2c0cc28604a72005616",
+    "Size" : 579662,
+    "Algo" : "SHA512"
+  }
+}

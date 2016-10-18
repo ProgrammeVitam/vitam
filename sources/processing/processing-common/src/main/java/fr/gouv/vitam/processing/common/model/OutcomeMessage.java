@@ -252,6 +252,16 @@ public enum OutcomeMessage {
      * Getting format identifier failed message (FATAL)
      */
     GETTING_FORMAT_IDENTIFIER_FATAL("L'outil d'analyse de format de fichier n'a pu être initialisé"),
+    
+    /**
+     * ART KO : fail message
+     */
+    FUND_REGISTER_OK("Succès d'enregistrement des archives prises en charge dans le registre des fonds"),
+
+    /**
+     * ART OK : succes message
+     */
+    FUND_REGISTER_KO("Echec d'enregistrement des archives prises en charge dans le registre des fonds"),
 
     /**
      * ART KO : fail message

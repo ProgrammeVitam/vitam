@@ -54,6 +54,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -586,7 +587,7 @@ public class SedaUtils {
                                 switch (tag) {
                                     case SedaConstants.TAG_URI:
                                         final String uri = evenReader.getElementText();
-                                        binaryObjectInfo.setUri(new URI(uri));
+                                        binaryObjectInfo.setUri(uri);
                                         break;
                                     case SedaConstants.TAG_DO_VERSION:
                                         final String version = evenReader.getElementText();
@@ -594,7 +595,7 @@ public class SedaUtils {
                                         break;
                                     case SedaConstants.TAG_DIGEST:
                                         binaryObjectInfo
-                                            .setAlgo(((Attribute) startElement.getAttributes().next()).getValue());
+                                            .setAlgo(DigestType.fromValue(((Attribute) startElement.getAttributes().next()).getValue()));
                                         final String messageDigest = evenReader.getElementText();
                                         binaryObjectInfo.setMessageDigest(messageDigest);
                                         break;
@@ -616,7 +617,7 @@ public class SedaUtils {
                         }
                     }
                 }
-            } catch (XMLStreamException | URISyntaxException e) {
+            } catch (XMLStreamException e) {
                 LOGGER.error("Can not get BinaryObject info");
                 throw new ProcessingException(e);
             }

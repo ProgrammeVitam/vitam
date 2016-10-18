@@ -63,6 +63,7 @@ import fr.gouv.vitam.worker.core.handler.CheckVersionActionHandler;
 import fr.gouv.vitam.worker.core.handler.DummyHandler;
 import fr.gouv.vitam.worker.core.handler.ExtractSedaActionHandler;
 import fr.gouv.vitam.worker.core.handler.FormatIdentificationActionHandler;
+import fr.gouv.vitam.worker.core.handler.AccessionRegisterActionHandler;
 import fr.gouv.vitam.worker.core.handler.IndexObjectGroupActionHandler;
 import fr.gouv.vitam.worker.core.handler.IndexUnitActionHandler;
 import fr.gouv.vitam.worker.core.handler.StoreObjectGroupActionHandler;
@@ -135,6 +136,8 @@ public class WorkerImpl implements Worker {
             new CheckObjectUnitConsistencyActionHandler());
         actions.put(FormatIdentificationActionHandler.getId(),
             new FormatIdentificationActionHandler());
+        actions.put(AccessionRegisterActionHandler.getId(),
+            new AccessionRegisterActionHandler());
         actions.put(TransferNotificationActionHandler.getId(),
             new TransferNotificationActionHandler());
         actions.put(DummyHandler.getId(), new DummyHandler());

@@ -66,7 +66,7 @@
                 "name": "globalSEDAParameters.file",
                 "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
               }
-           ]
+            ]
           }
         },
         {
@@ -104,6 +104,12 @@
               {
                 "name": "algo",
                 "uri": "VALUE:SHA-512"
+              }
+            ],
+            "out": [
+              {
+                "name": "seda.file",
+                "uri": "WORKSPACE:Maps/BDO_TO_BDO_INFO_MAP.json"
               }
             ]
           }
@@ -182,6 +188,30 @@
         "element": "SIP/manifest.xml"
       },
       "actions": [
+        {
+          "action": {
+            "actionKey": "AccessionRegister",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "mapsUnits.file",
+                "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "mapsBDO.file",
+                "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "mapsBDO.file",
+                "uri": "WORKSPACE:Maps/BDO_TO_BDO_INFO_MAP.json"
+              },
+              {
+                "name": "globalSEDAParameters.file",
+                "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
+              }
+            ]
+          }
+        },
         {
           "action": {
             "actionKey": "TransferNotification",

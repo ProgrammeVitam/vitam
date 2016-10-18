@@ -94,7 +94,7 @@ import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.OutcomeMessage;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.worker.common.utils.BinaryObject;
+import fr.gouv.vitam.worker.common.utils.BinaryObjectInfo;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.worker.core.api.HandlerIO;
@@ -175,7 +175,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     // this map contains binaryDataObject that not have DataObjectGroupId
     private final Map<String, GotObj> binaryDataObjectIdWithoutObjectGroupId;
     private final Map<String, List<String>> objectGroupIdToUnitId;
-    private final Map<String, BinaryObject> objectGuidToBinaryObject;
+    private final Map<String, BinaryObjectInfo> objectGuidToBinaryObject;
     private final Map<String, String> binaryDataObjectIdToVersionDataObject;
     private final Map<String, LogbookParameters> guidToLifeCycleParameters;
 
@@ -292,7 +292,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
             final XMLEventFactory eventFactory = XMLEventFactory.newInstance();
             final XMLEventWriter writer = new JsonXMLOutputFactory(config).createXMLEventWriter(tmpFileWriter);
             writer.add(eventFactory.createStartDocument());
-            writer.add(eventFactory.createStartElement("", "", "ArchiveTransfer"));
             boolean globalMetadata = true;
             while (true) {
                 final XMLEvent event = reader.nextEvent();
@@ -303,6 +302,25 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 if (event.isEndElement() && event.asEndElement().getName().getLocalPart().equals(DATAOBJECT_PACKAGE)) {
                     globalMetadata = true;
                 }
+                
+                if (event.isStartElement() &&
+                    event.asStartElement().getName().getLocalPart().equals(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER)) {
+                    String orgAgId = reader.getElementText();
+                    writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI, SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER));
+                    writer.add(eventFactory.createCharacters(orgAgId));
+                    writer.add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI, SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER));
+                    globalMetadata = false;
+                }
+                
+                if (event.isStartElement() &&
+                    event.asStartElement().getName().getLocalPart().equals(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER)) {
+                    String orgAgId = reader.getElementText();
+                    writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI, SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER));
+                    writer.add(eventFactory.createCharacters(orgAgId));
+                    writer.add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI, SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER));
+                    globalMetadata = false;
+                }
+                
                 // We add all the end but the start and end document and the event in the DataObjectPackage structure
                 if (globalMetadata && event.getEventType() != XMLStreamConstants.START_DOCUMENT &&
                     event.getEventType() != XMLStreamConstants.END_DOCUMENT) {
@@ -337,7 +355,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     break;
                 }
             }
-            writer.add(eventFactory.createEndElement("", "", "ArchiveTransfer"));
             writer.add(eventFactory.createEndDocument());
             writer.close();
             // 1-detect cycle : if graph has a cycle throw CycleFoundException
@@ -360,18 +377,18 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
 
             // Save binaryDataObjectIdToGuid Map
-            saveMap(containerId, binaryDataObjectIdToGuid, (String) handlerIO.getOutput().get(BDO_ID_TO_GUID_IO_RANK),
+            HandlerUtils.saveMap(containerId, binaryDataObjectIdToGuid, (String) handlerIO.getOutput().get(BDO_ID_TO_GUID_IO_RANK),
                 client, true);
 
             // Save objectGroupIdToUnitId Map
-            saveMap(containerId, objectGroupIdToUnitId, (String) handlerIO.getOutput().get(OG_ID_TO_UNID_ID_IO_RANK),
+            HandlerUtils.saveMap(containerId, objectGroupIdToUnitId, (String) handlerIO.getOutput().get(OG_ID_TO_UNID_ID_IO_RANK),
                 client, true);
             // Save binaryDataObjectIdToVersionDataObject Map
-            saveMap(containerId, binaryDataObjectIdToVersionDataObject,
+            HandlerUtils.saveMap(containerId, binaryDataObjectIdToVersionDataObject,
                 (String) handlerIO.getOutput().get(BDO_ID_TO_VERSION_DO_IO_RANK), client, true);
 
             // Save unitIdToGuid Map
-            saveMap(containerId, unitIdToGuid,
+            HandlerUtils.saveMap(containerId, unitIdToGuid,
                 (String) handlerIO.getOutput().get(UNIT_ID_TO_GUID_IO_RANK), client, true);
 
             HandlerIO.transferFileFromTmpIntoWorkspace(client, GLOBAL_SEDA_PARAMETERS_FILE,
@@ -600,7 +617,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
             final Iterator<?> it = startElement.getAttributes();
             String binaryObjectId = "";
-            BinaryObject bo = new BinaryObject();
+            BinaryObjectInfo bo = new BinaryObjectInfo();
             
             if (it.hasNext()) {
                 binaryObjectId = ((Attribute) it.next()).getValue();
@@ -1180,26 +1197,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
         return archiveUnitGuids;
     }
 
-
-    private void saveMap(String containerId, Map<String, ?> map, String fileName, WorkspaceClient client,
-        boolean removeTmpFile)
-        throws IOException, ProcessingException {
-
-        final String tmpFilePath = containerId + fileName.split("/")[1];
-        final File firstMapTmpFile = PropertiesUtils
-            .fileFromTmpFolder(tmpFilePath);
-
-        final FileWriter firstMapTmpFileWriter = new FileWriter(firstMapTmpFile);
-        firstMapTmpFileWriter.write(JsonHandler.prettyPrint(map));
-        firstMapTmpFileWriter.flush();
-        firstMapTmpFileWriter.close();
-
-        HandlerIO.transferFileFromTmpIntoWorkspace(client, tmpFilePath, fileName, containerId,
-            removeTmpFile);
-
-    }
-
-
     private void saveObjectGroupsToWorkspace(WorkspaceClient client, String containerId) throws ProcessingException {
 
         completeBinaryObjectToObjectGroupMap();
@@ -1207,11 +1204,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
         // Save maps
         try {
             // Save binaryDataObjectIdToObjectGroupId
-            saveMap(containerId, binaryDataObjectIdToObjectGroupId,
+            HandlerUtils.saveMap(containerId, binaryDataObjectIdToObjectGroupId,
                 (String) handlerIO.getOutput().get(BDO_ID_TO_OG_ID_IO_RANK), client,
                 true);
             // Save objectGroupIdToGuid
-            saveMap(containerId, objectGroupIdToGuid, (String) handlerIO.getOutput().get(OG_ID_TO_GUID_IO_RANK), client,
+            HandlerUtils.saveMap(containerId, objectGroupIdToGuid, (String) handlerIO.getOutput().get(OG_ID_TO_GUID_IO_RANK), client,
                 true);
         } catch (final IOException e1) {
             LOGGER.error("Can not write to tmp folder ", e1);
@@ -1359,7 +1356,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 final ObjectNode objectNode = JsonHandler.createObjectNode();
                 final String id = node.findValue(SedaConstants.PREFIX_ID).textValue();
                 objectNode.put(SedaConstants.PREFIX_ID, id);
-                
+                objectNode.put(SedaConstants.TAG_SIZE, objectGuidToBinaryObject.get(id).getSize());
                 objectNode.put(SedaConstants.TAG_URI, objectGuidToBinaryObject.get(id).getUri());
                 objectNode.put(SedaConstants.TAG_DIGEST, objectGuidToBinaryObject.get(id).getMessageDigest());
                 objectNode.put(SedaConstants.ALGORITHM, objectGuidToBinaryObject.get(id).getAlgo().getName());
