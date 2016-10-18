@@ -70,7 +70,6 @@ public class AdminManagementApplicationTest {
     private static int serverPort;
     private static int oldPort;
     private static JunitHelper junitHelper;
-    private static File functionalAdmin;
     private final AdminManagementApplication application = new AdminManagementApplication();
 
     @BeforeClass
@@ -79,15 +78,6 @@ public class AdminManagementApplicationTest {
 
         junitHelper = JunitHelper.getInstance();
         databasePort = junitHelper.findAvailablePort();
-
-        functionalAdmin = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
-        final AdminManagementConfiguration realfunctionalAdmin =
-            PropertiesUtils.readYaml(functionalAdmin, AdminManagementConfiguration.class);
-        realfunctionalAdmin.setDbPort(databasePort);
-        try (FileOutputStream outputStream = new FileOutputStream(functionalAdmin)) {
-            final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-            mapper.writeValue(outputStream, realfunctionalAdmin);
-        }
 
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
@@ -115,7 +105,8 @@ public class AdminManagementApplicationTest {
     @Test
     public final void testFictiveLaunch() {
         try {
-            AdminManagementApplication.startApplication(new String[] {functionalAdmin.getAbsolutePath()});
+            AdminManagementApplication.setupApplication(databasePort);
+            AdminManagementApplication.startApplication(new String[] {ADMIN_MANAGEMENT_CONF});
             AdminManagementApplication.stop();
         } catch (final IllegalStateException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);

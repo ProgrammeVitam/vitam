@@ -57,7 +57,8 @@ public final class AdminManagementApplication
     public static final String CONF_FILE_NAME = "functional-administration.conf";
     private static final String MODULE_NAME = "functional-administration";
     private static VitamServer vitamServer;
-
+    private int junitPort = -1;
+    
     /**
      * AdminManagementApplication constructor
      */
@@ -107,6 +108,16 @@ public final class AdminManagementApplication
         }
     }
 
+    /**
+     * Prepare the application in Junit mode
+     *
+     * @param port the port from Junit mode
+     */
+    // FIXME Junit
+    static void setupApplication(int port) throws VitamException {
+        APPLICATION.junitPort = port;
+    }
+
     private static void run(AdminManagementConfiguration configuration) throws VitamApplicationServerException {
         final ServletContextHandler context = (ServletContextHandler) APPLICATION.buildApplicationHandler();
         final String jettyConfig = configuration.getJettyConfig();
@@ -117,6 +128,10 @@ public final class AdminManagementApplication
 
     @Override
     protected Handler buildApplicationHandler() {
+        // FIXME Junit
+        if (junitPort != -1) {
+            getConfiguration().setDbPort(junitPort);
+        }
         final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(JacksonFeature.class);
         resourceConfig.register(new AdminManagementResource(getConfiguration()));
