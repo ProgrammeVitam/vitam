@@ -64,8 +64,6 @@ import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
  */
 public class ProcessEngineImpl implements ProcessEngine {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessEngineImpl.class);
-    private static LogbookOperationsClient client =
-        LogbookOperationsClientFactory.getInstance().getClient();
 
     private static final String RUNTIME_EXCEPTION_MESSAGE =
         "runtime exceptions thrown by the Process engine during the execution :";
@@ -120,7 +118,7 @@ public class ProcessEngineImpl implements ProcessEngine {
         final ProcessResponse processResponse = new ProcessResponse();
         final Map<String, List<EngineResponse>> stepsResponses = new LinkedHashMap<>();
 
-        try {
+        try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
             final WorkFlow workFlow = poolWorkflows.get(workflowId);
 
             if (workFlow != null && workFlow.getSteps() != null && !workFlow.getSteps().isEmpty()) {

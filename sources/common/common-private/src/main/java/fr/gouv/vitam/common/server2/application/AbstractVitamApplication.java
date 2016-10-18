@@ -125,7 +125,10 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
     protected final void configure(String configurationFile) {
         final String role = ServerIdentity.getInstance().getRole();
         try {
-            final File file = new File(configurationFile);
+            File file = new File(configurationFile);
+            if (! file.exists()) {
+                file = PropertiesUtils.fileFromConfigFolder(configurationFile);
+            }
             try (final InputStream yamlIS =
                 file.exists() ? new FileInputStream(file) : PropertiesUtils.getResourceAsStream(configurationFile)) {
                 final C buildConfiguration = PropertiesUtils.readYaml(yamlIS,

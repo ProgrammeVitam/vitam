@@ -80,8 +80,6 @@ public class MetaDataResource extends ApplicationStatusResource {
      *
      * @param configuration {@link MetaDataConfiguration}
      */
-
-    // TODO: comment
     public MetaDataResource(MetaDataConfiguration configuration) {
         super(new BasicVitamStatusServiceImpl());
         metaDataImpl = MetaDataImpl.newMetadata(configuration, new MongoDbAccessMetadataFactory(), DbRequest::new);
@@ -90,6 +88,9 @@ public class MetaDataResource extends ApplicationStatusResource {
 
     /**
      * Insert or Select unit with json request
+     * @param request 
+     * @param xhttpOverride 
+     * @return Response
      *
      * @throws MetaDataDocumentSizeException
      * @throws MetaDataExecutionException
@@ -115,6 +116,7 @@ public class MetaDataResource extends ApplicationStatusResource {
 
     /**
      * Create unit with json request
+     * @return Response
      */
     private Response insertUnit(String insertRequest) {
         Status status;

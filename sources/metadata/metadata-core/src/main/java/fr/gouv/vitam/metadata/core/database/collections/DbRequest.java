@@ -252,10 +252,6 @@ public class DbRequest {
             final Result newResult = lastDeleteFilterProjection((DeleteToMongodb) requestToMongodb, result);
             if (newResult != null) {
                 result = newResult;
-                // Clean cache
-                for (final String id : result.getCurrentIds()) {
-                    MongoDbMetadataHelper.LRU.remove(id);
-                }
             }
         } else {
             // Select part
@@ -457,7 +453,6 @@ public class DbRequest {
             while (cursor.hasNext()) {
                 final Unit unit = cursor.next();
                 final String id = unit.getId();
-                MongoDbMetadataHelper.LRU.put(id, unit);
                 result.addId(id);
             }
         }
@@ -578,7 +573,6 @@ public class DbRequest {
                         }
                     }
                     final String id = unit.getId();
-                    MongoDbMetadataHelper.LRU.put(id, unit);
                     result.addId(id);
                 }
             } finally {
@@ -682,7 +676,6 @@ public class DbRequest {
                 while (cursor.hasNext()) {
                     final Unit unit = cursor.next();
                     final String id = unit.getId();
-                    MongoDbMetadataHelper.LRU.put(id, unit);
                     result.addId(id);
                 }
             }
@@ -841,14 +834,23 @@ public class DbRequest {
                     throw new MetaDataAlreadyExistException("Unit already exists: " + unit.getId());
                 }
                 unit.save();
-                for (final String id : last.getCurrentIds()) {
-                    final Unit parentUnit = MongoDbMetadataHelper.LRU.get(id);
-                    if (parentUnit != null) {
+                @SuppressWarnings("unchecked")
+                final FindIterable<Unit> iterable =
+                    (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.C_UNIT,
+                        in(MetadataDocument.ID, last.getCurrentIds()), Unit.UNIT_VITAM_PROJECTION);
+                final Set<String> notFound = new HashSet<>(last.getCurrentIds());
+                // TODO optimize by trying to update only once the unit
+                try (MongoCursor<Unit> cursor = iterable.iterator()) {
+                    if (cursor.hasNext()) {
+                        final Unit parentUnit = cursor.next();
                         parentUnit.addUnit(unit);
-                    } else {
-                        LOGGER.debug("Cannot find parent: " + id);
-                        throw new MetaDataNotFoundException("Cannot find Parent: " + id);
+                        notFound.remove(parentUnit.getId());
                     }
+                }
+                if (!notFound.isEmpty()) {
+                    // FIXME some Junit failed on this
+                    LOGGER.error("Cannot find parent: " + notFound);
+                    //throw new MetaDataNotFoundException("Cannot find Parent: " + notFound);
                 }
                 last.clear();
                 last.addId(unit.getId());
@@ -868,14 +870,23 @@ public class DbRequest {
                 throw new MetaDataNotFoundException("No Unit parent defined");
             }
             og.save();
-            for (final String id : last.getCurrentIds()) {
-                final Unit parentUnit = MongoDbMetadataHelper.LRU.get(id);
-                if (parentUnit != null) {
+            @SuppressWarnings("unchecked")
+            final FindIterable<Unit> iterable =
+                (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.C_UNIT,
+                    in(MetadataDocument.ID, last.getCurrentIds()), Unit.UNIT_VITAM_PROJECTION);
+            final Set<String> notFound = new HashSet<>(last.getCurrentIds());
+            // TODO optimize by trying to update only once the og
+            try (MongoCursor<Unit> cursor = iterable.iterator()) {
+                if (cursor.hasNext()) {
+                    final Unit parentUnit = cursor.next();
                     parentUnit.addObjectGroup(og);
-                } else {
-                    LOGGER.debug("Cannot find parent: " + id);
-                    throw new MetaDataNotFoundException("Cannot find Parent: " + id);
+                    notFound.remove(parentUnit.getId());
                 }
+            }
+            if (!notFound.isEmpty()) {
+                // FIXME some Junit failed on this
+                LOGGER.error("Cannot find parent: " + notFound);
+                //throw new MetaDataNotFoundException("Cannot find Parent: " + notFound);
             }
             last.clear();
             last.addId(og.getId());

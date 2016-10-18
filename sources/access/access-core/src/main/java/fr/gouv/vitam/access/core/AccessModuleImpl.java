@@ -102,6 +102,7 @@ public class AccessModuleImpl implements AccessModule {
 
     // TODO setting in other place
     private final Integer tenantId = 0;
+    private boolean mock;
 
     /**
      * AccessModuleImpl constructor
@@ -113,6 +114,7 @@ public class AccessModuleImpl implements AccessModule {
         ParametersChecker.checkParameter("Configuration cannot be null", configuration);
         accessConfiguration = configuration;
         storageClient = StorageClientFactory.getInstance().getStorageClient();
+        mock = false;
     }
 
     /**
@@ -126,6 +128,7 @@ public class AccessModuleImpl implements AccessModule {
         ParametersChecker.checkParameter("Configuration cannot be null", configuration);
         accessConfiguration = configuration;
         this.storageClient = storageClient;
+        mock = false;
     }
 
     /**
@@ -144,6 +147,7 @@ public class AccessModuleImpl implements AccessModule {
             ? LogbookOperationsClientFactory.getInstance().getClient() : pLogbookOperationClient;
         logbookLifeCycleClient = pLogbookLifeCycleClient == null
             ? LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient() : pLogbookLifeCycleClient;
+        mock = pLogbookOperationClient == null;
     }
 
     /**
@@ -308,12 +312,10 @@ public class AccessModuleImpl implements AccessModule {
 
             metaDataClient = MetaDataClientFactory.create(accessConfiguration.getUrlMetaData());
 
-            logbookOperationClient = logbookOperationClient == null
-                ? LogbookOperationsClientFactory.getInstance().getClient() : logbookOperationClient;
-
-            logbookLifeCycleClient = logbookLifeCycleClient == null
-                ? LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient() : logbookLifeCycleClient;
-
+            if (! mock) {
+                logbookOperationClient = LogbookOperationsClientFactory.getInstance().getClient();
+                logbookLifeCycleClient = LogbookLifeCyclesClientFactory.getInstance().getLogbookLifeCyclesClient();
+            }
             // Create logbook operation
             // TODO: interest of this private method ?
             logbookOpParamStart = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
@@ -378,6 +380,13 @@ public class AccessModuleImpl implements AccessModule {
         } catch (final LogbookClientAlreadyExistsException e) {
             LOGGER.error("logbook operation already exists", e);
             throw new AccessExecutionException(e);
+        } finally {
+            if (! mock) {
+                logbookOperationClient.close();
+                logbookOperationClient = null;
+                logbookLifeCycleClient.close();
+                logbookLifeCycleClient = null;
+            }
         }
     }
 

@@ -159,7 +159,9 @@ public class IngestInternalResource extends ApplicationStatusResource implements
         Response response;
         String fileName = StringUtils.EMPTY;
         GUID guid;
-        try {
+        try (LogbookOperationsClient logbookOperationsClient2 =
+            LogbookOperationsClientFactory.getInstance().getClient()) {
+            logbookOperationsClient = logbookOperationsClient2;
             ParametersChecker.checkParameter("partList is a Mandatory parameter", partList);
 
             final LogbookOperationParametersList logbookOperationParametersList =
@@ -174,8 +176,7 @@ public class IngestInternalResource extends ApplicationStatusResource implements
 
             final GUID containerGUID = guid;
             final GUID ingestGuid = guid;
-
-            logbookOperationsClient = logbookInitialisation(ingestGuid, containerGUID, tenantId);
+            logbookInitialisation(logbookOperationsClient, ingestGuid, containerGUID, tenantId);
 
             // Log Ingest External operations
             VITAM_LOGGER.debug("Log Ingest External operations");
@@ -286,7 +287,8 @@ public class IngestInternalResource extends ApplicationStatusResource implements
     }
 
 
-    private LogbookOperationsClient logbookInitialisation(final GUID ingestGuid, final GUID containerGUID, int tenantId)
+    private LogbookOperationsClient logbookInitialisation(LogbookOperationsClient client, final GUID ingestGuid,
+        final GUID containerGUID, int tenantId)
         throws LogbookClientNotFoundException,
         LogbookClientServerException, LogbookClientAlreadyExistsException, LogbookClientBadRequestException {
 
@@ -297,7 +299,6 @@ public class IngestInternalResource extends ApplicationStatusResource implements
             ingestGuid);
 
         VITAM_LOGGER.debug("call journal...");
-        final LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient();
         client.create(parameters);
 
         return client;

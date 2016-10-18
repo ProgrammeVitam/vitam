@@ -77,8 +77,6 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat> {
     private final String MESSAGE_LOGBOOK_IMPORT_ERROR = "Erreur de l'import du Référentiel de format";
     private final String MESSAGE_LOGBOOK_DELETE = "Succès de suppression du Référentiel de format";
 
-    private static LogbookOperationsClient client =
-        LogbookOperationsClientFactory.getInstance().getClient();
     private final String EVENT_TYPE_CREATE = "CREATE";
     private final String EVENT_TYPE_DELETE = "DELETE";
     // TODO: should change to REFERENTIAL_FORMAT
@@ -96,95 +94,97 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat> {
     @Override
     public void importFile(InputStream xmlPronom) throws ReferentialException, DatabaseConflictException {
         ParametersChecker.checkParameter("Pronom file is a mandatory parameter", xmlPronom);
+        try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
+            final GUID eip = GUIDFactory.newGUID();
+            final LogbookOperationParameters logbookParametersStart =
+                LogbookParametersFactory.newLogbookOperationParameters(
+                    eip, EVENT_TYPE_CREATE, eip, LOGBOOK_PROCESS_TYPE, StatusCode.STARTED,
+                    "start importing referential file ", eip);
+            try {
+                client.create(logbookParametersStart);
+            } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
+                LogbookClientServerException e) {
+                LOGGER.error(e.getMessage());
+            }
 
-        final GUID eip = GUIDFactory.newGUID();
-        final LogbookOperationParameters logbookParametersStart =
-            LogbookParametersFactory.newLogbookOperationParameters(
-                eip, EVENT_TYPE_CREATE, eip, LOGBOOK_PROCESS_TYPE, StatusCode.STARTED,
-                "start importing referential file ", eip);
-        try {
-            client.create(logbookParametersStart);
-        } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
-            LogbookClientServerException e) {
-            LOGGER.error(e.getMessage());
-        }
+            final GUID eip1 = GUIDFactory.newGUID();
+            try {
+                final ArrayNode pronomList = PronomParser.getPronom(xmlPronom);
+                if (mongoAccess.getMongoDatabase().getCollection(COLLECTION_NAME).count() == 0) {
+                    mongoAccess.insertDocuments(pronomList, FunctionalAdminCollections.FORMATS);
 
-        final GUID eip1 = GUIDFactory.newGUID();
-        try {
-            final ArrayNode pronomList = PronomParser.getPronom(xmlPronom);
-            if (mongoAccess.getMongoDatabase().getCollection(COLLECTION_NAME).count() == 0) {
-                mongoAccess.insertDocuments(pronomList, FunctionalAdminCollections.FORMATS);
+                    final LogbookOperationParameters logbookParametersEnd =
+                        LogbookParametersFactory.newLogbookOperationParameters(
+                            eip1, EVENT_TYPE_CREATE, eip, LOGBOOK_PROCESS_TYPE, StatusCode.OK,
+                            MESSAGE_LOGBOOK_IMPORT + " version " + pronomList.get(0).get("VersionPronom").textValue() +
+                                " du fichier de signature PRONOM (DROID_SignatureFile)",
+                            eip1);
 
-                final LogbookOperationParameters logbookParametersEnd =
-                    LogbookParametersFactory.newLogbookOperationParameters(
-                        eip1, EVENT_TYPE_CREATE, eip, LOGBOOK_PROCESS_TYPE, StatusCode.OK,
-                        MESSAGE_LOGBOOK_IMPORT + " version " + pronomList.get(0).get("VersionPronom").textValue() +
-                            " du fichier de signature PRONOM (DROID_SignatureFile)",
-                        eip1);
+                    try {
+                        client.update(logbookParametersEnd);
+                    } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
+                        LogbookClientServerException e) {
+                        LOGGER.error(e.getMessage());
+                    }
+                } else {
+                    final LogbookOperationParameters logbookParametersEnd =
+                        LogbookParametersFactory.newLogbookOperationParameters(eip1, EVENT_TYPE_CREATE, eip,
+                            LOGBOOK_PROCESS_TYPE, StatusCode.KO, MESSAGE_LOGBOOK_IMPORT_ERROR, eip1);
+                    try {
+                        client.update(logbookParametersEnd);
+                    } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
+                        LogbookClientServerException e1) {
+                        LOGGER.error(e1.getMessage());
+                    }
 
-                try {
-                    client.update(logbookParametersEnd);
-                } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
-                    LogbookClientServerException e) {
-                    LOGGER.error(e.getMessage());
+                    throw new DatabaseConflictException("File format collection is not empty");
                 }
-            } else {
+            } catch (final ReferentialException e) {
+                LOGGER.error(e.getMessage());
                 final LogbookOperationParameters logbookParametersEnd =
-                    LogbookParametersFactory.newLogbookOperationParameters(eip1, EVENT_TYPE_CREATE, eip,
-                        LOGBOOK_PROCESS_TYPE, StatusCode.KO, MESSAGE_LOGBOOK_IMPORT_ERROR, eip1);
+                    LogbookParametersFactory.newLogbookOperationParameters(eip, EVENT_TYPE_CREATE, eip,
+                        LOGBOOK_PROCESS_TYPE, StatusCode.KO, MESSAGE_LOGBOOK_IMPORT_ERROR, eip);
                 try {
                     client.update(logbookParametersEnd);
                 } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
                     LogbookClientServerException e1) {
                     LOGGER.error(e1.getMessage());
                 }
-
-                throw new DatabaseConflictException("File format collection is not empty");
+                throw new ReferentialException(e);
             }
-        } catch (final ReferentialException e) {
-            LOGGER.error(e.getMessage());
-            final LogbookOperationParameters logbookParametersEnd =
-                LogbookParametersFactory.newLogbookOperationParameters(eip, EVENT_TYPE_CREATE, eip,
-                    LOGBOOK_PROCESS_TYPE, StatusCode.KO, MESSAGE_LOGBOOK_IMPORT_ERROR, eip);
-            try {
-                client.update(logbookParametersEnd);
-            } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
-                LogbookClientServerException e1) {
-                LOGGER.error(e1.getMessage());
-            }
-            throw new ReferentialException(e);
         }
     }
 
     @Override
     public void deleteCollection() {
-        final GUID eip = GUIDFactory.newGUID();
-        final LogbookOperationParameters logbookParametersStart =
-            LogbookParametersFactory.newLogbookOperationParameters(
-                eip, EVENT_TYPE_DELETE, eip, LOGBOOK_PROCESS_TYPE, StatusCode.STARTED,
-                "start deleting referential format from database ", eip);
-        try {
-            client.create(logbookParametersStart);
-        } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
-            LogbookClientServerException e) {
-            LOGGER.error(e.getMessage());
+        try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
+            final GUID eip = GUIDFactory.newGUID();
+            final LogbookOperationParameters logbookParametersStart =
+                LogbookParametersFactory.newLogbookOperationParameters(
+                    eip, EVENT_TYPE_DELETE, eip, LOGBOOK_PROCESS_TYPE, StatusCode.STARTED,
+                    "start deleting referential format from database ", eip);
+            try {
+                client.create(logbookParametersStart);
+            } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
+                LogbookClientServerException e) {
+                LOGGER.error(e.getMessage());
+            }
+
+            mongoAccess.deleteCollection(FunctionalAdminCollections.FORMATS);
+
+            final GUID eip1 = GUIDFactory.newGUID();
+            final LogbookOperationParameters logbookParametersEnd =
+                LogbookParametersFactory.newLogbookOperationParameters(
+                    eip1, EVENT_TYPE_DELETE, eip, LOGBOOK_PROCESS_TYPE, StatusCode.OK, MESSAGE_LOGBOOK_DELETE,
+                    eip1);
+
+            try {
+                client.update(logbookParametersEnd);
+            } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
+                LogbookClientServerException e) {
+                LOGGER.error(e.getMessage());
+            }
         }
-
-        mongoAccess.deleteCollection(FunctionalAdminCollections.FORMATS);
-
-        final GUID eip1 = GUIDFactory.newGUID();
-        final LogbookOperationParameters logbookParametersEnd =
-            LogbookParametersFactory.newLogbookOperationParameters(
-                eip1, EVENT_TYPE_DELETE, eip, LOGBOOK_PROCESS_TYPE, StatusCode.OK, MESSAGE_LOGBOOK_DELETE,
-                eip1);
-
-        try {
-            client.update(logbookParametersEnd);
-        } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
-            LogbookClientServerException e) {
-            LOGGER.error(e.getMessage());
-        }
-
     }
 
     @Override

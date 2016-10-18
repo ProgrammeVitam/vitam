@@ -61,12 +61,6 @@ public class MongoDbMetadataHelper {
 
     protected static final String ADD_TO_SET = "$addToSet";
 
-    /**
-     * LRU Unit cache (limited to VITAM PROJECTION)
-     */
-    public static final UnitLRU LRU = new UnitLRU();
-
-
     private MongoDbMetadataHelper() {
         // Empty constructor
     }
