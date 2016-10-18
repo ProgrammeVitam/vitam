@@ -42,8 +42,8 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.core.api.HandlerIO;
@@ -60,7 +60,7 @@ public class TransferNotificationActionHandlerTest {
     private static final String BDO_TO_VERSION_BDO_MAP = "BDO_TO_VERSION_BDO_MAP_obj.json";
     private static final String ATR_GLOBAL_SEDA_PARAMETERS = "globalSEDAParameters.json";
 
-    private static final String HANDLER_ID = "TransferNotification";
+    private static final String HANDLER_ID = "ATR_NOTIFICATION";
     private WorkspaceClient workspaceClient;
     private HandlerIO action;
     private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl")
@@ -90,7 +90,8 @@ public class TransferNotificationActionHandlerTest {
         transferNotificationHandler = new TransferNotificationActionHandler();
 
         assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
-        final EngineResponse response = transferNotificationHandler.execute(params, action);
-        assertEquals(response.getStatus(), StatusCode.OK);
+        final CompositeItemStatus response = transferNotificationHandler.execute(params, action);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
+        
     }
 }

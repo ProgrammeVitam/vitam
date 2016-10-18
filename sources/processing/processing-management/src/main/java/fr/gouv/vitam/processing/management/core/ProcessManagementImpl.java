@@ -29,6 +29,7 @@ package fr.gouv.vitam.processing.management.core;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
@@ -87,8 +88,8 @@ public class ProcessManagementImpl implements ProcessManagement {
      * class
      */
     @Override
-    public EngineResponse submitWorkflow(WorkerParameters workParams, String workflowId) throws ProcessingException {
-        EngineResponse response;
+    public ItemStatus submitWorkflow(WorkerParameters workParams, String workflowId) throws ProcessingException {
+        ItemStatus response;
         workParams.setUrlMetadata(serverConfig.getUrlMetada());
         workParams.setUrlWorkspace(serverConfig.getUrlWorkspace());
         try {

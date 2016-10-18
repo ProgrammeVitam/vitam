@@ -49,9 +49,9 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.utils.ContainerExtractionUtils;
@@ -68,7 +68,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 public class CheckObjectsNumberActionHandlerTest {
 
     private CheckObjectsNumberActionHandler checkObjectsNumberActionHandler;
-    private static final String HANDLER_ID = "CheckObjectsNumber";
+    private static final String HANDLER_ID = "CHECK_MANIFEST_OBJECTNUMBER";
 
     private WorkerParameters workParams;
 
@@ -153,9 +153,9 @@ public class CheckObjectsNumberActionHandlerTest {
         checkObjectsNumberActionHandler =
             new CheckObjectsNumberActionHandler(containerExtractionUtilsFactory);
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
-        final EngineResponse response = checkObjectsNumberActionHandler.execute(workParams, null);
+        final CompositeItemStatus response = checkObjectsNumberActionHandler.execute(workParams, null);
         assertThat(response).isNotNull();
-        assertThat(response.getStatus()).isEqualTo(StatusCode.FATAL);
+        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.FATAL);
     }
 
     @Test
@@ -167,9 +167,10 @@ public class CheckObjectsNumberActionHandlerTest {
         checkObjectsNumberActionHandler =
             new CheckObjectsNumberActionHandler(containerExtractionUtilsFactory);
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
-        final EngineResponse response = checkObjectsNumberActionHandler.execute(workParams, null);
+        final CompositeItemStatus response = checkObjectsNumberActionHandler.execute(workParams, null);
         assertThat(response).isNotNull();
-        assertThat(response.getStatus()).isEqualTo(StatusCode.FATAL);
+        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.FATAL);
+        assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.FATAL.getStatusLevel())).isEqualTo(1);
     }
 
     @Test
@@ -187,10 +188,10 @@ public class CheckObjectsNumberActionHandlerTest {
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
 
 
-        final EngineResponse response = checkObjectsNumberActionHandler.execute(workParams, null);
+        final CompositeItemStatus response = checkObjectsNumberActionHandler.execute(workParams, null);
         assertThat(response).isNotNull();
-        assertThat(response.getStatus()).isEqualTo(StatusCode.OK);
-        assertThat(response.getOutcomeMessages()).hasSize(1);
+        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.OK);
+        assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.OK.getStatusLevel())).isEqualTo(2);
     }
 
     @Test
@@ -207,11 +208,10 @@ public class CheckObjectsNumberActionHandlerTest {
 
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
 
-        final EngineResponse response = checkObjectsNumberActionHandler.execute(workParams, null);
+        final CompositeItemStatus response = checkObjectsNumberActionHandler.execute(workParams, null);
         assertThat(response).isNotNull();
-        assertThat(response.getErrorNumber()).isEqualTo(1);
-        assertThat(response.getStatus()).isEqualTo(StatusCode.KO);
-        assertThat(response.getOutcomeMessages()).isNotNull().isNotEmpty();
+        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
+        assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.KO.getStatusLevel())).isEqualTo(1);
     }
 
 
@@ -230,11 +230,12 @@ public class CheckObjectsNumberActionHandlerTest {
 
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
 
-        final EngineResponse response = checkObjectsNumberActionHandler.execute(workParams, null);
+        final CompositeItemStatus response = checkObjectsNumberActionHandler.execute(workParams, null);
         assertThat(response).isNotNull();
-        assertThat(response.getErrorNumber()).isEqualTo(1);
-        assertThat(response.getStatus()).isEqualTo(StatusCode.KO);
-        assertThat(response.getOutcomeMessages()).isNotNull().isNotEmpty();
+        assertThat(response.getItemsStatus().get(HANDLER_ID).getData().get("errorNumber")).isEqualTo(1);
+        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
+        assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.KO.getStatusLevel())).isEqualTo(1);
+        assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.OK.getStatusLevel())).isEqualTo(2);
     }
 
     @Test
@@ -252,14 +253,15 @@ public class CheckObjectsNumberActionHandlerTest {
 
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
 
-        final EngineResponse response = checkObjectsNumberActionHandler.execute(workParams, null);
+        final CompositeItemStatus response = checkObjectsNumberActionHandler.execute(workParams, null);
         assertThat(response).isNotNull();
-        assertThat(response.getStatus()).isEqualTo(StatusCode.KO);
-        assertThat(response.getOutcomeMessages()).isNotNull().isNotEmpty();
+        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
+        assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.KO.getStatusLevel())).isEqualTo(1);
+        assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.OK.getStatusLevel())).isEqualTo(2);
     }
 
     @Test
-    public void givenWorkspaceExistWhenExecuteThenReturnResponseKAndNotFoundFile()
+    public void givenWorkspaceExistWhenExecuteThenReturnResponseKOAndNotFoundFile()
         throws XMLStreamException, IOException, ProcessingException {
 
         when(containerExtractionUtilsFactory.create()).thenReturn(containerExtractionUtils);
@@ -273,9 +275,10 @@ public class CheckObjectsNumberActionHandlerTest {
 
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
 
-        final EngineResponse response = checkObjectsNumberActionHandler.execute(workParams, null);
+        final CompositeItemStatus response = checkObjectsNumberActionHandler.execute(workParams, null);
         assertThat(response).isNotNull();
-        assertThat(response.getStatus()).isEqualTo(StatusCode.KO);
-        assertThat(response.getOutcomeMessages()).isNotNull().isNotEmpty();
+        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
+        assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.KO.getStatusLevel())).isEqualTo(1);
+        assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.OK.getStatusLevel())).isEqualTo(2);
     }
 }

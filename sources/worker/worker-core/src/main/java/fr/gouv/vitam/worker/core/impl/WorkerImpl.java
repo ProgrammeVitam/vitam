@@ -41,11 +41,11 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.Action;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.IOParameter;
 import fr.gouv.vitam.processing.common.model.ProcessBehavior;
 import fr.gouv.vitam.processing.common.model.Step;
@@ -53,6 +53,7 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.core.WorkerIOManagementHelper;
 import fr.gouv.vitam.worker.core.api.HandlerIO;
 import fr.gouv.vitam.worker.core.api.Worker;
+import fr.gouv.vitam.worker.core.handler.AccessionRegisterActionHandler;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.handler.CheckConformityActionHandler;
 import fr.gouv.vitam.worker.core.handler.CheckObjectUnitConsistencyActionHandler;
@@ -63,7 +64,6 @@ import fr.gouv.vitam.worker.core.handler.CheckVersionActionHandler;
 import fr.gouv.vitam.worker.core.handler.DummyHandler;
 import fr.gouv.vitam.worker.core.handler.ExtractSedaActionHandler;
 import fr.gouv.vitam.worker.core.handler.FormatIdentificationActionHandler;
-import fr.gouv.vitam.worker.core.handler.AccessionRegisterActionHandler;
 import fr.gouv.vitam.worker.core.handler.IndexObjectGroupActionHandler;
 import fr.gouv.vitam.worker.core.handler.IndexUnitActionHandler;
 import fr.gouv.vitam.worker.core.handler.StoreObjectGroupActionHandler;
@@ -126,7 +126,7 @@ public class WorkerImpl implements Worker {
         actions.put(IndexUnitActionHandler.getId(), new IndexUnitActionHandler());
         actions.put(IndexObjectGroupActionHandler.getId(), new IndexObjectGroupActionHandler());
         actions.put(CheckSedaActionHandler.getId(), new CheckSedaActionHandler());
-        actions.put(CheckObjectsNumberActionHandler.getId(),new CheckObjectsNumberActionHandler());
+        actions.put(CheckObjectsNumberActionHandler.getId(), new CheckObjectsNumberActionHandler());
         actions.put(CheckVersionActionHandler.getId(), new CheckVersionActionHandler());
         actions.put(CheckConformityActionHandler.getId(), new CheckConformityActionHandler());
         actions.put(StoreObjectGroupActionHandler.getId(), new StoreObjectGroupActionHandler());
@@ -144,7 +144,7 @@ public class WorkerImpl implements Worker {
     }
 
     @Override
-    public List<EngineResponse> run(WorkerParameters workParams, Step step)
+    public CompositeItemStatus run(WorkerParameters workParams, Step step)
         throws IllegalArgumentException, ProcessingException {
         // mandatory check
         ParameterHelper.checkNullOrEmptyParameters(workParams);
@@ -157,27 +157,28 @@ public class WorkerImpl implements Worker {
             throw new IllegalArgumentException(EMPTY_LIST);
         }
 
-        final List<EngineResponse> responses = new ArrayList<>();
+        final CompositeItemStatus responses = new CompositeItemStatus(step.getStepName());
         final List<HandlerIO> handlerIOParams = new ArrayList<>();
 
         try (final WorkspaceClient client = WorkspaceClientFactory.create(workParams.getUrlWorkspace())) {
-    
             for (final Action action : step.getActions()) {
                 final ActionHandler actionHandler = getActionHandler(action.getActionDefinition().getActionKey());
-                LOGGER.debug("START handler {} in step {}",action.getActionDefinition().getActionKey(),step.getStepName());
-                final HandlerIO handlerIO = getHandlerIOParam(action, client, workParams);            
+                LOGGER.debug("START handler {} in step {}", action.getActionDefinition().getActionKey(),
+                    step.getStepName());
+                final HandlerIO handlerIO = getHandlerIOParam(action, client, workParams);
                 if (actionHandler == null) {
                     throw new HandlerNotFoundException(action.getActionDefinition().getActionKey() + HANDLER_NOT_FOUND);
                 }
-    
+
                 handlerIOParams.add(handlerIO);
-                final EngineResponse actionResponse = actionHandler.execute(workParams, handlerIO);
-                responses.add(actionResponse);
-                LOGGER.debug("STOP handler {} in step {}",action.getActionDefinition().getActionKey(),step.getStepName());
+                final CompositeItemStatus actionResponse = actionHandler.execute(workParams, handlerIO);
+                responses.setItemsStatus(actionResponse);
+                LOGGER.debug("STOP handler {} in step {}", action.getActionDefinition().getActionKey(),
+                    step.getStepName());
                 // if the action has been defined as Blocking and the action status is KO or FATAL
                 // then break the process
                 if (ProcessBehavior.BLOCKING.equals(action.getActionDefinition().getBehavior()) &&
-                    actionResponse.getStatus().isGreaterOrEqualToKo()) {
+                    actionResponse.getGlobalStatus().isGreaterOrEqualToKo()) {
                     break;
                 }
             }

@@ -36,7 +36,6 @@ import fr.gouv.vitam.common.SingletonUtils;
 /**
  * Step Object in process workflow
  */
-
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Step {
 

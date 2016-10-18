@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
@@ -51,7 +52,6 @@ import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
 import fr.gouv.vitam.processing.common.exception.WorkerNotFoundException;
 import fr.gouv.vitam.processing.common.model.DistributionKind;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.ProcessBehavior;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.model.Step;
@@ -68,31 +68,29 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
- * Process distributor Implementation </br>
- * The Process Distributor calls the workers and intercepts the response to manage a post actions step
+ * The Process Distributor call the workers and intercept the response for manage a post actions step
  *
+ * <pre>
+ * TODO :
+ * - handle listing of items through a limited arraylist (memory) and through iterative (async) listing from
+ * Workspace
+ * - handle result in FATAL mode from one distributed item to stop the distribution in FATAL mode (do not
+ * continue)
+ * - try to handle distribution on 1 or on many as the same loop (so using a default arrayList of 1)
+ * - handle error level using order in enum in ProcessResponse.getGlobalProcessStatusCode instead of manually comparing:
+ *  {@code
+ *    for (final EngineResponse response : responses) {
+ *       tempStatusCode = response.getStatus();
+ *       if (statusCode.ordinal() > tempStatusCode.ordinal()) {
+ *           statusCode = tempStatusCode;
+ *       }
+ *      if (statusCode.ordinal() > StatusCode.KO.ordinal()) {
+ *           break;
+ *       }
+ *     }
+ *  }
+ * </pre>
  */
-
-// TODO :
-// - handle listing of items through a limited arraylist (memory) and through iterative (async) listing from
-// Workspace
-// - handle result in FATAL mode from one distributed item to stop the distribution in FATAL mode (do not
-// continue)
-// - try to handle distribution on 1 or on many as the same loop (so using a default arrayList of 1)
-// - handle error level using order in enum in ProcessResponse.getGlobalProcessStatusCode instead of manually comparing:
-//  {@code
-//    for (final EngineResponse response : responses) {
-//       tempStatusCode = response.getStatus();
-//       if (statusCode.ordinal() > tempStatusCode.ordinal()) {
-//           statusCode = tempStatusCode;
-//       }
-//      if (statusCode.ordinal() > StatusCode.KO.ordinal()) {
-//           break;
-//       }
-//     }
-//  }
-//
-
 public class ProcessDistributorImpl implements ProcessDistributor {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessDistributorImpl.class);
@@ -139,18 +137,13 @@ public class ProcessDistributorImpl implements ProcessDistributor {
 
     // FIXME : make this method (distribute()) more generic
     @Override
-    public List<EngineResponse> distribute(WorkerParameters workParams, Step step, String workflowId) {
+    public CompositeItemStatus distribute(WorkerParameters workParams, Step step, String workflowId) {
         ParametersChecker.checkParameter("WorkParams is a mandatory parameter", workParams);
         ParametersChecker.checkParameter("Step is a mandatory parameter", step);
         ParametersChecker.checkParameter("workflowId is a mandatory parameter", workflowId);
         final long time = System.currentTimeMillis();
-        final EngineResponse errorResponse = new ProcessResponse();
-        errorResponse.setStatus(StatusCode.FATAL);
 
-        final EngineResponse warningResponse = new ProcessResponse();
-        warningResponse.setStatus(StatusCode.WARNING);
-
-        final List<EngineResponse> responses = new ArrayList<>();
+        final CompositeItemStatus responses = new CompositeItemStatus(step.getStepName());
         final String processId = workParams.getProcessId();
         final String uniqueStepId = workParams.getStepUniqId();
         try {
@@ -189,15 +182,17 @@ public class ProcessDistributorImpl implements ProcessDistributor {
 
                     // Iterate over Objects List
                     if (objectsList == null || objectsList.isEmpty()) {
-                        responses.add(warningResponse);
+                        // TODO add itemId objectsListEmpty
+                        responses.increment(StatusCode.WARNING);
                     } else {
                         // update the number of element to process
                         ProcessMonitoringImpl.getInstance().updateStep(processId, uniqueStepId, objectsList.size(),
                             false);
                         for (final URI objectUri : objectsList) {
                             if (availableWorkers.isEmpty()) {
-                                LOGGER.debug(errorResponse.getStatus().toString());
-                                responses.add(errorResponse);
+                                LOGGER.debug("available Workers List is empty()" + StatusCode.FATAL.toString());
+                                // TODO add itemId workersListEmpty
+                                responses.increment(StatusCode.FATAL);
                                 break;
                             } else {
                                 // Load configuration
@@ -205,7 +200,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                                 loadWorkerClient(WORKERS_LIST.get("defaultFamily").firstEntry().getValue());
                                 // run step
                                 workParams.setObjectName(objectUri.getPath());
-                                final List<EngineResponse> actionsResponse;
+                                final CompositeItemStatus actionsResponse;
                                 try (WorkerClient workerClient = WorkerClientFactory.getInstance().getClient()) {
                                     actionsResponse =
                                         workerClient.submitStep("requestId",
@@ -214,16 +209,14 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                                 // FIXME : This is inefficient. The aggregation of results must be placed here and not
                                 // in
                                 // ProcessResponse
-                                responses.addAll(actionsResponse);
+                                responses.setItemsStatus(actionsResponse);
                                 // update the number of processed element
                                 ProcessMonitoringImpl.getInstance().updateStep(processId, uniqueStepId, 0, true);
 
-                                final StatusCode stepStatus =
-                                    processResponse.getGlobalProcessStatusCode(actionsResponse);
                                 // if the step has been defined as Blocking and then stepStatus is KO or FATAL
                                 // then break the process
                                 if (step.getBehavior().equals(ProcessBehavior.BLOCKING) &&
-                                    stepStatus.isGreaterOrEqualToKo()) {
+                                    responses.getGlobalStatus().isGreaterOrEqualToKo()) {
                                     break;
                                 }
 
@@ -235,13 +228,13 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 // update the number of element to process
                 ProcessMonitoringImpl.getInstance().updateStep(processId, uniqueStepId, 1, false);
                 if (availableWorkers.isEmpty()) {
-                    LOGGER.debug(errorResponse.getStatus().toString());
-                    responses.add(errorResponse);
+                    LOGGER.debug("available Workers List is empty()" + StatusCode.FATAL.toString());
+                    responses.increment(StatusCode.FATAL);
                 } else {
                     // TODO : management of parallel distribution and availability
                     loadWorkerClient(WORKERS_LIST.get("defaultFamily").firstEntry().getValue());
                     workParams.setObjectName(step.getDistribution().getElement());
-                    responses.addAll(
+                    responses.setItemsStatus(
                         WorkerClientFactory.getInstance().getClient().submitStep("requestId",
                             new DescriptionStep(step, (DefaultWorkerParameters) workParams)));
                     // update the number of processed element
@@ -250,14 +243,14 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             }
 
         } catch (final IllegalArgumentException e) {
-            responses.add(errorResponse);
+            responses.increment(StatusCode.FATAL);
             LOGGER.error("Illegal Argument Exception", e);
         } catch (final HandlerNotFoundException e) {
-            responses.add(errorResponse);
+            responses.increment(StatusCode.FATAL);
             LOGGER.error("Handler Not Found Exception", e);
 
         } catch (final Exception e) {
-            responses.add(errorResponse);
+            responses.increment(StatusCode.FATAL);
             LOGGER.error(EXCEPTION_MESSAGE, e);
         } finally {
             LOGGER.debug(ELAPSED_TIME_MESSAGE + (System.currentTimeMillis() - time) / 1000 + "s /stepName :" +

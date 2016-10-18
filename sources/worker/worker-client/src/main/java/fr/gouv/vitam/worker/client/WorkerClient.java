@@ -26,9 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.client;
 
-import java.util.List;
-
 import fr.gouv.vitam.common.client.MockOrRestClient;
+import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;
 import fr.gouv.vitam.worker.client.exception.WorkerServerClientException;
@@ -48,7 +47,7 @@ public interface WorkerClient extends MockOrRestClient {
      * @throws WorkerNotFoundClientException if the Server got a NotFound result
      * @throws WorkerServerClientException if the Server got an internal error
      */
-    List<EngineResponse> submitStep(String requestId, DescriptionStep step)
+    CompositeItemStatus submitStep(String requestId, DescriptionStep step)
         throws WorkerNotFoundClientException, WorkerServerClientException;
 
 }

@@ -74,6 +74,8 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
@@ -89,9 +91,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.OutcomeMessage;
-import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.utils.BinaryObjectInfo;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
@@ -124,7 +124,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     private static final LogbookLifeCyclesClient LOGBOOK_LIFECYCLE_CLIENT = LogbookLifeCyclesClientFactory.getInstance()
         .getClient();
-    private static final String HANDLER_ID = "ExtractSeda";
+    private static final String HANDLER_ID = "CHECK_CONSISTENCY";
     private HandlerIO handlerIO;
 
     private static final String XML_EXTENSION = ".xml";
@@ -213,18 +213,20 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
 
     @Override
-    public EngineResponse execute(WorkerParameters params, HandlerIO ioParam) {
+    public CompositeItemStatus execute(WorkerParameters params, HandlerIO ioParam) {
         checkMandatoryParameters(params);
         handlerIO = ioParam;
-        final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID,
-            OutcomeMessage.EXTRACT_MANIFEST_OK);
+        final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
         try {
             checkMandatoryIOParameter(ioParam);
-            extractSEDA(params);
+            extractSEDA(params, itemStatus);
+            itemStatus.increment(StatusCode.OK);
+
         } catch (final ProcessingException e) {
             LOGGER.debug("ProcessingException", e);
-            response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID, OutcomeMessage.EXTRACT_MANIFEST_KO);
+            itemStatus.increment(StatusCode.FATAL);
+
         } finally {
             // Empty all maps
             binaryDataObjectIdToGuid.clear();
@@ -240,7 +242,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
             objectGuidToBinaryObject.clear();
             binaryDataObjectIdToVersionDataObject.clear();
         }
-        return response;
+
+        return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+
     }
 
     /**
@@ -249,19 +253,21 @@ public class ExtractSedaActionHandler extends ActionHandler {
      * @param params parameters of workspace server
      * @throws ProcessingException throw when can't read or extract element from SEDA
      */
-    public void extractSEDA(WorkerParameters params) throws ProcessingException {
+    public void extractSEDA(WorkerParameters params, ItemStatus itemStatus) throws ProcessingException {
         ParameterHelper.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
         // TODO : whould use worker configuration instead of the processing configuration
         try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.create(params.getUrlWorkspace())) {
-            extractSEDAWithWorkspaceClient(workspaceClient, containerId);
+            extractSEDAWithWorkspaceClient(workspaceClient, containerId, itemStatus);
         }
     }
 
-    private void extractSEDAWithWorkspaceClient(WorkspaceClient client, String containerId)
+    private void extractSEDAWithWorkspaceClient(WorkspaceClient client, String containerId, ItemStatus itemStatus)
         throws ProcessingException {
         ParametersChecker.checkParameter(WORKSPACE_MANDATORY_MSG, client);
         ParametersChecker.checkParameter("ContainerId is a mandatory parameter", containerId);
+        ParametersChecker.checkParameter("itemStatus is a mandatory parameter", itemStatus);
+
 
         /**
          * Retrieves SEDA
@@ -739,6 +745,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         }
                         default:
                             writer.add(eventFactory.createStartElement("", "", localPart));
+
                     }
 
                     writable = false;

@@ -50,14 +50,13 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
-import fr.gouv.vitam.processing.common.model.OutcomeMessage;
-import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageCollectionType;
@@ -82,7 +81,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
     private static final String XML = ".xml";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TransferNotificationActionHandler.class);
-    private static final String HANDLER_ID = "TransferNotification";
+    private static final String HANDLER_ID = "ATR_NOTIFICATION";
     LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters();
     private static final String NAMESPACE_URI = "fr:gouv:culture:archivesdefrance:seda:v2.0";
     public static final String JSON_EXTENSION = ".json";
@@ -116,11 +115,10 @@ public class TransferNotificationActionHandler extends ActionHandler {
     }
 
     @Override
-    public EngineResponse execute(WorkerParameters params, HandlerIO handler) {
+    public CompositeItemStatus execute(WorkerParameters params, HandlerIO handler) {
         checkMandatoryParameters(params);
 
-        final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID,
-            OutcomeMessage.ATR_OK);
+        final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
         handlerIO = handler;
 
@@ -148,18 +146,19 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 StorageCollectionType.REPORTS,
                 params.getContainerName() + XML, description);
             // }
+            itemStatus.increment(StatusCode.OK);
         } catch (ProcessingException | ContentAddressableStorageException e) {
             LOGGER.error(e);
-            response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID, OutcomeMessage.ATR_KO);
+            itemStatus.increment(StatusCode.KO);
         } catch (URISyntaxException | InvalidParseOperationException |
             StorageClientException | IOException e) {
             LOGGER.error(e);
-            response.setStatus(StatusCode.FATAL).setOutcomeMessages(HANDLER_ID, OutcomeMessage.ATR_KO);
+            itemStatus.increment(StatusCode.FATAL);
             // } catch (SAXException | XMLStreamException e) {
             // LOGGER.error(e);
-            // response.setStatus(StatusCode.FATAL).setOutcomeMessages(HANDLER_ID, OutcomeMessage.ATR_KO);
+            // itemStatus.increment(new WorkflowStatusCode(StatusCode.FATAL));
         }
-        return response;
+        return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
     /**

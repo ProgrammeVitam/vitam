@@ -27,6 +27,7 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -48,12 +49,12 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.core.api.HandlerIO;
@@ -66,17 +67,19 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 @PrepareForTest({WorkspaceClientFactory.class, MetaDataClientFactory.class})
 public class IndexUnitActionHandlerTest {
     IndexUnitActionHandler handler = new IndexUnitActionHandler();
+    private static final String HANDLER_ID = "UNIT_METADATA_INDEXATION";
     private WorkspaceClient workspaceClient;
     private MetaDataClient metadataClient;
-    private static final String HANDLER_ID = "IndexUnit";
     private static final String ARCHIVE_UNIT = "archiveUnit.xml";
     private static final String INGEST_TREE = "INGEST_TREE.json";
     private static final String ARCHIVE_ID_TO_GUID_MAP = "ARCHIVE_ID_TO_GUID_MAP.json";
     private final InputStream archiveUnit;
     private HandlerIO action;
+
     public IndexUnitActionHandlerTest() throws FileNotFoundException {
         archiveUnit = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT);
     }
+
     @Before
     public void setUp() throws Exception {
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
@@ -91,14 +94,15 @@ public class IndexUnitActionHandlerTest {
     @Test
     public void givenWorkspaceNotExistWhenExecuteThenReturnResponseFATAL()
         throws XMLStreamException, IOException, ProcessingException {
+        assertNotNull(IndexUnitActionHandler.getId());
         assertEquals(IndexUnitActionHandler.getId(), HANDLER_ID);
         PowerMockito.when(WorkspaceClientFactory.create(Matchers.anyObject())).thenReturn(workspaceClient);
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
 
-        final EngineResponse response = handler.execute(params, action);
-        assertEquals(response.getStatus(), StatusCode.FATAL);
+        final CompositeItemStatus response = handler.execute(params, action);
+        assertEquals(response.getGlobalStatus(), StatusCode.FATAL);
     }
 
     @Test
@@ -111,8 +115,8 @@ public class IndexUnitActionHandlerTest {
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
-        final EngineResponse response = handler.execute(params, action);
-        assertEquals(response.getStatus(), StatusCode.OK);
+        final CompositeItemStatus response = handler.execute(params, action);
+        assertEquals(response.getGlobalStatus(), StatusCode.OK);
     }
 
     @Test
@@ -125,8 +129,8 @@ public class IndexUnitActionHandlerTest {
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
-        final EngineResponse response = handler.execute(params, action);
-        assertEquals(response.getStatus(), StatusCode.FATAL);
+        final CompositeItemStatus response = handler.execute(params, action);
+        assertEquals(response.getGlobalStatus(), StatusCode.FATAL);
     }
 
     @Test
@@ -140,8 +144,8 @@ public class IndexUnitActionHandlerTest {
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
-        final EngineResponse response = handler.execute(params, action);
-        assertEquals(response.getStatus(), StatusCode.FATAL);
+        final CompositeItemStatus response = handler.execute(params, action);
+        assertEquals(response.getGlobalStatus(), StatusCode.FATAL);
     }
 
 }

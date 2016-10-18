@@ -28,6 +28,7 @@ package fr.gouv.vitam.processing.distributor.api;
 
 import java.util.List;
 
+import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
@@ -53,9 +54,9 @@ public interface ProcessDistributor {
      * @param step {@link Step} null not allowed
      * @param workflowId workflow Id
      *
-     * @return List EngineResponse {@link EngineResponse} : list of action response
+     * @return CompositeItemStatus : list of action response
      */
-    List<EngineResponse> distribute(WorkerParameters workParams, Step step, String workflowId);
+    CompositeItemStatus distribute(WorkerParameters workParams, Step step, String workflowId);
 
     /**
      * Register a new worker knowing its family

@@ -41,6 +41,7 @@ import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -94,7 +95,7 @@ public class ProcessingManagementClient {
      * @throws ProcessingInternalServerException thrown in case of internal server error or technical error between
      *         client and server
      */
-    public String executeVitamProcess(String container, String workflow)
+    public ItemStatus executeVitamProcess(String container, String workflow)
         throws ProcessingUnauthorizeException, ProcessingBadRequestException, WorkflowNotFoundException,
         ProcessingException {
         ParametersChecker.checkParameter("container is a mandatory parameter", container);
@@ -121,7 +122,7 @@ public class ProcessingManagementClient {
 
             // XXX: theoretically OK status case
             // Don't we thrown an exception if it is another status ?
-            return response.readEntity(String.class);
+            return response.readEntity(ItemStatus.class);
         } catch (final javax.ws.rs.ProcessingException e) {
             LOGGER.error(e);
             throw new ProcessingInternalServerException("Internal Server Error", e);

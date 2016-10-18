@@ -40,14 +40,16 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterStatus;
 import fr.gouv.vitam.functional.administration.common.RegisterValueDetail;
-import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
+import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.OutcomeMessage;
@@ -62,7 +64,7 @@ import fr.gouv.vitam.worker.core.api.HandlerIO;
 public class AccessionRegisterActionHandler extends ActionHandler {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessionRegisterActionHandler.class);
-    private static final String HANDLER_ID = "AccessionRegister";
+    private static final String HANDLER_ID = "ACCESSION_REGISTRATION";
     private HandlerIO handlerIO;
 
     private final HandlerIO handlerInitialIOList = new HandlerIO(HANDLER_ID);
@@ -91,12 +93,13 @@ public class AccessionRegisterActionHandler extends ActionHandler {
     }
 
     @Override
-    public EngineResponse execute(WorkerParameters params, HandlerIO handler) {
+    public CompositeItemStatus execute(WorkerParameters params, HandlerIO handler) {
         checkMandatoryParameters(params);
         LOGGER.debug("TransferNotificationActionHandler running ...");
 
         final EngineResponse response = new ProcessResponse().setStatus(StatusCode.OK).setOutcomeMessages(HANDLER_ID,
             OutcomeMessage.FUND_REGISTER_OK);
+        final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
         handlerIO = handler;
 
@@ -104,16 +107,17 @@ public class AccessionRegisterActionHandler extends ActionHandler {
             checkMandatoryIOParameter(handler);
             AccessionRegisterDetail register = generateAccessionRegister(params);
             adminClient.createorUpdateAccessionRegister(register);
+            itemStatus.increment(StatusCode.OK);
         } catch (ProcessingException e) {
             LOGGER.error("Inputs/outputs are not correct", e);
-            response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID, OutcomeMessage.FUND_REGISTER_KO);
+            itemStatus.increment(StatusCode.KO);
         } catch (AccessionRegisterException | DatabaseConflictException e) {
             LOGGER.error("Can not create func register", e);
-            response.setStatus(StatusCode.KO).setOutcomeMessages(HANDLER_ID, OutcomeMessage.FUND_REGISTER_KO);
+            itemStatus.increment(StatusCode.KO);
         }
 
         LOGGER.debug("TransferNotificationActionHandler response: " + response.getStatus().name());
-        return response;
+        return new CompositeItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
 

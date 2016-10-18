@@ -27,9 +27,9 @@
 package fr.gouv.vitam.processing.management.api;
 
 
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 
 /**
@@ -50,5 +50,5 @@ public interface ProcessManagement {
      * @throws IllegalArgumentException thrown in case parameters workParams or workflowId are null
      * 
      */
-    EngineResponse submitWorkflow(WorkerParameters workParams, String workflowId) throws ProcessingException;
+    ItemStatus submitWorkflow(WorkerParameters workParams, String workflowId) throws ProcessingException;
 }

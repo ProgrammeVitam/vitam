@@ -26,16 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.client;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
-
-import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -46,10 +40,7 @@ import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
-import fr.gouv.vitam.processing.common.model.OutcomeMessage;
-import fr.gouv.vitam.processing.common.model.ProcessResponse;
+import fr.gouv.vitam.common.model.CompositeItemStatus;
 import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;
 import fr.gouv.vitam.worker.client.exception.WorkerServerClientException;
 import fr.gouv.vitam.worker.common.DescriptionStep;
@@ -67,7 +58,7 @@ public class WorkerClientRest extends DefaultClient implements WorkerClient {
     }
 
     @Override
-    public List<EngineResponse> submitStep(String requestId, DescriptionStep step)
+    public CompositeItemStatus submitStep(String requestId, DescriptionStep step)
         throws WorkerNotFoundClientException, WorkerServerClientException {
         ParametersChecker.checkParameter(REQUEST_ID_MUST_HAVE_A_VALID_VALUE, requestId);
         ParametersChecker.checkParameter(DATA_MUST_HAVE_A_VALID_VALUE, step);
@@ -76,8 +67,8 @@ public class WorkerClientRest extends DefaultClient implements WorkerClient {
             response =
                 performRequest(HttpMethod.POST, "/" + "tasks", getDefaultHeaders(requestId), 
                     JsonHandler.toJsonNode(step), MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
-            final JsonNode node = handleCommonResponseStatus(requestId, step, response, JsonNode.class);
-            return getListResponses(node);
+            final CompositeItemStatus compositeItemStatus = handleCommonResponseStatus(requestId, step, response, CompositeItemStatus.class);
+            return compositeItemStatus;
         } catch (final VitamClientInternalException e) {
             LOGGER.error("Worker Internal Server Error", e);
             throw new WorkerServerClientException("Worker Internal Server Error", e);
@@ -128,55 +119,4 @@ public class WorkerClientRest extends DefaultClient implements WorkerClient {
         }
     }
 
-    /**
-     * Create a List<EngineResponse> from the JsonNode representation <br>
-     *
-     * @param node representation of List<EngineResponse> as JsonNode
-     * @return List<EngineResponse>
-     */
-    //TODO: replace EngineResponse with real usable POJO (and json compatible).
-    private List<EngineResponse> getListResponses(JsonNode node) {
-        final List<EngineResponse> responses = new ArrayList<>();
-        if (node != null && node.isArray()) {
-            for (final JsonNode engineResponseNode : node) {
-                final ProcessResponse response = new ProcessResponse();
-                if (engineResponseNode.get("processId") != null) {
-                    response.setProcessId(engineResponseNode.get("processId").asText(null));
-                }
-                if (engineResponseNode.get("messageIdentifier") != null) {
-                    response.setMessageIdentifier(engineResponseNode.get("messageIdentifier").asText(null));
-                }
-                if (engineResponseNode.get("value") != null) {
-                    response.setStatus(StatusCode.valueOf(engineResponseNode.get("value").asText(null)));
-                }
-                if (engineResponseNode.get("errorNumber") != null) {
-                    response.setErrorNumber(engineResponseNode.get("errorNumber").asInt());
-                }
-                final JsonNode outcomeMessages = engineResponseNode.get("outcomeMessages");
-                if (outcomeMessages != null) {
-                    if (outcomeMessages.isArray()) {
-                        for (final JsonNode outcomeMessageNode : outcomeMessages) {
-                            final Iterator<String> fieldNames = outcomeMessageNode.fieldNames();
-                            while (fieldNames.hasNext()) {
-                                final String actionKey = fieldNames.next();
-                                final String messageValue = outcomeMessageNode.get(actionKey).asText();
-                                final OutcomeMessage message = OutcomeMessage.valueOf(messageValue);
-                                response.setOutcomeMessages(actionKey, message);
-                            }
-                        }
-                    } else {
-                        final Iterator<String> fieldNames = outcomeMessages.fieldNames();
-                        while (fieldNames.hasNext()) {
-                            final String actionKey = fieldNames.next();
-                            final String messageValue = outcomeMessages.get(actionKey).asText();
-                            final OutcomeMessage message = OutcomeMessage.valueOf(messageValue);
-                            response.setOutcomeMessages(actionKey, message);
-                        }
-                    }
-                }
-                responses.add(response);
-            }
-        }
-        return responses;
-    }
 }

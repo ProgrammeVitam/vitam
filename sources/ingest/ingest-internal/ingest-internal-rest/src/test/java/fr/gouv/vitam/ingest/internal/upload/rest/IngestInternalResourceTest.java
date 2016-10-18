@@ -62,6 +62,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.BasicVitamServer;
 import fr.gouv.vitam.common.server.VitamServer;
@@ -201,7 +202,9 @@ public class IngestInternalResourceTest {
             Mockito.anyObject(),
             Mockito.anyObject());
 
-        Mockito.doReturn("OK").when(processingClient).executeVitamProcess(Matchers.anyObject(),
+        final GUID processId = GUIDFactory.newGUID();
+        final ItemStatus itemStatus = new ItemStatus(processId.toString()).increment(StatusCode.OK);
+        Mockito.doReturn(itemStatus).when(processingClient).executeVitamProcess(Matchers.anyObject(),
             Matchers.anyObject());
 
         final InputStream inputStream =
@@ -236,7 +239,9 @@ public class IngestInternalResourceTest {
         Mockito.doThrow(new ContentAddressableStorageCompressedFileException("Test")).when(workspaceClient)
             .uncompressObject(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyObject());
 
-        Mockito.doReturn("OK").when(processingClient).executeVitamProcess(Matchers.anyObject(),
+        final GUID processId = GUIDFactory.newGUID();
+        final ItemStatus itemStatus = new ItemStatus(processId.toString()).increment(StatusCode.OK);
+        Mockito.doReturn(itemStatus).when(processingClient).executeVitamProcess(Matchers.anyObject(),
             Matchers.anyObject());
 
         final InputStream inputStreamZip =
@@ -356,7 +361,9 @@ public class IngestInternalResourceTest {
             Mockito.anyObject(),
             Mockito.anyObject());
 
-        Mockito.doReturn("OK").when(processingClient).executeVitamProcess(Matchers.anyObject(),
+        final GUID processId = GUIDFactory.newGUID();
+        final ItemStatus itemStatus = new ItemStatus(processId.toString()).increment(StatusCode.OK);
+        Mockito.doReturn(itemStatus).when(processingClient).executeVitamProcess(Matchers.anyObject(),
             Matchers.anyObject());
 
         final InputStream inputStream =

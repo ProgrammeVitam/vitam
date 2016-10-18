@@ -1,6 +1,6 @@
 {
       "workerGroupId": "DefaultWorker",
-      "stepName": "Rangement des units",
+      "stepName": "STP_UNIT_STORING",
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "LIST",
@@ -9,7 +9,7 @@
       "actions": [
         {
           "action": {
-            "actionKey": "IndexUnit",
+            "actionKey": "UNIT_METADATA_INDEXATION",
             "behavior": "BLOCKING"
           }
         }

@@ -34,8 +34,6 @@ import static org.mockito.Mockito.when;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
@@ -56,10 +54,11 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.CompositeItemStatus;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.model.EngineResponse;
-import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.worker.core.api.Worker;
 import fr.gouv.vitam.worker.core.impl.WorkerImpl;
 
@@ -175,9 +174,12 @@ public class WorkerResourceTest {
     public final void testSubmitStepOK()
         throws InvalidParseOperationException, IOException, HandlerNotFoundException, IllegalArgumentException,
         ProcessingException {
-        final ProcessResponse processResponse = new ProcessResponse();
-        final List<EngineResponse> responses = new ArrayList<>();
-        responses.add(processResponse);
+        
+        ItemStatus itemStatus= new ItemStatus("ID");
+        itemStatus.setMessage("message");
+        StatusCode status= StatusCode.OK;
+        itemStatus.increment(status);
+        final CompositeItemStatus responses = new CompositeItemStatus("ID");
         Mockito.reset(worker);
 
         when(worker.run(anyObject(), anyObject())).thenReturn(responses);

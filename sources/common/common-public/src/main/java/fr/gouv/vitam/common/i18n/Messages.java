@@ -110,6 +110,27 @@ public class Messages {
 
     /**
      *
+     * @param key the key of the message
+     * @param args the arguments to use as MessageFormat.format(mesg, args)
+     * @return the associated message, !key! if value is null or empty
+     */
+    public final String getStringNotEmpty(String key, Object... args) {
+        try {
+            final String source = resourceBundle.getString(key);
+            if (source == null || source.isEmpty()) {
+                throw new MissingResourceException(
+                    "Can't find non empty resource for bundle " + resourceBundle.getClass().getName() + ", key " + key,
+                    resourceBundle.getClass().getName(), key);
+            }
+            return MessageFormat.format(source, args);
+        } catch (final MissingResourceException e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            return '!' + key + '!';
+        }
+    }
+
+    /**
+     *
      * @return the current Locale
      */
     public Locale getLocale() {
