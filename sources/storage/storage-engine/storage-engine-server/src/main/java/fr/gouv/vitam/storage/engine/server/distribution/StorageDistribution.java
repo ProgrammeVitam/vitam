@@ -53,13 +53,14 @@ public interface StorageDistribution {
      * @param objectId the workspace URI of the data to be retrieve (and stored in offer)
      * @param createObjectDescription object additional informations
      * @param category the category of the data to store (unit, object...)
+     * @param requester the requester information
      * @return a StoredInfoResult containing informations about the created Data
      * @throws StorageNotFoundException Thrown if the Container does not exist
      * @throws StorageTechnicalException Thrown in case of any technical problem
      * @throws StorageObjectAlreadyExistsException
      */
     StoredInfoResult storeData(String tenantId, String strategyId, String objectId,
-        CreateObjectDescription createObjectDescription, DataCategory category)
+        CreateObjectDescription createObjectDescription, DataCategory category, String requester)
         throws StorageTechnicalException, StorageNotFoundException, StorageObjectAlreadyExistsException;
 
     /**

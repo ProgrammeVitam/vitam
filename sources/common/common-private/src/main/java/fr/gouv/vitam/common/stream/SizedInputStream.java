@@ -1,4 +1,4 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,46 +23,63 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ **/
 
-package fr.gouv.vitam.storage.driver.model;
+package fr.gouv.vitam.common.stream;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
- * Holds result data that come as a result of a request to put an object on the distant storage offer
+ * Input stream with read size
  */
-public class PutObjectResult {
-    private final String distantObjectId;
-    private final String digestHashBase16;
-    private final long objectSize;
-    private final String tenantId;
+public class SizedInputStream extends InputStream {
+
+    private InputStream is;
+    private long size = 0;
 
     /**
-     * Initialize the needed parameters for put result
+     * Default constructor
      *
-     * @param distantObjectId The distant object id
-     * @param digestHashBase16 the object digest hash
-     * @param tenantId the request tenantId
+     * @param is the InputStream source
      */
-    public PutObjectResult(String distantObjectId, String digestHashBase16, String tenantId, long objectSize) {
-        this.distantObjectId = distantObjectId;
-        this.digestHashBase16 = digestHashBase16;
-        this.tenantId = tenantId;
-        this.objectSize = objectSize;
+    public SizedInputStream(InputStream is) {
+        this.is = is;
     }
 
-    public String getDistantObjectId() {
-        return distantObjectId;
+    @Override
+    public int read() throws IOException {
+        int res = is.read();
+        if (res != -1) {
+            size++;
+        }
+        return res;
     }
 
-    public String getDigestHashBase16() {
-        return digestHashBase16;
+    @Override
+    public int read(byte[] b) throws IOException {
+        int res = is.read(b);
+        if (res != -1) {
+            size += res;
+        }
+        return res;
     }
 
-    public String getTenantId() {
-        return tenantId;
+    @Override
+    public int read(byte[] b, int off, int len) throws IOException {
+        int res = is.read(b, off, len);
+        if (res != -1) {
+            size += res;
+        }
+        return res;
     }
 
-    public long getObjectSize() {
-        return objectSize;
+    /**
+     * Get read size
+     *
+     * @return the read size
+     */
+    public long getSize() {
+        return size;
     }
 }

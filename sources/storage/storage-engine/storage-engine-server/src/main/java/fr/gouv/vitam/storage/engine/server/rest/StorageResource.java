@@ -30,6 +30,7 @@ package fr.gouv.vitam.storage.engine.server.rest;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -295,6 +296,8 @@ public class StorageResource extends ApplicationStatusResource {
     /**
      * Post a new object
      *
+     * @param httpServletRequest http servlet request to get requester
+     *                           TODO: remove httpServletRequest when requester information sent by header (X-Requester)
      * @param headers http header
      * @param objectId the id of the object
      * @param createObjectDescription the object description
@@ -304,11 +307,12 @@ public class StorageResource extends ApplicationStatusResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createObjectOrGetInformation(@Context HttpHeaders headers, @PathParam("id_object") String objectId,
-        CreateObjectDescription createObjectDescription) {
+    public Response createObjectOrGetInformation(@Context HttpServletRequest httpServletRequest, @Context HttpHeaders
+        headers, @PathParam("id_object") String objectId, CreateObjectDescription createObjectDescription) {
         // If the POST is a creation request
         if (createObjectDescription != null) {
-            return createObjectByType(headers, objectId, createObjectDescription, DataCategory.OBJECT);
+            // TODO: actually no X-Requester header, so send the getRemoteAdr from HttpServletRequest
+            return createObjectByType(headers, objectId, createObjectDescription, DataCategory.OBJECT, httpServletRequest.getRemoteAddr());
         } else {
             return getObjectInformationWithPost(headers, objectId);
         }
@@ -442,6 +446,8 @@ public class StorageResource extends ApplicationStatusResource {
     /**
      * Post a new object
      *
+     * @param httpServletRequest http servlet request to get requester
+     *                           TODO: remove httpServletRequest when requester information sent by header (X-Requester)
      * @param headers http header
      * @param logbookId the id of the logbookId
      * @param createObjectDescription the workspace information about logbook to be created
@@ -451,13 +457,13 @@ public class StorageResource extends ApplicationStatusResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createLogbook(@Context HttpHeaders headers,
-        @PathParam("id_logbook") String logbookId,
-        CreateObjectDescription createObjectDescription) {
+    public Response createLogbook(@Context HttpServletRequest httpServletRequest, @Context HttpHeaders headers,
+        @PathParam("id_logbook") String logbookId, CreateObjectDescription createObjectDescription) {
         if (createObjectDescription == null) {
             return getLogbook(headers, logbookId);
         } else {
-            return createObjectByType(headers, logbookId, createObjectDescription, DataCategory.LOGBOOK);
+            // TODO: actually no X-Requester header, so send the getRemoteAdr from HttpServletRequest
+            return createObjectByType(headers, logbookId, createObjectDescription, DataCategory.LOGBOOK, httpServletRequest.getRemoteAddr());
         }
     }
 
@@ -528,6 +534,8 @@ public class StorageResource extends ApplicationStatusResource {
     /**
      * Post a new unit metadata
      *
+     * @param httpServletRequest http servlet request to get requester
+     *                           TODO: remove httpServletRequest when requester information sent by header (X-Requester)
      * @param headers http header
      * @param metadataId the id of the unit metadata
      * @param createObjectDescription the workspace description of the unit to be created
@@ -537,12 +545,13 @@ public class StorageResource extends ApplicationStatusResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createUnitMetadata(@Context HttpHeaders headers, @PathParam("id_md") String metadataId,
-        CreateObjectDescription createObjectDescription) {
+    public Response createUnitMetadata(@Context HttpServletRequest httpServletRequest, @Context HttpHeaders headers,
+        @PathParam("id_md") String metadataId, CreateObjectDescription createObjectDescription) {
         if (createObjectDescription == null) {
             return getUnit(headers, metadataId);
         } else {
-            return createObjectByType(headers, metadataId, createObjectDescription, DataCategory.UNIT);
+            // TODO: actually no X-Requester header, so send the getRemoteAdr from HttpServletRequest
+            return createObjectByType(headers, metadataId, createObjectDescription, DataCategory.UNIT, httpServletRequest.getRemoteAddr());
         }
     }
 
@@ -633,6 +642,8 @@ public class StorageResource extends ApplicationStatusResource {
      *
      * Note : this is NOT to be handled in item #72.
      *
+     * @param httpServletRequest http servlet request to get requester
+     *                           TODO: remove httpServletRequest when requester information sent by header (X-Requester)
      * @param headers http header
      * @param metadataId the id of the Object Group metadata
      * @param createObjectDescription the workspace description of the unit to be created
@@ -643,12 +654,13 @@ public class StorageResource extends ApplicationStatusResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createObjectGroup(@Context HttpHeaders headers, @PathParam("id_md") String metadataId,
-        CreateObjectDescription createObjectDescription) {
+    public Response createObjectGroup(@Context HttpServletRequest httpServletRequest, @Context HttpHeaders headers,
+        @PathParam("id_md") String metadataId, CreateObjectDescription createObjectDescription) {
         if (createObjectDescription == null) {
             return getObjectGroup(headers, metadataId);
         } else {
-            return createObjectByType(headers, metadataId, createObjectDescription, DataCategory.OBJECT_GROUP);
+            // TODO: actually no X-Requester header, so send the getRemoteAdr from HttpServletRequest
+            return createObjectByType(headers, metadataId, createObjectDescription, DataCategory.OBJECT_GROUP, httpServletRequest.getRemoteAddr());
         }
     }
 
@@ -724,6 +736,8 @@ public class StorageResource extends ApplicationStatusResource {
     /**
      * Post a new object
      *
+     * @param httpServletRequest http servlet request to get requester
+     *                           TODO: remove httpServletRequest when requester information sent by header (X-Requester)
      * @param headers http header
      * @param reportId the id of the object
      * @param createObjectDescription the object description
@@ -733,11 +747,13 @@ public class StorageResource extends ApplicationStatusResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createReportOrGetInformation(@Context HttpHeaders headers, @PathParam("id_report") String reportId,
-        CreateObjectDescription createObjectDescription) {
+    public Response createReportOrGetInformation(@Context HttpServletRequest httpServletRequest, @Context HttpHeaders
+        headers, @PathParam("id_report") String reportId, CreateObjectDescription createObjectDescription) {
         // If the POST is a creation request
         if (createObjectDescription != null) {
-            return createObjectByType(headers, reportId, createObjectDescription, DataCategory.REPORT);
+            // TODO: actually no X-Requester header, so send the getRemoteAddr from HttpServletRequest
+            return createObjectByType(headers, reportId, createObjectDescription, DataCategory.REPORT,
+                httpServletRequest.getRemoteAddr());
         } else {
             return getObjectInformationWithPost(headers, reportId);
         }
@@ -779,9 +795,11 @@ public class StorageResource extends ApplicationStatusResource {
         return response;
     }
 
-
+    // TODO: requester have to come from vitam headers (X-Requester), but does not exist actually, so use
+    // getRemoteAdr from HttpServletRequest passed as parameter (requester)
+    // Change it when the good header is sent
     private Response createObjectByType(HttpHeaders headers, String objectId,
-        CreateObjectDescription createObjectDescription, DataCategory category) {
+        CreateObjectDescription createObjectDescription, DataCategory category, String requester) {
         final Response response = checkTenantStrategyHeader(headers);
         if (response == null) {
             VitamCode vitamCode;
@@ -789,7 +807,7 @@ public class StorageResource extends ApplicationStatusResource {
             final String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
             try {
                 final StoredInfoResult result = distribution.storeData(tenantId, strategyId, objectId,
-                    createObjectDescription, category);
+                    createObjectDescription, category, requester);
                 return Response.status(Status.CREATED).entity(result).build();
             } catch (final StorageNotFoundException exc) {
                 LOGGER.error(exc);

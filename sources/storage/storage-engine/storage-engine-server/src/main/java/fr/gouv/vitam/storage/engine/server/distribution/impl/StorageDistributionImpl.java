@@ -136,9 +136,10 @@ public class StorageDistributionImpl implements StorageDistribution {
 
     // TODO : review design : for the moment we handle createObjectDescription AND jsonData in the same params but
     // they should not be both resent at the same time. Maybe encapsulate or create 2 methods
+    // TODO: refactor me !
     @Override
     public StoredInfoResult storeData(String tenantId, String strategyId, String objectId,
-        CreateObjectDescription createObjectDescription, DataCategory category)
+        CreateObjectDescription createObjectDescription, DataCategory category, String requester)
         throws StorageTechnicalException, StorageNotFoundException, StorageObjectAlreadyExistsException {
         // Check input params
         checkStoreDataParams(createObjectDescription, tenantId, strategyId, objectId, category);
@@ -152,6 +153,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             }
             final Map<String, Status> offerResults = new HashMap<>();
 
+            StorageLogbookParameters parameters = null;
             // For each offer, store object on it
             for (final OfferReference offerReference : offerReferences) {
                 // TODO: sequential process for now (we have only 1 offer anyway) but storing object should be
@@ -159,10 +161,18 @@ public class StorageDistributionImpl implements StorageDistribution {
                 // TODO special notice: when parallel, try to get only once the inputstream and then multiplexing it to
                 // multiple intputstreams as needed
                 // 1 IS => 3 IS (if 3 offers) where this special class handles one IS as input to 3 IS as output
-                final Status success =
-                    tryAndRetryStoreObjectInOffer(createObjectDescription, tenantId, objectId, category,
-                        offerReference);
-                offerResults.put(offerReference.getId(), success);
+                Map<String, Object> result = tryAndRetryStoreObjectInOffer(createObjectDescription, tenantId, objectId, category,
+                    offerReference, parameters, requester);
+                parameters = (StorageLogbookParameters) result.get("Parameters");
+                offerResults.put(offerReference.getId(), (Status) result.get("Status"));
+            }
+
+            try {
+                final StorageLogbook storageLogbook = StorageLogbookFactory.getInstance().getStorageLogbook();
+                storageLogbook.add(parameters);
+            } catch (final StorageException exc) {
+                throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_LOGBOOK_CANNOT_LOG),
+                    exc);
             }
             // TODO Handle Status result if different for offers
             return buildStoreDataResponse(objectId, category, offerResults);
@@ -217,14 +227,14 @@ public class StorageDistributionImpl implements StorageDistribution {
         result.setLastCheckedTime(LocalDateUtil.getString(now));
         result.setLastModifiedTime(LocalDateUtil.getString(now));
         return result;
-
     }
 
     // TODO : globalize try and retry mechanism to avoid implementing it manually on all methods (C++ would have been
     // great here) by creating an interface of Retryable actions and different implementations for each retryable action
-    private Status tryAndRetryStoreObjectInOffer(CreateObjectDescription createObjectDescription, String tenantId,
-        String objectId, DataCategory category, OfferReference offerReference)
-        throws StorageTechnicalException, StorageObjectAlreadyExistsException {
+    // TODO: refactor me (the map return seems bad and the offer list is a quick fix, to review too) !
+    private Map<String, Object> tryAndRetryStoreObjectInOffer(CreateObjectDescription createObjectDescription, String
+        tenantId, String objectId, DataCategory category, OfferReference offerReference, StorageLogbookParameters
+        logbookParameters, String requester) throws StorageTechnicalException, StorageObjectAlreadyExistsException {
         // TODO: optimize workspace InputStream to not request workspace for each offer but only once.
         final Driver driver = retrieveDriverInternal(offerReference.getId());
         // Retrieve storage offer description and parameters
@@ -232,7 +242,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         final Properties parameters = new Properties();
         parameters.putAll(offer.getParameters());
         PutObjectRequest putObjectRequest = null;
-        PutObjectResult putObjectResult;
+        PutObjectResult putObjectResult = null;
         Status objectStored = Status.INTERNAL_SERVER_ERROR;
         boolean existInOffer = false;
         Digest messageDigest = null;
@@ -292,21 +302,51 @@ public class StorageDistributionImpl implements StorageDistribution {
             }
         }
 
-        try {
-            final StorageLogbook storageLogbook = StorageLogbookFactory.getInstance().getStorageLogbook();
-            // TODO : replace fakeSize by the real size of the file
-            storageLogbook.add(getStorageLogbookParameters(
-                putObjectRequest != null ? putObjectRequest.getGuid() : "objectReques NA", null,
-                messageDigest != null ? messageDigest.digest().toString() : "messageDigest NA", digestType.getName(),
-                "fakeSize", offer.getId(), "X-Application-Id",
-                null, null,
-                objectStored == Status.INTERNAL_SERVER_ERROR ? StorageLogbookOutcome.KO : StorageLogbookOutcome.OK));
-        } catch (final StorageException exc) {
-            throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_LOGBOOK_CANNOT_LOG),
-                exc);
+        // TODO: refactor for more than one offer
+        if (logbookParameters == null) {
+            logbookParameters = getParameters(putObjectRequest, putObjectResult, messageDigest, offer, objectStored,
+                requester);
+        } else {
+            updateStorageLogbookParameters(logbookParameters, offer, objectStored);
         }
+        Map<String, Object> ret = new HashMap<>();
+        ret.put("Parameters", logbookParameters);
+        ret.put("Status", objectStored);
+        return ret;
+    }
 
-        return objectStored;
+    /**
+     * Storage logbook entry for ONE offer
+     *
+     * @param putObjectRequest the request
+     * @param putObjectResult the response
+     * @param messageDigest the computed digest
+     * @param offer the offer
+     * @param objectStored the operation status
+     * @return storage logbook parameters
+     */
+    private StorageLogbookParameters getParameters(PutObjectRequest putObjectRequest, PutObjectResult
+        putObjectResult, Digest messageDigest, StorageOffer offer, Status objectStored, String requester) {
+        String objectIdentifier = putObjectRequest != null ? putObjectRequest.getGuid() : "objectRequest NA";
+        String messageDig = messageDigest != null ? messageDigest.digestHex() : "messageDigest NA";
+        String size = putObjectResult != null ? toString().valueOf(putObjectResult.getObjectSize()) : "Size NA";
+        StorageLogbookOutcome outcome = objectStored == Status.INTERNAL_SERVER_ERROR ? StorageLogbookOutcome.KO :
+            StorageLogbookOutcome.OK;
+
+        return getStorageLogbookParameters(
+            objectIdentifier, null, messageDig, digestType.getName(), size, offer.getId(), requester, null,
+            null, outcome);
+    }
+
+    private void updateStorageLogbookParameters(StorageLogbookParameters parameters, StorageOffer
+        offer, Status status) {
+        String offers = parameters.getMapParameters().get(StorageLogbookParameterName.agentIdentifiers);
+        offers += ", " + offer.getId();
+        parameters.getMapParameters().put(StorageLogbookParameterName.agentIdentifiers, offers);
+
+        if (Status.INTERNAL_SERVER_ERROR.equals(status)) {
+            parameters.getMapParameters().put(StorageLogbookParameterName.outcome, StorageLogbookOutcome.KO.name());
+        }
     }
 
     private Driver retrieveDriverInternal(String offerId) throws StorageTechnicalException {

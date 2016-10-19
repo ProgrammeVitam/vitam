@@ -56,6 +56,7 @@ import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.storage.offers.workspace.core.DefaultOfferServiceImpl;
+import fr.gouv.vitam.common.stream.SizedInputStream;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -213,9 +214,11 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         try {
-            final String digest = DefaultOfferServiceImpl.getInstance().createObject(xTenantId, objectId, input,
+            SizedInputStream sis = new SizedInputStream(input);
+            final String digest = DefaultOfferServiceImpl.getInstance().createObject(xTenantId, objectId, sis,
                 xCommandHeader.equals(StorageConstants.COMMAND_END));
-            return Response.status(Response.Status.CREATED).entity("{\"digest\":\"" + digest + "\"}").build();
+            return Response.status(Response.Status.CREATED).entity("{\"digest\":\"" + digest + "\",\"size\":\""+sis
+                .getSize()+"\"}").build();
         } catch (IOException | ContentAddressableStorageException exc) {
             LOGGER.error("Cannot create object", exc);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();

@@ -465,7 +465,7 @@ public class ConnectionImplTest extends JerseyTest {
 
     private JsonNode getPutObjectResult(int uniqueId) throws JsonProcessingException, IOException {
         final ObjectMapper mapper = new ObjectMapper();
-        final JsonNode actualObj = mapper.readTree("{\"digest\":\"aaakkkk" + uniqueId + "\"}");
+        final JsonNode actualObj = mapper.readTree("{\"digest\":\"aaakkkk" + uniqueId + "\",\"size\":\"666\"}");
         return actualObj;
     }
 

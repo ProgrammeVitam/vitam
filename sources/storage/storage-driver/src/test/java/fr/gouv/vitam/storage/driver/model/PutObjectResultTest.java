@@ -40,7 +40,7 @@ public class PutObjectResultTest {
 
     @BeforeClass
     public static void init() {
-        putObjectResult = new PutObjectResult("doi", "dhb16", "ti");
+        putObjectResult = new PutObjectResult("doi", "dhb16", "ti", 10);
     }
 
     @Test
