@@ -38,6 +38,7 @@ import org.junit.Test;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
+import fr.gouv.vitam.access.config.AccessConfiguration;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.junit.JunitHelper;
@@ -48,7 +49,7 @@ import fr.gouv.vitam.common.server.VitamServer;
  */
 public class AccessApplicationTest {
 
-    private final AccessApplication application = new AccessApplication();
+    private AccessApplication application;
     private final JunitHelper junitHelper = JunitHelper.getInstance();
     private int portAvailable;
 
@@ -61,43 +62,40 @@ public class AccessApplicationTest {
 
     @After
     public void tearDown() throws Exception {
-        if (application != null && AccessApplication.getVitamServer() != null &&
-            AccessApplication.getVitamServer().getServer() != null) {
-
-            AccessApplication.getVitamServer().getServer().stop();
+        if (application != null) {
+            application.stop();
         }
         junitHelper.releasePort(portAvailable);
     }
 
     @Test(expected = Exception.class)
     public void shouldRaiseAnExceptionWhenConfigureApplicationWithEmptyArgs() throws Exception {
-        AccessApplication.startApplication("");
+        application = new AccessApplication((String) null);
     }
 
-    @Test
+    @Test(expected = Exception.class)
+    public void shouldRaiseAnExceptionWhenConfigureApplicationWithEmptyConfig() throws Exception {
+        application = new AccessApplication((AccessConfiguration) null);
+    }
+
+    @Test(expected = IllegalStateException.class)
     public void shouldRaiseAnExceptionWhenConfigureApplicationWithFileNotFound() throws Exception {
-        AccessApplication.startApplication("notFound.conf");
+        application = new AccessApplication("notFound.conf");
     }
 
     @Test
     public void shouldRunServerWhenConfigureApplicationWithFileExists() throws Exception {
-        AccessApplication.startApplication("access-test.conf");
-        Assert.assertTrue(AccessApplication.getVitamServer().getServer().isStarted());
+        application = new AccessApplication("access-test.conf");
+        Assert.assertFalse(application.getVitamServer().isStarted());
+        application.start();
+        Assert.assertTrue(application.getVitamServer().isStarted());
+        application.stop();
+        Assert.assertFalse(application.getVitamServer().isStarted());
     }
 
-    @Test(expected = VitamException.class)
+    @Test(expected = IllegalStateException.class)
     public void shouldThrowExceptionWhenConfigureApplicationWithFileErr1() throws Exception {
-        AccessApplication.startApplication("access-test-err1.conf");
-        Assert.assertFalse(AccessApplication.getVitamServer().getServer().isStarted());
-    }
-
-    @Test
-    public void shouldStopServerWhenStopApplicationWithFileExistsAndRun() throws Exception {
-        AccessApplication.startApplication("access-test.conf");
-        Assert.assertTrue(AccessApplication.getVitamServer().getServer().isStarted());
-
-        AccessApplication.stop();
-        Assert.assertTrue(AccessApplication.getVitamServer().getServer().isStopped());
+        application = new AccessApplication("access-test-err1.conf");
     }
 
     /*
@@ -120,53 +118,46 @@ public class AccessApplicationTest {
      * assertNotNull(response); assertEquals(200, response.getStatus()); }
      */
 
-
-    @Test(expected = Exception.class)
-    public void shouldRaiseAnException_WhenExecuteMainWithEmptyArgs() throws VitamException {
-        AccessApplication.startApplication(null);
-    }
-
     @Test
     public void shouldHeaderStripXSSWhenFilterThenReturnReturnNotAcceptable() throws VitamException {
-        AccessApplication.startApplication("src/test/resources/access-test.conf");
+        application = new AccessApplication("access-test.conf");
+        try {
+            application.start();
+            RestAssured.port = portAvailable;
+            RestAssured.basePath = "access/v1";
 
-        RestAssured.port = portAvailable;
-        RestAssured.basePath = "access/v1";
-
-        given()
-            .contentType(ContentType.JSON)
-            .header("test", "<script>(.*?)</script>")
-            .body("{\"name\":\"123\"}")
-            .when()
-            .put("/units/1")
-            .then()
-            .statusCode(Status.NOT_ACCEPTABLE.getStatusCode());
-
-
-        // TODO: update metadata client to return mock response
-        given()
-            .contentType(ContentType.JSON)
-            .body("{\"name\":\"123\"}")
-            .when()
-            .put("/units/1")
-            .then()
-            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            given()
+                .contentType(ContentType.JSON)
+                .header("test", "<script>(.*?)</script>")
+                .body("{\"name\":\"123\"}")
+                .when()
+                .put("/units/1")
+                .then()
+                .statusCode(Status.NOT_ACCEPTABLE.getStatusCode());
+        } finally {
+            application.stop();
+        }
     }
 
     @Test
     public void shouldParamStripXSSWhenFilterThenReturnReturnNotAcceptable() throws VitamException {
-        AccessApplication.startApplication("src/test/resources/access-test.conf");
+        application = new AccessApplication("access-test.conf");
+        try {
+            application.start();
 
-        RestAssured.port = portAvailable;
-        RestAssured.basePath = "access/v1";
+            RestAssured.port = portAvailable;
+            RestAssured.basePath = "access/v1";
 
-        given()
-            .contentType(ContentType.JSON)
-            .param("test", "<?php echo\" Hello \" ?>")
-            .body("{\"name\":\"123\"}")
-            .when()
-            .put("/units/1")
-            .then()
-            .statusCode(Status.NOT_ACCEPTABLE.getStatusCode());
+            given()
+                .contentType(ContentType.JSON)
+                .param("test", "<?php echo\" Hello \" ?>")
+                .body("{\"name\":\"123\"}")
+                .when()
+                .put("/units/1")
+                .then()
+                .statusCode(Status.NOT_ACCEPTABLE.getStatusCode());
+        } finally {
+            application.stop();
+        }
     }
 }

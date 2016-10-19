@@ -47,7 +47,7 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
  * GET
  * public void getInputStream(@Suspended AsyncResponse asyncResponse) {
      final FutureResponseHelper futureResponseHelper = new FutureResponseHelper(asyncResponse);
-     futureResponseHelper.startReponse(new AsyncRunnable() {
+     futureResponseHelper.startAsyncRunnable(new AsyncRunnable() {
 
        Override
        public Response run() {

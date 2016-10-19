@@ -381,39 +381,21 @@ public class LogbookLifeCyclesClientRestTest extends VitamJerseyTest {
         client.update(log);
     }
 
-
-    @Test
-    public void selectLifeCycle() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Response.Status.OK).build());
-        final String id = "ushshsjskqlqlqlqqmqm";
-        client.selectLifeCycles(id);
-    }
-
-    @Test
-    public void selectLifeCycleById() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Response.Status.OK).build());
-        final String id = "ushshsjskqlqlqlqqmqm";
-        client.selectLifeCyclesById(id);
-    }
-
-
-    @Ignore
-    @Test
+    @Test(expected = LogbookClientNotFoundException.class)
     public void commitExecutionObjectGroupLifeCycle() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Response.Status.OK).build());
+        when(mock.put()).thenReturn(Response.status(Response.Status.OK).build());
+        final LogbookLifeCycleObjectGroupParameters log = getCompleteLifeCycleObjectGroupParameters();
+        client.commit(log);
+    }
+
+    @Test(expected = LogbookClientNotFoundException.class)
+    public void commitExecutionObjectGroupLifeCycle_ThrowLogBookNotFound() throws Exception {
+        when(mock.put()).thenReturn(Response.status(Response.Status.OK).build());
         final LogbookLifeCycleObjectGroupParameters log = getCompleteLifeCycleObjectGroupParameters();
         client.commit(log);
     }
 
     @Test(expected = LogbookClientServerException.class)
-    public void commitExecutionObjectGroupLifeCycle_ThrowLogBookNotFound() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Response.Status.OK).build());
-        final LogbookLifeCycleObjectGroupParameters log = getCompleteLifeCycleObjectGroupParameters();
-        client.commit(log);
-    }
-
-    @Ignore
-    @Test
     public void rollbacktExecutionObjectGroup() throws Exception {
         when(mock.delete()).thenReturn(Response.status(Response.Status.OK).build());
         final LogbookLifeCycleObjectGroupParameters log = getCompleteLifeCycleObjectGroupParameters();

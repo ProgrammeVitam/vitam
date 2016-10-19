@@ -218,6 +218,7 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
             .register(JacksonFeature.class)
             // Register a Generic Exception Mapper
             .register(new GenericExceptionMapper());
+        // Use chunk size also in response
         resourceConfig.property(ServerProperties.OUTBOUND_CONTENT_LENGTH_BUFFER, VitamConfiguration.getChunkSize());
         // Not supported MultiPartFeature.class
         registerInResourceConfig(resourceConfig);

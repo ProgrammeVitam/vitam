@@ -49,10 +49,13 @@ import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Strings;
 
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
@@ -84,6 +87,7 @@ import fr.gouv.vitam.logbook.operations.core.LogbookOperationsImpl;
  */
 @Path("/logbook/v1")
 public class LogbookResource extends ApplicationStatusResource {
+    private static final int MAX_NB_PART_ITERATOR = 100;
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookResource.class);
     private final LogbookOperations logbookOperation;
     private final LogbookLifeCycles logbookLifeCycle;
@@ -163,7 +167,7 @@ public class LogbookResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createOrSelectOperation(@PathParam("id_op") String operationId,
-        LogbookOperationParameters operation, @HeaderParam("X-HTTP-Method-Override") String xhttpOverride)
+        LogbookOperationParameters operation, @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride)
         throws InvalidParseOperationException {
         if (xhttpOverride != null && "GET".equals(xhttpOverride)) {
             ParametersChecker.checkParameter("Operation id is required", operationId);
@@ -241,7 +245,6 @@ public class LogbookResource extends ApplicationStatusResource {
     }
 
     /**
-     * TODO : create a true GET with request in body
      *
      * @param query DSL as String
      * @return Response containt the list of loglook operation
@@ -311,7 +314,7 @@ public class LogbookResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response selectOperationWithPostOverride(String query,
-        @HeaderParam("X-HTTP-Method-Override") String xhttpOverride)
+        @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride)
         throws InvalidParseOperationException, LogbookNotFoundException, LogbookException, JsonGenerationException,
         JsonMappingException, IOException {
         Status status;
@@ -343,6 +346,73 @@ public class LogbookResource extends ApplicationStatusResource {
     }
 
     /***** LIFE CYCLES UNIT - START *****/
+
+    /**
+     * GET multiple Unit Life Cycles
+     *
+     * @param operationId the operation id
+     * @param xcursor if True means new query, if False means end of query from client side
+     * @param xcursorId if present, means continue on Cursor
+     * @param query as JsonNode
+     * @return the response with a specific HTTP status
+     */
+    @GET
+    @Path("/operations/{id_op}/unitlifecycles")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getUnitLifeCyclesByOperation(@PathParam("id_op") String operationId,
+        @HeaderParam(GlobalDataRest.X_CURSOR) boolean xcursor,
+        @HeaderParam(GlobalDataRest.X_CURSOR_ID) String xcursorId, String query) {
+        Status status;
+        try {
+            String cursorId = xcursorId;
+            if (!Strings.isNullOrEmpty(cursorId) && !xcursor) {
+                // terminate the cursor
+                logbookLifeCycle.finalizeCursor(cursorId);
+                return Response.status(Status.NO_CONTENT).build();
+            }
+            JsonNode nodeQuery = JsonHandler.createObjectNode();
+            if (xcursor && Strings.isNullOrEmpty(cursorId)) {
+                // check null or empty parameters
+                ParametersChecker.checkParameter("Arguments must not be null", operationId, query);
+                // create the cursor
+                nodeQuery = JsonHandler.getFromString(query);
+                cursorId = logbookLifeCycle.createCursorUnit(operationId, nodeQuery);
+            }
+            fr.gouv.vitam.common.model.RequestResponseOK responseOK =
+                new fr.gouv.vitam.common.model.RequestResponseOK().setQuery(nodeQuery);
+            int nb = 0;
+            try {
+                for (; nb < MAX_NB_PART_ITERATOR; nb++) {
+                    LogbookLifeCycleUnit lcUnit = logbookLifeCycle.getCursorUnitNext(cursorId);
+                    responseOK.addResult(JsonHandler.unprettyPrint(lcUnit));
+                }
+            } catch (LogbookNotFoundException e) {
+                // Ignore
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
+            return Response.status(nb < MAX_NB_PART_ITERATOR ? Status.OK : Status.PARTIAL_CONTENT)
+                .entity(new fr.gouv.vitam.common.model.RequestResponseOK()
+                    .setHits(nb, 0, nb).setQuery(nodeQuery))
+                .build();
+        } catch (final LogbookDatabaseException exc) {
+            LOGGER.error(exc);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                    .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase())))
+                .build();
+        } catch (final IllegalArgumentException | InvalidParseOperationException exc) {
+            LOGGER.error(exc);
+            status = Status.BAD_REQUEST;
+            return Response.status(status)
+                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                    .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase())))
+                .build();
+        }
+    }
 
     /**
      * Create Unit Life Cycle
@@ -569,6 +639,72 @@ public class LogbookResource extends ApplicationStatusResource {
     /***** LIFE CYCLES UNIT - END *****/
 
     /***** LIFE CYCLES OBJECT GROUP - START *****/
+    /**
+     * GET multiple Unit Life Cycles
+     *
+     * @param operationId the operation id
+     * @param xcursor if True means new query, if False means end of query from client side
+     * @param xcursorId if present, means continue on Cursor
+     * @param query as JsonNode
+     * @return the response with a specific HTTP status
+     */
+    @GET
+    @Path("/operations/{id_op}/objectgrouplifecycles")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getObjectGroupLifeCyclesByOperation(@PathParam("id_op") String operationId,
+        @HeaderParam(GlobalDataRest.X_CURSOR) boolean xcursor,
+        @HeaderParam(GlobalDataRest.X_CURSOR_ID) String xcursorId, String query) {
+        Status status;
+        try {
+            String cursorId = xcursorId;
+            if (!Strings.isNullOrEmpty(cursorId) && !xcursor) {
+                // terminate the cursor
+                logbookLifeCycle.finalizeCursor(cursorId);
+                return Response.status(Status.NO_CONTENT).build();
+            }
+            JsonNode nodeQuery = JsonHandler.createObjectNode();
+            if (xcursor && Strings.isNullOrEmpty(cursorId)) {
+                // check null or empty parameters
+                ParametersChecker.checkParameter("Arguments must not be null", operationId, query);
+                // create the cursor
+                nodeQuery = JsonHandler.getFromString(query);
+                cursorId = logbookLifeCycle.createCursorUnit(operationId, nodeQuery);
+            }
+            fr.gouv.vitam.common.model.RequestResponseOK responseOK =
+                new fr.gouv.vitam.common.model.RequestResponseOK().setQuery(nodeQuery);
+            int nb = 0;
+            try {
+                for (; nb < MAX_NB_PART_ITERATOR; nb++) {
+                    LogbookLifeCycleObjectGroup lcObjectGroup = logbookLifeCycle.getCursorObjectGroupNext(cursorId);
+                    responseOK.addResult(JsonHandler.unprettyPrint(lcObjectGroup));
+                }
+            } catch (LogbookNotFoundException e) {
+                // Ignore
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
+            return Response.status(nb < MAX_NB_PART_ITERATOR ? Status.OK : Status.PARTIAL_CONTENT)
+                .entity(new fr.gouv.vitam.common.model.RequestResponseOK()
+                    .setHits(nb, 0, nb).setQuery(nodeQuery))
+                .build();
+        } catch (final LogbookDatabaseException exc) {
+            LOGGER.error(exc);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                    .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase())))
+                .build();
+        } catch (final IllegalArgumentException | InvalidParseOperationException exc) {
+            LOGGER.error(exc);
+            status = Status.BAD_REQUEST;
+            return Response.status(status)
+                .entity(new RequestResponseError().setError(new VitamError(status.getStatusCode())
+                    .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase())))
+                .build();
+        }
+    }
 
     /**
      * Create object Group Life Cycle

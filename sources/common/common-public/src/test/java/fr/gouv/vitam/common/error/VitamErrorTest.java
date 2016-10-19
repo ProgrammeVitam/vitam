@@ -43,8 +43,10 @@ public class VitamErrorTest {
 
     private static VitamError vitamError = new VitamError("1");
 
-    private static final String ERROR_JSON = "{\"code\":\"0\",\"context\":\"context\",\"state\":\"state\"," +
-        "\"message\":\"message\",\"description\":\"description\",\"errors\":[{\"code\":\"1\"}]}";
+    private static final String ERROR_JSON =
+        "{\"httpCode\":0,\"code\":\"0\",\"context\":\"context\",\"state\":\"state\"," +
+        "\"message\":\"message\",\"description\":\"description\",\"errors\":" +
+        "[{\"httpCode\":0,\"code\":\"1\"}]}";
 
     @Test
     public void testSetGetCode() throws Exception {
@@ -92,6 +94,7 @@ public class VitamErrorTest {
         error.setState("state");
         error.setContext("context");
         error.setErrors(Collections.singletonList(new VitamError("1")));
+        System.err.println(error.toString());
         assertEquals(ERROR_JSON, error.toString());
     }
 }

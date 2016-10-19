@@ -24,95 +24,79 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+
 package fr.gouv.vitam.common.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.common.ParametersChecker;
-
-
 /**
- * Access RequestResponseOK class contains list of results<br>
- * default results : is an empty list (immutable)
- *
+ * DatabaseCursor class Show database position of request response
  */
-public final class RequestResponseOK extends RequestResponse {
-    private DatabaseCursor hits;
-    private List<String> results;
+/*
+ * TODO ; refactor to the common vitam
+ */
+public class DatabaseCursor {
+    private int total;
+    private int offset;
+    private int limit;
 
     /**
-     * Empty RequestResponseError constructor
+     * DatabaseCursor constructor
      *
-     **/
-    public RequestResponseOK() {
-        results = new ArrayList<>();
+     * @param total total of units inserted/modified
+     * @param offset the offset of unit in database
+     * @param limit number limit of unit per response
+     */
+    public DatabaseCursor(int total, int offset, int limit) {
+        this.total = total;
+        this.offset = offset;
+        this.limit = limit;
     }
 
     /**
-     * Add one result
-     * 
-     * @param result
-     * @return this
+     * @return the total of units inserted/modified
      */
-    public RequestResponseOK addResult(String result) {
-        ParametersChecker.checkParameter("Result is a mandatory parameter", result);
-        results.add(result);
-        return this;
-    }
-    /**
-     * Add list of results
-     *
-     * @param resultList the list of results
-     * @return RequestResponseOK with mutable results list of String
-     */
-    public RequestResponseOK addAllResults(List<String> resultList) {
-        ParametersChecker.checkParameter("Result list is a mandatory parameter", resultList);
-        results.addAll(resultList);
-        return this;
-    }
-
-
-    /**
-     * @return the hits of RequestResponseOK object
-     */
-    public DatabaseCursor getHits() {
-        return hits;
+    public int getTotal() {
+        return total;
     }
 
     /**
-     * @param hits as DatabaseCursor object
-     * @return RequestReponseOK with the hits are setted
+     * @param total of units as integer
+     * @return the DatabaseCursor with the total is setted
      */
-    public RequestResponseOK setHits(DatabaseCursor hits) {
-        this.hits = hits;
+    public DatabaseCursor setTotal(int total) {
+        this.total = total;
         return this;
     }
 
     /**
-     * @param total of units inserted/modified as integer
-     * @param offset of unit in database as integer
-     * @param limit of unit per response as integer
-     * @return the RequestReponseOK with the hits are setted
+     * @return the offset of units in database
      */
-    public RequestResponseOK setHits(int total, int offset, int limit) {
-        hits = new DatabaseCursor(total, offset, limit);
+    public int getOffset() {
+        return offset;
+    }
+
+
+    /**
+     * @param offset the offset of units in database
+     * @return the DatabaseCursor with the offset is setted
+     */
+    public DatabaseCursor setOffset(int offset) {
+        this.offset = offset;
         return this;
     }
 
     /**
-     * @return the result of RequestResponse as a list of String
+     * @return the limit of units per response
      */
-    public List<String> getResults() {
-        return results;
+    public int getLimit() {
+        return limit;
     }
 
-    @Override
-    public RequestResponseOK setQuery(JsonNode query) {
-        super.setQuery(query);
+    /**
+     * @param limit limit of units as integer
+     * @return the DatabaseCursor with the limits of units is setted
+     */
+    public DatabaseCursor setLimit(int limit) {
+        this.limit = limit;
         return this;
     }
-
 }

@@ -34,9 +34,12 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 import javax.ws.rs.ProcessingException;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.AfterClass;
@@ -54,6 +57,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.access.api.AccessBinaryData;
 import fr.gouv.vitam.access.common.exception.AccessExecutionException;
 import fr.gouv.vitam.access.config.AccessConfiguration;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -72,11 +76,14 @@ import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({MetaDataClientFactory.class, LogbookOperationsClientFactory.class, LogbookLifeCyclesClientFactory.class})
+@PrepareForTest({MetaDataClientFactory.class, LogbookOperationsClientFactory.class,
+    LogbookLifeCyclesClientFactory.class, StorageClientFactory.class})
 public class AccessModuleImplTest {
 
     private static String HOST = "http:\\localhost:";
@@ -89,6 +96,7 @@ public class AccessModuleImplTest {
 
     private LogbookOperationsClient logbookOperationClient;
     private LogbookLifeCyclesClient logbookLifeCycleClient;
+    private StorageClient storageClient;
 
     private static JunitHelper junitHelper;
     private static int serverPort;
@@ -143,6 +151,11 @@ public class AccessModuleImplTest {
         PowerMockito.mockStatic(LogbookOperationsClientFactory.class);
         PowerMockito.when(LogbookOperationsClientFactory.getInstance()).thenReturn(factoryop);
         PowerMockito.when(factoryop.getClient()).thenReturn(logbookOperationClient);
+        storageClient = mock(StorageClient.class);
+        StorageClientFactory factoryst = mock(StorageClientFactory.class);
+        PowerMockito.mockStatic(StorageClientFactory.class);
+        PowerMockito.when(StorageClientFactory.getInstance()).thenReturn(factoryst);
+        PowerMockito.when(factoryst.getStorageClient()).thenReturn(storageClient);
         conf = new AccessConfiguration();
         conf.setUrlMetaData(HOST);
         accessModuleImpl = new AccessModuleImpl(conf);
@@ -467,10 +480,18 @@ public class AccessModuleImplTest {
     public void testGetOneObjectFromObjectGroup_OK() throws Exception {
         when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString()))
             .thenReturn(FromStringToJson(FAKE_METADATA_RESULT));
-        final InputStream binaryMaster =
-            accessModuleImpl.getOneObjectFromObjectGroup(ID, FromStringToJson(QUERY), "BinaryMaster", 0, "0");
+        Response responseMock = mock(Response.class);
+        when(responseMock.readEntity(InputStream.class))
+            .thenReturn(new ByteArrayInputStream(FAKE_METADATA_RESULT.getBytes()));
+        when(storageClient.getContainerAsync(anyString(), anyString(), anyString(),
+            anyObject()))
+                .thenReturn(responseMock);
+        final AccessBinaryData abd =
+            accessModuleImpl.getOneObjectFromObjectGroup(null, ID, FromStringToJson(QUERY), "BinaryMaster", 0, "0");
+        assertNotNull(abd);
+        final InputStream binaryMaster = abd.getInputStream();
         assertNotNull(binaryMaster);
-        final InputStream stream2 = IOUtils.toInputStream("Vitam test");
+        final InputStream stream2 = IOUtils.toInputStream(FAKE_METADATA_RESULT);
         assertTrue(IOUtils.contentEquals(binaryMaster, stream2));
     }
 
@@ -478,24 +499,24 @@ public class AccessModuleImplTest {
     public void testGetOneObjectFromObjectGroup_With_Multiple_Result() throws Exception {
         when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString()))
             .thenReturn(FromStringToJson(FAKE_METADATA_MULTIPLE_RESULT));
-        accessModuleImpl.getOneObjectFromObjectGroup(ID, FromStringToJson(QUERY), "BinaryMaster", 0, "0");
+        accessModuleImpl.getOneObjectFromObjectGroup(null, ID, FromStringToJson(QUERY), "BinaryMaster", 0, "0");
     }
 
     @Test(expected = AccessExecutionException.class)
     public void testGetOneObjectFromObjectGroup_With_Result_Null() throws Exception {
         when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString())).thenReturn(null);
-        accessModuleImpl.getOneObjectFromObjectGroup(ID, FromStringToJson(QUERY), "BinaryMaster", 0, "0");
+        accessModuleImpl.getOneObjectFromObjectGroup(null, ID, FromStringToJson(QUERY), "BinaryMaster", 0, "0");
     }
 
     @Test(expected = AccessExecutionException.class)
     public void testGetOneObjectFromObjectGroup_With_StorageClient_Error() throws Exception {
-        final StorageClient mockStorageClient = mock(StorageClient.class);
         when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString()))
             .thenReturn(FromStringToJson(FAKE_METADATA_RESULT));
-        when(mockStorageClient.getContainer(anyString(), anyString(), anyString(), anyObject()))
-            .thenThrow(new StorageServerClientException("Test wanted exception"));
-        accessModuleImpl = new AccessModuleImpl(conf, mockStorageClient);
-        accessModuleImpl.getOneObjectFromObjectGroup(ID, FromStringToJson(QUERY), "BinaryMaster", 0, "0");
+        when(storageClient.getContainerAsync(anyString(), anyString(), anyString(),
+            anyObject()))
+                .thenThrow(new StorageServerClientException("Test wanted exception"));
+        accessModuleImpl = new AccessModuleImpl(conf, storageClient);
+        accessModuleImpl.getOneObjectFromObjectGroup(null, ID, FromStringToJson(QUERY), "BinaryMaster", 0, "0");
     }
 
 }

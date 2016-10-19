@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.digest.DigestType;
 public final class BinaryObjectInfo {
     private String id;
     private String version;
+    private int rank = 1;
     private String uri;
     private String messageDigest;
     private long size;
@@ -82,6 +83,7 @@ public final class BinaryObjectInfo {
     }
 
     /**
+     * @param uri 
      * @param String the uri of the binary data to set
      * @return BinaryObjectInfo
      */
@@ -139,6 +141,24 @@ public final class BinaryObjectInfo {
     public BinaryObjectInfo setAlgo(DigestType algo) {
         ParametersChecker.checkParameter("algo is a mandatory parameter", algo);
         this.algo = algo;
+        return this;
+    }
+
+    /**
+     * 
+     * @return the rank in version
+     */
+    public int getRank() {
+        return rank;
+    }
+
+    /**
+     * 
+     * @param rank the rank in version
+     * @return this
+     */
+    public BinaryObjectInfo setRank(int rank) {
+        this.rank = rank;
         return this;
     }
 

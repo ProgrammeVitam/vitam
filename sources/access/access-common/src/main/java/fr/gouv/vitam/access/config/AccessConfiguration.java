@@ -26,14 +26,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.config;
 
+import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
 
 /**
  * AccessConfiguration contains database access informations
  */
-public class AccessConfiguration {
+public class AccessConfiguration extends DefaultVitamApplicationConfiguration {
 
     private String urlMetaData;
-    private String jettyConfig;
 
 
     /**
@@ -66,30 +66,10 @@ public class AccessConfiguration {
      * setter UrlMetaData
      *
      * @param urlMetaData
+     * @return this
      */
-    // TODO @return missing
     public AccessConfiguration setUrlMetaData(String urlMetaData) {
         this.urlMetaData = urlMetaData;
-        return this;
-    }
-
-    /**
-     * getter jettyConfig
-     * 
-     * @return
-     */
-    public String getJettyConfig() {
-        return jettyConfig;
-    }
-
-    /**
-     * setter jettyConfig
-     * 
-     * @param jettyConfig the jetty config
-     * @return
-     */
-    public AccessConfiguration setJettyConfig(String jettyConfig) {
-        this.jettyConfig = jettyConfig;
         return this;
     }
 }

@@ -30,11 +30,15 @@ import java.io.InputStream;
 import java.util.List;
 
 import javax.ws.rs.ProcessingException;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.base.Strings;
 
+import fr.gouv.vitam.access.api.AccessBinaryData;
 import fr.gouv.vitam.access.api.AccessModule;
 import fr.gouv.vitam.access.api.DataCategory;
 import fr.gouv.vitam.access.common.exception.AccessExecutionException;
@@ -56,6 +60,7 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.server2.application.FutureResponseHelper.AsyncRunnable;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -234,18 +239,14 @@ public class AccessModuleImpl implements AccessModule {
     }
 
     @Override
-    public InputStream getOneObjectFromObjectGroup(String idObjectGroup, JsonNode queryJson, String qualifier,
-        int version, String tenantId)
+    public AccessBinaryData getOneObjectFromObjectGroup(AsyncRunnable runnable, String idObjectGroup,
+        JsonNode queryJson, String qualifier, int version, String tenantId)
         throws MetaDataNotFoundException, StorageNotFoundException, AccessExecutionException,
         InvalidParseOperationException {
         ParametersChecker.checkParameter("ObjectGroup id should be filled", idObjectGroup);
         ParametersChecker.checkParameter("You must specify a valid object qualifier", qualifier);
         ParametersChecker.checkParameter("You must specify a valid tenant", tenantId);
         ParametersChecker.checkValue("version", version, 0);
-        // TODO : add 'space' and 'tab' handling in checkParameter
-        ParametersChecker.checkParameter("ObjectGroup id should be filled", idObjectGroup.trim());
-        ParametersChecker.checkParameter("You must specify a valid object qualifier", qualifier.trim());
-        ParametersChecker.checkParameter("You must specify a valid tenant", tenantId.trim());
 
         final SelectParserMultiple selectRequest = new SelectParserMultiple();
         selectRequest.parse(queryJson);
@@ -265,10 +266,36 @@ public class AccessModuleImpl implements AccessModule {
             final String ids = valuesAsText.stream().reduce((s, s2) -> s + ", " + s2).get();
             throw new AccessExecutionException("More than one object founds. Ids are : " + ids);
         }
+        String mimetype = null;
+        String filename = null;
+        JsonNode node = jsonResponse.get("$result").get("FormatIdentification");
+        if (node != null) {
+            node = node.get("MimeType");
+            if (node != null) {
+                mimetype = node.asText();
+            }
+        }
+        node = jsonResponse.get("$result").get("FileInfo");
+        if (node != null) {
+            node = node.get("Filename");
+            if (node != null) {
+                filename = node.asText();
+            }
+        }
+        if (Strings.isNullOrEmpty(mimetype)) {
+            mimetype = MediaType.APPLICATION_OCTET_STREAM;
+        }
         final String objectId = valuesAsText.get(0);
+        if (Strings.isNullOrEmpty(filename)) {
+            filename = objectId;
+        }
         try {
-            return storageClient.getContainer(tenantId, DEFAULT_STORAGE_STRATEGY, objectId,
+            Response response = storageClient.getContainerAsync(tenantId, DEFAULT_STORAGE_STRATEGY, objectId,
                 StorageCollectionType.OBJECTS);
+            if (runnable != null) {
+                runnable.setInnerClientResponseToCloseOnSent(response);
+            }
+            return new AccessBinaryData(filename, mimetype, response.readEntity(InputStream.class));
         } catch (final StorageServerClientException e) {
             throw new AccessExecutionException(e);
         }
@@ -312,7 +339,7 @@ public class AccessModuleImpl implements AccessModule {
 
             metaDataClient = MetaDataClientFactory.create(accessConfiguration.getUrlMetaData());
 
-            if (! mock) {
+            if (!mock) {
                 logbookOperationClient = LogbookOperationsClientFactory.getInstance().getClient();
                 logbookLifeCycleClient = LogbookLifeCyclesClientFactory.getInstance().getClient();
             }
@@ -381,7 +408,7 @@ public class AccessModuleImpl implements AccessModule {
             LOGGER.error("logbook operation already exists", e);
             throw new AccessExecutionException(e);
         } finally {
-            if (! mock) {
+            if (!mock) {
                 logbookOperationClient.close();
                 logbookOperationClient = null;
                 logbookLifeCycleClient.close();

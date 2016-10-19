@@ -59,6 +59,7 @@ import org.junit.Test;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
+import fr.gouv.vitam.access.api.AccessBinaryData;
 import fr.gouv.vitam.access.api.AccessModule;
 import fr.gouv.vitam.access.common.exception.AccessExecutionException;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -86,7 +87,7 @@ public class AccessResourceImplTest {
     private static final String ACCESS_UNITS_ID_URI = "/units/xyz";
     private static final String ACCESS_UPDATE_UNITS_ID_URI = "/units/xyz";
 
-    private static VitamServer vitamServer;
+    private static AccessApplication application;
 
     // QUERIES AND DSL
     // TODO
@@ -123,10 +124,11 @@ public class AccessResourceImplTest {
     public static void setUpBeforeClass() throws Exception {
         junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
+        mock = mock(AccessModule.class);
+        AccessApplication.mock = mock;
         try {
-            vitamServer = buildTestServer();
-            ((BasicVitamServer) vitamServer).start();
-
+            application = new AccessApplication(ACCESS_CONF);
+            application.start();
             RestAssured.port = port;
             RestAssured.basePath = ACCESS_RESOURCE_URI;
 
@@ -138,32 +140,11 @@ public class AccessResourceImplTest {
         }
     }
 
-    private static VitamServer buildTestServer() throws VitamApplicationServerException {
-        final VitamServer vitamServer = VitamServerFactory.newVitamServer(port);
-
-
-        final ResourceConfig resourceConfig = new ResourceConfig();
-        resourceConfig.register(JacksonFeature.class);
-        mock = mock(AccessModule.class);
-        resourceConfig.register(new AccessResourceImpl(mock));
-
-        final ServletContainer servletContainer = new ServletContainer(resourceConfig);
-        final ServletHolder sh = new ServletHolder(servletContainer);
-        final ServletContextHandler contextHandler = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
-        contextHandler.setContextPath("/");
-        contextHandler.addServlet(sh, "/*");
-
-        final HandlerList handlers = new HandlerList();
-        handlers.setHandlers(new Handler[] {contextHandler});
-        vitamServer.configure(contextHandler);
-        return vitamServer;
-    }
-
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
         try {
-            ((BasicVitamServer) vitamServer).stop();
+            application.stop();
             junitHelper.releasePort(port);
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
@@ -502,8 +483,9 @@ public class AccessResourceImplTest {
     @Test
     public void getObjectStreamOk() throws Exception {
         reset(mock);
-        when(mock.getOneObjectFromObjectGroup(anyString(), anyObject(), anyString(), anyInt(), anyString()))
-            .thenReturn(new ByteArrayInputStream("test".getBytes()));
+        when(
+            mock.getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt(), anyString()))
+                .thenReturn(new AccessBinaryData("test", MediaType.APPLICATION_OCTET_STREAM, new ByteArrayInputStream("test".getBytes())));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeaders()).body(BODY_TEST).when().get(OBJECTS_URI + OBJECT_ID).then()
@@ -513,8 +495,9 @@ public class AccessResourceImplTest {
     @Test
     public void getObjectStreamPostOK() throws Exception {
         reset(mock);
-        when(mock.getOneObjectFromObjectGroup(anyString(), anyObject(), anyString(), anyInt(), anyString()))
-            .thenReturn(new ByteArrayInputStream("test".getBytes()));
+        when(
+            mock.getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt(), anyString()))
+                .thenReturn(new AccessBinaryData("test", MediaType.APPLICATION_OCTET_STREAM, new ByteArrayInputStream("test".getBytes())));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM).body(BODY_TEST)
             .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
@@ -562,16 +545,18 @@ public class AccessResourceImplTest {
     @Test
     public void getObjectStreamNotFound() throws Exception {
         reset(mock);
-        when(mock.getOneObjectFromObjectGroup(anyString(), anyObject(), anyString(), anyInt(), anyString()))
-            .thenThrow(new StorageNotFoundException("test"));
+        when(
+            mock.getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt(), anyString()))
+                .thenThrow(new StorageNotFoundException("test"));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeaders()).body(BODY_TEST).when().get(OBJECTS_URI + OBJECT_ID).then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
 
         reset(mock);
-        when(mock.getOneObjectFromObjectGroup(anyString(), anyObject(), anyString(), anyInt(), anyString()))
-            .thenThrow(new MetaDataNotFoundException("test"));
+        when(
+            mock.getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt(), anyString()))
+                .thenThrow(new MetaDataNotFoundException("test"));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeaders()).body(BODY_TEST).when().get(OBJECTS_URI + OBJECT_ID).then()
@@ -582,8 +567,9 @@ public class AccessResourceImplTest {
     @Test
     public void getObjectStreamInternalServerError() throws Exception {
         reset(mock);
-        when(mock.getOneObjectFromObjectGroup(anyString(), anyObject(), anyString(), anyInt(), anyString()))
-            .thenThrow(new AccessExecutionException("Wanted exception"));
+        when(
+            mock.getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt(), anyString()))
+                .thenThrow(new AccessExecutionException("Wanted exception"));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeaders())

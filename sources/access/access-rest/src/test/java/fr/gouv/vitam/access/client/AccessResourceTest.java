@@ -53,7 +53,7 @@ public class AccessResourceTest {
     private static final String ACCESS_RESOURCE_URI = "access/v1";
 
     private static final String ACCESS_CONF = "access-test.conf";
-    private static AccessApplication application = new AccessApplication();
+    private static AccessApplication application;
     private static final String ID = "identifier8";
 
     private static JunitHelper junitHelper;
@@ -65,25 +65,20 @@ public class AccessResourceTest {
     public static void setUpBeforeClass() throws Exception {
         junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
-        try {
-            AccessApplication.startApplication(PropertiesUtils.getResourceFile(ACCESS_CONF).getAbsolutePath());
 
-            RestAssured.port = port;
-            RestAssured.basePath = ACCESS_RESOURCE_URI;
+        application = new AccessApplication(ACCESS_CONF);
+        application.start();
+        RestAssured.port = port;
+        RestAssured.basePath = ACCESS_RESOURCE_URI;
 
-            LOGGER.debug("Beginning tests");
-        } catch (final FileNotFoundException e) {
-            LOGGER.error(e);
-            throw new IllegalStateException(
-                "Cannot start the Access Application Server", e);
-        }
+        LOGGER.debug("Beginning tests");
     }
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
         try {
-            AccessApplication.stop();
+            application.stop();
             junitHelper.releasePort(serverPort);
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);

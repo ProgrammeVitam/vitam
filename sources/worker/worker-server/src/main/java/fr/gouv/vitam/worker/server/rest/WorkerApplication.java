@@ -47,7 +47,7 @@ public final class WorkerApplication extends AbstractVitamApplication<WorkerAppl
     private static final String CONF_FILE_NAME = "worker.conf";
     private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();
 
-    // Only for Junit
+    // Only for Junit FIXME
     static Worker mock = null;
     /**
      * WorkerApplication constructor

@@ -126,6 +126,11 @@ public class JunitHelper extends ExternalResource {
                 setJettyPortSystemProperty(port);
                 return port.intValue();
             }
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
         } while (true);
     }
 

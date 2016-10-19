@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
  */
 public class VitamError {
 
+    private int httpCode;
     private String code;
     private String context;
     private String state;
@@ -65,6 +66,23 @@ public class VitamError {
      */
     public VitamError setCode(String code) {
         this.code = code;
+        return this;
+    }
+
+    /**
+     * @return the httpCode
+     */
+    public int getHttpCode() {
+        return httpCode;
+    }
+
+    /**
+     * @param httpCode the httpCode to set
+     *
+     * @return this
+     */
+    public VitamError setHttpCode(int httpCode) {
+        this.httpCode = httpCode;
         return this;
     }
 

@@ -57,6 +57,7 @@ import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.SelectToMongoDb;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
@@ -263,7 +264,7 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
         throws LogbookDatabaseException, LogbookNotFoundException {
         ParametersChecker.checkParameter(SELECT_PARAMETER_IS_NULL, select);
 
-        // Temporary fix as the obIdIn (MessageIdentifier in the SEDA manifest) is only available on the 2 to last
+        // TODO Temporary fix as the obIdIn (MessageIdentifier in the SEDA manifest) is only available on the 2 to last
         // Logbook operation event . Must be removed when the processing will be reworked
         final ObjectNode operationSlice = JsonHandler.createObjectNode();
         operationSlice.putObject(LogbookDocument.EVENTS).put(SLICE, TWO_LAST_EVENTS_SLICE);
@@ -280,10 +281,34 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
 
     @SuppressWarnings("unchecked")
     @Override
+    public MongoCursor<LogbookLifeCycleUnit> getLogbookLifeCycleUnitsFull(Select select)
+        throws LogbookDatabaseException {
+        ParametersChecker.checkParameter(SELECT_PARAMETER_IS_NULL, select);
+        try {
+            return selectExecute(LogbookCollections.LIFECYCLE_UNIT, select);
+        } catch (InvalidParseOperationException e) {
+            throw new LogbookDatabaseException(e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
     public MongoCursor<LogbookLifeCycleObjectGroup> getLogbookLifeCycleObjectGroups(JsonNode select)
         throws LogbookDatabaseException, LogbookNotFoundException {
         ParametersChecker.checkParameter(SELECT_PARAMETER_IS_NULL, select);
         return select(LogbookCollections.LIFECYCLE_OBJECTGROUP, select);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public MongoCursor<LogbookLifeCycleObjectGroup> getLogbookLifeCycleObjectGroupsFull(Select select)
+        throws LogbookDatabaseException {
+        ParametersChecker.checkParameter(SELECT_PARAMETER_IS_NULL, select);
+        try {
+            return selectExecute(LogbookCollections.LIFECYCLE_OBJECTGROUP, select);
+        } catch (InvalidParseOperationException e) {
+            throw new LogbookDatabaseException(e);
+        }
     }
 
     /**
@@ -432,13 +457,27 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
         return select(collection, select, DEFAULT_SLICE);
     }
 
+    /**
+     * Select with slice possibility
+     * 
+     * @param collection
+     * @param select
+     * @param slice may be null
+     * @return the closeable MongoCursor
+     * @throws LogbookDatabaseException
+     * @throws LogbookNotFoundException
+     */
     @SuppressWarnings("rawtypes")
     private final MongoCursor select(final LogbookCollections collection, final JsonNode select, final ObjectNode slice)
         throws LogbookDatabaseException, LogbookNotFoundException {
         try {
             final SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
             parser.parse(select);
-            parser.addProjection(slice, DEFAULT_ALLKEYS);
+            if (slice == null) {
+                parser.addProjection(JsonHandler.createObjectNode(), DEFAULT_ALLKEYS);
+            } else {
+                parser.addProjection(slice, DEFAULT_ALLKEYS);
+            }
             return selectExecute(collection, parser);
         } catch (final InvalidParseOperationException e) {
             throw new LogbookDatabaseException(e);
@@ -471,6 +510,21 @@ public final class MongoDbAccessImpl implements MongoDbAccess {
             find = find.limit(limit);
         }
         return find.iterator();
+    }
+
+    /**
+     * @param collection
+     * @param parser
+     * @return the Closeable MongoCursor on the find request based on the given collection
+     * @throws InvalidParseOperationException
+     */
+    @SuppressWarnings("rawtypes")
+    private MongoCursor selectExecute(final LogbookCollections collection, Select select)
+        throws InvalidParseOperationException {
+        final SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
+        parser.parse(select.getFinalSelect());
+        parser.addProjection(JsonHandler.createObjectNode(), DEFAULT_ALLKEYS);
+        return selectExecute(collection, parser);
     }
 
     @SuppressWarnings("rawtypes")

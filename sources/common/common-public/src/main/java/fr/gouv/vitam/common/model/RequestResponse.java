@@ -34,7 +34,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
  * Abstract RequestResponse for all request response in Vitam
  *
  */
-abstract class RequestResponse {
+public abstract class RequestResponse {
     private JsonNode query;
 
     /**

@@ -26,16 +26,17 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.rest;
 
-import java.io.InputStream;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -44,6 +45,7 @@ import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.access.api.AccessBinaryData;
 import fr.gouv.vitam.access.api.AccessModule;
 import fr.gouv.vitam.access.api.AccessResource;
 import fr.gouv.vitam.access.common.exception.AccessExecutionException;
@@ -63,6 +65,8 @@ import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
 import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
+import fr.gouv.vitam.common.server2.application.FutureResponseHelper;
+import fr.gouv.vitam.common.server2.application.FutureResponseHelper.AsyncRunnable;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 
@@ -273,10 +277,13 @@ public class AccessResourceImpl extends ApplicationStatusResource implements Acc
     }
 
     @Override
+    /*
     @GET
     @Path("/objects/{id_object_group}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    */
+    // FIXME DEADCODE
     public Response getObjectStream(@Context HttpHeaders headers, @PathParam("id_object_group") String idObjectGroup,
         String query) {
         if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.TENANT_ID) ||
@@ -290,13 +297,13 @@ public class AccessResourceImpl extends ApplicationStatusResource implements Acc
         final String xQualifier = headers.getRequestHeader(GlobalDataRest.X_QUALIFIER).get(0);
         final String xVersion = headers.getRequestHeader(GlobalDataRest.X_VERSION).get(0);
         final String xTenantId = headers.getRequestHeader(GlobalDataRest.X_TENANT_ID).get(0);
-        InputStream result;
+        AccessBinaryData abd;
         try {
             HttpHeaderHelper.checkVitamHeaders(headers);
             ParametersChecker.checkParameter("Must have a dsl query", query);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(query));
             final JsonNode queryJson = JsonHandler.getFromString(query);
-            result = accessModule.getOneObjectFromObjectGroup(idObjectGroup, queryJson, xQualifier,
+            abd = accessModule.getOneObjectFromObjectGroup(null, idObjectGroup, queryJson, xQualifier,
                 Integer.valueOf(xVersion), xTenantId);
         } catch (final InvalidParseOperationException exc) {
             LOGGER.error(exc);
@@ -313,15 +320,105 @@ public class AccessResourceImpl extends ApplicationStatusResource implements Acc
             LOGGER.error(exc);
             return Response.status(Status.NOT_FOUND).entity(getErrorEntity(Status.NOT_FOUND).toString()).build();
         }
-        return Response.status(Status.OK).header("X-Qualifier", xQualifier).header("X-Version", xVersion).entity(result)
-            .build();
+        return Response.status(Status.OK).header("X-Qualifier", xQualifier).header("X-Version", xVersion)
+            .header("Content-Disposition", "attachment; filename=\"" + abd.getFilename() + "\"")
+            .entity(abd.getInputStream())
+            .type(abd.getMimetype()).build();
+    }
+    
+    private class AsyncRunnableObjectStream extends AsyncRunnable {
+        private final HttpHeaders headers;
+        private final String idObjectGroup;
+        private final String query;
+        private final boolean post;
+        
+        /**
+         * @param headers
+         * @param idObjectGroup
+         * @param query
+         * @param post 
+         */
+        public AsyncRunnableObjectStream(HttpHeaders headers, String idObjectGroup, String query, boolean post) {
+            this.headers = headers;
+            this.idObjectGroup = idObjectGroup;
+            this.query = query;
+            this.post = post;
+        }
+
+        @Override
+        public Response run() {
+            if (post) {
+                if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.METHOD_OVERRIDE)) {
+                    return Response.status(Status.PRECONDITION_FAILED)
+                        .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build();
+                }
+                final String xHttpOverride = headers.getRequestHeader(GlobalDataRest.X_HTTP_METHOD_OVERRIDE).get(0);
+                if (!HttpMethod.GET.equalsIgnoreCase(xHttpOverride)) {
+                    return Response.status(Status.METHOD_NOT_ALLOWED).entity(getErrorEntity(Status.METHOD_NOT_ALLOWED)
+                        .toString()).build();
+                }
+            }
+            if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.TENANT_ID) ||
+                !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.QUALIFIER) ||
+                !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.VERSION)) {
+                LOGGER.error("At least one required header is missing. Required headers: (" + VitamHttpHeader.TENANT_ID
+                    .name() + ", " + VitamHttpHeader.QUALIFIER.name() + ", " + VitamHttpHeader.VERSION.name() + ")");
+                return Response.status(Status.PRECONDITION_FAILED)
+                    .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build();
+            }
+            final String xQualifier = headers.getRequestHeader(GlobalDataRest.X_QUALIFIER).get(0);
+            final String xVersion = headers.getRequestHeader(GlobalDataRest.X_VERSION).get(0);
+            final String xTenantId = headers.getRequestHeader(GlobalDataRest.X_TENANT_ID).get(0);
+            AccessBinaryData abd;
+            try {
+                HttpHeaderHelper.checkVitamHeaders(headers);
+                ParametersChecker.checkParameter("Must have a dsl query", query);
+                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(query));
+                final JsonNode queryJson = JsonHandler.getFromString(query);
+                abd = accessModule.getOneObjectFromObjectGroup(this, idObjectGroup, queryJson, xQualifier,
+                    Integer.valueOf(xVersion), xTenantId);
+            } catch (final InvalidParseOperationException exc) {
+                LOGGER.error(exc);
+                return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST).toString()).build();
+            } catch (final IllegalArgumentException exc) {
+                LOGGER.error(exc);
+                return Response.status(Status.PRECONDITION_FAILED)
+                    .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build();
+            } catch (final AccessExecutionException exc) {
+                LOGGER.error(exc.getMessage(), exc);
+                return Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR)
+                    .toString()).build();
+            } catch (MetaDataNotFoundException | StorageNotFoundException exc) {
+                LOGGER.error(exc);
+                return Response.status(Status.NOT_FOUND).entity(getErrorEntity(Status.NOT_FOUND).toString()).build();
+            }
+            return Response.status(Status.OK).header("X-Qualifier", xQualifier).header("X-Version", xVersion)
+                .header("Content-Disposition", "attachment; filename=\"" + abd.getFilename() + "\"")
+                .entity(abd.getInputStream())
+                .type(abd.getMimetype()).build();
+        }
+        
     }
 
     @Override
+    @GET
+    @Path("/objects/{id_object_group}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public void getObjectStreamAsync(@Context HttpHeaders headers, @PathParam("id_object_group") String idObjectGroup,
+        String query, @Suspended final AsyncResponse asyncResponse) {
+        final FutureResponseHelper futureResponseHelper = new FutureResponseHelper(asyncResponse);
+        futureResponseHelper.startAsyncRunnable(new AsyncRunnableObjectStream(headers, idObjectGroup, query, false));
+    }
+
+    @Override
+    /*
     @POST
     @Path("/objects/{id_object_group}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    */
+    // FIXME DEADCODE
     public Response getObjectStreamPost(@Context HttpHeaders headers,
         @PathParam("id_object_group") String idObjectGroup, String query) {
         if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.METHOD_OVERRIDE)) {
@@ -334,6 +431,17 @@ public class AccessResourceImpl extends ApplicationStatusResource implements Acc
                 .toString()).build();
         }
         return getObjectStream(headers, idObjectGroup, query);
+    }
+
+    @Override
+    @POST
+    @Path("/objects/{id_object_group}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public void getObjectStreamPostAsync(@Context HttpHeaders headers,
+        @PathParam("id_object_group") String idObjectGroup, String query, @Suspended final AsyncResponse asyncResponse) {
+        final FutureResponseHelper futureResponseHelper = new FutureResponseHelper(asyncResponse);
+        futureResponseHelper.startAsyncRunnable(new AsyncRunnableObjectStream(headers, idObjectGroup, query, true));
     }
 
     private RequestResponseError getErrorEntity(Status status) {

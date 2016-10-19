@@ -67,10 +67,10 @@ public final class PropertiesUtils {
      */
     public static final InputStream getConfigAsStream(String resourcesFile) throws FileNotFoundException {
         File file = new File(resourcesFile);
-        if (!file.exists()) {
+        if (!file.canRead()) {
             file = PropertiesUtils.fileFromConfigFolder(resourcesFile);
         }
-        return file.exists() ? new FileInputStream(file) : getResourceAsStream(resourcesFile);
+        return file.canRead() ? new FileInputStream(file) : getResourceAsStream(resourcesFile);
     }
 
     /**
