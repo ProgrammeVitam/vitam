@@ -60,6 +60,8 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.ApplicationStatusResource;
 import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
+import fr.gouv.vitam.common.server.application.configuration.DbConfiguration;
+import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.function.administration.rules.core.RulesManagerFileImpl;
 import fr.gouv.vitam.functional.administration.accession.register.core.ReferentialAccessionRegisterImpl;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
@@ -81,6 +83,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     private final ReferentialFormatFileImpl formatManagement;
     private final RulesManagerFileImpl rulesFileManagement;
     private ReferentialAccessionRegisterImpl accessionRegisterManagement;
+    private final DbConfiguration adminConfiguration;
 
     /**
      * Constructor
@@ -89,9 +92,16 @@ public class AdminManagementResource extends ApplicationStatusResource {
      */
     public AdminManagementResource(AdminManagementConfiguration configuration) {
         super(new BasicVitamStatusServiceImpl());
-        formatManagement = new ReferentialFormatFileImpl(configuration);
-        rulesFileManagement = new RulesManagerFileImpl(configuration);
-        accessionRegisterManagement = new ReferentialAccessionRegisterImpl(configuration);
+        if (configuration.isDbAuthentication()){
+            adminConfiguration =
+                new DbConfigurationImpl(configuration.getDbHost(), configuration.getDbPort(), configuration.getDbName(), true, configuration.getDbUserName(), configuration.getDbPassword());            
+        } else {
+            adminConfiguration =
+                new DbConfigurationImpl(configuration.getDbHost(), configuration.getDbPort(), configuration.getDbName());
+        }
+        formatManagement = new ReferentialFormatFileImpl(adminConfiguration);
+        rulesFileManagement = new RulesManagerFileImpl(adminConfiguration);
+        accessionRegisterManagement = new ReferentialAccessionRegisterImpl(adminConfiguration);
         LOGGER.debug("init Admin Management Resource server");
     }
 

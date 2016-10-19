@@ -56,4 +56,25 @@ public interface DbConfiguration extends VitamApplicationConfiguration {
      * @return the database host value
      */
     String getDbName();
+    
+    /**
+     * Must return the value of a 'dbName' attribute
+     * 
+     * @return the database user name
+     */
+    String getDbUserName();
+    
+    /**
+     * Must return the value of a 'dbName' attribute
+     * 
+     * @return the database user's password
+     */
+    String getDbPassword();
+    
+    /**
+     * Must return the value of a 'dbName' attribute
+     * 
+     * @return boolean is autenticated or not
+     */
+    boolean isDbAuthentication();
 }

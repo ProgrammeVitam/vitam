@@ -55,6 +55,7 @@ import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 
 public class MetaDataApplicationTest {
     private static final String METADATA_CONF = "metadata.conf";
+    private static final String METADATA_AUTH_CONF = "metadata-auth.conf";
     private static MongodExecutable mongodExecutable;
     private final MetaDataApplication application = new MetaDataApplication();
     static MongodProcess mongod;
@@ -152,7 +153,7 @@ public class MetaDataApplicationTest {
     public void givenFileExistsWhenConfigureApplicationThenRunServer() throws Exception {
         final File conf = PropertiesUtils.findFile(METADATA_CONF);
         final MetaDataConfiguration config = PropertiesUtils.readYaml(conf, MetaDataConfiguration.class);
-        config.setPort(port);
+        config.setDbPort(port);
         config.getElasticsearchNodes().get(0).setTcpPort(TCP_PORT);
         final File newConf = File.createTempFile("test", METADATA_CONF, conf.getParentFile());
         PropertiesUtils.writeYaml(newConf, config);
@@ -167,7 +168,7 @@ public class MetaDataApplicationTest {
     public void givenConfigFileWhenConfigureApplicationThenRunServer() throws Exception {
         final File conf = PropertiesUtils.findFile(METADATA_CONF);
         final MetaDataConfiguration config = PropertiesUtils.readYaml(conf, MetaDataConfiguration.class);
-        config.setPort(port);
+        config.setDbPort(port);
         config.getElasticsearchNodes().get(0).setTcpPort(TCP_PORT);
         final File newConf = File.createTempFile("test", METADATA_CONF, conf.getParentFile());
         PropertiesUtils.writeYaml(newConf, config);
@@ -182,7 +183,7 @@ public class MetaDataApplicationTest {
     public void givenPortNegativeWhenConfigureApplicationThenUseDefaultPortToRunServer() throws Exception {
         final File conf = PropertiesUtils.findFile(METADATA_CONF);
         final MetaDataConfiguration config = PropertiesUtils.readYaml(conf, MetaDataConfiguration.class);
-        config.setPort(port);
+        config.setDbPort(port);
         config.getElasticsearchNodes().get(0).setTcpPort(TCP_PORT);
         final File newConf = File.createTempFile("test", METADATA_CONF, conf.getParentFile());
         PropertiesUtils.writeYaml(newConf, config);

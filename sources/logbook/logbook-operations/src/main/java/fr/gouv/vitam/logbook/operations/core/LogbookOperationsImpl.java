@@ -34,7 +34,7 @@ import com.mongodb.client.MongoCursor;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.server.MongoDbAccess;
+import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
@@ -45,14 +45,14 @@ import fr.gouv.vitam.logbook.operations.api.LogbookOperations;
  * Logbook Operations implementation base class
  */
 public class LogbookOperationsImpl implements LogbookOperations {
-    private final MongoDbAccess mongoDbAccess;
+    private final LogbookDbAccess mongoDbAccess;
 
     /**
      * Constructor
      *
      * @param mongoDbAccess
      */
-    public LogbookOperationsImpl(MongoDbAccess mongoDbAccess) {
+    public LogbookOperationsImpl(LogbookDbAccess mongoDbAccess) {
         this.mongoDbAccess = mongoDbAccess;
     }
 

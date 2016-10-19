@@ -30,10 +30,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.mongodb.MongoClient;
-import com.mongodb.ServerAddress;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.server.application.configuration.DbConfiguration;
 
 /**
@@ -55,11 +55,9 @@ public final class MongoDbAccessAdminFactory {
             classList.add(e.getClasz());
         }
         FunctionalAdminCollections.class.getEnumConstants();
-        return new MongoDbAccessAdminImpl(
-            new MongoClient(new ServerAddress(
-                configuration.getDbHost(),
-                configuration.getDbPort()),
-                VitamCollection.getMongoClientOptions(classList)),
-            configuration.getDbName(), true);
+        
+        MongoClient mongoClient =
+            MongoDbAccess.createMongoClient(configuration, VitamCollection.getMongoClientOptions(classList));
+        return new MongoDbAccessAdminImpl(mongoClient, configuration.getDbName(), true);
     }
 }

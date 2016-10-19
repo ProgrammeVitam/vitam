@@ -30,15 +30,14 @@ import java.util.List;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.server.application.configuration.DbConfiguration;
+import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 
 /**
  * MetaDataConfiguration contains database access informations
  */
-public final class MetaDataConfiguration {
+public final class MetaDataConfiguration extends DbConfigurationImpl {
 
-    private String host;
-    private int port;
-    private String dbName;
     private String jettyConfig;
     private String clusterName;
     private List<ElasticsearchNode> elasticsearchNodes;
@@ -54,15 +53,30 @@ public final class MetaDataConfiguration {
      */
     public MetaDataConfiguration(String host, int port, String dbName, String clusterName,
         List<ElasticsearchNode> elasticsearchNodes, String jettyConfig) {
-        ParametersChecker.checkParameter("Database address is a mandatory parameter", host);
-        ParametersChecker.checkParameter("Database address port is a mandatory parameter", port);
-        ParametersChecker.checkParameter("Database name is a mandatory parameter", dbName);
+        super(host, port, dbName);
         ParametersChecker.checkParameter("elasticsearch cluster name is a mandatory parameter", clusterName);
         ParametersChecker.checkParameter("elasticsearch nodes are a mandatory parameter", elasticsearchNodes);
         ParametersChecker.checkParameter("JettyConfig name is a mandatory parameter", jettyConfig);
-        this.host = host;
-        this.port = port;
-        this.dbName = dbName;
+        this.clusterName = clusterName;
+        this.elasticsearchNodes = elasticsearchNodes;
+        this.jettyConfig = jettyConfig;
+    }
+    
+    /**
+     * MetaDataConfiguration constructor with authentication
+     *
+     * @param host database server IP address
+     * @param port database server port
+     * @param dbName database name
+     * @param elasticsearchNodes elasticsearch nodes
+     * @param jettyConfig jetty config fiel name
+     */
+    public MetaDataConfiguration(String host, int port, String dbName, String clusterName,
+        List<ElasticsearchNode> elasticsearchNodes, String jettyConfig, boolean dbAuthentication, String dbUserName, String dbPassword) {
+        super(host, port, dbName, dbAuthentication, dbUserName, dbPassword);
+        ParametersChecker.checkParameter("elasticsearch cluster name is a mandatory parameter", clusterName);
+        ParametersChecker.checkParameter("elasticsearch nodes are a mandatory parameter", elasticsearchNodes);
+        ParametersChecker.checkParameter("JettyConfig name is a mandatory parameter", jettyConfig);
         this.clusterName = clusterName;
         this.elasticsearchNodes = elasticsearchNodes;
         this.jettyConfig = jettyConfig;
@@ -72,54 +86,6 @@ public final class MetaDataConfiguration {
      * MetaDataConfiguration empty constructor for YAMLFactory
      */
     public MetaDataConfiguration() {}
-
-    /**
-     * @return the database address as String
-     */
-    public String getHost() {
-        return host;
-    }
-
-    /**
-     * @param host the address of database server as String the MetaDataConfiguration with database server address is
-     *        setted
-     */
-    public MetaDataConfiguration setHost(String host) {
-        this.host = host;
-        return this;
-    }
-
-    /**
-     * @return the database port server
-     */
-    public int getPort() {
-        return port;
-    }
-
-    /**
-     * @param port the port of database server as integer
-     * @return the MetaDataConfiguration with database server port is setted
-     */
-    public MetaDataConfiguration setPort(int port) {
-        this.port = port;
-        return this;
-    }
-
-    /**
-     * @return the database name
-     */
-    public String getDbName() {
-        return dbName;
-    }
-
-    /**
-     * @param dbName the name of database as String
-     * @return the MetaDataConfiguration with database name is setted
-     */
-    public MetaDataConfiguration setDbName(String dbName) {
-        this.dbName = dbName;
-        return this;
-    }
 
     /**
      * getter jettyConfig
@@ -173,6 +139,5 @@ public final class MetaDataConfiguration {
         this.elasticsearchNodes = elasticsearchNodes;
         return this;
     }
-
 
 }

@@ -43,7 +43,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.common.server.MongoDbAccess;
+import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
@@ -51,7 +51,7 @@ import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 public class LogbookLifeCyclesImplTest {
 
     private LogbookLifeCyclesImpl logbookLifeCyclesImpl;
-    private MongoDbAccess mongoDbAccess;
+    private LogbookDbAccess mongoDbAccess;
     private LogbookLifeCycleUnitParameters logbookLCUnitParameters;
     private LogbookLifeCycleObjectGroupParameters logbookLCOGParameters;
     final static GUID eip = GUIDFactory.newWriteLogbookGUID(0);// event identifier
@@ -115,7 +115,7 @@ public class LogbookLifeCyclesImplTest {
 
     @Before
     public void setUp() {
-        mongoDbAccess = mock(MongoDbAccess.class);
+        mongoDbAccess = mock(LogbookDbAccess.class);
         logbookLCUnitParameters = getCompleteLifeCycleUnitParameters();
         logbookLCOGParameters = getCompleteLifeCycleObjectGroupParameters();
     }

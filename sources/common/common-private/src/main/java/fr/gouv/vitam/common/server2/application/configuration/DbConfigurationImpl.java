@@ -37,12 +37,37 @@ public class DbConfigurationImpl extends DefaultVitamApplicationConfiguration im
     private String dbHost;
     private int dbPort;
     private String dbName;
+    private boolean dbAuthentication = false;
+    private String dbUserName;
+    private String dbPassword;
 
     /**
      * DbConfiguration empty constructor for YAMLFactory
      */
     public DbConfigurationImpl() {
         // empty
+    }
+    
+    /**
+     * DbConfiguration constructor with authentication
+     *
+     * @param dbHost database server IP address
+     * @param dbPort database server port
+     * @param dbName database name
+     * @throws IllegalArgumentException if host or dbName null or empty, or if port <= 0
+     */
+    public DbConfigurationImpl(String dbHost, int dbPort, String dbName, boolean dbAuthentication, String dbUserName, String dbPassword) {
+        ParametersChecker.checkParameter(CONFIGURATION_PARAMETERS,
+            dbHost, dbName);
+        if (dbPort <= 0) {
+            throw new IllegalArgumentException("Port must be positive");
+        }
+        this.dbHost = dbHost;
+        this.dbPort = dbPort;
+        this.dbName = dbName;
+        this.dbAuthentication = dbAuthentication;
+        this.dbUserName = dbUserName;
+        this.dbPassword = dbPassword;
     }
 
 
@@ -63,6 +88,7 @@ public class DbConfigurationImpl extends DefaultVitamApplicationConfiguration im
         this.dbHost = dbHost;
         this.dbPort = dbPort;
         this.dbName = dbName;
+        this.dbAuthentication = false;
     }
 
 
@@ -79,6 +105,21 @@ public class DbConfigurationImpl extends DefaultVitamApplicationConfiguration im
     @Override
     public String getDbName() {
         return dbName;
+    }
+    
+    @Override
+    public String getDbUserName() {
+        return dbUserName;
+    }
+    
+    @Override
+    public String getDbPassword() {
+        return dbPassword;
+    }
+    
+    @Override
+    public boolean isDbAuthentication() {
+        return dbAuthentication;
     }
 
     /**
@@ -115,6 +156,33 @@ public class DbConfigurationImpl extends DefaultVitamApplicationConfiguration im
         ParametersChecker.checkParameter(CONFIGURATION_PARAMETERS,
             dbName);
         this.dbName = dbName;
+        return this;
+    }
+    
+    /**
+     * @param dbUserName
+     * @return MetaDataConfiguration
+     */
+    public DbConfigurationImpl setDbUserName(String userName) {
+        this.dbUserName = userName;
+        return this;
+    }
+
+    /**
+     * @param dbPassword
+     * @return MetaDataConfiguration
+     */
+    public DbConfigurationImpl setDbPassword(String password) {
+        this.dbPassword = password;
+        return this;
+    }
+
+    /**
+     * @param authentication
+     * @return MetaDataConfiguration
+     */
+    public DbConfigurationImpl setDbAuthentication(boolean authentication) {
+        this.dbAuthentication = authentication;
         return this;
     }
 }

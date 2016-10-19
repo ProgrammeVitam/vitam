@@ -51,8 +51,8 @@ public class MetaDataConfigurationTest {
     @Test
     public void testSetterGetter() {
         final MetaDataConfiguration config1 = new MetaDataConfiguration();
-        assertEquals(config1.setHost(HOST).getHost(), HOST);
-        assertEquals(config1.setPort(PORT).getPort(), PORT);
+        assertEquals(config1.setDbHost(HOST).getDbHost(), HOST);
+        assertEquals(config1.setDbPort(PORT).getDbPort(), PORT);
         assertEquals(config1.setDbName(DB_NAME).getDbName(), DB_NAME);
         assertEquals(JETTY_CONF, config1.setJettyConfig(JETTY_CONF).getJettyConfig());
         assertEquals(CLUSTER_NAME, config1.setClusterName(CLUSTER_NAME).getClusterName());
@@ -63,8 +63,8 @@ public class MetaDataConfigurationTest {
 
         final MetaDataConfiguration config2 =
             new MetaDataConfiguration(HOST, PORT, DB_NAME, CLUSTER_NAME, nodes, JETTY_CONF_FILE);
-        assertEquals(config2.getHost(), HOST);
-        assertEquals(config2.getPort(), PORT);
+        assertEquals(config2.getDbHost(), HOST);
+        assertEquals(config2.getDbPort(), PORT);
         assertEquals(config2.getDbName(), DB_NAME);
         assertEquals(config2.getClusterName(), CLUSTER_NAME);
         assertEquals(config2.getElasticsearchNodes().size(), 1);

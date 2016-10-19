@@ -28,19 +28,19 @@
 			<artifactId>functional-administration-format-core</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>functional-administration-rules-core</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>functional-administration-accession-register-core</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>functional-administration-common</artifactId>
@@ -52,10 +52,15 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>ru.yandex.qatools.embed</groupId>
+			<artifactId>embedded-services</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>de.flapdoodle.embed</groupId>
 			<artifactId>de.flapdoodle.embed.mongo</artifactId>
 			<scope>test</scope>
-		</dependency>		
+		</dependency>
 		<dependency>
 			<groupId>com.jayway.restassured</groupId>
 			<artifactId>rest-assured</artifactId>
@@ -76,7 +81,7 @@
 			<groupId>org.jhades</groupId>
 			<artifactId>jhades</artifactId>
 			<scope>test</scope>
-		</dependency>				
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -121,7 +126,7 @@
 					</execution>
 				</executions>
 			</plugin>
-			
+
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
 				<executions>
@@ -178,13 +183,13 @@
 				<artifactId>docker-maven-plugin</artifactId>
 				<configuration>
 					<!-- Activate docker build -->
-					<skipDockerBuild>false</skipDockerBuild> 
+					<skipDockerBuild>false</skipDockerBuild>
 					<skipDockerTag>false</skipDockerTag>
 					<!-- Images specification -->
 					<baseImage>${vitam.docker.registry.pull}/${vitam.docker.baseimage}</baseImage>
 					<imageName>${vitam.docker.registry.push}/vitam/functional-administration</imageName>
 					<!-- copy the service's jar file from target into the root directory 
-					of the image -->
+						of the image -->
 					<resources>
 						<resource>
 							<targetPath>/vitam/lib</targetPath>
@@ -231,5 +236,5 @@
 			</plugin>
 		</plugins>
 	</build>
-	
+
 </project>
