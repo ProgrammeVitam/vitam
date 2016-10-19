@@ -73,7 +73,6 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 @Path("/access/v1")
 @Consumes("application/json")
 @Produces("application/json")
-@javax.ws.rs.ApplicationPath("webresources")
 public class AccessResourceImpl extends ApplicationStatusResource implements AccessResource {
 
     private static final String ACCESS_MODULE = "ACCESS";

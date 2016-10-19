@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.stream;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
@@ -109,8 +110,10 @@ public class MultipleInputStreamHandlerTest {
         final long start = System.nanoTime();
         try (FakeInputStream fakeInputStream = new FakeInputStream(INPUTSTREAM_SIZE, true);
             MultipleInputStreamHandler mish = new MultipleInputStreamHandler(fakeInputStream, 1)) {
+            assertNotNull(mish.toString());
             final InputStream is = mish.getInputStream(0);
             long total = 0;
+            assertNotNull(is.toString());
             while (is.read() >= 0) {
                 total++;
             }

@@ -30,10 +30,12 @@ package fr.gouv.vitam.access.api;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 
+import fr.gouv.vitam.common.server2.application.resources.VitamResource;
+
 /**
  * Access Resource REST API
  */
-public interface AccessResource {
+public interface AccessResource extends VitamResource {
 
     /**
      * gets archive units with Json query

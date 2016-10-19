@@ -37,6 +37,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -58,6 +59,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
  */
 
 @RunWith(PowerMockRunner.class)
+@PowerMockIgnore("javax.net.ssl.*")
 @PrepareForTest({AccessClientFactory.class})
 public class UserInterfaceTransactionManagerTest {
     private static String SELECT_ID_DSL_QUERY = "{ $roots : [ '1' ] }";
@@ -104,7 +106,7 @@ public class UserInterfaceTransactionManagerTest {
         accessClientFactory = PowerMockito.mock(AccessClientFactory.class);
         accessClient = org.mockito.Mockito.mock(AccessClient.class);
         PowerMockito.when(AccessClientFactory.getInstance()).thenReturn(accessClientFactory);
-        PowerMockito.when(AccessClientFactory.getInstance().getAccessOperationClient()).thenReturn(accessClient);
+        PowerMockito.when(AccessClientFactory.getInstance().getClient()).thenReturn(accessClient);
         sampleObjectGroup = JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_OBJECTGROUP_FILENAME));
     }
 

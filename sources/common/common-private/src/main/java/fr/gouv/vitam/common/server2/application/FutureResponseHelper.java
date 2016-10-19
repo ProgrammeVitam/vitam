@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.client2;
+package fr.gouv.vitam.common.server2.application;
 
 import java.util.concurrent.ExecutorService;
 
@@ -33,6 +33,7 @@ import javax.ws.rs.container.CompletionCallback;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.client2.DefaultClient;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -141,7 +142,7 @@ public class FutureResponseHelper {
             }
             // no throwable - the processing ended successfully
             // (response already written to the client)
-            AbstractCommonClient.staticConsumeAnyEntityAndClose(reicevedResponse);
+            DefaultClient.staticConsumeAnyEntityAndClose(reicevedResponse);
         }
 
     }

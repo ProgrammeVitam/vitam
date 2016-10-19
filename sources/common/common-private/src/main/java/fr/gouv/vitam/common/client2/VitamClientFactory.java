@@ -202,6 +202,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
             try {
                 registry = sslConfiguration.getRegistry();
             } catch (FileNotFoundException e) {
+                LOGGER.error(e);
                 throw new IllegalArgumentException("SSLConfiguration issue while reading KeyStore or TrustStore", e);
             }
             PoolingHttpClientConnectionManager pool = new PoolingHttpClientConnectionManager(registry, null, null, null,

@@ -35,7 +35,6 @@ import java.io.InputStream;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
-import fr.gouv.vitam.access.client.AccessClientFactory.AccessClientType;
 import fr.gouv.vitam.access.common.exception.AccessClientNotFoundException;
 import fr.gouv.vitam.access.common.exception.AccessClientServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -54,20 +53,20 @@ public class AccessClientMockTest {
 
     @Test
     public void givenMockConfExist_WhenCreateMockedClient_ThenReturnOK() {
-        AccessClientFactory.setConfiguration(AccessClientType.MOCK, null, 0);
+        AccessClientFactory.changeMode(null);
 
         final AccessClient client =
-            AccessClientFactory.getInstance().getAccessOperationClient();
+            AccessClientFactory.getInstance().getClient();
         assertNotNull(client);
     }
 
     @Test
     public void givenMockExists_whenSelectUnit_ThenReturnOK()
         throws AccessClientServerException, AccessClientNotFoundException, InvalidParseOperationException {
-        AccessClientFactory.setConfiguration(AccessClientType.MOCK, null, 0);
+        AccessClientFactory.changeMode(null);
 
         final AccessClient client =
-            AccessClientFactory.getInstance().getAccessOperationClient();
+            AccessClientFactory.getInstance().getClient();
         assertNotNull(client);
 
         assertThat(client.selectUnits(queryDsql)).isNotNull();
@@ -76,10 +75,10 @@ public class AccessClientMockTest {
     @Test
     public void givenMockExists_whenSelectUnitById_ThenReturnOK()
         throws AccessClientServerException, AccessClientNotFoundException, InvalidParseOperationException {
-        AccessClientFactory.setConfiguration(AccessClientType.MOCK, null, 0);
+        AccessClientFactory.changeMode(null);
 
         final AccessClient client =
-            AccessClientFactory.getInstance().getAccessOperationClient();
+            AccessClientFactory.getInstance().getClient();
         assertNotNull(client);
 
         assertThat(client.selectUnitbyId(queryDsql, ID)).isNotNull();
@@ -88,10 +87,10 @@ public class AccessClientMockTest {
     @Test
     public void givenMockExists_whenUpdateUnitById_ThenReturnOK()
         throws AccessClientServerException, AccessClientNotFoundException, InvalidParseOperationException {
-        AccessClientFactory.setConfiguration(AccessClientType.MOCK, null, 0);
+        AccessClientFactory.changeMode(null);
 
         final AccessClient client =
-            AccessClientFactory.getInstance().getAccessOperationClient();
+            AccessClientFactory.getInstance().getClient();
         assertNotNull(client);
 
         assertThat(client.updateUnitbyId(queryDsql, ID)).isNotNull();
@@ -100,10 +99,10 @@ public class AccessClientMockTest {
     @Test
     public void givenMockExistsWhenSelectObjectByIdThenReturnOK()
         throws AccessClientServerException, AccessClientNotFoundException, InvalidParseOperationException {
-        AccessClientFactory.setConfiguration(AccessClientType.MOCK, null, 0);
+        AccessClientFactory.changeMode(null);
 
         final AccessClient client =
-            AccessClientFactory.getInstance().getAccessOperationClient();
+            AccessClientFactory.getInstance().getClient();
         assertNotNull(client);
 
         assertThat(client.selectObjectbyId(queryDsql, ID)).isNotNull();
@@ -111,10 +110,10 @@ public class AccessClientMockTest {
 
     @Test
     public void givenMockExistsWhenGetObjectAsFileThenReturnOK() throws Exception {
-        AccessClientFactory.setConfiguration(AccessClientType.MOCK, null, 0);
+        AccessClientFactory.changeMode(null);
 
         final AccessClient client =
-            AccessClientFactory.getInstance().getAccessOperationClient();
+            AccessClientFactory.getInstance().getClient();
         assertNotNull(client);
         final InputStream stream = client.getObjectAsInputStream(queryDsql, ID, "usage", 1);
         final InputStream stream2 = IOUtils.toInputStream(AccessClientMock.MOCK_GET_FILE_CONTENT);
