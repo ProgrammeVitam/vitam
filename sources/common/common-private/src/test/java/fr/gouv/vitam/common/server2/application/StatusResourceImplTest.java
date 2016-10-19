@@ -29,6 +29,9 @@ package fr.gouv.vitam.common.server2.application;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Map;
+
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.Response.Status;
 
 import org.junit.AfterClass;
@@ -39,6 +42,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client2.BasicClient;
 import fr.gouv.vitam.common.client2.DefaultAdminClient;
 import fr.gouv.vitam.common.client2.TestVitamClientFactory;
@@ -49,6 +53,7 @@ import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationRe
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AdminStatusMessage;
+import fr.gouv.vitam.common.security.filter.AuthorizationFilterHelper;
 import fr.gouv.vitam.common.server.application.junit.MinimalTestVitamApplicationFactory;
 
 /**
@@ -129,7 +134,13 @@ public class StatusResourceImplTest {
      */
     @Test
     public void givenStartedServer_WhenGetStatusAdmin_ThenReturnStatusOk() throws Exception {
-        RestAssured.get(ADMIN_STATUS_URI).then().statusCode(Status.OK.getStatusCode());
+        Map<String, String> headersMap =
+            AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, ADMIN_STATUS_URI);
+            RestAssured.given()
+            .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
+            .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
+            .when()
+            .get(ADMIN_STATUS_URI).then().statusCode(Status.OK.getStatusCode());
         try (DefaultAdminClient clientAdmin = factory.getClient()) {
             final AdminStatusMessage message = clientAdmin.adminStatus();
             assertEquals(message.getStatus(), true);
@@ -145,8 +156,14 @@ public class StatusResourceImplTest {
     public void givenStartedServer_WhenGetStatusModule_ThenReturnStatus() throws Exception {
         String jsonAsString;
         com.jayway.restassured.response.Response response;
+        
+        Map<String, String> headersMap =
+            AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, ADMIN_STATUS_URI);
         response =
-            RestAssured.when().get(ADMIN_STATUS_URI).then().contentType(ContentType.JSON).extract().response();
+            RestAssured.given()
+            .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
+            .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
+            .when().get(ADMIN_STATUS_URI).then().contentType(ContentType.JSON).extract().response();
         jsonAsString = response.asString();
         final JsonNode result = JsonHandler.getFromString(jsonAsString);
         assertEquals(result.get("status").toString(), "true");
@@ -168,7 +185,14 @@ public class StatusResourceImplTest {
      */
     @Test
     public void givenStartedServer_WhenGetStatusModule_ThenReturnStatusNoContent() throws Exception {
-        RestAssured.get(MODULE_STATUS_URI).then().statusCode(Status.NO_CONTENT.getStatusCode());
+        Map<String, String> headersMap =
+            AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, MODULE_STATUS_URI);
+        
+            RestAssured.given()
+            .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
+            .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
+            .when()
+            .get(MODULE_STATUS_URI).then().statusCode(Status.NO_CONTENT.getStatusCode());
         client.checkStatus();
     }
 }

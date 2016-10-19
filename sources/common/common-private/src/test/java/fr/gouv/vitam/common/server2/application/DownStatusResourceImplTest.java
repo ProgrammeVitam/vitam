@@ -29,6 +29,9 @@ package fr.gouv.vitam.common.server2.application;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import java.util.Map;
+
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.Response.Status;
 
 import org.junit.AfterClass;
@@ -40,6 +43,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client2.AdminClient;
 import fr.gouv.vitam.common.client2.BasicClient;
 import fr.gouv.vitam.common.client2.DefaultAdminClient;
@@ -52,6 +56,7 @@ import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationRe
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AdminStatusMessage;
+import fr.gouv.vitam.common.security.filter.AuthorizationFilterHelper;
 import fr.gouv.vitam.common.server.application.junit.MinimalTestVitamApplicationFactory;
 import fr.gouv.vitam.common.server2.application.resources.VitamStatusService;
 
@@ -79,25 +84,25 @@ public class DownStatusResourceImplTest {
         final MinimalTestVitamApplicationFactory<TestApplication> testFactory =
             new MinimalTestVitamApplicationFactory<TestApplication>() {
 
-                @Override
-                public StartApplicationResponse<TestApplication> startVitamApplication(int reservedPort)
-                    throws IllegalStateException {
-                    TestApplication.statusService = new VitamStatusService() {
-                        @Override
-                        public boolean getResourcesStatus() {
-                            return false;
-                        }
+            @Override
+            public StartApplicationResponse<TestApplication> startVitamApplication(int reservedPort)
+                throws IllegalStateException {
+                TestApplication.statusService = new VitamStatusService() {
+                    @Override
+                    public boolean getResourcesStatus() {
+                        return false;
+                    }
 
-                        @Override
-                        public ObjectNode getAdminStatus() throws InvalidParseOperationException {
-                            return JsonHandler.createObjectNode();
-                        }
-                    };
-                    final TestApplication application = new TestApplication(TEST_CONF);
-                    return startAndReturn(application);
-                }
+                    @Override
+                    public ObjectNode getAdminStatus() throws InvalidParseOperationException {
+                        return JsonHandler.createObjectNode();
+                    }
+                };
+                final TestApplication application = new TestApplication(TEST_CONF);
+                return startAndReturn(application);
+            }
 
-            };
+        };
         final StartApplicationResponse<TestApplication> response =
             testFactory.findAvailablePortSetToApplication();
         port = response.getServerPort();
@@ -144,7 +149,15 @@ public class DownStatusResourceImplTest {
      */
     @Test
     public void givenStartedServer_WhenGetStatusAdmin_ThenReturnServiceUnavailable() throws Exception {
-        RestAssured.get(ADMIN_STATUS_URI).then().statusCode(Status.SERVICE_UNAVAILABLE.getStatusCode());
+
+        Map<String, String> headersMap =
+            AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, ADMIN_STATUS_URI);
+
+        RestAssured.given()
+        .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
+        .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
+        .when()
+        .get(ADMIN_STATUS_URI).then().statusCode(Status.SERVICE_UNAVAILABLE.getStatusCode());
     }
 
     /**
@@ -156,7 +169,16 @@ public class DownStatusResourceImplTest {
     public void givenStartedServer_WhenGetStatusModule_ThenReturnStatus() throws Exception {
         String jsonAsString;
         com.jayway.restassured.response.Response response;
-        response = RestAssured.when().get(ADMIN_STATUS_URI).then().contentType(ContentType.JSON).extract().response();
+
+        Map<String, String> headersMap =
+            AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, ADMIN_STATUS_URI);
+
+        response =RestAssured.given()
+            .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
+            .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
+            .when()
+            .get(ADMIN_STATUS_URI).then().contentType(ContentType.JSON).extract().response();
+
         jsonAsString = response.asString();
         final JsonNode result = JsonHandler.getFromString(jsonAsString);
         assertEquals("false", result.get("status").toString());
@@ -174,7 +196,14 @@ public class DownStatusResourceImplTest {
      */
     @Test
     public void givenStartedServer_WhenGetStatusModule_ThenReturnServiceUnavailable() throws Exception {
-        RestAssured.get(TEST_STATUS_URI).then().statusCode(Status.SERVICE_UNAVAILABLE.getStatusCode());
+        Map<String, String> headersMap =
+            AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, TEST_STATUS_URI);
+
+        RestAssured.given()
+        .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
+        .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
+        .when()
+        .get(TEST_STATUS_URI).then().statusCode(Status.SERVICE_UNAVAILABLE.getStatusCode());
         try {
             client.checkStatus();
             fail("Should raized an exception");
