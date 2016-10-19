@@ -182,6 +182,8 @@ public class SedaConstants {
     public static final String TAG_FILE_FORMAT_CODE_LIST_VERSION = "FileFormatCodeListVersion";
     public static final String TAG_ARCHIVE_TRANSFER = "ArchiveTransfer";
     public static final String TAG_GRANT_DATE = "GrantDate";
+    public static final String TAG_ORIGINATINGAGENCYIDENTIFIER = "OriginatingAgencyIdentifier";
+    public static final String TAG_SUBMISSIONAGENCYIDENTIFIER = "SubmissionAgencyIdentifier";
 
     private SedaConstants() {
         // Empty constructor

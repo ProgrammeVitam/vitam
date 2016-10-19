@@ -58,7 +58,7 @@ import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.OutcomeMessage;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.worker.common.utils.BinaryObject;
+import fr.gouv.vitam.worker.common.utils.BinaryObjectInfo;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
@@ -77,20 +77,12 @@ public class CheckConformityActionHandler extends ActionHandler {
 
     private static final String HANDLER_ID = "CheckConformity";
     LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters();
-    private static final LogbookLifeCyclesClient LOGBOOK_LIFECYCLE_CLIENT = LogbookLifeCyclesClientFactory.getInstance()
-        .getClient();
-
     public static final String JSON_EXTENSION = ".json";
     public static final String LIFE_CYCLE_EVENT_TYPE_PROCESS = "INGEST";
     public static final String UNIT_LIFE_CYCLE_CREATION_EVENT_TYPE =
         "Check SIP – Units – Lifecycle Logbook Creation – Création du journal du cycle de vie des units";
-    private static final String OG_LIFE_CYCLE_CHECK_BDO_EVENT_TYPE =
-        "Check SIP – ObjectGroups – Digest - Vérification de l’empreinte";
-    private static final String LOGBOOK_LF_MAPS_PARSING_EXCEPTION_MSG = "Parse Object Groups/BDO Maps error";
-    private static final String LOGBOOK_CLIENT_EXCEPTION = "Logbook client exception";
     public static final String TXT_EXTENSION = ".txt";
-    private static final String CANNOT_READ_SEDA = "Can not read SEDA";
-    
+    private static final int BINARY_OBJECT_INFO_RANK = 0;
     private HandlerIO handlerIO;
     private String eventDetailData;
     private String objectID;
@@ -138,7 +130,10 @@ public class CheckConformityActionHandler extends ActionHandler {
             final JsonNode jsonOG = getJsonFromWorkspace(workspaceClient, params.getContainerName(),
                 IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName());
 
-            Map<String, BinaryObject> binaryObjects = getBinaryObjects(jsonOG);
+            Map<String, BinaryObjectInfo> binaryObjects = getBinaryObjects(jsonOG);
+
+            HandlerUtils.saveMap(params.getContainerName(), binaryObjects,
+                (String) handlerIO.getOutput().get(BINARY_OBJECT_INFO_RANK), workspaceClient, true);
             
             objectID = jsonOG.findValue(SedaConstants.PREFIX_ID).toString();
             logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier, objectID);
@@ -183,11 +178,7 @@ public class CheckConformityActionHandler extends ActionHandler {
             LOGGER.error(e);
             response.setStatus(StatusCode.KO);
             response.setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_CONFORMITY_KO);
-        } catch (ContentAddressableStorageServerException e) {
-            LOGGER.error(e);
-            response.setStatus(StatusCode.FATAL);
-            response.setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_CONFORMITY_KO);
-        } catch (InvalidParseOperationException e) {
+        } catch (ContentAddressableStorageServerException | IOException |  InvalidParseOperationException e) {
             LOGGER.error(e);
             response.setStatus(StatusCode.FATAL);
             response.setOutcomeMessages(HANDLER_ID, OutcomeMessage.CHECK_CONFORMITY_KO);
@@ -208,12 +199,11 @@ public class CheckConformityActionHandler extends ActionHandler {
         return response;
     }
 
-
-    private void checkMessageDigest(WorkspaceClient workspaceClient, WorkerParameters params, BinaryObject binaryObject, JsonNode version)
+    private void checkMessageDigest(WorkspaceClient workspaceClient, WorkerParameters params, BinaryObjectInfo binaryObject, JsonNode version)
         throws ProcessingException {
         String containerId = params.getContainerName();
         // started for binary Object
-        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier, binaryObject.getObjectId());
+        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier, binaryObject.getId());
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventType, OutcomeMessage.CHECK_DIGEST.value());
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcome, StatusCode.STARTED.toString());
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail, StatusCode.STARTED.toString());
@@ -244,7 +234,7 @@ public class CheckConformityActionHandler extends ActionHandler {
             if(manifestDigest.toString().equals(binaryObject.getMessageDigest())){
                 nbOK += 1;
                 // update logbook case OK
-                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier, binaryObject.getObjectId());
+                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier, binaryObject.getId());
                 logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventType, OutcomeMessage.CHECK_DIGEST.value());
                 logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcome, StatusCode.OK.name());
                 logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail, StatusCode.OK.name());
@@ -333,8 +323,8 @@ public class CheckConformityActionHandler extends ActionHandler {
         }
     }
 
-    private Map<String, BinaryObject> getBinaryObjects(JsonNode jsonOG) throws ProcessingException {
-        Map<String, BinaryObject> binaryObjects = new HashMap<>();
+    private Map<String, BinaryObjectInfo> getBinaryObjects(JsonNode jsonOG) throws ProcessingException {
+        Map<String, BinaryObjectInfo> binaryObjects = new HashMap<>();
 
         JsonNode work = jsonOG.get(SedaConstants.PREFIX_WORK);
         JsonNode qualifiers = work.get(SedaConstants.PREFIX_QUALIFIERS);
@@ -349,8 +339,9 @@ public class CheckConformityActionHandler extends ActionHandler {
         for (JsonNode version : versions) {
             for (JsonNode jsonBinaryObject : version) {
                 binaryObjects.put(jsonBinaryObject.get(SedaConstants.PREFIX_ID).asText(),
-                    new BinaryObject()
-                    .setObjectId(jsonBinaryObject.get(SedaConstants.PREFIX_ID).asText())
+                    new BinaryObjectInfo()
+                    .setSize(jsonBinaryObject.get(SedaConstants.TAG_SIZE).asLong())
+                    .setId(jsonBinaryObject.get(SedaConstants.PREFIX_ID).asText())
                     .setUri(jsonBinaryObject.get(SedaConstants.TAG_URI).asText())
                     .setMessageDigest(jsonBinaryObject.get(SedaConstants.TAG_DIGEST).asText())
                     .setAlgo(DigestType.fromValue(jsonBinaryObject.get(SedaConstants.ALGORITHM).asText())));

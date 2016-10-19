@@ -45,7 +45,6 @@ import org.elasticsearch.node.Node;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
@@ -369,7 +368,6 @@ public class WorkerIT {
         workspaceClient.deleteContainer(CONTAINER_NAME);
     }
 
-    @Ignore
     @Test
     public void testWorkflowWithManifestConformityKO() throws Exception {
         CONTAINER_NAME = GUIDFactory.newManifestGUID(0).getId();
@@ -392,13 +390,12 @@ public class WorkerIT {
         final List<EngineResponse> retStepControl =
             workerClient.submitStep("resquestId", getDescriptionStep("integration/step_control_SIP.json"));
         assertNotNull(retStepControl);
-        assertEquals(6, retStepControl.size());
+        assertEquals(5, retStepControl.size());
         assertEquals(StatusCode.OK, retStepControl.get(0).getStatus());
         assertEquals(StatusCode.OK, retStepControl.get(1).getStatus());
         assertEquals(StatusCode.OK, retStepControl.get(2).getStatus());
         assertEquals(StatusCode.OK, retStepControl.get(3).getStatus());
         assertEquals(StatusCode.OK, retStepControl.get(4).getStatus());
-        assertEquals(StatusCode.KO, retStepControl.get(5).getStatus());
 
         workspaceClient.deleteContainer(CONTAINER_NAME);
     }

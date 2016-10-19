@@ -63,6 +63,9 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.rest.AdminManagementApplication;
 import fr.gouv.vitam.metadata.rest.MetaDataApplication;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
@@ -79,6 +82,7 @@ import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
  * Processing integration test
  */
 public class ProcessingIT {
+    private static final String JETTY_FUNCTIONAL_ADMIN_PORT = "jetty.functional-admin.port";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessingIT.class);
     private static final int DATABASE_PORT = 12346;
     private static MongodExecutable mongodExecutable;
@@ -98,6 +102,7 @@ public class ProcessingIT {
     private static final int PORT_SERVICE_WORKSPACE = 8094;
     private static final int PORT_SERVICE_METADATA = 8096;
     private static final int PORT_SERVICE_PROCESSING = 8097;
+    private static final int PORT_SERVICE_FUNCTIONAL_ADMIN = 8093;
 
     private static final String SIP_FOLDER = "SIP";
     private static final String METADATA_PATH = "/metadata/v1";
@@ -109,6 +114,8 @@ public class ProcessingIT {
     private static String CONFIG_WORKSPACE_PATH = "";
     private static String CONFIG_METADATA_PATH = "";
     private static String CONFIG_PROCESSING_PATH = "";
+    private static String CONFIG_FUNCTIONAL_ADMIN_PATH = "";
+    private static String CONFIG_FUNCTIONAL_CLIENT_PATH = "";
     private static String CONFIG_SIEGFRIED_PATH = "";
 
     // private static VitamServer workerApplication;
@@ -126,6 +133,7 @@ public class ProcessingIT {
     private static String CONTAINER_NAME;
     private static String SIP_FILE_OK_NAME = "integration/SIP-test.zip";
     private static String SIP_ARBO_COMPLEXE_FILE_OK = "integration/SIP_arbor_OK.zip";
+    private static String SIP_FUND_REGISTER_OK = "integration/OK-registre-fonds.zip";
     private static String SIP_WITHOUT_MANIFEST = "integration/SIP_no_manifest.zip";
     private static String SIP_NO_FORMAT = "integration/SIP_NO_FORMAT.zip";
     private static String SIP_NO_FORMAT_NO_TAG = "integration/SIP_NO_FORMAT_TAG.zip";
@@ -156,6 +164,9 @@ public class ProcessingIT {
         CONFIG_WORKSPACE_PATH = PropertiesUtils.getResourcePath("integration/workspace.conf").toString();
         CONFIG_PROCESSING_PATH = PropertiesUtils.getResourcePath("integration/processing.conf").toString();
         CONFIG_SIEGFRIED_PATH = PropertiesUtils.getResourcePath("integration/format-identifiers.conf").toString();
+        CONFIG_FUNCTIONAL_ADMIN_PATH = PropertiesUtils.getResourcePath("integration/functional-administration.conf").toString();
+        CONFIG_FUNCTIONAL_CLIENT_PATH = PropertiesUtils.getResourcePath("integration/functional-administration-client-it.conf").toString();
+
         final Settings settings = Settings.settingsBuilder()
             .put("http.enabled", true)
             .put("discovery.zen.ping.multicast.enabled", false)
@@ -177,34 +188,39 @@ public class ProcessingIT {
             .build());
         mongod = mongodExecutable.start();
 
+        AdminManagementClientFactory.getInstance().changeConfigurationFile(CONFIG_FUNCTIONAL_CLIENT_PATH);
         // launch metadata
         medtadataApplication = new MetaDataApplication();
-        SystemPropertyUtil
-            .set(MetaDataApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_METADATA));
+        SystemPropertyUtil.set(MetaDataApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_METADATA));
         medtadataApplication.configure(CONFIG_METADATA_PATH);
 
         // launch processing
-        SystemPropertyUtil
-            .set(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_PROCESSING));
+        SystemPropertyUtil.set(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_PROCESSING));
         ProcessManagementApplication.startApplication(CONFIG_PROCESSING_PATH);
 
         // launch worker
-        SystemPropertyUtil
-            .set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
+        SystemPropertyUtil.set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
         wkrapplication = new WorkerApplication(CONFIG_WORKER_PATH);
         wkrapplication.start();
 
         // launch workspace
-        SystemPropertyUtil
-            .set(WorkspaceApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_WORKSPACE));
+        SystemPropertyUtil.set(WorkspaceApplication.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_WORKSPACE));
         WorkspaceApplication.startApplication(CONFIG_WORKSPACE_PATH);
 
         FormatIdentifierFactory.getInstance().changeConfigurationFile(CONFIG_SIEGFRIED_PATH);
 
+        //launch functional Admin
+        SystemPropertyUtil.set(JETTY_FUNCTIONAL_ADMIN_PORT, Integer.toString(PORT_SERVICE_FUNCTIONAL_ADMIN));
+        AdminManagementApplication.startApplication(CONFIG_FUNCTIONAL_ADMIN_PATH);
+
+
+        AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getAdminManagementClient();
+        adminClient.importFormat(PropertiesUtils.getResourceAsStream("integration/DROID_SignatureFile_V88.xml"));
 
         processMonitoring = ProcessMonitoringImpl.getInstance();
         CONTAINER_NAME = GUIDFactory.newGUID().toString();
     }
+
 
     @Test
     public void testServersStatus() throws Exception {
@@ -231,13 +247,11 @@ public class ProcessingIT {
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
         RestAssured.basePath = WORKSPACE_PATH;
-
         final InputStream zipInputStreamSipObject =
             PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
         workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
         workspaceClient.createContainer(CONTAINER_NAME);
         workspaceClient.unzipObject(CONTAINER_NAME, SIP_FOLDER, zipInputStreamSipObject);
-
         // call processing
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
@@ -263,6 +277,32 @@ public class ProcessingIT {
 
         final InputStream zipInputStreamSipObject =
             PropertiesUtils.getResourceAsStream(SIP_ARBO_COMPLEXE_FILE_OK);
+        workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
+        workspaceClient.createContainer(containerName);
+        workspaceClient.unzipObject(containerName, SIP_FOLDER, zipInputStreamSipObject);
+
+        // call processing
+        RestAssured.port = PORT_SERVICE_PROCESSING;
+        RestAssured.basePath = PROCESSING_PATH;
+        processingClient = new ProcessingManagementClient(PROCESSING_URL);
+        final String ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+        assertNotNull(ret);
+        final JsonNode node = JsonHandler.getFromString(ret);
+        assertNotNull(node);
+
+        assertEquals("OK", node.get("status").asText());
+    }
+
+    @Test
+    public void testWorkflow_with_accession_register() throws Exception {
+        final String containerName = GUIDFactory.newManifestGUID(0).getId();
+
+        // workspace client dezip SIP in workspace
+        RestAssured.port = PORT_SERVICE_WORKSPACE;
+        RestAssured.basePath = WORKSPACE_PATH;
+
+        final InputStream zipInputStreamSipObject =
+            PropertiesUtils.getResourceAsStream(SIP_FUND_REGISTER_OK);
         workspaceClient = WorkspaceClientFactory.create(WORKSPACE_URL);
         workspaceClient.createContainer(containerName);
         workspaceClient.unzipObject(containerName, SIP_FOLDER, zipInputStreamSipObject);
