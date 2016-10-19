@@ -25,8 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Configuration package: containing GlobalDatas and ParserTokens
- *
+ * Configuration package containing GlobalDatas and ParserTokens
  *
  *
  */

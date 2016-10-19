@@ -85,8 +85,8 @@ public class DefaultOfferResource extends ApplicationStatusResource {
      *
      * @return information on the offer objects collection
      *
-     *         TODO: review path and java method name
      */
+    // TODO: review path and java method name
     // FIXME il manque le /container/id/
     @GET
     @Path("/objects")

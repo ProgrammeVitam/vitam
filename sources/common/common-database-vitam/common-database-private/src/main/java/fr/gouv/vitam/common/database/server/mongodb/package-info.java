@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * mongodb server package in vitam
+ * MongoDB server package in Vitam
  */
 package fr.gouv.vitam.common.database.server.mongodb;

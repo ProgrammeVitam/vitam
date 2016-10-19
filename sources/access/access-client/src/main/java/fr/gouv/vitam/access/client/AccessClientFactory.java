@@ -36,12 +36,13 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
- * Access client factory<br>
- *
+ * Access client factory <br><br>
+ * 
  * Used to create access client : if configuration file does not exist 'access-client.conf',<br>
  * mock access client will be returned
  *
  */
+
 public class AccessClientFactory extends VitamClientFactory<AccessClient> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessClientFactory.class);
     private static final String CONFIGURATION_FILENAME = "access-client.conf";

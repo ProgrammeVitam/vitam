@@ -32,9 +32,7 @@ import com.fasterxml.jackson.databind.JsonNode;
  * Logbook RequestResponse class contains request query
  *
  */
-/*
- * TODO ; refactor to the common vitam
- */
+//TODO ; refactor to the common vitam
 public class RequestResponse {
     private JsonNode query;
     private JsonNode results;

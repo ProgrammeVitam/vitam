@@ -25,6 +25,9 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Contains services codes and there name Contains domains codes and there name Contains public Vitam codes
+ * Contains <br />
+ * - services codes and their name  <br />
+ * - domains codes and their name  <br />
+ * - public Vitam codes
  */
 package fr.gouv.vitam.common.error;

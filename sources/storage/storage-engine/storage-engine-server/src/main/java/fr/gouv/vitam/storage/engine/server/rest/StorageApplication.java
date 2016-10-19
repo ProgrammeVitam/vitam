@@ -52,8 +52,9 @@ import fr.gouv.vitam.common.server.application.AdminStatusResource;
 import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
 
 /**
- * Storage web application TODO refacto config
+ * Storage web application 
  */
+//TODO refacto config
 public final class StorageApplication extends AbstractVitamApplication<StorageApplication, StorageConfiguration> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageApplication.class);
     private static final String STORAGE_CONF_FILE_NAME = "storage-engine.conf";

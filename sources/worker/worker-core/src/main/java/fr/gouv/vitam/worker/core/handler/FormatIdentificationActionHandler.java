@@ -94,8 +94,12 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 /**
  * FormatIdentification Handler.<br>
  *
- * TODO: refactor me TODO: review Logbook messages (operation / lifecycle) TODO: fully use VitamCode
  */
+
+//TODO: refactor me 
+//TODO: review Logbook messages (operation / lifecycle) 
+//TODO: fully use VitamCode
+
 public class FormatIdentificationActionHandler extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(FormatIdentificationActionHandler.class);
 

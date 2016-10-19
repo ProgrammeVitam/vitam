@@ -103,11 +103,12 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
- *
- * ExtractSedaActionHandler handler class used to extract metaData .Create and put a new file (metadata extracted)
+ * Handler class used to extract metaData. </br>
+ * Create and put a new file (metadata extracted)
  * json.json into container GUID
  *
  */
+
 public class ExtractSedaActionHandler extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ExtractSedaActionHandler.class);
 

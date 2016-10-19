@@ -37,11 +37,11 @@ import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 
 /**
- * LogbookLifeCyclesClientFactory factory <br />
+ * Logbook lifecycles client factory <br />
  * <br />
  * Use to get a logbook lifecycles client in function of its type.
  *
- * Example for create lifecycles:
+ * Example of lifecycle creation:
  *
  * <pre>
  * {
@@ -83,6 +83,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
  * }
  * </pre>
  */
+
 public class LogbookLifeCyclesClientFactory extends VitamClientFactory<LogbookLifeCyclesClient> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookLifeCyclesClientFactory.class);
     private static final String CONFIGURATION_FILENAME = "logbook-client.conf";

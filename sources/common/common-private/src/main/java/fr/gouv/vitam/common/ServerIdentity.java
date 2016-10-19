@@ -91,6 +91,7 @@ import fr.gouv.vitam.common.server.application.configuration.ServerIdentityConfi
  * <br>
  * NOTE for developers: Do not add LOGGER there
  */
+
 public final class ServerIdentity implements ServerIdentityInterface {
     private static final int MAC_ADDRESS_SUBSTRACT_LENGTH = 4;
     private static final String SERVER_IDENTITY_CONF_FILE_NAME = "server-identity.conf";

@@ -36,26 +36,30 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.model.StatusCode;
 
 /**
- * Factory to get LogbookParameters object
+ * 
+ * Logbook parameters factory </br>
+
+ * Factory to get LogbookParameters object </br>
  *
  * Example:
  *
  * <pre>
  *     {@code
- *      // Retrieve logbook operation parameters with standard required fields
+ *      // Retrieves logbook operation parameters with standard required fields
  *      LogbookOperationParameters parameters = LogbookParametersFactory.getLogbookOperationParameters();
  *
- *      // Retrieve logbook operation parameters with standard required fields and specifics required fields
+ *      // Retrieves logbook operation parameters with standard required fields and specifics required fields
  *      Set<LogbookParameterName> specificMandatoryFields = new HashSet<>()
  *      // add specific fields
  *      specificMandatoryFields.add(LogbookParameterName.objectIdentifier);
  *      specificMandatoryFields.add(LogbookParameterName.agentIdentifier);
  *
- *      // Retrieve parameter object
+ *      // Retrieves parameter object
  *      parameters = LogbookParametersFactory.getLogbookOperationParameters(specificMandatoryFields);
  *     }
  * </pre>
  */
+
 // TODO: see WorkerParametersFactory and create a common factory
 // for all "vitam parameters" using generic (for example)
 public class LogbookParametersFactory {

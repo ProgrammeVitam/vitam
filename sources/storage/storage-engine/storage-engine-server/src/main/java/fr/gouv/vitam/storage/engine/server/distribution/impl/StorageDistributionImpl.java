@@ -91,9 +91,10 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
- * StorageDistribution service Implementation TODO: see what to do with RuntimeException (catch it and log it to let the
+ * StorageDistribution service Implementation 
  * process continue if needed)
  */
+//TODO: see what to do with RuntimeException (catch it and log it to let the
 public class StorageDistributionImpl implements StorageDistribution {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageDistributionImpl.class);

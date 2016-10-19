@@ -44,10 +44,11 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * Class helper to manage specifics Vitam headers
- *
- * TODO: This is a copy of the api-design module header management. In another item we should refactor both to make this
- * http header management common vitam.
  */
+
+// TODO: This is a copy of the api-design module header management. In another item we should refactor both to make this
+// http header management common vitam.
+
 public final class HttpHeaderHelper {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(HttpHeaderHelper.class);
 

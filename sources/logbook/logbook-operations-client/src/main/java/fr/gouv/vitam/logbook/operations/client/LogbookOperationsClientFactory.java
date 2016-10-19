@@ -37,11 +37,11 @@ import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 
 /**
- * LogbookClient factory <br />
+ * Logbook client factory<br /> 
  * <br />
- * Use to get a logbook client in function of its type.
+ * Used to get a client logbook depending on its type.
  *
- * Example for create operation:
+ * Example of operation creation:
  *
  * <pre>
  * {
@@ -60,7 +60,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
  * }
  * </pre>
  *
- * Example for update operation:
+ * Example of operation update:
  *
  * <pre>
  * {
@@ -83,7 +83,9 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
  * }
  * </pre>
  */
+
 public final class LogbookOperationsClientFactory extends VitamClientFactory<LogbookOperationsClient> {
+
 
     private static final String CONFIGURATION_FILENAME = "logbook-client.conf";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookOperationsClientFactory.class);

@@ -39,7 +39,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 
 /**
- * Class to handle FutureResponseHelper from a client in order to close it when done. </br>
+ * Class to handle FutureResponseHelper from a client in order to close it when done. </br></br>
  * <b>Deprecated</b>: One should use {@link AsyncInputStreamHelper} and potentially {@link ResponseHelper} instead.</br>
  * </br>
  * Example:</br>
@@ -78,6 +78,7 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
  * </code>
  * </pre>
  */
+
 @Deprecated
 public class FutureResponseHelper {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(FutureResponseHelper.class);

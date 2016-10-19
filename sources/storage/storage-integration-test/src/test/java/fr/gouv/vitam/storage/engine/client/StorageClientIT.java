@@ -192,9 +192,7 @@ public class StorageClientIT {
     }
 
 
-    /**
-     * TODO test integration to finish (bug on exiting folder)
-     */
+    //TODO test integration to finish (bug on exiting folder)
     @Test
     public final void testStorage() throws VitamClientException, FileNotFoundException {
 

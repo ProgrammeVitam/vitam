@@ -48,10 +48,13 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
- * Access client
- *
- * TODO : tenantId should be determined otherwise with a config or so
+ * Access client <br> <br>
+ * 
  */
+
+// TODO : tenantId should be determined otherwise with a config or so
+
+
 public class AccessClientRest extends DefaultClient implements AccessClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessClientRest.class);
 

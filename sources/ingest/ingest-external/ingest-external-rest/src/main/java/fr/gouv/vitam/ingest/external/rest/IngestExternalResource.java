@@ -69,13 +69,14 @@ public class IngestExternalResource extends ApplicationStatusResource {
     }
 
     /**
-     * upload the file in local TODO : add file name
+     * upload the file in local 
      *
      * @param stream data input stream
      * @param header method for entry data
      * @return Response
      * @throws XMLStreamException
      */
+    //TODO : add file name
     @Path("upload")
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)

@@ -185,12 +185,12 @@ public class StorageResource extends ApplicationStatusResource {
     /**
      * Create a container
      * <p>
-     * TODO : container creation possibility needs to be re-think then deleted or implemented. Vitam Architects are
-     * aware of this
      *
      * @param headers http header
      * @return Response NOT_IMPLEMENTED
      */
+    //TODO : container creation possibility needs to be re-think then deleted or implemented. Vitam Architects are
+    //aware of this
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -298,12 +298,13 @@ public class StorageResource extends ApplicationStatusResource {
      * Post a new object
      *
      * @param httpServletRequest http servlet request to get requester
-     *                           TODO: remove httpServletRequest when requester information sent by header (X-Requester)
+     *                           
      * @param headers http header
      * @param objectId the id of the object
      * @param createObjectDescription the object description
      * @return Response
      */
+    //TODO: remove httpServletRequest when requester information sent by header (X-Requester)
     @Path("/objects/{id_object}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
@@ -448,12 +449,13 @@ public class StorageResource extends ApplicationStatusResource {
      * Post a new object
      *
      * @param httpServletRequest http servlet request to get requester
-     *                           TODO: remove httpServletRequest when requester information sent by header (X-Requester)
+     *
      * @param headers http header
      * @param logbookId the id of the logbookId
      * @param createObjectDescription the workspace information about logbook to be created
      * @return Response NOT_IMPLEMENTED
      */
+    //TODO: remove httpServletRequest when requester information sent by header (X-Requester)
     @Path("/logbooks/{id_logbook}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
@@ -536,12 +538,13 @@ public class StorageResource extends ApplicationStatusResource {
      * Post a new unit metadata
      *
      * @param httpServletRequest http servlet request to get requester
-     *                           TODO: remove httpServletRequest when requester information sent by header (X-Requester)
+     *
      * @param headers http header
      * @param metadataId the id of the unit metadata
      * @param createObjectDescription the workspace description of the unit to be created
      * @return Response NOT_IMPLEMENTED
      */
+    //TODO: remove httpServletRequest when requester information sent by header (X-Requester)
     @Path("/units/{id_md}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
@@ -644,13 +647,14 @@ public class StorageResource extends ApplicationStatusResource {
      * Note : this is NOT to be handled in item #72.
      *
      * @param httpServletRequest http servlet request to get requester
-     *                           TODO: remove httpServletRequest when requester information sent by header (X-Requester)
+     *
      * @param headers http header
      * @param metadataId the id of the Object Group metadata
      * @param createObjectDescription the workspace description of the unit to be created
      * @return Response Created, not found or internal server error
      */
-    // TODO : check the existence, in the headers, of the value X-Http-Method-Override, if set
+    //TODO: remove httpServletRequest when requester information sent by header (X-Requester)
+    //TODO : check the existence, in the headers, of the value X-Http-Method-Override, if set
     @Path("/objectgroups/{id_md}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
@@ -738,12 +742,13 @@ public class StorageResource extends ApplicationStatusResource {
      * Post a new object
      *
      * @param httpServletRequest http servlet request to get requester
-     *                           TODO: remove httpServletRequest when requester information sent by header (X-Requester)
+     *
      * @param headers http header
      * @param reportId the id of the object
      * @param createObjectDescription the object description
      * @return Response
      */
+    //TODO: remove httpServletRequest when requester information sent by header (X-Requester)
     @Path("/reports/{id_report}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)

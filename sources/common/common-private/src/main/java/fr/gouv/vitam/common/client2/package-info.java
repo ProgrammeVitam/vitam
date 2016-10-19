@@ -26,8 +26,7 @@
  *******************************************************************************/
 
 /**
- * Contains generic VitamClient and associated basic implementation to be used as a base for every module specific
- * client.
+ * Contains generic VitamClient and associated basic implementation used as base for every specific client module.
  *
  */
 package fr.gouv.vitam.common.client2;

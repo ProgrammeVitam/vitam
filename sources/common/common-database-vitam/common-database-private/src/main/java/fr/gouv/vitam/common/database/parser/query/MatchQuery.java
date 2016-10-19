@@ -34,7 +34,7 @@ import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
- *
+ * Match query
  *
  */
 public class MatchQuery extends fr.gouv.vitam.common.database.builder.query.MatchQuery {

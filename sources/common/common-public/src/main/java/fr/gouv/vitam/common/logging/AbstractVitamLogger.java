@@ -32,10 +32,12 @@ import java.io.Serializable;
 import fr.gouv.vitam.common.ServerIdentityInterface;
 
 /**
- * A skeletal implementation of {@link VitamLogger}. This class implements all methods that have a {@link VitamLogLevel}
+ * This class implements all methods that have a {@link VitamLogLevel}
  * parameter by default to call specific logger methods such as {@link #info(String)} or {@link #isInfoEnabled()}. <br>
- * Inspired from Netty
+ * Inspired from Netty </br>
+ * A skeletal implementation of {@link VitamLogger}
  */
+
 public abstract class AbstractVitamLogger implements VitamLogger, Serializable {
 
     private static final char PACKAGE_SEPARATOR_CHAR = '.';

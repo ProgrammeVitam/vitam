@@ -26,6 +26,6 @@
  *******************************************************************************/
 
 /**
- * ingest external common model response package
+ * Ingest external common model response package
  */
 package fr.gouv.vitam.ingest.external.common.model.response;

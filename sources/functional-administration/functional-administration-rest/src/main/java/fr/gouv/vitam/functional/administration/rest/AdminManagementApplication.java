@@ -47,7 +47,7 @@ import fr.gouv.vitam.common.server.application.AdminStatusResource;
 import fr.gouv.vitam.common.server.application.BasicVitamStatusServiceImpl;
 
 /**
- * admin management web application
+ * Admin management web application
  */
 public final class AdminManagementApplication
     extends AbstractVitamApplication<AdminManagementApplication, AdminManagementConfiguration> {

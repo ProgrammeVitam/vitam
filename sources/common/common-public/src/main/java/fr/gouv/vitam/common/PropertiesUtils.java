@@ -45,10 +45,11 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 
 /**
- * Property Utility class <br>
- * <br>
+ * Property Utility class 
+ * 
  * NOTE for developers: Do not add LOGGER there
  */
+
 public final class PropertiesUtils {
 
     private static final String FILE_NOT_FOUND_IN_RESOURCES = "File not found in Resources: ";

@@ -25,6 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Digest sypport package for Vitam
+ * Digest support package for Vitam
  */
 package fr.gouv.vitam.common.digest;

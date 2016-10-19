@@ -31,9 +31,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Model representing an Hot strategy TODO : maybe rename this to Strategy if we later find that Hot and Cold strategies
- * share the same attributes
+ * Model representing a Hot strategy 
  */
+
+//TODO : maybe rename this to Strategy if we later find that Hot and Cold strategies
+//share the same attributes
+
 public class HotStrategy {
     private Integer copy;
     private List<OfferReference> offers = new ArrayList<>();
