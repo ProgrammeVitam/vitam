@@ -45,7 +45,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
  */
 public class UserInterfaceTransactionManager {
 
-    private static final AccessClient ACCESS_CLIENT = AccessClientFactory.getInstance().getAccessOperationClient();
+    private static final AccessClient ACCESS_CLIENT = AccessClientFactory.getInstance().getClient();
 
     /**
      * Gets search units result

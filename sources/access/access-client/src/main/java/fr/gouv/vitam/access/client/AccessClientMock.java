@@ -34,13 +34,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.access.common.exception.AccessClientNotFoundException;
 import fr.gouv.vitam.access.common.exception.AccessClientServerException;
+import fr.gouv.vitam.common.client2.AbstractMockClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
  * Mock client implementation for access
  */
-public class AccessClientMock implements AccessClient {
+public class AccessClientMock extends AbstractMockClient implements AccessClient {
 
     static final String MOCK_GET_FILE_CONTENT = "Vitam test";
 

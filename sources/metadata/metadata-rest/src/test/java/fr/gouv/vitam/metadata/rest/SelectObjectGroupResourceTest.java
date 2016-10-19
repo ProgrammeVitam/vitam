@@ -38,10 +38,13 @@ import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.Response.Status;
 
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.http.BindHttpException;
 import org.elasticsearch.node.Node;
 import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Assume;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -129,25 +132,37 @@ public class SelectObjectGroupResourceTest {
         junitHelper = JunitHelper.getInstance();
 
         // ES
-        TCP_PORT = junitHelper.findAvailablePort();
-        HTTP_PORT = junitHelper.findAvailablePort();
-
         elasticsearchHome = tempFolder.newFolder();
-        final Settings settings = Settings.settingsBuilder()
-            .put("http.enabled", true)
-            .put("discovery.zen.ping.multicast.enabled", false)
-            .put("transport.tcp.port", TCP_PORT)
-            .put("http.port", HTTP_PORT)
-            .put("path.home", elasticsearchHome.getCanonicalPath())
-            .build();
+        for (int i = 0; i < 3; i++) {
+            TCP_PORT = junitHelper.findAvailablePort();
+            HTTP_PORT = junitHelper.findAvailablePort();
 
-        node = nodeBuilder()
-            .settings(settings)
-            .client(false)
-            .clusterName(CLUSTER_NAME)
-            .node();
+            try {
+                final Settings settings = Settings.settingsBuilder()
+                    .put("http.enabled", true)
+                    .put("discovery.zen.ping.multicast.enabled", false)
+                    .put("transport.tcp.port", TCP_PORT)
+                    .put("http.port", HTTP_PORT)
+                    .put("path.home", elasticsearchHome.getCanonicalPath())
+                    .build();
 
-        node.start();
+                node = nodeBuilder()
+                    .settings(settings)
+                    .client(false)
+                    .clusterName(CLUSTER_NAME)
+                    .node();
+
+                node.start();
+            } catch (BindHttpException e) {
+                junitHelper.releasePort(TCP_PORT);
+                junitHelper.releasePort(HTTP_PORT);
+                node = null;
+                continue;
+            }
+        }
+        if (node == null) {
+            return;
+        }
 
         final List<ElasticsearchNode> nodes = new ArrayList<ElasticsearchNode>();
         nodes.add(new ElasticsearchNode(HOST_NAME, TCP_PORT));
@@ -172,6 +187,9 @@ public class SelectObjectGroupResourceTest {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
+        if (node == null) {
+            return;
+        }
         MetaDataApplication.stop();
         mongod.stop();
         mongodExecutable.stop();
@@ -184,6 +202,10 @@ public class SelectObjectGroupResourceTest {
 
         junitHelper.releasePort(TCP_PORT);
         junitHelper.releasePort(HTTP_PORT);
+    }
+    @Before
+    public void before() {
+        Assume.assumeTrue("Elasticsearch not started but should", node != null);
     }
 
     @After

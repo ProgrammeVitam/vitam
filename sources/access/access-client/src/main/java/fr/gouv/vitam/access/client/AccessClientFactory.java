@@ -28,13 +28,12 @@ package fr.gouv.vitam.access.client;
 
 import java.io.IOException;
 
-import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
+import fr.gouv.vitam.common.client2.VitamClientFactory;
+import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.VitamServerFactory;
-import fr.gouv.vitam.common.server.application.configuration.ClientConfiguration;
-import fr.gouv.vitam.common.server.application.configuration.ClientConfigurationImpl;
 
 /**
  * Access client factory<br>
@@ -43,39 +42,14 @@ import fr.gouv.vitam.common.server.application.configuration.ClientConfiguration
  * mock access client will be returned
  *
  */
-public class AccessClientFactory {
-    /**
-     * Default client operation type
-     */
-    private static AccessClientType defaultOperationsClientType;
-    private static final String CONFIGURATION_FILENAME = "access-client.conf";
+public class AccessClientFactory extends VitamClientFactory<AccessClient> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessClientFactory.class);
+    private static final String CONFIGURATION_FILENAME = "access-client.conf";
     private static final AccessClientFactory ACCESS_CLIENT_FACTORY = new AccessClientFactory();
-
-    private String server = "localhost";
-    private int port = VitamServerFactory.getDefaultPort();
+    private static final String RESOURCE_PATH = "/access/v1";
 
     private AccessClientFactory() {
-        changeConfigurationFile(CONFIGURATION_FILENAME);
-    }
-
-    /**
-     * Set the AccessClientFactory configuration
-     *
-     * @param type
-     * @param server hostname
-     * @param port port to use
-     * @throws IllegalArgumentException if type null or if type is OPERATIONS and server is null or empty or port <= 0
-     */
-    static final void setConfiguration(AccessClientType type, String server, int port) {
-
-        changeDefaultClientType(type);
-        if (type == AccessClientType.PRODUCTION) {
-            ParametersChecker.checkParameter("Server cannot be null or empty with OPERATIONS", server);
-            ParametersChecker.checkValue("port", port, 1);
-        }
-        ACCESS_CLIENT_FACTORY.server = server;
-        ACCESS_CLIENT_FACTORY.port = port;
+        super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH);
     }
 
     /**
@@ -92,14 +66,15 @@ public class AccessClientFactory {
      *
      * @return the default access client
      */
-    public AccessClient getAccessOperationClient() {
+    @Override
+    public AccessClient getClient() {
         AccessClient client;
-        switch (defaultOperationsClientType) {
+        switch (getVitamClientType()) {
             case MOCK:
                 client = new AccessClientMock();
                 break;
             case PRODUCTION:
-                client = new AccessClientRest(server, port);
+                client = new AccessClientRest(this);
                 break;
             default:
                 throw new IllegalArgumentException("Log type unknown");
@@ -108,64 +83,33 @@ public class AccessClientFactory {
     }
 
     /**
-     * Modify the default access client type
-     *
-     * @param type the client type to set
-     * @throws IllegalArgumentException if type null
-     */
-    static void changeDefaultClientType(AccessClientType type) {
-        if (type == null) {
-            throw new IllegalArgumentException();
-        }
-        defaultOperationsClientType = type;
-    }
-
-    /**
-     * Get the default access client type
-     *
-     * @return the default access client type
-     */
-    public static AccessClientType getDefaultAccessClientType() {
-        return defaultOperationsClientType;
-    }
-
-    /**
      * Change client configuration from a Yaml files
      *
-     * @param configurationPath the path to the configuration file
+     * @param configurationPath the path to the configuration file, null for MOCK
+     * @return clientConfiguration
      */
-    public final void changeConfigurationFile(String configurationPath) {
-        changeDefaultClientType(AccessClientType.MOCK);
+    static final ClientConfiguration changeConfigurationFile(String configurationPath) {
         ClientConfiguration configuration = null;
-        try {
-            configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
-                ClientConfigurationImpl.class);
-        } catch (final IOException fnf) {
-            if (LOGGER.isDebugEnabled()) {
+        if (configurationPath != null) {
+            try {
+                configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
+                    ClientConfigurationImpl.class);
+            } catch (final IOException fnf) {
                 LOGGER.debug("Error when retrieving configuration file {}, using mock",
                     CONFIGURATION_FILENAME, fnf);
             }
         }
         if (configuration == null) {
-            LOGGER.debug("Error when retrieving configuration file {}, using mock", CONFIGURATION_FILENAME);
-        } else {
-            server = configuration.getServerHost();
-            port = configuration.getServerPort();
-            changeDefaultClientType(AccessClientType.PRODUCTION);
+            LOGGER.error("Error when retrieving configuration file {}, using mock", CONFIGURATION_FILENAME);
         }
+        return configuration;
     }
 
     /**
-     * enum to define client type
+     *
+     * @param configuration null for MOCK
      */
-    public enum AccessClientType {
-        /**
-         * To use only in MOCK ACCESS
-         */
-        MOCK,
-        /**
-         * Use real service (need server to be set)
-         */
-        PRODUCTION
+    static final void changeMode(ClientConfiguration configuration) {
+        getInstance().initialisation(configuration, getInstance().getResourcePath());
     }
 }

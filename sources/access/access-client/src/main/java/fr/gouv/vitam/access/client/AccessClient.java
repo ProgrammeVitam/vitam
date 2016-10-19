@@ -32,12 +32,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.access.common.exception.AccessClientNotFoundException;
 import fr.gouv.vitam.access.common.exception.AccessClientServerException;
+import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
  * Access client interface
  */
-public interface AccessClient {
+public interface AccessClient extends MockOrRestClient {
 
     /**
      * Select Units

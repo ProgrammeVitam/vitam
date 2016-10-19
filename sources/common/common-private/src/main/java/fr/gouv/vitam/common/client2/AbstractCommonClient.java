@@ -105,7 +105,7 @@ abstract class AbstractCommonClient implements BasicClient {
                     StreamUtils.closeSilently((InputStream) object);
                 }
             }
-        } catch (final IllegalStateException e) {
+        } catch (final IllegalStateException | ProcessingException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         } finally {
             if (response != null) {
@@ -287,7 +287,7 @@ abstract class AbstractCommonClient implements BasicClient {
      *
      * @return the client
      */
-    Client getHttpClient() {
+    protected Client getHttpClient() {
         return getHttpClient(getChunkedMode());
     }
 
@@ -297,7 +297,7 @@ abstract class AbstractCommonClient implements BasicClient {
      * @param useChunkedMode
      * @return the client
      */
-    Client getHttpClient(boolean useChunkedMode) {
+    protected Client getHttpClient(boolean useChunkedMode) {
         if (useChunkedMode) {
             return client;
         } else {

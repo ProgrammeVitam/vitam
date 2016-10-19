@@ -29,7 +29,6 @@ package fr.gouv.vitam.access.client;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.InputStream;
@@ -42,7 +41,6 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -50,10 +48,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.io.IOUtils;
-import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.JerseyTest;
-import org.glassfish.jersey.test.TestProperties;
 import org.junit.Test;
 
 import fr.gouv.vitam.access.api.AccessResource;
@@ -61,12 +56,17 @@ import fr.gouv.vitam.access.common.exception.AccessClientNotFoundException;
 import fr.gouv.vitam.access.common.exception.AccessClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
+import fr.gouv.vitam.common.server2.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
+import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;
 
-public class AccessClientRestTest extends JerseyTest {
+public class AccessClientRestTest extends VitamJerseyTest {
     protected static final String HOSTNAME = "localhost";
     protected static final int PORT = 8082;
     protected static final String PATH = "/access/v1";
-    protected final AccessClientRest client;
+    protected AccessClientRest client;
 
     final String queryDsql =
         "{ $query : [ { $eq : { 'title' : 'test' } } ], " +
@@ -77,33 +77,53 @@ public class AccessClientRestTest extends JerseyTest {
     final String USAGE = "BinaryMaster";
     final int VERSION = 1;
 
-    protected ExpectedResults mock;
-
-    interface ExpectedResults {
-        Response post();
-
-        Response get();
-
-        Response put();
-    }
-
+    // ************************************** //
+    // Start of VitamJerseyTest configuration //
+    // ************************************** //
     public AccessClientRestTest() {
-        client = new AccessClientRest(HOSTNAME, PORT);
+        super(AccessClientFactory.getInstance());
     }
 
     @Override
-    protected Application configure() {
-        enable(TestProperties.LOG_TRAFFIC);
-        enable(TestProperties.DUMP_ENTITY);
-        forceSet(TestProperties.CONTAINER_PORT, Integer.toString(PORT));
-        mock = mock(ExpectedResults.class);
-        final ResourceConfig resourceConfig = new ResourceConfig();
-        resourceConfig.register(JacksonFeature.class);
-        return resourceConfig.registerInstances(new MockResource(mock));
+    public void beforeTest() {
+        client = (AccessClientRest) getClient();
+    }
+
+    // Define the getApplication to return your Application using the correct Configuration
+    @Override
+    public StartApplicationResponse<AbstractApplication> startVitamApplication(int reservedPort) {
+        final TestVitamApplicationConfiguration configuration = new TestVitamApplicationConfiguration();
+        configuration.setJettyConfig(DEFAULT_XML_CONFIGURATION_FILE);
+        final AbstractApplication application = new AbstractApplication(configuration);
+        try {
+            application.start();
+        } catch (final VitamApplicationServerException e) {
+            throw new IllegalStateException("Cannot start the application", e);
+        }
+        return new StartApplicationResponse<AbstractApplication>()
+            .setServerPort(application.getVitamServer().getPort())
+            .setApplication(application);
+    }
+
+    // Define your Application class if necessary
+    public final class AbstractApplication
+        extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
+        protected AbstractApplication(TestVitamApplicationConfiguration configuration) {
+            super(TestVitamApplicationConfiguration.class, configuration);
+        }
+
+        @Override
+        protected void registerInResourceConfig(ResourceConfig resourceConfig) {
+            resourceConfig.registerInstances(new MockResource(mock));
+        }
+    }
+    // Define your Configuration class if necessary
+    public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
+
     }
 
     @Path("/access/v1")
-    public static class MockResource implements AccessResource {
+    public static class MockResource extends ApplicationStatusResource implements AccessResource {
         private final ExpectedResults expectedResponse;
 
         public MockResource(ExpectedResults expectedResponse) {
@@ -142,7 +162,8 @@ public class AccessClientRestTest extends JerseyTest {
 
         @GET
         @Path("/status")
-        public Response getStatus() {
+        @Override
+        public Response status() {
             return expectedResponse.get();
         }
 
@@ -403,7 +424,7 @@ public class AccessClientRestTest extends JerseyTest {
     @Test
     public void statusExecutionWithouthBody() throws Exception {
         when(mock.get()).thenReturn(Response.status(Response.Status.OK).build());
-        client.status();
+        client.checkStatus();
     }
 
 }

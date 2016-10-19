@@ -35,7 +35,9 @@ import static org.junit.Assert.fail;
 import org.junit.Before;
 import org.junit.Test;
 
-import fr.gouv.vitam.access.client.AccessClientFactory.AccessClientType;
+import fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType;
+import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
+import fr.gouv.vitam.common.client2.configuration.ClientConfigurationImpl;
 
 /**
  * Test class for client (and parameters) factory
@@ -44,37 +46,40 @@ public class AccessClientFactoryTest {
 
     @Before
     public void initFileConfiguration() {
-        AccessClientFactory.getInstance().changeConfigurationFile("access-client.conf");
+        AccessClientFactory.changeMode(AccessClientFactory.changeConfigurationFile("access-client.conf"));
     }
 
     @Test
     public void getClientInstanceTest() {
         try {
-            AccessClientFactory.setConfiguration(AccessClientType.PRODUCTION, null, 10);
+            final ClientConfiguration configuration = new ClientConfigurationImpl().setServerPort(10);
+            AccessClientFactory.changeMode(configuration);
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
 
         }
         try {
-            AccessClientFactory.setConfiguration(AccessClientType.PRODUCTION, "localhost", -10);
+            final ClientConfiguration configuration = new ClientConfigurationImpl("localhost", -10);
+            AccessClientFactory.changeMode(configuration);
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
 
         }
         try {
-            AccessClientFactory.setConfiguration(null, null, 10);
+            final ClientConfiguration configuration = new ClientConfigurationImpl().setServerPort(10);
+            AccessClientFactory.changeMode(configuration);
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
 
         }
-        AccessClientFactory.setConfiguration(AccessClientType.MOCK, null, -1);
+        AccessClientFactory.changeMode(null);
 
         final AccessClient client =
-            AccessClientFactory.getInstance().getAccessOperationClient();
+            AccessClientFactory.getInstance().getClient();
         assertNotNull(client);
 
         final AccessClient client2 =
-            AccessClientFactory.getInstance().getAccessOperationClient();
+            AccessClientFactory.getInstance().getClient();
         assertNotNull(client2);
 
         assertNotSame(client, client2);
@@ -83,35 +88,28 @@ public class AccessClientFactoryTest {
     @Test
     public void changeDefaultClientTypeTest() {
         final AccessClient client =
-            AccessClientFactory.getInstance().getAccessOperationClient();
+            AccessClientFactory.getInstance().getClient();
         assertTrue(client instanceof AccessClientRest);
-        final AccessClientFactory.AccessClientType type = AccessClientFactory.getDefaultAccessClientType();
-        assertNotNull(type);
-        assertEquals(AccessClientType.PRODUCTION, type);
+        assertEquals(VitamClientType.PRODUCTION, AccessClientFactory.getInstance().getVitamClientType());
 
-        AccessClientFactory.setConfiguration(AccessClientType.MOCK, null, 0);
-        final AccessClient client2 = AccessClientFactory.getInstance().getAccessOperationClient();
+        AccessClientFactory.changeMode(null);
+        final AccessClient client2 = AccessClientFactory.getInstance().getClient();
         // a voir- bug
         assertTrue(client2 instanceof AccessClientMock);
-        final AccessClientFactory.AccessClientType type2 = AccessClientFactory.getDefaultAccessClientType();
-        assertNotNull(type2);
-        assertEquals(AccessClientType.MOCK, type2);
+        assertEquals(VitamClientType.MOCK, AccessClientFactory.getInstance().getVitamClientType());
 
-        AccessClientFactory.setConfiguration(AccessClientFactory.AccessClientType.PRODUCTION, "server", 1025);
-        final AccessClient client3 = AccessClientFactory.getInstance().getAccessOperationClient();
+        final ClientConfiguration configuration = new ClientConfigurationImpl("server", 1025);
+        AccessClientFactory.changeMode(configuration);
+        final AccessClient client3 = AccessClientFactory.getInstance().getClient();
         assertTrue(client3 instanceof AccessClientRest);
-        final AccessClientFactory.AccessClientType type3 = AccessClientFactory.getDefaultAccessClientType();
-        assertNotNull(type3);
-        assertEquals(AccessClientType.PRODUCTION, type3);
+        assertEquals(VitamClientType.PRODUCTION, AccessClientFactory.getInstance().getVitamClientType());
     }
 
     @Test
     public void testInitWithConfigurationFile() {
         final AccessClient client =
-            AccessClientFactory.getInstance().getAccessOperationClient();
+            AccessClientFactory.getInstance().getClient();
         assertTrue(client instanceof AccessClientRest);
-        final AccessClientFactory.AccessClientType type = AccessClientFactory.getDefaultAccessClientType();
-        assertNotNull(type);
-        assertEquals(AccessClientType.PRODUCTION, type);
+        assertEquals(VitamClientType.PRODUCTION, AccessClientFactory.getInstance().getVitamClientType());
     }
 }

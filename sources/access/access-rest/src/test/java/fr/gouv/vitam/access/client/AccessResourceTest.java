@@ -96,7 +96,7 @@ public class AccessResourceTest {
     public final void test() throws AccessClientException, InvalidParseOperationException {
 
         final AccessClient client =
-            AccessClientFactory.getInstance().getAccessOperationClient();
+            AccessClientFactory.getInstance().getClient();
         final String selectQuery =
             "{ $query : [ { $eq : { 'title' : 'test' } } ], " +
                 " $filter : { $orderby : { '#id' } }," +

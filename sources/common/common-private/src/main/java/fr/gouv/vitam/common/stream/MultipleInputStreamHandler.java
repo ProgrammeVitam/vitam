@@ -331,6 +331,7 @@ public class MultipleInputStreamHandler implements AutoCloseable {
         private int available;
         private IOException exception;
         private int toRead;
+        @SuppressWarnings("unused")
         private long rank;
 
         private int copy(int position, byte[] b, int off, int len) {
@@ -345,14 +346,6 @@ public class MultipleInputStreamHandler implements AutoCloseable {
             if (toRead == 0 && !mish.endOfRead) {
                 mish.buffers.add(this);
             }
-        }
-
-        @Override
-        public String toString() {
-            return new StringBuilder("{ available: ").append(available)
-                .append(", toRead: ").append(toRead).append(", rank: ").append(rank)
-                .append(", exception: ").append(exception != null ? exception.getMessage() : "'none'")
-                .append("}").toString();
         }
     }
 }

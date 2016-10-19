@@ -50,8 +50,6 @@ import org.junit.Test;
 
 import fr.gouv.vitam.common.client2.BasicClient;
 import fr.gouv.vitam.common.client2.DefaultClient;
-import fr.gouv.vitam.common.client2.FutureResponseHelper;
-import fr.gouv.vitam.common.client2.FutureResponseHelper.AsyncRunnable;
 import fr.gouv.vitam.common.client2.TestVitamClientFactory;
 import fr.gouv.vitam.common.client2.VitamRestTestClient;
 import fr.gouv.vitam.common.client2.VitamRestTestClient.VitamRestTest;
@@ -61,6 +59,7 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server2.VitamServerFactory;
+import fr.gouv.vitam.common.server2.application.FutureResponseHelper.AsyncRunnable;
 import fr.gouv.vitam.common.server2.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
 import fr.gouv.vitam.common.server2.application.resources.ApplicationStatusResource;

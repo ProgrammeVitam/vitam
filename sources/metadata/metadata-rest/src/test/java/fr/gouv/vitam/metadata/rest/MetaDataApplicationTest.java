@@ -31,8 +31,11 @@ import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
 import java.io.File;
 
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.http.BindHttpException;
 import org.elasticsearch.node.Node;
 import org.junit.AfterClass;
+import org.junit.Assume;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -72,25 +75,37 @@ public class MetaDataApplicationTest {
         junitHelper = JunitHelper.getInstance();
 
         // ES
-        TCP_PORT = junitHelper.findAvailablePort();
-        HTTP_PORT = junitHelper.findAvailablePort();
-
         elasticsearchHome = tempFolder.newFolder();
-        final Settings settings = Settings.settingsBuilder()
-            .put("http.enabled", true)
-            .put("discovery.zen.ping.multicast.enabled", false)
-            .put("transport.tcp.port", TCP_PORT)
-            .put("http.port", HTTP_PORT)
-            .put("path.home", elasticsearchHome.getCanonicalPath())
-            .build();
+        for (int i = 0; i < 3; i++) {
+            TCP_PORT = junitHelper.findAvailablePort();
+            HTTP_PORT = junitHelper.findAvailablePort();
 
-        node = nodeBuilder()
-            .settings(settings)
-            .client(false)
-            .clusterName(CLUSTER_NAME)
-            .node();
+            try {
+                final Settings settings = Settings.settingsBuilder()
+                    .put("http.enabled", true)
+                    .put("discovery.zen.ping.multicast.enabled", false)
+                    .put("transport.tcp.port", TCP_PORT)
+                    .put("http.port", HTTP_PORT)
+                    .put("path.home", elasticsearchHome.getCanonicalPath())
+                    .build();
 
-        node.start();
+                node = nodeBuilder()
+                    .settings(settings)
+                    .client(false)
+                    .clusterName(CLUSTER_NAME)
+                    .node();
+
+                node.start();
+            } catch (BindHttpException e) {
+                junitHelper.releasePort(TCP_PORT);
+                junitHelper.releasePort(HTTP_PORT);
+                node = null;
+                continue;
+            }
+        }
+        if (node == null) {
+            return;
+        }
 
         final MongodStarter starter = MongodStarter.getDefaultInstance();
 
@@ -104,6 +119,9 @@ public class MetaDataApplicationTest {
 
     @AfterClass
     public static void tearDownAfterClass() {
+        if (node == null) {
+            return;
+        }
         mongod.stop();
         mongodExecutable.stop();
         junitHelper.releasePort(port);
@@ -114,6 +132,10 @@ public class MetaDataApplicationTest {
 
         junitHelper.releasePort(TCP_PORT);
         junitHelper.releasePort(HTTP_PORT);
+    }
+    @Before
+    public void before() {
+        Assume.assumeTrue("Elasticsearch not started but should", node != null);
     }
 
     @Test(expected = VitamApplicationServerException.class)

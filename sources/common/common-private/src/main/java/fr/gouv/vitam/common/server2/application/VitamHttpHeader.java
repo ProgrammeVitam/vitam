@@ -37,15 +37,20 @@ import fr.gouv.vitam.common.GlobalDataRest;
 public enum VitamHttpHeader {
 
     /**
-     * The X_STRATEGY_ID header, used in HEAD requests to ask for a particular strategy TODO : change regex to be more
-     * precise (something like ^\s*\w+$ or \s*\w+\s*$)
+     * The X_STRATEGY_ID header, used in HEAD requests to ask for a particular strategy </br>
+     * TODO : change regex to be more precise (something like ^\s*\w+$ or \s*\w+\s*$)
      */
     STRATEGY_ID(GlobalDataRest.X_STRATEGY_ID, ".+"),
     /**
-     * The X_STRATEGY_ID header, used in requests to use a particular strategy TODO : change regex to be more precise
-     * (something like ^\s*\w+$ or \s*\w+\s*$)
+     * The X_STRATEGY_ID header, used in requests to use a particular strategy </br>
+     * TODO : change regex to be more precise (something like ^\s*\w+$ or \s*\w+\s*$)
      */
     TENANT_ID(GlobalDataRest.X_TENANT_ID, ".+"),
+    /**
+     * The X_APPLICATION_ID header, used in requests to specify external Application Session Id</br>
+     * TODO : change regex to be more precise (something like ^\s*\w+$ or \s*\w+\s*$)
+     */
+    APPLICATION_ID(GlobalDataRest.X_APPLICATION_ID, ".+"),
     /**
      * The X-Http-Method-Override header, used in requests to handle unsupported Http methods with body
      */
