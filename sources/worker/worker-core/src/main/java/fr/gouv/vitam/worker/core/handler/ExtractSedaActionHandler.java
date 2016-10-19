@@ -64,6 +64,7 @@ import de.odysseus.staxon.json.JsonXMLConfigBuilder;
 import de.odysseus.staxon.json.JsonXMLOutputFactory;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.CycleFoundException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.graph.DirectedCycle;
@@ -93,6 +94,7 @@ import fr.gouv.vitam.processing.common.model.EngineResponse;
 import fr.gouv.vitam.processing.common.model.OutcomeMessage;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.worker.common.utils.BinaryObject;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.worker.core.api.HandlerIO;
@@ -173,7 +175,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     // this map contains binaryDataObject that not have DataObjectGroupId
     private final Map<String, GotObj> binaryDataObjectIdWithoutObjectGroupId;
     private final Map<String, List<String>> objectGroupIdToUnitId;
-    private final Map<String, String> objectGuidToUri;
+    private final Map<String, BinaryObject> objectGuidToBinaryObject;
     private final Map<String, String> binaryDataObjectIdToVersionDataObject;
     private final Map<String, LogbookParameters> guidToLifeCycleParameters;
 
@@ -196,7 +198,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         objectGroupIdToUnitId = new HashMap<String, List<String>>();
         guidToLifeCycleParameters = new HashMap<String, LogbookParameters>();
         binaryDataObjectIdToVersionDataObject = new HashMap<>();
-        objectGuidToUri = new HashMap<>();
+        objectGuidToBinaryObject = new HashMap<>();
         handlerInitialIOList = new HandlerIO("");
         for (int i = 0; i < HANDLER_IO_PARAMETER_NUMBER; i++) {
             handlerInitialIOList.addOutput(String.class);
@@ -236,7 +238,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             unitIdToGroupId.clear();
             objectGroupIdToUnitId.clear();
             guidToLifeCycleParameters.clear();
-            objectGuidToUri.clear();
+            objectGuidToBinaryObject.clear();
             binaryDataObjectIdToVersionDataObject.clear();
         }
         return response;
@@ -598,6 +600,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
             final Iterator<?> it = startElement.getAttributes();
             String binaryObjectId = "";
+            BinaryObject bo = new BinaryObject();
+            
             if (it.hasNext()) {
                 binaryObjectId = ((Attribute) it.next()).getValue();
                 binaryDataObjectIdToGuid.put(binaryObjectId, elementGuid);
@@ -616,6 +620,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     if (BINARY_DATA_OBJECT.equals(end.getName().getLocalPart())) {
                         writer.add(event);
                         writer.add(eventFactory.createEndDocument());
+                        objectGuidToBinaryObject.put(elementGuid, bo); 
                         break;
                     }
                 }
@@ -679,7 +684,17 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         writer.add(eventFactory.createEndElement("", "", DATA_OBJECT_GROUPID));
                     } else if (SedaConstants.TAG_URI.equals(localPart)) {
                         final String uri = reader.getElementText();
-                        objectGuidToUri.put(elementGuid, uri);
+                        bo.setUri(uri);
+                    } else if (SedaConstants.TAG_DIGEST.equals(localPart)) {
+                        final String messageDigest = reader.getElementText();
+                        bo.setMessageDigest(messageDigest);
+                        final Iterator<?> it1 = event.asStartElement().getAttributes();
+                        
+                        if (it1.hasNext()){
+                            String al = ((Attribute) it1.next()).getValue();
+                            DigestType d = DigestType.fromValue(al);
+                            bo.setAlgo(d);
+                       }                 
                     } else {
                         writer.add(eventFactory.createStartElement("", "", localPart));
                     }
@@ -1320,7 +1335,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
             final ArrayNode arrayNode = JsonHandler.createArrayNode();
             for (final JsonNode node : entry.getValue()) {
                 final String id = node.findValue(SedaConstants.PREFIX_ID).textValue();
-                ((ObjectNode) node).put(SedaConstants.PREFIX_ID, binaryDataObjectIdToGuid.get(id));
+                String guid = binaryDataObjectIdToGuid.get(id);
+                ((ObjectNode) node).put(SedaConstants.PREFIX_ID, guid);
+                ((ObjectNode) node).put(SedaConstants.TAG_URI, objectGuidToBinaryObject.get(guid).getUri());
+                ((ObjectNode) node).put(SedaConstants.TAG_DIGEST, objectGuidToBinaryObject.get(guid).getMessageDigest());
+                ((ObjectNode) node).put(SedaConstants.ALGORITHM, objectGuidToBinaryObject.get(guid).getAlgo().getName());
                 arrayNode.add(node);
             }
             binaryNode.set(SedaConstants.TAG_VERSIONS, arrayNode);
@@ -1340,7 +1359,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 final ObjectNode objectNode = JsonHandler.createObjectNode();
                 final String id = node.findValue(SedaConstants.PREFIX_ID).textValue();
                 objectNode.put(SedaConstants.PREFIX_ID, id);
-                objectNode.put(SedaConstants.TAG_URI, objectGuidToUri.get(id));
+                
+                objectNode.put(SedaConstants.TAG_URI, objectGuidToBinaryObject.get(id).getUri());
+                objectNode.put(SedaConstants.TAG_DIGEST, objectGuidToBinaryObject.get(id).getMessageDigest());
+                objectNode.put(SedaConstants.ALGORITHM, objectGuidToBinaryObject.get(id).getAlgo().getName());
                 arrayNode.add(objectNode);
             }
             binaryNode.set(SedaConstants.TAG_VERSIONS, arrayNode);

@@ -80,26 +80,6 @@
               }
             ]
           }
-        },
-        {
-          "action": {
-            "actionKey": "CheckConformity",
-            "behavior": "BLOCKING",
-            "in": [
-              {
-                "name": "seda.file",
-                "uri": "WORKSPACE:SIP/manifest.xml"
-              },
-              {
-                "name": "mapsBDOtoOG.file",
-                "uri": "WORKSPACE:Maps/BDO_TO_OBJECT_GROUP_ID_MAP.json"
-              },
-              {
-                "name": "mapsObjectGroup.file",
-                "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json"
-              }
-            ]
-          }
         }
       ]
     }

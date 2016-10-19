@@ -45,6 +45,7 @@ import org.elasticsearch.node.Node;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
@@ -368,6 +369,7 @@ public class WorkerIT {
         workspaceClient.deleteContainer(CONTAINER_NAME);
     }
 
+    @Ignore
     @Test
     public void testWorkflowWithManifestConformityKO() throws Exception {
         CONTAINER_NAME = GUIDFactory.newManifestGUID(0).getId();

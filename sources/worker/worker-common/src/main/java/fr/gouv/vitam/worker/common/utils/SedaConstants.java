@@ -62,6 +62,11 @@ public class SedaConstants {
      * Tag of messageDigest
      */
     public static final String TAG_DIGEST = "MessageDigest";
+    
+    /**
+     * Tag of algorithm
+     */
+   public static final String ALGORITHM = "Algorithm";
 
     /**
      * Tag of DataObjectVersion

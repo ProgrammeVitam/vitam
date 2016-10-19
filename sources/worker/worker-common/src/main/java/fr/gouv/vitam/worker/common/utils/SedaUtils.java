@@ -263,6 +263,36 @@ public class SedaUtils {
             throw new ProcessingException(e);
         }
     }
+    
+    /**
+     * @param logbookLifecycleParameters
+     * @param params the parameters
+     * @throws ProcessingException
+     */
+    public static void updateLifeCycleForBegining(LogbookParameters logbookLifecycleParameters, WorkerParameters params)
+        throws ProcessingException {
+
+        try {
+            String extension = FilenameUtils.getExtension(params.getObjectName());
+            logbookLifecycleParameters.putParameterValue(LogbookParameterName.objectIdentifier,
+                params.getObjectName().replace("." + extension, ""));
+            logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
+                params.getContainerName());
+            logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventTypeProcess,
+               LIFE_CYCLE_EVENT_TYPE_PROCESS);
+
+            LOGBOOK_LIFECYCLE_CLIENT.update(logbookLifecycleParameters);
+        } catch (final LogbookClientBadRequestException e) {
+            LOGGER.error(LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG, e);
+            throw new ProcessingException(e);
+        } catch (final LogbookClientServerException e) {
+            LOGGER.error(LOGBOOK_SERVER_INTERNAL_EXCEPTION_MSG, e);
+            throw new ProcessingException(e);
+        } catch (final LogbookClientNotFoundException e) {
+            LOGGER.error(LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG, e);
+            throw new ProcessingException(e);
+        }
+    }
 
     /**
      * @param logbookLifecycleParameters logbook LC parameters
