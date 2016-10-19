@@ -29,6 +29,7 @@ package fr.gouv.vitam.ingest.internal.upload.rest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Optional;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.HeaderParam;
@@ -110,7 +111,6 @@ public class IngestInternalResource extends ApplicationStatusResource implements
 
     private final IngestInternalConfiguration configuration;
     private LogbookParameters parameters;
-    private LogbookOperationsClient logbookOperationsClient;
     private final ProcessingManagementClient processingClient;
     private final WorkspaceClient workspaceClient;
 
@@ -161,9 +161,12 @@ public class IngestInternalResource extends ApplicationStatusResource implements
 
         Response response;
         String fileName = StringUtils.EMPTY;
-        try (LogbookOperationsClient logbookOperationsClient2 =
-            LogbookOperationsClientFactory.getInstance().getClient()) {
-            logbookOperationsClient = logbookOperationsClient2;
+        // Cannot use try with resource because we need logbookOperationClient on catch block
+        // So do it in java 6 style (finally block)
+        LogbookOperationsClient logbookOperationsClient = null;
+        try {
+            logbookOperationsClient = LogbookOperationsClientFactory.getInstance().getClient();
+
             ParametersChecker.checkParameter("partList is a Mandatory parameter", partList);
 
             final LogbookOperationParametersList logbookOperationParametersList =
@@ -171,13 +174,12 @@ public class IngestInternalResource extends ApplicationStatusResource implements
 
             ParametersChecker.checkParameter("logbookOperationParametersList is a Mandatory parameter",
                 logbookOperationParametersList);
+
             ParametersChecker.checkParameter("xRequestId is a Mandatory parameter", xRequestId);
-            final int tenantId = 0; // default tenanId
 
             final GUID containerGUID = GUIDReader.getGUID(xRequestId);
-            final GUID ingestGuid = containerGUID;
 
-            logbookInitialisation(logbookOperationsClient, ingestGuid, containerGUID, tenantId);
+            logbookInitialisation(logbookOperationsClient, containerGUID, containerGUID);
             // Log Ingest External operations
             VITAM_LOGGER.debug("Log Ingest External operations");
 
@@ -250,7 +252,7 @@ public class IngestInternalResource extends ApplicationStatusResource implements
                     callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.KO,
                         OutcomeMessage.WORKFLOW_INGEST_KO.value());
                 } catch (final LogbookClientException e1) {
-                    VITAM_LOGGER.error(e1.getMessage(), e1);
+                    VITAM_LOGGER.error(e1);
                 }
             }
 
@@ -264,7 +266,7 @@ public class IngestInternalResource extends ApplicationStatusResource implements
                     parameters.putParameterValue(LogbookParameterName.eventType, INGEST_WORKFLOW);
                     callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.KO, "error workspace");
                 } catch (final LogbookClientException e1) {
-                    VITAM_LOGGER.error(e1.getMessage(), e1);
+                    VITAM_LOGGER.error(e1);
                 }
             }
 
@@ -280,13 +282,17 @@ public class IngestInternalResource extends ApplicationStatusResource implements
                     parameters.putParameterValue(LogbookParameterName.eventType, INGEST_WORKFLOW);
                     callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.KO, "error ingest");
                 } catch (final LogbookClientException e1) {
-                    VITAM_LOGGER.error(e1.getMessage(), e1);
+                    VITAM_LOGGER.error(e1);
                 }
             }
 
             VITAM_LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
             response = Response.status(Status.INTERNAL_SERVER_ERROR).build();
 
+        } finally {
+            if (logbookOperationsClient != null) {
+                logbookOperationsClient.close();
+            }
         }
 
         return response;
@@ -294,7 +300,7 @@ public class IngestInternalResource extends ApplicationStatusResource implements
 
 
     private LogbookOperationsClient logbookInitialisation(LogbookOperationsClient client, final GUID ingestGuid,
-        final GUID containerGUID, int tenantId)
+        final GUID containerGUID)
         throws LogbookClientNotFoundException,
         LogbookClientServerException, LogbookClientAlreadyExistsException, LogbookClientBadRequestException {
 
@@ -311,15 +317,13 @@ public class IngestInternalResource extends ApplicationStatusResource implements
 
     }
 
-    private LogbookOperationsClient callLogbookUpdate(LogbookOperationsClient client, LogbookParameters parameters,
+    private void callLogbookUpdate(LogbookOperationsClient client, LogbookParameters parameters,
         StatusCode logbookOutcome, String outcomeDetailMessage)
         throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
 
         parameters.setStatus(logbookOutcome);
         parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, outcomeDetailMessage);
         client.update(parameters);
-
-        return client;
     }
 
     /**

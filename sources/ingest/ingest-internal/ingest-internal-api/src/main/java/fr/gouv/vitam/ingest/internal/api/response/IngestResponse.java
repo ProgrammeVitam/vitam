@@ -59,8 +59,8 @@ public class IngestResponse {
 
     /**
      * @param numberOfElements the numberOfElements to set from a received SIP
+     * @return the current instance of IngestResponse
      */
-    // TODO commentaire @return
     public IngestResponse setNumberOfElements(Long numberOfElements) {
         this.numberOfElements = numberOfElements;
         return this;

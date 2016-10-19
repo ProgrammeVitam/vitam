@@ -62,7 +62,6 @@ public class FileDriverMapperTest {
         try {
             fileDriverMapper = FileDriverMapper.getInstance();
         } catch (final VitamException exc) {
-            System.out.println(exc.getCause());
             fail("should not raise an exception !");
         }
         assertNotNull(fileDriverMapper);
