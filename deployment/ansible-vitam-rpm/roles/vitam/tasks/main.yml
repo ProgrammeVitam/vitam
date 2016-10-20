@@ -121,9 +121,9 @@
     mode: "{{vitam_conf_permission}}"
   with_items: "{{ lookup('pipe','find {{role_path}}/files/{{ vitam_component }}/ -type f -exec basename {} \\;').split('\n') }}"
 
-
-- name: systemctl reload-daemon
-  command: systemctl daemon-reload
+# OMA: disabled as hooks are now integrated for postinst, preun && postun in pom.xml
+# - name: systemctl reload-daemon
+#   command: systemctl daemon-reload
 
 - name: (re)-start service
   service: 
